@@ -169,6 +169,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   head and its team colour on the arm. The human has four heads picked by figure id; its vest, armbands, patches and
   hat bands show the team colour. A human is at most 20,000 triangles. A BB has no glow round it; Glowing BBs keep a
   lit green ball and longer streak (owner, 2026-10-13).
+- **The game's models are its own, made in Blender; there is no drop-in player model (owner, 2026-10-18).** Players,
+  replicas, attachments and other assets are original Blender models built for the game. The browser game's option
+  to drop a glTF model into the assets folder (M25a) doesn't carry.
 - **Every figure keeps its team-colour plate carrier (owner, 2026-10-17, AX1).** The carrier reads like a site's team
   bib and is the strongest team cue at range. A civilian outfit is in `docs/IDEAS.md`.
 
@@ -525,6 +528,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   gains nothing there for four times the memory.
 - **Menus stay smooth (owner, 2026-10-12; IM1).** "The UI should always feel smooth and responsive", with a loading
   screen allowed for the tutorial, range, maps and matches.
+- **The install size budget is 500 MB installed (Claude's recommendation, 2026-10-18; the owner asked for one and may
+  change it).** Roughly 100 MB is Godot and today's assets (an estimate until a release build measures it); the rest
+  leaves room for the owner's own models, two dressed fields with baked light, and sound. Per-asset limits stay in
+  `docs/CC0_ASSETS.md` › Size limits.
 - **Small technical rulings.** Characters don't collide with each other in the physics engine; the simulation handles
   spacing and BB hits (2026-09-28). A game loop error stops the loop for good with a copyable report.
 - **Only the ground probe decides "grounded" (2026-09-28).** The controller's own flag let players hang on the top edge
