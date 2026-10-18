@@ -11,9 +11,13 @@ static func approach(current: float, target: float, max_delta: float) -> float:
 
 
 ## The pace (m/s) the character is aiming for in its stance: walking, sprinting or the run, blended towards the crouch
-## pace as it crouches. Walk held while aiming down sights creeps below the aiming pace (M84).
+## pace as it crouches. A lean slows it smoothly to walking pace, reached at lean_quiet_from of a full lean. Walk held
+## while aiming down sights creeps below the aiming pace (M84).
 static func target_speed(c: Character, cfg: MovementConfig, walk_held: bool) -> float:
 	var base := cfg.walk_speed if c.walking else (cfg.sprint_speed if c.sprinting else cfg.run_speed)
+	var lean := absf(c.lean)
+	if lean > 0.0 and not c.walking:
+		base += (cfg.walk_speed - base) * minf(1.0, lean / cfg.lean_quiet_from)
 	var speed := base + (cfg.crouch_speed - base) * c.crouch_amount
 	return speed * cfg.aim_walk_scale if c.aiming and walk_held else speed
 
@@ -26,9 +30,15 @@ static func step(c: Character, cmd: PlayerCommand, cfg: MovementConfig, accuracy
 
 	c.crouch_amount = approach(c.crouch_amount, 1.0 if cmd.crouch else 0.0, dt / cfg.crouch_transition_time)
 	var crouched := c.crouch_amount >= cfg.crouched_threshold
-	# Walking (slow, quiet) wins over sprinting, and so does aiming down sights. Sprint: forward only, never crouched.
-	c.walking = (cmd.walk or c.aiming) and not crouched
-	c.sprinting = cmd.sprint and not c.walking and cmd.forward >= cfg.sprint_min_forward and not crouched
+	# Walking (slow, quiet) wins over sprinting, and so do aiming down sights and leaning from lean_quiet_from. Sprint:
+	# forward only, never crouched, never with the lean key held (no running out of a peek); once it is let go, sprint
+	# picks up as the lean eases back under lean_quiet_from.
+	var lean := absf(c.lean)
+	c.walking = (cmd.walk or c.aiming or lean >= cfg.lean_quiet_from) and not crouched
+	c.sprinting = cmd.sprint and not c.walking and (lean == 0.0 or cmd.lean == 0.0) \
+			and cmd.forward >= cfg.sprint_min_forward and not crouched
+	# The moment after a vault before the replica can fire (Vault holds it full while vaulting).
+	c.fire_lockout = maxf(0.0, c.fire_lockout - dt)
 
 	# The wish direction on the ground: forward is (-sin, 0, -cos) and right (cos, 0, -sin) of the yaw.
 	var f := cmd.forward

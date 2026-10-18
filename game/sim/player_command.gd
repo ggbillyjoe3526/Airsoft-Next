@@ -25,6 +25,8 @@ var reload: bool = false
 var switch_to: int = -1
 ## Step the selector of the replica in hand to its next mode (one-shot).
 var cycle_fire_mode: bool = false
+## Lean held: -1 full left .. 1 full right, 0 upright (Lean).
+var lean: float = 0.0
 
 
 ## Back to no input, looking along (yaw, pitch).
@@ -42,6 +44,7 @@ func reset(view_yaw: float = 0.0, view_pitch: float = 0.0) -> void:
 	reload = false
 	switch_to = -1
 	cycle_fire_mode = false
+	lean = 0.0
 
 
 func copy_from(other: PlayerCommand) -> void:
@@ -58,3 +61,4 @@ func copy_from(other: PlayerCommand) -> void:
 	reload = other.reload
 	switch_to = other.switch_to
 	cycle_fire_mode = other.cycle_fire_mode
+	lean = other.lean

@@ -16,7 +16,8 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	for action: StringName in [&"fire", &"aim", &"move_forward", &"walk", &"crouch", &"sprint"]:
+	for action: StringName in [&"fire", &"aim", &"move_forward", &"walk", &"crouch", &"sprint", &"lean_left",
+			&"lean_right"]:
 		Input.action_release(action)
 
 
@@ -166,3 +167,37 @@ func test_the_mouse_wheel_steps_through_the_replicas() -> void:
 	assert_eq(cmd.switch_to, 0, "two steps before a tick go round twice")
 	input.fill(cmd, 0)
 	assert_eq(cmd.switch_to, -1)
+
+
+func test_lean_is_held_q_left_and_e_right() -> void:
+	Input.action_press(&"lean_right")
+	input.fill(cmd)
+	assert_eq(cmd.lean, 1.0, "E leans right")
+	Input.action_release(&"lean_right")
+	_press(&"lean_left")
+	input.fill(cmd)
+	assert_eq(cmd.lean, 0.0, "a press alone isn't a hold: lean never toggles")
+	Input.action_press(&"lean_left")
+	input.fill(cmd)
+	assert_eq(cmd.lean, -1.0, "Q leans left")
+	Input.action_press(&"lean_right")
+	input.fill(cmd)
+	assert_eq(cmd.lean, 0.0, "both held cancel out")
+
+
+func test_aim_is_held_by_default_and_toggles_with_the_setting() -> void:
+	assert_false(controls.aim_toggle, "held by default (owner, 2026-10-03)")
+	_press(&"aim")
+	input.fill(cmd)
+	assert_false(cmd.aim, "held: a press alone isn't a hold")
+	var toggled := ControlsConfig.new()
+	toggled.aim_toggle = true
+	input.setup(toggled, 1.5)
+	_press(&"aim")
+	input.fill(cmd)
+	assert_true(cmd.aim, "up after one press, the button already up")
+	input.fill(cmd)
+	assert_true(cmd.aim, "still up a tick later")
+	_press(&"aim")
+	input.fill(cmd)
+	assert_false(cmd.aim, "a second press lowers it")

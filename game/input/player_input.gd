@@ -15,6 +15,8 @@ const WALK := &"walk"
 const SPRINT := &"sprint"
 const CROUCH := &"crouch"
 const JUMP := &"jump"
+const LEAN_LEFT := &"lean_left"
+const LEAN_RIGHT := &"lean_right"
 const FIRE := &"fire"
 const AIM := &"aim"
 const RELOAD := &"reload"
@@ -40,6 +42,8 @@ var _mode_latch: bool = false
 var _slot_latch: int = -1
 var _slot_steps: int = 0
 var _crouched: bool = false
+## Aiming, while aim toggles (ControlsConfig.aim_toggle).
+var _aimed: bool = false
 
 
 func setup(controls: ControlsConfig, max_pitch: float) -> void:
@@ -50,6 +54,7 @@ func setup(controls: ControlsConfig, max_pitch: float) -> void:
 ## Looks along (yaw, pitch), standing, as at a spawn.
 func face(yaw: float, pitch: float = 0.0) -> void:
 	_crouched = false
+	_aimed = false
 	view_yaw = yaw
 	view_pitch = pitch
 
@@ -70,6 +75,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action(FIRE):
 		_fire_latch = true
+	elif event.is_action(AIM) and _controls.aim_toggle:
+		_aimed = not _aimed
 	elif event.is_action(JUMP):
 		if _controls.crouch_toggle and _crouched:
 			_crouched = false
@@ -110,7 +117,9 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.walk = Input.is_action_pressed(WALK)
 	cmd.sprint = Input.is_action_pressed(SPRINT)
 	cmd.crouch = _crouched if _controls.crouch_toggle else Input.is_action_pressed(CROUCH)
-	cmd.aim = Input.is_action_pressed(AIM)
+	cmd.aim = _aimed if _controls.aim_toggle else Input.is_action_pressed(AIM)
+	# Lean is held, whatever crouch and aim do (owner, 2026-10-03).
+	cmd.lean = Input.get_action_strength(LEAN_RIGHT) - Input.get_action_strength(LEAN_LEFT)
 	cmd.fire = Input.is_action_pressed(FIRE) or _fire_latch
 	cmd.jump = _jump_latch # a press, not a hold: holding Space doesn't hop on every landing
 	cmd.reload = _reload_latch

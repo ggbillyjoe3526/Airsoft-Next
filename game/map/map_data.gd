@@ -33,6 +33,8 @@ var blocks: Array[Block] = []
 ## The map's two ends (spawns and dead zones), end 0 first.
 var ends: Array[MapEnd] = []
 var kill_y: float = -10.0
+## The lanes bots walk (walkable points from end 0's side to end 1's), in the file's order.
+var lanes: Array[PackedVector3Array] = []
 ## Why the file was refused; empty when it loaded.
 var problems: Array[String] = []
 
@@ -67,6 +69,7 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m.kill_y = float(d.get("killY", m.kill_y))
 	m._read_blocks(d.get("blocks"), style)
 	m._read_ends(d.get("spawns"), d.get("deadZones"), team_size)
+	m._read_lanes(d.get("lanes"))
 	return m
 
 
@@ -150,6 +153,23 @@ func _read_ends(spawns: Variant, dead_zones: Variant, team_size: int) -> void:
 		if end.dead_zone.is_empty():
 			problems.append("end %d has no dead zone" % e)
 		ends.append(end)
+
+
+## Lanes are optional: bots on a map without them hunt from the start.
+func _read_lanes(list: Variant) -> void:
+	if not list is Array:
+		return
+	for raw: Variant in list:
+		if not raw is Array:
+			problems.append("a lane is not a list of points")
+			continue
+		var lane := PackedVector3Array()
+		for p: Variant in raw:
+			lane.append(_vec(p))
+		if lane.size() >= 2:
+			lanes.append(lane)
+		else:
+			problems.append("a lane has fewer than two points")
 
 
 static func _spots(list: Variant) -> Array[SpawnPoint]:

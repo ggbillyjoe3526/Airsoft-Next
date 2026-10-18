@@ -1,14 +1,14 @@
 extends GutTest
-## Playing Depot (game/play/play_session.gd), headless: the session builds the level, puts you on Alpha against a team
-## of stand-ins, steps the simulation with your command on the physics tick, and draws from it; a BB from your replica
-## knocks a stand-in out on the Jolt level and they call the hit; Esc pauses and resumes; leaving frees everything.
+## Playing Depot (game/play/play_session.gd), headless: the session builds the level, puts you on Alpha with two bots
+## against three, steps the simulation with every command on the physics tick, and draws from it; a BB from your replica
+## knocks a bot out on the Jolt level and they call the hit; Esc pauses and resumes; leaving frees everything.
 
 var session: PlaySession = null
 
 
 func before_each() -> void:
 	session = PlaySession.new()
-	session.autopilot = true # no mouse here: the pilot fills the command
+	session.autopilot = true # no mouse here: a bot plays you
 	add_child_autofree(session)
 	await wait_physics_frames(2)
 
@@ -17,13 +17,15 @@ func after_each() -> void:
 	get_tree().paused = false
 
 
-func test_you_play_alpha_against_a_team_of_stand_ins() -> void:
+func test_you_play_alpha_with_bots_against_a_team_of_bots() -> void:
 	var s := session.state
-	assert_eq(s.characters.size(), 1 + SimTuning.new().rounds.team_size)
+	var size := SimTuning.new().rounds.team_size
+	assert_eq(s.characters.size(), size * 2)
 	assert_eq(session.player.team, 0)
+	var per_team := PackedInt32Array([0, 0])
 	for c in s.characters:
-		if c != session.player:
-			assert_eq(c.team, 1)
+		per_team[c.team] += 1
+	assert_eq(per_team, PackedInt32Array([size, size]))
 	assert_true(s.round_state.is_live())
 	assert_true(session.player.grounded, "standing on Depot's floor")
 
@@ -32,13 +34,17 @@ func test_the_simulation_steps_on_the_physics_tick() -> void:
 	var before := session.ticks()
 	await wait_physics_frames(10)
 	assert_gte(session.ticks() - before, 10)
-	assert_gt(session.shots, 0, "the pilot's trigger fired")
+	var moved := false
+	for c in session.state.characters:
+		moved = moved or c.position.distance_to(c.spawn_position) > 0.1
+	assert_true(moved, "the bots set off")
 
 
-func test_a_bb_knocks_a_stand_in_out_and_they_call_it() -> void:
+func test_a_bb_knocks_a_bot_out_and_they_call_it() -> void:
 	session.autopilot = false
-	# The stand-in at the south end of Beta's spawn line, in the open West yard; you 5 m from it, nobody between.
-	var target := session.state.characters[3]
+	session.bots_active = false
+	# The Beta bot at the south end of its spawn line, held still, in the open West yard; you 5 m from it.
+	var target := session.state.characters[5]
 	var you := session.player
 	you.position = target.position + Vector3(3.0, 0.0, -4.0)
 	you.prev_position = you.position
@@ -60,7 +66,7 @@ func test_a_bb_knocks_a_stand_in_out_and_they_call_it() -> void:
 	var figure := session.find_child("Figure_%d" % target.id, true, false) as FigureView
 	assert_not_null(figure)
 	var sign := figure.find_children("*", "Label3D", true, false)[0] as Label3D
-	assert_true(sign.visible, "HIT! shows over the stand-in's head")
+	assert_true(sign.visible, "HIT! shows over the bot's head")
 
 
 func test_escape_pauses_and_resumes() -> void:
@@ -111,3 +117,21 @@ func test_the_late_materials_are_drawn_once_at_the_start_and_then_freed() -> voi
 	assert_eq(prewarm.get_child_count(), 4, "a fading figure, a BB, a puff and the sign")
 	await wait_process_frames(ShaderPrewarm.FRAMES + 1)
 	assert_false(is_instance_valid(prewarm), "gone once its frames are drawn")
+
+
+func test_out_in_the_dead_zone_you_watch_a_teammate_still_in_play() -> void:
+	session.autopilot = false
+	session.bots_active = false
+	assert_eq(session.spectated(), session.player)
+	session.player.status = Character.Status.OUT
+	var watched := session.spectated()
+	assert_ne(watched, session.player)
+	assert_eq(watched.team, session.player.team)
+	for c in session.state.characters:
+		if c.team == session.player.team and c != session.player:
+			c.status = Character.Status.OUT
+	assert_ne(session.spectated().team, session.player.team, "with your team out, anyone still in play")
+	await wait_process_frames(2)
+	var figure := session.find_child("Figure_%d" % session.spectated().id, true, false) as FigureView
+	assert_false(figure.visible, "the watched figure isn't drawn over the view")
+	session.player.status = Character.Status.ALIVE

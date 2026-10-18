@@ -25,7 +25,7 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `game/ui/` | Screens and HUD on one `GameTheme`: `Credits`, `Hud`, `PauseMenu`; the words by translation key in `text/en.po` | built |
 | `game/debug/` | `DebugPerf` (F3: FPS, frame time, draw calls, primitives, nodes, orphans; `--perf` logs) | built |
 | `game/sim/` | The 60 Hz simulation: state, commands, events, rounds, BBs, hit calling, movement (`game/sim/README.md`) | built |
-| `game/ai/`, `game/nav/` | Bots (a controller like the player) and the layered nav grid | next |
+| `game/ai/`, `game/nav/` | Bots (a controller like the player) and the layered nav grid | built |
 | `game/config/` | Tuning as typed `Resource`s (`sim_tuning.tres` for the rules, `play_tuning.tres` for the view, sound and HUD), replicas and the `data/stats.md` reader (`game/config/README.md`) | built |
 | `game/input/` | `PlayerInput`, the player's controller; default bindings in project.godot's input map (`game/input/README.md`) | built |
 | `game/play/` | `PlaySession` (a match, played) and the views drawn from the state: camera, replica in hand, BBs, puffs, figures, sound (`game/play/README.md`) | built |

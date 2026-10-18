@@ -1,8 +1,9 @@
 class_name Hitbox
 ## What a BB can hit on a character, and ray tests against it (the browser game's sim/hitbox.ts, the built-in figure's
 ## volume, M85): a head sphere, a chest capsule, two hip capsules side by side, and each leg's thigh, shin and boot,
-## swinging about the hip on the walk cycle and squashed towards it when crouching. Arms and replicas aren't part of it
-## (owner, DECISIONS 2026-10-01). No lean yet, and no rigged figures' joints: those come with their tasks.
+## swinging about the hip on the walk cycle and squashed towards it when crouching. The head, chest and hips tilt with a
+## lean about the hip pivot (Lean), as the drawn upper body does, so only what pokes out past cover can be hit; the legs
+## stay put. Arms and replicas aren't part of it (owner, DECISIONS 2026-10-01). No rigged figures' joints yet.
 ## Every ray test returns the distance along a unit ray to where it first touches, or INF for a miss; a ray that starts
 ## inside touches at 0.
 
@@ -157,25 +158,31 @@ static func step_walk_cycle(c: Character, hits: HitConfig) -> void:
 	c.walk_cycle += moved * hits.strides_per_metre * TAU
 
 
-## Writes the character's hit volume now into `v`: standing on its feet, turned by its yaw, crouched, legs on the walk
-## cycle.
+## Writes the character's hit volume now into `v`: standing on its feet, turned by its yaw, crouched, the upper body
+## leaned, legs on the walk cycle.
 static func build_volume(c: Character, hits: HitConfig, v: Volume) -> void:
 	var drop := hits.crouch_drop * c.crouch_amount
 	var cos_yaw := cos(c.yaw)
 	var sin_yaw := sin(c.yaw)
 	var feet := c.position
-	var head_at := _place(feet, cos_yaw, sin_yaw, 0.0, hits.head_height - drop, 0.0)
+	# The upper body rolls about the hip pivot by the lean (Lean.offset's geometry: right is +x, so a lean right moves
+	# the head along the character's right).
+	var hip_y := hits.pivot_height - drop
+	var roll := c.lean * hits.lean_max_angle
+	var cr := cos(roll)
+	var sr := sin(roll)
+	var head_at := _upper(feet, cos_yaw, sin_yaw, 0.0, hits.head_height - drop, cr, sr, hip_y)
 	_fill(v.head, head_at, head_at, hits.head_radius)
-	_fill(v.parts[CHEST], _place(feet, cos_yaw, sin_yaw, 0.0, hits.torso_bottom - drop, 0.0),
-			_place(feet, cos_yaw, sin_yaw, 0.0, hits.torso_top - drop, 0.0), hits.body_radius)
+	_fill(v.parts[CHEST], _upper(feet, cos_yaw, sin_yaw, 0.0, hits.torso_bottom - drop, cr, sr, hip_y),
+			_upper(feet, cos_yaw, sin_yaw, 0.0, hits.torso_top - drop, cr, sr, hip_y), hits.body_radius)
 	for i in 2:
 		var side := 2 * i - 1
 		var hx := side * hits.hips_half_width
-		_fill(v.parts[HIP_L if side < 0 else HIP_R], _place(feet, cos_yaw, sin_yaw, hx, hits.hips_bottom - drop, 0.0),
-				_place(feet, cos_yaw, sin_yaw, hx, hits.hips_top - drop, 0.0), hits.hips_radius)
+		_fill(v.parts[HIP_L if side < 0 else HIP_R],
+				_upper(feet, cos_yaw, sin_yaw, hx, hits.hips_bottom - drop, cr, sr, hip_y),
+				_upper(feet, cos_yaw, sin_yaw, hx, hits.hips_top - drop, cr, sr, hip_y), hits.hips_radius)
 
 	# The legs hang from the hip pivot, squashed towards it by a crouch as the drawn legs are, and swing about it.
-	var hip_y := hits.pivot_height - drop
 	var squash := hip_y / hits.pivot_height
 	var swing := leg_swing(c.walk_cycle, c, hits)
 	for i in 2:
@@ -199,6 +206,14 @@ static func build_volume(c: Character, hits: HitConfig, v: Volume) -> void:
 ## A figure-frame point (x right, y up from the feet, z forward-negative) in world space: turned by the yaw, at the feet.
 static func _place(feet: Vector3, cos_yaw: float, sin_yaw: float, x: float, y: float, z: float) -> Vector3:
 	return Vector3(feet.x + x * cos_yaw + z * sin_yaw, feet.y + y, feet.z - x * sin_yaw + z * cos_yaw)
+
+
+## An upper-body point (`x` across, `y` up from the feet, crouch already taken off) rolled about the hip pivot at
+## `pivot` by the lean's roll (cosine `cr`, sine `sr`), placed.
+static func _upper(feet: Vector3, cos_yaw: float, sin_yaw: float, x: float, y: float, cr: float, sr: float,
+		pivot: float) -> Vector3:
+	var h := y - pivot
+	return _place(feet, cos_yaw, sin_yaw, x * cr + h * sr, pivot + h * cr - x * sr, 0.0)
 
 
 ## A leg's point (`y` up from the hip pivot, `z` forward-negative), squashed by `squash` towards the hip, swung by the

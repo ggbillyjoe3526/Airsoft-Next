@@ -1,10 +1,10 @@
 class_name PlaySession
 extends Node3D
 ## A match on a map, played: the level built from its data, the simulation stepped once a physics tick with the
-## player's command, and everything else drawn from its state and events every rendered frame (the camera, the replica in
-## hand, BBs, puffs, the other players, sound and the HUD). Until bots come, you play Alpha alone against a team of
-## stand-ins who wait at Beta's end without a controller: shoot them and watch them call their hits. Esc pauses; losing
-## focus pauses too. Emits `left` when the player leaves to the title screen.
+## player's command and the bots' (BotController), and everything else drawn from its state and events every rendered
+## frame (the camera, the replica in hand, BBs, puffs, the other players, sound and the HUD). You play Alpha with two bot
+## teammates against three bots on Beta, Elimination rounds to five wins. Esc pauses; losing focus pauses too. Emits
+## `left` when the player leaves to the title screen.
 
 signal left
 
@@ -17,14 +17,19 @@ const TICK := 1.0 / 60.0
 ## The map to play (data/maps/<id>.json) and the match's seed.
 @export var map_id: String = "depot"
 @export var match_seed: int = 1
-## The smoke test's pilot: the player walks forward firing on auto and reloading, with no mouse or keys.
+## The smoke test's pilot: a bot plays your character, with no mouse or keys.
 var autopilot: bool = false
+## Simulation ticks per physics tick: the smoke test plays a whole match faster than real time.
+var speed: int = 1
+## False: the bots stand idle (tests that need a still target).
+var bots_active: bool = true
 
 var state: GameState = null
 var player: Character = null
 var _tuning: SimTuning = null
 var _play: PlayTuning = null
 var _sim: Simulation = null
+var _bots: BotController = null
 var _commands: Array[PlayerCommand] = []
 var _level: MapLevel = null
 var _input: PlayerInput = null
@@ -38,9 +43,12 @@ var _hud: Hud = null
 var _pause: PauseMenu = null
 var _rematch_left: float = -1.0
 var _ticks: int = 0
-## What the smoke test checks: your shots, and BBs that landed anywhere.
+## What the smoke test checks: your shots, everyone's, BBs that landed anywhere, rounds played and matches finished.
 var shots: int = 0
+var all_shots: int = 0
 var impacts: int = 0
+var rounds_played: int = 0
+var matches_played: int = 0
 
 
 func _ready() -> void:
@@ -63,6 +71,10 @@ func _ready() -> void:
 	add_child(FieldLighting.build(_play.lighting))
 	_start_simulation(map)
 	_build_views(ui)
+	var config := BotConfig.load_default()
+	# With the pilot on, a bot plays your character too.
+	var nobody := -1
+	_bots = BotController.new(state, nobody if autopilot else PLAYER_ID, map, _sim.nav, _level.query(), _tuning, config)
 	_sim.start_match(state)
 	_after_tick()
 	_capture()
@@ -70,14 +82,17 @@ func _ready() -> void:
 
 func _start_simulation(map: MapData) -> void:
 	_sim = Simulation.new(_tuning, _level.query(), _level.mover(_tuning.body), map.ends, map.kill_y)
+	_sim.nav = NavGrid.build(map, _tuning.nav, _tuning.body)
 	state = GameState.new(match_seed, _tuning)
 	var loadout := ReplicaStats.default_loadout()
 	player = Character.new(PLAYER_ID, PLAYER_TEAM, Vector3.ZERO, 0.0, loadout)
 	state.characters.append(player)
-	for i in _tuning.rounds.team_size:
-		state.characters.append(Character.new(PLAYER_ID + 1 + i, OPPONENT_TEAM, Vector3.ZERO, 0.0, loadout))
-	_commands.resize(state.characters.size())
-	_commands[PLAYER_ID] = PlayerCommand.new()
+	# Your teammates, then the other team: every character but you is a bot.
+	for i in _tuning.rounds.team_size * 2 - 1:
+		var team := PLAYER_TEAM if i < _tuning.rounds.team_size - 1 else OPPONENT_TEAM
+		state.characters.append(Character.new(PLAYER_ID + 1 + i, team, Vector3.ZERO, 0.0, loadout))
+	for c in state.characters:
+		_commands.append(PlayerCommand.new())
 
 
 func _build_views(ui: CanvasLayer) -> void:
@@ -88,7 +103,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	_eyes = FirstPersonView.new()
 	_eyes.name = "FirstPerson"
 	add_child(_eyes)
-	_eyes.setup(_play.view, _tuning.body)
+	_eyes.setup(_play.view, _tuning.body, _tuning.hits)
 	_hands = ReplicaView.new()
 	_hands.name = "Hands"
 	_eyes.camera.add_child(_hands)
@@ -131,18 +146,21 @@ func _build_views(ui: CanvasLayer) -> void:
 func _physics_process(delta: float) -> void:
 	if _sim == null:
 		return
-	if _rematch_left == 0.0:
-		_rematch_left = -1.0
-		_sim.start_match(state)
+	for i in speed:
+		if _rematch_left == 0.0:
+			_rematch_left = -1.0
+			_sim.start_match(state)
+			_after_tick()
+		if bots_active:
+			_bots.think(state, _commands, delta)
+		else:
+			for c in state.characters:
+				_commands[c.id].reset(c.yaw, c.pitch)
+		if not autopilot:
+			_input.fill(_commands[PLAYER_ID], player.armament.active)
+		_sim.step(state, _commands, delta)
+		_ticks += 1
 		_after_tick()
-	var cmd := _commands[PLAYER_ID]
-	if autopilot:
-		_fly(cmd)
-	else:
-		_input.fill(cmd, player.armament.active)
-	_sim.step(state, _commands, delta)
-	_ticks += 1
-	_after_tick()
 
 
 ## Ticks the simulation has run.
@@ -150,8 +168,9 @@ func ticks() -> int:
 	return _ticks
 
 
-## Hands the tick's events to sound, the HUD and the effects.
+## Hands the tick's events to the bots' ears, sound, the HUD and the effects.
 func _after_tick() -> void:
+	_bots.observe(state)
 	_audio.on_tick(state, PLAYER_ID)
 	_hud.on_tick(state)
 	var events := state.events
@@ -159,6 +178,7 @@ func _after_tick() -> void:
 		var e := events.items[i]
 		match e.kind:
 			GameEvent.Kind.SHOT:
+				all_shots += 1
 				if e.actor == PLAYER_ID:
 					shots += 1
 					_hands.on_shot()
@@ -170,10 +190,13 @@ func _after_tick() -> void:
 					_puffs.body_hit(e.position)
 			GameEvent.Kind.CHARACTER_HIT:
 				_puffs.body_hit(e.position)
+			GameEvent.Kind.ROUND_OVER:
+				rounds_played += 1
 			GameEvent.Kind.ROUND_START:
 				_input.face(player.spawn_yaw)
 				_puffs.clear()
 			GameEvent.Kind.MATCH_OVER:
+				matches_played += 1
 				_rematch_left = _play.rematch_delay
 
 
@@ -183,14 +206,34 @@ func _process(delta: float) -> void:
 	if _rematch_left > 0.0:
 		_rematch_left = maxf(0.0, _rematch_left - delta)
 	var fraction := Engine.get_physics_interpolation_fraction()
-	_eyes.update(player, _input, fraction, delta)
+	var watched := spectated()
+	_eyes.update(watched, _input, fraction, delta, watched == player)
 	var look := -_eyes.global_basis.z
+	_hands.visible = watched == player
 	_hands.update(player, _input.view_yaw, _input.view_pitch, _eyes.global_position, look, delta)
 	_bbs.update(state.bbs, PLAYER_ID, _hands.muzzle_position() - _eyes.global_position, fraction, TICK)
 	_puffs.update(delta)
 	for f in _figures:
 		f.update(state.characters[f.character_id], fraction)
+		# Watching through someone's eyes: their own figure would fill the view.
+		if f.character_id == watched.id:
+			f.visible = false
 	_hud.update(state, _input.zoom, delta)
+
+
+## Whose eyes you see through: your own, or once you are out in the dead zone, a teammate still in play (else anyone).
+func spectated() -> Character:
+	if player.status != Character.Status.OUT:
+		return player
+	var anyone: Character = null
+	for c in state.characters:
+		if not Elimination.is_in_play(c):
+			continue
+		if c.team == player.team:
+			return c
+		if anyone == null:
+			anyone = c
+	return anyone if anyone != null else player
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -241,13 +284,6 @@ func _leave() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	left.emit()
 
-
-## The smoke test's pilot: forward, trigger held on auto, a reload when the magazine runs dry, turning slowly.
-func _fly(cmd: PlayerCommand) -> void:
-	cmd.reset(player.yaw + TICK * 0.5, 0.0)
-	cmd.forward = 1.0
-	cmd.fire = true
-	cmd.reload = player.armament.mag() == 0
 
 
 ## A map that won't load: say so plainly and offer the way back.

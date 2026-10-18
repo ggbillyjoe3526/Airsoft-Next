@@ -8,6 +8,7 @@ class_name Aiming
 static func step(c: Character, cmd: PlayerCommand, cfg: MovementConfig, dt: float) -> void:
 	var a := c.armament
 	# Reload and draw are as the last tick left them: a reload started this tick lowers the sight on the next.
-	c.aiming = cmd.aim and not a.reloading() and not a.drawing()
+	# Not mid-vault: an aim held through one comes up again after it (BP5).
+	c.aiming = cmd.aim and not a.reloading() and not a.drawing() and not c.vault.active
 	var raise := dt / cfg.aim_raise_time
 	c.aim_raise = minf(1.0, c.aim_raise + raise) if c.aiming else maxf(0.0, c.aim_raise - raise)

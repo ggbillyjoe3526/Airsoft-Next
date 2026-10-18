@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://game/config/replica_rules_config.gd" id="7_j312j"]
 [ext_resource type="Script" path="res://game/config/round_config.gd" id="8_tcxyv"]
 [ext_resource type="Script" path="res://game/config/sim_tuning.gd" id="9_6ush2"]
+[ext_resource type="Script" path="res://game/config/nav_config.gd" id="10_n4v1g"]
 
 [sub_resource type="Resource" id="Resource_glb71"]
 script = ExtResource("1_41pkq")
@@ -34,6 +35,9 @@ script = ExtResource("7_j312j")
 [sub_resource type="Resource" id="Resource_lc6dd"]
 script = ExtResource("8_tcxyv")
 
+[sub_resource type="Resource" id="Resource_n4v1g"]
+script = ExtResource("10_n4v1g")
+
 [resource]
 script = ExtResource("9_6ush2")
 ballistics = SubResource("Resource_m1e1h")
@@ -44,3 +48,4 @@ hits = SubResource("Resource_v58xr")
 rounds = SubResource("Resource_lc6dd")
 footsteps = SubResource("Resource_4ixof")
 replica_rules = SubResource("Resource_s74fg")
+nav = SubResource("Resource_n4v1g")

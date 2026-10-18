@@ -1,0 +1,106 @@
+class_name BotController
+extends RefCounted
+## Drives every character but the player (the browser game's ai/bot.ts updateBots): before each simulation step it
+## plans at most one route (the nav search is the costly part, so bots queue for it), then writes each bot's
+## PlayerCommand; after the step it lets the bots hear what happened and gives each new round a fresh plan. Bots are
+## just another controller: they act only through their commands (ARCHITECTURE contract 2). Pure: no nodes.
+
+var world: BotWorld = BotWorld.new()
+## Round-robin start for the route queue, so no bot waits behind another twice.
+var _next_route: int = 0
+
+
+## Bots for every character in `state` but `player_id` (-1: everyone), on `map` with its nav grid and level rays. Their
+## first plan comes with the match's first ROUND_START (observe).
+func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: WorldQuery, tuning: SimTuning,
+		config: BotConfig) -> void:
+	var w := world
+	w.tuning = tuning
+	w.cfg = config
+	w.nav = nav
+	w.query = query
+	w.characters = state.characters
+	w.lanes = map.lanes
+	w.low_cover = BotCover.low_blocks(map, nav, config, tuning)
+	w.tall_cover = BotCover.tall_blocks(map, nav, config, tuning)
+	w.planner = RoundPlanner.new(state.match_seed)
+	for c in state.characters:
+		if c.id != player_id:
+			w.bots.append(Bot.new(c, Seeds.bot_seed(state.match_seed, c.id), config.skill, state.characters.size()))
+	_measure_field(map)
+	w.setup_sectors(w.planner.bounds_lo, w.planner.bounds_hi)
+
+
+## Writes each bot's command for this tick into `commands` (indexed by character id).
+func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
+	var w := world
+	w.time = state.time
+	w.live = state.round_state.is_live()
+	for c in state.characters:
+		if Elimination.is_in_play(c):
+			w.mark_visited(c.team, c.position)
+	_plan_one_route(state)
+	for b in w.bots:
+		BotBrain.think(b, w, commands[b.character.id], dt)
+
+
+## What the bots heard in the step just taken (or the match's start), and a fresh plan when a round has started.
+func observe(state: GameState) -> void:
+	BotHearing.observe(state, world)
+	if state.events.count_of(GameEvent.Kind.ROUND_START) > 0:
+		_new_round(state)
+
+
+func _new_round(state: GameState) -> void:
+	world.time = state.time
+	world.clear_sectors()
+	world.planner.plan(world)
+
+
+## Plans the route of the next bot that wants one (round-robin), unless a walk-off route is waiting: the walk-off shares
+## the tick's one search.
+func _plan_one_route(state: GameState) -> void:
+	var w := world
+	for c in state.characters:
+		if c.walk_off_route_pending:
+			return
+	var n := w.bots.size()
+	for i in n:
+		var b := w.bots[(_next_route + i) % n]
+		if b.route_state != Bot.RouteState.WANTED or w.time < b.route_retry_at \
+				or not Elimination.is_in_play(b.character):
+			continue
+		_next_route = (_next_route + i + 1) % n
+		var from := b.character.position
+		if w.nav.find_route(from, b.route_goal, b.route):
+			b.route_state = Bot.RouteState.OK
+			b.route_from = from
+			b.route_leg = 0
+			b.stuck_for = 0.0
+		else:
+			b.route.clear()
+			b.route_state = Bot.RouteState.FAILED
+			b.route_retry_at = w.time + w.cfg.route_retry_delay
+		return
+
+
+## The field's walkable extent (its floors and ramps) and a height over all of it, for drawing hunt spots.
+func _measure_field(map: MapData) -> void:
+	var p := world.planner
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	var top := -INF
+	for b in map.blocks:
+		top = maxf(top, b.center.y + b.size.y * 0.5)
+		if b.kind != &"floor" and b.rise == MapData.Rise.NONE:
+			continue
+		lo.x = minf(lo.x, b.center.x - b.size.x * 0.5)
+		lo.y = minf(lo.y, b.center.z - b.size.z * 0.5)
+		hi.x = maxf(hi.x, b.center.x + b.size.x * 0.5)
+		hi.y = maxf(hi.y, b.center.z + b.size.z * 0.5)
+	if lo.x > hi.x:
+		lo = Vector2.ZERO
+		hi = Vector2.ZERO
+	p.bounds_lo = lo
+	p.bounds_hi = hi
+	p.top_y = top + world.tuning.body.height

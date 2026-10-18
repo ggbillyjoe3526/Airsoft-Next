@@ -32,8 +32,13 @@ extends Resource
 @export var hips_top: float = 1.05
 @export var hips_half_width: float = 0.06
 @export var hips_radius: float = 0.11
-## The hip pivot's height standing (m): the legs swing about it.
+## The hip pivot's height standing (m): the legs swing about it, and the upper body tilts about it in a lean.
 @export var pivot_height: float = 0.92
+## Leaning (Q / E held, game/sim/lean.gd): the upper body's tilt at a full lean (rad). The eyes and BB origin, the hit
+## volume, the camera, the drawn figure and what bots see all use this one geometry.
+@export var lean_max_angle: float = 0.6
+## The top of the body (the shoulders) standing (m): a lean stops before it, or the eyes, come near a wall.
+@export var body_top: float = 1.5
 ## The legs (M85): each swings about its hip, hip_spread to the side, on the walk cycle, and is squashed towards the
 ## hips when crouching. Heights below the hip pivot; z is forward-negative.
 @export var leg_hip_spread: float = 0.095

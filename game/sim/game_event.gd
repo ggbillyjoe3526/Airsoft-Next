@@ -16,6 +16,7 @@ enum Kind {
 	BB_LOST, ## actor's BB fell out of the level or flew past its lifetime at position.
 	CHARACTER_HIT, ## actor's BB hit target at position, flying along direction: target is out and calls the hit.
 	FOOTSTEP, ## actor's footstep (value: Footstep) on surface (value2: RayHit.Surface).
+	VAULT, ## actor started a vault at position: hands and boots on the obstacle, loud (bots hear it far).
 	ROUND_START, ## round number value is live.
 	ROUND_OVER, ## value won the round (-1: a draw), for reason.
 	MATCH_OVER, ## value won the match.
