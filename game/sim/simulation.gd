@@ -5,8 +5,9 @@ extends RefCounted
 ## here: each character follows the PlayerCommand stored under its id. Nodes call `step` from _physics_process and read
 ## the state and its events; headless tests call it directly.
 ##
-## Order within a tick: each character moves (stance, pace, jump, collision), its legs swing and its aim settles, then it
-## uses its replica (BBs leave from the new eye position); then every BB flies (hitting the level or bodies); then the
+## Order within a tick: each character moves (stance, pace, jump, collision; a Jump press at a low obstacle vaults it
+## instead, and a vault under way follows its path), its legs swing, it leans and its aim settles, then it uses its
+## replica (BBs leave from the new, leaned eye position); then every BB flies (hitting the level or bodies); then the
 ## round flow. Characters without a command keep their view and stand still; hit characters follow the hit-calling
 ## routine instead of their command, and once out and standing in the dead zone they are only timed.
 
@@ -21,6 +22,10 @@ var kill_y: float = -10.0
 var _idle: PlayerCommand = PlayerCommand.new()
 ## Followed by characters that have been hit: they take no orders from their controller.
 var _eliminated: PlayerCommand = PlayerCommand.new()
+## Followed while vaulting (the view, the trigger as the vault found it), and the first command after a vault, with the
+## presses made during it (Vault).
+var _vaulting: PlayerCommand = PlayerCommand.new()
+var _after_vault: PlayerCommand = PlayerCommand.new()
 
 
 func _init(sim_tuning: SimTuning, world: WorldQuery, character_mover: CharacterMover, map_ends: Array[MapEnd],
@@ -51,6 +56,7 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	for c in state.characters:
 		c.prev_position = c.position
 		c.prev_crouch_amount = c.crouch_amount
+		c.prev_lean = c.lean
 		c.prev_walk_cycle = c.walk_cycle
 		c.prev_yaw = c.yaw
 		c.prev_pitch = c.pitch
@@ -67,14 +73,26 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		if cmd == null:
 			cmd = _idle
 			cmd.reset(c.yaw, c.pitch)
+		# A Jump press at a low obstacle vaults it instead; while vaulting only the view follows the command, the trigger
+		# stays as it was and other presses wait for the vault's end (BP5).
+		if in_play and not c.vault.active:
+			cmd = Vault.with_held_presses(c.vault, cmd, _after_vault)
+			Vault.try_start(c, cmd, tuning, query, state.events)
+		if in_play and c.vault.active:
+			cmd = Vault.vaulting_command(c, cmd, _vaulting)
 		if in_play:
 			Aiming.step(c, cmd, tuning.movement, dt)
 		else:
 			c.aiming = false
 			c.aim_raise = 0.0
-		Movement.step(c, cmd, tuning.movement, tuning.accuracy, dt, mover)
+		# A vault under way finishes even if its vaulter is hit meanwhile: nobody is left hanging over the obstacle.
+		if c.vault.active:
+			Vault.step(c, cmd, tuning, dt, mover)
+		else:
+			Movement.step(c, cmd, tuning.movement, tuning.accuracy, dt, mover)
 		c.rescue_if_out_of_world(kill_y)
 		Hitbox.step_walk_cycle(c, tuning.hits) # the legs' swing, for their hit volumes and the drawn figure
+		Lean.step(c, cmd, tuning, query, dt)
 		Accuracy.step(c, tuning.movement, tuning.accuracy, dt)
 		if not in_play:
 			Elimination.step(c, tuning.hits, dt)
@@ -82,7 +100,9 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		Footsteps.step(c, tuning.footsteps, state.events, query)
 		# Fired on the run the kick grows, as the spread does (the owner's 0.1 Dev 5 note 9).
 		var kick := tuning.accuracy.sprint_kick if c.sprinting else 1.0
-		Armament.step(c, cmd, c.eye(tuning.body), kick, live, state.bbs, state.rng, state.events, tuning, dt)
+		# BBs leave from the eyes, wherever a lean puts them; none through a vault or the moment after it.
+		Armament.step(c, cmd, Lean.eye(c, tuning.body, tuning.hits), kick, live and c.fire_lockout <= 0.0, state.bbs,
+				state.rng, state.events, tuning, dt, 0.0 if c.vault.active else c.fire_lockout)
 	BBStep.step(state.bbs, state.characters, query, tuning, kill_y, not live, ends, state.events, dt)
 	Round.step(state.round_state, state.characters, ends, state.bbs, tuning, state.events, dt)
 	state.tick += 1

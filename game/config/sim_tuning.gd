@@ -8,6 +8,7 @@ const DEFAULT_PATH := "res://game/config/sim_tuning.tres"
 
 @export var ballistics: BallisticsConfig = BallisticsConfig.new()
 @export var movement: MovementConfig = MovementConfig.new()
+@export var vault: VaultConfig = VaultConfig.new()
 @export var accuracy: AccuracyConfig = AccuracyConfig.new()
 @export var body: BodyConfig = BodyConfig.new()
 @export var hits: HitConfig = HitConfig.new()

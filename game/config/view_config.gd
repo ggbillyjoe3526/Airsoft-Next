@@ -10,6 +10,9 @@ extends Resource
 ## Clip planes (m).
 @export var near: float = 0.05
 @export var far: float = 250.0
+## The view rolls this far at a full lean (rad): a share of the body's tilt, enough to feel the peek without the world
+## swinging.
+@export var lean_camera_roll: float = 0.12
 
 
 ## The vertical field of view (degrees) the horizontal 16:9 one gives, zoomed by `zoom`.
