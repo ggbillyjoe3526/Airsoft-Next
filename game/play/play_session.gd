@@ -103,7 +103,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	_eyes = FirstPersonView.new()
 	_eyes.name = "FirstPerson"
 	add_child(_eyes)
-	_eyes.setup(_play.view, _tuning.body)
+	_eyes.setup(_play.view, _tuning.body, _tuning.hits)
 	_hands = ReplicaView.new()
 	_hands.name = "Hands"
 	_eyes.camera.add_child(_hands)
