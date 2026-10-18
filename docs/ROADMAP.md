@@ -42,8 +42,11 @@ The order the browser game's work is carried over (`legacy/browser/docs/handover
 
 ### Build order
 
-What gets built next, in order (planned 2026-10-18). Foundations come first because loadout and attachments sit on
-them. The first five have blocks in `docs/TASKS.md`; the rest get theirs when they come up.
+What gets built next, in order (planned 2026-10-18; widened the same day to cover every feature of the browser game
+and the vision, owner: "bring over as much as possible"). Foundations come first because loadout and attachments sit
+on them. The first five have blocks in `docs/TASKS.md`; the rest get theirs when they come up. The browser game's
+parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these steps; what was dropped, and why, is in
+`docs/DECISIONS.md` and the salvage map (`legacy/browser/docs/handover/SALVAGE.md` › What doesn't carry).
 
 1. **Magazines on the HUD and the pistol's slide lock** (MZ1). A gauge per magazine, and the GBB Pistol's slide
    locked back on empty.
@@ -51,18 +54,51 @@ them. The first five have blocks in `docs/TASKS.md`; the rest get theirs when th
 3. **Holster and smoother lean and vault** (MO1). Holster on 3, and the view eased through a cut-short lean and a
    vault.
 4. **Bots vault** (BV1). Vault links in the nav grid, so bots go over low walls as you do.
-5. **Settings** (SE1). Sensitivity, controls, rebinding, audio and display, saved and versioned.
-6. **Loadout.** Primary and secondary, BB weight, hop-up, saved loadouts.
-7. **Attachments.** Red dot, 2× scope, grips and magazines.
-8. **The Cyber Pistol, levels and the Armory,** with the bots' kits per level.
-9. **Bot difficulty.** Easy and Hard, then Pro.
-10. **Attack / Defend.**
-11. **Match info and options.** Hit feed, teammate markers, end-of-match summary, crosshair options, custom matches,
-    the practice range.
-12. **Squad orders.** Three orders for your bot teammates.
-13. **Graphics presets, desktop basics and accessibility.**
-14. **Depot reworked to the field checklist,** with the figures' models.
-15. **Woodland.** The field, night play, the weapon torch, glowing BBs, 5v5 and 6v6.
+5. **Settings** (SE1). Sensitivity, controls, rebinding, audio and display, saved and versioned, with the browser
+   game's other rows (field of view, show FPS, cm/360, a second key per action, every volume).
+6. **Debug tools and the Dev tab.** BB paths and hit areas drawn in the world, the seed and position on the overlay,
+   a `--seed` launch option; the Dev settings (game speed, bottomless magazines, ghost, bots hold fire, spectate any
+   bot, bot intentions, end the round, reset the save, Retro pixels) and the Dev content switch with each map, mode
+   and difficulty tagged public or dev.
+7. **Whole-match checks and the balance report.** Headless bot matches over 16 seeds that guard what must never
+   happen (stuck bots, unsettled rounds, teammate hits), and the bot balance report (browser TE4), before bots change
+   further.
+8. **Title, menus and the Match screen.** The title, the top bar with the level badge, the Match screen's map and
+   mode cards and Your team, menus that scale with the window, a loading screen, the seed on the pause screen, and the
+   HUD restyled in the menus' look. A concept picture first.
+9. **Loadout.** Primary and secondary (Grenades greyed), BB weight, hop-up, colour schemes and realistic colours,
+   power sources, saved loadouts.
+10. **Attachments.** Red dot, 2× scope, grips, magazines, barrels, the Silencer and the laser, the Performance sheet
+    and each class's energy limit.
+11. **The Cyber Pistol, levels and the Armory,** with the bots' kits per level, locked items greyed, Disable
+    levelling, and the collection and records saved apart from settings.
+12. **Bot difficulty.** Easy and Hard per team, then Pro (dev); bot names and personalities (`data/bots.md`);
+    adaptive difficulty as a Dev setting.
+13. **Attack / Defend and the overtime flag** (browser OT1).
+14. **Match info.** The hit feed (one feed, placeable) with teammate markers, WON, LOST or DRAW, the scoreboard on
+    Tab and round stats, the end-of-match summary with records, "What got you" and Pro tips, crosshair, hit marker,
+    ammo counter and HUD opacity options, and skipping the round while you are out.
+15. **Custom matches and rule sets.** Rounds, round time, team size, friendly fire, ricochets; Skirmish and Custom.
+16. **The practice range and the tutorial.** Plates, figures, moving targets and the Timed challenge, the Loadout
+    from practice, and the sixteen-step tutorial.
+17. **Squad orders, pings and the magazine hand-off.** Three orders and the wheel, pings on the middle mouse button,
+    asking for and tossing a magazine.
+18. **The minimap and bot callouts.**
+19. **Sound pass.** Muffling through walls and while out, ducking on hits and whistles, voice pools with spread
+    (katanashotgun), kit rustle, landing thuds, rare ambience calls.
+20. **Graphics presets and desktop basics.** Low to Ultra with Custom rows, a frame-rate limit, the first-run pick,
+    window modes and fullscreen, graphics problems handled.
+21. **Accessibility.** Colourblind-checked and High contrast team colours, gauge patterns, sound cues, HUD size,
+    reduced motion, screen reader messages.
+22. **Save file screen, the crash screen and bug reports.** Restore points, Undo, Delete and start over, the save
+    folder; a crash screen with the seed and Report a Bug.
+23. **The figures and first-person arms.** The Blender humans and robots with fitted hit areas, the hit flinch,
+    full-body animation, Looks › Robots, your gloved arms, and Inspect on Y.
+24. **Field checks.** Each field's layout rules as tests (browser `mapChecks.ts`), before fields are reworked.
+25. **Depot reworked to the field checklist.** Set dressing, baked light, the skyline, noisy props, gas puffs and
+    dust.
+26. **Woodland.** The field, sloping ground and bushes, night play, the weapon torch, glowing BBs, the Day / Night
+    switch, practice on any map, 5v5 and 6v6.
 
 ## Builds
 

@@ -75,6 +75,9 @@ acceptance:
   2. Every setting changes the game at once and is saved through `SaveFile` in `user://`, versioned; a bad file falls
      back to the defaults with a message.
   3. Rebinding refuses or swaps a clash, and no menu click or key leaks into play.
-  4. The settings row in `docs/KNOWN_ISSUES.md` goes.
+  4. The browser game's other rows carry: field of view, show FPS, sensitivity as cm/360 at a typed DPI, a second key
+     per action with key names in the player's keyboard layout, the crouch and aim toggles, and the interface and
+     power source volumes (`docs/DECISIONS.md` › Menus, HUD, settings and accessibility).
+  5. The settings row in `docs/KNOWN_ISSUES.md` goes.
 status: open
 attempts: 0
