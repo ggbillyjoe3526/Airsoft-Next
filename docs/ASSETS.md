@@ -33,8 +33,11 @@ The font ships inside the game's export. Its licence ships in `THIRD_PARTY_NOTIC
 
 ## Made by the project
 
-- **Sounds:** 82 sounds rendered once from the browser game's synthesis recipes, in `assets/audio/`. No outside
-  source; same licence as the code. They are replaced with CC0 or recorded sounds later.
+- **Sounds:** 82 sounds (388 variants) and 7 ambience loops rendered once from the browser game's synthesis recipes, in
+  `assets/audio/` (`assets/audio/README.md`). No outside source; same licence as the code. They are replaced with CC0
+  or recorded sounds later.
+- **Map layouts:** Depot, Woodland, Neon Heights and the range, exported as data from the browser game's map code to
+  `data/maps/*.json`. Same licence as the code.
 
 ## Libraries and add-ons
 

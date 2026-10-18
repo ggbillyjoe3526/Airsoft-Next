@@ -11,5 +11,4 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 
 | Area | Issue | Class | Found |
 |---|---|---|---|
-
-Nothing is open yet.
+| Models | The figures are over `docs/CC0_ASSETS.md`'s figure limit (3 MB, 15,000 triangles): unpacked for Godot, `human.glb` is 4.0 MB with 19,966 triangles and `robot.glb` 3.3 MB with 19,308. Measure them in Godot when they're first drawn; trim or raise the limit with the owner | can wait | 2026-10-18 |

@@ -11,7 +11,9 @@ const OUT := "res://THIRD_PARTY_NOTICES.txt"
 const RULE := "================================================================================"
 
 ## [name, licence file] for each third-party asset inside the game.
-const SHIPPED: Array = []
+const SHIPPED: Array = [
+	["Inter (the HUD and menu font)", "res://assets/fonts/OFL.txt"],
+]
 
 
 func _initialize() -> void:
