@@ -203,8 +203,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   sprinting to fight.
 - **Walk is Shift (slow, quiet) and sprint is Left Alt (owner, 2026-09-30);** running, sprinting and landing make noise
   bots hear, walking does not. Wind is one breeze per match from the seed, 0.3 to 1.8 m/s, moving BBs only (2026-10-04).
-- **Crouch toggles by default, with a setting for hold; sprinting or jumping stands you up (owner, 2026-10-03).** Lean
-  stays hold. Aim and sprint are hold by default, with toggle settings.
+- **Crouch and aim are both held by default (owner, 2026-10-18, replacing crouch toggled from 2026-10-03).** Each has a
+  toggle setting; a toggled crouch stands up on a sprint or jump press. Lean and sprint are held.
 - **Hold Q / E to lean around cover (owner, 2026-10-01); replicas switch with 1, 2 and the mouse wheel (owner,
   2026-10-02).** One geometry drives the eye, BB origin, hit volume, camera, drawn figure and bot vision, so you are hit
   only where you appear and never through walls.
