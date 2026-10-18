@@ -22,8 +22,8 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
 - **Next:** the build order in `docs/ROADMAP.md` › Build order, Foundations first: magazines on the HUD (MZ1), the BB
   physics pass (BB1), holster and a smoother lean and vault (MO1), bots vaulting (BV1), then settings (SE1). Their
   blocks are in `docs/TASKS.md`. Version names wait until the owner picks them up again (owner, 2026-10-18).
-- **Waiting on the owner:** his play-through of `/mnt/project-files/playtest/0.1-dev1-checklist.md`, and the crouch
-  and aim question (crouch toggle with aim held stays until he answers).
+- **Waiting on the owner:** his play-through of `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
+- **Crouch and aim are both held** (owner, 2026-10-18), changed in the Depot thread.
 
 ## Where to look
 

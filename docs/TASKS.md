@@ -70,8 +70,8 @@ perf: required
 touches: game/ui/, game/save/, game/input/, game/config/play_tuning.tres, game/main.gd
 contract: none
 acceptance:
-  1. A Settings screen from the title and the pause menu: Controls (hip and aimed sensitivity, invert, crouch and aim
-     hold or toggle, rebinding), Audio (master, effects, ambience) and Display (window mode, V-Sync).
+  1. A Settings screen from the title and the pause menu: Controls (hip and aimed sensitivity, invert, rebinding; crouch
+     and aim stay held, owner 2026-10-18), Audio (master, effects, ambience) and Display (window mode, V-Sync).
   2. Every setting changes the game at once and is saved through `SaveFile` in `user://`, versioned; a bad file falls
      back to the defaults with a message.
   3. Rebinding refuses or swaps a clash, and no menu click or key leaks into play.
