@@ -16,7 +16,7 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 | Models | The figures carry hand-made `_LOD1`/`_LOD2` meshes and four heads as separate nodes, so a plain instance draws every level and head (34,833 triangles for the human). The figure code must pick one head and set visibility ranges (or drop the hand-made LODs) | can wait | 2026-10-18 |
 | Simulation | A hit player walks off to the dead zone in a straight line (`Elimination.plan_walk_off_routes`), so cover between them stops the walk and they leave the field instead. The ported nav grid fills the route (bots and Elimination task) | can wait | 2026-10-18 |
 | Play | No lean or vault yet: Q and E do nothing and Jump at a low wall just jumps. Both come with the bots task or their own Dev task (FP1 deferred them to keep the first playable small) | can wait | 2026-10-18 |
-| Play | The Beta side is four stand-ins (`game/play/play_session.gd`): figures that stand at their spawns, never shoot and can be knocked out. Bots replace them | can wait | 2026-10-18 |
+| Play | The Beta side is four stand-ins (`game/play/play_session.gd`): figures that stand at their spawns, never shoot and can be knocked out, so you can't be hit yet. Bots replace them | can wait | 2026-10-18 |
 | Play | No settings screen: sensitivity, invert, crouch hold or toggle and rebinding live only in `game/config/play_tuning.tres` and the input map | can wait | 2026-10-18 |
 | Art | Depot is the greybox: one vertex-coloured mesh with a world grid, no bevels, decals or material families (`docs/ART.md`) | can wait | 2026-10-18 |
 | Art | The figures are capsules in the team colour, not `human.glb` or `robot.glb`; the raised arm and the "HIT!" sign are the whole hit call | can wait | 2026-10-18 |

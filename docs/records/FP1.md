@@ -1,12 +1,12 @@
 # FP1 · First playable on Depot
 
-**Review:** 1 attempt · critic pending · qa pending · performance pending
+**Review:** 1 attempt · critic Accept 7/8 (Opus) · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-18 | 1 | Opus 5.5 (build thread) | ✓ | pending | – |
+| 2026-10-18 | 1 | Opus 5.5 (build thread) | ✓ | 7/8 Accept | – (performance's first run failed on first-use shaders, fixed before the critic; the critic's miss, the config README, fixed in the records push) |
 
 ## Decisions
 
@@ -31,7 +31,11 @@
   puff and the sign, as specks in front of the camera for three frames, so the first shot or walk-off doesn't hitch.
 - **The title screen and credits strings became translation keys** with the play screen's (`game/ui/text/en.po`).
 
+- **Critic's advisories left as they are:** a few presentation literals (the sprint tilt, HUD spacing) and the
+  mover's named ground and underfoot thresholds move into their configs when those files are next touched.
+
 ## Known issues left
 
+- You can't be hit yet: the stand-ins never shoot, so your own hit call and walk-off wait for bots.
 - No lean or vault; stand-ins, not bots; no settings screen; greybox Depot; capsule figures; the replica in hand
   shares the main camera; no graphics presets or perf baseline (`docs/KNOWN_ISSUES.md` › Play, Art and Graphics).
