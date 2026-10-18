@@ -8,7 +8,7 @@ and hands the tick's events on; everything else here draws the state every rende
 |---|---|
 | `play_session.gd` | `PlaySession`: the map, the simulation, the views; Esc and focus loss pause; `left` back to the title; the smoke test's autopilot |
 | `first_person_view.gd` | `FirstPersonView`: the camera at the leaned eye (`Lean.offset`), rolled a little in a lean, turned by the mouse every frame, lifted by recoil, zoomed by the sight |
-| `replica_view.gd` | `ReplicaView`: the replica in hand from its model: hip and sights, draw, sprint carry, reload cant and clip, kick, sway, pulled back from walls |
+| `replica_view.gd` | `ReplicaView`: the replica in hand from its model: hip and sights, draw, sprint carry, reload cant and clip, kick, sway, pulled back from walls, a gas pistol's slide locked back on empty |
 | `bb_view.gd`, `puff_view.gd` | BBs in the air and the puffs where they land, each one MultiMesh |
 | `figure_view.gd` | `FigureView`: another player as a greybox figure in its team colour (legs, and a torso, head and arm that tilt about the hip pivot in a lean), arm up and "HIT!" while calling a hit |
 | `sim_audio.gd` | `SimAudio`: every sound from the events (a vault's hands and kit too), positional for others, plain for you, on the bus layout `default_bus_layout.tres` |
