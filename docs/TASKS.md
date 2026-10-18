@@ -4,20 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## BV1 · Bots vault low walls
-tier: core
-perf: required
-touches: game/nav/, game/ai/bot_movement.gd, game/ai/bot_routes.gd, game/config/nav_config.gd
-contract: none
-acceptance:
-  1. The nav grid links cells across vaultable obstacles (0.6 to 0.95 m, browser M102), and a route takes a link only
-     where it saves a walk.
-  2. Bots vault through the player's command (Jump) and the same simulated vault.
-  3. Depot's vaultable hall wall becomes a way through for bots; a cross-map route costs no more than on `main`.
-  4. The vault row in `docs/KNOWN_ISSUES.md` goes.
-status: open
-attempts: 0
-
 ## SE1 · Settings
 tier: ui
 perf: required

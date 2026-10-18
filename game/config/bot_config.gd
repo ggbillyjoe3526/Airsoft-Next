@@ -124,6 +124,11 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var replan_distance: float = 2.5
 ## A goal with no route isn't asked for again within this long (s).
 @export var route_retry_delay: float = 1.0
+## A vault link (NavVaults) costs its length plus this (m) in a route: it is taken only where it saves more walking
+## round (the browser game's vault price, M102).
+@export var vault_price: float = 3.0
+## A bot held up on a vault leg (stuck_time) plans its routes without vaults for this long (s).
+@export var vault_retry_delay: float = 6.0
 ## A bot this far off the leg it walks (m) checks the way on for a drop before walking it.
 @export var route_off_leg: float = 0.2
 ## Steps off a route (sidesteps, the last bit onto a lean spot) look this far ahead for a drop or a wall (m).

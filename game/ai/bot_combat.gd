@@ -34,7 +34,10 @@ static func aim(b: Bot, w: BotWorld, target: Character, eye: Vector3, walking: b
 	var yaw := b.aim_yaw
 	var walk_yaw := atan2(-b.move_dir.x, -b.move_dir.z)
 	var enemy := w.enemy_yaw(b.character.team)
-	if b.mode == Bot.Mode.SEARCH and b.search_look_left > 0.0:
+	if walking and b.vault_leg:
+		# At a low obstacle on its route: face the way over it, as nobody vaults without looking.
+		yaw = walk_yaw
+	elif b.mode == Bot.Mode.SEARCH and b.search_look_left > 0.0:
 		# At the end of a search: look round, one way then the other, from the way it arrived.
 		var t := 1.0 - b.search_look_left / b.search_look_time
 		yaw = b.search_look_yaw + sin(TAU * t) * deg_to_rad(cfg.search_look_deg)

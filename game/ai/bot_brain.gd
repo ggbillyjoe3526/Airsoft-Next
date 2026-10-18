@@ -4,6 +4,9 @@ class_name BotBrain
 ## is. The modes: walk its lane, then hunt (advance); fight someone in sight; get into cover and peek from it (over crouch
 ## cover, or leaning out round a corner); go to where someone was seen or heard (search). Allocates nothing.
 
+## The vault check's answer for a bot on a vault leg (one at a time: bots think in turn).
+static var _vault_check: VaultState = VaultState.new()
+
 
 ## One tick of decisions for `b`, written into `cmd`. Characters out of play follow the hit-calling routine instead, so
 ## this only keeps the view in step for them.
@@ -32,6 +35,8 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 	b.cover_cooldown -= dt
 	BotMovement.glance(b, w)
 	_choose_mode(b, w, target, dt)
+	# A route's vault leg is the walk's own (BotRoutes.follow).
+	b.vault_leg = false
 	var moving := BotMovement.keep_apart(b, w, BotMovement.move(b, w, cmd, dt, target), cmd)
 	# Holding a lane point: crouch once settled, where crouched eyes still see the enemy side.
 	if b.holding and b.hold_crouch and b.team_wait >= cfg.hold_crouch_delay:
@@ -54,6 +59,9 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 		if b.mode == Bot.Mode.SEARCH and Vector2(b.last_known.x - me.position.x, b.last_known.z - me.position.z).length() \
 				< b.skill.search_walk_distance:
 			cmd.walk = true
+		# A low obstacle on its route: Jump once the vault is there, as the player's would be (the same rule).
+		if b.vault_leg:
+			cmd.jump = Vault.find_along(me, Vault.way(cmd, w.tuning), w.tuning, w.query, _vault_check)
 	BotCombat.shoot(b, w, target, eye, off_aim, cmd, dt)
 	BotCombat.reload_when_due(b, w, cmd)
 	BotHolster.step(b, w, cmd, dt)

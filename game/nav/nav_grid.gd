@@ -47,6 +47,11 @@ var step_mask: PackedByteArray = PackedByteArray()
 var open: PackedByteArray = PackedByteArray()
 ## The route search: a point per walkable node (id = node), linked by the step rules.
 var astar: AStar3D = null
+## Vault links (NavVaults): node k's lead to nodes vault_to[vault_start[k]] .. vault_to[vault_start[k + 1] - 1]; link l
+## is search point vault_base + l. vault_base -1: not linked yet.
+var vault_start: PackedInt32Array = PackedInt32Array()
+var vault_to: PackedInt32Array = PackedInt32Array()
+var vault_base: int = -1
 ## Most floors any one cell has: 1 on a map with no floor over another.
 var layers: int = 0
 ## From NavConfig and BodyConfig when built. The largest floor height difference between neighbouring nodes a body
@@ -194,22 +199,49 @@ func drop_on_line(a: Vector3, b: Vector3, wall_above: float = INF) -> bool:
 	return false
 
 
-## A short walkable route from `start` to `goal` (the search's greed: NavConfig.search_greed; each snapped to the nearest walkable node within `snap`, on the
-## floor at its height), smoothed into straight legs probed by leg_probe, written into `out` as waypoints on their
-## floors: the start excluded, ending exactly on the goal where it is walkable and in a straight line on foot from the
-## leg before, else on the node nearest it. False, with `out` emptied, when there is no route.
-func find_route(start: Vector3, goal: Vector3, out: PackedVector3Array) -> bool:
+## A short walkable route from `start` to `goal` (the search's greed: NavConfig.search_greed; each snapped to the
+## nearest walkable node within `snap`, on the floor at its height), smoothed into straight legs probed by leg_probe,
+## written into `out` as waypoints on their floors: the start excluded, ending exactly on the goal where it is walkable
+## and in a straight line on foot from the leg before, else on the node nearest it. With `vaults` (a bot's route) it may
+## go over a low obstacle by a vault link, a leg of its own from the node before it to the node past it (is_vault_leg);
+## without (a walk-off), only on foot. False, with `out` emptied, when there is no route.
+func find_route(start: Vector3, goal: Vector3, out: PackedVector3Array, vaults: bool = false) -> bool:
 	var a := nearest_walkable(start, snap)
 	var b := nearest_walkable(goal, snap)
 	if a < 0 or b < 0:
 		out.clear()
 		return false
+	var off := not vaults and not vault_to.is_empty()
+	if off:
+		_set_vaults(false)
 	var ids := PackedInt64Array([a]) if a == b else astar.get_id_path(a, b)
+	if off:
+		_set_vaults(true)
 	if ids.is_empty():
 		out.clear()
 		return false
 	NavRoute.pull(self, ids, start, goal, out)
 	return true
+
+
+## True if the leg from `a` to `b` (waypoints on node centres) is a vault link: over a low obstacle, not on foot.
+func is_vault_leg(a: Vector3, b: Vector3) -> bool:
+	if vault_to.is_empty():
+		return false
+	var from := node_at(a)
+	if from < 0 or vault_start[from] == vault_start[from + 1]:
+		return false
+	var land := node_at(b)
+	for l in range(vault_start[from], vault_start[from + 1]):
+		if vault_to[l] == land:
+			return true
+	return false
+
+
+## Turns every vault link in the search on or off.
+func _set_vaults(on: bool) -> void:
+	for l in vault_to.size():
+		astar.set_point_disabled(vault_base + l, not on)
 
 
 ## A walkable floor point within `radius` (m) of `p`, drawn from `rng` (bots' hunting); `p` itself if hunt_tries draws

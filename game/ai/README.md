@@ -40,5 +40,5 @@ routes.
 
 ## Not yet
 
-One skill (Normal), no names or personalities, no callouts or squad orders, no trades or magazine sharing, bots don't
-vault (docs/KNOWN_ISSUES.md).
+One skill (Normal), no names or personalities, no callouts or squad orders, no trades or magazine sharing
+(docs/KNOWN_ISSUES.md).

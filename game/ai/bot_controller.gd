@@ -19,6 +19,7 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 	w.cfg = config
 	w.nav = nav
 	w.query = query
+	NavVaults.link(nav, query, tuning.vault, tuning.body, config.vault_price)
 	w.characters = state.characters
 	w.lanes = map.lanes
 	w.low_cover = BotCover.low_blocks(map, nav, config, tuning)
@@ -72,7 +73,7 @@ func _plan_one_route(state: GameState) -> void:
 			continue
 		_next_route = (_next_route + i + 1) % n
 		var from := b.character.position
-		if w.nav.find_route(from, b.route_goal, b.route):
+		if w.nav.find_route(from, b.route_goal, b.route, w.time >= b.vaults_off_until):
 			b.route_state = Bot.RouteState.OK
 			b.route_from = from
 			b.route_leg = 0
