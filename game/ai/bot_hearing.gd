@@ -41,8 +41,9 @@ static func _footstep_range(kind: int, cfg: BotConfig) -> float:
 	return cfg.footstep_hearing_run
 
 
-## A "HIT!" tells the victim's teammates which way the BB came, not how far: the guess is back along its path from the
-## victim, no further than gunfire carries. Not from a BB fired by someone hit since (they are walking off).
+## A "HIT!" tells the victim's teammates which way the BB came: the guess is back along its path from the victim, as far
+## as the shooter stands up to how far gunfire carries (the shot was heard too), then off by hearing_error as any sound.
+## Not from a BB fired by someone hit since (they are walking off).
 static func _hit_call(e: GameEvent, w: BotWorld) -> void:
 	var victim := _character(w, e.target)
 	var shooter := _character(w, e.actor)

@@ -124,22 +124,37 @@ func test_a_bot_holds_fire_with_a_teammate_in_the_line() -> void:
 	var shooter := _bot(0)
 	var mate := state.characters[1]
 	var enemy := state.characters[3]
-	shooter.character.position = Vector3(-10.0, 0.0, 0.0)
-	enemy.position = Vector3(-10.0, 0.0, -12.0)
-	mate.position = Vector3(-10.0, 0.0, -6.0)
+	# An open stretch of East yard, 12 m long, the teammate halfway and just off the line: the enemy shows past them.
+	shooter.character.position = Vector3(20.0, 0.0, 0.0)
+	enemy.position = Vector3(20.0, 0.0, -12.0)
+	mate.position = Vector3(20.45, 0.0, -6.0)
+	# Facing up the yard at the enemy, so it is in view from the first look.
 	shooter.character.yaw = 0.0
+	shooter.aim_yaw = 0.0
 	for c in state.characters:
 		c.prev_position = c.position
 		if c != shooter.character and c != mate and c != enemy:
 			c.status = Character.Status.OUT
+	# Stands and fights (no dash for cover first); time runs, nobody moves.
+	shooter.skill = config.skill.duplicate() as BotSkill
+	shooter.skill.contact_cover_min_distance = INF
 	var shots := 0
 	for t in 180:
-		mate.position = Vector3(-10.0, 0.0, -6.0)
+		mate.position = Vector3(20.45, 0.0, -6.0)
 		bots.think(state, commands, DT)
 		if commands[0].fire:
 			shots += 1
 		state.time += DT
+	assert_eq(shooter.target_id, enemy.id, "it sees the enemy past its teammate")
 	assert_eq(shots, 0, "never fires through a teammate")
+	# The same duel with the teammate stepped aside: it does fire.
+	for t in 180:
+		mate.position = Vector3(24.0, 0.0, -6.0)
+		bots.think(state, commands, DT)
+		if commands[0].fire:
+			shots += 1
+		state.time += DT
+	assert_gt(shots, 0, "with the line clear it fires")
 
 
 func test_gunfire_is_heard_and_walls_muffle_it() -> void:

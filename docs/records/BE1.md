@@ -1,12 +1,12 @@
 # BE1 · Bots and Elimination on Depot
 
-**Review:** pending
+**Review:** 1 attempt · critic Accept 8/8 (Opus) · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-18 | 1 | Opus 5.5 (build thread; two workers: the nav grid, lean and vault) | ✓ | pending | – |
+| 2026-10-18 | 1 | Opus 5.5 (build thread; two workers: the nav grid, lean and vault) | ✓ | 8/8 Accept | – (the critic's advisories: a positive control added to the hold-fire test, the hit-call comment corrected) |
 
 ## Decisions
 
@@ -31,11 +31,17 @@
   9), and fails if the match isn't won within 30 minutes of match time.
 - **`BotCombat.reload_when_due`, not `reload`:** a static `reload` on a script class resolves to `Script.reload`.
 
+- **Critic's advisories left as they are:** a near miss gives away roughly where the shooter is at any range, and a
+  hit call's guess uses the shooter's distance up to gunfire's 22 m (both the browser game's hearing); the HUD shows your
+  own state while you spectate. Playtest decides.
+
 ## Measured
 
 - Headless bot matches on Depot, seeds 1 to 3: 23 rounds, none by the clock, no friendly hits, nobody off the map. The
   smoke match: 8 rounds.
 - Nav grid build 205 to 240 ms; 27,363 walkable cells (the browser game's 27,380).
+- Per tick with six bots (performance agent, headless, 4 cores): bots 0.28 to 0.31 ms mean, simulation 0.30 ms mean;
+  together p99 1.8 to 2.1 ms, worst 6.7 to 11.9 ms once a match (round start, route searches).
 
 ## Known issues left
 
