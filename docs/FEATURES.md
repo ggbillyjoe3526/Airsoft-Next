@@ -18,7 +18,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - Wind: each match has a light breeze (calm to about 2 m/s, with gusts), new every match; it pushes BBs, never players, and dust specks drift with it (BB1)
 - Hop-up dial: 4 (less) and 5 (more), or Page Down and Page Up, turn each replica's dial for the match; the replica panel shows the setting and flat-shot range; bots keep factory dials (BB1)
 - Ricochets: BBs bounce off concrete and steel containers; by default a bounced hit doesn't count ("Ricochet: play on"), and a match rule can make it count, not yet in a menu (BB1)
-- Movement: walk, run, sprint, crouch, a limited jump (FP1), lean with Q or E (slows to a walk; eases back when a wall cuts it short) and vault over low walls with Jump, with "Space to vault" under the crosshair (BE1, MO1). Bots don't vault yet
+- Movement: walk, run, sprint, crouch, a limited jump (FP1), lean with Q or E (slows to a walk; eases back when a wall cuts it short) and vault over low walls with Jump, with "Space to vault" under the crosshair (BE1, MO1)
 - HUD: score, round clock, magazine, spares and fire mode, a gauge per magazine (loaded first, then spares fullest first; orange when the loaded one runs low), a crosshair that opens with your spread, and round banners (FP1, MZ1)
 - Depot: a greybox field with sun, sky, shadows, positional sound and an ambience loop; BBs puff on metal, wood, concrete or ground in its colour (FP1)
-- Bots: Alpha with two bot teammates against three bots, Elimination rounds, first to five; bots see a 120 degree view, hear sound through walls muffled, take cover, peek, lean, hunt and flank; one difficulty, Normal (BE1)
+- Bots: Alpha with two bot teammates against three bots, Elimination rounds, first to five; bots see a 120 degree view, hear sound through walls muffled, take cover, peek, lean, hunt and flank, and vault low walls on their routes; one difficulty, Normal (BE1, BV1)

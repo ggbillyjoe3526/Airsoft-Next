@@ -12,7 +12,6 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 | Area | Issue | Class | Found |
 |---|---|---|---|
 | Models | The figures carry hand-made `_LOD1`/`_LOD2` meshes and four heads as separate nodes, so a plain instance draws every level and head (34,833 triangles for the human). The figure code must pick one head and set visibility ranges (or drop the hand-made LODs) | can wait | 2026-10-18 |
-| Bots | The nav grid has no vault links (browser M102): routes go round low walls and barriers a body could vault, and Depot's vaultable hall wall is not a way through for bots | can wait | 2026-10-18 |
 | Bots | Bots are the core slice only: one level (Normal; no Easy, Hard or Pro), no names or personalities, kits, callouts, pings or squad orders, no magazine sharing, and none of Pro's tactics (pre-aimed angles, slicing, trades, crossfires). Each is its own later task (`docs/DECISIONS.md` › Bots and balance) | can wait | 2026-10-18 |
 | Bots | A cross-map route on Depot costs 1.2–1.5 ms on average and up to 6.4 ms (`NavGrid.find_route`, measured headless), over the 1 ms aim: about half the native search, half the string-pulling in GDScript. Plan at most one route a tick | can wait | 2026-10-18 |
 | Play | A reload started within 0.05 s of the GBB Pistol's last shot (`ViewModelConfig.slide_lock_after`) runs with the slide forward instead of locked back (MZ1) | can wait | 2026-10-18 |

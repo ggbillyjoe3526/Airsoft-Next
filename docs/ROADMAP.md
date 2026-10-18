@@ -53,7 +53,7 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 2. **BB physics pass** (BB1). Wind, the hop-up dial turned in play, ricochets as a match rule. Built.
 3. **Holster and smoother lean and vault** (MO1). Holster on 3, and the view eased through a cut-short lean and a
    vault. Built.
-4. **Bots vault** (BV1). Vault links in the nav grid, so bots go over low walls as you do.
+4. **Bots vault** (BV1). Vault links in the nav grid, so bots go over low walls as you do. Built.
 5. **Settings** (SE1). Sensitivity, controls, rebinding, audio and display, saved and versioned, with the browser
    game's other rows (field of view, show FPS, cm/360, a second key per action, every volume).
 6. **Debug tools and the Dev tab.** BB paths and hit areas drawn in the world, the seed and position on the overlay,

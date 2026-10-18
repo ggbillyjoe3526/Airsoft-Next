@@ -73,6 +73,10 @@ var route_state: RouteState = RouteState.NONE
 var route_retry_at: float = -INF
 ## Seconds it has walked slower than BotConfig.stuck_speed.
 var stuck_for: float = 0.0
+## Walking the first half of a route's vault leg this tick (BotRoutes.follow): straight at it, Jump once it's there.
+var vault_leg: bool = false
+## No vault in its routes before this time (s): it got held up on a vault leg (BotConfig.vault_retry_delay).
+var vaults_off_until: float = -INF
 ## The way it walks this tick (a unit vector on the ground; zero to coast).
 var move_dir: Vector3 = Vector3.ZERO
 
@@ -168,6 +172,8 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	route_state = RouteState.NONE
 	route_retry_at = -INF
 	stuck_for = 0.0
+	vault_leg = false
+	vaults_off_until = -INF
 	move_dir = Vector3.ZERO
 	lane = lane_id
 	# From end 0 the lane's points go first to last, from end 1 last to first.

@@ -24,8 +24,10 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
   concrete and steel (they only tick you unless the match counts them).
 - **The holster and a smoother lean and vault are done (MO1):** 3 puts the replica away for a faster run (bots too),
   a lean a wall cuts short eases out, a vault dips and tips the view, and "Space to vault" shows when Jump would vault.
-- **Next:** the build order in `docs/ROADMAP.md` › Build order, Foundations first: bots vaulting (BV1), then settings
-  (SE1). Their blocks are in `docs/TASKS.md`. Version names wait until the owner picks them up again (owner, 2026-10-18).
+- **Bots vault low walls (BV1):** the nav grid links low walls a body can vault, bots take a link where it saves more
+  than 3 m on foot and press Jump there; on Depot that is the hall wall.
+- **Next:** the build order in `docs/ROADMAP.md` › Build order, Foundations first: settings (SE1). Its block is in
+  `docs/TASKS.md`. Version names wait until the owner picks them up again (owner, 2026-10-18).
 - **Waiting on the owner:** his play-through of `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
 - **Crouch and aim are both held** (owner, 2026-10-18), changed in the Depot thread.
 

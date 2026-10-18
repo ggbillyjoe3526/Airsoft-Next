@@ -34,7 +34,9 @@ static func arrived(b: Bot) -> bool:
 ## Follows the route: writes the way to walk into b.move_dir and returns true, or false with nothing to walk (no route,
 ## or arrived). `while_planning`: keep walking the old route while a new one is wanted. A bot pushed off its leg (by a
 ## teammate, a fight) that would take a drop walking straight on asks for a fresh route; one walking slower than
-## stuck_speed for stuck_time does too.
+## stuck_speed for stuck_time does too. A leg over a low obstacle (a vault link, NavVaults) sets b.vault_leg while the
+## obstacle is still ahead: it is walked straight, its end counts as reached once past it wherever the vault set the
+## body down, and held up on it the bot's routes go round for vault_retry_delay.
 static func follow(b: Bot, w: BotWorld, dt: float, while_planning: bool = false) -> bool:
 	var cfg := w.cfg
 	var planning := while_planning and b.route_state == Bot.RouteState.WANTED
@@ -43,7 +45,9 @@ static func follow(b: Bot, w: BotWorld, dt: float, while_planning: bool = false)
 	var p := b.character.position
 	while b.route_leg < b.route.size():
 		var reached := b.route[b.route_leg]
-		if Vector2(reached.x - p.x, reached.z - p.z).length() > cfg.waypoint_reach:
+		if Vector2(reached.x - p.x, reached.z - p.z).length() > cfg.waypoint_reach \
+				and not (_leg_share(b.route_from, reached, p, cfg.waypoint_reach) >= 1.0
+				and w.nav.is_vault_leg(b.route_from, reached)):
 			break
 		b.route_from = reached
 		b.route_leg += 1
@@ -53,7 +57,9 @@ static func follow(b: Bot, w: BotWorld, dt: float, while_planning: bool = false)
 			b.stuck_for = 0.0
 		return false
 	var wp := b.route[b.route_leg]
-	if not planning and _off_leg(b.route_from, wp, p) > cfg.route_off_leg and w.nav.drop_on_line(p, wp):
+	var vault := w.nav.is_vault_leg(b.route_from, wp)
+	b.vault_leg = vault and _leg_share(b.route_from, wp, p, 0.0) < 0.5
+	if not planning and not vault and _off_leg(b.route_from, wp, p) > cfg.route_off_leg and w.nav.drop_on_line(p, wp):
 		b.route_state = Bot.RouteState.WANTED
 		b.stuck_for = 0.0
 		return false
@@ -67,6 +73,9 @@ static func follow(b: Bot, w: BotWorld, dt: float, while_planning: bool = false)
 	if b.stuck_for > cfg.stuck_time and not planning:
 		b.stuck_for = 0.0
 		b.route_state = Bot.RouteState.WANTED
+		# Held up at a vault (a teammate in the way, a fight that turned it): the next routes go round for a while.
+		if vault:
+			b.vaults_off_until = w.time + cfg.vault_retry_delay
 	return true
 
 
@@ -118,6 +127,15 @@ static func _add(n: int, p: Vector3) -> int:
 		_taken.resize(n + 1)
 	_taken[n] = p
 	return n + 1
+
+
+## How far along the leg from `a` to `b` the point `p` is, `reach` metres on (0 at `a`, 1 at `b`; 1 for no leg).
+static func _leg_share(a: Vector3, b: Vector3, p: Vector3, reach: float) -> float:
+	var e := Vector2(b.x - a.x, b.z - a.z)
+	var len2 := e.length_squared()
+	if len2 <= 0.0:
+		return 1.0
+	return (Vector2(p.x - a.x, p.z - a.z).dot(e) + reach * sqrt(len2)) / len2
 
 
 ## How far `p` stands off the leg from `a` to `b` on the ground.

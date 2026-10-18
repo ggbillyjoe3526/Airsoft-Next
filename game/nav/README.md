@@ -18,7 +18,11 @@ built once per map from `MapData.blocks` (no `Node`, no physics: docs/ARCHITECTU
 - **Measured** on Depot headless, 2026-10-18, 4-core container: build 205–240 ms; 42,075 nodes, 27,363 walkable
   (the browser's 27,380: the map's numbers are single precision here); 100 random cross-map `find_route` calls mean
   1.2–1.5 ms, max 6.4 ms (the search about 0.7 ms of it), 100 random pairs anywhere mean 0.7 ms.
-- **Not yet.** Terrain (no map has any yet), vault links (bots route round low obstacles: docs/KNOWN_ISSUES.md).
+- **Vault links** (`nav_vaults.gd`, browser M102): where `Vault.plan` vaults a body from a standstill on a node, along
+  the grid's four axes, a one-way search point between that node and the first walkable one past the obstacle, priced
+  at its length plus `BotConfig.vault_price` (3 m). A bot's route may take one (`find_route(..., vaults = true)`); a
+  walk-off never does. Depot has 10, all over the hall wall, found in about 120 ms once per grid.
+- **Not yet.** Terrain (no map has any yet).
 
 Tuning: `NavConfig` (`game/config/nav_config.gd`, `SimTuning.nav`); the body's radius, height and step from
 `BodyConfig`. Tests: `tests/unit/test_nav_grid.gd` (the browser's grid tests, a two-storey map, Depot's dock, spawns

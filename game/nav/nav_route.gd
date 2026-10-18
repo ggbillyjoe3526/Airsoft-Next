@@ -4,6 +4,9 @@ class_name NavRoute
 ## order until one is out of sight. The browser tried every second node; this tries the path's corners (where a straight
 ## run drawn in cells ends), where a leg's end lies, and only when the next corner is out of sight its turns, then every
 ## second node. Each try walks a line in GDScript, so fewer tries keep the smoothing cheap.
+##
+## A vault link in the path (a search point past the grid's nodes, NavVaults) ends the pulling at its takeoff node: the
+## route goes to the takeoff, then straight to the landing, a leg of its own, and pulls on from there.
 
 
 ## Writes the route along node path `ids` (start node first, goal node last) into `out`, from `start` (where the walker
@@ -21,8 +24,13 @@ static func pull(g: NavGrid, ids: PackedInt64Array, start: Vector3, goal: Vector
 		ay = g.floor_y[ids[0]]
 		az = g.cell_z(c0 / g.cols)
 	var k := 0
+	var end := _segment_end(g, ids, k)
 	while k < last:
-		var next := _furthest(g, ids, ax, ay, az, k)
+		var next := k + 2 if k == end else _furthest(g, ids, ax, ay, az, k, end)
+		if k == end:
+			if out.is_empty():
+				out.append(g.node_position(ids[k]))
+			end = _segment_end(g, ids, next)
 		var c := g.node_cell[ids[next]]
 		ax = g.cell_x(c % g.cols)
 		ay = g.floor_y[ids[next]]
@@ -40,25 +48,35 @@ static func pull(g: NavGrid, ids: PackedInt64Array, start: Vector3, goal: Vector
 		out[n - 1] = Vector3(goal.x, g.floor_y[goal_node], goal.z)
 
 
-## The index of the furthest node after `k` in a clear straight line from the anchor (ax, ay, az), else k + 1: the
-## corners up to the first out of sight (a corner ends a run of at most two neighbouring directions, a straight line
-## drawn in cells); if the first is out of sight, the turns short of it; if the first turn is, every second node.
-static func _furthest(g: NavGrid, ids: PackedInt64Array, ax: float, ay: float, az: float, k: int) -> int:
+## The index of the node in `ids` from `k` on that a vault link's search point follows (its takeoff), or the last index.
+static func _segment_end(g: NavGrid, ids: PackedInt64Array, k: int) -> int:
 	var last := ids.size() - 1
+	if g.vault_base < 0:
+		return last
+	for t in range(k, last):
+		if ids[t + 1] >= g.vault_base:
+			return t
+	return last
+
+
+## The index of the furthest node after `k`, up to `last`, in a clear straight line from the anchor (ax, ay, az), else
+## k + 1: the corners up to the first out of sight (a corner ends a run of at most two neighbouring directions, a straight line
+## drawn in cells); if the first is out of sight, the turns short of it; if the first turn is, every second node.
+static func _furthest(g: NavGrid, ids: PackedInt64Array, ax: float, ay: float, az: float, k: int, last: int) -> int:
 	var next := k + 1
-	var m := _next_corner(g, ids, k)
+	var m := _next_corner(g, ids, k, last)
 	while _in_line(g, ax, ay, az, ids[m]):
 		next = m
 		if m == last:
 			return m
-		m = _next_corner(g, ids, m)
+		m = _next_corner(g, ids, m, last)
 	if next > k + 1:
 		return next
-	var t := _next_turn(g, ids, k)
+	var t := _next_turn(g, ids, k, last)
 	var first_turn := t
 	while t < m and _in_line(g, ax, ay, az, ids[t]):
 		next = t
-		t = _next_turn(g, ids, t)
+		t = _next_turn(g, ids, t, last)
 	if next == k + 1:
 		var s := k + 2
 		while s < first_turn and _in_line(g, ax, ay, az, ids[s]):
@@ -73,9 +91,8 @@ static func _in_line(g: NavGrid, ax: float, ay: float, az: float, k: int) -> boo
 	return g.walk_line(ax, ay, az, g.cell_x(c % g.cols), g.cell_z(c / g.cols), g.leg_probe) == k
 
 
-## The index after `m` where the path turns (its step there differs from the step before), or the last index.
-static func _next_turn(g: NavGrid, ids: PackedInt64Array, m: int) -> int:
-	var last := ids.size() - 1
+## The index after `m` where the path turns (its step there differs from the step before), or `last`.
+static func _next_turn(g: NavGrid, ids: PackedInt64Array, m: int, last: int) -> int:
 	var t := m + 1
 	while t < last:
 		var here := g.node_cell[ids[t]]
@@ -86,9 +103,8 @@ static func _next_turn(g: NavGrid, ids: PackedInt64Array, m: int) -> int:
 
 
 ## The index after `m` where a run of steps in at most two neighbouring directions (45 degrees apart) ends, or the last
-## index: a straight line at any angle drawn in cells is such a run.
-static func _next_corner(g: NavGrid, ids: PackedInt64Array, m: int) -> int:
-	var last := ids.size() - 1
+## index (`last`): a straight line at any angle drawn in cells is such a run.
+static func _next_corner(g: NavGrid, ids: PackedInt64Array, m: int, last: int) -> int:
 	var cols := g.cols
 	var c := g.node_cell[ids[m]]
 	var first := Vector2i(-2, -2)
