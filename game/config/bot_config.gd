@@ -107,6 +107,12 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## Sprints along a route when nobody was seen or heard for this long (s), heading mostly forward (this much input).
 @export var sprint_when_calm_for: float = 3.0
 @export var sprint_forward: float = 0.9
+## The holster (the browser game's botHolster.ts): a bot puts its replica away after sprinting holster_after seconds
+## without a break in its own half, nobody seen or heard for holster_calm_for seconds; it draws again at once on a threat,
+## in the enemy's half or for a reload, or holster_draw_after seconds after the sprint stops.
+@export var holster_calm_for: float = 5.0
+@export var holster_after: float = 1.5
+@export var holster_draw_after: float = 0.5
 
 @export_group("Routes")
 ## Waypoints count as reached within this distance (m).

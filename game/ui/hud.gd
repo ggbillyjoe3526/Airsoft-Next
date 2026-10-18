@@ -39,6 +39,8 @@ var _banner: Label = null
 var _banner_sub: Label = null
 var _hit_label: Label = null
 var _hit_sub: Label = null
+var _vault_prompt: Label = null
+var _vault_left: float = 0.0
 
 var _marker_left: float = 0.0
 var _banner_left: float = 0.0
@@ -52,6 +54,7 @@ var _shown_slot: int = -1
 ## The slot the hop-up readout is about.
 var _hop_slot: int = -1
 var _shown_mode: int = -1
+var _shown_holstered: bool = false
 var _shown_status: int = -1
 var _shown_clock: int = -1
 var _shown_round: int = -1
@@ -106,6 +109,15 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 			MIDDLE_SIZE.x, MIDDLE_SIZE.y))
 	middle.alignment = BoxContainer.ALIGNMENT_END
 	add_child(middle)
+	# The vault prompt, just under the crosshair.
+	var prompt := VBoxContainer.new()
+	_place(prompt, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-TOP_WIDTH * 0.5, cfg.vault_prompt_drop, TOP_WIDTH, 0.0))
+	add_child(prompt)
+	_vault_prompt = _label(prompt, GameTheme.SMALL_SIZE, 700, cfg.text_colour, HORIZONTAL_ALIGNMENT_CENTER)
+	_vault_prompt.text = tr("HUD_VAULT")
+	_vault_prompt.add_theme_constant_override("outline_size", 6)
+	_vault_prompt.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.55))
+	_vault_prompt.visible = false
 	_hit_label = _label(middle, GameTheme.HUGE_SIZE, 800, cfg.text_colour, HORIZONTAL_ALIGNMENT_CENTER)
 	_hit_label.text = tr("HUD_YOU_ARE_HIT")
 	_hit_sub = _label(middle, GameTheme.BODY_SIZE, 600, cfg.text_colour, HORIZONTAL_ALIGNMENT_CENTER)
@@ -115,6 +127,12 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	for l: Label in [_hit_label, _hit_sub, _banner, _banner_sub]:
 		l.add_theme_constant_override("outline_size", 8)
 		l.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.55))
+
+
+## Whether a Jump press would vault this tick: the prompt shows, and stays up vault_prompt_hold after.
+func set_vault_ready(ready: bool) -> void:
+	if ready:
+		_vault_left = _cfg.vault_prompt_hold
 
 
 ## The tick's events: your hits, the round's turns.
@@ -156,6 +174,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		_hop_left -= delta
 		if _hop_left <= 0.0:
 			_hop_label.visible = false
+	_vault_left = maxf(0.0, _vault_left - delta)
+	_vault_prompt.visible = _vault_left > 0.0 and in_play
 	if _banner_left > 0.0:
 		_banner_left -= delta
 		if _banner_left <= 0.0:
@@ -164,7 +184,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	_hit_label.visible = not in_play and c.status != Character.Status.OUT
 	_hit_sub.visible = _hit_label.visible
 	# The crosshair's gap is the spread a shot really has now (two standard deviations), on this screen at this zoom.
-	_show_cross = in_play and c.aim_raise < 0.5 and not a.replicas.is_empty()
+	_show_cross = in_play and c.aim_raise < 0.5 and not a.replicas.is_empty() and not a.holstered
 	if _show_cross:
 		var spread := deg_to_rad(a.replica().spread_deg * c.spread_scale) * 2.0
 		var half_fov := deg_to_rad(_view.vertical_fov(zoom)) * 0.5
@@ -192,10 +212,12 @@ func _refresh_panel(a: Armament) -> void:
 	var mag := a.mag()
 	var spare := a.spare_bbs()
 	var mode := a.fire_mode() as int
-	if a.active != _shown_slot or mode != _shown_mode:
+	if a.active != _shown_slot or mode != _shown_mode or a.holstered != _shown_holstered:
 		_shown_slot = a.active
 		_shown_mode = mode
-		_replica_label.text = "%s  ·  %s" % [r.display_name, tr(MODE_KEYS[mode])]
+		_shown_holstered = a.holstered
+		var state := tr("HUD_HOLSTERED") if a.holstered else tr(MODE_KEYS[mode])
+		_replica_label.text = "%s  ·  %s" % [r.display_name, state]
 		if a.active != _hop_slot:
 			_hop_left = 0.0
 			_hop_label.visible = false

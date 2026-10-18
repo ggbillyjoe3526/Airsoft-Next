@@ -10,11 +10,12 @@ static func approach(current: float, target: float, max_delta: float) -> float:
 	return maxf(current - max_delta, target)
 
 
-## The pace (m/s) the character is aiming for in its stance: walking, sprinting or the run, blended towards the crouch
+## The pace (m/s) the character is aiming for in its stance: walking, sprinting or the run (faster holstered), blended towards the crouch
 ## pace as it crouches. A lean slows it smoothly to walking pace, reached at lean_quiet_from of a full lean. Walk held
 ## while aiming down sights creeps below the aiming pace (M84).
 static func target_speed(c: Character, cfg: MovementConfig, walk_held: bool) -> float:
-	var base := cfg.walk_speed if c.walking else (cfg.sprint_speed if c.sprinting else cfg.run_speed)
+	var run := minf(cfg.holster_run_speed, cfg.sprint_speed) if c.armament.holstered else cfg.run_speed
+	var base := cfg.walk_speed if c.walking else (cfg.sprint_speed if c.sprinting else run)
 	var lean := absf(c.lean)
 	if lean > 0.0 and not c.walking:
 		base += (cfg.walk_speed - base) * minf(1.0, lean / cfg.lean_quiet_from)

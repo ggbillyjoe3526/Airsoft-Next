@@ -10,7 +10,7 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 |---|---|
 | `sim_tuning.gd` | Bundles the simulation's configs below |
 | `ballistics_config.gd` | BB flight: air, BB size, hop-up spin, lift, spin decay, lifetime, pool size |
-| `movement_config.gd`, `accuracy_config.gd`, `body_config.gd` | Paces, jump, crouch, aiming pace, lean speed and wall clearance; spread by stance and motion; the body's size |
+| `movement_config.gd`, `accuracy_config.gd`, `body_config.gd` | Paces (the holstered run too), jump, crouch, aiming pace, lean speed and wall clearance; spread by stance and motion; the body's size |
 | `vault_config.gd` | Vaulting: the heights and depth vaulted, reach, the path's speed and tuck, the fire lockout after |
 | `hit_config.gd` | Hit calling, friendly fire and whether ricochets count, the walk-off, the hit volume (head, chest, hips, legs) and the lean's pivot and tilt |
 | `wind_config.gd` | The match's breeze: its speed range, gusts and veer |
@@ -18,18 +18,18 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `round_config.gd` | Elimination rounds: clock, score, half time, reset |
 | `footstep_config.gd` | Strides and landings |
 | `nav_config.gd` | The nav grid: cell size, clearance margin, snapping, the search's greed, line sampling |
-| `replica_rules_config.gd` | Recoil recovery, the trigger, BB weight and the hop-up dial's range and notch |
+| `replica_rules_config.gd` | Recoil recovery, the trigger, BB weight, the hop-up dial's range and notch, the draw from the holster |
 | `replica_config.gd`, `replicas/*.tres` | One replica's stats, the built-in values; `data/stats.md` wins over them |
 | `replica_stats.gd`, `data_table.gd` | Read `data/stats.md`'s tables (a cell that won't read keeps the built-in value and warns) |
 | `play_tuning.gd`, `play_tuning.tres` | Bundles the play screen's configs below, and the rematch delay |
 | `controls_config.gd` | Mouse turn, sensitivity, invert, slower while zoomed, crouch and aim toggle or hold |
-| `view_config.gd` | Field of view, the sight's zoom, near and far, the view's roll in a lean |
-| `viewmodel_config.gd` | The replica in hand: hip and sight positions, sway, kick, sprint carry, draw, reload cant, wall pull-back |
+| `view_config.gd` | Field of view, the sight's zoom, near and far, the view's roll in a lean, a cut lean's easing, a vault's dip and tip |
+| `viewmodel_config.gd` | The replica in hand: hip and sight positions, sway, kick, sprint carry, draw, the holster, reload cant, wall pull-back |
 | `effects_config.gd` | BB size and colour, the muzzle blend, puffs by surface, the wind dust |
 | `sound_config.gd` | Cue and loop folders, gains, distances, voice pools, the ambience |
-| `hud_config.gd` | HUD colours, the low-magazine share, the crosshair, the hit marker, banner times, the hop-up readout |
+| `hud_config.gd` | HUD colours, the low-magazine share, the crosshair, the hit marker, banner times, the hop-up readout, the vault prompt |
 | `map_style.gd` | A map's greybox: colours and surface by block kind, the ground, the world grid |
 | `lighting_config.gd` | The sun, the sky, ambient light, SSAO and exposure |
 | `team_config.gd` | Team names (translation keys) and colours |
-| `bot_config.gd`, `bot_tuning.tres` | How bots play (`BotConfig.load_default()`): senses, aim, firing, lanes and holds, routes, cover, searching, hunting |
+| `bot_config.gd`, `bot_tuning.tres` | How bots play (`BotConfig.load_default()`): senses, aim, firing, lanes and holds, routes, cover, searching, hunting, the holster |
 | `bot_skill.gd` | How well a bot plays: reaction, turn rate, aim error and settling, lead, bursts, holds (Normal only for now) |

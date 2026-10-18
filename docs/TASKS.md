@@ -4,20 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## MO1 · Holster and a smoother lean and vault
-tier: core
-perf: required
-touches: game/sim/armament.gd, game/sim/movement.gd, game/sim/player_command.gd, game/config/movement_config.gd, game/config/replica_rules_config.gd, game/config/sim_tuning.tres, game/input/, game/play/first_person_view.gd, game/play/replica_view.gd, game/ai/bot_combat.gd, game/ai/bot_brain.gd
-contract: none
-acceptance:
-  1. 3 holsters the replica (browser M92, MV1): holstered you run faster (5.4 against 4.2 m/s), never past the sprint;
-     the draw takes longer; a fresh trigger pull, aim, reload or slot key draws it. Bots holster by the same rules.
-  2. A lean a wall cuts short eases instead of snapping in one tick, and a vault dips and tips the view (browser
-     `renderView.ts` leanCut, `cameraRig.ts`); the matching `docs/KNOWN_ISSUES.md` row goes.
-  3. The easing runs on rendered frames; the rules stay on the 60 Hz tick.
-status: open
-attempts: 0
-
 ## BV1 · Bots vault low walls
 tier: core
 perf: required

@@ -208,3 +208,31 @@ func test_aim_is_held_by_default_and_toggles_with_the_setting() -> void:
 	_press(&"aim")
 	input.fill(cmd)
 	assert_false(cmd.aim, "a second press lowers it")
+
+
+func test_holster_then_a_slot_in_one_tick_draws_the_slot_and_the_reverse_holsters() -> void:
+	_press(&"holster")
+	_press(&"slot_1")
+	input.fill(cmd)
+	assert_false(cmd.holster, "the later slot press wins")
+	assert_eq(cmd.switch_to, 0)
+	_press(&"slot_1")
+	_press(&"holster")
+	input.fill(cmd)
+	assert_true(cmd.holster, "the later holster press wins")
+	assert_eq(cmd.switch_to, -1)
+	input.fill(cmd)
+	assert_false(cmd.holster, "one-shot: gone the next tick")
+
+
+func test_holster_then_the_wheel_in_one_tick_switches_and_the_reverse_holsters() -> void:
+	_press(&"holster")
+	_press(&"slot_next")
+	input.fill(cmd, 0)
+	assert_false(cmd.holster)
+	assert_eq(cmd.switch_to, 1)
+	_press(&"slot_next")
+	_press(&"holster")
+	input.fill(cmd, 0)
+	assert_true(cmd.holster)
+	assert_eq(cmd.switch_to, -1, "the wheel notch is dropped")

@@ -64,6 +64,8 @@ func test_whole_bot_matches_play_out_fairly_over_seeds() -> void:
 	var rescued := 0
 	var timeouts := 0
 	var rounds := 0
+	var holsters := 0
+	var away_in_enemy_half := 0
 	var limit := roundi(tuning.rounds.round_time / DT) * 14
 	for seed_value: int in [1, 2, 3]:
 		_start(seed_value)
@@ -88,13 +90,23 @@ func test_whole_bot_matches_play_out_fairly_over_seeds() -> void:
 						timeouts += 1
 				elif e.kind == GameEvent.Kind.MATCH_OVER:
 					finished = true
+				elif e.kind == GameEvent.Kind.HOLSTER:
+					holsters += 1
 			for c in state.characters:
 				if c.position.y < map.kill_y + 1.0:
 					rescued += 1
+			# A bot puts its replica away only in its own half, and draws it once past halfway (BotHolster).
+			for b in bots.world.bots:
+				if b.character.armament.holstered and bots.world.planner.in_enemy_half(b) \
+						and Elimination.is_in_play(b.character):
+					away_in_enemy_half += 1
 			if finished:
 				break
 		assert_true(finished, "seed %d: the match was won" % seed_value)
-	gut.p("bot matches: %d rounds, %d by the clock, %d friendly hits" % [rounds, timeouts, friendly])
+	gut.p("bot matches: %d rounds, %d by the clock, %d friendly hits, %d holsters" % [rounds, timeouts, friendly,
+			holsters])
+	assert_gt(holsters, 0, "bots holster on a calm sprint")
+	assert_lt(away_in_enemy_half, 3 * 60, "holstered past halfway only for the moment of the draw")
 	assert_eq(friendly, 0, "no bot hit a teammate")
 	assert_eq(blind_shots, 0, "every trigger pull was at someone in sight")
 	assert_eq(rescued, 0, "nobody fell off the map")

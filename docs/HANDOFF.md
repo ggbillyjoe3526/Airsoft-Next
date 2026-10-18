@@ -22,8 +22,10 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
 - **Magazines on the HUD are done (MZ1):** a gauge per magazine, and the GBB Pistol's slide locks back on empty.
 - **The BB physics pass is done (BB1):** a breeze per match, the hop-up dial on 4 and 5 in play, and ricochets off
   concrete and steel (they only tick you unless the match counts them).
-- **Next:** the build order in `docs/ROADMAP.md` › Build order, Foundations first: holster and a smoother lean and vault (MO1), bots vaulting (BV1), then settings (SE1). Their blocks are in
-  `docs/TASKS.md`. Version names wait until the owner picks them up again (owner, 2026-10-18).
+- **The holster and a smoother lean and vault are done (MO1):** 3 puts the replica away for a faster run (bots too),
+  a lean a wall cuts short eases out, a vault dips and tips the view, and "Space to vault" shows when Jump would vault.
+- **Next:** the build order in `docs/ROADMAP.md` › Build order, Foundations first: bots vaulting (BV1), then settings
+  (SE1). Their blocks are in `docs/TASKS.md`. Version names wait until the owner picks them up again (owner, 2026-10-18).
 - **Waiting on the owner:** his play-through of `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
 - **Crouch and aim are both held** (owner, 2026-10-18), changed in the Depot thread.
 

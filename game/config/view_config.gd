@@ -13,6 +13,17 @@ extends Resource
 ## The view rolls this far at a full lean (rad): a share of the body's tilt, enough to feel the peek without the world
 ## swinging.
 @export var lean_camera_roll: float = 0.12
+## A lean a wall cuts short (Lean stops it in one tick) eases out of the view at a full lean's worth in
+## lean_cut_ease_time seconds, but the eye is never drawn more than lean_cut_allowance metres further out than the
+## simulation's (inside the wall clearance less the near plane's reach), so the view never reaches into the wall. A
+## normal release is slower than this and is drawn as it is (the browser game's leanCut).
+@export var lean_cut_ease_time: float = 0.1
+@export var lean_cut_allowance: float = 0.1
+## Over a vault the view dips (m) and tips forward (rad), most at the vault's middle, as hands plant and the body swings
+## over; followed at vault_follow (1/s) on rendered frames, so it settles smoothly whatever the frame rate.
+@export var vault_dip: float = 0.12
+@export var vault_tip: float = 0.14
+@export var vault_follow: float = 18.0
 
 
 ## The vertical field of view (degrees) the horizontal 16:9 one gives, zoomed by `zoom`.

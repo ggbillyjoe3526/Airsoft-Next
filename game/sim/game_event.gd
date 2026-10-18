@@ -22,6 +22,7 @@ enum Kind {
 	MATCH_OVER, ## value won the match.
 	RICOCHET_TICK, ## actor's bounced BB reached target at position along direction, but ricochets don't count: a tick.
 	HOP_UP, ## actor turned the hop-up dial on slot to value (hundredths of its range); value2 0 if it was already at an end.
+	HOLSTER, ## actor put the replica in slot away.
 }
 
 enum Footstep { RUN, SPRINT, LAND }

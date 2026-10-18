@@ -38,6 +38,8 @@ var _hands: ReplicaView = null
 var _bbs: BBView = null
 var _puffs: PuffView = null
 var _dust: WindDust = null
+## Scratch for the vault prompt's look ahead each tick.
+var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
 var _audio: SimAudio = null
 var _hud: Hud = null
@@ -177,6 +179,7 @@ func _after_tick() -> void:
 	_bots.observe(state)
 	_audio.on_tick(state, PLAYER_ID)
 	_hud.on_tick(state)
+	_hud.set_vault_ready(_vault_ready())
 	var events := state.events
 	for i in events.count:
 		var e := events.items[i]
@@ -306,3 +309,11 @@ func _refuse(ui: CanvasLayer, map: MapData) -> void:
 	back.text = tr("PAUSE_TITLE_SCREEN")
 	back.pressed.connect(func() -> void: left.emit())
 	box.add_child(back)
+
+
+## Would a Jump press vault you now, the way your keys push (the prompt under the crosshair)?
+func _vault_ready() -> bool:
+	if not Elimination.is_in_play(player) or player.vault.active:
+		return false
+	var way := Vault.way(_commands[PLAYER_ID], _tuning)
+	return way != Vector2.ZERO and Vault.find_along(player, way, _tuning, _level.query(), _vault_probe)

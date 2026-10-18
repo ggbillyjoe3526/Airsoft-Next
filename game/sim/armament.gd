@@ -1,7 +1,7 @@
 class_name Armament
 extends RefCounted
 ## A character's replicas and what they're doing: magazines, the selector, reloads, draws, the trigger and recoil (the
-## browser game's sim/armament.ts, without its holster, optics, parts, torch, magazine toss, bottomless magazines or
+## browser game's sim/armament.ts, without its optics, parts, torch, magazine toss, bottomless magazines or
 ## vault hold-off). Plain data; `step` is the only rule that changes it during play.
 
 ## Magazines carried for one replica: the one loaded and the spares in the pouch, each with the BBs it has left. A
@@ -44,7 +44,12 @@ var ammo: Array[Ammo] = []
 var active: int = 0
 ## Seconds until the next shot may go (slightly negative keeps an auto rate exact).
 var cooldown: float = 0.0
-## Seconds left on the reload under way (0: none), and on bringing the replica in hand up after a switch.
+## The replica is put away (the holster): nothing in hand fires, aims, reloads, turns its dial or switches its selector.
+var holstered: bool = false
+## The aim button last tick: a press, not a held button, draws a holstered replica.
+var aim_was_down: bool = false
+## Seconds left on the reload under way (0: none), and on bringing the replica in hand up after a switch or out of the
+## holster.
 var reload_left: float = 0.0
 var draw_left: float = 0.0
 ## Seconds the draw under way takes in all (presentation shows draw_left / draw_total).
@@ -89,6 +94,7 @@ func refill() -> void:
 	for i in replicas.size():
 		ammo[i].fill(replicas[i])
 	active = 0
+	holstered = false
 	cooldown = 0.0
 	reload_left = 0.0
 	draw_left = 0.0
@@ -195,9 +201,31 @@ static func step(c: Character, cmd: PlayerCommand, eye: Vector3, kick_scale: flo
 			a.dry_fired_this_pull = false # a fresh magazine: running it dry clicks (and reloads) again
 			a._event(events, GameEvent.Kind.RELOAD_END, c.id)
 
-	# Switching cancels a reload: the magazine being swapped stays as it was.
-	if cmd.switch_to >= 0 and cmd.switch_to < a.replicas.size() and cmd.switch_to != a.active:
-		a._draw(cmd.switch_to, c.id, events)
+	# The holster: putting the replica away cancels a reload and a draw, as a switch does. Holstered, a slot draws that
+	# replica, and a fresh trigger pull, aim press or reload the one put away, each the slower draw from the holster; a
+	# reload pressed for it starts once it is up. Switching cancels a reload: the magazine being swapped stays as it was.
+	var slot := cmd.switch_to if cmd.switch_to >= 0 and cmd.switch_to < a.replicas.size() else -1
+	if cmd.holster and not a.holstered:
+		a.holstered = true
+		a.reload_left = 0.0
+		a.draw_left = 0.0
+		a.pending_press = 0.0
+		a.burst_shots_left = 0
+		a.reload_queued = false
+		a._event(events, GameEvent.Kind.HOLSTER, c.id)
+	elif a.holstered:
+		var press := (cmd.fire and not a.trigger_was_down) or (cmd.aim and not a.aim_was_down) or cmd.reload
+		if slot >= 0 or press:
+			a._draw(slot if slot >= 0 else a.active, c.id, events, rules.holster_draw_scale)
+	elif slot >= 0 and slot != a.active:
+		a._draw(slot, c.id, events)
+	a.aim_was_down = cmd.aim
+	if a.holstered:
+		# Nothing in hand: the trigger is only followed, so one held as the replica went away doesn't draw it.
+		a.trigger_was_down = cmd.fire
+		if not cmd.fire:
+			a.dry_fired_this_pull = false
+		return
 	var replica_now := a.replicas[a.active]
 	var ammo_now := a.ammo[a.active]
 
@@ -294,11 +322,13 @@ func _turn_hop_up(actor: int, steps: int, rules: ReplicaRulesConfig, events: Sim
 	e.value2 = 1 if not is_equal_approx(dial, before) else 0
 
 
-## Brings the replica in `slot` up in place of the one in hand, cancelling a reload, a burst and a queued reload.
-func _draw(slot: int, actor: int, events: SimEvents) -> void:
+## Brings the replica in `slot` up, out of the holster or in place of the one in hand: `scale` times its draw time (1
+## for a switch). Cancels a reload, a burst and a queued reload.
+func _draw(slot: int, actor: int, events: SimEvents, scale: float = 1.0) -> void:
 	active = slot
+	holstered = false
 	reload_left = 0.0
-	draw_left = replicas[slot].draw_time
+	draw_left = replicas[slot].draw_time * scale
 	draw_total = draw_left
 	dry_fired_this_pull = false # a dry click on the other replica doesn't count for this one
 	burst_shots_left = 0

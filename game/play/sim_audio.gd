@@ -49,7 +49,7 @@ func setup(cfg: SoundConfig, powers: Array[StringName], body: BodyConfig) -> voi
 		_impact.append(_load("impact_%s" % s))
 		for k in STEP_NAMES:
 			_step.append(_load("step_%s_%s" % [s, k]))
-	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault"]:
+	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault", "foley_holster"]:
 		_load(cue)
 	for i in cfg.field_voices:
 		var v := AudioStreamPlayer3D.new()
@@ -88,6 +88,8 @@ func on_tick(state: GameState, player_id: int) -> void:
 				_mechanism(&"reloadRefused", state, e, own)
 			GameEvent.Kind.DRAW:
 				_mechanism(&"draw", state, e, own)
+			GameEvent.Kind.HOLSTER:
+				_mechanism(&"foley_holster", state, e, own)
 			GameEvent.Kind.FIRE_MODE, GameEvent.Kind.HOP_UP:
 				_mechanism(&"selector", state, e, own)
 			GameEvent.Kind.BB_IMPACT:

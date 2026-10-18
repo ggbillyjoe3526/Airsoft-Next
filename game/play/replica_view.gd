@@ -38,6 +38,8 @@ var _active: int = -1
 var _kick: float = 0.0
 var _sway: Vector2 = Vector2.ZERO
 var _carry: float = 0.0
+## How far into the holster it is (0 in hand, 1 put away); kept through a draw from the holster, which rises from it.
+var _away: float = 0.0
 var _pull: float = 0.0
 var _last_yaw: float = 0.0
 var _last_pitch: float = 0.0
@@ -105,10 +107,18 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 	rot.y += _cfg.sprint_tilt * 0.5 * _carry
 	rot.x -= _cfg.sprint_tilt * 0.3 * _carry
 
-	# Drawn up from below.
-	if a.draw_total > 0.0 and a.draw_left > 0.0:
+	# Put away down and tipped; drawn up from below, from further down out of the holster.
+	if a.holstered:
+		_away = move_toward(_away, 1.0, delta / _cfg.holster_time)
+		var s := _away * _away * (3.0 - 2.0 * _away)
+		pos.y -= _cfg.holster_drop * s
+		rot.x -= _cfg.holster_tilt * s
+	elif a.draw_total > 0.0 and a.draw_left > 0.0:
 		var left := a.draw_left / a.draw_total
-		pos.y -= _cfg.draw_drop * left * left
+		pos.y -= lerpf(_cfg.draw_drop, _cfg.holster_drop, _away) * left * left
+		rot.x -= _cfg.holster_tilt * _away * left * left
+	else:
+		_away = 0.0
 
 	# Canted through a reload, its clip following the reload's progress.
 	if a.reload_left > 0.0:
