@@ -28,7 +28,8 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `game/ai/`, `game/nav/` | Bots (a controller like the player) and the layered nav grid | next |
 | `game/map/`, `game/config/` | Maps from `data/maps/*.json`; tuning as typed `Resource`s with `.tres` values | next |
 | `game/pool/`, `game/progress/`, `game/stats/`, `game/settings/`, `game/input/`, `game/audio/`, `game/render/` | Loadout, levels, records, settings, key bindings, sound, the 3D view | later |
-| `data/` | The owner's six tables, read at start with `FileAccess` | copied |
+| `data/` | The owner's six tables, read at start with `FileAccess`; `data/maps/*.json`, the map layouts | copied |
+| `assets/` | Models, fonts and sounds from the browser game (`assets/README.md`) | copied |
 | `tests/unit/` | GUT tests, `test_*.gd` | built |
 | `legacy/` | Read-only reference, hidden from Godot by `.gdignore`, never exported | copied |
 
