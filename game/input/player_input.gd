@@ -82,7 +82,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_crouched = false
 		else:
 			_jump_latch = true
-	elif event.is_action(CROUCH):
+	elif event.is_action(CROUCH) and _controls.crouch_toggle:
 		_crouched = not _crouched
 	elif event.is_action(SPRINT):
 		_crouched = false

@@ -105,7 +105,14 @@ func test_releasing_drops_presses_already_latched() -> void:
 	assert_false(cmd.reload)
 
 
-func test_crouch_toggles_and_a_sprint_stands_you_up() -> void:
+func _toggle_crouch() -> void:
+	var toggled := ControlsConfig.new()
+	toggled.crouch_toggle = true
+	input.setup(toggled, 1.5)
+
+
+func test_crouch_toggles_with_the_setting_and_a_sprint_stands_you_up() -> void:
+	_toggle_crouch()
 	_press(&"crouch")
 	input.fill(cmd)
 	assert_true(cmd.crouch, "down after one press, the key already up")
@@ -120,7 +127,8 @@ func test_crouch_toggles_and_a_sprint_stands_you_up() -> void:
 	assert_false(cmd.crouch, "a second press stands you up")
 
 
-func test_a_jump_press_while_crouched_only_stands_you_up() -> void:
+func test_a_jump_press_while_toggled_down_only_stands_you_up() -> void:
+	_toggle_crouch()
 	_press(&"crouch")
 	input.fill(cmd)
 	_press(&"jump")
@@ -132,10 +140,8 @@ func test_a_jump_press_while_crouched_only_stands_you_up() -> void:
 	assert_true(cmd.jump)
 
 
-func test_crouch_is_held_with_the_toggle_off() -> void:
-	var held := ControlsConfig.new()
-	held.crouch_toggle = false
-	input.setup(held, 1.5)
+func test_crouch_is_held_by_default() -> void:
+	assert_false(controls.crouch_toggle, "held by default (owner, 2026-10-18)")
 	_press(&"crouch")
 	input.fill(cmd)
 	assert_false(cmd.crouch, "a press alone isn't a hold")
@@ -145,6 +151,7 @@ func test_crouch_is_held_with_the_toggle_off() -> void:
 
 
 func test_a_spawn_stands_you_up() -> void:
+	_toggle_crouch()
 	_press(&"crouch")
 	input.face(0.0)
 	input.fill(cmd)
@@ -186,7 +193,7 @@ func test_lean_is_held_q_left_and_e_right() -> void:
 
 
 func test_aim_is_held_by_default_and_toggles_with_the_setting() -> void:
-	assert_false(controls.aim_toggle, "held by default (owner, 2026-10-03)")
+	assert_false(controls.aim_toggle, "held by default (owner, 2026-10-18)")
 	_press(&"aim")
 	input.fill(cmd)
 	assert_false(cmd.aim, "held: a press alone isn't a hold")

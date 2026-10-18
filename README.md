@@ -18,7 +18,7 @@ screen. The plan is `docs/ROADMAP.md`; what is happening now is `docs/HANDOFF.md
   [Releases page](https://github.com/ggbillyjoe3526/Airsoft-Next/releases) once 0.1 Dev 1 is tagged.
 - **From source:** install Godot **4.7.2** (standard, not .NET), choose *Import*, pick this folder's `project.godot`
   and press F5.
-- **Controls:** move WASD, walk Shift, sprint Alt, crouch C or Ctrl (toggles), jump Space, fire and aim the left and
+- **Controls:** move WASD, walk Shift, sprint Alt, crouch C or Ctrl, jump Space, fire and aim the left and
   right mouse buttons, reload R, fire mode B, replicas 1, 2 or the mouse wheel, pause Esc.
 
 ## Layout

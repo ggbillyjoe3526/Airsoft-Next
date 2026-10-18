@@ -10,7 +10,8 @@ extends Resource
 @export var invert_y: bool = false
 ## Aiming down sights turns slower by the sight's zoom, so a mouse movement covers the same share of the view.
 @export var scale_with_zoom: bool = true
-## Crouch stays down until pressed again (a sprint or jump stands you up); off, crouch is held (owner, 2026-10-03).
-@export var crouch_toggle: bool = true
-## Aim down sights stays up until pressed again; off, aim is held (owner, 2026-10-03: held by default).
+## On, crouch stays down until pressed again (a sprint or jump stands you up); off, the default, crouch is held
+## (owner, 2026-10-18).
+@export var crouch_toggle: bool = false
+## Aim down sights stays up until pressed again; off, the default, aim is held (owner, 2026-10-18).
 @export var aim_toggle: bool = false
