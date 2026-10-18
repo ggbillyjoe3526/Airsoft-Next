@@ -5,7 +5,8 @@ The look every visual change is measured against. Read it before changing how an
 
 ## The target
 
-The owner's six reference pictures (owner, 2026-10-18) are the target look. They live in
+The owner's six reference pictures (owner, 2026-10-18) are the target look, and his arm and hand study the target
+for arms and hands (Arms and hands, below). They live in
 [`docs/art/references/`](art/references/); the original PNGs are in the project's shared files (not the repository)
 under `art/references/`.
 
@@ -17,6 +18,7 @@ under `art/references/`.
 | [`warehouse-interior-aeg.jpg`](art/references/warehouse-interior-aeg.jpg) | Midday under an open steel roof with shade sails. AEG in gloved hands with a hi-vis sleeve band, containers on mezzanines |
 | [`depot-sunset-aeg.jpg`](art/references/depot-sunset-aeg.jpg) | Golden hour. AEG, the "B" wall, blue drums, blue and red containers, a timber watch tower with a flag, wet ground |
 | [`depot-night-aeg.jpg`](art/references/depot-night-aeg.jpg) | Night. AEG, cool moonlight and warm floods, the "B" wall, a red container, hazard-striped posts, wet ground |
+| [`arm-hand-anatomy.jpg`](art/references/arm-hand-anatomy.jpg) | Arm and hand study: bones, muscles, skin, veins and tendons, hand range of motion, and natural grips on everyday objects |
 
 What still holds from before, and what the pictures confirm:
 
@@ -108,11 +110,30 @@ weather, not to every match.
 The environment map that gives polymer and steel their sheen is **the game's own sky**, so the look stays consistent at
 every quality level, and a night or golden-hour sky changes everything at once.
 
+## Arms and hands
+
+The owner's arm and hand study, [`arm-hand-anatomy.jpg`](art/references/arm-hand-anatomy.jpg) (owner, 2026-10-18), is
+the target for every arm and hand in the game: your first-person arms and the figures' (players and bots). He wants
+them as realistic as possible. It guides his Blender art pass (step 26) and the shared rig standard that first-person
+arms, figures and replicas use (step 23).
+
+- **Anatomy.** Correct proportions from shoulder to fingertip: humerus, radius and ulna, a wrist that turns from the
+  forearm, not the hand, and three finger joints plus a thumb that opposes from the palm. Muscle masses (deltoid,
+  biceps and triceps, the forearm flexors and extensors, the thenar pad at the thumb) shape the silhouette.
+- **Surface.** Skin with knuckle creases, palm lines, nails and forearm veins; extensor tendons show on the back of the
+  hand when it grips. The detail lives in normal and roughness maps, not in extra triangles.
+- **Rig.** Every finger gets three bones and the thumb its own chain from the wrist, so poses can bend each joint the
+  way the study's range of motion shows (open, fist, spread, pinch, point).
+- **Grips.** The study's natural grips are the reference for handling poses: the power grip for a pistol grip and the
+  AEG's grip, the cylindrical or support grip for a foregrip or handguard, the pinch grip for a magazine, a
+  charging handle or the hop-up dial, the precision grip for a selector or a magazine release. Fingers wrap and touch
+  the replica; nothing floats or clips.
+
 ## First person
 
-- **Arms.** Your arms are always on screen with the replica; your body never is. Gloves and sleeves are the build
-  order's plan (step 23); the pictures show both bare forearms and black gloves with a hi-vis sleeve band (see Open
-  questions).
+- **Arms.** Your arms are always on screen with the replica; your body never is. They follow Arms and hands above.
+  Gloves and sleeves are the build order's plan (step 23); the pictures show both bare forearms and black gloves with a
+  hi-vis sleeve band (see Open questions).
 - **Replicas.** Two-tone toy polymer: the AEG in tan with black furniture and yellow accents on the controls (magazine
   release, selector), the pistol in black with green fibre-optic sights. Shapes are the owner's own designs; the
   pictures set the finish and how much of the screen the replica takes.
@@ -127,6 +148,12 @@ The pictures disagree with an earlier ruling in these places. Each ruling stands
 - **The figures' clothing.** All-dark tactical kit, helmets and masks, and one figure in crimson, against the
   team-colour plate carrier (AX1), and against "never militaristic".
 - **Your arms.** Bare forearms (four pictures) or gloves and sleeves (one picture, and step 23).
+- **Realistic arms in a stylised game.** The study asks for arms and hands as real as possible, while the art
+  direction is stylised and readable (art direction v3, "toy" replicas). Whether arms and hands stay fully realistic
+  beside stylised fields, or take the same slight stylisation as the figures, and whether gloves (step 23) cover the
+  hands' detail.
+- **Detail against budgets.** Realistic hands on every figure meet the 20,000-triangle cap for a human and Low's 60 fps.
+  The default is full detail in first person and on near figures, with LODs carrying less, unless he says otherwise.
 - **Landmarks in Depot.** Whether the watch tower, walkways and fuselage join Depot's layout in step 25, or stay set
   dressing out of reach.
 
