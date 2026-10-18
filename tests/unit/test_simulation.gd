@@ -332,3 +332,31 @@ func test_a_busy_tick_allocates_no_objects_once_warm() -> void:
 	var before := Performance.get_monitor(Performance.OBJECT_COUNT)
 	steps.call(600)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), before)
+
+
+func test_a_team_larger_than_its_spawn_line_still_starts_at_its_own_end() -> void:
+	var ends := _ends()
+	for e in ends:
+		e.spawns.resize(2)
+	var w := _world()
+	var sim := Simulation.new(tuning, w, w.mover(), ends, -10.0)
+	var state := GameState.new(3, tuning)
+	for i in 4:
+		state.characters.append(Character.new(i, 0 if i < 3 else 1, Vector3.ZERO, 0.0, loadout))
+	sim.start_match(state)
+	for c in state.characters:
+		assert_almost_eq(absf(c.position.x), END_X, 1e-4, "character %d at its end" % c.id)
+
+
+func test_a_hit_character_that_falls_out_of_the_world_is_put_on_its_dead_zone_spot() -> void:
+	var m := _match(1)
+	var sim: Simulation = m[0]
+	var state: GameState = m[1]
+	var c := state.characters[1]
+	Elimination.eliminate(c, 0, state.characters, sim.ends)
+	c.position = Vector3(100.0, -9.9, 0.0)
+	c.velocity = Vector3(0.0, -20.0, 0.0)
+	var none: Array[PlayerCommand] = []
+	_run(sim, state, none, 1)
+	assert_almost_eq(Vector2(c.position.x, c.position.z).distance_to(Vector2(c.dead_zone_target.x, c.dead_zone_target.z)),
+			0.0, 1e-3)

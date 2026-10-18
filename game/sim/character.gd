@@ -100,12 +100,13 @@ func view_direction() -> Vector3:
 	return Vector3(-sin(yaw) * cp, sin(pitch), -cos(yaw) * cp)
 
 
-## Safety net: below `kill_y` it has escaped the level and is put back at its spawn with no momentum. True if rescued.
+## Safety net: below `kill_y` it has escaped the level and is put back with no momentum, at its spawn while in play
+## and on its dead-zone spot once hit. True if rescued.
 func rescue_if_out_of_world(kill_y: float) -> bool:
 	if position.y >= kill_y:
 		return false
-	position = spawn_position
-	prev_position = spawn_position
+	position = spawn_position if status == Status.ALIVE else dead_zone_target
+	prev_position = position
 	prev_crouch_amount = crouch_amount
 	velocity = Vector3.ZERO
 	grounded = false

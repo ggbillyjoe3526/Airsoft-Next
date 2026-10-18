@@ -38,9 +38,12 @@ func start_match(state: GameState) -> void:
 	Round.start_match(state.round_state, state.characters, ends, state.bbs, tuning, state.events)
 
 
-## Advances `state` by one tick of `dt` seconds. `commands[id]` drives character `id` (null or missing: no input).
+## Advances `state` by one tick of `dt` seconds (none at all when `dt` isn't positive). `commands[id]` drives character `id` (null or missing: no input).
 func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	state.events.clear()
+	# A step of no time is no tick: speeds are worked out as distance over dt.
+	if not (dt > 0.0):
+		return
 	# Once the round is decided it's a cease-fire, as after the end whistle at a site: nobody can fire, and BBs still in
 	# the air stop on whoever they reach without knocking them out.
 	var live := state.round_state.is_live()

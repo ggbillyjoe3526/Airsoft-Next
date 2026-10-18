@@ -95,9 +95,11 @@ static func place_teams(rs: RoundState, characters: Array[Character], ends: Arra
 		if c.end >= ends.size() or ends[c.end] == null:
 			continue
 		var spawns := ends[c.end].spawns
-		var slot := maxi(0, floori((spawns.size() - size) / 2.0)) + place
-		if slot >= spawns.size():
+		if spawns.is_empty():
 			continue
+		# A team larger than its spawn line (map data the loader should refuse) doubles up from the start of it rather than
+		# keeping a spawn from another end.
+		var slot := (maxi(0, floori((spawns.size() - size) / 2.0)) + place) % spawns.size()
 		var s := spawns[slot]
 		c.spawn_position = s.position + Vector3(0.0, tuning.body.rest_gap, 0.0)
 		c.spawn_yaw = s.yaw
