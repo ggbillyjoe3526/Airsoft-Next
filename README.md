@@ -9,7 +9,7 @@ installable desktop game. Versions restart at 0.1 Dev 1.
 
 ## Status
 
-**Building 0.1 Dev 1.** Nothing is playable yet. The plan is `docs/ROADMAP.md`; what is happening now is
+**Building 0.1 Dev 1.** Nothing is playable yet: the project opens on a title screen with its version and credits. The plan is `docs/ROADMAP.md`; what is happening now is
 `docs/HANDOFF.md`.
 
 ## Run it
@@ -29,12 +29,13 @@ installable desktop game. Versions restart at 0.1 Dev 1.
 | `tests/` | GUT unit tests, run headless |
 | `tools/` | Check, test, release and asset scripts; `tools/blender/` builds the figures |
 | `docs/` | Vision, art direction, rulings, roadmap, process and the playtest guide |
-| `legacy/` | The browser game's gameplay code, tests and docs: read-only reference, removed at 0.1 |
+| `legacy/` | Read-only reference, removed at 0.1: the browser game's gameplay code, tests and docs, and a few katanashotgun scripts still to port |
 
 ## Checks
 
-`tools/check.sh` runs every check CI runs (lint, unit tests, a headless smoke test, the licence notices). How work
-moves: `docs/PROCESS.md` and `CLAUDE.md`.
+`tools/check.sh` runs every check CI runs (lint, unit tests, a headless smoke test, the licence notices); it needs
+`godot` on PATH (or `GODOT=/path/to/godot`) and, for lint, `pip install "gdtoolkit==4.5.0"`. How work moves:
+`docs/PROCESS.md` and `CLAUDE.md`.
 
 ## Licence
 

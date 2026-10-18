@@ -83,7 +83,7 @@ release description:
    `changelog.d/` into `CHANGELOG.md` under `## <name> (date)` and deletes them. Read the section over before
    committing it.
 2. **`README.md`:** the title, the intro paragraph and its "New since …" paragraph, the download link (the release
-   page, `.../releases/tag/<tag>`, with the Windows installer, the Windows zip and the Linux tarball) and the
+   page, `.../releases/tag/<tag>`, with the Windows installer, the Windows zip and the Linux zip) and the
    "What's in …" section.
 3. **`docs/ROADMAP.md`:** the last tag under Where we are, and the Builds table.
 4. **Any other "latest release" mention:** run

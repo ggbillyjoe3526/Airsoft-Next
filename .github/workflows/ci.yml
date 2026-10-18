@@ -1,0 +1,86 @@
+name: Checks
+
+# Every pull request and every push to main: lint the scripts, check the changelog notes, run the GUT unit tests,
+# import the project and run the headless smoke test, and check the licence notices are current (pipeline/README.md
+# › The checks). Fails on any script error or failed test. The Review line is checked by review.yml.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to a pull request cancels its older run; runs on main are grouped by commit so none is cancelled and
+# every merge shows whether main is green.
+concurrency:
+  group: checks-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  GODOT_VERSION: "4.7.2" # must match project.godot (config/features) and release.yml
+  GODOT_STATUS: "stable"
+
+jobs:
+  godot:
+    name: Unit tests, smoke test, notices
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          status: ${{ env.GODOT_STATUS }}
+
+      - name: Smoke test (imports the project, then runs it headless)
+        run: tools/smoke_test.sh
+
+      - name: Unit tests
+        if: success() || failure()
+        run: tools/unit_tests.sh
+
+      - name: Licence notices are up to date
+        if: success() || failure()
+        run: |
+          godot --headless --path . -s res://tools/make_notices.gd
+          if ! git diff --exit-code -- THIRD_PARTY_NOTICES.txt; then
+            echo "::error::THIRD_PARTY_NOTICES.txt is out of date. Run: godot --headless --path . -s res://tools/make_notices.gd and commit the result."
+            exit 1
+          fi
+
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: godot-logs
+          path: |
+            import.log
+            smoke.log
+            unit.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+  lint:
+    name: Lint (gdlint, changelog notes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # the changelog preview orders notes by when they were added
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install gdtoolkit
+        run: pip install "gdtoolkit==4.5.0"
+
+      - name: gdlint (settings in gdlintrc)
+        run: gdlint game tests tools
+
+      - name: Changelog notes (changelog.d/README.md)
+        if: success() || failure()
+        run: tools/changelog.sh check
