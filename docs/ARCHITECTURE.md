@@ -1,8 +1,8 @@
 # Architecture
 
 How the Godot game is put together, as built. Engine facts and the contracts the pipeline's critic checks live here;
-the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `game/` folder gets a `README.md` naming
-its scripts, tuning and tests once it holds a system.
+the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `game/` folder that holds a gameplay system
+(`sim/` onwards) gets a `README.md` naming its scripts, tuning and tests.
 
 ## Shape
 

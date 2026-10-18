@@ -7,9 +7,8 @@ GODOT="${GODOT:-godot}"
 cd "$(dirname "$0")/.."
 LOG="${UNIT_LOG:-unit.log}"
 
-if [ ! -d .godot ]; then
-  "$GODOT" --headless --path . --import > import.log 2>&1
-fi
+# Always import first, so a new class_name or asset is known to the tests whatever ran before.
+"$GODOT" --headless --path . --import > import.log 2>&1
 
 timeout 300 "$GODOT" --headless --path . -s res://addons/gut/gut_cmdln.gd 2>&1 | tee "$LOG"
 status=${PIPESTATUS[0]}

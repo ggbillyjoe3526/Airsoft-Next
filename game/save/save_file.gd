@@ -10,6 +10,7 @@ class_name SaveFile
 const MAGIC := "ASAVE"
 const TMP := ".tmp"
 const BAK := ".bak"
+const SUFFIXES: Array[String] = ["", TMP, BAK]
 
 
 static func encode(kind: String, version: int, data: Dictionary) -> String:
@@ -32,7 +33,7 @@ static func decode(text: String, kind: String) -> Dictionary:
 		return {"ok": false, "error": "bad version"}
 	if payload.sha256_text() != head[3]:
 		return {"ok": false, "error": "checksum mismatch"}
-	var data = JSON.parse_string(payload)
+	var data: Variant = JSON.parse_string(payload)
 	if not data is Dictionary:
 		return {"ok": false, "error": "payload is not an object"}
 	return {"ok": true, "version": int(head[2]), "data": data}
@@ -86,17 +87,19 @@ static func write(path: String, kind: String, version: int, data: Dictionary) ->
 ## good (found says whether any file existed at all).
 static func read(path: String, kind: String) -> Dictionary:
 	var found := false
-	for c in [[path + TMP, "tmp"], [path, "main"], [path + BAK, "backup"]]:
-		var text := read_text(c[0])
+	var copies: Array[String] = [path + TMP, path, path + BAK]
+	var sources: Array[String] = ["tmp", "main", "backup"]
+	for i in copies.size():
+		var text := read_text(copies[i])
 		if text == "":
-			found = found or FileAccess.file_exists(c[0])
+			found = found or FileAccess.file_exists(copies[i])
 			continue
 		found = true
 		var r := decode(text, kind)
 		if r.ok:
-			r["source"] = c[1]
+			r["source"] = sources[i]
 			return r
-		push_warning("save: skipping %s (%s)" % [c[0], r.error])
+		push_warning("save: skipping %s (%s)" % [copies[i], r.error])
 	return {"ok": false, "found": found}
 
 
@@ -104,12 +107,12 @@ static func read(path: String, kind: String) -> Dictionary:
 ## without destroying anything a player might want recovered.
 static func quarantine(path: String) -> void:
 	var stamp := str(Time.get_unix_time_from_system()).replace(".", "")
-	for suffix in ["", TMP, BAK]:
+	for suffix: String in SUFFIXES:
 		if FileAccess.file_exists(path + suffix):
 			DirAccess.rename_absolute(path + suffix, "%s%s.corrupt-%s" % [path, suffix, stamp])
 
 
 static func remove(path: String) -> void:
-	for suffix in ["", TMP, BAK]:
+	for suffix: String in SUFFIXES:
 		if FileAccess.file_exists(path + suffix):
 			DirAccess.remove_absolute(path + suffix)

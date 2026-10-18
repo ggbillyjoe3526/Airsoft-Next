@@ -18,6 +18,7 @@ func _ready() -> void:
 	_credits.visible = false
 	add_child(_credits)
 	add_child(DebugPerf.new())
+	set_process(_smoke)
 	print("[boot] Airsoft %s on Godot %s" % [Version.current(), Engine.get_version_info()["string"]])
 
 
@@ -63,5 +64,9 @@ func _process(_delta: float) -> void:
 	elif _frame == 60:
 		_credits.close()
 	elif _frame == SMOKE_FRAMES:
+		if not _credits.has_notices():
+			push_error("smoke: the credits have no licence notices (is THIRD_PARTY_NOTICES.txt exported?)")
+			get_tree().quit(1)
+			return
 		print("[smoke] ok frames=%d credits_chars=%d" % [_frame, _credits.text_length()])
 		get_tree().quit(0)

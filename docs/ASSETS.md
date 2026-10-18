@@ -46,7 +46,7 @@ The font ships inside the game's export. Its licence ships in `THIRD_PARTY_NOTIC
 | Inno Setup | 6 | Inno Setup License (permissive) | Builds the Windows installer; CI only, not in the repo |
 
 Every export ships `THIRD_PARTY_NOTICES.txt`, written by `tools/make_notices.gd` from the licence files in its
-`SHIPPED` list (Inter's OFL, and each add-on that ships); CI fails if it is stale. The credits screen shows Godot's
+`SHIPPED` list (each font, asset licence and add-on that ships; empty until the first one lands); CI fails if it is stale. The credits screen shows Godot's
 own licence and its third-party notices from `Engine.get_license_text()` and `Engine.get_copyright_info()`. Dev and
 test add-ons never ship, so they aren't in it.
 

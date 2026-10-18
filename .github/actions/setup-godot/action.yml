@@ -9,7 +9,7 @@ inputs:
     description: Release status, e.g. stable.
     default: stable
   templates:
-    description: Also install the Windows, Linux and macOS export templates.
+    description: Also install the Windows and Linux export templates.
     default: "false"
 
 runs:
@@ -41,12 +41,12 @@ runs:
         sudo install -m 755 "$DL/Godot_v${V}_linux.x86_64" /usr/local/bin/godot
         godot --headless --version
         if [ "$WANT_TEMPLATES" = "true" ]; then
-          # Only the three desktop templates are kept (the full archive is 1.3 GB).
+          # Only the Windows and Linux templates are kept (the full archive is 1.3 GB).
           if [ ! -f "$DL/templates/windows_release_x86_64.exe" ]; then
             curl -fsSL --retry 4 -o "$DL/templates.tpz" "${BASE}/Godot_v${V}_export_templates.tpz"
             unzip -q -o "$DL/templates.tpz" -d "$DL" \
               templates/windows_release_x86_64.exe templates/linux_release.x86_64 \
-              templates/macos.zip templates/version.txt
+              templates/version.txt
             rm "$DL/templates.tpz"
           fi
           TPL="$HOME/.local/share/godot/export_templates/${GV}.${GS}"

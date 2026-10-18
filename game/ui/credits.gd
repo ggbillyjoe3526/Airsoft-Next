@@ -28,7 +28,6 @@ func _ready() -> void:
 	_text = TextEdit.new()
 	_text.editable = false
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_text.text = _body()
 	box.add_child(_text)
 	var back := Button.new()
 	back.text = "Back"
@@ -44,7 +43,10 @@ func _body() -> String:
 	return "Airsoft, made by ggbillyjoe3526 with Claude Code.\n\n" + notices
 
 
+## Shows the credits. The notices (about 2,000 lines) are read and laid out on the first open, not at boot.
 func open() -> void:
+	if _text.text.is_empty():
+		_text.text = _body()
 	visible = true
 
 
@@ -54,6 +56,11 @@ func close() -> void:
 
 func text_length() -> int:
 	return _text.text.length() if _text else 0
+
+
+## Whether the shipped licence notices were found (the smoke test checks this on exported builds too).
+func has_notices() -> bool:
+	return _text != null and _text.text.contains("Godot Engine")
 
 
 func _unhandled_input(event: InputEvent) -> void:

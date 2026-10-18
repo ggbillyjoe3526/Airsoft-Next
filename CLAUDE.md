@@ -164,8 +164,8 @@ Every task runs through the pipeline: `pipeline/README.md` (the protocol, the cr
 
 ## 12. Repo-Specific
 
-- **Checks:** `tools/check.sh` runs every local gate (gdlint, the GUT unit tests, the headless smoke test, the licence
-  notices); CI runs the same on every pull request. Output is failures and totals only.
+- **Checks:** `tools/check.sh` runs every local gate (gdlint, the changelog notes, the GUT unit tests, the headless
+  smoke test, the licence notices); CI runs the same on every pull request. Output is failures and totals only.
 - **Cloud sessions** get the pinned Godot from `.claude/hooks/session-start.mjs`, as `godot` on PATH. Export templates
   are not installed; CI builds releases.
 - **Releases:** the owner's tag starts `.github/workflows/release.yml` (Windows installer and zip, Linux build,
