@@ -6,9 +6,10 @@ in `docs/PROCESS.md`.
 
 ## Where we are
 
-- **Building 0.1 Dev 1.** The game restarted on 2026-10-18 as an installable desktop game built with Godot and
-  Blender, numbered again from 0.1 Dev 1 (owner, 2026-10-18; `docs/PROCESS.md` › Versioning). The browser game it
-  replaces stopped at its 0.1 Beta 1, frozen in `ggbillyjoe3526/Airsoft`.
+- **Building the game.** The game restarted on 2026-10-18 as an installable desktop game built with Godot and
+  Blender. The core slice is built; the rest of 0.1 follows in the [build order](#build-order) below, and version
+  names wait until the owner picks them up again (owner, 2026-10-18). The browser game it replaces stopped at its 0.1
+  Beta 1, frozen in `ggbillyjoe3526/Airsoft`.
 - **Last tag:** none yet. The owner creates tags.
 - **0.1 Dev 1 is the core slice:** Depot, the AEG Rifle and the GBB Pistol, bots and Elimination. The rest of 0.1
   ([What 0.1 is](#what-01-is)) follows in later Dev builds, rebuilt from the browser game's rules and tests.
@@ -38,6 +39,30 @@ The order the browser game's work is carried over (`legacy/browser/docs/handover
 6. **Bots and Elimination.** The ported nav grid, bots as controllers and Elimination rounds: the Dev 1 core slice.
    Built (BE1): you and two bot teammates against three bots, first to five; lean and vault came with it.
 7. **The owner plays and tags.** He plays the build and, when he is happy, tags `0.1-dev.1`.
+
+### Build order
+
+What gets built next, in order (planned 2026-10-18). Foundations come first because loadout and attachments sit on
+them. The first five have blocks in `docs/TASKS.md`; the rest get theirs when they come up.
+
+1. **Magazines on the HUD and the pistol's slide lock** (MZ1). A gauge per magazine, and the GBB Pistol's slide
+   locked back on empty.
+2. **BB physics pass** (BB1). Wind, the hop-up dial turned in play, ricochets as a match rule.
+3. **Holster and smoother lean and vault** (MO1). Holster on 3, and the view eased through a cut-short lean and a
+   vault.
+4. **Bots vault** (BV1). Vault links in the nav grid, so bots go over low walls as you do.
+5. **Settings** (SE1). Sensitivity, controls, rebinding, audio and display, saved and versioned.
+6. **Loadout.** Primary and secondary, BB weight, hop-up, saved loadouts.
+7. **Attachments.** Red dot, 2× scope, grips and magazines.
+8. **The Cyber Pistol, levels and the Armory,** with the bots' kits per level.
+9. **Bot difficulty.** Easy and Hard, then Pro.
+10. **Attack / Defend.**
+11. **Match info and options.** Hit feed, teammate markers, end-of-match summary, crosshair options, custom matches,
+    the practice range.
+12. **Squad orders.** Three orders for your bot teammates.
+13. **Graphics presets, desktop basics and accessibility.**
+14. **Depot reworked to the field checklist,** with the figures' models.
+15. **Woodland.** The field, night play, the weapon torch, glowing BBs, 5v5 and 6v6.
 
 ## Builds
 
