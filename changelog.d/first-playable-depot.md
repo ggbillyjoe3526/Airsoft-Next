@@ -1,7 +1,7 @@
 ### First playable: Depot
 - Press Play Depot on the title screen to start on Depot, the greybox field, in first person on the Alpha side.
 - You start with the AEG Rifle and the GBB Pistol. Switch between them with 1, 2 or the mouse wheel.
-- Walk (Shift), run, sprint (Alt), crouch (C or Ctrl, toggles) and jump (Space).
+- Walk (Shift), run, sprint (Alt), crouch (C or Ctrl) and jump (Space).
 - Aim down sights with right mouse, fire with left mouse, reload with R and change fire mode with B.
 - Pause with Esc. Alt-tabbing pauses too.
 - BBs fly visibly from the muzzle and puff on what they hit, in its colour: metal, wood, concrete or ground.
