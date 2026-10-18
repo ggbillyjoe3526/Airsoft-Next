@@ -2,11 +2,11 @@ class_name Hud
 extends Control
 ## The heads-up display (the browser game's ui/hud.ts), drawn from live state every frame: the crosshair sized from the
 ## replica's real spread, the hit marker when your BB knocks someone out, the replica panel (name, fire mode, loaded and
-## spare BBs, reloading), the score and the round clock, the round's banners, and the big "HIT!" when you're hit. Text
-## is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
+## spare BBs, a gauge per magazine, reloading), the score and the round clock, the round's banners, and the big "HIT!"
+## when you're hit. Text is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 40.0
-const PANEL_SIZE := Vector2(360.0, 150.0)
+const PANEL_SIZE := Vector2(360.0, 180.0)
 const TOP_WIDTH := 600.0
 ## The banners' and hit call's box, centred above the crosshair.
 const MIDDLE_SIZE := Vector2(1200.0, 260.0)
@@ -27,6 +27,7 @@ var _rounds: RoundConfig = null
 var _replica_label: Label = null
 var _mag_label: Label = null
 var _spare_label: Label = null
+var _gauges: MagGauges = null
 var _status_label: Label = null
 var _score_alpha: Label = null
 var _score_beta: Label = null
@@ -75,6 +76,9 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_mag_label = _label(counts, GameTheme.COUNT_SIZE, 800, cfg.text_colour, HORIZONTAL_ALIGNMENT_RIGHT)
 	_spare_label = _label(counts, GameTheme.BODY_SIZE, 600, cfg.muted_colour, HORIZONTAL_ALIGNMENT_LEFT)
 	_spare_label.size_flags_vertical = Control.SIZE_SHRINK_END
+	_gauges = MagGauges.new()
+	_gauges.setup(cfg)
+	panel.add_child(_gauges)
 	_replica_label = _label(panel, GameTheme.BODY_SIZE, 700, cfg.text_colour, HORIZONTAL_ALIGNMENT_RIGHT)
 	# The score and clock, top centre.
 	var top := VBoxContainer.new()
@@ -181,6 +185,7 @@ func _refresh_panel(a: Armament) -> void:
 	if spare != _shown_spare:
 		_shown_spare = spare
 		_spare_label.text = tr("HUD_SPARE") % spare
+	_gauges.refresh(a)
 	# STATUS_KEYS' order.
 	var status := 0
 	if a.reloading():

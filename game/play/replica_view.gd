@@ -4,12 +4,16 @@ extends Node3D
 ## its model (assets/models/replicas/<id>.glb), the one in hand shown, posed from the character's state every rendered
 ## frame: at the hip or with its sight line through the eye as the sight comes up, dropped while it is drawn, carried low
 ## on a sprint, canted through a reload, kicked back by each shot, lagging a touch behind a turn and pulled back near a
-## wall so it never pokes through one. A child of the camera.
+## wall so it never pokes through one. A gas pistol's slide locks back on its last BB and closes near the end of the
+## reload. A child of the camera.
 
 const MODEL_DIR := "res://assets/models/replicas/"
 ## The models' animation clips (docs/CC0_ASSETS.md › Replica models).
 const FIRE_CLIP := &"Fire"
 const RELOAD_CLIP := &"Reload"
+const SLIDE_LOCK_CLIP := &"SlideLock"
+## The power source whose replicas lock their slide back on empty (gas blowback).
+const SLIDE_LOCK_POWER := &"gas"
 
 ## One replica's drawn model and the points on it the view needs.
 class Held:
@@ -20,6 +24,13 @@ class Held:
 	var muzzle: Node3D = null
 	## The rear sight's place in the model (its origin is the model's), the sight line's back end.
 	var rear_sight: Vector3 = Vector3.ZERO
+	## The slide a gas pistol locks back on empty (null for the rest), where the SlideLock clip leaves it, and whether
+	## it is held back now.
+	var slide: Node3D = null
+	var slide_back: Vector3 = Vector3.ZERO
+	var slide_locked: bool = false
+	## A reload clip is posed part way (cleared when the reload ends or is cut short).
+	var in_reload: bool = false
 
 var _cfg: ViewModelConfig = null
 var _held: Array[Held] = []
@@ -39,7 +50,7 @@ func setup(cfg: ViewModelConfig, loadout: Array[ReplicaConfig], query: WorldQuer
 	_cfg = cfg
 	_query = query
 	for r in loadout:
-		_held.append(_load(r.id))
+		_held.append(_load(r.id, r.power == SLIDE_LOCK_POWER))
 
 
 ## The muzzle of the replica in hand, in the world (where your BBs are drawn from).
@@ -107,6 +118,14 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 		rot += Vector3(_cfg.reload_tilt, _cfg.reload_turn, _cfg.reload_roll) * bell
 		pos += Vector3(-_cfg.reload_inward, _cfg.reload_lift, 0.0) * bell
 		_seek(held, RELOAD_CLIP, progress)
+		held.in_reload = true
+	elif held.in_reload:
+		# Finished or cut short (a switch, a new round): back to the clip's end, magazine home.
+		_seek(held, RELOAD_CLIP, 1.0)
+		held.in_reload = false
+		held.slide_locked = false
+	if held.slide != null:
+		_pose_slide(held, a)
 
 	# Pulled back from a wall in front.
 	var pull := 0.0
@@ -117,6 +136,36 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 
 	held.root.position = pos
 	held.root.rotation = rot
+
+
+## True while `a`'s replica in hand would hold a gas pistol's slide back: its magazine is empty and no reload is under
+## way.
+static func slide_held_back(a: Armament) -> bool:
+	return not a.replicas.is_empty() and a.mag() == 0 and a.reload_left <= 0.0
+
+
+## Locks the slide back once the last shot's cycle has run, keeps it back through a reload until slide_release_at of
+## the way, and lets it home once the magazine has BBs again.
+func _pose_slide(held: Held, a: Armament) -> void:
+	if a.reload_left > 0.0:
+		if held.slide_locked:
+			var progress := 1.0 - a.reload_left / maxf(a.replica().reload_time, 0.001)
+			if progress < _cfg.slide_release_at:
+				held.slide.position = held.slide_back
+			else:
+				held.slide_locked = false
+		return
+	var lock := slide_held_back(a)
+	if lock and not held.slide_locked:
+		var anim := held.anim
+		if anim.is_playing() and anim.current_animation == FIRE_CLIP \
+				and anim.current_animation_position < _cfg.slide_lock_after:
+			return
+		_seek(held, SLIDE_LOCK_CLIP, 1.0)
+		held.slide_locked = true
+	elif not lock and held.slide_locked:
+		_seek(held, FIRE_CLIP, 0.0)
+		held.slide_locked = false
 
 
 func _show(slot: int) -> void:
@@ -135,7 +184,7 @@ func _seek(held: Held, clip: StringName, share: float) -> void:
 	held.anim.seek(share * held.anim.get_animation(clip).length, true)
 
 
-func _load(id: StringName) -> Held:
+func _load(id: StringName, locks_slide: bool) -> Held:
 	var held := Held.new()
 	held.id = id
 	held.root = Node3D.new()
@@ -151,6 +200,13 @@ func _load(id: StringName) -> Held:
 	held.anim = model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	held.muzzle = model.find_child("Muzzle", true, false) as Node3D
 	var rear := model.find_child("RearSight", true, false) as Node3D
+	if locks_slide and held.anim != null and held.anim.has_animation(SLIDE_LOCK_CLIP):
+		held.slide = model.find_child("slide", true, false) as Node3D
+		if held.slide != null:
+			# Where the clip leaves the slide, then back to rest.
+			_seek(held, SLIDE_LOCK_CLIP, 1.0)
+			held.slide_back = held.slide.position
+			_seek(held, FIRE_CLIP, 0.0)
 	if rear != null:
 		held.rear_sight = rear.position
 	# The figures' cut-down copy never shows in the hands, and the hands' replica casts no shadow on the field.

@@ -44,12 +44,12 @@ The order the browser game's work is carried over (`legacy/browser/docs/handover
 
 What gets built next, in order (planned 2026-10-18; widened the same day to cover every feature of the browser game
 and the vision, owner: "bring over as much as possible"). Foundations come first because loadout and attachments sit
-on them. The first five have blocks in `docs/TASKS.md`; the rest get theirs when they come up. The browser game's
+on them. The open ones have blocks in `docs/TASKS.md`; the rest get theirs when they come up. The browser game's
 parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these steps; what was dropped, and why, is in
 `docs/DECISIONS.md` and the salvage map (`legacy/browser/docs/handover/SALVAGE.md` › What doesn't carry).
 
 1. **Magazines on the HUD and the pistol's slide lock** (MZ1). A gauge per magazine, and the GBB Pistol's slide
-   locked back on empty.
+   locked back on empty. Built.
 2. **BB physics pass** (BB1). Wind, the hop-up dial turned in play, ricochets as a match rule.
 3. **Holster and smoother lean and vault** (MO1). Holster on 3, and the view eased through a cut-short lean and a
    vault.

@@ -19,9 +19,10 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
   both replicas against four Beta stand-ins that call their hits (`game/map/`, `game/play/`, `game/input/`).
 - **Bots and Elimination are done (BE1):** you and two bot teammates against three bots on Depot, first to five; the nav
   grid is ported (`game/nav/`), bots are controllers (`game/ai/README.md`), lean (Q, E) and vault are in.
-- **Next:** the build order in `docs/ROADMAP.md` › Build order, Foundations first: magazines on the HUD (MZ1), the BB
-  physics pass (BB1), holster and a smoother lean and vault (MO1), bots vaulting (BV1), then settings (SE1). Their
-  blocks are in `docs/TASKS.md`. Version names wait until the owner picks them up again (owner, 2026-10-18).
+- **Magazines on the HUD are done (MZ1):** a gauge per magazine, and the GBB Pistol's slide locks back on empty.
+- **Next:** the build order in `docs/ROADMAP.md` › Build order, Foundations first: the BB physics pass (BB1),
+  holster and a smoother lean and vault (MO1), bots vaulting (BV1), then settings (SE1). Their blocks are in
+  `docs/TASKS.md`. Version names wait until the owner picks them up again (owner, 2026-10-18).
 - **Waiting on the owner:** his play-through of `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
 - **Crouch and aim are both held** (owner, 2026-10-18), changed in the Depot thread.
 

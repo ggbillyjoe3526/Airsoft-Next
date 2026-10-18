@@ -86,6 +86,9 @@ The rifle holds 60 BBs and the pistol 18, each with 4 magazines a round. Nothing
 - [ ] **Empty a magazine, then pull the trigger.** The empty pull starts a reload by itself. With a full magazine in,
   R does nothing and says why (no topping up).
 - [ ] **Use up every magazine.** You can't fire again that round; the next round starts you full.
+- [ ] **Empty the GBB Pistol.** On the last BB its slide locks back and stays back; through the reload the magazine
+  goes in first and the slide closes near the end. The gauges under the count show every magazine: the loaded one
+  first, spares fullest first, an empty one dark.
 
 ## Aiming and optics
 

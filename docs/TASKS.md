@@ -4,22 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## MZ1 · Magazines on the HUD and the pistol's slide lock
-tier: ui
-perf: required
-touches: game/ui/hud.gd, game/config/hud_config.gd, game/play/replica_view.gd, game/config/viewmodel_config.gd, game/config/play_tuning.tres, game/ui/text/
-contract: none
-acceptance:
-  1. The replica panel shows one gauge per magazine the replica in hand carries, the loaded one first and then the
-     pouch, each filled by its share of BBs left; an empty magazine is drawn hollow, so the gauges read without colour.
-  2. The gauges follow live state: a shot, a reload's swap, a switch of replica and a new round change them on the
-     frame after the tick, and a frame where nothing changed rebuilds and allocates nothing.
-  3. The GBB Pistol's slide locks back when its last BB is fired (the model's `SlideLock` clip) and stays back until a
-     reload finishes; electric replicas (the AEG Rifle) have no slide lock.
-  4. GUT tests cover the gauge values read from `Armament` and when the slide is locked.
-status: open
-attempts: 0
-
 ## BB1 · BB physics pass: wind, the hop-up dial in play, ricochets
 tier: core
 perf: required
