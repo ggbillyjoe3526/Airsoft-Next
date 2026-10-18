@@ -1,6 +1,13 @@
 # Salvage · Godot bootstrap
 
-**Review:** 1 attempt · critic, qa and performance in the pull request's Review line
+**Review:** 2 attempts · critic Accept 8/8 · qa Pass · performance Pass
+
+## Attempts
+
+| Date | Attempt | Worker model | checks | Critic | Retry reason |
+|---|---|---|---|---|---|
+| 2026-10-18 | 1 | Opus 5.5 (salvage thread) | ✓ | 6/8 Retry | untyped lines; unit tests didn't re-import; zip vs tarball; macOS template. QA failed on 4 bugs |
+| 2026-10-18 | 2 | Opus 5.5 (salvage thread) | ✓ | 8/8 Accept | – |
 
 ## Decisions
 

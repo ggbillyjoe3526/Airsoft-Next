@@ -91,8 +91,8 @@ The table with its evidence rules is `.claude/agents/critic.md`; in short:
 ## The checks
 
 The gates are CI's checks (`.github/workflows/ci.yml`, on every pull request and every push to `main`) and, locally,
-`tools/check.sh`, which runs the same ones in the same order and prints failures and totals only. Run it before QA,
-after QA's commit and before the push.
+`tools/check.sh`, which runs the same ones (in its own order: each unit run imports first, so order doesn't change the
+result) and prints failures and totals only. Run it before QA, after QA's commit and before the push.
 
 | Check | Runs | Passes when | Where |
 |---|---|---|---|
