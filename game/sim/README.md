@@ -30,4 +30,4 @@ character follows the hit-calling routine instead of its command. Nothing is all
 ## Not yet
 
 Lean, vault, holster, the hop-up dial, ricochets, bushes, wind and the overtime flag come in later Dev tasks. The
-walk-off route is one straight leg until the nav grid is ported (docs/KNOWN_ISSUES.md).
+walk-off route goes round cover on the map's nav grid (`Simulation.nav`, game/nav/); without one it is one straight leg.

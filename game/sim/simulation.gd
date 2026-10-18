@@ -17,6 +17,9 @@ var mover: CharacterMover = null
 var ends: Array[MapEnd] = []
 ## Anything below this height has left the level (map data).
 var kill_y: float = -10.0
+## The map's nav grid, for walk-off routes round cover (set once the map is built); null walks them off in a straight
+## line, as headless BoxWorld tests do.
+var nav: NavGrid = null
 ## Followed by characters with no command this tick.
 var _idle: PlayerCommand = PlayerCommand.new()
 ## Followed by characters that have been hit: they take no orders from their controller.
@@ -47,7 +50,7 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	# Once the round is decided it's a cease-fire, as after the end whistle at a site: nobody can fire, and BBs still in
 	# the air stop on whoever they reach without knocking them out.
 	var live := state.round_state.is_live()
-	Elimination.plan_walk_off_routes(state.characters)
+	Elimination.plan_walk_off_routes(state.characters, nav)
 	for c in state.characters:
 		c.prev_position = c.position
 		c.prev_crouch_amount = c.crouch_amount

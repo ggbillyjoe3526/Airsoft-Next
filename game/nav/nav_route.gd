@@ -1,0 +1,108 @@
+class_name NavRoute
+## String-pulls a route search's node path into straight legs (the browser game's pullRoute). From each anchor the route
+## goes on to the furthest node still in a clear straight line on foot, probed by the grid's leg_probe, trying nodes in
+## order until one is out of sight. The browser tried every second node; this tries the path's corners (where a straight
+## run drawn in cells ends), where a leg's end lies, and only when the next corner is out of sight its turns, then every
+## second node. Each try walks a line in GDScript, so fewer tries keep the smoothing cheap.
+
+
+## Writes the route along node path `ids` (start node first, goal node last) into `out`, from `start` (where the walker
+## is; the first node's centre when that isn't walkable): the waypoints after the start, each on its floor, ending
+## exactly on `goal` when it is walkable and in a straight line on foot from the waypoint before.
+static func pull(g: NavGrid, ids: PackedInt64Array, start: Vector3, goal: Vector3, out: PackedVector3Array) -> void:
+	out.clear()
+	var last := ids.size() - 1
+	var ax := start.x
+	var ay := start.y
+	var az := start.z
+	if not g.is_walkable_at(start):
+		var c0 := g.node_cell[ids[0]]
+		ax = g.cell_x(c0 % g.cols)
+		ay = g.floor_y[ids[0]]
+		az = g.cell_z(c0 / g.cols)
+	var k := 0
+	while k < last:
+		var next := _furthest(g, ids, ax, ay, az, k)
+		var c := g.node_cell[ids[next]]
+		ax = g.cell_x(c % g.cols)
+		ay = g.floor_y[ids[next]]
+		az = g.cell_z(c / g.cols)
+		out.append(Vector3(ax, ay, az))
+		k = next
+	if out.is_empty():
+		out.append(g.node_position(ids[last]))
+	# End exactly on the goal when it's walkable and in a straight line on foot (the search works in cell centres).
+	var n := out.size()
+	var from := out[n - 2] if n > 1 else start
+	var goal_node := g.node_at(goal)
+	if goal_node >= 0 and g.walkable[goal_node] == 1 \
+			and g.walk_line(from.x, from.y, from.z, goal.x, goal.z, g.leg_probe) == goal_node:
+		out[n - 1] = Vector3(goal.x, g.floor_y[goal_node], goal.z)
+
+
+## The index of the furthest node after `k` in a clear straight line from the anchor (ax, ay, az), else k + 1: the
+## corners up to the first out of sight (a corner ends a run of at most two neighbouring directions, a straight line
+## drawn in cells); if the first is out of sight, the turns short of it; if the first turn is, every second node.
+static func _furthest(g: NavGrid, ids: PackedInt64Array, ax: float, ay: float, az: float, k: int) -> int:
+	var last := ids.size() - 1
+	var next := k + 1
+	var m := _next_corner(g, ids, k)
+	while _in_line(g, ax, ay, az, ids[m]):
+		next = m
+		if m == last:
+			return m
+		m = _next_corner(g, ids, m)
+	if next > k + 1:
+		return next
+	var t := _next_turn(g, ids, k)
+	var first_turn := t
+	while t < m and _in_line(g, ax, ay, az, ids[t]):
+		next = t
+		t = _next_turn(g, ids, t)
+	if next == k + 1:
+		var s := k + 2
+		while s < first_turn and _in_line(g, ax, ay, az, ids[s]):
+			next = s
+			s += 2
+	return next
+
+
+## True if the straight line from the anchor reaches node `k` on foot, probed by leg_probe.
+static func _in_line(g: NavGrid, ax: float, ay: float, az: float, k: int) -> bool:
+	var c := g.node_cell[k]
+	return g.walk_line(ax, ay, az, g.cell_x(c % g.cols), g.cell_z(c / g.cols), g.leg_probe) == k
+
+
+## The index after `m` where the path turns (its step there differs from the step before), or the last index.
+static func _next_turn(g: NavGrid, ids: PackedInt64Array, m: int) -> int:
+	var last := ids.size() - 1
+	var t := m + 1
+	while t < last:
+		var here := g.node_cell[ids[t]]
+		if here - g.node_cell[ids[t - 1]] != g.node_cell[ids[t + 1]] - here:
+			return t
+		t += 1
+	return last
+
+
+## The index after `m` where a run of steps in at most two neighbouring directions (45 degrees apart) ends, or the last
+## index: a straight line at any angle drawn in cells is such a run.
+static func _next_corner(g: NavGrid, ids: PackedInt64Array, m: int) -> int:
+	var last := ids.size() - 1
+	var cols := g.cols
+	var c := g.node_cell[ids[m]]
+	var first := Vector2i(-2, -2)
+	var second := Vector2i(-2, -2)
+	var t := m
+	while t < last:
+		var n := g.node_cell[ids[t + 1]]
+		var d := Vector2i(n % cols - c % cols, n / cols - c / cols)
+		c = n
+		if first.x == -2:
+			first = d
+		elif d != first and d != second:
+			if second.x != -2 or absi(d.x - first.x) + absi(d.y - first.y) != 1:
+				return t
+			second = d
+		t += 1
+	return last

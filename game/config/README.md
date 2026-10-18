@@ -14,6 +14,7 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `hit_config.gd` | Hit calling, the walk-off and the hit volume (head, chest, hips, legs) |
 | `round_config.gd` | Elimination rounds: clock, score, half time, reset |
 | `footstep_config.gd` | Strides and landings |
+| `nav_config.gd` | The nav grid: cell size, clearance margin, snapping, the search's greed, line sampling |
 | `replica_rules_config.gd` | Recoil recovery, the trigger, BB weight and the hop-up dial's range |
 | `replica_config.gd`, `replicas/*.tres` | One replica's stats, the built-in values; `data/stats.md` wins over them |
 | `replica_stats.gd`, `data_table.gd` | Read `data/stats.md`'s tables (a cell that won't read keeps the built-in value and warns) |

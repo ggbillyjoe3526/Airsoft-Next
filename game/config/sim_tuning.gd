@@ -14,6 +14,7 @@ const DEFAULT_PATH := "res://game/config/sim_tuning.tres"
 @export var rounds: RoundConfig = RoundConfig.new()
 @export var footsteps: FootstepConfig = FootstepConfig.new()
 @export var replica_rules: ReplicaRulesConfig = ReplicaRulesConfig.new()
+@export var nav: NavConfig = NavConfig.new()
 
 
 ## The game's tuning (sim_tuning.tres), or the built-in values with a warning if it can't be loaded.
