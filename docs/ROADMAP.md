@@ -93,7 +93,7 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 22. **Save file screen, the crash screen and bug reports.** Restore points, Undo, Delete and start over, the save
     folder; a crash screen with the seed and Report a Bug.
 23. **The figures and first-person arms.** The Blender humans and robots with fitted hit areas, the hit flinch,
-    full-body animation, Looks › Robots, your gloved arms, and Inspect on Y.
+    full-body animation, Looks › Robots, your arms (bare or gloved, by figure and skin), and Inspect on Y.
 24. **Field checks.** Each field's layout rules as tests (browser `mapChecks.ts`), before fields are reworked.
 25. **Depot reworked to the field checklist.** Set dressing, baked light, the skyline, noisy props, gas puffs and
     dust.

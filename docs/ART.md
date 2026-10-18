@@ -26,7 +26,8 @@ What still holds from before, and what the pictures confirm:
   materials and light, a little grit (art direction v3, `docs/DECISIONS.md` › Art direction and graphics).
 - **Toy replicas, no gore.** BBs leave dust, never marks or blood.
 - **A warm, sunny weekend site,** not a base: plywood, concrete and painted steel, built by a site crew.
-- **Quality levels.** Low keeps its cost: the look is built for Medium, High and Custom.
+- **Quality levels.** Low keeps its cost: the look is built for Medium, High and Custom, and Low draws figures at
+  their middle detail.
 
 The pictures set the look, the props and the light. They don't change a field's layout: Depot's routes and cover come
 from its map data and the field checklist (step 24).
@@ -40,8 +41,8 @@ The props that make a site read as an airsoft site. Each is one of the four mate
 - **Zone letters and arrows.** Big stencilled letters and numbers ("A", "B", "A1", "2") with an arrow on the walls that
   face a route. They name a field's zones, so they match the minimap's names and the bots' callouts; they are never
   decoration. Charcoal stencil paint with soft overspray.
-- **Shipping containers.** Stacked one or two high, some open with a walkway inside. Red, blue and olive in the
-  pictures (see Open questions), each with the site's white chevron mark, the same on every container whatever its
+- **Shipping containers.** Stacked one or two high, some open with a walkway inside. Oxide red, navy and olive
+  (Colour and readability), each with the site's white chevron mark, the same on every container whatever its
   colour.
 - **Hard cases.** Olive polymer cases with black latches, stacked on pallets, some under an olive tarp.
 - **Drums and tanks.** Steel drums (blue and olive in the pictures) and white IBC tanks in a steel cage, on pallets.
@@ -51,9 +52,10 @@ The props that make a site read as an airsoft site. Each is one of the four mate
 - **Structures.** Floodlight masts (four or six heads on a steel pole), a concrete watch tower and a timber one,
   yellow-railed steel walkways and stairs, an open steel-framed warehouse roof.
 - **Landmarks.** The aircraft fuselage, the watch towers and the city skyline are the kind of landmark that lets a
-  player say where they are from anywhere on the field.
+  player say where they are from anywhere on the field. For now they are scenery out of reach, not part of a field's
+  layout; Depot's rework (step 25) reviews whether any joins it (owner, 2026-10-18).
 - **Ground and safety paint.** A concrete slab with expansion joints, yellow floor lines and bay markings,
-  yellow-black hazard stripes on posts and edges, traffic cones, coiled hose, a little grass in the joints.
+  yellow-black hazard stripes on posts and edges, yellow traffic cones, coiled hose, a little grass in the joints.
 
 ## Colour and readability
 
@@ -62,9 +64,10 @@ The props that make a site read as an airsoft site. Each is one of the four mate
 - **Site colours** (container red, olive, mustard yellow, slate, teal) go on containers, skips, drums and paint. The
   container red is an oxide or brick red, darker and duller than Beta orange, so it never reads as a team; its exact
   value is tuned side by side with a Beta figure when Depot is dressed (step 25).
-- **Team colours** (Alpha blue, Beta orange) appear **only** on players and the flag, never on props. The pictures'
-  blue containers, drums and tarps, orange cones and red-and-blue bunting are an open question for the owner; until
-  he rules, this rule stands.
+- **Team colours** (Alpha blue, Beta orange) appear **only** on players and the flag, never on props (owner,
+  2026-10-18, on the references). No orange on any prop: cones and safety paint are yellow. A blue prop (a container,
+  drum or tarp) is a navy or steel blue, darker and duller than Alpha's. Flags and bunting that aren't the objective
+  use site colours.
 - **Readability beats detail.** Silhouettes first, then value contrast, then colour. A figure is always lighter or
   darker than what is behind it. Shaded sides stay warm, never black. Golden hour and night tint the light, never a
   team colour: a Beta figure stays orange against a sunset sky, an Alpha figure stays blue under moonlight.
@@ -113,8 +116,10 @@ every quality level, and a night or golden-hour sky changes everything at once.
 ## Arms and hands
 
 The owner's arm and hand study, [`arm-hand-anatomy.jpg`](art/references/arm-hand-anatomy.jpg) (owner, 2026-10-18), is
-the target for every arm and hand in the game: your first-person arms and the figures' (players and bots). He wants
-them as realistic as possible. It guides his Blender art pass (step 26) and the shared rig standard that first-person
+the target for every arm and hand in the game: your first-person arms and the figures' (players and bots). They are
+realistic and drawn in the game's own style (owner, 2026-10-18): true anatomy and full detail, with the same clean
+shapes, colour and material treatment as everything else. Matching the style never means a lower-quality model. It
+guides his Blender art pass (step 26) and the shared rig standard that first-person
 arms, figures and replicas use (step 23).
 
 - **Anatomy.** Correct proportions from shoulder to fingertip: humerus, radius and ulna, a wrist that turns from the
@@ -131,31 +136,21 @@ arms, figures and replicas use (step 23).
 
 ## First person
 
-- **Arms.** Your arms are always on screen with the replica; your body never is. They follow Arms and hands above.
-  Gloves and sleeves are the build order's plan (step 23); the pictures show both bare forearms and black gloves with a
-  hi-vis sleeve band (see Open questions).
+- **Arms.** Your arms are always on screen with the replica; your body never is. They follow Arms and hands above
+  and match your figure and the skin you have equipped: bare arms, or sleeves and gloves, whichever that figure or
+  skin wears (owner, 2026-10-18). A team-colour armband shows your team either way, the way sites mark teams. Gloves
+  fit a correctly built hand, so knuckles, tendons and finger joints still read through them.
 - **Replicas.** Two-tone toy polymer: the AEG in tan with black furniture and yellow accents on the controls (magazine
   release, selector), the pistol in black with green fibre-optic sights. Shapes are the owner's own designs; the
   pictures set the finish and how much of the screen the replica takes.
 
-## Open questions for the owner
+## Figures
 
-The pictures disagree with an earlier ruling in these places. Each ruling stands until he decides.
-
-- **Team colours on props.** Blue containers, drums and tarps, orange cones, red-and-blue bunting, red cloth on
-  barricades and a red flag on the timber tower, against "team colours only on players and the flag". The pictures'
-  red containers are a saturated crimson, nearer Beta orange than the oxide red above.
-- **The figures' clothing.** All-dark tactical kit, helmets and masks, and one figure in crimson, against the
-  team-colour plate carrier (AX1), and against "never militaristic".
-- **Your arms.** Bare forearms (four pictures) or gloves and sleeves (one picture, and step 23).
-- **Realistic arms in a stylised game.** The study asks for arms and hands as real as possible, while the art
-  direction is stylised and readable (art direction v3, "toy" replicas). Whether arms and hands stay fully realistic
-  beside stylised fields, or take the same slight stylisation as the figures, and whether gloves (step 23) cover the
-  hands' detail.
-- **Detail against budgets.** Realistic hands on every figure meet the 20,000-triangle cap for a human and Low's 60 fps.
-  The default is full detail in first person and on near figures, with LODs carrying less, unless he says otherwise.
-- **Landmarks in Depot.** Whether the watch tower, walkways and fuselage join Depot's layout in step 25, or stay set
-  dressing out of reach.
+- **Clothing.** The figures take the references' silhouettes and gear (vests, pouches, caps, eye protection) in
+  lighter, mixed clothing a weekend player would wear, never all-dark kit and masks. Every figure keeps its
+  team-colour plate carrier, the strongest team cue at range (AX1; owner, 2026-10-18).
+- **Detail.** This is a desktop game, so figures, arms and replicas are modelled at high quality, with LODs carrying
+  less at range (owner, 2026-10-18). The budgets are in `docs/CC0_ASSETS.md` › Size limits.
 
 ## Where it lives in the code
 

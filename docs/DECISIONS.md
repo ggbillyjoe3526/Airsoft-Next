@@ -146,7 +146,18 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **The owner's six reference pictures are the art direction target (owner, 2026-10-18).** Plywood barricades with
   zone letters, coloured containers, hard cases, floodlight masts and towers, in day, golden-hour and night light,
   with first-person arms and toy replicas: `docs/ART.md` › The target, pictures in `docs/art/references/`. Where they
-  disagree with an earlier ruling, the ruling stands until he decides (`docs/ART.md` › Open questions for the owner).
+  disagree with an earlier ruling, the earlier ruling holds unless he changes it.
+- **The owner's answers on the references (owner, 2026-10-18).** Team colours stay off props: no orange prop (cones
+  are yellow), blue props a navy or steel blue darker than Alpha's. Figures keep the team-colour plate carrier and wear
+  lighter, mixed clothing, not all-dark kit and masks. Your arms match your figure and equipped skin, bare or gloved,
+  with a team-colour armband. The towers, walkways and fuselage are scenery out of reach until Depot's rework (step 25)
+  reviews them. Arms and hands are realistic and drawn in the game's style, which never means lower quality.
+  `docs/ART.md` carries each.
+- **Models are built at desktop quality, not the browser's (owner, 2026-10-18: "since this is no longer a web game
+  can we increase the quality of models").** Figures, first-person arms, replicas and props get the raised budgets in
+  `docs/CC0_ASSETS.md` › Size limits, with LODs so distance and Low pay less. High's 250k triangle target from the
+  browser game rises to 1.5 million until a Godot baseline sets the real line; Low keeps its 60 FPS floor and draws
+  figures at their middle detail.
 - **Arms and hands are modelled as realistically as possible (owner, 2026-10-18).** His arm and hand study
   (`docs/art/references/arm-hand-anatomy.jpg`) is the target for anatomy, skin and natural grips on replicas, for his
   art pass and the shared rig standard: `docs/ART.md` › Arms and hands.
@@ -174,7 +185,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **The human and robot figures were redesigned in the owner's own Blender, from his reference pictures (owner,
   2026-10-13; RM9, RM10).** Both share the rest-on-cover and vault clips. The robot is boxy and mechanical with a visor
   head and its team colour on the arm. The human has four heads picked by figure id; its vest, armbands, patches and
-  hat bands show the team colour. A human is at most 20,000 triangles. A BB has no glow round it; Glowing BBs keep a
+  hat bands show the team colour. A BB has no glow round it; Glowing BBs keep a
   lit green ball and longer streak (owner, 2026-10-13).
 - **The game's models are its own, made in Blender; there is no drop-in player model (owner, 2026-10-18).** Players,
   replicas, attachments and other assets are original Blender models built for the game. The browser game's option
@@ -518,8 +529,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **No ray or path tracing; the game keeps its current lighting (owner, 2026-10-11).** The Dev switch built for it
   (RT1) was scrapped.
 - **The Low preset must hold 60 FPS on modern low-powered hardware (owner, 2026-10-04; restated 2026-10-16).** The
-  absolute lowest settings are the floor. His ceilings of 150 draw calls and 250k triangles on High carry as targets
-  until a Godot baseline replaces them. No dynamic resolution scaling (owner: no).
+  absolute lowest settings are the floor. His ceiling of 150 draw calls on High and a 1.5 million triangle target
+  (raised from 250k for desktop-quality models, 2026-10-18) hold until a Godot baseline replaces them. No dynamic
+  resolution scaling (owner: no).
 - **Maxed-out settings target a PC built for 4K at 240 Hz (owner, 2026-10-16).** His desktop is the reference (Ryzen 9
   9950X3D, 64 GB, RTX 5090). Ultra at 3840×2160 aims for about 4.2 ms. Low's 60 FPS floor is unchanged.
 - **Frame-time consistency and input latency matter more than peak FPS (owner, 2026-10-16).**

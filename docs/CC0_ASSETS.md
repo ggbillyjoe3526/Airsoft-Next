@@ -130,8 +130,8 @@ A replica's file is its model in the hands, on the menus' pictures and on the fi
 - **Materials,** by name: `CyberSlab`, `CyberFrame`, `CyberLine`, `CyberCore`, `CyberMetal`, or a replica material's own
   name (`polymer`, `furniture`, `detail`, `metal`, `rubber`, `stipple`, `accent`). Plain colours: the game draws in its
   own materials, so Realistic colours, the glow and the High finish apply. No textures needed.
-- **Budget.** At most 3,500 triangles in the hands and 300 KB (the AEG: 9,000 and 400 KB), 300 triangles on a figure, a
-  parts file 150 KB (the AEG's: 300 KB). No LODs.
+- **Budget.** As Size limits, below: the hands model is the detailed one, the figure version its LOD. Textures are
+  allowed (2K); plain colours still work.
 - **Muzzle.** Leave it plain: the orange-tip setting adds the tip.
 
 ### Power-source models
@@ -167,14 +167,17 @@ foundations).
 
 | What | Budget |
 |---|---|
-| The figure model | **≤ 3 MB**, ≤ 15,000 triangles, ≤ 4 materials, 1K textures |
-| A replica model | ≤ 300 KB, ≤ 3,500 triangles in the hands, ≤ 300 on a figure, ≤ 5 materials, no textures |
-| A prop | ≤ 300 KB, ≤ 2,000 triangles, sharing textures with other props where possible |
-| A surface texture set | ≤ 1.5 MB at 1K (colour, normal, ORM) |
+| A figure model | ≤ 20 MB; LOD0 ≤ 60,000 triangles (within 8 m), LOD1 ≤ 20,000, LOD2 ≤ 6,000; ≤ 8 materials; 2K textures |
+| First-person arms | ≤ 8 MB, ≤ 40,000 triangles, ≤ 4 materials, 2K textures |
+| A replica model | ≤ 6 MB, ≤ 40,000 triangles in the hands, ≤ 3,000 on a figure, ≤ 6 materials, 2K textures |
+| A replica's parts file | ≤ 2 MB, ≤ 10,000 triangles a part |
+| A prop | ≤ 1 MB, ≤ 5,000 triangles (a landmark ≤ 30,000 with LODs), sharing texture sets with other props |
+| A surface texture set | ≤ 6 MB at 2K (colour, normal, ORM) |
 | Everything external | ≤ 25 MB |
 
-Every figure on the field (six in a 3v3) shares the model's geometry. So the model's triangle count, not the team
-size, sets the cost.
+These are desktop budgets (owner, 2026-10-18). Every figure on the field (six in a 3v3) shares the model's geometry,
+so the model's triangle count, not the team size, sets the cost, and LODs keep distant figures cheap. Low draws
+figures at LOD1 at most.
 
 ## Licences and attribution
 
