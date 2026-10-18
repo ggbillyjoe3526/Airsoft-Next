@@ -27,9 +27,11 @@
   as leaving the barrel though the sim fires them from the eye.
 - **Play tuning is one resource** (`game/config/play_tuning.tres`): controls, view, replica in hand, effects, sound,
   HUD, map style, lighting and the team names and colours.
+- **Late materials are drawn once at the start** (`ShaderPrewarm`, performance's finding): a fading figure, a BB, a
+  puff and the sign, as specks in front of the camera for three frames, so the first shot or walk-off doesn't hitch.
 - **The title screen and credits strings became translation keys** with the play screen's (`game/ui/text/en.po`).
 
 ## Known issues left
 
 - No lean or vault; stand-ins, not bots; no settings screen; greybox Depot; capsule figures; the replica in hand
-  shares the main camera (`docs/KNOWN_ISSUES.md` › Play and Art).
+  shares the main camera; no graphics presets or perf baseline (`docs/KNOWN_ISSUES.md` › Play, Art and Graphics).

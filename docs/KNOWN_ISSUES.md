@@ -21,3 +21,4 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 | Art | Depot is the greybox: one vertex-coloured mesh with a world grid, no bevels, decals or material families (`docs/ART.md`) | can wait | 2026-10-18 |
 | Art | The figures are capsules in the team colour, not `human.glb` or `robot.glb`; the raised arm and the "HIT!" sign are the whole hit call | can wait | 2026-10-18 |
 | Art | The replica in hand shares the main camera: no separate field of view, so it can clip into a wall when you stand against one, and the sight picture down the sights is a first pass | playtest | 2026-10-18 |
+| Graphics | No quality presets yet: SSAO and 70 m sun shadows are always on (`game/play/field_lighting.gd`), so a low preset can't shed them, and `pipeline/perf-budget.json` has no baseline. Presets come with the settings screen | can wait | 2026-10-18 |

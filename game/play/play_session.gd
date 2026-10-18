@@ -107,6 +107,10 @@ func _build_views(ui: CanvasLayer) -> void:
 		f.setup(c, _play.teams.colours[c.team], _tuning.hits, _tuning.body, sign_font)
 		add_child(f)
 		_figures.append(f)
+	var first_use: Array[Material] = [
+		_bbs.drawn_material(), _puffs.drawn_material(), FigureView.material(Color.WHITE, true)
+	]
+	ShaderPrewarm.new().setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE))
 	var powers: Array[StringName] = []
 	for c in state.characters:
 		for r in c.armament.replicas:

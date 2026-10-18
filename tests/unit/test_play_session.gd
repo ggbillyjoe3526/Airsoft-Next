@@ -101,3 +101,13 @@ func test_a_map_that_wont_load_is_refused_with_a_way_back() -> void:
 	assert_null(bad.state, "no match without a map")
 	var back := bad.find_children("*", "Button", true, false)
 	assert_eq(back.size(), 1)
+
+
+func test_the_late_materials_are_drawn_once_at_the_start_and_then_freed() -> void:
+	var fresh := PlaySession.new()
+	add_child_autofree(fresh)
+	var prewarm := fresh.find_child("ShaderPrewarm", true, false) as ShaderPrewarm
+	assert_not_null(prewarm, "the specks hang under the camera from the first frame")
+	assert_eq(prewarm.get_child_count(), 4, "a fading figure, a BB, a puff and the sign")
+	await wait_process_frames(ShaderPrewarm.FRAMES + 1)
+	assert_false(is_instance_valid(prewarm), "gone once its frames are drawn")

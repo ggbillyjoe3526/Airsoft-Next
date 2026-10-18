@@ -43,6 +43,11 @@ func setup(cfg: EffectsConfig) -> void:
 		multimesh.set_instance_transform(i, Transform3D(Basis.from_scale(Vector3.ZERO), Vector3.ZERO))
 
 
+## The material the field draws with (ShaderPrewarm draws it before the first one).
+func drawn_material() -> Material:
+	return (multimesh.mesh as PrimitiveMesh).material
+
+
 ## A puff at `at` on `surface` (RayHit.Surface).
 func impact(at: Vector3, surface: int) -> void:
 	var colours := _cfg.puff_colours

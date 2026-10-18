@@ -13,6 +13,7 @@ and hands the tick's events on; everything else here draws the state every rende
 | `figure_view.gd` | `FigureView`: another player as a greybox figure in its team colour, arm up and "HIT!" while calling a hit |
 | `sim_audio.gd` | `SimAudio`: every sound from the events, positional for others, plain for you, on the bus layout `default_bus_layout.tres` |
 | `field_lighting.gd` | `FieldLighting`: the sun, the sky and the environment |
+| `shader_prewarm.gd` | `ShaderPrewarm`: draws the late materials (a fading figure, a BB, a puff, the sign) as specks for the first frames, so nothing compiles mid-match |
 
 Until bots come, you play Alpha alone against a team of stand-ins: Beta characters with no controller, who wait at
 their end and call their hits. Tuning: `PlayTuning` (`game/config/play_tuning.tres`). Tests:

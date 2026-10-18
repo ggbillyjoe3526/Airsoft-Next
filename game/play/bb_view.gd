@@ -34,6 +34,11 @@ func setup(cfg: EffectsConfig, pool_size: int) -> void:
 	_scale = Basis.from_scale(Vector3.ONE * cfg.bb_size)
 
 
+## The material the field draws with (ShaderPrewarm draws it before the first one).
+func drawn_material() -> Material:
+	return (multimesh.mesh as PrimitiveMesh).material
+
+
 ## Draws `pool`'s BBs at `fraction` between ticks; `player_id`'s own are drawn from `muzzle_offset` (the muzzle less the
 ## eye) at first.
 func update(pool: BBPool, player_id: int, muzzle_offset: Vector3, fraction: float, tick: float) -> void:

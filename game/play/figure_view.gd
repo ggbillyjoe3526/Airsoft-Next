@@ -12,6 +12,8 @@ const ARM_SIZE := Vector3(0.09, 0.62, 0.09)
 const SIGN_HEIGHT := 2.25
 const SIGN_FONT_SIZE := 96
 const SIGN_PIXEL := 0.004
+const SIGN_OUTLINE_DARKEN := 0.5
+const ROUGHNESS := 0.55
 
 var character_id: int = -1
 var _body: MeshInstance3D = null
@@ -29,9 +31,7 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 	_body_cfg = body_cfg
 	name = "Figure_%d" % c.id
 	top_level = true
-	_mat = StandardMaterial3D.new()
-	_mat.albedo_color = team_colour
-	_mat.roughness = 0.55
+	_mat = material(team_colour)
 	var capsule := CapsuleMesh.new()
 	capsule.radius = BODY_RADIUS
 	capsule.height = BODY_HEIGHT
@@ -55,17 +55,34 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 	_arm = Node3D.new()
 	_arm.add_child(arm)
 	add_child(_arm)
-	_sign = Label3D.new()
-	_sign.text = tr("HUD_HIT_SIGN")
-	_sign.font = font
-	_sign.font_size = SIGN_FONT_SIZE
-	_sign.pixel_size = SIGN_PIXEL
-	_sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_sign.outline_size = SIGN_FONT_SIZE / 6
-	_sign.modulate = Color.WHITE
-	_sign.outline_modulate = team_colour.darkened(0.5)
+	_sign = make_sign(font, team_colour)
 	_sign.position = Vector3(0.0, SIGN_HEIGHT, 0.0)
 	add_child(_sign)
+
+
+## The figure's material in `colour`; `faded` gives it the see-through variant a figure leaving the field fades with.
+static func material(colour: Color, faded: bool = false) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = colour
+	m.roughness = ROUGHNESS
+	if faded:
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	return m
+
+
+## The "HIT!" sign, hidden until the hit is called.
+static func make_sign(font: Font, team_colour: Color) -> Label3D:
+	var s := Label3D.new()
+	s.text = TranslationServer.translate(&"HUD_HIT_SIGN")
+	s.font = font
+	s.font_size = SIGN_FONT_SIZE
+	s.pixel_size = SIGN_PIXEL
+	s.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	s.outline_size = SIGN_FONT_SIZE / 6
+	s.modulate = Color.WHITE
+	s.outline_modulate = team_colour.darkened(SIGN_OUTLINE_DARKEN)
+	s.visible = false
+	return s
 
 
 func update(c: Character, fraction: float) -> void:
