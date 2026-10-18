@@ -172,6 +172,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **The game's models are its own, made in Blender; there is no drop-in player model (owner, 2026-10-18).** Players,
   replicas, attachments and other assets are original Blender models built for the game. The browser game's option
   to drop a glTF model into the assets folder (M25a) doesn't carry.
+- **Today's models are temporary placeholders; the owner redesigns them all in Blender at higher quality (owner,
+  2026-10-18).** They were built small for a web browser. His art pass covers players, replicas, attachments and
+  other assets, at step 26 of `docs/ROADMAP.md` › Build order; until then every task uses the current models.
 - **Every figure keeps its team-colour plate carrier (owner, 2026-10-17, AX1).** The carrier reads like a site's team
   bib and is the strongest team cue at range. A civilian outfit is in `docs/IDEAS.md`.
 
