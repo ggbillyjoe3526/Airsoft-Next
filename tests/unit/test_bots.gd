@@ -59,6 +59,7 @@ func _bot(id: int) -> Bot:
 
 
 func test_whole_bot_matches_play_out_fairly_over_seeds() -> void:
+	var blind_shots := 0
 	var friendly := 0
 	var rescued := 0
 	var timeouts := 0
@@ -68,7 +69,14 @@ func test_whole_bot_matches_play_out_fairly_over_seeds() -> void:
 		_start(seed_value)
 		var finished := false
 		for t in limit:
-			_tick()
+			bots.think(state, commands, DT)
+			# A bot pulls the trigger only at someone it sees now (M37): never at a guess, a sound or a memory.
+			for b in bots.world.bots:
+				if commands[b.character.id].fire and (not b.target_visible or b.contact == null
+						or b.contact.seen_at < state.time - config.think_interval * 2.0):
+					blind_shots += 1
+			sim.step(state, commands, DT)
+			bots.observe(state)
 			for i in state.events.count:
 				var e := state.events.items[i]
 				if e.kind == GameEvent.Kind.CHARACTER_HIT and e.actor >= 0 \
@@ -88,6 +96,7 @@ func test_whole_bot_matches_play_out_fairly_over_seeds() -> void:
 		assert_true(finished, "seed %d: the match was won" % seed_value)
 	gut.p("bot matches: %d rounds, %d by the clock, %d friendly hits" % [rounds, timeouts, friendly])
 	assert_eq(friendly, 0, "no bot hit a teammate")
+	assert_eq(blind_shots, 0, "every trigger pull was at someone in sight")
 	assert_eq(rescued, 0, "nobody fell off the map")
 	assert_lt(timeouts, rounds / 4 + 1, "rounds end in eliminations, not stand-offs")
 
