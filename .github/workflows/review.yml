@@ -1,0 +1,33 @@
+name: Review
+
+# The review gate (pipeline/README.md › The checks): unless the pull request is a draft or docs only (every changed file
+# is Markdown and none is under data/), its description's Review line says the critic, QA and performance agents
+# passed (owner, 2026-10-16). Its own workflow so that editing the description re-runs only this, not Godot.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Review line
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check the Review line
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: tools/review_line.sh

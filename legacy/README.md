@@ -1,4 +1,9 @@
-# Legacy: the browser game, as reference
+# Legacy: reference copies
+
+`browser/` is the browser game; `katanashotgun/` holds a few scripts from the owner's katanashotgun project, with its
+own `README.md`. Both are hidden from Godot by `.gdignore` and go at 0.1.
+
+## The browser game
 
 The browser version of this game (`ggbillyjoe3526/Airsoft`, frozen at the tag `0.1-beta.1`, commit `da04e66`),
 kept so every system can be rewritten in Godot from its tested original after the old repository leaves the project.

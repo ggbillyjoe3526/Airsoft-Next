@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Every local gate CI runs, quietly: lint, the changelog notes, the unit tests, the smoke test and the licence notices.
+# Prints one line per gate and the failures; logs are in *.log. Exits non-zero if any gate failed.
+# Usage: tools/check.sh                 (GODOT=/path/to/godot to override)
+set -uo pipefail
+GODOT="${GODOT:-godot}"
+export GODOT
+cd "$(dirname "$0")/.."
+failed=0
+
+gate() {
+  local name="$1"; shift
+  if out=$("$@" 2>&1); then
+    echo "✓ $name"
+  else
+    echo "✗ $name"
+    printf '%s\n' "$out" | grep -E "FAIL|ERROR|error|Failing|failed|::" | head -20
+    failed=1
+  fi
+}
+
+if command -v gdlint > /dev/null; then
+  gate "gdlint" gdlint game tests tools
+else
+  echo "– gdlint not installed (pip install \"gdtoolkit==4.5.0\"); CI runs it"
+fi
+gate "changelog notes" tools/changelog.sh check
+gate "unit tests" tools/unit_tests.sh
+gate "smoke test" tools/smoke_test.sh
+notices() {
+  "$GODOT" --headless --path . -s res://tools/make_notices.gd > notices.log 2>&1 &&
+    git diff --quiet -- THIRD_PARTY_NOTICES.txt ||
+    { echo "FAIL: THIRD_PARTY_NOTICES.txt is out of date: commit the regenerated file"; return 1; }
+}
+gate "licence notices" notices
+grep -hE "^(Tests|Passing Tests|Failing Tests)" unit.log 2>/dev/null | tr -s ' ' | paste -sd ' ' -
+exit $failed

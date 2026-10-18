@@ -8,10 +8,10 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
 - **The game has moved from the browser to Godot (owner, 2026-10-18).** This repository restarts at 0.1 Dev 1. The
   browser game (`ggbillyjoe3526/Airsoft`, frozen at `0.1-beta.1`) is copied into `legacy/browser/` as the reference to
   rewrite from; its handover pack is `legacy/browser/docs/handover/`.
-- **The salvage runs as three pull requests** from the "Salvage audit and roadmap" thread: this one (the docs, the
-  owner's data tables and the legacy reference), then the Godot bootstrap (project, CI, tests, release, agents and
-  pipeline, from the owner's katanashotgun project), then the assets (models, fonts, sounds, map layouts). Until the
-  bootstrap lands, the commands the docs name (`tools/check.sh` and the rest) don't exist yet.
+- **The salvage runs as three pull requests** from the "Salvage audit and roadmap" thread: the docs, the owner's data
+  tables and the legacy reference (merged); the Godot bootstrap (project, boot screen, CI, tests, release, agents and
+  pipeline, from the owner's katanashotgun project, whose remaining useful scripts are in `legacy/katanashotgun/`);
+  then the assets (models, fonts, sounds, map layouts).
 - **Next after the salvage:** the simulation core, first playable on Depot, then bots and Elimination: the core slice
   the owner plays before he tags 0.1 Dev 1 (`docs/ROADMAP.md` › Where we are).
 

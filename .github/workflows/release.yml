@@ -1,0 +1,237 @@
+name: Release
+
+# Publishes a GitHub Release with the Windows installer, a portable Windows zip and a Linux zip. The owner's tag is the
+# version (docs/PROCESS.md › Versioning): pushing `0.1-dev.1` releases "0.1 Dev 1". tools/version.sh turns the tag
+# into the name, the file names and the Windows version number, and this workflow writes the name into project.godot
+# (config/version) before exporting, so nobody bumps it by hand. Sessions never create tags.
+# Two more ways in, both dry runs that publish nothing (the builds are in the run's Artifacts):
+#  - Actions tab -> Release -> Run workflow (optionally with a version name to build as)
+#  - a pull request that touches the release pipeline
+on:
+  push:
+    tags: ["[0-9]*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version name or tag to build as (empty: config/version in project.godot). Dry run only."
+        required: false
+        default: ""
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+      - ".github/actions/**"
+      - "installer/**"
+      - "THIRD_PARTY_NOTICES.txt"
+      - "export_presets.cfg"
+      - "project.godot"
+      - "tools/version.sh"
+      - "tools/changelog_section.sh"
+      - "tools/changelog.sh"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GODOT_VERSION: "4.7.2" # must match project.godot (config/features) and ci.yml
+  GODOT_STATUS: "stable"
+
+jobs:
+  version:
+    name: Work out the version
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.v.outputs.name }}
+      tag: ${{ steps.v.outputs.tag }}
+      number: ${{ steps.v.outputs.number }}
+      publish: ${{ steps.v.outputs.publish }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: v
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          case "$EVENT" in
+            push)              OUT=$(tools/version.sh "$GITHUB_REF_NAME"); PUBLISH=true ;;
+            workflow_dispatch) if [ -n "$INPUT_VERSION" ]; then OUT=$(tools/version.sh "$INPUT_VERSION"); else OUT=$(tools/version.sh); fi; PUBLISH=false ;;
+            *)                 OUT=$(tools/version.sh); PUBLISH=false ;;
+          esac
+          NAME=$(sed -n 's/^name=//p' <<< "$OUT")
+          TAG=$(sed -n 's/^tag=//p' <<< "$OUT")
+          if [ "$EVENT" = "push" ] && [ "$GITHUB_REF_NAME" != "$TAG" ]; then
+            echo "::error::The tag $GITHUB_REF_NAME isn't in the release form; '$NAME' is tagged $TAG (docs/PROCESS.md › Versioning)."; exit 1
+          fi
+          echo "$OUT" >> "$GITHUB_OUTPUT"
+          echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
+          { echo "Version $NAME, publish=$PUBLISH"; echo '```'; echo "$OUT"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+  export:
+    name: Test and export
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NAME: ${{ needs.version.outputs.name }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write the version into the build
+        run: |
+          set -euo pipefail
+          sed -i "s/^config\/version=\".*\"$/config\/version=\"$NAME\"/" project.godot
+          grep -qx "config/version=\"$NAME\"" project.godot
+
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          status: ${{ env.GODOT_STATUS }}
+          templates: "true"
+
+      - name: Smoke test (no script errors allowed)
+        run: tools/smoke_test.sh
+
+      - name: Export Windows and Linux
+        run: |
+          set -euo pipefail
+          mkdir -p build/windows build/linux
+          godot --headless --path . --export-release "Windows Desktop" build/windows/Airsoft.exe
+          godot --headless --path . --export-release "Linux" build/linux/Airsoft.x86_64
+          test -s build/windows/Airsoft.exe
+          test -s build/linux/Airsoft.x86_64
+          chmod +x build/linux/Airsoft.x86_64
+          ls -la build/*
+
+      - name: Check the Linux build starts, runs and shows its version
+        run: |
+          timeout 120 build/linux/Airsoft.x86_64 --headless -- --smoke 2>&1 | tee exported.log
+          grep -q "^\[smoke\] ok" exported.log
+          grep -qF "[boot] Airsoft $NAME " exported.log
+          ! grep -qE "SCRIPT ERROR|Parse Error" exported.log
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: builds
+          path: build/
+          retention-days: 7
+
+  installer:
+    name: Windows installer
+    needs: [version, export]
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: builds
+          path: build
+
+      - name: Build the installer with Inno Setup
+        shell: pwsh
+        env:
+          NAME: ${{ needs.version.outputs.name }}
+          TAG: ${{ needs.version.outputs.tag }}
+          NUMBER: ${{ needs.version.outputs.number }}
+        run: |
+          $iscc = Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup -y --no-progress
+            $iscc = Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $iscc) { throw "Inno Setup (ISCC.exe) not found" }
+          Write-Host "Using $($iscc.FullName)"
+          & $iscc.FullName "/DAppVersion=$env:NAME" "/DAppTag=$env:TAG" "/DAppNumber=$env:NUMBER" installer\Airsoft.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
+          Get-ChildItem dist
+
+      - name: Check the installer installs and uninstalls silently
+        shell: pwsh
+        env:
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          $setup = "dist\Airsoft-$env:TAG-Windows-Setup.exe"
+          $dir = "$env:RUNNER_TEMP\AirsoftTest"
+          $p = Start-Process $setup -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER", "/DIR=`"$dir`"" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
+          if (-not (Test-Path "$dir\Airsoft.exe")) { throw "game exe missing after install" }
+          if (-not (Test-Path "$dir\THIRD_PARTY_NOTICES.txt")) { throw "licence notices missing after install" }
+          $p = Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "uninstaller exit code $($p.ExitCode)" }
+          Start-Sleep -Seconds 3
+          if (Test-Path "$dir\Airsoft.exe") { throw "game exe still there after uninstall" }
+          Write-Host "Install and uninstall OK"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: installer
+          path: dist/*.exe
+          retention-days: 7
+
+  release:
+    name: Package and publish
+    needs: [version, export, installer]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      NAME: ${{ needs.version.outputs.name }}
+      TAG: ${{ needs.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # release notes fall back to changelog.d/, ordered by history
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: builds
+          path: art/builds
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: installer
+          path: art/installer
+
+      - name: Package the downloads
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp art/installer/*.exe dist/
+          # Every download carries the third-party licences next to the game.
+          NOTICES="$GITHUB_WORKSPACE/THIRD_PARTY_NOTICES.txt"
+          test -s "$NOTICES"
+          (cd art/builds/windows && zip -9 "$GITHUB_WORKSPACE/dist/Airsoft-${TAG}-Windows-Portable.zip" Airsoft.exe)
+          zip -9 -j "dist/Airsoft-${TAG}-Windows-Portable.zip" "$NOTICES"
+          chmod +x art/builds/linux/Airsoft.x86_64
+          (cd art/builds/linux && zip -9 "$GITHUB_WORKSPACE/dist/Airsoft-${TAG}-Linux.zip" Airsoft.x86_64)
+          zip -9 -j "dist/Airsoft-${TAG}-Linux.zip" "$NOTICES"
+          for z in dist/*.zip; do unzip -l "$z" | grep THIRD_PARTY_NOTICES.txt > /dev/null || { echo "::error::$z has no notices"; exit 1; }; done
+          ls -la dist
+
+      - name: Release notes from the changelog
+        run: tools/changelog_section.sh "$NAME" > release_notes.md; cat release_notes.md
+
+      - name: Keep the packaged downloads (dry runs too)
+        uses: actions/upload-artifact@v7
+        with:
+          name: Airsoft-${{ env.TAG }}
+          path: dist/*
+          retention-days: 14
+
+      - name: Publish the GitHub Release
+        if: needs.version.outputs.publish == 'true'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Airsoft ${{ env.NAME }}
+          body_path: release_notes.md
+          generate_release_notes: true
+          prerelease: ${{ needs.version.outputs.prerelease == 'true' }}
+          fail_on_unmatched_files: true
+          files: dist/*
