@@ -13,11 +13,12 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
   pipeline, from the owner's katanashotgun project, whose remaining useful scripts are in `legacy/katanashotgun/`);
   then the assets (models, fonts, sounds, map layouts).
 - **The salvage is done** (pull requests #1 to #3).
-- **Now: the simulation core (SC1).** BBs, hit calling, Elimination rounds, the AEG Rifle and GBB Pistol, and
-  movement as plain, tested GDScript on the 60 Hz tick (`game/sim/README.md`). Nothing is drawn yet.
-- **Next:** first playable on Depot (the map's Jolt colliders behind `WorldQuery` and `CharacterMover`, the player's
-  controller and camera, the replica in hand, a first HUD, lean and vault), then bots and Elimination: the core slice
-  the owner plays before he tags 0.1 Dev 1 (`docs/ROADMAP.md` › Where we are). His checklist is
+- **The simulation core is done (SC1):** BBs, hit calling, Elimination rounds, the AEG Rifle and GBB Pistol, and
+  movement as plain, tested GDScript on the 60 Hz tick (`game/sim/README.md`).
+- **The first playable is done (FP1):** Play Depot from the title screen, walk, sprint, crouch, jump, aim and shoot
+  both replicas against four Beta stand-ins that call their hits (`game/map/`, `game/play/`, `game/input/`).
+- **Next:** bots and Elimination (the ported nav grid, bots as controllers in place of the stand-ins), plus lean and
+  vault: the core slice the owner plays before he tags 0.1 Dev 1 (`docs/ROADMAP.md` › Where we are). His checklist is
   `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
 
 ## Where to look

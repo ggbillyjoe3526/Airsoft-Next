@@ -1,0 +1,28 @@
+class_name PlayTuning
+extends Resource
+## Everything the playing view reads that isn't a rule: the mouse, the camera, the replica in hand, effects, sound and
+## the HUD, one typed Resource each (docs/ARCHITECTURE.md › Contracts 6). play_tuning.tres is the instance the game
+## loads.
+
+const DEFAULT_PATH := "res://game/config/play_tuning.tres"
+
+@export var controls: ControlsConfig = ControlsConfig.new()
+@export var view: ViewConfig = ViewConfig.new()
+@export var viewmodel: ViewModelConfig = ViewModelConfig.new()
+@export var effects: EffectsConfig = EffectsConfig.new()
+@export var sound: SoundConfig = SoundConfig.new()
+@export var hud: HudConfig = HudConfig.new()
+@export var map_style: MapStyle = MapStyle.new()
+@export var lighting: LightingConfig = LightingConfig.new()
+@export var teams: TeamConfig = TeamConfig.new()
+## Seconds from a match's end to the next match starting.
+@export var rematch_delay: float = 8.0
+
+
+## The game's play tuning, or the built-in values with a warning if it can't be loaded.
+static func load_default() -> PlayTuning:
+	var res := load(DEFAULT_PATH) as PlayTuning
+	if res == null:
+		push_warning("PlayTuning: %s could not be loaded; using the built-in values" % DEFAULT_PATH)
+		return PlayTuning.new()
+	return res

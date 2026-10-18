@@ -9,8 +9,8 @@ installable desktop game. Versions restart at 0.1 Dev 1.
 
 ## Status
 
-**Building 0.1 Dev 1.** Nothing is playable yet: the project opens on a title screen with its version and credits. The plan is `docs/ROADMAP.md`; what is happening now is
-`docs/HANDOFF.md`.
+**Building 0.1 Dev 1.** Depot is playable against stand-in targets (no bots yet): press *Play Depot* on the title
+screen. The plan is `docs/ROADMAP.md`; what is happening now is `docs/HANDOFF.md`.
 
 ## Run it
 
@@ -18,6 +18,8 @@ installable desktop game. Versions restart at 0.1 Dev 1.
   [Releases page](https://github.com/ggbillyjoe3526/Airsoft-Next/releases) once 0.1 Dev 1 is tagged.
 - **From source:** install Godot **4.7.2** (standard, not .NET), choose *Import*, pick this folder's `project.godot`
   and press F5.
+- **Controls:** move WASD, walk Shift, sprint Alt, crouch C or Ctrl (toggles), jump Space, fire and aim the left and
+  right mouse buttons, reload R, fire mode B, replicas 1, 2 or the mouse wheel, pause Esc.
 
 ## Layout
 

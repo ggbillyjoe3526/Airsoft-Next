@@ -66,6 +66,7 @@ static func step(pool: BBPool, characters: Array[Character], query: WorldQuery, 
 				var impact := events.add(GameEvent.Kind.BB_IMPACT)
 				impact.actor = bb.owner_id
 				impact.position = bb.position
+				impact.value2 = _ray_hit.surface
 				continue
 		if bb.age > cfg.max_lifetime or bb.position.y < kill_y:
 			bb.active = false
