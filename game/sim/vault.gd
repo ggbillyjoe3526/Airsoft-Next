@@ -163,9 +163,10 @@ static func try_start(c: Character, cmd: PlayerCommand, tuning: SimTuning, query
 	return true
 
 
-## The command `c` follows while vaulting, written into `out` (BP5): the view from `cmd`, the trigger as it was when the
-## vault began (one held through it is the same pull; one pressed during it counts once it is over), the aim button as
-## it is (no sight comes up mid-vault: Aiming), nothing else. `cmd`'s one-shot presses are kept for after the vault.
+## The command `c` follows while vaulting, written into `out` (BP5): the view from `cmd`, the trigger and the aim as
+## they were when the vault began (one held through it is no new pull or aim press after it, so it doesn't draw a
+## holstered replica; one pressed during it counts once it is over), nothing else. `cmd`'s one-shot presses are kept
+## for after the vault.
 static func vaulting_command(c: Character, cmd: PlayerCommand, out: PlayerCommand) -> PlayerCommand:
 	var v := c.vault
 	if cmd.reload:
@@ -177,9 +178,15 @@ static func vaulting_command(c: Character, cmd: PlayerCommand, out: PlayerComman
 	if cmd.cycle_fire_mode:
 		v.held_fire_modes += 1
 		v.held_any = true
+	if cmd.holster:
+		v.held_holster = true
+		v.held_any = true
+	if cmd.hop_up_steps != 0:
+		v.held_hop_up_steps += cmd.hop_up_steps
+		v.held_any = true
 	out.reset(cmd.yaw, cmd.pitch)
 	out.fire = c.armament.trigger_was_down
-	out.aim = cmd.aim
+	out.aim = c.armament.aim_was_down
 	return out
 
 
@@ -195,7 +202,11 @@ static func with_held_presses(v: VaultState, cmd: PlayerCommand, out: PlayerComm
 	if v.held_fire_modes > 0 and not out.cycle_fire_mode:
 		out.cycle_fire_mode = true
 		v.held_fire_modes -= 1
+	out.holster = out.holster or v.held_holster
+	out.hop_up_steps += v.held_hop_up_steps
 	v.held_reload = false
+	v.held_holster = false
+	v.held_hop_up_steps = 0
 	v.held_switch_to = -1
 	v.held_any = v.held_fire_modes > 0
 	return out

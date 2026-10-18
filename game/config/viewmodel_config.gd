@@ -29,6 +29,11 @@ extends Resource
 @export var sprint_tilt: float = 0.5
 ## Seconds to move into and out of the sprint carry.
 @export var carry_time: float = 0.2
+## The holster (the browser game's renderView.ts holster): put away it drops this far (out of view) and tips this much
+## (rad) over holster_time seconds; drawn from the holster it rises from there over the whole draw.
+@export var holster_drop: float = 0.5
+@export var holster_tilt: float = 0.9
+@export var holster_time: float = 0.2
 ## A reload lifts and cants it (rad at the middle of the reload: muzzle up, roll, turn) and brings it inwards.
 @export var reload_tilt: float = 0.3
 @export var reload_roll: float = -0.55

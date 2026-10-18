@@ -56,6 +56,7 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 			cmd.walk = true
 	BotCombat.shoot(b, w, target, eye, off_aim, cmd, dt)
 	BotCombat.reload_when_due(b, w, cmd)
+	BotHolster.step(b, w, cmd, dt)
 
 
 ## Picks the mode for this tick from what `b` knows and how it is doing.

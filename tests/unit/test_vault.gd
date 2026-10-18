@@ -290,9 +290,10 @@ func test_gives_up_and_falls_where_it_is_when_held_back() -> void:
 	assert_lte(c.velocity.y, 0.0)
 
 
-func test_follows_only_the_view_keeping_the_trigger_as_the_vault_found_it() -> void:
+func test_follows_only_the_view_keeping_the_trigger_and_aim_as_the_vault_found_them() -> void:
 	var c := started()
 	c.armament.trigger_was_down = true
+	c.armament.aim_was_down = true
 	var cmd := PlayerCommand.new()
 	cmd.yaw = 0.4
 	cmd.pitch = 0.1
@@ -300,12 +301,12 @@ func test_follows_only_the_view_keeping_the_trigger_as_the_vault_found_it() -> v
 	cmd.jump = true
 	cmd.fire = false
 	cmd.lean = 1.0
-	cmd.aim = true
+	cmd.aim = false
 	var out := Vault.vaulting_command(c, cmd, PlayerCommand.new())
 	assert_eq(out.yaw, 0.4)
 	assert_almost_eq(out.pitch, 0.1, 1e-6)
 	assert_true(out.fire, "a trigger held into the vault is the same pull")
-	assert_true(out.aim, "the aim button as it is; no sight comes up mid-vault (Aiming)")
+	assert_true(out.aim, "an aim held into the vault is no new press after it (no sight comes up mid-vault: Aiming)")
 	assert_eq(out.forward, 0.0)
 	assert_false(out.jump)
 	assert_eq(out.lean, 0.0)

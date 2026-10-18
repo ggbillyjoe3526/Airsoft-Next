@@ -30,6 +30,7 @@ it searches where it was last seen or heard, sometimes flanking.
 | `bot_brain.gd` | The tick: look, pick a mode (advance, fight, cover, search), move, aim, fire, reload |
 | `bot_senses.gd`, `bot_hearing.gd` | Sight (view cone, walls, bodies, which part shows) and hearing (gunfire, feet, hit calls, near misses) |
 | `bot_aim.gd`, `bot_combat.gd` | Turning, aim error that settles, lead; bursts, line-of-fire checks, reloads |
+| `bot_holster.gd` | Holstering on a long, calm sprint through its own half, drawing again on a threat |
 | `bot_cover.gd` | Crouch cover and lean spots at tall corners that hide a bot from a threat |
 | `bot_movement.gd`, `bot_routes.gd` | Lanes, holds, hunting, searching, strafing, keeping apart; following nav routes |
 | `round_planner.gd` | Each round's team plans and lanes, and hunt spots from the team's memory |

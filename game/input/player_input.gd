@@ -26,6 +26,7 @@ const NEXT_SLOT := &"slot_next"
 const PREVIOUS_SLOT := &"slot_previous"
 const HOP_UP_LESS := &"hop_up_less"
 const HOP_UP_MORE := &"hop_up_more"
+const HOLSTER := &"holster"
 
 ## The view, absolute (rad): yaw 0 looks down -Z and turns left positive; pitch up positive.
 var view_yaw: float = 0.0
@@ -41,6 +42,7 @@ var _fire_latch: bool = false
 var _jump_latch: bool = false
 var _reload_latch: bool = false
 var _mode_latch: bool = false
+var _holster_latch: bool = false
 var _slot_latch: int = -1
 ## Hop-up notches pressed since the last tick (more lift positive).
 var _hop_steps: int = 0
@@ -94,6 +96,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_reload_latch = true
 	elif event.is_action(FIRE_MODE):
 		_mode_latch = true
+	elif event.is_action(HOLSTER):
+		_holster_latch = true
+		_slot_latch = -1
+		_slot_steps = 0
 	elif event.is_action(HOP_UP_LESS):
 		_hop_steps -= 1
 	elif event.is_action(HOP_UP_MORE):
@@ -101,14 +107,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action(NEXT_SLOT):
 		_slot_steps += 1
 		_slot_latch = -1
+		_holster_latch = false
 	elif event.is_action(PREVIOUS_SLOT):
 		_slot_steps -= 1
 		_slot_latch = -1
+		_holster_latch = false
 	else:
 		for i in SLOTS.size():
 			if event.is_action(SLOTS[i]):
 				_slot_latch = i
 				_slot_steps = 0
+				_holster_latch = false
 
 
 ## This tick's command: held keys as they are now, presses since the last tick, the view as the mouse left it.
@@ -134,6 +143,7 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.cycle_fire_mode = _mode_latch
 	cmd.switch_to = _slot_latch
 	cmd.hop_up_steps = _hop_steps
+	cmd.holster = _holster_latch
 	if _slot_steps != 0:
 		cmd.switch_to = posmod(held_slot + _slot_steps, SLOTS.size())
 	_clear_latches()
@@ -150,6 +160,7 @@ func _clear_latches() -> void:
 	_jump_latch = false
 	_reload_latch = false
 	_mode_latch = false
+	_holster_latch = false
 	_slot_latch = -1
 	_slot_steps = 0
 	_hop_steps = 0

@@ -72,6 +72,14 @@ func ahead_of_team(b: Bot, w: BotWorld) -> bool:
 	return _progress(me) - rear > w.cfg.team_spread
 
 
+## True if `b` is past halfway from its team's spawns to the enemy's.
+func in_enemy_half(b: Bot) -> bool:
+	var me := b.character
+	var home := spawn_centre[me.team]
+	var enemy := spawn_centre[1 - me.team]
+	return _progress(me) > Vector2(enemy.x - home.x, enemy.z - home.z).length() * 0.5
+
+
 ## A walkable spot worth checking for `b`'s team into b.hunt_goal: of a few random walkable spots, the one in the sector
 ## the team checked longest ago (a check older than the skill's hunt_memory counts as never), nearer the middle of the
 ## field first: there the other team, sweeping its own lane the other way, comes back through. A spot the bot sees empty

@@ -48,6 +48,12 @@ msgstr "%d m+"
 msgid "HUD_RICOCHET"
 msgstr "Ricochet: play on"
 
+msgid "HUD_VAULT"
+msgstr "Space to vault"
+
+msgid "HUD_HOLSTERED"
+msgstr "Holstered"
+
 msgid "HUD_MODE_SEMI"
 msgstr "Semi"
 

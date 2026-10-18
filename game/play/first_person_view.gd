@@ -3,17 +3,23 @@ extends Node3D
 ## The player's eyes (the browser game's render/camera.ts): a Camera3D at the character's eye, drawn between the last two
 ## ticks, turned by the mouse every rendered frame (PlayerInput's view) and lifted by the replica's recoil. A lean moves
 ## the eyes as the simulation does (Lean.offset, the one lean geometry) and rolls the view a little
-## (ViewConfig.lean_camera_roll). Once hit, the view follows the character's own heading as it walks off. Zooms a little
-## as the sight comes up.
+## (ViewConfig.lean_camera_roll); a lean a wall cuts short eases out instead of snapping, never drawn into the wall. A
+## vault dips and tips the view. Once hit, the view follows the character's own heading as it walks off. Zooms a little
+## as the sight comes up. The easing runs on rendered frames; the rules stay on the tick.
 
 ## Recoil on screen follows the simulation's at this rate (1/s), so a 60 Hz kick reads smoothly at any frame rate.
 const RECOIL_FOLLOW := 40.0
+## The share of a lean the eye's pace is measured over (FirstPersonView._ease_lean).
+const LEAN_PACE_STEP := 0.01
 
 var camera: Camera3D = null
 var _view: ViewConfig = null
 var _body: BodyConfig = null
 var _hits: HitConfig = null
 var _recoil: float = 0.0
+## The lean drawn (eased out of a cut) and the vault's dip and tip now (0..1).
+var _lean: float = 0.0
+var _vault: float = 0.0
 
 
 ## `hits` holds the lean's geometry: the simulation's own (SimTuning.hits); the built-in values when not given.
@@ -44,9 +50,27 @@ func update(c: Character, input: PlayerInput, fraction: float, delta: float, own
 		yaw = lerp_angle(c.prev_yaw, c.yaw, fraction)
 		pitch = lerpf(c.prev_pitch, c.pitch, fraction)
 	var height := Character.eye_height(crouch, _body)
-	position = feet + Vector3(0.0, height, 0.0) + Lean.offset(height, lean, crouch, yaw, _hits)
+	_lean = _ease_lean(lean, height, crouch, yaw, delta, own and Elimination.is_in_play(c))
+	var v := c.vault
+	var swing := sin(PI * clampf(v.time / v.end, 0.0, 1.0)) if v.active and v.end > 0.0 else 0.0
+	_vault = lerpf(_vault, swing, 1.0 - exp(-_view.vault_follow * delta))
+	position = feet + Vector3(0.0, height - _view.vault_dip * _vault, 0.0) + Lean.offset(height, _lean, crouch, yaw, _hits)
 	# Leaning right tips the view's top to the right: a roll about the line of sight (local -Z), negative about +Z.
-	rotation = Vector3(pitch + _recoil, yaw, -lean * _view.lean_camera_roll)
+	rotation = Vector3(pitch + _recoil - _view.vault_tip * _vault, yaw, -_lean * _view.lean_camera_roll)
 	var zoom := lerpf(1.0, _view.aim_zoom, c.aim_raise)
 	input.zoom = zoom
 	camera.fov = _view.vertical_fov(zoom)
+
+
+## The lean to draw for the simulation's `lean`: it follows at once, except that a sudden drop (a wall cutting the lean
+## short) eases out at a full lean per lean_cut_ease_time, held within lean_cut_allowance metres of the simulation's eye.
+## `follow` false (spectating, out) draws the simulation's lean as it is.
+func _ease_lean(lean: float, height: float, crouch: float, yaw: float, delta: float, follow: bool) -> float:
+	# A zero ease time is no easing: the cut snaps, as before.
+	if not follow or _view.lean_cut_ease_time <= 0.0:
+		return lean
+	var eased := move_toward(_lean, lean, delta / _view.lean_cut_ease_time)
+	# The eye swings on an arc: its pace near upright (m per full lean) bounds how far any share of a lean moves it.
+	var pace := Lean.offset(height, LEAN_PACE_STEP, crouch, yaw, _hits).length() / LEAN_PACE_STEP
+	var band := _view.lean_cut_allowance / maxf(pace, 0.001)
+	return clampf(eased, lean - band, lean + band)

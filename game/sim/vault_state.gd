@@ -22,11 +22,14 @@ var speed: float = 0.0
 var rise_end: float = 0.0
 var end: float = 0.0
 ## The one-shot presses made while vaulting (BP5), played into the first command after it (Vault.with_held_presses):
-## nothing starts mid-vault, and nothing pressed is lost. `held_switch_to` -1 is none; `held_fire_modes` counts presses.
+## nothing starts mid-vault, and nothing pressed is lost. `held_switch_to` -1 is none; `held_fire_modes` counts presses;
+## `held_hop_up_steps` adds up the dial's notches.
 var held_any: bool = false
 var held_reload: bool = false
 var held_switch_to: int = -1
 var held_fire_modes: int = 0
+var held_holster: bool = false
+var held_hop_up_steps: int = 0
 
 
 ## Ends a vault at once and drops what was kept through it (a respawn, a rescue back into the level).
@@ -42,3 +45,5 @@ func drop_held() -> void:
 	held_reload = false
 	held_switch_to = -1
 	held_fire_modes = 0
+	held_holster = false
+	held_hop_up_steps = 0

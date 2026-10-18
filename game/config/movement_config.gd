@@ -6,6 +6,9 @@ extends Resource
 @export var run_speed: float = 4.2
 @export var walk_speed: float = 2.3
 @export var sprint_speed: float = 6.3
+## The normal pace with the replica holstered: faster than the armed run without holding sprint, never past the sprint
+## (the browser game's M92 and the owner's Dev 6 note 27). Walking and crouching are not faster for it.
+@export var holster_run_speed: float = 5.4
 @export var crouch_speed: float = 2.1
 ## Horizontal acceleration on the ground pushing a direction, deceleration letting go, and in the air (m/s²).
 @export var ground_accel: float = 45.0

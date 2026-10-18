@@ -31,6 +31,10 @@ extends Resource
 ## The hop-up readout shows this long (s) after the last turn of the dial; a BB counts as flat while it stays within
 ## hop_band (m) of the aim line, followed at most hop_range (m).
 @export var hop_show_time: float = 1.8
+## "Space to vault" under the crosshair while a Jump press would vault, kept up this long after (s), this far below the
+## centre (px).
+@export var vault_prompt_hold: float = 0.15
+@export var vault_prompt_drop: float = 56.0
 @export var hop_band: float = 0.15
 @export var hop_range: float = 60.0
 ## A ricochet that ticks you (when ricochets don't count) says so this long (s).

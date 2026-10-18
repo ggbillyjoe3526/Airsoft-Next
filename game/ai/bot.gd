@@ -51,6 +51,9 @@ var target_part: float = 0.0
 var think_left: float = 0.0
 ## Last time anything gave an enemy away (seen, heard, shot at).
 var last_threat_at: float = -INF
+## Seconds sprinting without a break, and since the sprint last stopped (BotHolster).
+var sprint_run: float = 0.0
+var sprint_gap: float = 0.0
 ## Where it last saw or heard someone, and whether that is in mind; when it last heard something.
 var last_known: Vector3 = Vector3.ZERO
 var has_last_known: bool = false
@@ -157,6 +160,8 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	heard_at = -INF
 	heard_other_at = -INF
 	last_threat_at = -INF
+	sprint_run = 0.0
+	sprint_gap = 0.0
 	suppressed_at = -INF
 	route.clear()
 	route_leg = 0
