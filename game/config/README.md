@@ -27,3 +27,5 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `map_style.gd` | A map's greybox: colours and surface by block kind, the ground, the world grid |
 | `lighting_config.gd` | The sun, the sky, ambient light, SSAO and exposure |
 | `team_config.gd` | Team names (translation keys) and colours |
+| `bot_config.gd`, `bot_tuning.tres` | How bots play (`BotConfig.load_default()`): senses, aim, firing, lanes and holds, routes, cover, searching, hunting |
+| `bot_skill.gd` | How well a bot plays: reaction, turn rate, aim error and settling, lead, bursts, holds (Normal only for now) |

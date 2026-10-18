@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="BotConfig" format=3]
+
+[ext_resource type="Script" path="res://game/config/bot_config.gd" id="1_bcfg1"]
+[ext_resource type="Script" path="res://game/config/bot_skill.gd" id="2_bskl1"]
+
+[sub_resource type="Resource" id="Resource_nrm01"]
+script = ExtResource("2_bskl1")
+
+[resource]
+script = ExtResource("1_bcfg1")
+skill = SubResource("Resource_nrm01")

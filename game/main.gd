@@ -1,15 +1,17 @@
 extends Node
 ## The entry scene: the boot screen (the version, Play, the credits, Quit) and the F3 performance overlay. Play opens a
 ## match on Depot (PlaySession); leaving it comes back here. The title screen and menus replace this screen when the UI
-## is built (docs/KNOWN_ISSUES.md). `--smoke` (tools/smoke_test.sh) opens and closes the credits, plays Depot on the
-## autopilot for SMOKE_TICKS ticks, leaves, then quits with a report line.
+## is built (docs/KNOWN_ISSUES.md). `--smoke` (tools/smoke_test.sh) opens and closes the credits, plays a whole match on
+## Depot with a bot in your place (faster than real time), leaves, then quits with a report line.
 
 const SMOKE_CREDITS_OPEN := 30
 const SMOKE_CREDITS_CLOSE := 60
 const SMOKE_PLAY := 90
-## Ticks the smoke test plays (4 s of match time), and frames it waits after leaving, as a player back on the title
-## screen would, so the audio server lets go of the match's last sounds before the exit check.
-const SMOKE_TICKS := 240
+## Simulation ticks per physics tick in the smoke match; the most ticks it may take (a match that runs longer fails:
+## 30 min of match time); and frames it waits after leaving, as a player back on the title screen would, so the audio
+## server lets go of the match's last sounds before the exit check.
+const SMOKE_SPEED := 8
+const SMOKE_MAX_TICKS := 108000
 const SMOKE_SETTLE := 30
 
 var _credits: Credits
@@ -19,6 +21,8 @@ var _smoke := false
 var _frame := 0
 var _smoke_shots := -1
 var _smoke_impacts := -1
+var _smoke_rounds := -1
+var _smoke_matches := -1
 var _smoke_left_at := -1
 
 
@@ -78,6 +82,8 @@ func _start_play() -> void:
 	_screen.visible = false
 	_play = PlaySession.new()
 	_play.autopilot = _smoke
+	if _smoke:
+		_play.speed = SMOKE_SPEED
 	_play.left.connect(_end_play)
 	add_child(_play)
 
@@ -86,8 +92,10 @@ func _end_play() -> void:
 	if _play == null:
 		return
 	if _smoke:
-		_smoke_shots = _play.shots
+		_smoke_shots = _play.all_shots
 		_smoke_impacts = _play.impacts
+		_smoke_rounds = _play.rounds_played
+		_smoke_matches = _play.matches_played
 		_smoke_left_at = _frame
 	_play.queue_free()
 	_play = null
@@ -104,7 +112,7 @@ func _process(_delta: float) -> void:
 		_credits.close()
 	elif _frame == SMOKE_PLAY:
 		_start_play()
-	elif _play != null and _play.ticks() >= SMOKE_TICKS:
+	elif _play != null and (_play.matches_played > 0 or _play.ticks() >= SMOKE_MAX_TICKS):
 		_end_play()
 	elif _smoke_left_at >= 0 and _frame >= _smoke_left_at + SMOKE_SETTLE:
 		_smoke_report()
@@ -116,10 +124,11 @@ func _smoke_report() -> void:
 		push_error("smoke: the credits have no licence notices (is THIRD_PARTY_NOTICES.txt exported?)")
 		get_tree().quit(1)
 		return
-	if _smoke_shots <= 0 or _smoke_impacts <= 0:
-		push_error("smoke: Depot played %d shots and %d impacts on the autopilot" % [_smoke_shots, _smoke_impacts])
+	if _smoke_shots <= 0 or _smoke_impacts <= 0 or _smoke_matches <= 0:
+		push_error("smoke: Depot played %d shots, %d impacts, %d rounds and %d whole matches with bots" % [_smoke_shots,
+				_smoke_impacts, _smoke_rounds, _smoke_matches])
 		get_tree().quit(1)
 		return
-	print("[smoke] ok frames=%d credits_chars=%d shots=%d impacts=%d" % [_frame, _credits.text_length(), _smoke_shots,
-			_smoke_impacts])
+	print("[smoke] ok frames=%d credits_chars=%d shots=%d impacts=%d rounds=%d" % [_frame, _credits.text_length(),
+			_smoke_shots, _smoke_impacts, _smoke_rounds])
 	get_tree().quit(0)
