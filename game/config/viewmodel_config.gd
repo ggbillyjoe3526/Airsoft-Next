@@ -35,6 +35,10 @@ extends Resource
 @export var reload_turn: float = 0.35
 @export var reload_lift: float = 0.14
 @export var reload_inward: float = 0.1
+## A gas pistol's slide locks back this long (s) into its last shot's Fire clip, when the slide is fully back, and closes
+## this far (share) through the reload that follows.
+@export var slide_lock_after: float = 0.05
+@export var slide_release_at: float = 0.85
 ## Near a wall the replica is pulled back towards you, so it never pokes through: it is this long (m) from the eye.
 @export var reach: float = 0.75
 @export var pull_back_max: float = 0.3
