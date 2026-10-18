@@ -162,7 +162,8 @@ For a Quaternius or Kenney character.
 
 ## Size limits
 
-The install stays within the size budget the owner sets (CLAUDE.md §4).
+The install stays within the size budget, 500 MB installed (`docs/DECISIONS.md` › Performance budgets and technical
+foundations).
 
 | What | Budget |
 |---|---|
