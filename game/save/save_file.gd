@@ -61,8 +61,9 @@ static func write(path: String, kind: String, version: int, data: Dictionary) ->
 	f.flush()
 	var err := f.get_error()
 	f.close()
-	# read it back: a full disk can leave a short file without reporting it
-	if err != OK or read_text(tmp) != text:
+	# read it back: a full disk can leave a short file without reporting it, and a kind with a space would make a
+	# header decode() refuses
+	if err != OK or read_text(tmp) != text or not decode(text, kind).ok:
 		push_warning("save: %s did not write cleanly" % tmp)
 		DirAccess.remove_absolute(tmp)
 		return false
@@ -106,7 +107,8 @@ static func read(path: String, kind: String) -> Dictionary:
 ## Moves every copy aside as <path>.corrupt-<n> so a fresh file can be written
 ## without destroying anything a player might want recovered.
 static func quarantine(path: String) -> void:
-	var stamp := str(Time.get_unix_time_from_system()).replace(".", "")
+	# microseconds since start too, so two quarantines in the same millisecond don't collide
+	var stamp := "%d-%d" % [int(Time.get_unix_time_from_system()), Time.get_ticks_usec()]
 	for suffix: String in SUFFIXES:
 		if FileAccess.file_exists(path + suffix):
 			DirAccess.rename_absolute(path + suffix, "%s%s.corrupt-%s" % [path, suffix, stamp])

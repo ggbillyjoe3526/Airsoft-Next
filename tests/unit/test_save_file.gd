@@ -22,9 +22,9 @@ func after_all() -> void:
 func _wipe(path: String) -> void:
 	if not DirAccess.dir_exists_absolute(path):
 		return
-	for d in DirAccess.get_directories_at(path):
+	for d: String in DirAccess.get_directories_at(path):
 		_wipe(path.path_join(d))
-	for f in DirAccess.get_files_at(path):
+	for f: String in DirAccess.get_files_at(path):
 		DirAccess.remove_absolute(path.path_join(f))
 	DirAccess.remove_absolute(path)
 
@@ -127,7 +127,7 @@ func test_wrong_kind_is_rejected() -> void:
 
 
 func test_garbage_and_empty_files_are_rejected() -> void:
-	for text in ["", "{}", "ASAVE thing 1\n{}", "ASAVE thing x abc\n{}", "not a save at all"]:
+	for text: String in ["", "{}", "ASAVE thing 1\n{}", "ASAVE thing x abc\n{}", "not a save at all"]:
 		assert_false(SaveFile.decode(text, "thing").ok, "accepted: %s" % text)
 
 

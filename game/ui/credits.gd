@@ -6,6 +6,7 @@ extends Control
 const NOTICES := "res://THIRD_PARTY_NOTICES.txt"
 
 var _text: TextEdit
+var _back: Button
 
 
 func _ready() -> void:
@@ -29,10 +30,10 @@ func _ready() -> void:
 	_text.editable = false
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(_text)
-	var back := Button.new()
-	back.text = "Back"
-	back.pressed.connect(close)
-	box.add_child(back)
+	_back = Button.new()
+	_back.text = "Back"
+	_back.pressed.connect(close)
+	box.add_child(_back)
 
 
 func _body() -> String:
@@ -48,6 +49,8 @@ func open() -> void:
 	if _text.text.is_empty():
 		_text.text = _body()
 	visible = true
+	# take focus, so Tab and Enter can't reach the boot screen's buttons underneath
+	_back.grab_focus()
 
 
 func close() -> void:

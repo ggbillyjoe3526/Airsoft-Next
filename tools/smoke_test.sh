@@ -20,4 +20,10 @@ fi
 if ! grep -q "^\[smoke\] ok" "$LOG"; then
   echo "FAIL: the game never reported (exit $status, see $LOG)"; tail -20 "$LOG"; exit 1
 fi
+if [ "$status" -ne 0 ]; then
+  echo "FAIL: the game exited with $status after reporting (see $LOG)"; tail -20 "$LOG"; exit 1
+fi
+if grep -E "^(USER )?ERROR:" "$LOG"; then
+  echo "FAIL: errors during the smoke run (see $LOG)"; exit 1
+fi
 echo "PASS: smoke run with zero script errors ($(grep '^\[smoke\] ok' "$LOG"))"

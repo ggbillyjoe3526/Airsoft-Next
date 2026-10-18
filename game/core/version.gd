@@ -3,8 +3,8 @@ class_name Version
 ## 2026-10-18) and tags read "0.1-dev.1", "0.1-beta.2", "0.1.0" or "0.1.1" (owner, 2026-10-05). The owner's tag is the source:
 ## the release workflow writes its name into project.godot (config/version) before it exports, and the title shows it.
 
-const NAME_PATTERN := "^(0|[1-9][0-9]{0,3})\\.(0|[1-9][0-9]{0,3})(?:( (Dev|Beta) ([1-9][0-9]{0,3}))|\\.([1-9][0-9]{0,3}))?$"
-const TAG_PATTERN := "^(0|[1-9][0-9]{0,3})\\.(0|[1-9][0-9]{0,3})(?:-(dev|beta)\\.([1-9][0-9]{0,3})|\\.(0|[1-9][0-9]{0,3}))$"
+const NAME_PATTERN := "^(0|[1-9][0-9]{0,3})\\.(0|[1-9][0-9]{0,3})(?:( (Dev|Beta) ([1-9][0-9]{0,3}))|\\.([1-9][0-9]{0,3}))?\\z"
+const TAG_PATTERN := "^(0|[1-9][0-9]{0,3})\\.(0|[1-9][0-9]{0,3})(?:-(dev|beta)\\.([1-9][0-9]{0,3})|\\.(0|[1-9][0-9]{0,3}))\\z"
 
 
 ## The version this build carries, as players see it.

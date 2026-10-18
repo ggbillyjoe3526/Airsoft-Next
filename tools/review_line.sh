@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.."
 if [ "${PR_DRAFT:-false}" = "true" ]; then
   echo "Draft: the review gate waits until the pull request is marked ready."; exit 0
 fi
-files=$(git diff --name-only "${BASE_SHA:?}...${HEAD_SHA:?}")
+files=$(git diff --no-renames --name-only "${BASE_SHA:?}...${HEAD_SHA:?}")
 code=$(printf '%s\n' "$files" | grep -vE '\.md$' || true)
 data=$(printf '%s\n' "$files" | grep -E '^data/' || true)
 if [ -n "$files" ] && [ -z "$code" ] && [ -z "$data" ]; then
