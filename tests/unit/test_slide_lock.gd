@@ -73,3 +73,56 @@ func test_the_aeg_runs_dry_without_a_slide_lock() -> void:
 	a.ammo[0].mag = 0
 	_frame()
 	assert_false(view._held[0].slide_locked)
+
+
+func test_the_slide_waits_out_the_last_shots_fire_clip_then_locks() -> void:
+	a.active = 1
+	_frame()
+	view.on_shot()
+	a.ammo[1].mag = 0
+	_frame()
+	assert_false(_pistol().slide_locked, "the Fire clip has only just started")
+	# Let the clip run on; the lock must come once it is past the lock point or has ended.
+	var guard := 0
+	while not _pistol().slide_locked and guard < 120:
+		_pistol().anim.advance(DT)
+		_frame()
+		guard += 1
+	assert_true(_pistol().slide_locked, "locked after the last shot's cycle")
+	assert_almost_eq(_pistol().slide.position, _pistol().slide_back, Vector3.ONE * 0.0001)
+
+
+func test_switching_away_mid_reload_and_back_leaves_no_half_posed_slide() -> void:
+	a.active = 1
+	a.ammo[1].mag = 0
+	_frame()
+	var home_pos := _pistol().slide.position
+	a.reload_left = a.replicas[1].reload_time * 0.5
+	_frame()
+	# Switch to the rifle; the reload is cancelled (the sim clears it), then back.
+	a.active = 0
+	a.reload_left = 0.0
+	_frame()
+	a.active = 1
+	_frame()
+	assert_false(_pistol().in_reload, "the cut-short reload clip was finished")
+	# The magazine is still empty, so the slide is held back, not stuck between poses.
+	assert_true(_pistol().slide_locked)
+	assert_almost_eq(_pistol().slide.position, _pistol().slide_back, Vector3.ONE * 0.0001)
+	# A magazine with BBs: it closes.
+	a.ammo[1].mag = 5
+	_frame()
+	assert_false(_pistol().slide_locked)
+	assert_almost_eq(_pistol().slide.position, home_pos, Vector3.ONE * 0.0001)
+
+
+func test_a_reload_that_ends_empty_with_no_spare_keeps_the_slide_locked() -> void:
+	a.active = 1
+	a.ammo[1].mag = 0
+	a.ammo[1].pouch.fill(0)
+	_frame()
+	a.reload_left = a.replicas[1].reload_time * 0.1
+	_frame()
+	a.reload_left = 0.0
+	_frame()
+	assert_true(_pistol().slide_locked, "nothing to load: it stays back")

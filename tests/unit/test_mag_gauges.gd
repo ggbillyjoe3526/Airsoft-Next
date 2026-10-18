@@ -61,3 +61,44 @@ func test_a_frame_with_no_change_rebuilds_nothing_and_a_change_does() -> void:
 	g.refresh(a)
 	assert_lt(g._shares[0], before[0], "a shot shows on the loaded gauge")
 	assert_eq(g._count, a.replica().mags)
+
+
+func test_a_swap_a_switch_and_a_new_round_each_change_the_gauges() -> void:
+	var g := MagGauges.new()
+	g.setup(HudConfig.new())
+	add_child_autofree(g)
+	a.ammo[0].mag = 3
+	g.refresh(a)
+	assert_almost_eq(g._shares[0], 3.0 / a.replicas[0].mag_size, 0.0001)
+	# A reload's swap: the loaded and the fullest spare trade places.
+	a.ammo[0].pouch[0] = a.replicas[0].mag_size
+	var swapped := a.ammo[0].mag
+	a.ammo[0].mag = a.ammo[0].pouch[0]
+	a.ammo[0].pouch[0] = swapped
+	g.refresh(a)
+	assert_almost_eq(g._shares[0], 1.0, 0.0001)
+	a.active = 1
+	g.refresh(a)
+	assert_eq(g._count, a.replicas[1].mags, "the pistol's gauges")
+	a.refill()
+	g.refresh(a)
+	assert_eq(g._shown_slot, 0)
+	assert_almost_eq(g._shares[g._count - 1], 1.0, 0.0001, "a new round: all full again")
+
+
+func test_a_replica_with_one_magazine_has_one_gauge() -> void:
+	var one := ReplicaStats.default_loadout()[0].duplicate() as ReplicaConfig
+	one.mags = 1
+	var loadout: Array[ReplicaConfig] = [one]
+	var ch := Character.new(3, 0, Vector3.ZERO, 0.0, loadout)
+	var g := MagGauges.new()
+	g.setup(HudConfig.new())
+	add_child_autofree(g)
+	g.refresh(ch.armament)
+	assert_eq(g._count, 1)
+	ch.armament.ammo[0].mag = 0
+	g.refresh(ch.armament)
+	assert_almost_eq(g._shares[0], 0.0, 0.0001)
+	g.size = Vector2(200.0, 40.0)
+	await wait_physics_frames(2)
+	assert_eq(g._count, 1, "drawing a lone empty gauge is safe")
