@@ -8,7 +8,9 @@ seeds the browser game used, so they sound as they did.
   `shot_electric_1.wav` to `_5.wav`). A shot's power part (`power_*`) plays with its shot on its own volume slider.
   82 cues, 388 files.
 - `loops/<id>.wav`: the ambience beds (`yard`, `pines`, `insects`, `crackle`, `traffic`, `drones`, `neon`), seamless,
-  imported to loop.
+  imported to loop. They render far above full scale (the browser played them as float through a small gain), so each
+  is stored normalised to its peak, and `loops/peaks.json` records that peak: play a loop at the browser game's gain
+  times its peak to hear it at the browser's level.
 - Not baked in: the room reverb and distance muffling, which were applied live; in Godot they belong to the audio buses
   and `AudioStreamPlayer3D`.
 
