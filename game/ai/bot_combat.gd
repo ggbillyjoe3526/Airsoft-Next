@@ -78,7 +78,7 @@ static func shoot(b: Bot, w: BotWorld, target: Character, eye: Vector3, off_aim:
 
 
 ## Reloads when empty, or swaps a low magazine for a fuller spare when nobody is in sight.
-static func reload(b: Bot, w: BotWorld, cmd: PlayerCommand) -> void:
+static func reload_when_due(b: Bot, w: BotWorld, cmd: PlayerCommand) -> void:
 	var a := b.character.armament
 	if a.replicas.is_empty() or a.ammo[a.active].next_spare() < 0:
 		return

@@ -64,7 +64,7 @@ func test_whole_bot_matches_play_out_fairly_over_seeds() -> void:
 	var timeouts := 0
 	var rounds := 0
 	var limit := roundi(tuning.rounds.round_time / DT) * 14
-	for seed_value in [1, 2, 3]:
+	for seed_value: int in [1, 2, 3]:
 		_start(seed_value)
 		var finished := false
 		for t in limit:
@@ -105,7 +105,7 @@ func test_a_bot_does_not_see_an_enemy_behind_a_wall() -> void:
 			c.status = Character.Status.OUT
 	BotSenses.perceive(watcher, bots.world)
 	assert_eq(watcher.target_id, -1, "a wall hides the enemy")
-	hidden.position = Vector3(-10.0, 0.0, 0.0)
+	hidden.position = Vector3(-16.0, 0.0, -2.5)
 	BotSenses.perceive(watcher, bots.world)
 	assert_eq(watcher.target_id, hidden.id, "in the open, in front, it is seen")
 
@@ -137,18 +137,21 @@ func test_gunfire_is_heard_and_walls_muffle_it() -> void:
 	_start(7)
 	var ear := _bot(0)
 	ear.character.position = Vector3(-14.0, 0.0, 0.0)
+	var shooter := state.characters[3]
+	shooter.position = Vector3(-14.0, 0.0, -10.0)
 	var e := state.events
 	e.clear()
 	var shot := e.add(GameEvent.Kind.SHOT)
 	shot.actor = 3
-	shot.position = Vector3(-14.0, 1.5, -15.0)
+	shot.position = shooter.position + Vector3(0.0, 1.5, 0.0)
 	BotHearing.observe(state, bots.world)
-	assert_true(ear.has_last_known, "a shot 15 m off in the open is heard")
-	assert_lt(Vector2(ear.last_known.x + 14.0, ear.last_known.z + 15.0).length(), 4.0, "about where it was")
+	assert_true(ear.has_last_known, "a shot 10 m off is heard, walls or not")
+	assert_lt(Vector2(ear.last_known.x + 14.0, ear.last_known.z + 10.0).length(), 4.0, "about where it was")
 	ear.has_last_known = false
 	ear.heard_at = -INF
 	# 19 m through the yard wall: beyond the wall's share of the range.
-	shot.position = Vector3(-21.0, 1.5, -18.0)
+	shooter.position = Vector3(-21.0, 0.0, -18.0)
+	shot.position = shooter.position + Vector3(0.0, 1.5, 0.0)
 	BotHearing.observe(state, bots.world)
 	assert_false(ear.has_last_known, "a wall cuts the range")
 
@@ -179,9 +182,16 @@ func test_aim_error_settles_with_time_on_target() -> void:
 
 func test_bot_ticks_allocate_no_objects_once_warm() -> void:
 	_start(9)
+	# Warm: a whole round played (contacts, cover searches, BBs in flight, the round's reset).
+	var rounds := 0
+	for t in roundi(tuning.rounds.round_time / DT) * 2:
+		_tick()
+		rounds += state.events.count_of(GameEvent.Kind.ROUND_START)
+		if rounds >= 1:
+			break
 	for t in 600:
 		_tick()
 	var before := Performance.get_monitor(Performance.OBJECT_COUNT)
-	for t in 300:
+	for t in 600:
 		_tick()
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), before)

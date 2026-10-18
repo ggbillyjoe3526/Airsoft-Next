@@ -55,7 +55,7 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 				< b.skill.search_walk_distance:
 			cmd.walk = true
 	BotCombat.shoot(b, w, target, eye, off_aim, cmd, dt)
-	BotCombat.reload(b, w, cmd)
+	BotCombat.reload_when_due(b, w, cmd)
 
 
 ## Picks the mode for this tick from what `b` knows and how it is doing.

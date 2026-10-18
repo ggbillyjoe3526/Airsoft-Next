@@ -130,7 +130,7 @@ func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: i
 	rng = Seeds.stream(seed_value)
 	skill = bot_skill
 	for i in roster_size:
-		contacts.append(null)
+		contacts.append(Contact.new())
 	aim_yaw = body.yaw
 
 
