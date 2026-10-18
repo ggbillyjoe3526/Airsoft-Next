@@ -6,8 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-18 | 1 | Opus 5.5 (salvage thread) | ✓ | 6/8 Retry | untyped lines; unit tests didn't re-import; zip vs tarball; macOS template. QA failed on 4 bugs |
-| 2026-10-18 | 2 | Opus 5.5 (salvage thread) | ✓ | 8/8 Accept | – |
+| 2026-10-18 | 1 | salvage thread | ✓ | 6/8 Retry | untyped lines; unit tests didn't re-import; zip vs tarball; macOS template. QA failed on 4 bugs |
+| 2026-10-18 | 2 | salvage thread | ✓ | 8/8 Accept | – |
 
 ## Decisions
 
