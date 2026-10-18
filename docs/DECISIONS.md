@@ -143,6 +143,13 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   data. No map name appears in render code; maps that don't use a feature draw exactly as before (pinned by tests).
 - **Art direction v3: a bold, vibrant palette with grit (owner, 2026-10-05).** Valorant is the main reference, with
   Marathon's blocky geometry and Breath of the Wild's colour and light. No bare faces. Maps get set dressing only.
+- **The owner's six reference pictures are the art direction target (owner, 2026-10-18).** Plywood barricades with
+  zone letters, coloured containers, hard cases, floodlight masts and towers, in day, golden-hour and night light,
+  with first-person arms and toy replicas: `docs/ART.md` › The target, pictures in `docs/art/references/`. Where they
+  disagree with an earlier ruling, the ruling stands until he decides (`docs/ART.md` › Open questions for the owner).
+- **Arms and hands are modelled as realistically as possible (owner, 2026-10-18).** His arm and hand study
+  (`docs/art/references/arm-hand-anatomy.jpg`) is the target for anatomy, skin and natural grips on replicas, for his
+  art pass and the shared rig standard: `docs/ART.md` › Arms and hands.
 - **Look settings (owner, 2026-10-05).** A Robots setting mixes humans and robots on both teams; off makes everyone
   human. A Realistic colours setting. Eight two-tone replica colour schemes, picked per replica in Customise.
 - **Torches cast shadows on High and Ultra only; Low keeps its beams (owner, 2026-10-06).** The laser beam stays off on
