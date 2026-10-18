@@ -7,7 +7,7 @@ class_name Round
 ## start_match sets a match up before the first tick; step runs once a tick and allocates nothing.
 
 
-## A new match from round 1: scores cleared, every character placed at its team's end and respawned, no BBs in flight,
+## A new match from round 1: scores cleared, fire selectors back to their defaults, every character placed at its team's end and respawned, no BBs in flight,
 ## and ROUND_START for round 1.
 static func start_match(rs: RoundState, characters: Array[Character], ends: Array[MapEnd], pool: BBPool,
 		tuning: SimTuning, events: SimEvents) -> void:
@@ -17,6 +17,8 @@ static func start_match(rs: RoundState, characters: Array[Character], ends: Arra
 	rs.match_winner = -1
 	rs.winner = -1
 	rs.reason = GameEvent.RoundEnd.ELIMINATED
+	for c in characters:
+		c.armament.reset_fire_modes()
 	_start_round(rs, characters, ends, pool, tuning, events, 1)
 
 

@@ -4,9 +4,6 @@ extends RefCounted
 ## browser game's sim/armament.ts, without its holster, optics, parts, dial turning, torch, magazine toss, bottomless
 ## magazines or vault hold-off). Plain data; `step` is the only rule that changes it during play.
 
-const GRAMS_PER_KG := 1000.0
-
-
 ## Magazines carried for one replica: the one loaded and the spares in the pouch, each with the BBs it has left. A
 ## reload swaps the loaded one for the fullest spare and puts the old one back as it is (no topping up); empties stay
 ## empty. Nothing refills during a round.
@@ -103,6 +100,12 @@ func refill() -> void:
 	burst_shots_left = 0
 
 
+## Every selector back to its replica's default, for a new match (the browser game's restartMatch).
+func reset_fire_modes() -> void:
+	for i in replicas.size():
+		modes[i] = replicas[i].default_fire_mode
+
+
 ## The replica in hand, or null with an empty loadout.
 func replica() -> ReplicaConfig:
 	return replicas[active] if active < replicas.size() else null
@@ -136,13 +139,6 @@ static func next_fire_mode(r: ReplicaConfig, mode: ReplicaConfig.FireMode) -> Re
 		return r.default_fire_mode
 	var i := r.fire_modes.find(mode)
 	return r.fire_modes[(i + 1) % r.fire_modes.size()]
-
-
-## Muzzle velocity (m/s) of `r` shooting `grams` BBs: E = ½·m·v², its rated energy shifted by (grams / factory
-## weight)^`exponent` (config/replicas.ts muzzleVelocity).
-static func muzzle_velocity(r: ReplicaConfig, grams: float, exponent: float) -> float:
-	var energy := r.muzzle_energy * pow(grams / r.bb_weight, exponent)
-	return sqrt(2.0 * energy / (grams / GRAMS_PER_KG))
 
 
 ## The way a shot goes: the aim (`yaw`, `pitch`) thrown off by `gx` and `gy` standard deviations of `spread` (rad),
@@ -308,6 +304,5 @@ func _fire(c: Character, r: ReplicaConfig, eye: Vector3, kick_scale: float, pool
 	# The BB's path starts at the eye: its first step catches cover right in front of the shooter and anyone point-blank,
 	# and it never hits its owner. Presentation draws it leaving the muzzle.
 	var grams := bb_weights[active]
-	var hop := r.hop_up_max * clampf(hop_ups[active], rules.hop_up_min_dial, rules.hop_up_max_dial)
-	pool.spawn(c.id, eye, dir, muzzle_velocity(r, grams, rules.bb_energy_exponent), hop, grams / GRAMS_PER_KG,
-			tuning.ballistics.spin_per_hop)
+	pool.spawn(c.id, eye, dir, Ballistics.muzzle_velocity(r, rules, grams), Ballistics.hop_up_lift(r, hop_ups[active], rules),
+			Ballistics.bb_mass(r, grams), tuning.ballistics.spin_per_hop)

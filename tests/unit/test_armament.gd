@@ -240,7 +240,7 @@ func test_spawns_a_bb_at_the_eye_at_muzzle_velocity_along_the_aim() -> void:
 	var bb := newest_bb()
 	assert_eq(bb.owner_id, 1)
 	var speed := bb.velocity.length()
-	assert_almost_eq(speed, Armament.muzzle_velocity(aeg, aeg.bb_weight, rules.bb_energy_exponent), 1e-3, "Vector3 is single precision")
+	assert_almost_eq(speed, Ballistics.muzzle_velocity(aeg, rules), 1e-3, "Vector3 is single precision")
 	assert_almost_eq(speed, 88.0, 0.5, "~1 J on 0.25 g BBs")
 	assert_true(bb.velocity.z < -0.99 * speed, "yaw 0 aims down -Z")
 	assert_almost_eq(bb.position.distance_to(EYE), 0.0, 1e-6)
@@ -284,8 +284,8 @@ func test_fires_the_bb_weight_picked_heavier_leaves_slower_with_a_little_more_en
 	var bb := newest_bb()
 	assert_almost_eq(bb.mass, 0.00028, 1e-9)
 	var speed := bb.velocity.length()
-	assert_almost_eq(speed, Armament.muzzle_velocity(aeg, 0.28, rules.bb_energy_exponent), 1e-3)
-	assert_true(speed < Armament.muzzle_velocity(aeg, aeg.bb_weight, rules.bb_energy_exponent))
+	assert_almost_eq(speed, Ballistics.muzzle_velocity(aeg, rules, 0.28), 1e-3)
+	assert_true(speed < Ballistics.muzzle_velocity(aeg, rules))
 	assert_true(0.5 * bb.mass * speed * speed > aeg.muzzle_energy)
 
 

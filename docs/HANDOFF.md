@@ -12,8 +12,13 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
   tables and the legacy reference (merged); the Godot bootstrap (project, boot screen, CI, tests, release, agents and
   pipeline, from the owner's katanashotgun project, whose remaining useful scripts are in `legacy/katanashotgun/`);
   then the assets (models, fonts, sounds, map layouts).
-- **Next after the salvage:** the simulation core, first playable on Depot, then bots and Elimination: the core slice
-  the owner plays before he tags 0.1 Dev 1 (`docs/ROADMAP.md` › Where we are).
+- **The salvage is done** (pull requests #1 to #3).
+- **Now: the simulation core (SC1).** BBs, hit calling, Elimination rounds, the AEG Rifle and GBB Pistol, and
+  movement as plain, tested GDScript on the 60 Hz tick (`game/sim/README.md`). Nothing is drawn yet.
+- **Next:** first playable on Depot (the map's Jolt colliders behind `WorldQuery` and `CharacterMover`, the player's
+  controller and camera, the replica in hand, a first HUD, lean and vault), then bots and Elimination: the core slice
+  the owner plays before he tags 0.1 Dev 1 (`docs/ROADMAP.md` › Where we are). His checklist is
+  `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
 
 ## Where to look
 

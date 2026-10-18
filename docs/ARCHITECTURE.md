@@ -24,9 +24,10 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `game/save/` | `SaveFile`: crash-safe writes (temp file, then rename, with a backup) | built |
 | `game/ui/` | Screens and HUD: `Credits` (shows `THIRD_PARTY_NOTICES.txt`) | built |
 | `game/debug/` | `DebugPerf` (F3: FPS, frame time, draw calls, primitives, nodes, orphans; `--perf` logs) | built |
-| `game/sim/` | The 60 Hz simulation: state, commands, events, rounds, BBs, hit calling, movement | next |
+| `game/sim/` | The 60 Hz simulation: state, commands, events, rounds, BBs, hit calling, movement (`game/sim/README.md`) | built |
 | `game/ai/`, `game/nav/` | Bots (a controller like the player) and the layered nav grid | next |
-| `game/map/`, `game/config/` | Maps from `data/maps/*.json`; tuning as typed `Resource`s with `.tres` values | next |
+| `game/config/` | Tuning as typed `Resource`s (`sim_tuning.tres`), replicas and the `data/stats.md` reader (`game/config/README.md`) | built |
+| `game/map/` | Maps from `data/maps/*.json`, their Jolt colliders behind `WorldQuery` and `CharacterMover` | next |
 | `game/pool/`, `game/progress/`, `game/stats/`, `game/settings/`, `game/input/`, `game/audio/`, `game/render/` | Loadout, levels, records, settings, key bindings, sound, the 3D view | later |
 | `data/` | The owner's six tables, read at start with `FileAccess`; `data/maps/*.json`, the map layouts | copied |
 | `assets/` | Models, fonts and sounds from the browser game (`assets/README.md`) | copied |
@@ -40,15 +41,15 @@ pull request that builds them.
 
 1. **Simulation and presentation.** Nothing under `game/sim/`, `game/ai/` or `game/nav/` extends `Node` or touches the
    scene tree, a renderer, audio or input. Presentation reads state and the tick's events; it never writes state.
-   *(planned)*
 2. **Commands.** Every character, the player's and each bot's, acts through one `PlayerCommand` per tick, with absolute
-   view angles. Bots read state and fill commands before the step; nothing else moves a character. *(planned)*
+   view angles. Bots read state and fill commands before the step; nothing else moves a character.
 3. **Events.** The tick's events (shots, hits, calls, round changes) are the only channel from the simulation to
-   sound, HUD and effects. *(planned)*
+   sound, HUD and effects.
 4. **Physics behind two interfaces.** The simulation asks `WorldQuery` (rays, overlaps) and moves characters through
-   `CharacterMover`; only their Jolt implementations call `PhysicsServer3D` or physics nodes. *(planned)*
+   `CharacterMover`; only their Jolt implementations call `PhysicsServer3D` or physics nodes. `BoxWorld` answers both headless; the Jolt
+   side is *(planned)* with Depot.
 5. **Seeded randomness.** Every random draw comes from a seeded stream owned by the match (bots and wind have their
-   own); no `randf()` or `randi()` in gameplay. Same seed, same match. *(planned)*
+   own); no `randf()` or `randi()` in gameplay. Same seed, same match.
 6. **Data, not literals.** Replica, bot, map and tuning values come from `data/` or typed `Resource`s; gameplay code
    holds no magic numbers. A data cell that won't parse keeps its built-in value and warns.
 7. **Version.** `Version.current()` is the only reader of `application/config/version`; the release workflow writes
