@@ -15,6 +15,10 @@
 - **Maps as JSON.** `mapData(id)` for each map in `MAPS` after `registerMaps(DEV_MAP_DATA)` (the dev maps load
   separately in the browser), plus `RANGE_MAP`, written to `data/maps/<id>.json` in the browser game's `MapData` shape
   (`legacy/browser/src/map/mapTypes.ts`). Same coordinates as Godot (Y up, metres, -Z forward).
+- **Textures VRAM-compressed, kept at 2K.** The figures' extracted textures import as VRAM compressed with mipmaps,
+  normal maps flagged (about 10 MB of video memory instead of 54 MB). The human's 2K maps stay 2K, as approved by the
+  owner; the 1K budget is his call (`docs/KNOWN_ISSUES.md`). Replicas and parts import without generated LODs, as
+  `docs/CC0_ASSETS.md` asks.
 - **Figure sidecars ship.** `assets/models/characters/*.json` is added to both export presets' include filter, since
   the figure code will read them with `FileAccess`.
 

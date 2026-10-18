@@ -3,7 +3,8 @@
 > **In this repository** (copied from the browser game at `0.1-beta.1`, 2026-10-18): the figures are
 > `assets/models/characters/human.glb` and `robot.glb`, shipped **unpacked** (`unpack.mjs` was run on the packed
 > files), because Godot can't read meshopt-compressed glTF; so `pack.mjs` is not carried, and a fresh Blender export is
-> used as it is. Paths below that start `src/assets/` now start `assets/`, and `src/config/figureRig.ts` is in
+> used as it is (the pack and unpack steps below are the browser game's; `unpack.mjs` refuses these plain files).
+> Paths below that start `src/assets/` now start `assets/`, and `src/config/figureRig.ts` is in
 > `legacy/browser/src/config/`. `check/` is the browser game's Node and three.js tooling, kept for reference.
 
 The realistic bot figures built in Blender: a human player figure and a bare robot. The owner approved v10 on

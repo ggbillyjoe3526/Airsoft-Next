@@ -46,6 +46,9 @@ func test_figures_have_their_clips_and_sidecars() -> void:
 			FileAccess.get_file_as_string("res://assets/models/characters/%s.json" % figure)
 		)
 		assert_true(sidecar is Dictionary, "%s.json parses" % figure)
+		if sidecar is Dictionary:
+			var keys: Dictionary = sidecar
+			assert_true(keys.has("replicaOnGrip"), "%s.json says where replicas sit" % figure)
 
 
 func test_every_sound_loads_and_loops_loop() -> void:
