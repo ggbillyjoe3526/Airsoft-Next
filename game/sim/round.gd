@@ -19,6 +19,7 @@ static func start_match(rs: RoundState, characters: Array[Character], ends: Arra
 	rs.reason = GameEvent.RoundEnd.ELIMINATED
 	for c in characters:
 		c.armament.reset_fire_modes()
+		c.armament.reset_hop_ups()
 	_start_round(rs, characters, ends, pool, tuning, events, 1)
 
 

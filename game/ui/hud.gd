@@ -2,8 +2,8 @@ class_name Hud
 extends Control
 ## The heads-up display (the browser game's ui/hud.ts), drawn from live state every frame: the crosshair sized from the
 ## replica's real spread, the hit marker when your BB knocks someone out, the replica panel (name, fire mode, loaded and
-## spare BBs, a gauge per magazine, reloading), the score and the round clock, the round's banners, and the big "HIT!"
-## when you're hit. Text is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
+## spare BBs, a gauge per magazine, reloading, the hop-up dial while you turn it), the score and the round clock, the
+## round's banners, a ricochet that only ticks you, and the big "HIT!" when you're hit. Text is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 40.0
 const PANEL_SIZE := Vector2(360.0, 180.0)
@@ -23,12 +23,14 @@ var _teams: TeamConfig = null
 var _view: ViewConfig = null
 var _player: Character = null
 var _rounds: RoundConfig = null
+var _sim: SimTuning = null
 
 var _replica_label: Label = null
 var _mag_label: Label = null
 var _spare_label: Label = null
 var _gauges: MagGauges = null
 var _status_label: Label = null
+var _hop_label: Label = null
 var _score_alpha: Label = null
 var _score_beta: Label = null
 var _clock_label: Label = null
@@ -40,12 +42,15 @@ var _hit_sub: Label = null
 
 var _marker_left: float = 0.0
 var _banner_left: float = 0.0
+var _hop_left: float = 0.0
 var _gap: float = 0.0
 var _show_cross: bool = true
 ## What the labels show now, so text is rebuilt only on a change.
 var _shown_mag: int = -1
 var _shown_spare: int = -1
 var _shown_slot: int = -1
+## The slot the hop-up readout is about.
+var _hop_slot: int = -1
 var _shown_mode: int = -1
 var _shown_status: int = -1
 var _shown_clock: int = -1
@@ -59,6 +64,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_view = view
 	_player = player
 	_rounds = sim.rounds
+	_sim = sim
 	name = "Hud"
 	theme = GameTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -69,6 +75,8 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 			PANEL_SIZE.y))
 	panel.alignment = BoxContainer.ALIGNMENT_END
 	add_child(panel)
+	_hop_label = _label(panel, GameTheme.SMALL_SIZE, 600, cfg.text_colour, HORIZONTAL_ALIGNMENT_RIGHT)
+	_hop_label.visible = false
 	_status_label = _label(panel, GameTheme.SMALL_SIZE, 600, cfg.warn_colour, HORIZONTAL_ALIGNMENT_RIGHT)
 	var counts := HBoxContainer.new()
 	counts.alignment = BoxContainer.ALIGNMENT_END
@@ -118,6 +126,14 @@ func on_tick(state: GameState) -> void:
 			GameEvent.Kind.CHARACTER_HIT:
 				if e.actor == _player.id and e.target != _player.id:
 					_marker_left = _cfg.marker_time
+			GameEvent.Kind.RICOCHET_TICK:
+				# Never over a round's own banner.
+				if e.target == _player.id and not _banner.visible:
+					_show_banner("", tr("HUD_RICOCHET"))
+					_banner_left = _cfg.ricochet_time
+			GameEvent.Kind.HOP_UP:
+				if e.actor == _player.id:
+					_show_hop_up(e.value / 100.0)
 			GameEvent.Kind.ROUND_START:
 				_show_banner(tr("HUD_ROUND") % e.value, tr("HUD_FIRST_TO") % _rounds.wins_needed)
 			GameEvent.Kind.ROUND_OVER:
@@ -136,6 +152,10 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	var a := c.armament
 	var in_play := Elimination.is_in_play(c)
 	_marker_left = maxf(0.0, _marker_left - delta)
+	if _hop_left > 0.0:
+		_hop_left -= delta
+		if _hop_left <= 0.0:
+			_hop_label.visible = false
 	if _banner_left > 0.0:
 		_banner_left -= delta
 		if _banner_left <= 0.0:
@@ -176,6 +196,9 @@ func _refresh_panel(a: Armament) -> void:
 		_shown_slot = a.active
 		_shown_mode = mode
 		_replica_label.text = "%s  ·  %s" % [r.display_name, tr(MODE_KEYS[mode])]
+		if a.active != _hop_slot:
+			_hop_left = 0.0
+			_hop_label.visible = false
 		_shown_mag = -1
 	if mag != _shown_mag:
 		_shown_mag = mag
@@ -215,6 +238,22 @@ func _draw() -> void:
 		var col := Color(_cfg.text_colour, _marker_left / _cfg.marker_time)
 		for d in MARKER_DIRECTIONS:
 			draw_line(centre + d * inner, centre + d * (inner + m), col, t + 1.0, true)
+
+
+## The hop-up readout for the replica in hand with its dial at `dial`: the setting and how far a level shot stays flat.
+## Flies one BB (Ballistics.hop_up_reach), so only on a turn, never per frame.
+func _show_hop_up(dial: float) -> void:
+	var a := _player.armament
+	var reach := Ballistics.hop_up_reach(a.replica(), dial, _sim, 1.0 / Engine.physics_ticks_per_second, _cfg.hop_band,
+			_cfg.hop_range, a.bb_weights[a.active])
+	var metres := roundi(reach.on_target_to)
+	var flat := tr("HUD_METRES_PLUS") % metres if reach.on_target_to >= _cfg.hop_range else tr("HUD_METRES") % metres
+	# Over-hopped, the BB leaves the band climbing, not dropping: say so, or a stronger dial would read as a worse one.
+	var key := "HUD_HOP_UP_HIGH" if reach.peak_rise > _cfg.hop_band else "HUD_HOP_UP"
+	_hop_label.text = tr(key) % [roundi(dial * 100.0), flat]
+	_hop_label.visible = true
+	_hop_left = _cfg.hop_show_time
+	_hop_slot = a.active
 
 
 func _show_banner(text: String, sub: String, colour: Color = Color.TRANSPARENT) -> void:

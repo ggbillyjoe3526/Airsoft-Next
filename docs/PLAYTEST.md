@@ -127,6 +127,8 @@ never players.
   near 20 m and stay on target to about 39 m, taking about half a second; the pistol's drop from about 27 m.
 - [ ] **Hop-up at 0 %, then 90 to 100 %.** At 0 BBs drop from about 14 m; at 90 to 100 they climb about half a metre
   over your aim and float before they fall.
+- [ ] **Turn the dial in a match (4 less, 5 more).** The panel shows the setting and how far a level shot stays
+  flat; past the best setting it says the BB climbs. Each replica keeps its own dial until the match ends.
 - [ ] **Watch the dust (Medium or up).** It drifts one way, the wind, which changes from match to match.
 - [ ] **Practice range, every target to 60 m.** Each can be hit: from 40 m aim high (or turn the hop up) and a little
   upwind; a level shot at the 60 m plate lands short.

@@ -20,6 +20,9 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 | Bots | A cross-map route on Depot costs 1.2–1.5 ms on average and up to 6.4 ms (`NavGrid.find_route`, measured headless), over the 1 ms aim: about half the native search, half the string-pulling in GDScript. Plan at most one route a tick | can wait | 2026-10-18 |
 | Play | A reload started within 0.05 s of the GBB Pistol's last shot (`ViewModelConfig.slide_lock_after`) runs with the slide forward instead of locked back (MZ1) | can wait | 2026-10-18 |
 | Play | No settings screen: sensitivity, invert, crouch hold or toggle and rebinding live only in `game/config/play_tuning.tres` and the input map | can wait | 2026-10-18 |
+| Play | Whether ricochets count (`HitConfig.ricochets_count`, off) can't be changed in play: no Match options screen yet (BB1) | can wait | 2026-10-18 |
+| Play | The wind dust (`EffectsConfig.dust_count`, 90 GPU specks) has no off switch or Low-preset scale until settings (SE1) | can wait | 2026-10-18 |
+| Play | Turning the hop-up dial while holstered isn't tested: the holster comes with MO1, which ports the browser game's case (`hopUpKept.test.ts`) | can wait | 2026-10-18 |
 | Art | Depot is the greybox: one vertex-coloured mesh with a world grid, no bevels, decals or material families (`docs/ART.md`) | can wait | 2026-10-18 |
 | Art | The figures are capsules in the team colour, not `human.glb` or `robot.glb`; the raised arm and the "HIT!" sign are the whole hit call | can wait | 2026-10-18 |
 | Art | The replica in hand shares the main camera: no separate field of view, so it can clip into a wall when you stand against one, and the sight picture down the sights is a first pass | playtest | 2026-10-18 |

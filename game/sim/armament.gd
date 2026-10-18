@@ -1,8 +1,8 @@
 class_name Armament
 extends RefCounted
 ## A character's replicas and what they're doing: magazines, the selector, reloads, draws, the trigger and recoil (the
-## browser game's sim/armament.ts, without its holster, optics, parts, dial turning, torch, magazine toss, bottomless
-## magazines or vault hold-off). Plain data; `step` is the only rule that changes it during play.
+## browser game's sim/armament.ts, without its holster, optics, parts, torch, magazine toss, bottomless magazines or
+## vault hold-off). Plain data; `step` is the only rule that changes it during play.
 
 ## Magazines carried for one replica: the one loaded and the spares in the pouch, each with the BBs it has left. A
 ## reload swaps the loaded one for the fullest spare and puts the old one back as it is (no topping up); empties stay
@@ -106,6 +106,12 @@ func reset_fire_modes() -> void:
 		modes[i] = replicas[i].default_fire_mode
 
 
+## Every hop-up dial back to its replica's setting, for a new match: a turn in play lasts the match.
+func reset_hop_ups() -> void:
+	for i in replicas.size():
+		hop_ups[i] = replicas[i].hop_up_dial
+
+
 ## The replica in hand, or null with an empty loadout.
 func replica() -> ReplicaConfig:
 	return replicas[active] if active < replicas.size() else null
@@ -201,6 +207,8 @@ static func step(c: Character, cmd: PlayerCommand, eye: Vector3, kick_scale: flo
 		var moved := a._event(events, GameEvent.Kind.FIRE_MODE, c.id)
 		moved.value = a.modes[a.active]
 	var mode := a.modes[a.active]
+	if cmd.hop_up_steps != 0:
+		a._turn_hop_up(c.id, cmd.hop_up_steps, rules, events)
 
 	var ready := a.draw_left <= 0.0 and a.reload_left <= 0.0
 	if cmd.reload and a.draw_left > 0.0 and a.reload_left <= 0.0:
@@ -272,6 +280,18 @@ func _event(events: SimEvents, kind: GameEvent.Kind, actor: int) -> GameEvent:
 	e.actor = actor
 	e.slot = active
 	return e
+
+
+## Turns the hop-up dial of the replica in hand by `steps` notches (the browser game's turnHopUp, HD1): onto the dial's
+## own steps and within its range, kept for the rest of the match. A HOP_UP event says so, even at an end of the dial.
+func _turn_hop_up(actor: int, steps: int, rules: ReplicaRulesConfig, events: SimEvents) -> void:
+	var before := hop_ups[active]
+	var notch := roundi(before / rules.hop_up_dial_step) + steps
+	var dial := clampf(notch * rules.hop_up_dial_step, rules.hop_up_min_dial, rules.hop_up_max_dial)
+	hop_ups[active] = dial
+	var e := _event(events, GameEvent.Kind.HOP_UP, actor)
+	e.value = roundi(dial * 100.0)
+	e.value2 = 1 if not is_equal_approx(dial, before) else 0
 
 
 ## Brings the replica in `slot` up in place of the one in hand, cancelling a reload, a burst and a queued reload.

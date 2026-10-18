@@ -37,6 +37,7 @@ var _eyes: FirstPersonView = null
 var _hands: ReplicaView = null
 var _bbs: BBView = null
 var _puffs: PuffView = null
+var _dust: WindDust = null
 var _figures: Array[FigureView] = []
 var _audio: SimAudio = null
 var _hud: Hud = null
@@ -114,6 +115,9 @@ func _build_views(ui: CanvasLayer) -> void:
 	_puffs = PuffView.new()
 	_puffs.setup(_play.effects)
 	add_child(_puffs)
+	_dust = WindDust.new()
+	_dust.setup(_play.effects)
+	add_child(_dust)
 	var sign_font := GameTheme.font(800)
 	for c in state.characters:
 		if c.id == PLAYER_ID:
@@ -188,7 +192,7 @@ func _after_tick() -> void:
 					_puffs.impact(e.position, e.value2)
 				else:
 					_puffs.body_hit(e.position)
-			GameEvent.Kind.CHARACTER_HIT:
+			GameEvent.Kind.CHARACTER_HIT, GameEvent.Kind.RICOCHET_TICK:
 				_puffs.body_hit(e.position)
 			GameEvent.Kind.ROUND_OVER:
 				rounds_played += 1
@@ -213,6 +217,7 @@ func _process(delta: float) -> void:
 	_hands.update(player, _input.view_yaw, _input.view_pitch, _eyes.global_position, look, delta)
 	_bbs.update(state.bbs, PLAYER_ID, _hands.muzzle_position() - _eyes.global_position, fraction, TICK)
 	_puffs.update(delta)
+	_dust.update(_eyes.global_position, state.wind.at(state.time), delta)
 	for f in _figures:
 		f.update(state.characters[f.character_id], fraction)
 		# Watching through someone's eyes: their own figure would fill the view.

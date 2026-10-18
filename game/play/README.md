@@ -12,6 +12,7 @@ and hands the tick's events on; everything else here draws the state every rende
 | `bb_view.gd`, `puff_view.gd` | BBs in the air and the puffs where they land, each one MultiMesh |
 | `figure_view.gd` | `FigureView`: another player as a greybox figure in its team colour (legs, and a torso, head and arm that tilt about the hip pivot in a lean), arm up and "HIT!" while calling a hit |
 | `sim_audio.gd` | `SimAudio`: every sound from the events (a vault's hands and kit too), positional for others, plain for you, on the bus layout `default_bus_layout.tres` |
+| `wind_dust.gd` | `WindDust`: specks of dust round the eye drifting with the match's breeze, one GPU particle box |
 | `field_lighting.gd` | `FieldLighting`: the sun, the sky and the environment |
 | `shader_prewarm.gd` | `ShaderPrewarm`: draws the late materials (a fading figure, a BB, a puff, the sign) as specks for the first frames, so nothing compiles mid-match |
 

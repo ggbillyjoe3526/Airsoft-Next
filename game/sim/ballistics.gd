@@ -1,8 +1,8 @@
 class_name Ballistics
-## A BB's flight through still air (the browser game's sim/ballistics.ts, M30): gravity, drag along the airflow from the
-## Reynolds number, Magnus lift across it from the hop-up's backspin, and that spin decaying. Pure: depends only on the
-## BB and the air. Also the hop-up readouts (sim/hopUp.ts) and how a replica's stats become a BB's speed, mass and spin.
-## Wind is a later task: the air here is still.
+## A BB's flight through the air (the browser game's sim/ballistics.ts, M30): gravity, drag along the airflow from the
+## Reynolds number, Magnus lift across it from the hop-up's backspin, and that spin decaying. The airflow is the BB's
+## velocity less the wind, so a breeze drifts it. Pure: depends only on the BB, the air and the wind. Also the hop-up
+## readouts (sim/hopUp.ts) and how a replica's stats become a BB's speed, mass and spin.
 
 ## Grams in a kilogram (a replica's bb_weight is in grams, a BB's mass in kg).
 const GRAMS_PER_KG := 1000.0
@@ -21,18 +21,19 @@ class HopUpReach:
 	var peak_rise: float = 0.0
 
 
-## Advances a BB's flight by `dt` (no collision) with the air model `air`. Second order (the midpoint method): the
-## forces are worked out at the start of the step and again half way through, and the step moves on with the half-way
-## ones, so one step a 60 Hz tick stays within millimetres of the exact flight at 50 m.
-static func step_flight(bb: BB, air: AirModel, dt: float) -> void:
+## Advances a BB's flight by `dt` (no collision) with the air model `air`, in `wind` (m/s; still air by default).
+## Second order (the midpoint method): the forces are worked out at the start of the step and again half way through,
+## and the step moves on with the half-way ones, so one step a 60 Hz tick stays within millimetres of the exact flight
+## at 50 m.
+static func step_flight(bb: BB, air: AirModel, dt: float, wind: Vector3 = Vector3.ZERO) -> void:
 	var half := dt * 0.5
 	var decay := air.spin_decay / bb.mass
 	var v := bb.velocity
-	var speed0 := v.length()
-	var mid := v + _acceleration(bb, air, v, speed0, bb.spin) * half
+	var speed0 := (v - wind).length()
+	var mid := v + _acceleration(bb, air, v - wind, speed0, bb.spin) * half
 	var mid_spin := bb.spin * (1.0 - decay * speed0 * half)
-	var speed1 := mid.length()
-	var a1 := _acceleration(bb, air, mid, speed1, mid_spin)
+	var speed1 := (mid - wind).length()
+	var a1 := _acceleration(bb, air, mid - wind, speed1, mid_spin)
 	bb.position += mid * dt
 	bb.velocity = v + a1 * dt
 	# The air's friction torque: dω/dt = −decay · airspeed · ω (never below zero, however long the step).
@@ -120,8 +121,8 @@ static func flight_time(replica: ReplicaConfig, dial: float, distance: float, tu
 	return INF
 
 
-## The BB's acceleration at velocity `v` (airspeed `speed`) with spin `spin`: gravity, drag against the airflow and
-## Magnus lift across it (spin axis × airflow, so backspin lifts).
+## The BB's acceleration in airflow `v` (its velocity less the wind; airspeed `speed`) with spin `spin`: gravity, drag
+## against the airflow and Magnus lift across it (spin axis × airflow, so backspin lifts).
 static func _acceleration(bb: BB, air: AirModel, v: Vector3, speed: float, spin: float) -> Vector3:
 	var acc := Vector3(0.0, -air.gravity, 0.0)
 	if speed < MIN_AIRSPEED:

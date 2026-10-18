@@ -20,3 +20,12 @@ extends Resource
 ])
 @export var hit_puff_colour: Color = Color(1.0, 1.0, 1.0, 0.9)
 @export var hit_puff_scale: float = 1.6
+## Dust in the air round the eye, drifting with the breeze (WindDust): how many specks, how long each lives (s), the box
+## round the eye they appear in (half extents, m), their size (m) and colour, and how often (s) their drift follows the
+## wind's gusts.
+@export var dust_count: int = 90
+@export var dust_life: float = 6.0
+@export var dust_box: Vector3 = Vector3(8.0, 2.5, 8.0)
+@export var dust_size: float = 0.024
+@export var dust_colour: Color = Color(1.0, 0.97, 0.88, 0.45)
+@export var dust_refresh: float = 0.5

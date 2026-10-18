@@ -28,5 +28,12 @@ extends Resource
 ## The hit marker on your hit: its size (px) and how long it shows (s).
 @export var marker_size: float = 12.0
 @export var marker_time: float = 0.35
+## The hop-up readout shows this long (s) after the last turn of the dial; a BB counts as flat while it stays within
+## hop_band (m) of the aim line, followed at most hop_range (m).
+@export var hop_show_time: float = 1.8
+@export var hop_band: float = 0.15
+@export var hop_range: float = 60.0
+## A ricochet that ticks you (when ricochets don't count) says so this long (s).
+@export var ricochet_time: float = 1.5
 ## A round's banner shows this long (s).
 @export var banner_time: float = 2.5

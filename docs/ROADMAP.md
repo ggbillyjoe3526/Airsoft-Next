@@ -50,7 +50,7 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 
 1. **Magazines on the HUD and the pistol's slide lock** (MZ1). A gauge per magazine, and the GBB Pistol's slide
    locked back on empty. Built.
-2. **BB physics pass** (BB1). Wind, the hop-up dial turned in play, ricochets as a match rule.
+2. **BB physics pass** (BB1). Wind, the hop-up dial turned in play, ricochets as a match rule. Built.
 3. **Holster and smoother lean and vault** (MO1). Holster on 3, and the view eased through a cut-short lean and a
    vault.
 4. **Bots vault** (BV1). Vault links in the nav grid, so bots go over low walls as you do.

@@ -14,6 +14,9 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - Elimination rounds: first to 5 against the clock, with ends swapped at half time; a finished match rematches after 8
   seconds (FP1)
 - Replicas: AEG Rifle (semi, burst, auto) and GBB Pistol (semi), magazines swapped on reload, the GBB Pistol's slide locks back on empty until the reload seats a magazine (MZ1), a draw on switching, light recoil and spread that grows when moving or jumping and tightens when crouching, holding still or aiming down sights, read from `data/stats.md` (FP1)
+- Wind: each match has a light breeze (calm to about 2 m/s, with gusts), new every match; it pushes BBs, never players, and dust specks drift with it (BB1)
+- Hop-up dial: 4 (less) and 5 (more), or Page Down and Page Up, turn each replica's dial for the match; the replica panel shows the setting and flat-shot range; bots keep factory dials (BB1)
+- Ricochets: BBs bounce off concrete and steel containers; by default a bounced hit doesn't count ("Ricochet: play on"), and a match rule can make it count, not yet in a menu (BB1)
 - Movement: walk, run, sprint, crouch, a limited jump (FP1), lean with Q or E (slows to a walk) and vault over low walls with Jump (BE1). Bots don't vault yet
 - HUD: score, round clock, magazine, spares and fire mode, a gauge per magazine (loaded first, then spares fullest first; orange when the loaded one runs low), a crosshair that opens with your spread, and round banners (FP1, MZ1)
 - Depot: a greybox field with sun, sky, shadows, positional sound and an ambience loop; BBs puff on metal, wood, concrete or ground in its colour (FP1)

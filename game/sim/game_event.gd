@@ -20,6 +20,8 @@ enum Kind {
 	ROUND_START, ## round number value is live.
 	ROUND_OVER, ## value won the round (-1: a draw), for reason.
 	MATCH_OVER, ## value won the match.
+	RICOCHET_TICK, ## actor's bounced BB reached target at position along direction, but ricochets don't count: a tick.
+	HOP_UP, ## actor turned the hop-up dial on slot to value (hundredths of its range); value2 0 if it was already at an end.
 }
 
 enum Footstep { RUN, SPRINT, LAND }

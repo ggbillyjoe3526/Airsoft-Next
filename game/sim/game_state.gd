@@ -15,6 +15,10 @@ var events: SimEvents = SimEvents.new()
 ## The match's own random stream: shot spread and anything else random in the rules.
 var rng: RandomNumberGenerator = null
 var round_state: RoundState = null
+## Matches started on this state (a rematch is the next), and the breeze of the one being played: still air until the
+## first starts.
+var match_number: int = 0
+var wind: Wind = null
 
 
 func _init(seed_value: int = 0, tuning: SimTuning = null) -> void:
@@ -23,6 +27,7 @@ func _init(seed_value: int = 0, tuning: SimTuning = null) -> void:
 	rng = Seeds.stream(match_seed)
 	bbs = BBPool.new(t.ballistics.max_bbs)
 	round_state = RoundState.new()
+	wind = Wind.still(t.wind)
 
 
 ## The character with `character_id`, or null.

@@ -101,6 +101,50 @@ func test_whole_bot_matches_play_out_fairly_over_seeds() -> void:
 	assert_lt(timeouts, rounds / 4 + 1, "rounds end in eliminations, not stand-offs")
 
 
+## Ricochets counting (the browser game's depotMatch.ricochet tests, half its seeds): matches still play out, no bot
+## shoots a teammate directly, a stray bounce only rarely catches a teammate or its own shooter, and bounced BBs decide
+## some hits but under a quarter (G12). Measured: 45 of 251 hits off a bounce, 4 on a teammate, 4 on the shooter.
+func test_bot_matches_with_ricochets_counting_stay_playable() -> void:
+	tuning.hits.ricochets_count = true
+	var hits := 0
+	var bounced := 0
+	var direct_friendly := 0
+	var friendly_bounces := 0
+	var self_hits := 0
+	var won := 0
+	for seed_value: int in [1, 2, 3, 4, 5, 6, 7, 8]:
+		_start(seed_value)
+		var finished := false
+		for t in roundi(tuning.rounds.round_time / DT) * 14:
+			_tick()
+			for i in state.events.count:
+				var e := state.events.items[i]
+				if e.kind == GameEvent.Kind.CHARACTER_HIT and e.actor >= 0:
+					hits += 1
+					bounced += e.value
+					if e.actor == e.target:
+						self_hits += 1
+					elif state.characters[e.actor].team == state.characters[e.target].team:
+						if e.value == 0:
+							direct_friendly += 1
+						else:
+							friendly_bounces += 1
+				elif e.kind == GameEvent.Kind.MATCH_OVER:
+					finished = true
+			if finished:
+				won += 1
+				break
+	tuning.hits.ricochets_count = false
+	gut.p("ricochets counting: %d hits, %d off a bounce, %d on a teammate, %d on the shooter" % [hits, bounced,
+			friendly_bounces, self_hits])
+	assert_eq(won, 8, "every match was won")
+	assert_eq(direct_friendly, 0, "no bot shot a teammate directly")
+	assert_lte(friendly_bounces, 6, "a bounce catches a teammate only rarely")
+	assert_lt(float(self_hits) / maxi(1, hits), 0.04, "a bounce catches its own shooter only rarely")
+	var share := float(bounced) / maxi(1, hits)
+	assert_between(share, 0.05, 0.25, "bounced BBs decide some hits, under a quarter")
+
+
 func test_a_bot_does_not_see_an_enemy_behind_a_wall() -> void:
 	_start(5)
 	var watcher := _bot(0)
