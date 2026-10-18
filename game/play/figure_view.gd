@@ -1,12 +1,15 @@
 class_name FigureView
 extends Node3D
-## Another player on the field, as a greybox figure in its team's colour until the rigged figures are drawn: a body, a
-## head and an arm, posed from its Character between the last two ticks. Calling a hit, the arm goes up and "HIT!" shows
-## above the head; it stays up on the walk off; a figure leaving the field fades out.
+## Another player on the field, as a greybox figure in its team's colour until the rigged figures are drawn: legs, a
+## torso, a head and an arm, posed from its Character between the last two ticks. The torso, head and arm tilt together
+## about the hip pivot in a lean, by the simulation's own geometry (HitConfig pivot_height and lean_max_angle, as the hit
+## volume), while the legs stay put. Calling a hit, the arm goes up and "HIT!" shows above the head; it stays up on the
+## walk off; a figure leaving the field fades out.
 
-## The figure's proportions (m): the body capsule, the head, the arm, and where the sign floats.
+## The figure's proportions (m): the legs' and torso's capsules, the head, the arm, and where the sign floats. The torso
+## reaches this far below the pivot, so its round bottom covers the joint as it tilts.
 const BODY_RADIUS := 0.24
-const BODY_HEIGHT := 1.45
+const TORSO_BELOW_PIVOT := 0.24
 const HEAD_RADIUS := 0.14
 const ARM_SIZE := Vector3(0.09, 0.62, 0.09)
 const SIGN_HEIGHT := 2.25
@@ -16,36 +19,50 @@ const SIGN_OUTLINE_DARKEN := 0.5
 const ROUGHNESS := 0.55
 
 var character_id: int = -1
-var _body: MeshInstance3D = null
+var _legs: MeshInstance3D = null
+## The upper body, at the hip pivot: tilted by the lean, carrying the torso, head and arm.
+var _upper: Node3D = null
+var _torso: MeshInstance3D = null
 var _head: MeshInstance3D = null
 var _arm: Node3D = null
 var _sign: Label3D = null
 var _mat: StandardMaterial3D = null
 var _hits: HitConfig = null
-var _body_cfg: BodyConfig = null
 
 
 func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConfig, font: Font) -> void:
 	character_id = c.id
 	_hits = hits
-	_body_cfg = body_cfg
 	name = "Figure_%d" % c.id
 	top_level = true
 	_mat = material(team_colour)
-	var capsule := CapsuleMesh.new()
-	capsule.radius = BODY_RADIUS
-	capsule.height = BODY_HEIGHT
-	_body = MeshInstance3D.new()
-	_body.mesh = capsule
-	_body.material_override = _mat
-	add_child(_body)
+	# Legs from the feet to the pivot; the torso from just under the pivot to the shoulders, under the head.
+	var legs_mesh := CapsuleMesh.new()
+	legs_mesh.radius = BODY_RADIUS
+	legs_mesh.height = hits.pivot_height
+	_legs = MeshInstance3D.new()
+	_legs.mesh = legs_mesh
+	_legs.material_override = _mat
+	add_child(_legs)
+	_upper = Node3D.new()
+	add_child(_upper)
+	var torso_top := body_cfg.stand_eye_height - HEAD_RADIUS - hits.pivot_height
+	var torso_mesh := CapsuleMesh.new()
+	torso_mesh.radius = BODY_RADIUS
+	torso_mesh.height = torso_top + TORSO_BELOW_PIVOT
+	_torso = MeshInstance3D.new()
+	_torso.mesh = torso_mesh
+	_torso.material_override = _mat
+	_torso.position = Vector3(0.0, (torso_top - TORSO_BELOW_PIVOT) * 0.5, 0.0)
+	_upper.add_child(_torso)
 	var sphere := SphereMesh.new()
 	sphere.radius = HEAD_RADIUS
 	sphere.height = HEAD_RADIUS * 2.0
 	_head = MeshInstance3D.new()
 	_head.mesh = sphere
 	_head.material_override = _mat
-	add_child(_head)
+	_head.position = Vector3(0.0, hits.head_height - hits.pivot_height, 0.0)
+	_upper.add_child(_head)
 	var arm_mesh := BoxMesh.new()
 	arm_mesh.size = ARM_SIZE
 	var arm := MeshInstance3D.new()
@@ -54,7 +71,8 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 	arm.position = Vector3(0.0, ARM_SIZE.y * 0.5, 0.0)
 	_arm = Node3D.new()
 	_arm.add_child(arm)
-	add_child(_arm)
+	_arm.position = Vector3(BODY_RADIUS + ARM_SIZE.x * 0.5, hits.torso_top - hits.pivot_height, 0.0)
+	_upper.add_child(_arm)
 	_sign = make_sign(font, team_colour)
 	_sign.position = Vector3(0.0, SIGN_HEIGHT, 0.0)
 	add_child(_sign)
@@ -90,14 +108,15 @@ func update(c: Character, fraction: float) -> void:
 	var crouch := lerpf(c.prev_crouch_amount, c.crouch_amount, fraction)
 	global_position = feet
 	rotation = Vector3(0.0, lerp_angle(c.prev_yaw, c.yaw, fraction), 0.0)
-	var drop := _hits.crouch_drop * crouch
-	var body_top := _body_cfg.stand_eye_height - HEAD_RADIUS - drop
-	_body.position = Vector3(0.0, body_top - BODY_HEIGHT * 0.5 + drop * 0.5, 0.0)
-	_body.scale = Vector3(1.0, (BODY_HEIGHT - drop) / BODY_HEIGHT, 1.0)
-	_head.position = Vector3(0.0, _hits.head_height - drop, 0.0)
+	# A crouch lowers the pivot and everything on it, squashing the legs; a lean right tips the upper body to the
+	# figure's right (+x), a roll negative about +z.
+	var hip := _hits.pivot_height - _hits.crouch_drop * crouch
+	_legs.position = Vector3(0.0, hip * 0.5, 0.0)
+	_legs.scale = Vector3(1.0, hip / _hits.pivot_height, 1.0)
+	_upper.position = Vector3(0.0, hip, 0.0)
+	_upper.rotation = Vector3(0.0, 0.0, -lerpf(c.prev_lean, c.lean, fraction) * _hits.lean_max_angle)
 	var calling := c.status == Character.Status.CALLING or c.status == Character.Status.WALKING_OFF
 	# The arm hangs at the side, or goes straight up to call the hit.
-	_arm.position = Vector3(BODY_RADIUS + ARM_SIZE.x * 0.5, _hits.torso_top - drop, 0.0)
 	_arm.rotation = Vector3(0.0, 0.0, 0.0 if calling else PI)
 	_sign.visible = calling
 	var fade := 1.0

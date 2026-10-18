@@ -1,6 +1,6 @@
 extends GutTest
 ## A character's hit volume and the ray tests against it (game/sim/hitbox.gd; the browser game's sim/hitbox.test.ts,
-## the built-in figure's cases; lean and the rigged figures come with their tasks). A miss is INF here (-1 in the
+## the built-in figure's cases; lean in test_lean.gd, the rigged figures with their task). A miss is INF here (-1 in the
 ## browser game). Godot's Vector3 is 32-bit, so distances compare to 1e-5 m, not the browser's 1e-9.
 
 const CLOSE := 1e-5

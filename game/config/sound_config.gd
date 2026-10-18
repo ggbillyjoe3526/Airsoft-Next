@@ -17,6 +17,10 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var step_gain: float = 0.54
 @export var own_step_gain: float = 0.25
 @export var step_pitch: float = 0.06
+## A vault's hands and kit on the obstacle: louder than a step, as it carries further.
+@export var vault_gain: float = 0.7
+@export var own_vault_gain: float = 0.4
+@export var vault_pitch: float = 0.06
 @export var impact_gain: float = 0.9
 @export var impact_pitch: float = 0.1
 @export var body_hit_gain: float = 1.0

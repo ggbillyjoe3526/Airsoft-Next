@@ -1,7 +1,7 @@
 class_name SimAudio
 extends Node
 ## The match's sound, from the tick's events (docs/ARCHITECTURE.md › Contracts 3): shots with their power part, dry
-## clicks, magazines, the selector and draws, BB impacts by surface, footsteps by surface and pace, and hits: a tick where
+## clicks, magazines, the selector and draws, BB impacts by surface, footsteps by surface and pace, vaults, and hits: a tick where
 ## a BB hits a body, the confirmation when it's yours, the thump when it's you. Your own sounds play plain; everyone
 ## else's from where they happen. Every variant is loaded up front, so the first shot never hitches; the voices are
 ## pools reused oldest first. Variant and pitch choice is presentation only, on its own random stream.
@@ -49,7 +49,7 @@ func setup(cfg: SoundConfig, powers: Array[StringName], body: BodyConfig) -> voi
 		_impact.append(_load("impact_%s" % s))
 		for k in STEP_NAMES:
 			_step.append(_load("step_%s_%s" % [s, k]))
-	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep"]:
+	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault"]:
 		_load(cue)
 	for i in cfg.field_voices:
 		var v := AudioStreamPlayer3D.new()
@@ -107,6 +107,9 @@ func on_tick(state: GameState, player_id: int) -> void:
 				var at := c.position if c != null else e.position
 				var gain := _cfg.own_step_gain if own else _cfg.step_gain
 				_play(cue, at, own, gain, _cfg.step_pitch, BUS_FOOTSTEPS)
+			GameEvent.Kind.VAULT:
+				var gain := _cfg.own_vault_gain if own else _cfg.vault_gain
+				_play(&"vault", e.position, own, gain, _cfg.vault_pitch, BUS_FOOTSTEPS)
 			GameEvent.Kind.ROUND_START:
 				_play(&"count_beep", Vector3.ZERO, true, _cfg.beep_gain, 0.0, BUS_INTERFACE)
 

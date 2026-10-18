@@ -155,10 +155,12 @@ static func spread_direction(yaw: float, pitch: float, spread: float, gx: float,
 
 
 ## One tick of `c`'s replica handling: switching, the selector, reloading, firing and recoil. BBs leave from `eye`;
-## `kick_scale` multiplies each shot's kick (above 1 on the run). With `can_fire` false (out of play, the round decided)
-## the trigger does nothing and a burst under way ends.
+## `kick_scale` multiplies each shot's kick (above 1 on the run). With `can_fire` false (out of play, the round decided,
+## through a vault and the moment after) the trigger does nothing and a burst under way ends. `fire_hold_off` (s) is how
+## long `can_fire` stays false after a vault: a semi or burst press made then is kept that much longer, so it fires when
+## the replica comes up instead of expiring first.
 static func step(c: Character, cmd: PlayerCommand, eye: Vector3, kick_scale: float, can_fire: bool, pool: BBPool,
-		rng: RandomNumberGenerator, events: SimEvents, tuning: SimTuning, dt: float) -> void:
+		rng: RandomNumberGenerator, events: SimEvents, tuning: SimTuning, dt: float, fire_hold_off: float = 0.0) -> void:
 	var a := c.armament
 	if a.replicas.is_empty():
 		return
@@ -219,7 +221,7 @@ static func step(c: Character, cmd: PlayerCommand, eye: Vector3, kick_scale: flo
 		a.dry_fired_this_pull = false
 	# Semi and burst presses are kept briefly, so a click during the cooldown still fires when ready.
 	if pressed:
-		a.pending_press = rules.press_buffer
+		a.pending_press = rules.press_buffer + fire_hold_off
 	var busy := a.draw_left > 0.0 or a.reload_left > 0.0
 	if a.burst_shots_left > 0 and (not can_fire or busy):
 		a.burst_shots_left = 0

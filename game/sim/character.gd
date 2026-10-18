@@ -70,6 +70,13 @@ var shake_carry: float = 0.0
 ## Aiming down the sights of the replica in hand, and how far the sight is raised to the eye (0..1).
 var aiming: bool = false
 var aim_raise: float = 0.0
+## How far it leans: -1 fully left, 1 fully right, 0 upright (Lean); last tick's for drawing between ticks.
+var lean: float = 0.0
+var prev_lean: float = 0.0
+## A vault over a low obstacle (Vault): while `vault.active` the body follows its path, not its command.
+var vault: VaultState = VaultState.new()
+## Seconds until the replica can fire again after a vault (0: ready): carried through it, up a moment after.
+var fire_lockout: float = 0.0
 var armament: Armament = null
 
 
@@ -89,7 +96,7 @@ static func eye_height(crouch: float, body: BodyConfig) -> float:
 	return body.stand_eye_height + (body.crouch_eye_height - body.stand_eye_height) * crouch
 
 
-## The eyes, where BBs leave from.
+## The eyes standing upright (no lean); BBs leave from Lean.eye.
 func eye(body: BodyConfig) -> Vector3:
 	return position + Vector3(0.0, eye_height(crouch_amount, body), 0.0)
 
@@ -108,6 +115,8 @@ func rescue_if_out_of_world(kill_y: float) -> bool:
 	position = spawn_position if status == Status.ALIVE else dead_zone_target
 	prev_position = position
 	prev_crouch_amount = crouch_amount
+	prev_lean = lean
+	vault.cancel()
 	velocity = Vector3.ZERO
 	grounded = false
 	airborne = false
@@ -144,6 +153,10 @@ func respawn() -> void:
 	shake_carry = 0.0
 	aiming = false
 	aim_raise = 0.0
+	lean = 0.0
+	prev_lean = 0.0
+	vault.cancel()
+	fire_lockout = 0.0
 	status = Status.ALIVE
 	status_time = 0.0
 	hit_by = -1

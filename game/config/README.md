@@ -10,16 +10,17 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 |---|---|
 | `sim_tuning.gd` | Bundles the simulation's configs below |
 | `ballistics_config.gd` | BB flight: air, BB size, hop-up spin, lift, spin decay, lifetime, pool size |
-| `movement_config.gd`, `accuracy_config.gd`, `body_config.gd` | Paces, jump, crouch, aiming pace; spread by stance and motion; the body's size |
-| `hit_config.gd` | Hit calling, the walk-off and the hit volume (head, chest, hips, legs) |
+| `movement_config.gd`, `accuracy_config.gd`, `body_config.gd` | Paces, jump, crouch, aiming pace, lean speed and wall clearance; spread by stance and motion; the body's size |
+| `vault_config.gd` | Vaulting: the heights and depth vaulted, reach, the path's speed and tuck, the fire lockout after |
+| `hit_config.gd` | Hit calling, the walk-off, the hit volume (head, chest, hips, legs) and the lean's pivot and tilt |
 | `round_config.gd` | Elimination rounds: clock, score, half time, reset |
 | `footstep_config.gd` | Strides and landings |
 | `replica_rules_config.gd` | Recoil recovery, the trigger, BB weight and the hop-up dial's range |
 | `replica_config.gd`, `replicas/*.tres` | One replica's stats, the built-in values; `data/stats.md` wins over them |
 | `replica_stats.gd`, `data_table.gd` | Read `data/stats.md`'s tables (a cell that won't read keeps the built-in value and warns) |
 | `play_tuning.gd`, `play_tuning.tres` | Bundles the play screen's configs below, and the rematch delay |
-| `controls_config.gd` | Mouse turn, sensitivity, invert, slower while zoomed, crouch toggle or hold |
-| `view_config.gd` | Field of view, the sight's zoom, near and far |
+| `controls_config.gd` | Mouse turn, sensitivity, invert, slower while zoomed, crouch and aim toggle or hold |
+| `view_config.gd` | Field of view, the sight's zoom, near and far, the view's roll in a lean |
 | `viewmodel_config.gd` | The replica in hand: hip and sight positions, sway, kick, sprint carry, draw, reload cant, wall pull-back |
 | `effects_config.gd` | BB size and colour, the muzzle blend, puffs by surface |
 | `sound_config.gd` | Cue and loop folders, gains, distances, voice pools, the ambience |

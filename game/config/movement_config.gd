@@ -39,3 +39,9 @@ extends Resource
 @export var aim_walk_scale: float = 0.6
 ## Seconds to raise a sight to the eye, and to lower it.
 @export var aim_raise_time: float = 0.15
+## Seconds from upright to a full lean (Q / E held), and back.
+@export var lean_time: float = 0.18
+## A leaning head and shoulders stay at least this far from walls (m), so nobody sees or shoots through one.
+@export var lean_wall_clearance: float = 0.2
+## From this share of a full lean (0..1) you move at walking pace, quietly; less slows you part of the way.
+@export var lean_quiet_from: float = 0.5
