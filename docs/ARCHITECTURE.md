@@ -19,16 +19,18 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 
 | Folder | Holds | Now |
 |---|---|---|
-| `game/main.tscn`, `main.gd` | The entry scene: the boot screen, the credits, the perf overlay; `--smoke` drives the headless smoke test | built |
+| `game/main.tscn`, `main.gd` | The entry scene: the boot screen (Play, credits, quit), the perf overlay; `--smoke` drives the headless smoke test | built |
 | `game/core/` | Engine-wide helpers: `Version` (name and tag rules) | built |
 | `game/save/` | `SaveFile`: crash-safe writes (temp file, then rename, with a backup) | built |
-| `game/ui/` | Screens and HUD: `Credits` (shows `THIRD_PARTY_NOTICES.txt`) | built |
+| `game/ui/` | Screens and HUD on one `GameTheme`: `Credits`, `Hud`, `PauseMenu`; the words by translation key in `text/en.po` | built |
 | `game/debug/` | `DebugPerf` (F3: FPS, frame time, draw calls, primitives, nodes, orphans; `--perf` logs) | built |
 | `game/sim/` | The 60 Hz simulation: state, commands, events, rounds, BBs, hit calling, movement (`game/sim/README.md`) | built |
 | `game/ai/`, `game/nav/` | Bots (a controller like the player) and the layered nav grid | next |
-| `game/config/` | Tuning as typed `Resource`s (`sim_tuning.tres`), replicas and the `data/stats.md` reader (`game/config/README.md`) | built |
-| `game/map/` | Maps from `data/maps/*.json`, their Jolt colliders behind `WorldQuery` and `CharacterMover` | next |
-| `game/pool/`, `game/progress/`, `game/stats/`, `game/settings/`, `game/input/`, `game/audio/`, `game/render/` | Loadout, levels, records, settings, key bindings, sound, the 3D view | later |
+| `game/config/` | Tuning as typed `Resource`s (`sim_tuning.tres` for the rules, `play_tuning.tres` for the view, sound and HUD), replicas and the `data/stats.md` reader (`game/config/README.md`) | built |
+| `game/input/` | `PlayerInput`, the player's controller; default bindings in project.godot's input map (`game/input/README.md`) | built |
+| `game/play/` | `PlaySession` (a match, played) and the views drawn from the state: camera, replica in hand, BBs, puffs, figures, sound (`game/play/README.md`) | built |
+| `game/map/` | Maps from `data/maps/*.json`, their greybox and Jolt colliders behind `WorldQuery` and `CharacterMover` (`game/map/README.md`) | built |
+| `game/pool/`, `game/progress/`, `game/stats/`, `game/settings/` | Loadout, levels, records, settings (sensitivity, rebinding, graphics) | later |
 | `data/` | The owner's six tables, read at start with `FileAccess`; `data/maps/*.json`, the map layouts | copied |
 | `assets/` | Models, fonts and sounds from the browser game (`assets/README.md`) | copied |
 | `tests/unit/` | GUT tests, `test_*.gd` | built |
@@ -46,8 +48,8 @@ pull request that builds them.
 3. **Events.** The tick's events (shots, hits, calls, round changes) are the only channel from the simulation to
    sound, HUD and effects.
 4. **Physics behind two interfaces.** The simulation asks `WorldQuery` (rays, what is underfoot) and moves characters through
-   `CharacterMover`; only their Jolt implementations call `PhysicsServer3D` or physics nodes. `BoxWorld` answers both headless; the Jolt
-   side is *(planned)* with Depot.
+   `CharacterMover`; only their Jolt implementations call `PhysicsServer3D` or physics nodes. `BoxWorld` answers both headless; on a map
+   `JoltQuery` and `JoltMover` (`game/map/`) do.
 5. **Seeded randomness.** Every random draw comes from a seeded stream owned by the match (bots and wind have their
    own); no `randf()` or `randi()` in gameplay. Same seed, same match.
 6. **Data, not literals.** Replica, bot, map and tuning values come from `data/` or typed `Resource`s; gameplay code

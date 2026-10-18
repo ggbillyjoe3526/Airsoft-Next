@@ -23,7 +23,7 @@ func _ready() -> void:
 	box.offset_bottom = -32
 	add_child(box)
 	var heading := Label.new()
-	heading.text = "Credits"
+	heading.text = tr("CREDITS_TITLE")
 	heading.add_theme_font_size_override("font_size", 32)
 	box.add_child(heading)
 	_text = TextEdit.new()
@@ -31,7 +31,7 @@ func _ready() -> void:
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(_text)
 	_back = Button.new()
-	_back.text = "Back"
+	_back.text = tr("CREDITS_BACK")
 	_back.pressed.connect(close)
 	box.add_child(_back)
 
@@ -40,8 +40,8 @@ func _body() -> String:
 	var notices := FileAccess.get_file_as_string(NOTICES)
 	if notices.is_empty():
 		push_warning("credits: can't read %s" % NOTICES)
-		notices = "The licence notices could not be read. They ship beside the game as THIRD_PARTY_NOTICES.txt."
-	return "Airsoft, made by ggbillyjoe3526 with Claude Code.\n\n" + notices
+		notices = tr("CREDITS_UNREADABLE")
+	return tr("CREDITS_BYLINE") + "\n\n" + notices
 
 
 ## Shows the credits. The notices (about 2,000 lines) are read and laid out on the first open, not at boot.

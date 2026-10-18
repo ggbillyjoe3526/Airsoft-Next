@@ -12,7 +12,7 @@ enum Kind {
 	RELOAD_REFUSED, ## actor pressed reload with no spare fuller than the loaded magazine (slot).
 	DRAW, ## actor started bringing up the replica in slot.
 	FIRE_MODE, ## actor's selector on slot moved to value (ReplicaConfig.FireMode).
-	BB_IMPACT, ## actor's BB stopped on the level at position (target is -1), or on a body that wasn't knocked out (target).
+	BB_IMPACT, ## actor's BB stopped at position: on the level (target -1, value2 the RayHit.Surface) or a body not knocked out.
 	BB_LOST, ## actor's BB fell out of the level or flew past its lifetime at position.
 	CHARACTER_HIT, ## actor's BB hit target at position, flying along direction: target is out and calls the hit.
 	FOOTSTEP, ## actor's footstep (value: Footstep) on surface (value2: RayHit.Surface).
@@ -33,7 +33,7 @@ var target: int = -1
 var slot: int = -1
 ## The event's number: a fire mode, a winner, a round, a footstep kind.
 var value: int = 0
-## A second number: a footstep's surface, a round's end reason.
+## A second number: a footstep's or an impact's surface, a round's end reason.
 var value2: int = 0
 var position: Vector3 = Vector3.ZERO
 var direction: Vector3 = Vector3.ZERO

@@ -1,0 +1,100 @@
+# The game's words in English, by translation key (game code calls tr("KEY")). One file per language beside it.
+msgid ""
+msgstr ""
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8-bit\n"
+
+msgid "TEAM_ALPHA"
+msgstr "Alpha"
+
+msgid "TEAM_BETA"
+msgstr "Beta"
+
+msgid "HUD_HIT_SIGN"
+msgstr "HIT!"
+
+msgid "HUD_YOU_ARE_HIT"
+msgstr "HIT!"
+
+msgid "HUD_WALK_OFF"
+msgstr "Hand up, walk off to the dead zone"
+
+msgid "HUD_RELOADING"
+msgstr "Reloading"
+
+msgid "HUD_OUT_OF_BBS"
+msgstr "Out of BBs"
+
+msgid "HUD_LAST_MAG"
+msgstr "Last magazine"
+
+msgid "HUD_SPARE"
+msgstr "/ %d"
+
+msgid "HUD_MODE_SEMI"
+msgstr "Semi"
+
+msgid "HUD_MODE_BURST"
+msgstr "Burst"
+
+msgid "HUD_MODE_AUTO"
+msgstr "Auto"
+
+msgid "HUD_ROUND"
+msgstr "Round %d"
+
+msgid "HUD_FIRST_TO"
+msgstr "First to %d"
+
+msgid "HUD_ROUND_WON"
+msgstr "%s take the round"
+
+msgid "HUD_ROUND_DRAW"
+msgstr "Draw: the round is played again"
+
+msgid "HUD_MATCH_WON"
+msgstr "%s win the match"
+
+msgid "HUD_NEW_MATCH"
+msgstr "A new match starts shortly"
+
+msgid "PAUSE_TITLE"
+msgstr "Paused"
+
+msgid "PAUSE_RESUME"
+msgstr "Resume"
+
+msgid "PAUSE_TITLE_SCREEN"
+msgstr "Leave to the title screen"
+
+msgid "PLAY_CLICK"
+msgstr "Click to play"
+
+msgid "BOOT_TITLE"
+msgstr "AIRSOFT"
+
+msgid "BOOT_PLAY"
+msgstr "Play Depot"
+
+msgid "BOOT_CREDITS"
+msgstr "Credits"
+
+msgid "BOOT_QUIT"
+msgstr "Quit"
+
+msgid "CREDITS_TITLE"
+msgstr "Credits"
+
+msgid "CREDITS_BACK"
+msgstr "Back"
+
+msgid "CREDITS_BYLINE"
+msgstr "Airsoft, made by ggbillyjoe3526 with Claude Code."
+
+msgid "CREDITS_UNREADABLE"
+msgstr "The licence notices could not be read. They ship beside the game as THIRD_PARTY_NOTICES.txt."
+
+msgid "MAP_REFUSED"
+msgstr "This map could not be loaded: %s"
