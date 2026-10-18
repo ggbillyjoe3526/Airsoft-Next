@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ReplicaConfig" format=3]
+
+[ext_resource type="Script" path="res://game/config/replica_config.gd" id="1_a55b5"]
+
+[resource]
+script = ExtResource("1_a55b5")
+id = &"aeg"
+display_name = "AEG Rifle"
+fire_modes = Array[int]([0, 1, 2])
+default_fire_mode = 2
+fire_rate = 13.0
+mag_size = 60
+mags = 4
+reload_time = 1.8
+draw_time = 0.45
+muzzle_energy = 0.97
+hop_up_dial = 0.65
+spread_deg = 0.45
+recoil_deg = 0.18
