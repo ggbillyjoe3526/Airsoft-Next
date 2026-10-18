@@ -27,6 +27,8 @@ var switch_to: int = -1
 var cycle_fire_mode: bool = false
 ## Lean held: -1 full left .. 1 full right, 0 upright (Lean).
 var lean: float = 0.0
+## Notches to turn the hop-up dial of the replica in hand this tick (one-shot): positive for more lift. Bots leave it 0.
+var hop_up_steps: int = 0
 
 
 ## Back to no input, looking along (yaw, pitch).
@@ -45,6 +47,7 @@ func reset(view_yaw: float = 0.0, view_pitch: float = 0.0) -> void:
 	switch_to = -1
 	cycle_fire_mode = false
 	lean = 0.0
+	hop_up_steps = 0
 
 
 func copy_from(other: PlayerCommand) -> void:
@@ -62,3 +65,4 @@ func copy_from(other: PlayerCommand) -> void:
 	switch_to = other.switch_to
 	cycle_fire_mode = other.cycle_fire_mode
 	lean = other.lean
+	hop_up_steps = other.hop_up_steps

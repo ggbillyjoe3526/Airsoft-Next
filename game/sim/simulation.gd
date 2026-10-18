@@ -40,9 +40,11 @@ func _init(sim_tuning: SimTuning, world: WorldQuery, character_mover: CharacterM
 	kill_y = level_kill_y
 
 
-## A fresh match: everyone at their end's spawns, round 1 live.
+## A fresh match: a new breeze, everyone at their end's spawns, round 1 live.
 func start_match(state: GameState) -> void:
 	state.events.clear()
+	state.match_number += 1
+	state.wind.draw(Seeds.wind_seed(state.match_seed, state.match_number), tuning.wind)
 	Round.start_match(state.round_state, state.characters, ends, state.bbs, tuning, state.events)
 
 
@@ -106,7 +108,8 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		# BBs leave from the eyes, wherever a lean puts them; none through a vault or the moment after it.
 		Armament.step(c, cmd, Lean.eye(c, tuning.body, tuning.hits), kick, live and c.fire_lockout <= 0.0, state.bbs,
 				state.rng, state.events, tuning, dt, 0.0 if c.vault.active else c.fire_lockout)
-	BBStep.step(state.bbs, state.characters, query, tuning, kill_y, not live, ends, state.events, dt)
+	BBStep.step(state.bbs, state.characters, query, tuning, kill_y, not live, ends, state.events, dt,
+			state.wind.at(state.time), state.rng)
 	Round.step(state.round_state, state.characters, ends, state.bbs, tuning, state.events, dt)
 	state.tick += 1
 	state.time += dt

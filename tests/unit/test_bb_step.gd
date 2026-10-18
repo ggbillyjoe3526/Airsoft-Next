@@ -1,20 +1,23 @@
 extends GutTest
 ## A tick of every BB in flight: flight, then the level and the bodies (game/sim/bb_step.gd; the browser game's
-## sim/bbs.test.ts, bbsFirstBody.test.ts and bodyStopAndAim.test.ts). Ricochets, bushes, range targets, Ghosts, leans
-## and wind come with their tasks, and their cases with them.
+## sim/bbs.test.ts, bbsFirstBody.test.ts and bodyStopAndAim.test.ts). Bushes, range targets, Ghosts and leans come with
+## their tasks, and their cases with them; ricochets and wind are in test_ricochet.gd and test_wind.gd.
 
 const DT := 1.0 / 60.0
 const KILL_Y := -10.0
 const MASS := 0.25e-3
 
 
-## A wall filling the plane z = wall_z, facing +Z (BBs travel towards -Z).
+## A wall filling the plane z = wall_z, facing +Z (BBs travel towards -Z): plywood unless told, which a BB never
+## bounces off.
 class WallAt:
 	extends WorldQuery
 	var wall_z: float = 0.0
+	var surface: RayHit.Surface = RayHit.Surface.WOOD
 
-	func _init(z: float) -> void:
+	func _init(z: float, made_of: RayHit.Surface = RayHit.Surface.WOOD) -> void:
 		wall_z = z
+		surface = made_of
 
 	func ray(from: Vector3, to: Vector3, hit: RayHit) -> bool:
 		if to.z >= from.z:
@@ -25,7 +28,7 @@ class WallAt:
 		hit.fraction = f
 		hit.position = from.lerp(to, f)
 		hit.normal = Vector3.BACK
-		hit.surface = RayHit.Surface.CONCRETE
+		hit.surface = surface
 		return true
 
 

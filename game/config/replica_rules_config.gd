@@ -17,3 +17,5 @@ extends Resource
 ## The hop-up dial's range (share of a replica's hop_up_max).
 @export var hop_up_min_dial: float = 0.0
 @export var hop_up_max_dial: float = 1.0
+## One notch of the dial turned in play (share of hop_up_max); never zero, the dial snaps to it.
+@export_range(0.01, 0.5, 0.01) var hop_up_dial_step: float = 0.05

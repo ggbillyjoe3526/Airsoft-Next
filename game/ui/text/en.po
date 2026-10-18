@@ -33,6 +33,21 @@ msgstr "Last magazine"
 msgid "HUD_SPARE"
 msgstr "/ %d"
 
+msgid "HUD_HOP_UP"
+msgstr "Hop-up %d%%  ·  flat to %s"
+
+msgid "HUD_HOP_UP_HIGH"
+msgstr "Hop-up %d%%  ·  climbs from %s"
+
+msgid "HUD_METRES"
+msgstr "%d m"
+
+msgid "HUD_METRES_PLUS"
+msgstr "%d m+"
+
+msgid "HUD_RICOCHET"
+msgstr "Ricochet: play on"
+
 msgid "HUD_MODE_SEMI"
 msgstr "Semi"
 

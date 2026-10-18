@@ -1,9 +1,9 @@
 class_name SimAudio
 extends Node
 ## The match's sound, from the tick's events (docs/ARCHITECTURE.md › Contracts 3): shots with their power part, dry
-## clicks, magazines, the selector and draws, BB impacts by surface, footsteps by surface and pace, vaults, and hits: a tick where
-## a BB hits a body, the confirmation when it's yours, the thump when it's you. Your own sounds play plain; everyone
-## else's from where they happen. Every variant is loaded up front, so the first shot never hitches; the voices are
+## clicks, magazines, the selector, the hop-up dial and draws, BB impacts by surface, footsteps by surface and pace,
+## vaults, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
+## yours, the thump when it's you. Your own sounds play plain; everyone else's from where they happen. Every variant is loaded up front, so the first shot never hitches; the voices are
 ## pools reused oldest first. Variant and pitch choice is presentation only, on its own random stream.
 
 const BUS_EFFECTS := &"Effects"
@@ -88,7 +88,7 @@ func on_tick(state: GameState, player_id: int) -> void:
 				_mechanism(&"reloadRefused", state, e, own)
 			GameEvent.Kind.DRAW:
 				_mechanism(&"draw", state, e, own)
-			GameEvent.Kind.FIRE_MODE:
+			GameEvent.Kind.FIRE_MODE, GameEvent.Kind.HOP_UP:
 				_mechanism(&"selector", state, e, own)
 			GameEvent.Kind.BB_IMPACT:
 				if e.target < 0:
@@ -96,6 +96,8 @@ func on_tick(state: GameState, player_id: int) -> void:
 					_play(_impact[s], e.position, false, _cfg.impact_gain, _cfg.impact_pitch, BUS_EFFECTS)
 				else:
 					_play(&"bodyHit", e.position, e.target == player_id, _cfg.body_hit_gain, 0.0, BUS_EFFECTS)
+			GameEvent.Kind.RICOCHET_TICK:
+				_play(&"bodyHit", e.position, e.target == player_id, _cfg.body_hit_gain, 0.0, BUS_EFFECTS)
 			GameEvent.Kind.CHARACTER_HIT:
 				_play(&"hitTick", e.position, e.target == player_id, _cfg.hit_tick_gain, 0.0, BUS_EFFECTS)
 				if own and e.target != player_id:

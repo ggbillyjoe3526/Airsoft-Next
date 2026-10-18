@@ -60,16 +60,17 @@ func shoot(r: ReplicaConfig, grams: float = -1.0) -> Flight:
 
 
 ## The rifle's BB fired along `dir` from the muzzle height, stepped `steps` times a tick, flown on until `distance` m
-## along the ground: where it is then (interpolated) and when (w).
-func rifle_to(distance: float, dir: Vector3 = Vector3.FORWARD, steps: int = 1) -> Vector4:
+## along the ground, in `wind`: where it is then (interpolated) and when (w).
+func rifle_to(distance: float, dir: Vector3 = Vector3.FORWARD, steps: int = 1, wind: Vector3 = Vector3.ZERO) -> Vector4:
 	var r := Replicas.aeg()
 	var rules := tuning.replica_rules
 	var bb := BBPool.new(1).spawn(0, Vector3(0.0, MUZZLE_HEIGHT, 0.0), dir, Ballistics.muzzle_velocity(r, rules),
 			Ballistics.hop_up_lift(r, r.hop_up_dial, rules), Ballistics.bb_mass(r), tuning.ballistics.spin_per_hop)
+	var air := AirModel.of(tuning.ballistics)
 	var last := Vector4(bb.position.x, bb.position.y, bb.position.z, bb.age)
 	while bb.age <= tuning.ballistics.max_lifetime:
 		for i in steps:
-			Ballistics.step_bb_flight(bb, tuning.ballistics, DT / steps)
+			Ballistics.step_flight(bb, air, DT / steps, wind)
 		var reached := Vector2(bb.position.x, bb.position.z).length()
 		if reached >= distance:
 			var before := Vector2(last.x, last.z).length()
@@ -153,6 +154,16 @@ func test_slows_as_real_air_does() -> void:
 func test_one_step_a_tick_is_within_a_centimetre_of_a_fine_flight_at_50_m() -> void:
 	var tick := rifle_to(50.0)
 	var fine := rifle_to(50.0, Vector3.FORWARD, 100)
+	assert_lt(absf(tick.y - fine.y), 0.01)
+	assert_lt(absf(tick.x - fine.x), 0.01)
+	assert_lt(absf(tick.w - fine.w), 0.005)
+
+
+func test_one_step_a_tick_is_as_accurate_in_a_breeze() -> void:
+	var wind := Vector3(1.5, 0.0, 0.5)
+	var tick := rifle_to(50.0, Vector3.FORWARD, 1, wind)
+	var fine := rifle_to(50.0, Vector3.FORWARD, 100, wind)
+	assert_gt(absf(tick.x), 0.05, "the breeze moved it")
 	assert_lt(absf(tick.y - fine.y), 0.01)
 	assert_lt(absf(tick.x - fine.x), 0.01)
 	assert_lt(absf(tick.w - fine.w), 0.005)

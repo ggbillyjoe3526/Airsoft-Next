@@ -4,22 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## BB1 · BB physics pass: wind, the hop-up dial in play, ricochets
-tier: core
-perf: required
-touches: game/sim/ballistics.gd, game/sim/bb_step.gd, game/sim/bb.gd, game/sim/armament.gd, game/sim/game_state.gd, game/config/ballistics_config.gd, game/config/replica_rules_config.gd, game/config/sim_tuning.tres, game/input/, game/ui/hud.gd, game/play/
-contract: none
-acceptance:
-  1. Each match draws a light breeze with gusts from its seed (browser M30); BBs drift downwind, lighter BBs and longer
-     flights more; the dust in the air drifts with it.
-  2. The hop-up dial turns in play on two rebindable actions (browser HD1), with a short readout on the replica panel
-     while it turns; the setting stays per replica for the match. Bots keep their factory dials.
-  3. Ricochets off concrete and steel (browser M20, FA12) as a match rule, off by default; with it on, a ricochet can
-     hit anyone, its shooter included.
-  4. Wind, the dial and ricochets are pure and unit-tested, with the browser game's tests ported.
-status: open
-attempts: 0
-
 ## MO1 · Holster and a smoother lean and vault
 tier: core
 perf: required

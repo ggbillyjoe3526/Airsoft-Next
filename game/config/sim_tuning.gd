@@ -7,6 +7,8 @@ extends Resource
 const DEFAULT_PATH := "res://game/config/sim_tuning.tres"
 
 @export var ballistics: BallisticsConfig = BallisticsConfig.new()
+@export var wind: WindConfig = WindConfig.new()
+@export var ricochet: RicochetConfig = RicochetConfig.new()
 @export var movement: MovementConfig = MovementConfig.new()
 @export var vault: VaultConfig = VaultConfig.new()
 @export var accuracy: AccuracyConfig = AccuracyConfig.new()

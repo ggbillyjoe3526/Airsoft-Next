@@ -11,6 +11,7 @@ const PLAN_MULTIPLIER := 15485863
 const PLAN_OFFSET := 12345
 const BOT_MULTIPLIER := 7919
 const BOT_PER_CHARACTER := 104729
+const WIND_PER_MATCH := 7368787
 
 
 ## `seed × multiplier + add`, wrapped to 32 bits (GDScript's 64-bit integers wrap on overflow, keeping the low 32 bits
@@ -27,6 +28,12 @@ static func plan_seed(seed_value: int) -> int:
 ## Bot `character_id`'s own stream's seed for a match seeded with `seed_value`.
 static func bot_seed(seed_value: int, character_id: int) -> int:
 	return derive(seed_value, BOT_MULTIPLIER, (character_id * BOT_PER_CHARACTER) & MASK_32)
+
+
+## The wind's seed for match `match_number` (1 for the first) played on a state seeded with `seed_value`: each rematch
+## gets a new breeze.
+static func wind_seed(seed_value: int, match_number: int) -> int:
+	return derive(seed_value, 1, ((match_number - 1) * WIND_PER_MATCH) & MASK_32)
 
 
 ## A generator seeded with `seed_value`: every random draw in the simulation comes from one of these.

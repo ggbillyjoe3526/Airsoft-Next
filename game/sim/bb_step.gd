@@ -1,9 +1,11 @@
 class_name BBStep
-## Moves every BB in flight one tick and stops it at whatever its path crosses first (the browser game's sim/bbs.ts
-## stepBBs, without ricochets, bushes, range targets, prop noise and wind, which come with their tasks): a body or the
-## level. Every body on the field stops a BB (M85: it never goes on through someone to whoever is behind); only a body
-## in play is knocked out, and not a teammate when friendly fire is off, and nobody once the round is decided. A BB
-## never hits whoever fired it (its first segment starts at their eye, inside them).
+## Moves every BB in flight one tick, drifting in the wind, and stops it at whatever its path crosses first (the browser
+## game's sim/bbs.ts stepBBs, without bushes, range targets and prop noise, which come with their tasks): a body or the
+## level, where a hard surface bounces it off instead (a ricochet, M20). Every body on the field stops a BB (M85: it
+## never goes on through someone to whoever is behind); only a body in play is knocked out, and not a teammate when
+## friendly fire is off, and nobody once the round is decided. A ricochet knocks someone out only when the match counts
+## ricochets (HitConfig.ricochets_count); otherwise it ticks them and stops, and they play on. A BB never hits whoever
+## fired it until it has bounced (its first segment starts at their eye, inside them).
 
 ## A tick's path shorter than this (m) is no path: nothing to test.
 const MIN_SEGMENT := 1e-9
@@ -18,11 +20,14 @@ static var _reached_at: float = 0.0
 
 
 ## One tick of every BB in `pool`: fly, then stop on the nearest of the level (`query`) and the bodies of
-## `characters`. A body knocked out is eliminated (Elimination.eliminate, with `ends` for its dead zone) and reported
-## as CHARACTER_HIT; a BB stopped on a body that isn't (already hit, a teammate with friendly fire off, anyone in a
-## `cease_fire`) or on the level is a BB_IMPACT; one that falls below `kill_y` or outlives its lifetime is BB_LOST.
+## `characters`, in `wind` (m/s). A body knocked out is eliminated (Elimination.eliminate, with `ends` for its dead zone)
+## and reported as CHARACTER_HIT (value 1 for a ricochet); a ricochet that doesn't count is a RICOCHET_TICK; a BB
+## stopped on a body that isn't knocked out (already hit, a teammate with friendly fire off, anyone in a `cease_fire`)
+## or on the level is a BB_IMPACT, and a bounce off the level is one too; one that falls below `kill_y` or outlives its
+## lifetime is BB_LOST. `rng` (the match's stream) scatters bounces.
 static func step(pool: BBPool, characters: Array[Character], query: WorldQuery, tuning: SimTuning, kill_y: float,
-		cease_fire: bool, ends: Array[MapEnd], events: SimEvents, dt: float) -> void:
+		cease_fire: bool, ends: Array[MapEnd], events: SimEvents, dt: float, wind: Vector3 = Vector3.ZERO,
+		rng: RandomNumberGenerator = null) -> void:
 	var cfg := tuning.ballistics
 	var air := AirModel.of(cfg)
 	var prepared := false
@@ -30,7 +35,7 @@ static func step(pool: BBPool, characters: Array[Character], query: WorldQuery, 
 		if not bb.active:
 			continue
 		bb.prev_position = bb.position
-		Ballistics.step_flight(bb, air, dt)
+		Ballistics.step_flight(bb, air, dt, wind)
 		var segment := bb.position - bb.prev_position
 		var length := segment.length()
 		if length > MIN_SEGMENT:
@@ -47,13 +52,22 @@ static func step(pool: BBPool, characters: Array[Character], query: WorldQuery, 
 				var body := characters[_reached]
 				bb.position = bb.prev_position + dir * _reached_at
 				bb.active = false
-				if _knocks_out(body, bb.owner_id, characters, tuning.hits, cease_fire):
+				var ricochet := bb.bounces > 0
+				var knocks := _knocks_out(body, bb.owner_id, characters, tuning.hits, cease_fire)
+				if knocks and ricochet and not tuning.hits.ricochets_count:
+					var tick := events.add(GameEvent.Kind.RICOCHET_TICK)
+					tick.actor = bb.owner_id
+					tick.target = body.id
+					tick.position = bb.position
+					tick.direction = dir
+				elif knocks:
 					Elimination.eliminate(body, bb.owner_id, characters, ends)
 					var hit := events.add(GameEvent.Kind.CHARACTER_HIT)
 					hit.actor = bb.owner_id
 					hit.target = body.id
 					hit.position = bb.position
 					hit.direction = dir
+					hit.value = 1 if ricochet else 0
 				else:
 					var knock := events.add(GameEvent.Kind.BB_IMPACT)
 					knock.actor = bb.owner_id
@@ -62,11 +76,14 @@ static func step(pool: BBPool, characters: Array[Character], query: WorldQuery, 
 				continue
 			if not is_inf(wall):
 				bb.position = bb.prev_position + dir * wall
-				bb.active = false
 				var impact := events.add(GameEvent.Kind.BB_IMPACT)
 				impact.actor = bb.owner_id
 				impact.position = bb.position
 				impact.value2 = _ray_hit.surface
+				# A bounce flies on from the surface next tick: the rest of this tick's travel is dropped, so a ricochet
+				# arrives at most a tick late, which nobody can see at these speeds.
+				if not Ricochet.bounce(bb, _ray_hit, tuning.ricochet, rng):
+					bb.active = false
 				continue
 		if bb.age > cfg.max_lifetime or bb.position.y < kill_y:
 			bb.active = false
@@ -84,12 +101,12 @@ static func _prepare(characters: Array[Character], hits: HitConfig) -> void:
 
 
 ## The first body along the BB's segment this tick (from prev_position along `dir`, before `max_t`) into _reached and
-## _reached_at. Every body counts, whatever its status; only the shooter is skipped.
+## _reached_at. Every body counts, whatever its status; only the shooter is skipped, until the BB has bounced.
 static func _first_body(bb: BB, dir: Vector3, max_t: float, characters: Array[Character]) -> void:
 	_reached = -1
 	var best := max_t
 	for i in characters.size():
-		if characters[i].id == bb.owner_id:
+		if characters[i].id == bb.owner_id and bb.bounces == 0:
 			continue
 		var d := Hitbox.ray_character(bb.prev_position, dir, best, _volumes[i])
 		if d <= best:

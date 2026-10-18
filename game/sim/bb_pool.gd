@@ -44,6 +44,7 @@ func spawn(owner_id: int, origin: Vector3, dir: Vector3, speed: float, hop_up: f
 	var axis := Vector3(-dir.z, 0.0, dir.x)
 	bb.spin_axis = axis.normalized() if axis.length() > 1e-6 else Vector3.RIGHT
 	bb.mass = mass
+	bb.bounces = 0
 	return bb
 
 

@@ -5,6 +5,9 @@ extends Resource
 
 ## Friendly hits count, as at a real site.
 @export var friendly_fire: bool = true
+## Whether a BB that has bounced off a surface knocks someone out (the match's rule, off by default as at most sites);
+## off, a ricochet only ticks them and they play on.
+@export var ricochets_count: bool = false
 ## Seconds a hit player stands still with a hand up calling the hit.
 @export var call_time: float = 1.4
 ## Walk-off pace as a share of the run speed, and the longest walk-off (s) before the character leaves the field.

@@ -25,12 +25,14 @@ character follows the hit-calling routine instead of its command. Nothing is all
 | `lean.gd` | Q / E held: the one lean geometry (eyes, BB origin, hit volume, camera, figure, bot vision), stopped short of walls |
 | `vault.gd`, `vault_state.gd` | Jump at a low obstacle: finding one with level rays, the path through the mover, fire held after, presses kept |
 | `armament.gd` | Magazines, the fire selector, trigger, reloads, draws, recoil and seeded spread |
-| `bb.gd`, `bb_pool.gd`, `air_model.gd`, `ballistics.gd` | BBs in flight: drag by Reynolds number, hop-up's Magnus lift, one midpoint step a tick |
+| `bb.gd`, `bb_pool.gd`, `air_model.gd`, `ballistics.gd` | BBs in flight: drag by Reynolds number through the moving air, hop-up's Magnus lift, one midpoint step a tick |
+| `wind.gd` | The match's breeze, drawn from its seed each match, with gusts and a slow veer |
+| `ricochet.gd` | A BB bouncing off concrete and steel; whether a bounced BB knocks anyone out is the match's rule |
 | `hitbox.gd`, `bb_step.gd` | The hit volume (head, chest, hips leaning; swinging legs) and each tick's BB flight against the level and bodies |
 | `elimination.gd` | Hit calling: alive, calling, walking off, leaving, out |
 | `round.gd`, `round_state.gd` | Elimination rounds: clock, score, half time, reset, match over |
 
 ## Not yet
 
-Holster, the hop-up dial, ricochets, bushes, wind and the overtime flag come in later Dev tasks. The walk-off route
+Holster, bushes and the overtime flag come in later tasks. The walk-off route
 goes round cover on the map's nav grid (`Simulation.nav`, game/nav/); without one it is one straight leg.
