@@ -149,9 +149,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   disagree with an earlier ruling, the earlier ruling holds unless he changes it.
 - **The owner's answers on the references (owner, 2026-10-18).** Team colours stay off props: no orange prop (cones
   are yellow), blue props a navy or steel blue darker than Alpha's. Figures keep the team-colour plate carrier and wear
-  lighter, mixed clothing, not all-dark kit and masks. Your arms are gloved and sleeved with a team-colour armband.
-  The towers, walkways and fuselage are scenery out of reach until Depot's rework (step 25) reviews them. Arms and
-  hands are fully realistic in first person. `docs/ART.md` carries each.
+  lighter, mixed clothing, not all-dark kit and masks. Your arms match your figure and equipped skin, bare or gloved,
+  with a team-colour armband. The towers, walkways and fuselage are scenery out of reach until Depot's rework (step 25)
+  reviews them. Arms and hands are realistic and drawn in the game's style, which never means lower quality.
+  `docs/ART.md` carries each.
 - **Models are built at desktop quality, not the browser's (owner, 2026-10-18: "since this is no longer a web game
   can we increase the quality of models").** Figures, first-person arms, replicas and props get the raised budgets in
   `docs/CC0_ASSETS.md` › Size limits, with LODs so distance and Low pay less. High's 250k triangle target from the

@@ -116,8 +116,10 @@ every quality level, and a night or golden-hour sky changes everything at once.
 ## Arms and hands
 
 The owner's arm and hand study, [`arm-hand-anatomy.jpg`](art/references/arm-hand-anatomy.jpg) (owner, 2026-10-18), is
-the target for every arm and hand in the game: your first-person arms and the figures' (players and bots). He wants
-them as realistic as possible. It guides his Blender art pass (step 26) and the shared rig standard that first-person
+the target for every arm and hand in the game: your first-person arms and the figures' (players and bots). They are
+realistic and drawn in the game's own style (owner, 2026-10-18): true anatomy and full detail, with the same clean
+shapes, colour and material treatment as everything else. Matching the style never means a lower-quality model. It
+guides his Blender art pass (step 26) and the shared rig standard that first-person
 arms, figures and replicas use (step 23).
 
 - **Anatomy.** Correct proportions from shoulder to fingertip: humerus, radius and ulna, a wrist that turns from the
@@ -134,9 +136,10 @@ arms, figures and replicas use (step 23).
 
 ## First person
 
-- **Arms.** Your arms are always on screen with the replica; your body never is. They follow Arms and hands above:
-  fully realistic, in gloves and sleeves with a team-colour armband, the way sites mark teams (owner, 2026-10-18). The
-  gloves fit a correctly built hand, so knuckles, tendons and finger joints still read through them.
+- **Arms.** Your arms are always on screen with the replica; your body never is. They follow Arms and hands above
+  and match your figure and the skin you have equipped: bare arms, or sleeves and gloves, whichever that figure or
+  skin wears (owner, 2026-10-18). A team-colour armband shows your team either way, the way sites mark teams. Gloves
+  fit a correctly built hand, so knuckles, tendons and finger joints still read through them.
 - **Replicas.** Two-tone toy polymer: the AEG in tan with black furniture and yellow accents on the controls (magazine
   release, selector), the pistol in black with green fibre-optic sights. Shapes are the owner's own designs; the
   pictures set the finish and how much of the screen the replica takes.
