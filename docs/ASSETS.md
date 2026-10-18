@@ -36,6 +36,9 @@ The font ships inside the game's export. Its licence ships in `THIRD_PARTY_NOTIC
 - **Sounds:** 82 sounds (388 variants) and 7 ambience loops rendered once from the browser game's synthesis recipes, in
   `assets/audio/` (`assets/audio/README.md`). No outside source; same licence as the code. They are replaced with CC0
   or recorded sounds later.
+- **Art references:** the owner's six reference pictures of the target look (owner-supplied, 2026-10-18), in
+  `docs/art/references/` (`docs/ART.md` › The target). Not game assets: Godot ignores the folder and no export ships
+  it.
 - **Map layouts:** Depot, Woodland, Neon Heights and the range, exported as data from the browser game's map code to
   `data/maps/*.json`. Same licence as the code.
 
