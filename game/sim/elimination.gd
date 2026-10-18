@@ -45,16 +45,19 @@ static func eliminate(victim: Character, shooter_id: int, characters: Array[Char
 
 ## Plans the walk-off route of at most one victim a tick (the first still waiting, in character order); a victim calls
 ## its hit for HitConfig.call_time first, which covers the wait many times over. Returns whether a route was planned.
-## Until the nav grid is ported the route is one straight leg to the spot; it stays a list of waypoints so the nav
-## grid's route (browser descendField and pullRoute) can fill it in later without changing the walk.
-static func plan_walk_off_routes(characters: Array[Character]) -> bool:
+## With the map's nav grid the route goes round cover in straight legs to the spot (NavGrid.find_route, planned from
+## where the victim stands); without one, or with no route there (the spot off the grid or out of reach), it is one
+## straight leg to the spot. A victim hit mid-vault is planned once it lands, from the far side (browser BP5). A plan
+## allocates (the search's path, the route's waypoints), once an elimination.
+static func plan_walk_off_routes(characters: Array[Character], nav: NavGrid = null) -> bool:
 	for c in characters:
-		if not c.walk_off_route_pending:
+		if not c.walk_off_route_pending or c.vault.active:
 			continue
 		c.walk_off_route_pending = false
 		c.walk_off_leg = 0
-		c.walk_off_route.resize(1)
-		c.walk_off_route.set(0, c.dead_zone_target)
+		if nav == null or not nav.find_route(c.position, c.dead_zone_target, c.walk_off_route):
+			c.walk_off_route.resize(1)
+			c.walk_off_route.set(0, c.dead_zone_target)
 		return true
 	return false
 
