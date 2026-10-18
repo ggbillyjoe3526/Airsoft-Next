@@ -206,14 +206,34 @@ func _process(delta: float) -> void:
 	if _rematch_left > 0.0:
 		_rematch_left = maxf(0.0, _rematch_left - delta)
 	var fraction := Engine.get_physics_interpolation_fraction()
-	_eyes.update(player, _input, fraction, delta)
+	var watched := spectated()
+	_eyes.update(watched, _input, fraction, delta, watched == player)
 	var look := -_eyes.global_basis.z
+	_hands.visible = watched == player
 	_hands.update(player, _input.view_yaw, _input.view_pitch, _eyes.global_position, look, delta)
 	_bbs.update(state.bbs, PLAYER_ID, _hands.muzzle_position() - _eyes.global_position, fraction, TICK)
 	_puffs.update(delta)
 	for f in _figures:
 		f.update(state.characters[f.character_id], fraction)
+		# Watching through someone's eyes: their own figure would fill the view.
+		if f.character_id == watched.id:
+			f.visible = false
 	_hud.update(state, _input.zoom, delta)
+
+
+## Whose eyes you see through: your own, or once you are out in the dead zone, a teammate still in play (else anyone).
+func spectated() -> Character:
+	if player.status != Character.Status.OUT:
+		return player
+	var anyone: Character = null
+	for c in state.characters:
+		if not Elimination.is_in_play(c):
+			continue
+		if c.team == player.team:
+			return c
+		if anyone == null:
+			anyone = c
+	return anyone if anyone != null else player
 
 
 func _unhandled_input(event: InputEvent) -> void:

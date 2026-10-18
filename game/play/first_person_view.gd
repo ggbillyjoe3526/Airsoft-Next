@@ -31,15 +31,16 @@ func setup(view: ViewConfig, body: BodyConfig, hits: HitConfig = null) -> void:
 	camera.make_current()
 
 
-## Places the eyes for `c` at `fraction` of the way from its last tick to this one.
-func update(c: Character, input: PlayerInput, fraction: float, delta: float) -> void:
+## Places the eyes for `c` at `fraction` of the way from its last tick to this one. `own`: your own character, looking
+## where your mouse does; else (spectating, or out) where `c` looks.
+func update(c: Character, input: PlayerInput, fraction: float, delta: float, own: bool = true) -> void:
 	var crouch := lerpf(c.prev_crouch_amount, c.crouch_amount, fraction)
 	var lean := lerpf(c.prev_lean, c.lean, fraction)
 	var feet := c.prev_position.lerp(c.position, fraction)
 	_recoil = lerpf(_recoil, c.armament.recoil, 1.0 - exp(-RECOIL_FOLLOW * delta))
 	var yaw := input.view_yaw
 	var pitch := input.view_pitch
-	if not Elimination.is_in_play(c):
+	if not own or not Elimination.is_in_play(c):
 		yaw = lerp_angle(c.prev_yaw, c.yaw, fraction)
 		pitch = lerpf(c.prev_pitch, c.pitch, fraction)
 	var height := Character.eye_height(crouch, _body)

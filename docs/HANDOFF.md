@@ -17,8 +17,9 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
   movement as plain, tested GDScript on the 60 Hz tick (`game/sim/README.md`).
 - **The first playable is done (FP1):** Play Depot from the title screen, walk, sprint, crouch, jump, aim and shoot
   both replicas against four Beta stand-ins that call their hits (`game/map/`, `game/play/`, `game/input/`).
-- **Next:** bots and Elimination (the ported nav grid, bots as controllers in place of the stand-ins), plus lean and
-  vault: the core slice the owner plays before he tags 0.1 Dev 1 (`docs/ROADMAP.md` › Where we are). His checklist is
+- **Bots and Elimination are done (BE1):** you and two bot teammates against three bots on Depot, first to five; the nav
+  grid is ported (`game/nav/`), bots are controllers (`game/ai/README.md`), lean (Q, E) and vault are in.
+- **Next:** the owner plays the core slice and tags 0.1 Dev 1 (`docs/ROADMAP.md` › Where we are). His checklist is
   `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
 
 ## Where to look

@@ -36,6 +36,7 @@ The order the browser game's work is carried over (`legacy/browser/docs/handover
    Jolt colliders, the player's controller, camera and replica in hand, BBs, puffs, sound and a first HUD, against
    stand-ins. Lean and vault moved to a later Dev task.
 6. **Bots and Elimination.** The ported nav grid, bots as controllers and Elimination rounds: the Dev 1 core slice.
+   Built (BE1): you and two bot teammates against three bots, first to five; lean and vault came with it.
 7. **The owner plays and tags.** He plays the build and, when he is happy, tags `0.1-dev.1`.
 
 ## Builds

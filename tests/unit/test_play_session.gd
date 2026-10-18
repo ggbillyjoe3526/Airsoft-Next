@@ -117,3 +117,21 @@ func test_the_late_materials_are_drawn_once_at_the_start_and_then_freed() -> voi
 	assert_eq(prewarm.get_child_count(), 4, "a fading figure, a BB, a puff and the sign")
 	await wait_process_frames(ShaderPrewarm.FRAMES + 1)
 	assert_false(is_instance_valid(prewarm), "gone once its frames are drawn")
+
+
+func test_out_in_the_dead_zone_you_watch_a_teammate_still_in_play() -> void:
+	session.autopilot = false
+	session.bots_active = false
+	assert_eq(session.spectated(), session.player)
+	session.player.status = Character.Status.OUT
+	var watched := session.spectated()
+	assert_ne(watched, session.player)
+	assert_eq(watched.team, session.player.team)
+	for c in session.state.characters:
+		if c.team == session.player.team and c != session.player:
+			c.status = Character.Status.OUT
+	assert_ne(session.spectated().team, session.player.team, "with your team out, anyone still in play")
+	await wait_process_frames(2)
+	var figure := session.find_child("Figure_%d" % session.spectated().id, true, false) as FigureView
+	assert_false(figure.visible, "the watched figure isn't drawn over the view")
+	session.player.status = Character.Status.ALIVE

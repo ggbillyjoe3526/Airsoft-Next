@@ -282,6 +282,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   Numbers: `legacy/browser/docs/records/PG1.md`.
 - **Bots ask the nearest teammate within 30 m for a magazine, and bring one when asked (2026-10-15, MG1).** Fights and
   cover come first. Dev settings › Bots run low on BBs (a cheat, off) shows the bot side.
+- **Routes are searched one a tick, bots and walk-offs sharing the turn (2026-10-18, BE1).** The search is Godot's
+  `AStar3D` on the nav grid's nodes, weighted (`NavConfig.search_greed` 1.5: about six times faster for routes about 3 %
+  longer), then string-pulled. A bot that wants a route waits its turn, walking its old one meanwhile.
 
 ## Maps and modes
 
