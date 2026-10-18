@@ -2,8 +2,8 @@ class_name Hud
 extends Control
 ## The heads-up display (the browser game's ui/hud.ts), drawn from live state every frame: the crosshair sized from the
 ## replica's real spread, the hit marker when your BB knocks someone out, the replica panel (name, fire mode, loaded and
-## spare BBs, a gauge per magazine, reloading), the score and the round clock, the round's banners, and the big "HIT!" when you're hit. Text
-## is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
+## spare BBs, a gauge per magazine, reloading), the score and the round clock, the round's banners, and the big "HIT!"
+## when you're hit. Text is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 40.0
 const PANEL_SIZE := Vector2(360.0, 180.0)
