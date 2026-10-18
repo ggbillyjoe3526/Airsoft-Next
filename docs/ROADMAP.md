@@ -31,7 +31,7 @@ The order the browser game's work is carried over (`legacy/browser/docs/handover
    installer, the version and changelog scripts and the licence notices.
 3. **Bring the assets.** The Blender models, fonts and sounds, each logged in `docs/ASSETS.md`.
 4. **The simulation core.** BB ballistics, hits and hit calling, rounds, replicas and movement as plain, tested GDScript
-   on the 60 Hz tick.
+   on the 60 Hz tick. Built (SC1); lean and vault come with step 5.
 5. **First playable on Depot.** Walk, shoot and get hit on Depot with the AEG and the GBB Pistol.
 6. **Bots and Elimination.** The ported nav grid, bots as controllers and Elimination rounds: the Dev 1 core slice.
 7. **The owner plays and tags.** He plays the build and, when he is happy, tags `0.1-dev.1`.

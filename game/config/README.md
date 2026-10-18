@@ -1,0 +1,18 @@
+# game/config
+
+Every tuning value the game reads, as typed `Resource` scripts (docs/ARCHITECTURE.md › Contracts 6). Each script's
+defaults are the values ported from the browser game, where they were tuned by play; its `##` comments say what each
+does and why it is what it is. `sim_tuning.tres` is the instance the game loads (`SimTuning.load_default()`), so a value
+changed in the inspector is saved there.
+
+| Script | Area |
+|---|---|
+| `sim_tuning.gd` | Bundles the simulation's configs below |
+| `ballistics_config.gd` | BB flight: air, BB size, hop-up spin, lift, spin decay, lifetime, pool size |
+| `movement_config.gd`, `accuracy_config.gd`, `body_config.gd` | Paces, jump, crouch, aiming pace; spread by stance and motion; the body's size |
+| `hit_config.gd` | Hit calling, the walk-off and the hit volume (head, chest, hips, legs) |
+| `round_config.gd` | Elimination rounds: clock, score, half time, reset |
+| `footstep_config.gd` | Strides and landings |
+| `replica_rules_config.gd` | Recoil recovery, the trigger, BB weight and the hop-up dial's range |
+| `replica_config.gd`, `replicas/*.tres` | One replica's stats, the built-in values; `data/stats.md` wins over them |
+| `replica_stats.gd`, `data_table.gd` | Read `data/stats.md`'s tables (a cell that won't read keeps the built-in value and warns) |

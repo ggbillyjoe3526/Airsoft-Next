@@ -4,6 +4,4 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain.
 
-No blocks are open yet. The salvage pull requests (copy the pack, bootstrap Godot, bring the assets) run outside the
-pipeline; the first blocks are the simulation core, first playable on Depot, and bots and Elimination
-(`docs/ROADMAP.md` › Where we are).
+No blocks are open. Next (`docs/ROADMAP.md` › Where we are): first playable on Depot, then bots and Elimination.
