@@ -97,7 +97,12 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 24. **Field checks.** Each field's layout rules as tests (browser `mapChecks.ts`), before fields are reworked.
 25. **Depot reworked to the field checklist.** Set dressing, baked light, the skyline, noisy props, gas puffs and
     dust.
-26. **Woodland.** The field, sloping ground and bushes, night play, the weapon torch, glowing BBs, the Day / Night
+26. **The owner's art pass** (owner, 2026-10-18). He redesigns players, replicas, attachments and other assets in
+    Blender at higher quality; today's models, built small for the browser, are placeholders until then. Here because
+    the rig standard and arms (23), every replica and part (9 to 11) and the field checklist with Depot's final layout
+    (24, 25) have settled, so he models against final requirements once, and Woodland's assets start at the new
+    quality. The coordinator reminds him when step 25 is near.
+27. **Woodland.** The field, sloping ground and bushes, night play, the weapon torch, glowing BBs, the Day / Night
     switch, practice on any map, 5v5 and 6v6.
 
 ## Builds
@@ -320,9 +325,9 @@ These land in whichever update the owner likes:
 
 - **Steam** (owner, 2026-10-05: a desktop download whenever he wants one). The game is a desktop download since the
   move to Godot (owner, 2026-10-18); a store release such as Steam is his call.
-- **Higher-detail models** (owner, 2026-10-05 and 2026-10-09). A Blender art pass over figures, replicas, attachments,
-  props and set dressing. It keeps art direction v3, the install size budget and Low's 60 fps at 1080p on a laptop.
-  The browser game's Blender figures, replicas and attachments are the starting models (BD1, owner 2026-10-16).
+- **Higher-detail models** (owner, 2026-10-05 and 2026-10-09). Now in 0.1 as the owner's art pass, step 26 of the
+  [build order](#build-order) (owner, 2026-10-18). It keeps art direction v3, the install size budget and Low's 60 fps
+  at 1080p on a laptop.
 - **Hand signals and more team calls,** with bots that act on them. Three orders and their wheel (M22, M23), pings and
   asking for a magazine are part of 0.1.
 
