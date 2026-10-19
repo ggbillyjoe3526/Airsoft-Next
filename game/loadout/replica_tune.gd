@@ -1,7 +1,8 @@
 class_name ReplicaTune
 extends RefCounted
-## How the player has set up one replica (the browser game's per-replica picks): its BB weight, hop-up dial, paint and
-## power source. Kept per replica, so a replica swapped out and back keeps its setup. LoadoutRules checks the values.
+## How the player has set up one replica (the browser game's per-replica picks): its BB weight, hop-up dial, paint,
+## power source and parts. Kept per replica, so a replica swapped out and back keeps its setup. LoadoutRules checks the
+## values.
 
 ## BB weight loaded (g).
 var bb_weight: float = 0.25
@@ -11,6 +12,8 @@ var hop_up: float = 0.5
 var paint: StringName = &"cobalt"
 ## The power source's pool.md ID; "" for a replica with its power built in.
 var power_id: String = ""
+## Each fitted part's pool.md ID by its slot (Pool.PART_TABLES); a slot not listed is as it comes.
+var parts: Dictionary[StringName, String] = {}
 
 
 func copy() -> ReplicaTune:
@@ -19,11 +22,15 @@ func copy() -> ReplicaTune:
 	t.hop_up = hop_up
 	t.paint = paint
 	t.power_id = power_id
+	t.parts = parts.duplicate()
 	return t
 
 
 func to_dict() -> Dictionary:
-	return {"bb_weight": bb_weight, "hop_up": hop_up, "paint": String(paint), "power": power_id}
+	var fitted: Dictionary = {}
+	for slot: StringName in parts:
+		fitted[String(slot)] = parts[slot]
+	return {"bb_weight": bb_weight, "hop_up": hop_up, "paint": String(paint), "power": power_id, "parts": fitted}
 
 
 ## Saved values as they are; LoadoutRules.clean puts back the defaults for what won't do.
@@ -41,4 +48,11 @@ static func from_dict(data: Dictionary, fallback: ReplicaTune) -> ReplicaTune:
 	var pw: Variant = data.get("power")
 	if pw is String:
 		t.power_id = pw
+	var fitted: Variant = data.get("parts")
+	if fitted is Dictionary:
+		t.parts.clear()
+		for slot: Variant in fitted:
+			var id: Variant = (fitted as Dictionary)[slot]
+			if slot is String and id is String:
+				t.parts[StringName(slot)] = id
 	return t

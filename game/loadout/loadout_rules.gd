@@ -135,6 +135,31 @@ func set_power(loadout: Loadout, id: String, power_id: String) -> bool:
 	return true
 
 
+## The parts for `slot` replica `id` can take now, in pool order (dev ones only with Dev content on).
+func parts_for(id: String, slot: StringName) -> Array[Pool.Item]:
+	var it := pool.item(id)
+	if it == null or it.kind != Pool.Kind.REPLICA:
+		return []
+	return pool.parts_for(it, slot, dev_content)
+
+
+## Fits part `part_id` to replica `id` in `slot`, or takes the slot's part off for "" (as it comes); false (and nothing
+## changed) if the part isn't one for that slot that fits and is on offer.
+func set_part(loadout: Loadout, id: String, slot: StringName, part_id: String) -> bool:
+	if not Pool.PART_TABLES.values().has(slot):
+		return false
+	if part_id == "":
+		var it := pool.item(id)
+		if it == null or it.kind != Pool.Kind.REPLICA:
+			return false
+		_editable(loadout, id).parts.erase(slot)
+		return true
+	if not parts_for(id, slot).has(pool.item(part_id)):
+		return false
+	_editable(loadout, id).parts[slot] = part_id
+	return true
+
+
 func snap_bb_weight(grams: float) -> float:
 	var g := clampf(grams, rules.bb_weight_min, rules.bb_weight_max)
 	return snappedf(g, rules.bb_weight_step)
@@ -182,11 +207,18 @@ func clean(loadout: Loadout) -> Array[String]:
 			out.append("%s: %s's power source \"%s\" won't do: as it comes" % [loadout.name, it.display_name,
 					t.power_id])
 			t.power_id = fallback.power_id
+		for slot: StringName in t.parts.keys():
+			var pt := pool.item(t.parts[slot])
+			if pt == null or pt.kind != Pool.Kind.PART or pt.slot != slot or not pool.fits(pt, it):
+				out.append("%s: %s's %s \"%s\" won't do: as it comes" % [loadout.name, it.display_name, slot,
+						t.parts[slot]])
+				t.parts.erase(slot)
 	return out
 
 
 ## What `loadout` plays as: each slot's replica (the slot's default if it isn't on offer now) with its power source
-## (the default one if it isn't on offer now) and dial, and its BB weight and paint. A slot whose replica the game can't play is left out.
+## (the default one if it isn't on offer now), its parts (as it comes where a part isn't on offer now) and dial, and its
+## BB weight and paint. A slot whose replica the game can't play is left out.
 func carried(loadout: Loadout) -> Kit:
 	var kit := Kit.new()
 	var used := PackedStringArray()
@@ -207,18 +239,66 @@ func carried(loadout: Loadout) -> Kit:
 			pw = pool.item(power_id)
 		var r := base.duplicate() as ReplicaConfig
 		var p := stats.power(power_id)
-		var energy := base.muzzle_energy * (1.0 + p.energy)
+		var fitted := _fitted(it, t)
+		var energy := base.muzzle_energy * (1.0 + p.energy) * _apply_parts(r, fitted)
 		var limit := stats.energy_limit(base.site_class)
 		r.muzzle_energy = minf(energy, limit)
 		r.fire_rate = base.fire_rate * (1.0 + p.fire_rate)
 		r.recoil_deg = base.recoil_deg * (1.0 + p.recoil)
 		r.hop_up_dial = t.hop_up
+		var keys: Dictionary[StringName, StringName] = {}
+		for part_slot: StringName in fitted:
+			keys[part_slot] = fitted[part_slot].key
+			kit.dev = kit.dev or fitted[part_slot].is_dev()
 		kit.replicas.append(r)
 		kit.bb_weights.append(t.bb_weight)
 		kit.paints.append(t.paint)
+		kit.parts.append(keys)
 		kit.capped.append(energy > limit)
 		kit.dev = kit.dev or it.is_dev() or (pw != null and pw.is_dev())
 	return kit
+
+
+## The parts of `t` that `it` takes now: slot → Pool.Item.
+func _fitted(it: Pool.Item, t: ReplicaTune) -> Dictionary[StringName, Pool.Item]:
+	var out: Dictionary[StringName, Pool.Item] = {}
+	for slot: StringName in t.parts:
+		var pt := pool.item(t.parts[slot])
+		if pt != null and pt.slot == slot and pool.parts_for(it, slot, dev_content).has(pt):
+			out[slot] = pt
+	return out
+
+
+## Lays `fitted` over `r` (the browser game's handlingOf and kit): the magazine's capacity, count, reload and draw; the
+## handling of the grip, barrel and muzzle part on the draw and the sight's raise; the optic's zoom and raise; the grip's
+## shake; the laser's and barrel's spread; rattles; how far shots are heard. Returns what the barrel and muzzle part
+## multiply the energy by (before the site limit).
+func _apply_parts(r: ReplicaConfig, fitted: Dictionary[StringName, Pool.Item]) -> float:
+	var optic := _part(fitted, &"optic")
+	var grip := _part(fitted, &"grip")
+	var laser := _part(fitted, &"laser")
+	var mag := _part(fitted, &"magazine")
+	var barrel := _part(fitted, &"barrel")
+	var muzzle := _part(fitted, &"muzzle")
+	# A front-heavy barrel or muzzle part is slower to bring up and to raise to your eye, like a heavier grip.
+	var handling := grip.handling * barrel.handling * muzzle.handling
+	r.mag_size = maxi(1, roundi(r.mag_size * mag.capacity))
+	r.mags = maxi(1, r.mags + mag.carried)
+	r.reload_time *= mag.reload
+	r.draw_time *= mag.draw * handling
+	r.raise_scale = handling * optic.raise
+	# An optic with no stats.md row has no zoom of its own: the iron sights' stays.
+	r.aim_zoom = optic.zoom if fitted.has(&"optic") and stats.parts.has(&"optic", fitted[&"optic"].key) else 0.0
+	r.shake_scale = grip.shake
+	r.spread_deg *= laser.spread * barrel.spread
+	r.rattles = mag.rattles
+	r.heard_scale = muzzle.heard
+	r.muffled = muzzle.heard < 1.0
+	return (1.0 + barrel.energy) * (1.0 + muzzle.energy)
+
+
+func _part(fitted: Dictionary[StringName, Pool.Item], slot: StringName) -> PartStats.Part:
+	return stats.parts.part(slot, fitted[slot].key) if fitted.has(slot) else stats.parts.part(slot, &"")
 
 
 ## The setup of replica `id` to edit: the saved one, made from the default the first time.

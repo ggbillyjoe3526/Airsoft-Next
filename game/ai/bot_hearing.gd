@@ -1,9 +1,9 @@
 class_name BotHearing
-## What the bots hear and feel of a tick (the browser game's ai/hearing.ts, without props, cases and team play): gunfire,
-## a teammate's hit call, running, sprinting, landing and vaulting feet, and enemy BBs landing close. Each gives a rough
-## guess of where the enemy is, off by up to hearing_error of the distance; walls between muffle a sound to wall_hearing
-## of its range, judged by rays as for the player. Hearing never counts as sight: a bot still reacts when the enemy then
-## appears. Reads the tick's events after the step; writes only the bots' memory. Allocates nothing.
+## What the bots hear and feel of a tick (the browser game's ai/hearing.ts, without props, cases and team play): gunfire
+## (as far as the shooter's replica is heard: a silencer halves it), a teammate's hit call, running, sprinting, landing
+## and vaulting feet, a rattling magazine, and enemy BBs landing close. Each gives a rough guess of where the enemy
+## is, off by up to hearing_error of the distance; walls between muffle a sound to wall_hearing of its range, judged by
+## rays as for the player. Hearing never counts as sight: a bot still reacts when the enemy then appears. Reads the tick's events after the step; writes only the bots' memory. Allocates nothing.
 
 static var _hit: RayHit = RayHit.new()
 
@@ -17,7 +17,9 @@ static func observe(state: GameState, w: BotWorld) -> void:
 			GameEvent.Kind.SHOT:
 				var shooter := _character(w, e.actor)
 				if shooter != null:
-					_hear(w, shooter, e.position, shooter.position, w.cfg.hearing_distance, null)
+					var r := shooter.armament.replica()
+					var heard := w.cfg.hearing_distance * (r.heard_scale if r != null else 1.0)
+					_hear(w, shooter, e.position, shooter.position, heard, null)
 			GameEvent.Kind.CHARACTER_HIT:
 				_hit_call(e, w)
 			GameEvent.Kind.FOOTSTEP:
@@ -38,6 +40,8 @@ static func _footstep_range(kind: int, cfg: BotConfig) -> float:
 			return cfg.footstep_hearing_sprint
 		GameEvent.Footstep.LAND:
 			return cfg.footstep_hearing_land
+		GameEvent.Footstep.RATTLE:
+			return cfg.footstep_hearing_rattle
 	return cfg.footstep_hearing_run
 
 

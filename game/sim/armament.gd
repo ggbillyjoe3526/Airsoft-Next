@@ -127,6 +127,14 @@ func replica() -> ReplicaConfig:
 	return replicas[active] if active < replicas.size() else null
 
 
+## Any magazine carried rattles (ReplicaConfig.rattles): heard as you move, even walking.
+func rattles() -> bool:
+	for r in replicas:
+		if r.rattles:
+			return true
+	return false
+
+
 ## The selector setting of the replica in hand.
 func fire_mode() -> ReplicaConfig.FireMode:
 	return modes[active] if active < modes.size() else ReplicaConfig.FireMode.SEMI

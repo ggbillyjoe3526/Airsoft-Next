@@ -25,7 +25,8 @@ enum Kind {
 	HOLSTER, ## actor put the replica in slot away.
 }
 
-enum Footstep { RUN, SPRINT, LAND }
+## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.
+enum Footstep { RUN, SPRINT, LAND, RATTLE }
 enum RoundEnd { ELIMINATED, TIME }
 
 var kind: Kind = Kind.SHOT

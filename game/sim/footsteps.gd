@@ -1,7 +1,8 @@
 class_name Footsteps
 ## Footsteps (the browser game's sim/footsteps.ts): after a character has moved, counts the ground it covered and sends
 ## a footstep event every stride while running or sprinting, and a landing when it comes down hard. Walking and moving
-## crouched are silent. Each says what it came down on when the world can tell, for its sound.
+## crouched are silent, but for a rattling magazine (a rattle every stride). Each says what it came down on when the
+## world can tell, for its sound.
 
 
 static func step(c: Character, cfg: FootstepConfig, events: SimEvents, query: WorldQuery) -> void:
@@ -17,7 +18,8 @@ static func step(c: Character, cfg: FootstepConfig, events: SimEvents, query: Wo
 			_send(c, GameEvent.Footstep.LAND, events, query)
 			c.step_distance = 0.0
 			return
-	if c.walking or c.crouch_amount > cfg.silent_crouch:
+	var quiet := c.walking or c.crouch_amount > cfg.silent_crouch
+	if quiet and not c.armament.rattles():
 		return
 	var dx := c.position.x - c.prev_position.x
 	var dz := c.position.z - c.prev_position.z
@@ -25,7 +27,10 @@ static func step(c: Character, cfg: FootstepConfig, events: SimEvents, query: Wo
 	var stride := cfg.stride_sprint if c.sprinting else cfg.stride_run
 	if c.step_distance >= stride:
 		c.step_distance = fmod(c.step_distance, stride)
-		_send(c, GameEvent.Footstep.SPRINT if c.sprinting else GameEvent.Footstep.RUN, events, query)
+		if quiet:
+			_send(c, GameEvent.Footstep.RATTLE, events, query)
+		else:
+			_send(c, GameEvent.Footstep.SPRINT if c.sprinting else GameEvent.Footstep.RUN, events, query)
 
 
 static func _send(c: Character, kind: GameEvent.Footstep, events: SimEvents, query: WorldQuery) -> void:

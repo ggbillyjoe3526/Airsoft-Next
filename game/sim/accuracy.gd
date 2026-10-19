@@ -36,7 +36,9 @@ static func step(c: Character, cfg: MovementConfig, a: AccuracyConfig, dt: float
 	var still := c.grounded and sqrt(c.velocity.x * c.velocity.x + c.velocity.z * c.velocity.z) <= a.still_below
 	c.still_time = c.still_time + dt if still else 0.0
 	var shaken := c.sprinting or (not c.grounded and c.air_time >= a.air_spread_delay - AIR_TIME_EPSILON)
-	c.shake_carry = a.carry_time if shaken else maxf(0.0, c.shake_carry - dt)
+	var r := c.armament.replica()
+	var carry := a.carry_time * (r.shake_scale if r != null else 1.0)
+	c.shake_carry = carry if shaken else maxf(0.0, c.shake_carry - dt)
 	var target := target_spread_scale(c, cfg, a)
 	var settle := a.settle_time if c.shake_carry > 0.0 else a.lock_time
 	if target >= c.spread_scale:

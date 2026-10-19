@@ -1,7 +1,8 @@
 extends GutTest
 ## The bots (game/ai/) on Depot, headless: whole matches of bots play out over several seeds with no friendly hits and
 ## nobody stuck or off the map; a bot sees only what it could, holds fire with a teammate in the line, hears gunfire
-## through walls no better than you, finds cover that hides it, and settles its aim; a tick allocates nothing once warm.
+## through walls no better than you (a silenced shot and a rattling magazine less far), finds cover that hides it, and
+## settles its aim; a tick allocates nothing once warm.
 
 const DT := 1.0 / 60.0
 
@@ -234,6 +235,38 @@ func test_gunfire_is_heard_and_walls_muffle_it() -> void:
 	shot.position = shooter.position + Vector3(0.0, 1.5, 0.0)
 	BotHearing.observe(state, bots.world)
 	assert_false(ear.has_last_known, "a wall cuts the range")
+
+
+func test_a_silenced_shot_and_a_rattling_magazine_carry_less_far() -> void:
+	_start(7)
+	var ear := _bot(0)
+	ear.character.position = Vector3(-14.0, 0.0, 0.0)
+	var shooter := state.characters[3]
+	var silenced := shooter.armament.replica().duplicate() as ReplicaConfig
+	silenced.heard_scale = 0.5
+	var e := state.events
+	for case: Array in [[-12.0, false, true], [-12.0, true, false], [-5.0, true, true]]:
+		shooter.armament.replicas[shooter.armament.active] = silenced if case[1] else ReplicaStats.default_loadout()[0]
+		shooter.position = Vector3(-14.0, 0.0, case[0])
+		ear.has_last_known = false
+		ear.heard_at = -INF
+		e.clear()
+		var shot := e.add(GameEvent.Kind.SHOT)
+		shot.actor = 3
+		shot.position = shooter.position + Vector3(0.0, 1.5, 0.0)
+		BotHearing.observe(state, bots.world)
+		assert_eq(ear.has_last_known, case[2], "a shot %s m off, silenced %s" % [-case[0], case[1]])
+	for case: Array in [[-4.0, true], [-8.0, false]]:
+		shooter.position = Vector3(-14.0, 0.0, case[0])
+		ear.has_last_known = false
+		ear.heard_at = -INF
+		e.clear()
+		var step := e.add(GameEvent.Kind.FOOTSTEP)
+		step.actor = 3
+		step.value = GameEvent.Footstep.RATTLE
+		step.position = shooter.position
+		BotHearing.observe(state, bots.world)
+		assert_eq(ear.has_last_known, case[1], "a rattle %s m off" % -case[0])
 
 
 func test_cover_found_hides_from_the_threat() -> void:
