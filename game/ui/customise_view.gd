@@ -1,31 +1,56 @@
 class_name CustomiseView
 extends Control
-## The Customise page body (concepts `colour.png` and `bbs.png`): the way back, the replica's name and slot, the parts down
-## the left (COLOUR, BBs and POWER, then the later ones greyed LATER), the replica's picture with the tab's controls under it
-## and the Performance sheet on the right. COLOUR: the eight bold schemes, the four plain colours and the Realistic colours
-## switch. BBs: the weight and hop-up sliders with the hop-up's flight. POWER: the power sources that fit. Each control only
-## sends a signal (`paint_picked`, `bb_weight_set`, `hop_up_set`, `power_picked`, `realistic_toggled`); the page owner
-## makes the edit and calls `refresh`.
+## The Customise page body (concepts `colour.png`, `bbs.png`, `optic.png` and `magazine.png`): the way back, the replica's
+## name and slot, the parts down the left (COLOUR, BBs, POWER, then OPTIC, GRIP, BARREL, MUZZLE, MAGAZINE and LASER, each
+## greyed with the mount it needs on a replica that can't take one, and LIGHT greyed LATER), the replica's picture with the
+## tab's controls under it and the Performance sheet on the right. COLOUR: the eight bold schemes, the four plain colours and
+## the Realistic colours switch. BBs: the weight and hop-up sliders with the hop-up's flight. POWER: the power sources that
+## fit. A part tab (PartPage): the slot as it comes and each part that fits, with its figures. The picture shows the parts
+## fitted. Each control only sends a signal (`paint_picked`, `bb_weight_set`, `hop_up_set`, `power_picked`, `part_picked`,
+## `realistic_toggled`); the page owner makes the edit and calls `refresh`.
 
 signal back_requested
 signal paint_picked(paint: StringName)
 signal bb_weight_set(grams: float)
 signal hop_up_set(dial: float)
 signal power_picked(id: String)
+## A part card was picked: the part slot (Pool.PART_TABLES) and the part's ID, "" for the slot as it comes.
+signal part_picked(part_slot: StringName, part_id: String)
 signal realistic_toggled(on: bool)
 ## A part's tab was shown: the page refreshes what that tab draws.
 signal tab_shown(tab: Tab)
 
-enum Tab { COLOUR, BBS, POWER }
+enum Tab { COLOUR, BBS, POWER, OPTIC, GRIP, BARREL, MUZZLE, MAGAZINE, LASER }
 
 const TAB_KEYS: Dictionary[Tab, String] = {
 	Tab.COLOUR: "CUSTOMISE_COLOUR",
 	Tab.BBS: "CUSTOMISE_BBS",
 	Tab.POWER: "CUSTOMISE_POWER",
+	Tab.OPTIC: "PART_OPTIC",
+	Tab.GRIP: "PART_GRIP",
+	Tab.BARREL: "PART_BARREL",
+	Tab.MUZZLE: "PART_MUZZLE",
+	Tab.MAGAZINE: "PART_MAGAZINE",
+	Tab.LASER: "PART_LASER",
 }
-## The parts that come later, in the concept's order.
-const LATER_KEYS: Array[String] = ["PART_OPTIC", "PART_GRIP", "PART_LASER", "PART_BARREL", "PART_MUZZLE", "PART_MAGAZINE",
-		"PART_LIGHT"]
+## The part tabs and the part slot each edits (Pool.PART_TABLES).
+const PART_SLOTS: Dictionary[Tab, StringName] = {
+	Tab.OPTIC: &"optic",
+	Tab.GRIP: &"grip",
+	Tab.BARREL: &"barrel",
+	Tab.MUZZLE: &"muzzle",
+	Tab.MAGAZINE: &"magazine",
+	Tab.LASER: &"laser",
+}
+## The Performance sheet's tab-only rows each part tab adds (LoadoutPerformance.TAB_ROWS).
+const TAB_SHEET_ROWS: Dictionary[Tab, Array] = {
+	Tab.OPTIC: [&"zoom", &"aim"],
+	Tab.GRIP: [&"aim"],
+	Tab.BARREL: [&"aim"],
+	Tab.MUZZLE: [&"aim"],
+}
+## The part that comes later, in the concept's place.
+const LATER_KEYS: Array[String] = ["PART_LIGHT"]
 const MARGIN_X := 56
 const CRUMB_TOP := 28
 const BODY_TOP := 96
@@ -39,6 +64,12 @@ const PART_NAME_SIZE := 18
 const PART_SUB_SIZE := 14
 const PART_LATER_HEIGHT := 44.0
 const PART_LATER_SIZE := 16
+const PART_MOUNT_SIZE := 13
+const PART_SUB_GAP := 3
+const PART_OFF_PAD := 9.0
+const MOUNT_JOIN := " / "
+## From this many parts fitted a part tab's sheet line lists them instead of saying what parts do.
+const SHEET_LIST_PARTS := 2
 const BACK_SIZE := 16
 const BACK_PAD := Vector2i(16, 8)
 const CRUMB_GAP := 14
@@ -50,6 +81,9 @@ const SHOT_PAD := Vector2(24.0, 18.0)
 ## The most the replica's picture takes (the concepts': a rifle about 690 px wide, 565 on the BBs tab).
 const SHOT_BOX := Vector2(730.0, 270.0)
 const SHOT_BOX_BBS := Vector2(600.0, 210.0)
+## The most a picture with parts fitted takes: the rifle keeps the scale it has bare (the parts add to it) up to this.
+const SHOT_ROOM := Vector2(880.0, 322.0)
+const SHOT_ROOM_BBS := Vector2(700.0, 264.0)
 const OPTS_TOP := 18
 const SUB_HEAD_SIZE := 16
 const SUB_HEAD_SPACING := 0.1
@@ -92,6 +126,11 @@ var _crumb_sub: Label = null
 var _parts_column: VBoxContainer = null
 var _parts: Dictionary[Tab, MenuCard] = {}
 var _part_sub: Dictionary[Tab, Label] = {}
+var _part_name: Dictionary[Tab, Label] = {}
+var _part_mount: Dictionary[Tab, Label] = {}
+var _part_pad: Dictionary[Tab, MarginContainer] = {}
+var _part_pages: Dictionary[Tab, PartPage] = {}
+var _options: PartOptions = null
 var _shot_stage: Control = null
 var _shot: TextureRect = null
 var _pages: Dictionary[Tab, Control] = {}
@@ -117,6 +156,7 @@ func _init(pictures: ReplicaPictures, facts: LoadoutFacts) -> void:
 	name = "CustomiseView"
 	_pictures = pictures
 	_facts = facts
+	_options = PartOptions.new(facts)
 	_glow = MenuParts.glow(GameTheme.BG)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_crumb()
@@ -149,6 +189,21 @@ func part_card(t: Tab) -> MenuCard:
 ## The line under a part's name ("Cobalt", "0.25 g · hop-up 65 %", "11.1 V LiPo Battery").
 func part_sub_text(t: Tab) -> String:
 	return _part_sub[t].text
+
+
+## The page of part tab `t`.
+func part_page(t: Tab) -> PartPage:
+	return _part_pages[t]
+
+
+## True if the replica shown can take parts in tab `t` (a slot it can't is greyed with its mount).
+func part_available(t: Tab) -> bool:
+	return not _parts[t].disabled
+
+
+## The mount a greyed part tab says it needs ("PISTOL RAIL"); "" on one that is on.
+func part_mount_text(t: Tab) -> String:
+	return _part_mount[t].text if _part_mount[t].visible else ""
 
 
 func paint_tile(paint: StringName) -> MenuCard:
@@ -204,7 +259,9 @@ func show_tab(t: Tab) -> void:
 		_pages[id].visible = id == t
 		_parts[id].set_picked(id == t)
 	_shot_stage.custom_minimum_size.y = SHOT_HEIGHT_BBS if t == Tab.BBS else SHOT_HEIGHT
-	_shot.custom_minimum_size = SHOT_BOX_BBS if t == Tab.BBS else SHOT_BOX
+	# A part picture's viewport is held only while its tab is on.
+	if not PART_SLOTS.has(t) and _pictures != null:
+		_pictures.let_go_parts()
 	tab_shown.emit(t)
 
 
@@ -224,7 +281,7 @@ func refresh(slot: Loadout.Slot, realistic: bool) -> void:
 	_part_sub[Tab.BBS].text = f.bbs_line(slot)
 	var power := f.power_name(slot)
 	_part_sub[Tab.POWER].text = power if power != "" else tr("CUSTOMISE_POWER_BUILT_IN")
-	_shot.texture = _pictures.texture(item.key, t.paint, realistic)
+	_show_picture(item, t, realistic)
 	# colour
 	var own := t.paint == ReplicaSchemes.OWN
 	for box in _tile_boxes:
@@ -242,14 +299,87 @@ func refresh(slot: Loadout.Slot, realistic: bool) -> void:
 	_hop_note.text = tr("CUSTOMISE_AS_IT_COMES") % (tr("CUSTOMISE_PERCENT") % roundi(base.hop_up_dial * 100.0))
 	# power
 	_refresh_power(item, t)
+	# the parts: which slots the replica takes, and the tab on show
+	for pt: Tab in PART_SLOTS:
+		_refresh_part_tab(pt, slot)
+	if PART_SLOTS.has(tab) and not part_available(tab):
+		show_tab(Tab.COLOUR)
+	if PART_SLOTS.has(tab):
+		_part_pages[tab].show_options(_options.options(slot, PART_SLOTS[tab]), item, t.paint, realistic, _pictures)
 	# the sheet, and the flight under the hop-up when that tab shows
 	var sheet_now := f.sheet(slot)
-	var sub_key := "CUSTOMISE_COLOUR_SUB" if tab == Tab.COLOUR else "LOADOUT_SHEET_SUB"
-	_sheet.show_sheet(sheet_now, tr(sub_key) % item.display_name if sub_key == "LOADOUT_SHEET_SUB" else tr(sub_key))
+	_sheet.show_sheet(sheet_now, _sheet_sub(slot, item), PackedStringArray(TAB_SHEET_ROWS.get(tab, [])),
+			not PART_SLOTS.has(tab))
 	if tab == Tab.BBS:
 		var on_target := sheet_now.row(&"on_target")
 		_arc.show_shot(r, r.hop_up_dial, t.bb_weight, f.tuning, f.hud.hop_range, _on_target_metres(r, t), tr(
 				"CUSTOMISE_ON_TARGET") % on_target.text)
+
+
+## The line under PERFORMANCE: the colour tab's own, a part tab's (the parts carried, or what parts do), else the usual.
+func _sheet_sub(slot: Loadout.Slot, item: Pool.Item) -> String:
+	if tab == Tab.COLOUR:
+		return tr("CUSTOMISE_COLOUR_SUB")
+	if PART_SLOTS.has(tab):
+		var names := _options.fitted_names(slot)
+		if names.size() < SHEET_LIST_PARTS:
+			return tr("PART_SHEET_SUB") % item.display_name
+		return tr("PART_SHEET_SUB_FITTED") % [item.display_name, _join_words(names)]
+	return tr("LOADOUT_SHEET_SUB") % item.display_name
+
+
+## "A, B and C".
+func _join_words(names: PackedStringArray) -> String:
+	if names.size() < 2:
+		return "".join(names)
+	return "%s %s %s" % [", ".join(names.slice(0, names.size() - 1)), tr("PART_AND"), names[names.size() - 1]]
+
+
+## The picture of the replica with its parts: at the scale the bare replica fills its box at, as far as the room allows.
+func _show_picture(item: Pool.Item, t: ReplicaTune, realistic: bool) -> void:
+	_shot.texture = _pictures.texture(item.key, t.paint, realistic, _facts.fitted_keys(item))
+	var bare := _pictures.bare_extent(item.key)
+	var now := _pictures.extent(item.key)
+	var box := SHOT_BOX_BBS if tab == Tab.BBS else SHOT_BOX
+	var room := SHOT_ROOM_BBS if tab == Tab.BBS else SHOT_ROOM
+	var scale := minf(minf(box.x / bare.x, box.y / bare.y), minf(room.x / now.x, room.y / now.y))
+	_shot.custom_minimum_size = now * scale
+
+
+## Part tab `t`: on with what is fitted under its name, or greyed with the mount its parts need.
+func _refresh_part_tab(t: Tab, slot: Loadout.Slot) -> void:
+	var part_slot := PART_SLOTS[t]
+	var on := _options.takes(slot, part_slot)
+	var card := _parts[t]
+	card.set_greyed(not on)
+	card.focus_mode = Control.FOCUS_ALL if on else Control.FOCUS_NONE
+	_part_sub[t].visible = on
+	_part_mount[t].visible = not on
+	var pad := _part_pad[t]
+	var vertical := PART_PAD.y if on else PART_OFF_PAD
+	pad.add_theme_constant_override("margin_top", int(vertical))
+	pad.add_theme_constant_override("margin_bottom", int(vertical))
+	card.custom_minimum_size.y = PART_NAME_SIZE + PART_SUB_SIZE + PART_PAD.y * 2.0 + 14.0 if on else PART_LATER_HEIGHT
+	var size := PART_NAME_SIZE if on else PART_LATER_SIZE
+	_part_name[t].add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, size))
+	_part_name[t].add_theme_font_size_override("font_size", size)
+	_part_name[t].add_theme_color_override("font_color", GameTheme.TEXT if on else GameTheme.MUTED)
+	if on:
+		_part_sub[t].text = _options.tab_line(slot, part_slot)
+		var empty := _facts.fitted_part(_facts.item(slot), part_slot) == null and PartOptions.EMPTY_SLOTS.has(part_slot)
+		_part_sub[t].add_theme_color_override("font_color", GameTheme.DIM if empty else GameTheme.MUTED)
+	else:
+		var words := PackedStringArray()
+		for tag in _options.mounts_of(part_slot):
+			words.append(_mount_words(tag))
+		_part_mount[t].text = MOUNT_JOIN.join(words)
+
+
+## A mount tag ("pistol-rail") as the tab says it ("PISTOL RAIL").
+func _mount_words(tag: String) -> String:
+	var key := "PART_MOUNT_" + tag.to_upper().replace("-", "_")
+	var words := tr(key)
+	return words if words != key else tag.replace("-", " ").to_upper()
 
 
 func _on_target_metres(r: ReplicaConfig, t: ReplicaTune) -> float:
@@ -293,12 +423,25 @@ func _build_parts() -> Control:
 		card.bar_idle = 0.0
 		card.refresh()
 		var pad := MenuParts.padded(PART_PAD.x, PART_PAD.y, PART_PAD.x, PART_PAD.y)
+		var row := HBoxContainer.new()
 		var column := VBoxContainer.new()
-		column.add_theme_constant_override("separation", 3)
-		column.add_child(MenuParts.spaced(tr(TAB_KEYS[t]), PART_NAME_SIZE, 800, GameTheme.TEXT, GameTheme.SPACING_TAB))
+		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		column.add_theme_constant_override("separation", PART_SUB_GAP)
+		var title := MenuParts.spaced(tr(TAB_KEYS[t]), PART_NAME_SIZE, 800, GameTheme.TEXT, GameTheme.SPACING_TAB)
+		column.add_child(title)
 		var sub := MenuParts.text("", PART_SUB_SIZE, 600, GameTheme.MUTED)
 		column.add_child(sub)
-		pad.add_child(column)
+		row.add_child(column)
+		if PART_SLOTS.has(t):
+			var mount := MenuParts.text("", PART_MOUNT_SIZE, 700, GameTheme.DIM)
+			mount.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			mount.visible = false
+			row.add_child(mount)
+			_part_mount[t] = mount
+			_part_name[t] = title
+			_part_pad[t] = pad
+		pad.add_child(row)
 		card.add_content(pad)
 		card.custom_minimum_size = Vector2(0.0, PART_NAME_SIZE + PART_SUB_SIZE + PART_PAD.y * 2.0 + 14.0)
 		card.pressed.connect(show_tab.bind(t))
@@ -355,6 +498,11 @@ func _build_stage() -> Control:
 	_pages[Tab.COLOUR] = _build_colour()
 	_pages[Tab.BBS] = _build_bbs()
 	_pages[Tab.POWER] = _build_power()
+	for t: Tab in PART_SLOTS:
+		var page := PartPage.new(PART_SLOTS[t])
+		page.part_picked.connect(func(part_slot: StringName, id: String) -> void: part_picked.emit(part_slot, id))
+		_part_pages[t] = page
+		_pages[t] = page
 	for t: Tab in _pages:
 		_pages[t].set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		holder.add_child(_pages[t])
