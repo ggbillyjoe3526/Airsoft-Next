@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Every local gate CI runs, quietly: lint, the changelog notes, the unit tests, the smoke test and the licence notices.
+# Every local gate CI runs, quietly: lint, the changelog notes, the unit tests, the smoke test and the licence notices;
+# with --guards, the match guards too (a few minutes; CI runs them as a job of their own).
 # Prints one line per gate and the failures; logs are in *.log. Exits non-zero if any gate failed.
-# Usage: tools/check.sh                 (GODOT=/path/to/godot to override)
+# Usage: tools/check.sh [--guards]      (GODOT=/path/to/godot to override)
 set -uo pipefail
 GODOT="${GODOT:-godot}"
 export GODOT
@@ -33,5 +34,8 @@ notices() {
     { echo "FAIL: THIRD_PARTY_NOTICES.txt is out of date: commit the regenerated file"; return 1; }
 }
 gate "licence notices" notices
+if [ "${1:-}" = "--guards" ]; then
+  gate "match guards" tools/match_guards.sh
+fi
 grep -hE "^(Tests|Passing Tests|Failing Tests)" unit.log 2>/dev/null | tr -s ' ' | paste -sd ' ' -
 exit $failed
