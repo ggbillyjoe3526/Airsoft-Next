@@ -10,10 +10,11 @@ var world: BotWorld = BotWorld.new()
 var _next_route: int = 0
 
 
-## Bots for every character in `state` but `player_id` (-1: everyone), on `map` with its nav grid and level rays. Their
-## first plan comes with the match's first ROUND_START (observe).
+## Bots for every character in `state` but `player_id` (-1: everyone), on `map` with its nav grid and level rays, each
+## team at its level in `team_levels` (team: a MatchOptions.BOT_LEVELS id; a team not in it plays Normal). Their first
+## plan comes with the match's first ROUND_START (observe).
 func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: WorldQuery, tuning: SimTuning,
-		config: BotConfig) -> void:
+		config: BotConfig, team_levels: Dictionary[int, StringName] = {}) -> void:
 	var w := world
 	w.tuning = tuning
 	w.cfg = config
@@ -27,7 +28,8 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 	w.planner = RoundPlanner.new(state.match_seed)
 	for c in state.characters:
 		if c.id != player_id:
-			w.bots.append(Bot.new(c, Seeds.bot_seed(state.match_seed, c.id), config.skill, state.characters.size()))
+			var skill := config.skill_for(team_levels.get(c.team, &"normal"))
+			w.bots.append(Bot.new(c, Seeds.bot_seed(state.match_seed, c.id), skill, state.characters.size()))
 	_measure_field(map)
 	w.setup_sectors(w.planner.bounds_lo, w.planner.bounds_hi)
 

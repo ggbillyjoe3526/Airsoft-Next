@@ -1,0 +1,54 @@
+extends GutTest
+## QA for DF1: the records rule with no teammates, the player on Beta, and every skill field against the browser game.
+
+
+func test_a_one_versus_one_match_counts_for_records_whatever_the_unused_teammate_level() -> void:
+	var s := PlaySession.new()
+	s.settings = Settings.new()
+	s.difficulty = &"hard"
+	s.teammate_difficulty = &"easy"
+	s._tuning = SimTuning.load_default()
+	s._tuning.rounds.team_size = 1
+	assert_true(s.counts_for_records(), "with no teammates there is no pair to be non-standard")
+	s.free()
+
+
+func test_the_player_on_beta_gets_the_teammate_level_and_alpha_the_picked_one() -> void:
+	var s := PlaySession.new()
+	s.autopilot = true
+	s.settings = Settings.new()
+	s.player_team = PlaySession.TEAM_BETA
+	s.difficulty = &"easy"
+	s.match_seed = 5
+	add_child_autofree(s)
+	await wait_physics_frames(3)
+	var config := BotConfig.load_default()
+	for b in s._bots.world.bots:
+		var want := &"normal" if b.character.team == PlaySession.TEAM_BETA else &"easy"
+		assert_same(b.skill, config.skill_for(want), "character %d" % b.character.id)
+
+
+func test_every_level_skill_field_matches_the_browser_game() -> void:
+	var config := BotConfig.load_default()
+	var want := {
+		&"easy": {"burst": Vector2(0.15, 0.35), "burst_pause": Vector2(0.45, 0.9), "aim_error_moving_deg": 2.0,
+			"aim_error_start_metres": 1.0, "aim_error_tracking": 0.147, "contact_cover_min_distance": 12.0,
+			"search_walk_distance": 4.0, "hold_cover_chance": 0.2, "hunt_memory": 20.0, "aim_settle_time": 1.3,
+			"turn_rate": 3.2, "aim_error_settled_deg": 1.7, "lead_factor": 0.25},
+		&"hard": {"burst": Vector2(0.25, 0.55), "burst_pause": Vector2(0.2, 0.5), "aim_error_moving_deg": 1.2,
+			"aim_error_start_metres": 0.6, "aim_error_tracking": 0.073, "contact_cover_min_distance": 5.0,
+			"search_walk_distance": 20.0, "hold_cover_chance": 0.8, "hunt_memory": 50.0, "aim_settle_time": 0.6,
+			"reaction_time": Vector2(0.25, 0.45), "aim_error_start_deg": 4.0, "flank_chance": 0.7},
+		&"pro": {"burst": Vector2(0.15, 0.35), "burst_pause": Vector2(0.2, 0.4), "aim_error_moving_deg": 1.0,
+			"aim_error_start_metres": 0.5, "aim_error_tracking": 0.061, "contact_cover_min_distance": 4.0,
+			"search_walk_distance": 30.0, "hold_cover_chance": 0.9, "aim_settle_time": 0.5, "turn_rate": 6.0,
+			"hold_time": Vector2(1.2, 3), "lead_factor": 0.85, "aim_error_start_deg": 3.5, "flank_chance": 0.7,
+			"reaction_time": Vector2(0.25, 0.45)},
+	}
+	for level: StringName in want:
+		for field: String in want[level]:
+			var got: Variant = config.skill_for(level).get(field)
+			if got is float:
+				assert_almost_eq(got as float, want[level][field] as float, 1e-6, "%s %s" % [level, field])
+			else:
+				assert_eq(got, want[level][field], "%s %s" % [level, field])

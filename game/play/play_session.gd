@@ -45,9 +45,11 @@ var settings: Settings = null
 var kit: Kit = null
 ## False: the bots stand idle (tests that need a still target).
 var bots_active: bool = true
-## The match's mode and the bots' difficulty (MatchOptions), for its XP and the records.
+## The match's mode and the other team's difficulty (MatchOptions), for its XP and the records.
 var mode: String = MatchOptions.MODE_ELIMINATION
 var difficulty: StringName = &"normal"
+## Your teammates' difficulty; &"" follows the other team's (BotConfig.teammates_following).
+var teammate_difficulty: StringName = &""
 ## True: a finished match gives XP and goes into the records (the game's own match; tests and the smoke test leave it
 ## off, so they never touch the player's progress).
 var counts: bool = false
@@ -166,7 +168,9 @@ func _build_views_and_start() -> void:
 	var config := BotConfig.load_default()
 	# With the pilot on, a bot plays your character too.
 	var nobody := -1
-	_bots = BotController.new(state, nobody if autopilot else PLAYER_ID, _map, _sim.nav, _level.query(), _tuning, config)
+	var levels: Dictionary[int, StringName] = {player_team: teammates_level(), opponent_team(): difficulty}
+	_bots = BotController.new(state, nobody if autopilot else PLAYER_ID, _map, _sim.nav, _level.query(), _tuning, config,
+			levels)
 	if settings == null:
 		settings = Settings.shared()
 	settings.changed.connect(_apply_dev)
@@ -512,14 +516,28 @@ func _vault_ready() -> bool:
 	return way != Vector2.ZERO and Vault.find_along(player, way, _tuning, _level.query(), _vault_probe)
 
 
+## Your teammates' difficulty: the one picked, or the other team's as it follows (BotConfig.teammates_following).
+func teammates_level() -> StringName:
+	return teammate_difficulty if teammate_difficulty != &"" else BotConfig.teammates_following(difficulty)
+
+
+## Whether a finished match goes into the records (the browser game's countsForRecords): the records are per the other
+## team's difficulty, so your teammates must be at its level or the one they follow by default; Hard opponents with
+## Easy teammates would mix an easier match into Hard's record. A match with no teammates always counts.
+func counts_for_records() -> bool:
+	if _tuning != null and _tuning.rounds.team_size <= 1:
+		return true
+	var mates := teammates_level()
+	return mates == difficulty or mates == BotConfig.teammates_following(difficulty)
+
+
 ## Gives the finished match's XP and adds it to the records, then saves both (once a match: a few small writes).
 func _settle() -> void:
 	var progress := Progress.shared()
 	var records := Records.shared()
-	# Your teammates are bots at the same difficulty as the other team's for now.
-	var mates := difficulty if _tuning.rounds.team_size > 1 else &""
-	var s := _tally.settle(progress, records, state.off_record or _kit_unlocked_all, player_team,
-			_tuning.rounds.wins_needed, mode, difficulty, mates)
+	var mates := teammates_level() if _tuning.rounds.team_size > 1 else &""
+	var s := _tally.settle(progress, records if counts_for_records() else null, state.off_record or _kit_unlocked_all,
+			player_team, _tuning.rounds.wins_needed, mode, difficulty, mates)
 	if s == null:
 		return
 	progress.save_if_dirty()

@@ -70,13 +70,15 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 9. **Loadout.** Primary and secondary (Grenades greyed), BB weight, hop-up, colour schemes and realistic colours,
    power sources, saved loadouts. Concepts first (shared files, `concepts/step9-loadout/`); LO1 (the loadout
    carried: saved loadouts, power sources, BB weight in play), LO2 (the Loadout and Customise screens) and LO3
-   (replica colours in play).
+   (replica colours in play). Built.
 10. **Attachments.** Red dot, 2× scope, grips, magazines, barrels, the Silencer and the laser, the Performance sheet
-    and each class's energy limit.
+    and each class's energy limit. AT1, AT2, AT3. Built.
 11. **The Cyber Pistol, levels and the Armory,** with the bots' kits per level, locked items greyed, Disable
-    levelling, and the collection and records saved apart from settings.
+    levelling, and the collection and records saved apart from settings. LV1, CP1, BK1, AR1. Built.
 12. **Bot difficulty.** Easy and Hard per team, then Pro (dev); bot names and personalities (`data/bots.md`);
-    adaptive difficulty as a Dev setting.
+    adaptive difficulty as a Dev setting. DF1 (Easy and Hard, a level per team), DF2 (Pro), MN3 (Opponents and
+    Teammates on the Match screen; concepts first, `concepts/step12-bots/`), BN1 (names and personalities), AD1
+    (adaptive).
 13. **Attack / Defend and the overtime flag** (browser OT1).
 14. **Match info.** The hit feed (one feed, placeable) with teammate markers, WON, LOST or DRAW, the scoreboard on
     Tab and round stats, the end-of-match summary with records, "What got you" and Pro tips, crosshair, hit marker,

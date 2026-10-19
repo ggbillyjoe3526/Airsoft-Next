@@ -26,9 +26,9 @@ const KIND_MODES: Dictionary[StringName, PackedStringArray] = {
 	&"field": ["elimination"],
 	&"range": ["practice"],
 }
-## The bots' levels, in the order shown; only Normal is built.
+## The bots' levels, in the order shown; Pro comes with its tactics (DF2).
 const BOT_LEVELS: PackedStringArray = ["easy", "normal", "hard", "pro"]
-const BUILT_BOT_LEVELS: PackedStringArray = ["normal"]
+const BUILT_BOT_LEVELS: PackedStringArray = ["easy", "normal", "hard"]
 const TEAM_KEYS: PackedStringArray = ["TEAM_ALPHA", "TEAM_BETA"]
 
 

@@ -14,6 +14,15 @@ const NOISE_SE := 2.0
 ## Normal's band for a team's or an end's share of the decided rounds (M73).
 const NORMAL_MIN := 0.45
 const NORMAL_MAX := 0.55
+## Each level's band for the same shares, each level against itself (the browser game's balanceSupport.ts): Normal's
+## is the tightest, as every level is tuned from it.
+const LEVEL_BANDS: Dictionary[StringName, Vector2] = {
+	&"easy": Vector2(0.35, 0.65), &"normal": Vector2(NORMAL_MIN, NORMAL_MAX), &"hard": Vector2(0.35, 0.65),
+	&"pro": Vector2(0.4, 0.6),
+}
+## Easy's mean round, at most this many times Normal's (the browser's depotDifficulty.balance.ts): slower bots
+## shouldn't turn a round into a stand-off.
+const EASY_ROUNDS_MAX := 1.6
 ## Rounds that run out the clock: under 1 in 10 (the browser's ON_TIME_BAND).
 const ON_TIME_MAX := 0.1
 
@@ -110,9 +119,10 @@ static func end_names(map: MapData) -> Array[String]:
 	return names
 
 
-## A map's figures over its matches: each team's and each end's share of the decided rounds (Normal's band), rounds
-## on time, and the median time and range of each round's first hit.
-static func figures(map_name: String, ends: Array[String], matches: Array[MatchRunner.MatchTally]) -> Array[Figure]:
+## A map's figures over its matches at `level` (both teams): each team's and each end's share of the decided rounds
+## (the level's band), rounds on time, and the median time and range of each round's first hit.
+static func figures(map_name: String, ends: Array[String], matches: Array[MatchRunner.MatchTally],
+		level: StringName = &"normal") -> Array[Figure]:
 	var rounds := 0
 	var on_time := 0
 	var team_wins := PackedInt32Array([0, 0])
@@ -132,14 +142,15 @@ static func figures(map_name: String, ends: Array[String], matches: Array[MatchR
 				hit_ranges.append(r.first_hit_range)
 	var decided := team_wins[0] + team_wins[1]
 	var drawn := rounds - decided - on_time
-	var at := "%s, Elimination, Normal" % map_name
+	var at := "%s, Elimination, %s" % [map_name, level_name(level)]
+	var band: Vector2 = LEVEL_BANDS.get(level, Vector2(NORMAL_MIN, NORMAL_MAX))
 	var out: Array[Figure] = []
 	for team in 2:
 		out.append(share("%s: %s's share of the decided rounds" % [at, ["Alpha", "Beta"][team]], team_wins[team],
-				decided, NORMAL_MIN, NORMAL_MAX, "%d of %d decided" % [team_wins[team], decided]))
+				decided, band.x, band.y, "%d of %d decided" % [team_wins[team], decided]))
 	for end in 2:
-		out.append(share("%s: %s's share of the decided rounds" % [at, ends[end]], end_wins[end], decided, NORMAL_MIN,
-				NORMAL_MAX, "%d of %d decided" % [end_wins[end], decided]))
+		out.append(share("%s: %s's share of the decided rounds" % [at, ends[end]], end_wins[end], decided, band.x,
+				band.y, "%d of %d decided" % [end_wins[end], decided]))
 	out.append(share("%s: rounds that run out the clock" % at, on_time, rounds, -INF, ON_TIME_MAX,
 			"%d of %d rounds; %d decided, %d drawn with both teams out" % [on_time, rounds, decided, drawn]))
 	out.append(number("%s: median time to a round's first hit" % at, median(hit_times), "s",
@@ -149,13 +160,40 @@ static func figures(map_name: String, ends: Array[String], matches: Array[MatchR
 	return out
 
 
+## Easy's mean round length on a map as a multiple of Normal's (at most EASY_ROUNDS_MAX).
+static func easy_rounds(map_name: String, easy: Array[MatchRunner.MatchTally],
+		normal: Array[MatchRunner.MatchTally]) -> Figure:
+	var e := mean_round_seconds(easy)
+	var n := mean_round_seconds(normal)
+	var f := number("%s, Elimination: Easy's mean round against Normal's" % map_name, e / n if n > 0.0 else NAN, "×",
+			"%.1f s against %.1f s" % [e, n])
+	f.band_max = EASY_ROUNDS_MAX
+	return f
+
+
+## The mean length of the rounds in `matches` (s), 0 with none.
+static func mean_round_seconds(matches: Array[MatchRunner.MatchTally]) -> float:
+	var total := 0.0
+	var count := 0
+	for m in matches:
+		for r in m.rounds:
+			total += r.seconds
+			count += 1
+	return total / count if count > 0 else 0.0
+
+
+## "Normal" for &"normal": a level's name in the report.
+static func level_name(level: StringName) -> String:
+	return String(level).capitalize()
+
+
 ## A figure as the report shows it: "49.5 % ±4.5", "12.3 s".
 static func format_value(f: Figure) -> String:
 	if is_nan(f.value):
 		return "–"
 	if f.of > 0:
 		return "%.1f %% ±%.1f" % [100.0 * f.value, 100.0 * standard_error(f)]
-	return "%.1f %s" % [f.value, f.unit]
+	return "%.2f %s" % [f.value, f.unit] if f.unit == "×" else "%.1f %s" % [f.value, f.unit]
 
 
 ## A band as the report shows it: "45–55 %", "≤ 10 %", or "–" for none.
@@ -174,12 +212,13 @@ static func format_band(f: Figure) -> String:
 
 
 static func _num(v: float) -> String:
-	return str(int(v)) if is_equal_approx(v, roundf(v)) else "%.1f" % v
+	return str(roundi(v)) if is_equal_approx(v, roundf(v)) else "%.1f" % v
 
 
 ## The report as Markdown: what was measured and on which commit, a summary line, then every figure, most urgent
 ## first (figure order within a verdict).
-static func markdown(rows: Array[Figure], commit: String, when: String, seeds: int, filter: String) -> String:
+static func markdown(rows: Array[Figure], commit: String, when: String, seeds: int, filter: String,
+		others: String = "") -> String:
 	var order: Array[int] = []
 	for i in rows.size():
 		order.append(i)
@@ -195,7 +234,7 @@ static func markdown(rows: Array[Figure], commit: String, when: String, seeds: i
 	var lines: Array[String] = [
 		"# Balance report",
 		"",
-		"Measured %s on `%s`, seeds 1 to %d a map%s. %s." % [when, commit, seeds,
+		"Measured %s on `%s`, seeds 1 to %d a map%s%s. %s." % [when, commit, seeds, others,
 				", only maps matching `%s`" % filter if filter != "" else "", summary(counts, rows.size())],
 		"",
 		"A figure **outside** its band by two standard errors or more is a balance issue for the bug pass. One",

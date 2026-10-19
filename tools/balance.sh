@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # The bot balance report (BR1): seeded headless bot matches on each field, every figure judged against its band and
 # its standard error, written to pipeline/out/balance-report.md. Measured, never asserted: the checks and CI don't run
-# it; the bug pass reads it (docs/DECISIONS.md › Bots and balance). About 15 minutes at the default 32 seeds a map.
-# Usage: tools/balance.sh [filter]   (a map id or part of one; SEEDS=n to change the seed count; GODOT=/path/to/godot)
+# it; the bug pass reads it (docs/DECISIONS.md › Bots and balance). Each level plays against itself: Normal on 32 seeds
+# a map, Easy and Hard on 16, about 30 minutes in all.
+# Usage: tools/balance.sh [filter]   (a map id or part of one; SEEDS=n for Normal's seed count, LEVEL_SEEDS=n for the
+# other levels', LEVELS=normal,hard to choose the levels; GODOT=/path/to/godot)
 set -uo pipefail
 GODOT="${GODOT:-godot}"
 SEEDS="${SEEDS:-32}"
+LEVEL_SEEDS="${LEVEL_SEEDS:-16}"
+LEVELS="${LEVELS:-normal,easy,hard}"
 cd "$(dirname "$0")/.."
 mkdir -p pipeline/out
 OUT="pipeline/out/balance-report.md"
@@ -15,8 +19,8 @@ if [ -n "$(git status --porcelain 2>/dev/null)" ]; then COMMIT="$COMMIT (with un
 
 "$GODOT" --headless --path . --import > "$LOG" 2>&1
 rm -f "$OUT"
-timeout 3600 "$GODOT" --headless --path . -s res://tests/balance/balance_run.gd -- "$PWD/$OUT" "$COMMIT" "$SEEDS" "${1:-}" \
-  >> "$LOG" 2>&1
+timeout 5400 "$GODOT" --headless --path . -s res://tests/balance/balance_run.gd -- "$PWD/$OUT" "$COMMIT" "$SEEDS" "${1:-}" \
+  "$LEVELS" "$LEVEL_SEEDS" >> "$LOG" 2>&1
 status=$?
 grep -E "matches in|SCRIPT ERROR|ERROR:" "$LOG" | grep -v "leaked" | head -20
 if [ "$status" -ne 0 ] || [ ! -f "$OUT" ]; then

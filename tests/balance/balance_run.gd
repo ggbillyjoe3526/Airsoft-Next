@@ -1,8 +1,9 @@
 extends SceneTree
 ## Plays the balance report's matches and writes it (BR1): tools/balance.sh runs this headless. Every map in MAPS whose
-## id contains the filter plays seeds 1 to the seed count, bots on both teams at Normal, through MatchRunner; the
-## figures and verdicts are BalanceReport's. Arguments after `--`: the report's path, the commit, the seed count, then
-## an optional filter.
+## id contains the filter plays each level in the levels list against itself through MatchRunner: Normal on seeds 1 to
+## the seed count, the others on 1 to their own count; the figures and verdicts are BalanceReport's. Arguments after
+## `--`: the report's path, the commit, the seed count, then optionally a filter, the levels (comma-separated, Normal's
+## by default) and the other levels' seed count (Normal's by default).
 
 ## Depot, and Neon Heights while it is dev (Woodland waits for its own step; the range is not a match map).
 const MAPS: Array[String] = ["depot", "neonHeights"]
@@ -28,6 +29,16 @@ func _run() -> void:
 		return
 	var seeds := args[2].to_int()
 	var filter := args[3] if args.size() > 3 else ""
+	var levels := PackedStringArray(["normal"])
+	if args.size() > 4 and args[4] != "":
+		levels = args[4].split(",", false)
+	for level in levels:
+		if not MatchOptions.BOT_LEVELS.has(level):
+			push_error("'%s' isn't a level (%s)" % [level, ", ".join(MatchOptions.BOT_LEVELS)])
+			quit(2)
+			return
+	var other_seeds := args[5].to_int() if args.size() > 5 and args[5].is_valid_int() else seeds
+	other_seeds = maxi(other_seeds, 1)
 	var rows: Array[BalanceReport.Figure] = []
 	for map_id in MAPS:
 		if filter != "" and not map_id.containsn(filter):
@@ -39,13 +50,25 @@ func _run() -> void:
 			push_error("%s: %s" % [map_id, ", ".join(runner.map.problems)])
 			runner.free_level()
 			continue
-		var matches: Array[MatchRunner.MatchTally] = []
-		var started := Time.get_ticks_msec()
-		for seed_value in range(1, seeds + 1):
-			matches.append(runner.play(seed_value, MAX_MATCH_SECONDS))
 		var name := runner.map.display_name if runner.map.display_name != "" else map_id
-		rows.append_array(BalanceReport.figures(name, BalanceReport.end_names(runner.map), matches))
-		print("%s: %d matches in %.0f s" % [name, matches.size(), (Time.get_ticks_msec() - started) / 1000.0])
+		var by_level: Dictionary[StringName, Array] = {}
+		for level in levels:
+			var matches: Array[MatchRunner.MatchTally] = []
+			var started := Time.get_ticks_msec()
+			runner.difficulty = StringName(level)
+			for seed_value in range(1, (seeds if level == "normal" else other_seeds) + 1):
+				matches.append(runner.play(seed_value, MAX_MATCH_SECONDS))
+			by_level[StringName(level)] = matches
+			rows.append_array(BalanceReport.figures(name, BalanceReport.end_names(runner.map), matches,
+					StringName(level)))
+			print("%s, %s: %d matches in %.0f s" % [name, BalanceReport.level_name(StringName(level)), matches.size(),
+					(Time.get_ticks_msec() - started) / 1000.0])
+		if by_level.has(&"easy") and by_level.has(&"normal"):
+			var easy: Array[MatchRunner.MatchTally] = []
+			easy.assign(by_level[&"easy"])
+			var normal: Array[MatchRunner.MatchTally] = []
+			normal.assign(by_level[&"normal"])
+			rows.append(BalanceReport.easy_rounds(name, easy, normal))
 		runner.free_level()
 	if rows.is_empty():
 		push_error("no map matches the filter '%s'" % filter)
@@ -57,6 +80,10 @@ func _run() -> void:
 		push_error("can't write %s" % path)
 		quit(1)
 		return
-	file.store_string(BalanceReport.markdown(rows, commit, when, seeds, filter))
+	var others := ""
+	if levels.size() > 1 or levels[0] != "normal":
+		others = " (%s; 1 to %d at the other levels)" % [", ".join(Array(levels).map(func(l: String) -> String:
+				return BalanceReport.level_name(StringName(l)))), other_seeds]
+	file.store_string(BalanceReport.markdown(rows, commit, when, seeds, filter, others))
 	file.close()
 	quit()
