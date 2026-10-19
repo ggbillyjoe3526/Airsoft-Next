@@ -75,10 +75,13 @@ class MatchTally:
 
 
 var tuning: SimTuning = null
-## Every bot, on both teams, picks a kit from data/bot-kits.md at this difficulty (the same weights for both, so the
-## map's ends stay comparable); off, they all carry their replicas as they come.
+## Every bot, on both teams, picks a kit from data/bot-kits.md at its team's difficulty (the same weights for both at one
+## level, so the map's ends stay comparable); off, they all carry their replicas as they come.
 var kitted: bool = true
+## Both teams' level (MatchOptions.BOT_LEVELS), or team 0's when `beta_difficulty` is set: a ladder match, one level
+## against another.
 var difficulty: StringName = &"normal"
+var beta_difficulty: StringName = &""
 var _kits: BotKits = null
 var _kit_rules: LoadoutRules = null
 var config: BotConfig = null
@@ -108,6 +111,11 @@ func _init(parent: Node, map_id: String, sim_tuning: SimTuning = null, bot_confi
 			lowest_floor = minf(lowest_floor, top if b.rise == MapData.Rise.NONE else b.center.y - b.size.y * 0.5)
 
 
+## Team `team`'s level.
+func team_level(team: int) -> StringName:
+	return beta_difficulty if team == 1 and beta_difficulty != &"" else difficulty
+
+
 func free_level() -> void:
 	if level != null:
 		level.free()
@@ -126,8 +134,10 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 	if kitted and _kits == null:
 		_kits = BotKits.shared()
 		_kit_rules = LoadoutRules.standard()
+	var levels: Dictionary[int, StringName] = {0: difficulty, 1: team_level(1)}
 	for i in size * 2:
-		var plan := _kits.pick(difficulty, _kit_rules, Seeds.kit_seed(seed_value, i)) if kitted else null
+		var kit_level := levels[0 if i < size else 1]
+		var plan := _kits.pick(kit_level, _kit_rules, Seeds.kit_seed(seed_value, i)) if kitted else null
 		kit_names.append(plan.kit_name if plan != null else "")
 		if plan == null:
 			state.characters.append(Character.new(i, 0 if i < size else 1, Vector3.ZERO, 0.0, loadout))
@@ -136,7 +146,7 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 			state.characters.append(Character.new(i, 0 if i < size else 1, Vector3.ZERO, 0.0, kit.replicas,
 					kit.bb_weights))
 		commands.append(PlayerCommand.new())
-	var bots := BotController.new(state, -1, map, nav, level.query(), tuning, config)
+	var bots := BotController.new(state, -1, map, nav, level.query(), tuning, config, levels)
 	var t := MatchTally.new()
 	t.kits = kit_names
 	t.map_id = map.id

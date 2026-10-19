@@ -2,7 +2,7 @@ class_name BotSkill
 extends Resource
 ## How good a bot is (the browser game's config/botsSkill.ts): reaction, turning, aim, trigger discipline and a few
 ## tactics. Difficulty is skill, never different senses (DECISIONS 2026-10-01). The defaults are Normal, the baseline
-## every level is tuned from (owner, 2026-10-06); Easy, Hard and Pro come with the difficulty choice. Ranges are
+## every level is tuned from (owner, 2026-10-06); bot_tuning.tres holds Easy's, Hard's and Pro's. Ranges are
 ## Vector2(min, max), drawn from the bot's own seeded stream.
 
 ## Seconds between first seeing someone and opening fire.

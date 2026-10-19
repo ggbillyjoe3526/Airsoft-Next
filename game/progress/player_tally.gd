@@ -74,9 +74,10 @@ func is_over() -> bool:
 	return winner >= 0
 
 
-## Gives the finished match's XP to `progress` and adds it to `records`, once (a second call gives null). A match off
-## the record (dev content, a Dev setting) gives no XP and isn't a record. `team` is the player's, `wins_needed` the
-## match's, `mode` its mode and `difficulty` and `teammate_difficulty` the two teams' (&"" with no teammates).
+## Gives the finished match's XP to `progress` and adds it to `records` (null: it isn't one for the records), once (a
+## second call gives null). A match off the record (dev content, a Dev setting) gives no XP and isn't a record. `team`
+## is the player's, `wins_needed` the match's, `mode` its mode and `difficulty` and `teammate_difficulty` the two
+## teams' (&"" with no teammates).
 func settle(progress: Progress, records: Records, off_record: bool, team: int, wins_needed: int, mode: String,
 		difficulty: StringName, teammate_difficulty: StringName) -> Settled:
 	if not is_over() or _settled:
@@ -95,6 +96,8 @@ func settle(progress: Progress, records: Records, off_record: bool, team: int, w
 	o.teammate_difficulty = teammate_difficulty
 	s.earned = MatchXp.earned(progress.table, o)
 	s.level_up = progress.add_xp(s.earned.total)
+	if records == null:
+		return s
 	var r := Records.Result.new()
 	r.difficulty = difficulty
 	r.mode = mode

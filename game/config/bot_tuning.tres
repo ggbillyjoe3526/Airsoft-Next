@@ -6,6 +6,69 @@
 [sub_resource type="Resource" id="Resource_nrm01"]
 script = ExtResource("2_bskl1")
 
+[sub_resource type="Resource" id="Resource_easy1"]
+script = ExtResource("2_bskl1")
+reaction_time = Vector2(0.6, 1)
+turn_rate = 3.2
+aim_error_start_deg = 8.0
+aim_error_settled_deg = 1.7
+aim_settle_time = 1.3
+aim_error_start_metres = 1.0
+aim_error_moving_deg = 2.0
+aim_error_tracking = 0.147
+lead_factor = 0.25
+burst = Vector2(0.15, 0.35)
+burst_pause = Vector2(0.45, 0.9)
+hold_time = Vector2(1, 2.5)
+hold_cover_chance = 0.2
+contact_cover_min_distance = 12.0
+search_walk_distance = 4.0
+flank_chance = 0.0
+hunt_memory = 20.0
+
+[sub_resource type="Resource" id="Resource_hard1"]
+script = ExtResource("2_bskl1")
+reaction_time = Vector2(0.25, 0.45)
+turn_rate = 5.5
+aim_error_start_deg = 4.0
+aim_error_settled_deg = 0.9
+aim_settle_time = 0.6
+aim_error_start_metres = 0.6
+aim_error_moving_deg = 1.2
+aim_error_tracking = 0.073
+lead_factor = 0.7
+burst = Vector2(0.25, 0.55)
+burst_pause = Vector2(0.2, 0.5)
+hold_time = Vector2(0.4, 1.2)
+hold_cover_chance = 0.8
+contact_cover_min_distance = 5.0
+search_walk_distance = 20.0
+flank_chance = 0.7
+hunt_memory = 50.0
+
+[sub_resource type="Resource" id="Resource_pro01"]
+script = ExtResource("2_bskl1")
+reaction_time = Vector2(0.25, 0.45)
+turn_rate = 6.0
+aim_error_start_deg = 3.5
+aim_error_settled_deg = 0.75
+aim_settle_time = 0.5
+aim_error_start_metres = 0.5
+aim_error_moving_deg = 1.0
+aim_error_tracking = 0.061
+lead_factor = 0.85
+burst = Vector2(0.15, 0.35)
+burst_pause = Vector2(0.2, 0.4)
+hold_time = Vector2(1.2, 3)
+hold_cover_chance = 0.9
+contact_cover_min_distance = 4.0
+search_walk_distance = 30.0
+flank_chance = 0.7
+hunt_memory = 60.0
+
 [resource]
 script = ExtResource("1_bcfg1")
 skill = SubResource("Resource_nrm01")
+easy_skill = SubResource("Resource_easy1")
+hard_skill = SubResource("Resource_hard1")
+pro_skill = SubResource("Resource_pro01")

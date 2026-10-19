@@ -7,8 +7,12 @@ extends Resource
 
 const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 
-## The level every bot plays at (Normal until the difficulty choice comes).
+## Each level's skill (DECISIONS 2026-10-01: difficulty is skill plus a few tactics, never different senses). `skill` is
+## Normal, the baseline every level is tuned from (owner, 2026-10-06).
 @export var skill: BotSkill = BotSkill.new()
+@export var easy_skill: BotSkill = BotSkill.new()
+@export var hard_skill: BotSkill = BotSkill.new()
+@export var pro_skill: BotSkill = BotSkill.new()
 
 @export_group("Senses")
 ## Seconds between sight checks per bot (staggered across bots): ten a second (DECISIONS 2026-09-30).
@@ -208,6 +212,24 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var hunt_middle_bias: float = 1.0
 ## A sector counts as checked once a bot sees a spot in it empty within this range (m).
 @export var hunt_clear_range: float = 19.0
+
+
+## The skill a bot at `level` (MatchOptions.BOT_LEVELS) plays with; Normal's for a level it doesn't know.
+func skill_for(level: StringName) -> BotSkill:
+	match level:
+		&"easy":
+			return easy_skill
+		&"hard":
+			return hard_skill
+		&"pro":
+			return pro_skill
+	return skill
+
+
+## Your teammates' level until you pick one: the opponents', except that Easy opponents give you Normal teammates
+## (owner, 2026-10-05): a new player on Easy needs teammates who win their fights.
+static func teammates_following(opponents: StringName) -> StringName:
+	return &"normal" if opponents == &"easy" else opponents
 
 
 ## The game's bot tuning (bot_tuning.tres), or the built-in values with a warning if it can't be loaded.

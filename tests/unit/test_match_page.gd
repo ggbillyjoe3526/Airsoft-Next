@@ -79,9 +79,9 @@ func test_only_elimination_can_be_picked_and_the_rest_say_later() -> void:
 		assert_true(page.mode_card(mode).disabled, mode)
 		assert_true(_labels(page.mode_card(mode)).has("LATER"), mode)
 	assert_false(_labels(page.mode_card("elimination")).has("LATER"))
-	for level: String in ["easy", "hard", "pro"]:
-		assert_true(page.bot_button(level).disabled, level)
-	assert_false(page.bot_button("normal").disabled)
+	assert_true(page.bot_button("pro").disabled, "Pro comes with its tactics (DF2)")
+	for level: String in ["easy", "normal", "hard"]:
+		assert_false(page.bot_button(level).disabled, level)
 	assert_true(page.bot_button("normal").is_picked())
 
 

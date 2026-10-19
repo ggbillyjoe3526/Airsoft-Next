@@ -258,7 +258,7 @@ func _build_side() -> Control:
 	var bots_head := HBoxContainer.new()
 	bots_head.add_theme_constant_override("separation", TAG_GAP * 2)
 	bots_head.add_child(_heading(tr("MENU_BOTS")))
-	var later := MenuTag.make(tr("MENU_BOTS_LATER"), GameTheme.DIM, GameTheme.DIM)
+	var later := MenuTag.make(tr("MENU_PRO_LATER"), GameTheme.DIM, GameTheme.DIM)
 	bots_head.add_child(later)
 	var bots := _section(bots_head)
 	var bot_row := HBoxContainer.new()
