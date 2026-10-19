@@ -2,7 +2,8 @@ class_name PartPage
 extends VBoxContainer
 ## One Customise part tab's body (concepts `optic.png`, `magazine.png`): the slot's name with a note on what it does, a row
 ## of option cards (the slot as it comes first, then each part that fits: its picture, name, numbers against as it comes
-## and a line in words) and, under them, what the picked part makes better and worse. A card only sends `part_picked`; the
+## and a line in words; a part not unlocked yet greyed with the level that unlocks it) and, under them, what the picked
+## part makes better and worse. A card only sends `part_picked`; the
 ## page owner makes the edit and calls `show_options` again. The cards are built when the replica's options change and
 ## updated in place after, so the keyboard focus stays on the card just picked.
 
@@ -24,6 +25,7 @@ const MAX_PX_PER_METRE := 1000.0
 const NONE_SIZE := 15
 const NAME_SIZE := 19
 const NAME_GAP := 6
+const LOCK_GAP := 8
 const TEXT_SIZE := 14
 const TEXT_GAP := 4
 const LINE_GAP := 3
@@ -43,6 +45,7 @@ var _cards: Array[MenuCard] = []
 var _pictures: Array[TextureRect] = []
 var _texts: Array[RichTextLabel] = []
 var _names: Array[Label] = []
+var _locks: Array[MenuTag] = []
 
 
 func _init(part_slot_in: StringName) -> void:
@@ -108,6 +111,7 @@ func show_options(options: Array[PartOptions.Option], replica: Pool.Item, paint:
 		var o := options[i]
 		_cards[i].set_picked(o.picked)
 		_names[i].text = o.name
+		_show_lock(i, o.lock_level)
 		_texts[i].text = "%s\n%s" % [o.figures_markup, o.blurb_markup]
 		if o.part != null:
 			_pictures[i].texture = pictures.part_texture(replica.key, part_slot, o.part.key, paint, realistic)
@@ -128,6 +132,7 @@ func _rebuild(options: Array[PartOptions.Option]) -> void:
 	_pictures.clear()
 	_texts.clear()
 	_names.clear()
+	_locks.clear()
 	for o in options:
 		var c := _card(o)
 		_grid.add_child(c)
@@ -168,8 +173,11 @@ func _card(o: PartOptions.Option) -> MenuCard:
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0.0, NAME_GAP)
 	column.add_child(gap)
+	var title_row := HBoxContainer.new()
+	title_row.add_theme_constant_override("separation", LOCK_GAP)
 	var title := MenuParts.text("", NAME_SIZE, 800, GameTheme.TEXT)
-	column.add_child(title)
+	title_row.add_child(title)
+	column.add_child(title_row)
 	var gap2 := Control.new()
 	gap2.custom_minimum_size = Vector2(0.0, TEXT_GAP)
 	column.add_child(gap2)
@@ -181,7 +189,20 @@ func _card(o: PartOptions.Option) -> MenuCard:
 	_pictures.append(pic)
 	_texts.append(text)
 	_names.append(title)
+	# A level tag is made only for a card that is locked (most never are).
+	_locks.append(null)
 	return c
+
+
+## Greys card `i` with the level that unlocks its part (`level` >= 0), or shows it pickable.
+func _show_lock(i: int, level: int) -> void:
+	if level >= 0 and _locks[i] == null:
+		_locks[i] = MenuTag.level(level)
+		_names[i].get_parent().add_child(_locks[i])
+	if _locks[i] != null:
+		_locks[i].visible = level >= 0
+		_locks[i].set_text(tr("MENU_LEVEL_TAG") % level)
+	_cards[i].set_greyed(level >= 0)
 
 
 ## A label that takes [b] and [color] tags: Inter at `weight`, bold in 800.

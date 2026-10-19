@@ -70,6 +70,8 @@ class Option:
 	## What is better and worse than the slot as it comes, as words.
 	var better: PackedStringArray = PackedStringArray()
 	var worse: PackedStringArray = PackedStringArray()
+	## The level that unlocks the part, while it is locked; -1 when it can be picked.
+	var lock_level: int = -1
 
 	func id() -> String:
 		return part.id if part != null else ""
@@ -109,6 +111,8 @@ func options(slot: Loadout.Slot, part_slot: StringName) -> Array[Option]:
 		var o := Option.new()
 		o.part = part
 		o.picked = part == fitted
+		if part != null and rules.is_locked(part.id):
+			o.lock_level = rules.unlock_level(part.id)
 		var values := comes if part == null else _measure(slot, item, part_slot, part)
 		_fill(o, item, part_slot, values, comes)
 		out.append(o)

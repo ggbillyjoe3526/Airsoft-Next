@@ -32,6 +32,16 @@ func _init(picks: MatchPicks = null, settings: Settings = null) -> void:
 	_bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_bar.tab_pressed.connect(_on_tab)
 	add_child(_bar)
+	show_level()
+
+
+## The chip shows the player's level, or nothing while levelling is off (Settings › Dev); an open Loadout page whose
+## locks changed under the settings (Disable levelling, Reset level) is built again.
+func show_level() -> void:
+	_bar.set_level(-1 if _settings.active_dev().disable_levelling else Progress.shared().level())
+	if _loadout != null and _loadout.locks_changed():
+		leave_loadout()
+		show_loadout()
 
 
 func top_bar() -> TopBar:

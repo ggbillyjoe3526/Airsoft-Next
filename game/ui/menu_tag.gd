@@ -1,7 +1,7 @@
 class_name MenuTag
 extends PanelContainer
-## A small capitals tag in a thin outline: LATER (grey) on what isn't built yet, DEV (violet) on dev content. The
-## concept's `.later` and `.dev`.
+## A small capitals tag in a thin outline: LATER (grey) on what isn't built yet, DEV (violet) on dev content, LEVEL n
+## (muted) on an item not unlocked yet. The concepts' `.later`, `.dev` and `.lvl2`.
 
 const SIZE := 13
 const SPACING := 0.08
@@ -41,5 +41,14 @@ static func dev() -> MenuTag:
 	return make(TranslationServer.translate("MENU_DEV"), DEV_TEXT, DEV_EDGE)
 
 
+## "LEVEL 7": the level that unlocks a locked item.
+static func level(number: int) -> MenuTag:
+	return make(TranslationServer.translate("MENU_LEVEL_TAG") % number, GameTheme.MUTED, GameTheme.MUTED)
+
+
 func text() -> String:
 	return _label.text
+
+
+func set_text(words: String) -> void:
+	_label.text = words

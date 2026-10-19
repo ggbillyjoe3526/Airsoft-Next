@@ -76,14 +76,18 @@ func test_the_top_bar_has_the_four_tabs_and_armory_is_greyed() -> void:
 	assert_eq(later, 1, "a LATER tag on Armory alone")
 
 
-func test_the_level_chip_reads_lvl_1() -> void:
+func test_the_level_chip_reads_the_level_and_hides_with_levelling_off() -> void:
 	var bar := TopBar.new()
 	add_child_autofree(bar)
-	var chip: Node = bar.find_child("LevelChip", true, false)
+	bar.set_level(3)
+	var chip := bar.find_child("LevelChip", true, false) as Control
 	var words := PackedStringArray()
 	for l in chip.find_children("*", "Label", true, false):
 		words.append((l as Label).text)
-	assert_eq(" ".join(words), "LVL 1")
+	assert_eq(" ".join(words), "LVL 3")
+	bar.set_level(-1)
+	assert_false(chip.visible, "no chip while levelling is off")
+	assert_eq(bar.level_text(), "")
 
 
 func test_the_current_tab_is_lit_and_a_later_tab_cannot_be() -> void:

@@ -2,12 +2,15 @@ class_name DevSettings
 extends RefCounted
 ## The Dev tab's switches (the browser game's config/dev.ts), saved with the settings. They apply only while the Dev
 ## settings box is ticked (owner, 2026-10-04): `Settings.active_dev()` is these then, else the defaults. Game speed,
-## bottomless magazines, ghost, bots hold fire, spectate any bot and bot intentions keep a match out of the records
-## (DevCheats); Dev content lists maps tagged dev and keeps a match on one out too; Retro pixels changes only the look.
+## bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions and Disable levelling keep a match
+## out of the records and give it no XP (DevCheats); Dev content lists maps tagged dev and keeps a match on one out
+## too; Retro pixels changes only the look. Disable levelling unlocks every item to carry; your own level and unlocks
+## stay as they are and come back when it is off.
 
 const SPEED_STEP := 0.25
 
 var dev_content: bool = false
+var disable_levelling: bool = false
 var game_speed: float = 1.0
 var bottomless: bool = false
 var ghost: bool = false
@@ -25,12 +28,14 @@ func cheats() -> DevCheats:
 	c.ghost = ghost
 	c.bots_hold_fire = bots_hold_fire
 	c.watching = spectate_bots or bot_intent
+	c.levelling_off = disable_levelling
 	return c
 
 
 func to_dict() -> Dictionary:
 	return {
-		"dev_content": dev_content, "game_speed": game_speed, "bottomless": bottomless, "ghost": ghost,
+		"dev_content": dev_content, "disable_levelling": disable_levelling, "game_speed": game_speed,
+		"bottomless": bottomless, "ghost": ghost,
 		"bots_hold_fire": bots_hold_fire, "spectate_bots": spectate_bots, "bot_intent": bot_intent,
 		"retro_pixels": retro_pixels,
 	}
@@ -39,6 +44,7 @@ func to_dict() -> Dictionary:
 ## Saved values over the defaults, each checked on its own; game speed must be on its 25 % steps.
 func from_dict(data: Dictionary) -> void:
 	dev_content = _flag(data, "dev_content")
+	disable_levelling = _flag(data, "disable_levelling")
 	var speed: Variant = data.get("game_speed")
 	game_speed = 1.0
 	if (speed is float or speed is int) and float(speed) >= DevCheats.SPEED_MIN and float(speed) <= DevCheats.SPEED_MAX:

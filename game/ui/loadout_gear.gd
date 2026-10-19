@@ -2,7 +2,8 @@ class_name LoadoutGear
 extends Control
 ## The Loadout tab's gear page body (concept `gear.png`): CARRIED (the primary and the secondary, the picked slot ringed in
 ## yellow, and the grenades slot greyed LATER), YOUR REPLICAS (each replica to carry, the cards of those carried tagged with
-## their slot, the ones the game can't play yet greyed LATER), the hint, the Performance sheet and the slanted CUSTOMISE.
+## their slot, the ones the game can't play yet greyed LATER and the ones not unlocked yet greyed with their level),
+## the hint, the Performance sheet and the slanted CUSTOMISE.
 ## A replica's picture sits inside its card with room round it, kept in shape, so it can't touch the card's lines at any
 ## window size. The page owner reads `slot_picked`, `replica_picked` and `customise_requested` and calls `refresh`.
 
@@ -293,8 +294,11 @@ func _build_replicas() -> Control:
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override("separation", REPLICA_GAP)
 	column.add_child(list)
+	var rules := _facts.rules()
 	for item in _listed():
-		list.add_child(_replica_row(item, _facts.rules().config(item) == null))
+		var later := rules.config(item) == null
+		var lock := rules.unlock_level(item.id) if not later and rules.is_locked(item.id) else -1
+		list.add_child(_replica_row(item, later, lock))
 	var hint := MenuParts.text(tr("LOADOUT_HINT"), HINT_SIZE, 600, GameTheme.DIM)
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var gap := Control.new()
@@ -319,7 +323,8 @@ func _listed() -> Array[Pool.Item]:
 	return out
 
 
-func _replica_row(item: Pool.Item, later: bool) -> MenuCard:
+## A replica's row; `lock_level` >= 0: not unlocked yet, greyed with the level that unlocks it.
+func _replica_row(item: Pool.Item, later: bool, lock_level: int) -> MenuCard:
 	var card := MenuCard.new()
 	card.name = "Replica_%s" % item.id
 	card.custom_minimum_size = Vector2(0.0, REPLICA_HEIGHT)
@@ -340,6 +345,8 @@ func _replica_row(item: Pool.Item, later: bool) -> MenuCard:
 	title.add_child(MenuParts.text(item.display_name, REPLICA_NAME_SIZE, 800, GameTheme.TEXT))
 	if later:
 		title.add_child(MenuTag.later())
+	if lock_level >= 0:
+		title.add_child(MenuTag.level(lock_level))
 	if item.is_dev():
 		title.add_child(MenuTag.dev())
 	text.add_child(title)
@@ -352,7 +359,7 @@ func _replica_row(item: Pool.Item, later: bool) -> MenuCard:
 	text.add_child(sub)
 	row.add_child(text)
 	card.add_content(row)
-	card.set_greyed(later)
+	card.set_greyed(later or lock_level >= 0)
 	card.pressed.connect(func() -> void: replica_picked.emit(item.id))
 	card.gui_input.connect(_double_click_replica.bind(item.id))
 	_rows[item.id] = card
