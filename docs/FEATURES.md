@@ -11,6 +11,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 
 - BB flight: BBs fly with drag, gravity and hop-up lift; the AEG Rifle stays on target to about 38 m, the GBB Pistol to about 26 m (FP1)
 - Hit calling: one hit eliminates; you raise an arm, call "HIT!" and walk off to the dead zone round cover, where you watch through a teammate's eyes; bots call their hits honestly (FP1, BE1)
+- Loadouts: up to five named loadouts, one carried into each match; each replica has its own BB weight (0.20 to 0.30 g), hop-up dial, colour and power source, with batteries setting the AEG Rifle's rate of fire and gas the GBB Pistol's power, capped at the field's chrono limit; bots keep their replicas as they come (LO1)
 - Holster: press 3 to holster the replica (out of view, "Holstered" panel, no crosshair); holstered you run faster than with it in hand, never faster than a sprint; a trigger pull, aim, reload or slot key draws it again, slower than a normal switch; bots holster on long calm runs (MO1)
 - Elimination rounds: first to 5 against the clock, with ends swapped at half time; a finished match rematches after 8
   seconds (FP1)

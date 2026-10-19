@@ -3,3 +3,34 @@
 Open tasks only, one block each (format in `pipeline/README.md`). The planning thread writes blocks; a build thread
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
+
+## LO2 · The Loadout and Customise screens
+tier: ui
+perf: required
+touches: game/ui/, game/main.gd, tests/unit/
+contract: none
+acceptance:
+  1. The approved concepts (`concepts/step9-loadout/`: `gear.png`, `colour.png`, `bbs.png`): the LOADOUT tab opens
+     the gear page (the saved loadouts strip with keys 1 to 5, Carried, Your replicas, the Performance sheet,
+     CUSTOMISE); Customise has COLOUR, BBs and POWER tabs and the later parts greyed LATER. Each replica's picture
+     sits inside its card, clear of the card's lines (owner, 2026-10-19).
+  2. The Performance sheet compares the replica as carried with it as it comes (energy, chrono speed on 0.20 g, BB
+     weight, rate of fire, on target to, time to 20 m, spread, recoil, magazines, reload, draw), better and worse in
+     colour and words, and says when the site limit capped the energy.
+  3. Every edit goes straight to the current loadout (no Save button). Keyboard and mouse work throughout.
+status: open
+attempts: 0
+
+## LO3 · Replica colours in play
+tier: ui
+perf: required
+touches: game/play/, tests/unit/
+contract: none
+acceptance:
+  1. The replica in hand, and on each figure, wears its scheme's five colours (body, furniture, detail, accent,
+     metal); bots wear their team's (Alpha Cobalt rifle and Onyx pistol, Beta Signal and Coral, as the browser game).
+  2. The Realistic colours setting (off by default) shows every bold scheme as its plain colour, the player's and the
+     bots'. The Cyber Pistol keeps its own colours.
+  3. Materials are built once per scheme and shared, never per frame.
+status: open
+attempts: 0

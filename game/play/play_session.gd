@@ -39,6 +39,8 @@ var autopilot: bool = false
 var speed: int = 1
 ## Whose Dev settings apply (the game's own by default; a test gives its own).
 var settings: Settings = null
+## What the player carries (LoadoutRules.carried); unset, the saved loadouts' carried one.
+var kit: Kit = null
 ## False: the bots stand idle (tests that need a still target).
 var bots_active: bool = true
 
@@ -184,9 +186,13 @@ func _start_simulation(map: MapData) -> void:
 	state = GameState.new(match_seed, _tuning)
 	state.dev_content = MapCatalog.shared().is_dev(map_id)
 	var loadout := ReplicaStats.default_loadout()
-	player = Character.new(PLAYER_ID, player_team, Vector3.ZERO, 0.0, loadout)
+	if kit == null:
+		var s := settings if settings != null else Settings.shared()
+		kit = SavedLoadouts.shared().carried_kit(s.active_dev().dev_content)
+	state.dev_content = state.dev_content or kit.dev
+	player = Character.new(PLAYER_ID, player_team, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
 	state.characters.append(player)
-	# Your teammates, then the other team: every character but you is a bot.
+	# Your teammates, then the other team: every character but you is a bot, carrying its replicas as they come.
 	for i in _tuning.rounds.team_size * 2 - 1:
 		var team := player_team if i < _tuning.rounds.team_size - 1 else opponent_team()
 		state.characters.append(Character.new(PLAYER_ID + 1 + i, team, Vector3.ZERO, 0.0, loadout))

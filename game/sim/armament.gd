@@ -76,17 +76,19 @@ var hop_ups: PackedFloat64Array = PackedFloat64Array()
 var bb_weights: PackedFloat64Array = PackedFloat64Array()
 
 
-## A fresh armament for `loadout`: full magazines, each replica's selector, dial and BB weight as it comes.
-static func create(loadout: Array[ReplicaConfig]) -> Armament:
+## A fresh armament for `loadout`: full magazines, each replica's selector and dial as it comes, and the BB weight
+## loaded in each slot (`weights`, a Kit's; a slot it has none for loads its factory weight).
+static func create(loadout: Array[ReplicaConfig], weights: PackedFloat64Array = PackedFloat64Array()) -> Armament:
 	var a := Armament.new()
 	a.replicas = loadout.duplicate()
-	for r in a.replicas:
+	for i in a.replicas.size():
+		var r := a.replicas[i]
 		var m := Ammo.new()
 		m.fill(r)
 		a.ammo.append(m)
 		a.modes.append(r.default_fire_mode)
 		a.hop_ups.append(r.hop_up_dial)
-		a.bb_weights.append(r.bb_weight)
+		a.bb_weights.append(weights[i] if i < weights.size() else r.bb_weight)
 	return a
 
 

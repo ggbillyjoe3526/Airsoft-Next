@@ -171,6 +171,15 @@ msgstr "Your saved settings could not be read, so the defaults are in use."
 msgid "SETTINGS_NEWER"
 msgstr "Your saved settings are from a different version of the game, so the defaults are in use."
 
+msgid "LOADOUT_NAME"
+msgstr "Loadout %d"
+
+msgid "LOADOUTS_DAMAGED"
+msgstr "Your saved loadouts could not be read, so the default loadout is in use."
+
+msgid "LOADOUTS_NEWER"
+msgstr "Your saved loadouts are from a different version of the game, so the default loadout is in use."
+
 msgid "SETTINGS_CONTROLS"
 msgstr "CONTROLS"
 

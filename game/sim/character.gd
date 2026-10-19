@@ -83,13 +83,13 @@ var ghost: bool = false
 
 
 func _init(character_id: int = 0, character_team: int = 0, spawn: Vector3 = Vector3.ZERO, facing: float = 0.0,
-		loadout: Array[ReplicaConfig] = []) -> void:
+		loadout: Array[ReplicaConfig] = [], bb_weights: PackedFloat64Array = PackedFloat64Array()) -> void:
 	id = character_id
 	team = character_team
 	end = character_team
 	spawn_position = spawn
 	spawn_yaw = facing
-	armament = Armament.create(loadout)
+	armament = Armament.create(loadout, bb_weights)
 	respawn()
 
 

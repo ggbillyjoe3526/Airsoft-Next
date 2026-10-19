@@ -31,7 +31,9 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `game/play/` | `PlaySession` (a match, played) and the views drawn from the state: camera, replica in hand, BBs, puffs, figures, sound (`game/play/README.md`) | built |
 | `game/map/` | Maps from `data/maps/*.json` (listed and tagged public or dev by `MapCatalog` from `data/maps.md`), their greybox and Jolt colliders behind `WorldQuery` and `CharacterMover` (`game/map/README.md`) | built |
 | `game/save/` | `SaveFile` and the player's settings (`Settings`, applied by `SettingsApply`, and the Dev tab's `DevSettings`); key bindings in `game/input/` | built |
-| `game/pool/`, `game/progress/`, `game/stats/` | Loadout, levels, records | later |
+| `game/pool/` | `Pool`: data/pool.md's replicas and power sources, and what fits what by tags | built |
+| `game/loadout/` | The loadout carried: `SavedLoadouts` (five named, the current one carried, its own `SaveFile` store), `Loadout` and each replica's `ReplicaTune`, `LoadoutRules` (what's offered, the edits, the `Kit` a loadout plays as: power sources and the site limit); colours in `game/config/replica_schemes.gd` | built |
+| `game/progress/`, `game/stats/` | Levels, records | later |
 | `data/` | The owner's six tables, read at start with `FileAccess`; `data/maps/*.json`, the map layouts | copied |
 | `assets/` | Models, fonts and sounds from the browser game, and the map pictures `tools/map_pictures.gd` renders (`assets/README.md`) | copied |
 | `tests/unit/` | GUT tests, `test_*.gd` | built |

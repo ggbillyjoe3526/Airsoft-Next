@@ -20,7 +20,8 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `nav_config.gd` | The nav grid: cell size, clearance margin, snapping, the search's greed, line sampling |
 | `replica_rules_config.gd` | Recoil recovery, the trigger, BB weight, the hop-up dial's range and notch, the draw from the holster |
 | `replica_config.gd`, `replicas/*.tres` | One replica's stats, the built-in values; `data/stats.md` wins over them |
-| `replica_stats.gd`, `data_table.gd` | Read `data/stats.md`'s tables (a cell that won't read keeps the built-in value and warns) |
+| `replica_stats.gd`, `data_table.gd` | Read `data/stats.md`'s tables, the power sources too (a cell that won't read keeps the built-in value and warns) |
+| `replica_schemes.gd` | Replica colours: the eight bold schemes and four plain colours, each class's default, the bots' team colours, Realistic colours |
 | `play_tuning.gd`, `play_tuning.tres` | Bundles the play screen's configs below, and the rematch delay |
 | `controls_config.gd` | Mouse turn, sensitivity (hip, and a multiplier aimed), invert, slower while zoomed, crouch and aim toggle or hold; the settings screen writes its values over these |
 | `view_config.gd` | Field of view, the sight's zoom, near and far, the view's roll in a lean, a cut lean's easing, a vault's dip and tip |

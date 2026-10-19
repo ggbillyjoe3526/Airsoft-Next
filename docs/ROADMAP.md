@@ -68,7 +68,9 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
    HUD restyled in the menus' look. Concepts first (shared files, `concepts/step8-menus/`); MN1 (title and look),
    MN2 (Match screen, loading, pause) and HD1 (the HUD). Built.
 9. **Loadout.** Primary and secondary (Grenades greyed), BB weight, hop-up, colour schemes and realistic colours,
-   power sources, saved loadouts.
+   power sources, saved loadouts. Concepts first (shared files, `concepts/step9-loadout/`); LO1 (the loadout
+   carried: saved loadouts, power sources, BB weight in play), LO2 (the Loadout and Customise screens) and LO3
+   (replica colours in play).
 10. **Attachments.** Red dot, 2× scope, grips, magazines, barrels, the Silencer and the laser, the Performance sheet
     and each class's energy limit.
 11. **The Cyber Pistol, levels and the Armory,** with the bots' kits per level, locked items greyed, Disable
