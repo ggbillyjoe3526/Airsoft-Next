@@ -11,6 +11,11 @@ const REPLICA_DIR := "res://game/config/replicas/"
 const DEFAULT_LOADOUT: Array[StringName] = [&"aeg", &"pistol"]
 const REPLICAS_TABLE := "Replicas"
 const LIMITS_TABLE := "Site limits"
+const POWER_TABLE := "Power sources"
+## A power source's percentage columns (stats.md › Power sources) and the range each cell must fall in.
+const POWER_COLUMNS: Array[String] = ["Energy %", "Fire rate %", "Recoil %"]
+const POWER_PERCENT_MIN := -90.0
+const POWER_PERCENT_MAX := 200.0
 const KEY_HEADER := "Key"
 const CLASS_HEADER := "Class"
 const LIMIT_HEADER := "Limit (J)"
@@ -36,10 +41,20 @@ const COLUMNS: Array[Dictionary] = [
 	{"header": "Recoil (°)", "field": &"recoil_deg", "kind": Kind.NUMBER, "min": 0.0, "max": 5.0},
 ]
 
+## What a power source changes, as shares (0.15 is +15 %): energy (gas, spring), rate of fire (battery) and kick.
+class Power:
+	extends RefCounted
+	var energy: float = 0.0
+	var fire_rate: float = 0.0
+	var recoil: float = 0.0
+
+
 ## Each replica Key's readable cells: ReplicaConfig property → value.
 var replicas: Dictionary[String, Dictionary] = {}
 ## Energy limit (J) by site class.
 var site_limits: Dictionary[StringName, float] = {}
+## Each power source's row by its pool.md ID; a source with no row (or no table) changes nothing.
+var powers: Dictionary[String, Power] = {}
 ## What couldn't be read, each "stats.md:line: …".
 var problems: Array[String] = []
 
@@ -49,10 +64,11 @@ static func parse(text: String) -> ReplicaStats:
 	var s := ReplicaStats.new()
 	var tables := DataTable.read_all(text, FILE_NAME)
 	for t in tables:
-		if t.heading == REPLICAS_TABLE or t.heading == LIMITS_TABLE:
+		if t.heading == REPLICAS_TABLE or t.heading == LIMITS_TABLE or t.heading == POWER_TABLE:
 			s.problems.append_array(t.problems)
 	s._read_replicas(DataTable.find(tables, REPLICAS_TABLE))
 	s._read_limits(DataTable.find(tables, LIMITS_TABLE))
+	s._read_powers(DataTable.find(tables, POWER_TABLE))
 	return s
 
 
@@ -99,6 +115,21 @@ func overlay(base: ReplicaConfig) -> ReplicaConfig:
 	for field: StringName in fields:
 		r.set(field, fields[field])
 	return r
+
+
+## The built-in replica `key` with its row laid over it, or null (quietly) if the game has no built-in config for it:
+## a replica the pool lists but the game can't play yet.
+func replica_config(key: StringName) -> ReplicaConfig:
+	var path := "%s%s.tres" % [REPLICA_DIR, key]
+	if not ResourceLoader.exists(path):
+		return null
+	var base := load(path) as ReplicaConfig
+	return overlay(base) if base != null else null
+
+
+## What the power source `id` changes; nothing for a source with no row.
+func power(id: String) -> Power:
+	return powers.get(id, Power.new())
 
 
 ## The energy limit (J) of `site_class`: unlimited if the file and the built-in limits name none.
@@ -187,6 +218,31 @@ func _read_limits(t: DataTable) -> void:
 					_shown(LIMIT_MIN), _shown(LIMIT_MAX), raw])
 			continue
 		site_limits[StringName(c)] = v
+
+
+func _read_powers(t: DataTable) -> void:
+	# No table: every power source changes nothing, as the Standard Battery doesn't (quiet; the rest of the file reads).
+	if t == null:
+		return
+	for row in t.rows:
+		var id := row.key
+		if powers.has(id):
+			problems.append("%s: power source %s is listed twice" % [t.where(row.line), id])
+			continue
+		var shares := PackedFloat64Array()
+		for header in POWER_COLUMNS:
+			var raw := row.cell(header)
+			var v := DataTable.parse_number(raw)
+			if is_nan(v) or v < POWER_PERCENT_MIN or v > POWER_PERCENT_MAX:
+				problems.append("%s: %s must be a number from %s to %s, not \"%s\": counted as 0" % [
+						t.where(row.line), header, _shown(POWER_PERCENT_MIN), _shown(POWER_PERCENT_MAX), raw])
+				v = 0.0
+			shares.append(v / 100.0)
+		var p := Power.new()
+		p.energy = shares[0]
+		p.fire_rate = shares[1]
+		p.recoil = shares[2]
+		powers[id] = p
 
 
 ## A Key: a letter, then letters and digits (statsFile.ts KEY_PATTERN).

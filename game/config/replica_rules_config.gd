@@ -22,3 +22,7 @@ extends Resource
 @export var holster_draw_scale: float = 1.8
 ## One notch of the dial turned in play (share of hop_up_max); never zero, the dial snaps to it.
 @export_range(0.01, 0.5, 0.01) var hop_up_dial_step: float = 0.05
+## The BB weights a player can load (g) and the Loadout's step (the browser game's BB_WEIGHT): 0.20 to 0.30 g.
+@export var bb_weight_min: float = 0.2
+@export var bb_weight_max: float = 0.3
+@export_range(0.001, 0.05, 0.001) var bb_weight_step: float = 0.01

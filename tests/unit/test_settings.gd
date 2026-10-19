@@ -231,3 +231,14 @@ func test_applying_bindings_writes_the_input_map() -> void:
 func test_the_shared_settings_use_the_play_tuning_a_match_loads() -> void:
 	assert_eq(Settings.shared().tuning, PlayTuning.load_default())
 	assert_same(Settings.shared(), Settings.shared())
+
+
+func test_realistic_colours_is_off_by_default_and_kept() -> void:
+	var s := Settings.new()
+	assert_false(s.realistic_colours)
+	s.realistic_colours = true
+	var t := Settings.new()
+	t.from_dict(s.to_dict())
+	assert_true(t.realistic_colours)
+	t.from_dict({"realistic_colours": "yes"})
+	assert_false(t.realistic_colours, "a value that won't read keeps the default")
