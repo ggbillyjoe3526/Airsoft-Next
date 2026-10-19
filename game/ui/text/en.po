@@ -602,3 +602,288 @@ msgstr "%s · %s · Round %d"
 
 msgid "PAUSE_SEED"
 msgstr "Match seed"
+
+msgid "LOADOUT_CARRIED"
+msgstr "CARRIED"
+
+msgid "LOADOUT_REPLICAS"
+msgstr "YOUR REPLICAS"
+
+msgid "LOADOUT_PRIMARY"
+msgstr "PRIMARY"
+
+msgid "LOADOUT_SECONDARY"
+msgstr "SECONDARY"
+
+msgid "LOADOUT_GRENADES"
+msgstr "GRENADES"
+
+msgid "LOADOUT_GRENADES_LATER"
+msgstr "Grenades, smoke and flash bombs come later."
+
+msgid "LOADOUT_HINT"
+msgstr "Pick a slot, then a replica to carry in it. Picking one already carried swaps the two.\nDouble-click a carried replica, or CUSTOMISE, to change its colour, BBs, hop-up and power."
+
+msgid "LOADOUT_CUSTOMISE"
+msgstr "CUSTOMISE"
+
+msgid "LOADOUT_GRAMS"
+msgstr "%.2f g"
+
+msgid "LOADOUT_GRAMS_PLAIN"
+msgstr "%.2f"
+
+msgid "LOADOUT_BBS_LINE"
+msgstr "%.2f g · hop-up %d %%"
+
+msgid "LOADOUT_OWN_COLOURS"
+msgstr "Own colours"
+
+msgid "LOADOUT_CLASS_RIFLE"
+msgstr "rifle"
+
+msgid "LOADOUT_CLASS_PISTOL"
+msgstr "pistol"
+
+msgid "LOADOUT_REPLICA_SUB"
+msgstr "%s · %d BBs/s"
+
+msgid "LOADOUT_COMES_WITH_LEVELS"
+msgstr "%s · comes with levels"
+
+msgid "LOADOUT_FOOT"
+msgstr "%s · carried into every match"
+
+msgid "LOADOUT_SHEET_SUB"
+msgstr "%s as carried, against it as it comes. Speed as a site's chrono reads it, on 0.20 g BBs."
+
+msgid "LOADOUT_NEW"
+msgstr "+ NEW LOADOUT"
+
+msgid "LOADOUT_RENAME"
+msgstr "Rename"
+
+msgid "LOADOUT_DUPLICATE"
+msgstr "Duplicate"
+
+msgid "LOADOUT_REPLACE"
+msgstr "Replace…"
+
+msgid "LOADOUT_REMOVE"
+msgstr "Remove"
+
+msgid "LOADOUT_REMOVE_YES"
+msgstr "Remove it"
+
+msgid "LOADOUT_KEEP"
+msgstr "Keep it"
+
+msgid "LOADOUT_RENAME_PROMPT"
+msgstr "Type a name, Enter keeps it, Esc cancels"
+
+msgid "LOADOUT_REPLACE_PROMPT"
+msgstr "Click the loadout to replace with %s, or Esc"
+
+msgid "LOADOUT_REMOVE_PROMPT"
+msgstr "Remove %s?"
+
+msgid "PERF_TITLE"
+msgstr "PERFORMANCE"
+
+msgid "PERF_ENERGY"
+msgstr "Energy"
+
+msgid "PERF_SPEED"
+msgstr "Muzzle speed"
+
+msgid "PERF_BB_WEIGHT"
+msgstr "BB weight"
+
+msgid "PERF_RATE"
+msgstr "Rate of fire"
+
+msgid "PERF_ON_TARGET"
+msgstr "On target to"
+
+msgid "PERF_TIME"
+msgstr "Time to 20 m"
+
+msgid "PERF_SPREAD"
+msgstr "Spread"
+
+msgid "PERF_RECOIL"
+msgstr "Recoil"
+
+msgid "PERF_MAGAZINES"
+msgstr "Magazines"
+
+msgid "PERF_RELOAD"
+msgstr "Reload"
+
+msgid "PERF_DRAW"
+msgstr "Draw"
+
+msgid "PERF_UNIT_J"
+msgstr "J"
+
+msgid "PERF_UNIT_FPS"
+msgstr "fps"
+
+msgid "PERF_UNIT_G"
+msgstr "g"
+
+msgid "PERF_UNIT_BBS"
+msgstr "BBs/s"
+
+msgid "PERF_UNIT_M"
+msgstr "m"
+
+msgid "PERF_UNIT_S"
+msgstr "s"
+
+msgid "PERF_UNIT_DEG"
+msgstr "°"
+
+msgid "PERF_MAGAZINES_FORMAT"
+msgstr "%d × %d"
+
+msgid "PERF_FULL_RANGE"
+msgstr "%d+"
+
+msgid "PERF_AS_COMES"
+msgstr "%s as it comes: %s %s"
+
+msgid "PERF_BETTER"
+msgstr "Better than it comes: %s."
+
+msgid "PERF_WORSE"
+msgstr "Worse than it comes: %s."
+
+msgid "PERF_CAPPED"
+msgstr "Capped at the site limit: %.2f J on the chrono with the replica's own BBs. Heavier BBs carry a little more."
+
+msgid "PERF_CAPPED_TAG"
+msgstr "CAPPED"
+
+msgid "CUSTOMISE_BACK"
+msgstr "‹ LOADOUT"
+
+msgid "CUSTOMISE_COLOUR"
+msgstr "COLOUR"
+
+msgid "CUSTOMISE_BBS"
+msgstr "BBs"
+
+msgid "CUSTOMISE_POWER"
+msgstr "POWER"
+
+msgid "CUSTOMISE_POWER_BUILT_IN"
+msgstr "Built in"
+
+msgid "PART_OPTIC"
+msgstr "OPTIC"
+
+msgid "PART_GRIP"
+msgstr "GRIP"
+
+msgid "PART_LASER"
+msgstr "LASER"
+
+msgid "PART_BARREL"
+msgstr "BARREL"
+
+msgid "PART_MUZZLE"
+msgstr "MUZZLE"
+
+msgid "PART_MAGAZINE"
+msgstr "MAGAZINE"
+
+msgid "PART_LIGHT"
+msgstr "LIGHT"
+
+msgid "CUSTOMISE_COLOUR_SUB"
+msgstr "Colour changes how a replica looks, never how it shoots."
+
+msgid "CUSTOMISE_AS_IT_COMES"
+msgstr "as it comes %s"
+
+msgid "CUSTOMISE_PERCENT"
+msgstr "%d %%"
+
+msgid "CUSTOMISE_ON_TARGET"
+msgstr "on target to %s m"
+
+msgid "CUSTOMISE_OWN_NOTE"
+msgstr "This replica keeps its own colours."
+
+msgid "CUSTOMISE_BOLD"
+msgstr "BOLD"
+
+msgid "CUSTOMISE_BOLD_NOTE"
+msgstr "Two-tone schemes"
+
+msgid "CUSTOMISE_REALISTIC"
+msgstr "REALISTIC"
+
+msgid "CUSTOMISE_REALISTIC_NOTE"
+msgstr "One plain colour, as a real replica comes"
+
+msgid "CUSTOMISE_REALISTIC_EVERYWHERE"
+msgstr "REALISTIC COLOURS EVERYWHERE"
+
+msgid "CUSTOMISE_REALISTIC_EVERYWHERE_NOTE"
+msgstr "Shows every bold scheme as its plain colour, yours and the bots'."
+
+msgid "CUSTOMISE_BB_WEIGHT"
+msgstr "BB WEIGHT"
+
+msgid "CUSTOMISE_HOP_UP"
+msgstr "HOP-UP"
+
+msgid "CUSTOMISE_HOP_OFF"
+msgstr "OFF"
+
+msgid "CUSTOMISE_HOP_HALF"
+msgstr "HALF"
+
+msgid "CUSTOMISE_HOP_FULL"
+msgstr "FULL"
+
+msgid "CUSTOMISE_WEIGHT_BLURB"
+msgstr "Heavier BBs hold their line in the wind and keep a little more energy, but leave the barrel slower: more time for the other player to see them coming."
+
+msgid "CUSTOMISE_HOP_BLURB"
+msgstr "Backspin that lifts the BB to fly flat. Too little and it drops early; too much and it climbs. Turn it in a match with 4 and 5."
+
+msgid "CUSTOMISE_POWER_HEAD"
+msgstr "POWER SOURCE"
+
+msgid "CUSTOMISE_POWER_NOTE"
+msgstr "What drives the replica"
+
+msgid "CUSTOMISE_POWER_NONE"
+msgstr "This replica's power is built in: nothing to fit."
+
+msgid "CUSTOMISE_POWER_TYPE_BATTERY"
+msgstr "Battery · sets the rate of fire"
+
+msgid "CUSTOMISE_POWER_TYPE_GAS"
+msgstr "Gas · sets the energy, and the kick with it"
+
+msgid "CUSTOMISE_POWER_TYPE_SPRING"
+msgstr "Spring · sets the energy"
+
+msgid "CUSTOMISE_POWER_ENERGY"
+msgstr "Energy"
+
+msgid "CUSTOMISE_POWER_RATE"
+msgstr "Fire rate"
+
+msgid "CUSTOMISE_POWER_RECOIL"
+msgstr "Recoil"
+
+msgid "CUSTOMISE_POWER_PERCENT"
+msgstr "%+d %%"
+
+msgid "CUSTOMISE_POWER_ZERO"
+msgstr "0 %"

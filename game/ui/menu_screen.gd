@@ -1,8 +1,9 @@
 class_name MenuScreen
 extends Control
-## The menus: the top bar over a page pinned to the window. Only the Match page exists (MatchPage, which keeps its picks
-## in the MatchPicks it is given); a tab press goes to the entry screen, which opens the settings under the bar. Esc goes
-## back to the title.
+## The menus: the top bar over a page pinned to the window: the Match page (MatchPage, which keeps its picks in the
+## MatchPicks it is given) or the Loadout page (LoadoutPage, built when its tab is opened and freed, after saving, when
+## the Match tab or the title comes back). A tab press goes to the entry screen, which opens the settings under the bar and
+## asks for the page. Esc backs out of what the page has open, then goes back to the title.
 
 signal back
 ## A tab that is built was pressed.
@@ -10,10 +11,13 @@ signal tab_requested(tab: TopBar.Tab)
 
 var _bar: TopBar = null
 var _match: MatchPage = null
+var _loadout: LoadoutPage = null
+var _settings: Settings = null
 
 
 func _init(picks: MatchPicks = null, settings: Settings = null) -> void:
 	name = "MenuScreen"
+	_settings = settings if settings != null else Settings.shared()
 	theme = GameTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var plate := ColorRect.new()
@@ -38,8 +42,56 @@ func match_page() -> MatchPage:
 	return _match
 
 
+## The Loadout page while it is open, else null.
+func loadout_page() -> LoadoutPage:
+	return _loadout
+
+
+## The tab whose page is showing: MATCH or LOADOUT.
+func page_tab() -> TopBar.Tab:
+	return TopBar.Tab.LOADOUT if _loadout != null else TopBar.Tab.MATCH
+
+
 func focus_play() -> void:
 	_match.focus_play()
+
+
+## Puts the keyboard on the page's main control.
+func focus_page() -> void:
+	if _loadout != null:
+		_loadout.focus_default()
+	else:
+		_match.focus_play()
+
+
+## Shows the Loadout page, building it the first time.
+func show_loadout() -> void:
+	if _loadout == null:
+		_loadout = LoadoutPage.new(null, _settings)
+		_loadout.offset_top = TopBar.HEIGHT
+		add_child(_loadout)
+		# under the bar, over the Match page
+		move_child(_loadout, _bar.get_index())
+	_match.visible = false
+	_bar.set_current(TopBar.Tab.LOADOUT)
+	_loadout.focus_default()
+
+
+## Shows the Match page again; the Loadout page is saved and freed.
+func show_match() -> void:
+	leave_loadout()
+	_match.visible = true
+	_bar.set_current(TopBar.Tab.MATCH)
+
+
+## Saves the loadouts and frees the Loadout page, if it is open (a match is about to start, or another tab opens).
+func leave_loadout() -> void:
+	if _loadout == null:
+		return
+	_loadout.close()
+	remove_child(_loadout)
+	_loadout.queue_free()
+	_loadout = null
 
 
 func _on_tab(tab: TopBar.Tab) -> void:
