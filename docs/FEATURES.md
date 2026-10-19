@@ -34,6 +34,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - Match screen: pick a map from picture cards (Depot, or Neon Heights while Dev content is on; Woodland greyed, LATER), the mode (Elimination), your team (ALPHA or BETA) and the bots' level (Normal), with the rules as chips; picks stay while the game is open (MN2)
 - Loading screen: PLAY shows the map's picture, name and a progress bar until the match draws (MN2)
 - Pause menu: PAUSED, the map, mode and round, RESUME, SETTINGS, QUIT MATCH and the match's seed (MN2)
-- Title screen and menus: a title with START, which opens a top bar of Match, Loadout, Armory (LATER), Settings and your level chip (MN1)
+- Title screen and menus: a title with START, which opens a top bar of Match, Loadout, Armory, Settings and your level chip (MN1)
 - Loadout and Customise screens: the LOADOUT tab with five saved loadouts, your carried replicas and a Performance sheet; CUSTOMISE sets each replica's colour, BB weight, hop-up and power source (LO2)
 - Locked items: a replica, power source or part above your level is listed greyed with "LEVEL n" and can't be picked; the top bar's chip shows your level (LV1)
+- Armory and end-of-match XP: the ARMORY tab with your level, XP, unlocks and levels, and the XP and level-up card under the win banner (AR1)

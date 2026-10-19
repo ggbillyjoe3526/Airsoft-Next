@@ -14,4 +14,4 @@ own file apart from the settings and the loadouts.
 
 Who uses it: `PlaySession` settles each finished match it `counts` (the game's own, never a test or the smoke test);
 `LoadoutRules.follow_progress` locks what isn't unlocked (Settings › Dev › Disable levelling unlocks it all and makes a
-match give no XP); the top bar's chip shows the level.
+match give no XP); the top bar's chip shows the level; the Armory (`ArmoryPage`) lists every level and item against it and says when a file couldn't be read, and `Hud.show_xp` puts a settled match's XP under the win banner (`XpCard`).

@@ -3,7 +3,8 @@ extends Control
 ## The heads-up display (the browser game's ui/hud.ts) in the menus' look (HudStyle): the crosshair sized from the
 ## replica's real spread, the hit marker when your BB knocks someone out, the replica panel (ReplicaPanel: count, spare,
 ## fire modes, a box per magazine, reloading, the hop-up dial while you turn it), the score bar and "First to N"
-## (HudScore), the round's banners (HudBanner), a ricochet that only ticks you, and the big "HIT!" when you're hit. Text
+## (HudScore), the round's banners (HudBanner), a ricochet that only ticks you, the big "HIT!" when you're hit, and under
+## the win banner the XP the match gave (XpCard, up until the next match starts). Text
 ## is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 32.0
@@ -13,6 +14,8 @@ const TOP_WIDTH := 800.0
 ## The banners' and hit call's box, centred above the crosshair.
 const MIDDLE_SIZE := Vector2(1500.0, 260.0)
 const MIDDLE_RAISE := 200.0
+## The finished match's XP (XpCard) hangs this far under the banner.
+const XP_GAP := 28.0
 ## The hit marker's four strokes, out from the centre.
 const MARKER_DIRECTIONS: Array[Vector2] = [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]
 
@@ -30,6 +33,7 @@ var _hit_label: Label = null
 var _hit_sub: Label = null
 var _vault_prompt: Label = null
 var _vault_left: float = 0.0
+var _xp: XpCard = null
 
 var _marker_left: float = 0.0
 var _banner_left: float = 0.0
@@ -127,6 +131,8 @@ func on_tick(state: GameState) -> void:
 				if e.actor == _player.id:
 					_show_hop_up(e.value / 100.0)
 			GameEvent.Kind.ROUND_START:
+				if e.value == 1:
+					hide_xp()
 				_show_banner(HudStyle.round_title(e.value), HudStyle.round_sub(e.value, _rounds.half_time_after))
 			GameEvent.Kind.ROUND_OVER:
 				if e.value < 0:
@@ -136,6 +142,25 @@ func on_tick(state: GameState) -> void:
 			GameEvent.Kind.MATCH_OVER:
 				_show_banner(HudStyle.match_won(_teams.names[e.value]), HudStyle.caps("HUD_NEW_MATCH"),
 						_teams.colours[e.value])
+
+
+## The finished match's XP under the banner (`settled`, at the bots' `difficulty`, `progress` as it stands now), until the
+## next match starts.
+func show_xp(settled: PlayerTally.Settled, difficulty: StringName, progress: Progress) -> void:
+	hide_xp()
+	_xp = XpCard.new(settled, difficulty, progress, Pool.shared())
+	_place(_xp, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-XpCard.WIDTH * 0.5, XP_GAP - MIDDLE_RAISE, XpCard.WIDTH, 0.0))
+	add_child(_xp)
+
+
+func hide_xp() -> void:
+	if _xp != null:
+		_xp.queue_free()
+		_xp = null
+
+
+func xp_card() -> XpCard:
+	return _xp
 
 
 ## Refreshes from `state` and the eye's zoom, `delta` seconds since the last frame.
@@ -150,7 +175,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 			_replica.hide_hop()
 	_vault_left = maxf(0.0, _vault_left - delta)
 	_vault_prompt.visible = _vault_left > 0.0 and in_play
-	if _banner_left > 0.0:
+	# The win banner stays up as long as the XP under it.
+	if _banner_left > 0.0 and _xp == null:
 		_banner_left -= delta
 		if _banner_left <= 0.0:
 			_banner.visible = false

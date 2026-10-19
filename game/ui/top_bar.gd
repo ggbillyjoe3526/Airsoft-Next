@@ -1,7 +1,7 @@
 class_name TopBar
 extends PanelContainer
-## The bar on every menu page: the wordmark, the tabs MATCH, LOADOUT and ARMORY (the last greyed with a LATER tag
-## until it is built), SETTINGS, and the level chip (`set_level`; hidden while levelling is off). The current tab is
+## The bar on every menu page: the wordmark, the tabs MATCH, LOADOUT, ARMORY and SETTINGS (a tab not built yet is greyed
+## with a LATER tag: `LATER_TABS`, none now), and the level chip (`set_level`; hidden while levelling is off). The current tab is
 ## lit with a yellow rule. A tab press is sent as `tab_pressed`; the page decides what to show and calls `set_current`.
 
 signal tab_pressed(tab: Tab)
@@ -18,7 +18,7 @@ const TAB_PAD_X := 24
 const TAG_GAP := 10
 const CHIP_SIZE := 18
 ## Tabs not built yet, shown greyed with the LATER tag.
-const LATER_TABS: Array[Tab] = [Tab.ARMORY]
+const LATER_TABS: Array[Tab] = []
 const TAB_KEYS: Dictionary[Tab, String] = {
 	Tab.MATCH: "MENU_TAB_MATCH",
 	Tab.LOADOUT: "MENU_TAB_LOADOUT",

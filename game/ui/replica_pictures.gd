@@ -6,10 +6,11 @@ extends Node
 ## (ReplicaParts: the standard magazine or flash hider they replace hidden, the iron sights folded under an optic); the
 ## picture is drawn again only when its paint or parts change, and the parts it replaces are freed. Each part also has a picture of its own, alone and in the same paint, for the Customise cards, kept
 ## only for the slot on show. A viewport draws once when the picture is made and once more for each repaint (not every
-## frame). The paints' materials are ReplicaPaint's: built once each and shared with the match. The figure copies in the
-## models are left out. Everything it makes is its child and goes with it.
+## frame). The paints' materials are ReplicaPaint's: built once each and shared with the match. The power sources have pictures of their own, from
+## assets/models/powerSources (the Armory's). The figure copies in the models are left out. Everything it makes is its child and goes with it.
 
 const MODEL_DIR := "res://assets/models/replicas/"
+const POWER_DIR := "res://assets/models/powerSources/"
 ## The picture's longer side (px); the other follows the replica's shape. A part's picture is smaller.
 const LONG_SIDE := 1024
 const PART_LONG_SIDE := 384
@@ -25,6 +26,10 @@ const AMBIENT_ENERGY := 0.75
 const AMBIENT := Color("c8d4ea")
 const MSAA := Viewport.MSAA_4X
 const FIGURE_NODE := "Figure"
+## The gas bottle's label material (one model for every gas, its colour set per power source), and the most metallic a
+## power source's metal is drawn: the picture has no reflections, so full metal turns black.
+const LABEL_MATERIAL := "Label"
+const MAX_METALNESS := 0.35
 
 
 class Shot:
@@ -47,6 +52,10 @@ class Shot:
 var _shots: Dictionary[StringName, Shot] = {}
 ## The parts' own pictures, "<replica>/<slot>/<part>".
 var _part_shots: Dictionary[String, Shot] = {}
+## The power sources' pictures, "<file>/<label colour>/<tip>".
+var _power_shots: Dictionary[String, Shot] = {}
+## The longer side of a replica's picture (px): a page that shows replicas small asks for less.
+var replica_side: int = LONG_SIDE
 
 
 ## The picture of replica `key` (a pool.md Key) in `paint`, with `parts` fitted (part slot -> part Key, as Kit.parts and
@@ -110,6 +119,20 @@ func part_extent(key: StringName, slot: StringName, part: StringName) -> Vector2
 	return shot.extent if shot != null else Vector2.ONE
 
 
+## The picture of a power source drawn from `file` (assets/models/powerSources/<file>.glb) with the model's `Label`
+## material in `label` (the gas bottle's; ignored by a file with none), tipped about X by `tip` rad (the stick batteries lie
+## along the picture and are raised at their lead end to fill it); null if there is no such model. Needs to be in the tree.
+func power_texture(file: StringName, label: Color, tip: float = 0.0) -> Texture2D:
+	var id := "%s/%s/%s" % [file, label.to_html(), tip]
+	var shot := _power_shots.get(id) as Shot
+	if shot == null:
+		shot = _make_power(file, label, tip)
+		if shot == null:
+			return null
+		_power_shots[id] = shot
+	return shot.port.get_texture()
+
+
 ## Lets go of the pictures of every part but those for `slot` of replica `key` (the tab on show keeps its own).
 func keep_parts(key: StringName, slot: StringName) -> void:
 	var prefix := "%s/%s/" % [key, slot]
@@ -156,9 +179,49 @@ func _make(key: StringName) -> Shot:
 	var figure := model.find_child(FIGURE_NODE, true, false) as Node3D
 	if figure != null:
 		figure.visible = false
-	var shot := _rig(model, LONG_SIDE, "Picture_%s" % key)
+	var shot := _rig(model, replica_side, "Picture_%s" % key)
 	shot.bare_extent = shot.extent
 	return shot
+
+
+func _make_power(file: StringName, label: Color, tip: float) -> Shot:
+	var path := "%s%s.glb" % [POWER_DIR, file]
+	var scene := load(path) as PackedScene if ResourceLoader.exists(path) else null
+	if scene == null:
+		return null
+	# The picture is framed on what sits inside its root, so the tip goes on a node under it.
+	var holder := Node3D.new()
+	holder.name = "Power"
+	var tipped := Node3D.new()
+	tipped.rotation.x = tip
+	holder.add_child(tipped)
+	var model := scene.instantiate() as Node3D
+	tipped.add_child(model)
+	# The file's materials are shared by every copy of it: each picture takes its own where it changes one.
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		_restyle(node as MeshInstance3D, label)
+	var shot := _rig(holder, PART_LONG_SIDE, "Power_%s_%s" % [file, label.to_html()])
+	shot.bare_extent = shot.extent
+	shot.port.render_target_update_mode = SubViewport.UPDATE_ONCE
+	return shot
+
+
+## Paints the `Label` material in `label` and holds metal back, on this mesh alone.
+func _restyle(mesh: MeshInstance3D, label: Color) -> void:
+	if mesh.mesh == null:
+		return
+	for i in mesh.mesh.get_surface_count():
+		var m := mesh.get_active_material(i) as BaseMaterial3D
+		if m == null:
+			continue
+		if m.resource_name == LABEL_MATERIAL:
+			var painted := m.duplicate() as BaseMaterial3D
+			painted.albedo_color = label
+			mesh.set_surface_override_material(i, painted)
+		elif m.metallic > MAX_METALNESS:
+			var dull := m.duplicate() as BaseMaterial3D
+			dull.metallic = MAX_METALNESS
+			mesh.set_surface_override_material(i, dull)
 
 
 func _part_shot(key: StringName, slot: StringName, part: StringName) -> Shot:

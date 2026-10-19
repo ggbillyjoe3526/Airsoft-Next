@@ -525,6 +525,7 @@ func _settle() -> void:
 	progress.save_if_dirty()
 	records.save_if_dirty()
 	settled = s
+	_hud.show_xp(s, difficulty, progress)
 	match_settled.emit()
 
 
