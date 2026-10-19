@@ -55,6 +55,7 @@ func _init(saved_in: SavedLoadouts = null, settings_in: Settings = null) -> void
 	_customise.bb_weight_set.connect(_set_weight)
 	_customise.hop_up_set.connect(_set_hop_up)
 	_customise.power_picked.connect(_pick_power)
+	_customise.part_picked.connect(_pick_part)
 	_customise.realistic_toggled.connect(_set_realistic)
 	add_child(_customise)
 	_strip = LoadoutStrip.new(saved)
@@ -164,6 +165,7 @@ func show_gear() -> void:
 	if not _customising:
 		return
 	_customising = false
+	_pictures.let_go_parts()
 	_customise.visible = false
 	_gear.visible = true
 	_strip.visible = true
@@ -253,6 +255,16 @@ func _set_hop_up(dial: float) -> void:
 
 func _pick_power(id: String) -> void:
 	if saved.rules.set_power(saved.carried(), _facts.item(_slot).id, id):
+		saved.mark_changed()
+
+
+## A part card: fits the part (or takes the slot's off for "") to the replica being customised.
+func _pick_part(part_slot: StringName, part_id: String) -> void:
+	var item := _facts.item(_slot)
+	var fitted := _facts.fitted_part(item, part_slot)
+	if (fitted.id if fitted != null else "") == part_id:
+		return
+	if saved.rules.set_part(saved.carried(), item.id, part_slot, part_id):
 		saved.mark_changed()
 
 

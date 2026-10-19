@@ -249,10 +249,10 @@ func test_picking_a_replica_for_a_slot_swaps_one_already_carried() -> void:
 	assert_true(_words(page.gear().replica_card(CYBER)).has("LATER"))
 
 
-func test_the_later_parts_are_greyed_and_power_lists_what_fits() -> void:
+func test_the_laser_and_light_are_greyed_and_power_lists_what_fits() -> void:
 	var page := _page()
 	page.show_customise(0)
-	assert_eq(page.customise().later_count(), 7)
+	assert_eq(page.customise().later_count(), 2, "the rifle's other parts are on (AT2): the laser and the light stay greyed")
 	var words := _words(page.customise())
 	for part: String in ["OPTIC", "GRIP", "LASER", "BARREL", "MUZZLE", "MAGAZINE", "LIGHT"]:
 		assert_true(words.has(part), part)

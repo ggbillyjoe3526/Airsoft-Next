@@ -142,12 +142,11 @@ func refresh(slot: Loadout.Slot, realistic: bool) -> void:
 		if power != "":
 			bits.append(power)
 		_carried_sub[s].text = " · ".join(bits)
-		_carried_pic[s].texture = _pictures.texture(item.key, t.paint, realistic)
-		_carried_pic[s].custom_minimum_size = _pictures.extent(item.key) * _carried_scale
+		_carried_pic[s].texture = _pictures.texture(item.key, t.paint, realistic, f.fitted_keys(item))
 	for id: String in _rows:
 		var item := f.pool().item(id)
 		var t := f.rules().tune_of(f.saved.carried(), id)
-		_row_pic[id].texture = _pictures.texture(item.key, t.paint, realistic)
+		_row_pic[id].texture = _pictures.texture(item.key, t.paint, realistic, f.fitted_keys(item))
 		var carried_in := f.slot_of(id)
 		_row_slot[id].visible = carried_in >= 0
 		if carried_in >= 0:
@@ -161,6 +160,13 @@ func refresh(slot: Loadout.Slot, realistic: bool) -> void:
 	_foot_name.text = f.saved.carried().name
 	_foot_rest.text = " · " + tr("LOADOUT_FOOT") % " and ".join(names) if not names.is_empty() else ""
 	_sheet.show_sheet(f.sheet(slot), tr("LOADOUT_SHEET_SUB") % f.item(slot).display_name)
+	# the pictures now hold the parts fitted: one scale again for every replica, sized to the longest
+	_set_scales()
+	for s in LoadoutFacts.SLOTS:
+		if f.has(s):
+			_carried_pic[s].custom_minimum_size = _pictures.extent(f.item(s).key) * _carried_scale
+	for id: String in _rows:
+		_row_pic[id].custom_minimum_size = _pictures.extent(f.pool().item(id).key) * _list_scale
 
 
 ## The two scales: each lets the longest replica listed fill its box (and no replica be taller than the box).

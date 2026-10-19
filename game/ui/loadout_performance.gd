@@ -13,6 +13,11 @@ const CHRONO_GRAMS := 0.20
 const FEET_PER_METRE := 1.0 / 0.3048
 ## The time row's distance (m).
 const TIME_DISTANCE := 20.0
+## The Moving row's bar when a magazine rattles (a share; the concept's short red bar).
+const RATTLES_BAR := 0.3
+## Rows that show only on the Customise tabs they belong to (the sheet's `extra`), and the one only a rattling magazine adds.
+const TAB_ROWS: Array[StringName] = [&"zoom", &"aim"]
+const MOVING_ROW := &"moving"
 ## The rows, top to bottom: the Figures field, the translation keys of its name and unit, the decimals shown, the value
 ## the bar is full at, whether a short bar is the good one, and which way counts as better.
 const SPECS: Array[Dictionary] = [
@@ -30,6 +35,10 @@ const SPECS: Array[Dictionary] = [
 			"better": Better.LOWER},
 	{"field": &"spread", "name": "PERF_SPREAD", "unit": "PERF_UNIT_DEG", "decimals": 2, "full": 1.2, "invert": true,
 			"better": Better.LOWER},
+	{"field": &"zoom", "name": "PERF_ZOOM", "unit": "PERF_UNIT_X", "decimals": 2, "full": 3.5, "invert": false,
+			"better": Better.HIGHER},
+	{"field": &"aim", "name": "PERF_AIM", "unit": "PERF_UNIT_S", "decimals": 2, "full": 0.4, "invert": true,
+			"better": Better.LOWER},
 	{"field": &"recoil", "name": "PERF_RECOIL", "unit": "PERF_UNIT_DEG", "decimals": 2, "full": 0.8, "invert": true,
 			"better": Better.LOWER},
 	{"field": &"magazines", "name": "PERF_MAGAZINES", "unit": "", "decimals": 0, "full": 600.0, "invert": false,
@@ -38,6 +47,8 @@ const SPECS: Array[Dictionary] = [
 			"better": Better.LOWER},
 	{"field": &"draw", "name": "PERF_DRAW", "unit": "PERF_UNIT_S", "decimals": 2, "full": 0.9, "invert": true,
 			"better": Better.LOWER},
+	{"field": &"moving", "name": "PERF_MOVING", "unit": "", "decimals": 0, "full": 1.0, "invert": false,
+			"better": Better.NONE},
 ]
 
 
@@ -58,6 +69,11 @@ class Figures:
 	var mags: int = 0
 	var reload: float = 0.0
 	var draw: float = 0.0
+	## The view's zoom when aimed (the optic's, or the iron sights'), and the seconds to bring the sight up.
+	var zoom: float = 1.0
+	var aim: float = 0.0
+	## A rattling magazine: bots close by hear it as you move.
+	var rattles: bool = false
 	var magazines: float:
 		get:
 			return float(mag_size * mags)
@@ -75,6 +91,13 @@ class Row:
 	var bar: float = 0.0
 	## 1 better, -1 worse, 0 the same (or a row that isn't better or worse).
 	var verdict: int = 0
+	## The row belongs to some Customise tabs only (`TAB_ROWS`); `present` is false for the Moving row without a rattle.
+	var tab_only: bool = false
+	var present: bool = true
+
+	## True if the sheet draws the row when the Customise tab asks for the rows in `extra`.
+	func is_shown(extra: PackedStringArray = PackedStringArray()) -> bool:
+		return present and (not tab_only or extra.has(String(field)))
 
 
 class Sheet:
@@ -90,19 +113,20 @@ class Sheet:
 				return r
 		return null
 
-	## The names of the rows with `verdict`, as keys.
-	func keys_with(verdict: int) -> PackedStringArray:
+	## The names of the shown rows with `verdict`, as keys.
+	func keys_with(verdict: int, extra: PackedStringArray = PackedStringArray()) -> PackedStringArray:
 		var out := PackedStringArray()
 		for r in rows:
-			if r.verdict == verdict:
+			if r.verdict == verdict and r.is_shown(extra):
 				out.append(r.name_key)
 		return out
 
 
 ## `replica` loaded with `grams` BBs and its dial at `dial`, measured by `tuning`'s ballistics: `range_limit` m is the
-## readout's reach and `band` m the "on target" band (the HUD's hop-up readout uses the same).
+## readout's reach and `band` m the "on target" band (the HUD's hop-up readout uses the same); `iron_zoom` is the view's
+## zoom aiming through iron sights.
 static func measure(replica: ReplicaConfig, grams: float, dial: float, tuning: SimTuning, band: float,
-		range_limit: float) -> Figures:
+		range_limit: float, iron_zoom: float) -> Figures:
 	var f := Figures.new()
 	var rules := tuning.replica_rules
 	var dt := 1.0 / float(Engine.physics_ticks_per_second)
@@ -120,6 +144,9 @@ static func measure(replica: ReplicaConfig, grams: float, dial: float, tuning: S
 	f.mags = replica.mags
 	f.reload = replica.reload_time
 	f.draw = replica.draw_time
+	f.zoom = replica.aim_zoom if replica.aim_zoom > 0.0 else iron_zoom
+	f.aim = tuning.movement.aim_raise_time * replica.raise_scale
+	f.rattles = replica.rattles
 	return f
 
 
@@ -130,6 +157,9 @@ static func compare(carried: Figures, comes: Figures, capped: bool, limit: float
 	sheet.limit = limit
 	for spec in SPECS:
 		var field: StringName = spec["field"]
+		if field == MOVING_ROW:
+			sheet.rows.append(_moving(spec, carried))
+			continue
 		var decimals: int = spec["decimals"]
 		var value: float = carried.get(field)
 		var before: float = comes.get(field)
@@ -137,6 +167,7 @@ static func compare(carried: Figures, comes: Figures, capped: bool, limit: float
 		r.field = field
 		r.name_key = spec["name"]
 		r.unit_key = spec["unit"]
+		r.tab_only = TAB_ROWS.has(field)
 		r.text = _shown(field, carried, value, decimals)
 		r.as_comes_text = _shown(field, comes, before, decimals)
 		var share := clampf(value / float(spec["full"]), 0.0, 1.0)
@@ -148,6 +179,20 @@ static func compare(carried: Figures, comes: Figures, capped: bool, limit: float
 			r.verdict = int(signf(diff)) * (1 if better == Better.HIGHER else -1)
 		sheet.rows.append(r)
 	return sheet
+
+
+## The Moving row: "Rattles" in red, and only when a magazine rattles.
+static func _moving(spec: Dictionary, carried: Figures) -> Row:
+	var r := Row.new()
+	r.field = spec["field"]
+	r.name_key = spec["name"]
+	r.unit_key = spec["unit"]
+	r.present = carried.rattles
+	r.text = TranslationServer.translate("PERF_RATTLES")
+	r.as_comes_text = TranslationServer.translate("PERF_QUIET")
+	r.bar = RATTLES_BAR
+	r.verdict = -1 if carried.rattles else 0
+	return r
 
 
 static func _shown(field: StringName, f: Figures, value: float, decimals: int) -> String:

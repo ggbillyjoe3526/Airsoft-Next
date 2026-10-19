@@ -11,6 +11,8 @@ const SLOT_KEYS: Array[String] = ["LOADOUT_PRIMARY", "LOADOUT_SECONDARY"]
 var saved: SavedLoadouts = null
 var tuning: SimTuning = null
 var hud: HudConfig = null
+## The view's zoom aiming through iron sights (a replica with an optic has its own).
+var iron_zoom: float = 1.0
 
 var _kit: Kit = null
 ## Each slot's pool item, and the replicas as they come, measured once each (they don't change while the screen is open).
@@ -21,7 +23,9 @@ var _comes_by_key: Dictionary[StringName, LoadoutPerformance.Figures] = {}
 func _init(saved_in: SavedLoadouts, sim: SimTuning = null, hud_in: HudConfig = null) -> void:
 	saved = saved_in
 	tuning = sim if sim != null else SimTuning.load_default()
-	hud = hud_in if hud_in != null else PlayTuning.load_default().hud
+	var play := PlayTuning.load_default()
+	hud = hud_in if hud_in != null else play.hud
+	iron_zoom = play.view.aim_zoom
 	refresh()
 
 
@@ -101,12 +105,31 @@ func bbs_line(slot: Loadout.Slot) -> String:
 	return TranslationServer.translate("LOADOUT_BBS_LINE") % [t.bb_weight, roundi(t.hop_up * 100.0)]
 
 
+## The parts `item`'s setup fits now, as the models and the tabs show them: part slot -> the part's Key. A saved part that
+## doesn't fit, or a dev part with Dev content off, is not here (it plays as not fitted).
+func fitted_keys(item: Pool.Item) -> Dictionary:
+	var out: Dictionary = {}
+	for part_slot: StringName in Pool.PART_TABLES.values():
+		var pt := fitted_part(item, part_slot)
+		if pt != null:
+			out[part_slot] = pt.key
+	return out
+
+
+## The fitted part of `item` in `part_slot`, or null.
+func fitted_part(item: Pool.Item, part_slot: StringName) -> Pool.Item:
+	var t := saved.rules.tune_of(saved.carried(), item.id)
+	var pt := pool().item(t.parts.get(part_slot, ""))
+	return pt if pt != null and saved.rules.parts_for(item.id, part_slot).has(pt) else null
+
+
 ## The sheet for `slot`: the replica as carried against as it comes.
 func sheet(slot: Loadout.Slot) -> LoadoutPerformance.Sheet:
 	var r := replica(slot)
 	var base := as_it_comes(slot)
 	var t := tune(slot)
-	var carried := LoadoutPerformance.measure(r, t.bb_weight, r.hop_up_dial, tuning, hud.hop_band, hud.hop_range)
+	var carried := LoadoutPerformance.measure(r, t.bb_weight, r.hop_up_dial, tuning, hud.hop_band, hud.hop_range,
+			iron_zoom)
 	var comes := _comes_of(slot, base)
 	return LoadoutPerformance.compare(carried, comes, capped(slot), saved.rules.stats.energy_limit(r.site_class))
 
@@ -116,6 +139,6 @@ func _comes_of(slot: Loadout.Slot, base: ReplicaConfig) -> LoadoutPerformance.Fi
 	var key := _items[slot].key
 	if not _comes_by_key.has(key):
 		_comes_by_key[key] = LoadoutPerformance.measure(base, base.bb_weight, base.hop_up_dial, tuning, hud.hop_band,
-				hud.hop_range)
+				hud.hop_range, iron_zoom)
 	return _comes_by_key[key]
 

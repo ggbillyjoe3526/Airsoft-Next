@@ -82,12 +82,23 @@ func sub_text() -> String:
 	return _sub.text
 
 
-## Shows `sheet` under the line `sub`.
-func show_sheet(sheet: LoadoutPerformance.Sheet, sub: String) -> void:
+## True if the row for `field` is on show.
+func row_shown(field: StringName) -> bool:
+	for r in _rows:
+		if r["field"] == field:
+			return (r["row"] as Control).visible
+	return false
+
+
+## Shows `sheet` under the line `sub`. `extra` names the tab-only rows this page wants (Zoom aimed, Aim in); with `words`
+## false the better and worse lines are left off (a part tab says it under its cards).
+func show_sheet(sheet: LoadoutPerformance.Sheet, sub: String, extra: PackedStringArray = PackedStringArray(),
+		words: bool = true) -> void:
 	_sub.text = sub
 	for i in sheet.rows.size():
 		var row := sheet.rows[i]
 		var ui: Dictionary = _rows[i]
+		(ui["row"] as Control).visible = row.is_shown(extra)
 		var colour := GameTheme.TEXT
 		if row.verdict > 0:
 			colour = GameTheme.GOOD
@@ -103,8 +114,8 @@ func show_sheet(sheet: LoadoutPerformance.Sheet, sub: String) -> void:
 				TranslationServer.translate(row.name_key), row.as_comes_text, unit]
 	var capped := sheet.capped
 	(_rows[0]["tag"] as Control).visible = capped
-	_set_line(_better, "PERF_BETTER", sheet.keys_with(1))
-	_set_line(_worse, "PERF_WORSE", sheet.keys_with(-1))
+	_set_line(_better, "PERF_BETTER", sheet.keys_with(1, extra) if words else PackedStringArray())
+	_set_line(_worse, "PERF_WORSE", sheet.keys_with(-1, extra) if words else PackedStringArray())
 	_capped.visible = capped
 	if capped:
 		_capped.text = TranslationServer.translate("PERF_CAPPED") % sheet.limit
