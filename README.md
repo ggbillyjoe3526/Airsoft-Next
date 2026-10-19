@@ -19,7 +19,7 @@ screen. The plan is `docs/ROADMAP.md`; what is happening now is `docs/HANDOFF.md
 - **From source:** install Godot **4.7.2** (standard, not .NET), choose *Import*, pick this folder's `project.godot`
   and press F5.
 - **Controls:** move WASD, walk Shift, sprint Alt, crouch C or Ctrl, jump Space, fire and aim the left and
-  right mouse buttons, reload R, fire mode B, replicas 1, 2 or the mouse wheel, pause Esc. Every key, the mouse and the volumes change under *Settings* (title
+  right mouse buttons, reload R, fire mode B, replicas 1, 2 or the mouse wheel, pause Esc. Debug keys (not rebindable): F3 the overlay (FPS, seed, position), F4 BB paths, F5 hit areas; `-- --seed <n>` replays a match. Every key, the mouse and the volumes change under *Settings* (title
   screen or pause menu).
 
 ## Layout

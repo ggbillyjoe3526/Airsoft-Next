@@ -44,9 +44,9 @@ const DEFAULTS: Dictionary = {
 	&"hop_up_less": [KEY_4, KEY_PAGEDOWN],
 	&"hop_up_more": [KEY_5, KEY_PAGEUP],
 }
-## Keys that can't be bound: Esc (menus), PrintScreen, Pause, F11 (fullscreen), F3 (the debug overlay; the debug keys
-## are reserved) and the OS keys.
-const UNBINDABLE: Array[int] = [KEY_ESCAPE, KEY_PRINT, KEY_PAUSE, KEY_F11, KEY_F3, KEY_META, KEY_MENU]
+## Keys that can't be bound: Esc (menus), PrintScreen, Pause, F11 (fullscreen), the debug keys (F3 the overlay, F4 BB
+## paths, F5 hit areas; they stay reserved) and the OS keys. A test checks every `debug_*` action's key is here.
+const UNBINDABLE: Array[int] = [KEY_ESCAPE, KEY_PRINT, KEY_PAUSE, KEY_F11, KEY_F3, KEY_F4, KEY_F5, KEY_META, KEY_MENU]
 ## The mouse buttons that can be bound (the wheel's sideways turns can't).
 const MOUSE_BUTTONS: Array[int] = [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT, MOUSE_BUTTON_MIDDLE, MOUSE_BUTTON_WHEEL_UP,
 		MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_XBUTTON1, MOUSE_BUTTON_XBUTTON2]

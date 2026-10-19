@@ -18,6 +18,7 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 | Play | Settings has Controls, Audio and Display only (SE1): no Graphics presets, Gameplay, HUD, Looks, Accessibility, Save file or Dev groups yet, and no F11 fullscreen key (it is reserved, not bound). Window mode, V-Sync and key names in the player's layout are tested only against the headless display server (they need a display; see `docs/records/SE1.md`) | can wait | 2026-10-18 |
 | Play | Whether ricochets count (`HitConfig.ricochets_count`, off) can't be changed in play: no Match options screen yet (BB1) | can wait | 2026-10-18 |
 | Play | The wind dust (`EffectsConfig.dust_count`, 90 GPU specks) has no off switch or Low-preset scale: Settings has no Graphics group yet | can wait | 2026-10-18 |
+| Debug | The F4 BB trails are 1 px lines, faint at range, and drawn in GDScript (live BBs × up to 150 points a frame), so a long spray with F4 on may dip the frame rate; a thicker ribbon mesh later (DV1) | can wait | 2026-10-19 |
 | Art | Depot is the greybox: one vertex-coloured mesh with a world grid, no bevels, decals or material families (`docs/ART.md`) | can wait | 2026-10-18 |
 | Art | The figures are capsules in the team colour, not `human.glb` or `robot.glb`; the raised arm and the "HIT!" sign are the whole hit call | can wait | 2026-10-18 |
 | Art | The replica in hand shares the main camera: no separate field of view, so it can clip into a wall when you stand against one, and the sight picture down the sights is a first pass | playtest | 2026-10-18 |

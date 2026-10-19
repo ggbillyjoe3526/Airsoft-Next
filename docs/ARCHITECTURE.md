@@ -23,7 +23,7 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `game/core/` | Engine-wide helpers: `Version` (name and tag rules) | built |
 | `game/save/` | `SaveFile`: crash-safe writes (temp file, then rename, with a backup) | built |
 | `game/ui/` | Screens and HUD on one `GameTheme`: `Credits`, `Hud`, `PauseMenu`; the words by translation key in `text/en.po` | built |
-| `game/debug/` | `DebugPerf` (F3: FPS, frame time, draw calls, primitives, nodes, orphans; `--perf` logs) | built |
+| `game/debug/` | `DebugPerf` (F3: FPS, frame time, draw calls, nodes, orphans, and the match's seed, position and entities; `--perf` logs), `DebugView` (F4 BB paths, F5 hit areas, drawn only while on), `--seed <n>` | built |
 | `game/sim/` | The 60 Hz simulation: state, commands, events, rounds, BBs, hit calling, movement (`game/sim/README.md`) | built |
 | `game/ai/`, `game/nav/` | Bots (a controller like the player) and the layered nav grid | built |
 | `game/config/` | Tuning as typed `Resource`s (`sim_tuning.tres` for the rules, `play_tuning.tres` for the view, sound and HUD), replicas and the `data/stats.md` reader (`game/config/README.md`) | built |
