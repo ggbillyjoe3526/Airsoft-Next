@@ -1,22 +1,20 @@
 class_name Hud
 extends Control
-## The heads-up display (the browser game's ui/hud.ts), drawn from live state every frame: the crosshair sized from the
-## replica's real spread, the hit marker when your BB knocks someone out, the replica panel (name, fire mode, loaded and
-## spare BBs, a gauge per magazine, reloading, the hop-up dial while you turn it), the score and the round clock, the
-## round's banners, a ricochet that only ticks you, and the big "HIT!" when you're hit. Text is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
+## The heads-up display (the browser game's ui/hud.ts) in the menus' look (HudStyle): the crosshair sized from the
+## replica's real spread, the hit marker when your BB knocks someone out, the replica panel (ReplicaPanel: count, spare,
+## fire modes, a box per magazine, reloading, the hop-up dial while you turn it), the score bar and "First to N"
+## (HudScore), the round's banners (HudBanner), a ricochet that only ticks you, and the big "HIT!" when you're hit. Text
+## is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
 
-const MARGIN := 40.0
-const PANEL_SIZE := Vector2(360.0, 180.0)
-const TOP_WIDTH := 600.0
+const MARGIN := 32.0
+## The replica panel's lane, bottom right: as wide as its hop-up note, as tall as its notes and panel.
+const PANEL_LANE := Vector2(340.0, 230.0)
+const TOP_WIDTH := 800.0
 ## The banners' and hit call's box, centred above the crosshair.
-const MIDDLE_SIZE := Vector2(1200.0, 260.0)
+const MIDDLE_SIZE := Vector2(1500.0, 260.0)
 const MIDDLE_RAISE := 200.0
 ## The hit marker's four strokes, out from the centre.
 const MARKER_DIRECTIONS: Array[Vector2] = [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]
-## The fire modes' and the panel's status lines' translation keys (ReplicaConfig.FireMode order; none, reloading, out
-## of BBs, last magazine).
-const MODE_KEYS: Array[String] = ["HUD_MODE_SEMI", "HUD_MODE_BURST", "HUD_MODE_AUTO"]
-const STATUS_KEYS: Array[String] = ["", "HUD_RELOADING", "HUD_OUT_OF_BBS", "HUD_LAST_MAG"]
 
 var _cfg: HudConfig = null
 var _teams: TeamConfig = null
@@ -25,18 +23,9 @@ var _player: Character = null
 var _rounds: RoundConfig = null
 var _sim: SimTuning = null
 
-var _replica_label: Label = null
-var _mag_label: Label = null
-var _spare_label: Label = null
-var _gauges: MagGauges = null
-var _status_label: Label = null
-var _hop_label: Label = null
-var _score_alpha: Label = null
-var _score_beta: Label = null
-var _clock_label: Label = null
-var _round_label: Label = null
-var _banner: Label = null
-var _banner_sub: Label = null
+var _replica: ReplicaPanel = null
+var _score: HudScore = null
+var _banner: HudBanner = null
 var _hit_label: Label = null
 var _hit_sub: Label = null
 var _vault_prompt: Label = null
@@ -47,18 +36,8 @@ var _banner_left: float = 0.0
 var _hop_left: float = 0.0
 var _gap: float = 0.0
 var _show_cross: bool = true
-## What the labels show now, so text is rebuilt only on a change.
-var _shown_mag: int = -1
-var _shown_spare: int = -1
-var _shown_slot: int = -1
 ## The slot the hop-up readout is about.
 var _hop_slot: int = -1
-var _shown_mode: int = -1
-var _shown_holstered: bool = false
-var _shown_status: int = -1
-var _shown_clock: int = -1
-var _shown_round: int = -1
-var _shown_score: Vector2i = Vector2i(-1, -1)
 
 
 func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, player: Character) -> void:
@@ -73,60 +52,52 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# The replica panel, bottom right.
-	var panel := VBoxContainer.new()
-	_place(panel, Vector4(1.0, 1.0, 1.0, 1.0), Rect2(-MARGIN - PANEL_SIZE.x, -MARGIN - PANEL_SIZE.y, PANEL_SIZE.x,
-			PANEL_SIZE.y))
-	panel.alignment = BoxContainer.ALIGNMENT_END
-	add_child(panel)
-	_hop_label = _label(panel, GameTheme.SMALL_SIZE, 600, cfg.text_colour, HORIZONTAL_ALIGNMENT_RIGHT)
-	_hop_label.visible = false
-	_status_label = _label(panel, GameTheme.SMALL_SIZE, 600, cfg.warn_colour, HORIZONTAL_ALIGNMENT_RIGHT)
-	var counts := HBoxContainer.new()
-	counts.alignment = BoxContainer.ALIGNMENT_END
-	panel.add_child(counts)
-	_mag_label = _label(counts, GameTheme.COUNT_SIZE, 800, cfg.text_colour, HORIZONTAL_ALIGNMENT_RIGHT)
-	_spare_label = _label(counts, GameTheme.BODY_SIZE, 600, cfg.muted_colour, HORIZONTAL_ALIGNMENT_LEFT)
-	_spare_label.size_flags_vertical = Control.SIZE_SHRINK_END
-	_gauges = MagGauges.new()
-	_gauges.setup(cfg)
-	panel.add_child(_gauges)
-	_replica_label = _label(panel, GameTheme.BODY_SIZE, 700, cfg.text_colour, HORIZONTAL_ALIGNMENT_RIGHT)
-	# The score and clock, top centre.
+	_replica = ReplicaPanel.new()
+	_place(_replica, Vector4(1.0, 1.0, 1.0, 1.0), Rect2(-MARGIN - PANEL_LANE.x, -MARGIN - PANEL_LANE.y, PANEL_LANE.x,
+			PANEL_LANE.y))
+	_replica.setup(cfg)
+	add_child(_replica)
+	# The score bar and "First to N", top centre.
 	var top := VBoxContainer.new()
-	_place(top, Vector4(0.5, 0.0, 0.5, 0.0), Rect2(-TOP_WIDTH * 0.5, MARGIN * 0.5, TOP_WIDTH, 0.0))
+	_place(top, Vector4(0.5, 0.0, 0.5, 0.0), Rect2(-TOP_WIDTH * 0.5, HudStyle.SCORE_TOP, TOP_WIDTH, 0.0))
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_theme_constant_override("separation", roundi(HudStyle.AIM_GAP))
 	add_child(top)
-	var score := HBoxContainer.new()
-	score.alignment = BoxContainer.ALIGNMENT_CENTER
-	score.add_theme_constant_override("separation", 28)
-	top.add_child(score)
-	_score_alpha = _label(score, GameTheme.LARGE_SIZE, 800, teams.colours[0], HORIZONTAL_ALIGNMENT_RIGHT)
-	_clock_label = _label(score, GameTheme.LARGE_SIZE, 700, cfg.text_colour, HORIZONTAL_ALIGNMENT_CENTER)
-	_score_beta = _label(score, GameTheme.LARGE_SIZE, 800, teams.colours[1], HORIZONTAL_ALIGNMENT_LEFT)
-	_round_label = _label(top, GameTheme.SMALL_SIZE, 600, cfg.muted_colour, HORIZONTAL_ALIGNMENT_CENTER)
+	_score = HudScore.new()
+	_score.setup(teams, _rounds.wins_needed)
+	_score.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	top.add_child(_score)
+	var aim := HudStyle.label(top, HudStyle.AIM_SIZE, 700, Color(GameTheme.TEXT, 0.8), HORIZONTAL_ALIGNMENT_CENTER,
+			HudStyle.SPACING_AIM)
+	aim.text = HudStyle.first_to(_rounds.wins_needed)
+	aim.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	aim.add_theme_stylebox_override("normal", HudStyle.panel_box(HudStyle.BACKING_AIM, 12, 4))
 	# Banners and the hit call, centre.
 	var middle := VBoxContainer.new()
 	_place(middle, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-MIDDLE_SIZE.x * 0.5, -MIDDLE_RAISE - MIDDLE_SIZE.y,
 			MIDDLE_SIZE.x, MIDDLE_SIZE.y))
+	middle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	middle.alignment = BoxContainer.ALIGNMENT_END
 	add_child(middle)
 	# The vault prompt, just under the crosshair.
 	var prompt := VBoxContainer.new()
 	_place(prompt, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-TOP_WIDTH * 0.5, cfg.vault_prompt_drop, TOP_WIDTH, 0.0))
 	add_child(prompt)
-	_vault_prompt = _label(prompt, GameTheme.SMALL_SIZE, 700, cfg.text_colour, HORIZONTAL_ALIGNMENT_CENTER)
+	_vault_prompt = HudStyle.label(prompt, GameTheme.SMALL_SIZE, 700, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	_vault_prompt.text = tr("HUD_VAULT") % KeyNames.of_action(&"jump")
 	_vault_prompt.add_theme_constant_override("outline_size", 6)
 	_vault_prompt.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.55))
 	_vault_prompt.visible = false
-	_hit_label = _label(middle, GameTheme.HUGE_SIZE, 800, cfg.text_colour, HORIZONTAL_ALIGNMENT_CENTER)
+	_hit_label = HudStyle.label(middle, GameTheme.HUGE_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	_hit_label.text = tr("HUD_YOU_ARE_HIT")
-	_hit_sub = _label(middle, GameTheme.BODY_SIZE, 600, cfg.text_colour, HORIZONTAL_ALIGNMENT_CENTER)
+	_hit_sub = HudStyle.label(middle, GameTheme.BODY_SIZE, 600, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	_hit_sub.text = tr("HUD_WALK_OFF")
-	_banner = _label(middle, GameTheme.LARGE_SIZE, 800, cfg.text_colour, HORIZONTAL_ALIGNMENT_CENTER)
-	_banner_sub = _label(middle, GameTheme.BODY_SIZE, 600, cfg.muted_colour, HORIZONTAL_ALIGNMENT_CENTER)
-	for l: Label in [_hit_label, _hit_sub, _banner, _banner_sub]:
+	for l: Label in [_hit_label, _hit_sub]:
 		l.add_theme_constant_override("outline_size", 8)
 		l.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.55))
+	_banner = HudBanner.new()
+	_banner.setup()
+	middle.add_child(_banner)
 
 
 ## Whether a Jump press would vault this tick: the prompt shows, and stays up vault_prompt_hold after.
@@ -150,20 +121,20 @@ func on_tick(state: GameState) -> void:
 			GameEvent.Kind.RICOCHET_TICK:
 				# Never over a round's own banner.
 				if e.target == _player.id and not _banner.visible:
-					_show_banner("", tr("HUD_RICOCHET"))
+					_show_banner("", HudStyle.caps("HUD_RICOCHET"))
 					_banner_left = _cfg.ricochet_time
 			GameEvent.Kind.HOP_UP:
 				if e.actor == _player.id:
 					_show_hop_up(e.value / 100.0)
 			GameEvent.Kind.ROUND_START:
-				_show_banner(tr("HUD_ROUND") % e.value, tr("HUD_FIRST_TO") % _rounds.wins_needed)
+				_show_banner(HudStyle.round_title(e.value), HudStyle.round_sub(e.value, _rounds.half_time_after))
 			GameEvent.Kind.ROUND_OVER:
 				if e.value < 0:
-					_show_banner(tr("HUD_ROUND_DRAW"), "")
+					_show_banner(HudStyle.caps("HUD_ROUND_DRAW"), HudStyle.caps("HUD_ROUND_DRAW_SUB"))
 				else:
-					_show_banner(tr("HUD_ROUND_WON") % tr(_teams.names[e.value]), "", _teams.colours[e.value])
+					_show_banner(HudStyle.round_won(_teams.names[e.value]), "", _teams.colours[e.value])
 			GameEvent.Kind.MATCH_OVER:
-				_show_banner(tr("HUD_MATCH_WON") % tr(_teams.names[e.value]), tr("HUD_NEW_MATCH"),
+				_show_banner(HudStyle.match_won(_teams.names[e.value]), HudStyle.caps("HUD_NEW_MATCH"),
 						_teams.colours[e.value])
 
 
@@ -176,14 +147,13 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	if _hop_left > 0.0:
 		_hop_left -= delta
 		if _hop_left <= 0.0:
-			_hop_label.visible = false
+			_replica.hide_hop()
 	_vault_left = maxf(0.0, _vault_left - delta)
 	_vault_prompt.visible = _vault_left > 0.0 and in_play
 	if _banner_left > 0.0:
 		_banner_left -= delta
 		if _banner_left <= 0.0:
 			_banner.visible = false
-			_banner_sub.visible = false
 	_hit_label.visible = not in_play and c.status != Character.Status.OUT
 	_hit_sub.visible = _hit_label.visible
 	# The crosshair's gap is the spread a shot really has now (two standard deviations), on this screen at this zoom.
@@ -193,58 +163,15 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		var half_fov := deg_to_rad(_view.vertical_fov(zoom)) * 0.5
 		_gap = maxf(_cfg.gap_min, tan(spread) / tan(half_fov) * size.y * 0.5)
 	if not a.replicas.is_empty():
-		_refresh_panel(a)
-	var rs := state.round_state
-	var clock := ceili(rs.clock)
-	if clock != _shown_clock:
-		_shown_clock = clock
-		_clock_label.text = "%d:%02d" % [clock / 60, clock % 60]
-	var score := Vector2i(rs.score[0], rs.score[1])
-	if score != _shown_score:
-		_shown_score = score
-		_score_alpha.text = str(score.x)
-		_score_beta.text = str(score.y)
-	if rs.number != _shown_round:
-		_shown_round = rs.number
-		_round_label.text = tr("HUD_ROUND") % rs.number
-	queue_redraw()
-
-
-func _refresh_panel(a: Armament) -> void:
-	var r := a.replica()
-	var mag := a.mag()
-	var spare := a.spare_bbs()
-	var mode := a.fire_mode() as int
-	if a.active != _shown_slot or mode != _shown_mode or a.holstered != _shown_holstered:
-		_shown_slot = a.active
-		_shown_mode = mode
-		_shown_holstered = a.holstered
-		var state := tr("HUD_HOLSTERED") if a.holstered else tr(MODE_KEYS[mode])
-		_replica_label.text = "%s  ·  %s" % [r.display_name, state]
-		if a.active != _hop_slot:
+		_replica.refresh(a)
+		if a.active != _hop_slot and _hop_left > 0.0:
 			_hop_left = 0.0
-			_hop_label.visible = false
-		_shown_mag = -1
-	if mag != _shown_mag:
-		_shown_mag = mag
-		_mag_label.text = str(mag)
-		var low := mag <= floori(r.mag_size * _cfg.low_mag_share)
-		_mag_label.add_theme_color_override("font_color", _cfg.warn_colour if low else _cfg.text_colour)
-	if spare != _shown_spare:
-		_shown_spare = spare
-		_spare_label.text = tr("HUD_SPARE") % spare
-	_gauges.refresh(a)
-	# STATUS_KEYS' order.
-	var status := 0
-	if a.reloading():
-		status = 1
-	elif mag == 0 and spare == 0:
-		status = 2
-	elif spare == 0:
-		status = 3
-	if status != _shown_status:
-		_shown_status = status
-		_status_label.text = tr(STATUS_KEYS[status]) if status > 0 else ""
+			_replica.hide_hop()
+	var rs := state.round_state
+	_score.set_clock(ceili(rs.clock))
+	_score.set_score(rs.score[0], rs.score[1])
+	_score.set_round(rs.number)
+	queue_redraw()
 
 
 func _draw() -> void:
@@ -252,7 +179,7 @@ func _draw() -> void:
 	var t := _cfg.cross_thickness
 	if _show_cross:
 		var arm := _cfg.cross_arm
-		var col := _cfg.text_colour
+		var col := GameTheme.TEXT
 		draw_rect(Rect2(centre.x - t * 0.5, centre.y - _gap - arm, t, arm), col)
 		draw_rect(Rect2(centre.x - t * 0.5, centre.y + _gap, t, arm), col)
 		draw_rect(Rect2(centre.x - _gap - arm, centre.y - t * 0.5, arm, t), col)
@@ -260,7 +187,7 @@ func _draw() -> void:
 	if _marker_left > 0.0:
 		var m := _cfg.marker_size
 		var inner := _cfg.gap_min + 2.0
-		var col := Color(_cfg.text_colour, _marker_left / _cfg.marker_time)
+		var col := Color(GameTheme.TEXT, _marker_left / _cfg.marker_time)
 		for d in MARKER_DIRECTIONS:
 			draw_line(centre + d * inner, centre + d * (inner + m), col, t + 1.0, true)
 
@@ -275,18 +202,13 @@ func _show_hop_up(dial: float) -> void:
 	var flat := tr("HUD_METRES_PLUS") % metres if reach.on_target_to >= _cfg.hop_range else tr("HUD_METRES") % metres
 	# Over-hopped, the BB leaves the band climbing, not dropping: say so, or a stronger dial would read as a worse one.
 	var key := "HUD_HOP_UP_HIGH" if reach.peak_rise > _cfg.hop_band else "HUD_HOP_UP"
-	_hop_label.text = tr(key) % [roundi(dial * 100.0), flat]
-	_hop_label.visible = true
+	_replica.show_hop(tr(key) % [roundi(dial * 100.0), flat])
 	_hop_left = _cfg.hop_show_time
 	_hop_slot = a.active
 
 
 func _show_banner(text: String, sub: String, colour: Color = Color.TRANSPARENT) -> void:
-	_banner.text = text
-	_banner.add_theme_color_override("font_color", colour if colour.a > 0.0 else _cfg.text_colour)
-	_banner_sub.text = sub
-	_banner.visible = true
-	_banner_sub.visible = not sub.is_empty()
+	_banner.show_text(text, sub, colour)
 	_banner_left = _cfg.banner_time
 
 
@@ -300,14 +222,3 @@ static func _place(c: Control, anchors: Vector4, rect: Rect2) -> void:
 	c.offset_top = rect.position.y
 	c.offset_right = rect.end.x
 	c.offset_bottom = rect.end.y
-
-
-func _label(parent: Control, font_size: int, weight: int, colour: Color, align: HorizontalAlignment) -> Label:
-	var l := Label.new()
-	l.add_theme_font_override("font", GameTheme.font(weight))
-	l.add_theme_font_size_override("font_size", font_size)
-	l.add_theme_color_override("font_color", colour)
-	l.horizontal_alignment = align
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(l)
-	return l

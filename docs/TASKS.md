@@ -19,16 +19,3 @@ acceptance:
   4. The pause screen (`pause.png`): the map, mode and round, Resume, Settings, Quit match, and the match's seed.
 status: open
 attempts: 0
-
-## HD1 · The HUD in the menus' look
-tier: ui
-perf: required
-touches: game/ui/hud.gd, game/ui/, game/config/, tests/unit/
-contract: none
-acceptance:
-  1. The concept's HUD (`hud.png`), in the same places as today: team score blocks with five slanted pips each, the
-     clock with the round under it and the match's aim ("FIRST TO 5") below, framed panels, round and half-time
-     banners in heavy capitals on a slanted panel, the replica panel framed (count, S / B / A, a box per magazine).
-  2. Colours from GameTheme and TeamConfig only; nothing allocates per frame.
-status: open
-attempts: 0
