@@ -38,8 +38,9 @@
 - **Outside the block's touches:** `tests/guards/` and `tools/match_guards.sh` are the guards and the CI job that
   acceptance 3 asks for; `tests/README.md` and the ARCHITECTURE layout row describe them.
 - **They run as a CI job of their own** ("Match guards"), alongside the unit tests, not inside them: the two fields
-  take about 7 minutes. Locally, `tools/check.sh --guards`. The three-seed whole-match test in `test_bots.gd` stays in
-  the unit tests: it also checks blind shots and the holster rule.
+  take about 7 minutes here and 4 min 47 s in CI (its first run, PR #21). Locally, `tools/check.sh --guards`. The
+  three-seed whole-match test in `test_bots.gd` stays in the unit tests: it also checks blind shots and the holster
+  rule.
 
 - **QA's findings taken in:** the hit count is `MatchRunner.count_hit`, so a test feeds it a teammate's and a
   shooter's own hit (a whole match can't be made to produce one); the guards check that the map loads with no
