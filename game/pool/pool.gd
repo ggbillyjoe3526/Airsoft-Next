@@ -1,7 +1,7 @@
 class_name Pool
 extends RefCounted
-## The game's items (data/pool.md, the browser game's pool/poolFile.ts): each replica and power source with its ID,
-## name, Key, Tags, Type, Fits and Access. What goes with what is by tags (pool.md › Tags and Fits): a part fits a
+## The game's items (data/pool.md, the browser game's pool/poolFile.ts): each replica, power source and part with its
+## ID, name, Key, Tags, Type, Fits and Access. What goes with what is by tags (pool.md › Tags and Fits): a part fits a
 ## replica that has any one of the tags in its Fits, or whose ID it names. An unreadable row is left out with a
 ## warning; a blank Access reads as public and any other word leaves the row out. Plain data, no engine state.
 
@@ -11,12 +11,18 @@ const REPLICAS_TABLE := "Replicas"
 const POWER_TABLE := "Power sources"
 const ACCESS: Array[StringName] = [&"public", &"dev"]
 const POWER_TYPES: Array[StringName] = [&"battery", &"gas", &"spring"]
+## The part tables and the loadout slot each fills (a replica's standard magazine, barrel and iron sights are built in;
+## these are the alternatives). Lights wait for night fields.
+const PART_TABLES: Dictionary[String, StringName] = {
+	"Optics": &"optic", "Grips": &"grip", "Lasers": &"laser", "Magazines": &"magazine", "Barrels": &"barrel",
+	"Muzzle parts": &"muzzle",
+}
 ## A replica tag that means its power source is built in: nothing fits its power slot and it needs nothing.
 const BUILT_IN_POWER := "built-in-power"
 ## Six digits, as pool.md › Identifiers has them.
 const ID_LENGTH := 6
 
-enum Kind { REPLICA, POWER }
+enum Kind { REPLICA, POWER, PART }
 
 
 class Item:
@@ -24,10 +30,12 @@ class Item:
 	var id: String = ""
 	var kind: Kind = Kind.REPLICA
 	var display_name: String = ""
-	## A replica's Key (stats.md's row and the built-in config); "" for a power source.
+	## A replica's or part's Key (stats.md's row, and a replica's built-in config); "" for a power source.
 	var key: StringName = &""
+	## A part's slot (PART_TABLES); "" for the rest.
+	var slot: StringName = &""
 	var tags: PackedStringArray = PackedStringArray()
-	## A power source's Type and what it fits (tags, or replica IDs).
+	## A power source's Type, and what a power source or part fits (tags, or replica IDs).
 	var type: StringName = &""
 	var fits: PackedStringArray = PackedStringArray()
 	var access: StringName = &"public"
@@ -42,6 +50,7 @@ class Item:
 ## Every readable row of each table, in the file's order.
 var replicas: Array[Item] = []
 var powers: Array[Item] = []
+var parts: Array[Item] = []
 ## What couldn't be read, each "pool.md:line: …".
 var problems: Array[String] = []
 
@@ -70,12 +79,17 @@ static func parse(text: String) -> Pool:
 	var tables := DataTable.read_all(text, FILE_NAME)
 	p._read(DataTable.find(tables, REPLICAS_TABLE), Kind.REPLICA, p.replicas)
 	p._read(DataTable.find(tables, POWER_TABLE), Kind.POWER, p.powers)
+	for heading: String in PART_TABLES:
+		# A part table that isn't there offers no parts of its kind (quiet: the rest of the file reads).
+		var t := DataTable.find(tables, heading)
+		if t != null:
+			p._read(t, Kind.PART, p.parts, PART_TABLES[heading])
 	return p
 
 
 ## The item with `id`, or null.
 func item(id: String) -> Item:
-	for list: Array[Item] in [replicas, powers]:
+	for list: Array[Item] in [replicas, powers, parts]:
 		for it in list:
 			if it.id == id:
 				return it
@@ -101,6 +115,15 @@ func fits(part: Item, replica: Item) -> bool:
 	return false
 
 
+## The parts for `slot` that fit `replica`, in the file's order (dev ones only while `dev_content`).
+func parts_for(replica: Item, slot: StringName, dev_content: bool) -> Array[Item]:
+	var out: Array[Item] = []
+	for pt in parts:
+		if pt.slot == slot and (dev_content or not pt.is_dev()) and fits(pt, replica):
+			out.append(pt)
+	return out
+
+
 ## The power sources that fit `replica`, in the file's order (dev ones only while `dev_content`).
 func powers_for(replica: Item, dev_content: bool) -> Array[Item]:
 	var out: Array[Item] = []
@@ -110,7 +133,7 @@ func powers_for(replica: Item, dev_content: bool) -> Array[Item]:
 	return out
 
 
-func _read(t: DataTable, kind: Kind, into: Array[Item]) -> void:
+func _read(t: DataTable, kind: Kind, into: Array[Item], slot: StringName = &"") -> void:
 	var table_name := REPLICAS_TABLE if kind == Kind.REPLICA else POWER_TABLE
 	if t == null:
 		problems.append("%s: no \"%s\" table" % [FILE_NAME, table_name])
@@ -139,6 +162,13 @@ func _read(t: DataTable, kind: Kind, into: Array[Item]) -> void:
 		if kind == Kind.REPLICA:
 			it.key = StringName(row.cell("Key"))
 			it.tags = _words(row.cell("Tags"))
+			if it.key == &"":
+				problems.append("%s: %s has no Key" % [where, it.id])
+				continue
+		elif kind == Kind.PART:
+			it.slot = slot
+			it.key = StringName(row.cell("Key"))
+			it.fits = _words(row.cell("Fits"))
 			if it.key == &"":
 				problems.append("%s: %s has no Key" % [where, it.id])
 				continue

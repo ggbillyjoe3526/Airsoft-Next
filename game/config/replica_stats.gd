@@ -55,6 +55,8 @@ var replicas: Dictionary[String, Dictionary] = {}
 var site_limits: Dictionary[StringName, float] = {}
 ## Each power source's row by its pool.md ID; a source with no row (or no table) changes nothing.
 var powers: Dictionary[String, Power] = {}
+## The part tables (optics, grips, lasers, magazines, barrels, muzzle parts).
+var parts: PartStats = PartStats.new()
 ## What couldn't be read, each "stats.md:line: …".
 var problems: Array[String] = []
 
@@ -69,6 +71,8 @@ static func parse(text: String) -> ReplicaStats:
 	s._read_replicas(DataTable.find(tables, REPLICAS_TABLE))
 	s._read_limits(DataTable.find(tables, LIMITS_TABLE))
 	s._read_powers(DataTable.find(tables, POWER_TABLE))
+	s.parts = PartStats.read(tables)
+	s.problems.append_array(s.parts.problems)
 	return s
 
 

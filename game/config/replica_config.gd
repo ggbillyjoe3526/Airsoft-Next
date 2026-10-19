@@ -33,3 +33,15 @@ enum FireMode { SEMI, BURST, AUTO }
 ## Random spread, the standard deviation of the shot direction (degrees), and the upward view kick per shot (degrees).
 @export var spread_deg: float = 0.5
 @export var recoil_deg: float = 0.2
+
+## What its parts make of it, as carried (LoadoutRules.carried; as it comes, these change nothing). The view's zoom when
+## aimed (0: the iron sights', ViewConfig.aim_zoom), and the share of the usual time to raise the sight.
+@export var aim_zoom: float = 0.0
+@export var raise_scale: float = 1.0
+## How long a sprint's or landing's shake stays in the aim, as a share.
+@export var shake_scale: float = 1.0
+## Its magazines rattle as you move: bots close by hear you even walking.
+@export var rattles: bool = false
+## How far its shots are heard, as a share, and whether they sound muffled (a silencer).
+@export var heard_scale: float = 1.0
+@export var muffled: bool = false

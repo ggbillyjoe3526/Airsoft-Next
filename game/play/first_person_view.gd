@@ -57,7 +57,8 @@ func update(c: Character, input: PlayerInput, fraction: float, delta: float, own
 	position = feet + Vector3(0.0, height - _view.vault_dip * _vault, 0.0) + Lean.offset(height, _lean, crouch, yaw, _hits)
 	# Leaning right tips the view's top to the right: a roll about the line of sight (local -Z), negative about +Z.
 	rotation = Vector3(pitch + _recoil - _view.vault_tip * _vault, yaw, -_lean * _view.lean_camera_roll)
-	var zoom := lerpf(1.0, _view.aim_zoom, c.aim_raise)
+	var r := c.armament.replica()
+	var zoom := lerpf(1.0, r.aim_zoom if r != null and r.aim_zoom > 0.0 else _view.aim_zoom, c.aim_raise)
 	input.zoom = zoom
 	camera.fov = _view.vertical_fov(zoom)
 

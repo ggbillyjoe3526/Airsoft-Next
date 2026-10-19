@@ -51,7 +51,7 @@ func setup(cfg: SoundConfig, powers: Array[StringName], body: BodyConfig) -> voi
 		_impact.append(_load("impact_%s" % s))
 		for k in STEP_NAMES:
 			_step.append(_load("step_%s_%s" % [s, k]))
-	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault", "foley_holster"]:
+	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault", "foley_holster", "magRattle"]:
 		_load(cue)
 	for i in cfg.field_voices:
 		var v := AudioStreamPlayer3D.new()
@@ -106,6 +106,10 @@ func on_tick(state: GameState, player_id: int) -> void:
 				_play(&"hitTick", e.position, e.target == player_id, _cfg.hit_tick_gain, 0.0, BUS_EFFECTS)
 				if own and e.target != player_id:
 					_play(&"hitMarker", e.position, true, _cfg.hit_marker_gain, 0.0, BUS_INTERFACE)
+			GameEvent.Kind.FOOTSTEP when e.value == GameEvent.Footstep.RATTLE:
+				var c := state.character(e.actor)
+				var gain := _cfg.own_step_gain if own else _cfg.step_gain
+				_play(&"magRattle", c.position if c != null else e.position, own, gain, _cfg.step_pitch, BUS_FOOTSTEPS)
 			GameEvent.Kind.FOOTSTEP:
 				var surface := clampi(e.value2, 0, SURFACE_NAMES.size() - 1)
 				var cue := _step[surface * STEP_NAMES.size() + clampi(e.value, 0, STEP_NAMES.size() - 1)]

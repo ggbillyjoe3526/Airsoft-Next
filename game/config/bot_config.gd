@@ -26,6 +26,8 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var footstep_hearing_sprint: float = 16.0
 @export var footstep_hearing_land: float = 12.0
 @export var footstep_hearing_vault: float = 18.0
+## How far a rattling magazine carries (m), heard even walking (the browser game's footstepHearingRattle).
+@export var footstep_hearing_rattle: float = 7.0
 ## A sound with a wall between carries only this share of its range: bots hear through walls no better than you do.
 @export var wall_hearing: float = 0.6
 ## Walls are looked for along rays from the ear to these heights over the sound's source (m): its knees and head. The
