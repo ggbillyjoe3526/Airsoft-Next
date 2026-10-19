@@ -4,7 +4,8 @@ extends Node3D
 ## torso, a head and an arm, posed from its Character between the last two ticks. The torso, head and arm tilt together
 ## about the hip pivot in a lean, by the simulation's own geometry (HitConfig pivot_height and lean_max_angle, as the hit
 ## volume), while the legs stay put. Calling a hit, the arm goes up and "HIT!" shows above the head; it stays up on the
-## walk off; a figure leaving the field fades out.
+## walk off; a figure leaving the field fades out. It holds the replica it has out, the models' cut-down figure version
+## in its team's paint (ReplicaPaint), and puts it away as it fades.
 
 ## The figure's proportions (m): the legs' and torso's capsules, the head, the arm, and where the sign floats. The torso
 ## reaches this far below the pivot, so its round bottom covers the joint as it tilts.
@@ -17,6 +18,10 @@ const SIGN_FONT_SIZE := 96
 const SIGN_PIXEL := 0.004
 const SIGN_OUTLINE_DARKEN := 0.5
 const ROUGHNESS := 0.55
+const MODEL_DIR := "res://assets/models/replicas/"
+## Where the replica is held, on the upper body (m): a rifle at the shoulder, a pistol out in front.
+const HOLD_RIFLE := Vector3(0.4, 0.3, -0.1)
+const HOLD_PISTOL := Vector3(0.34, 0.2, -0.3)
 
 var character_id: int = -1
 var _legs: MeshInstance3D = null
@@ -28,9 +33,15 @@ var _arm: Node3D = null
 var _sign: Label3D = null
 var _mat: StandardMaterial3D = null
 var _hits: HitConfig = null
+## The replicas the character carries, as the models' figure versions on the upper body; the one out is shown.
+var _replicas: Array[MeshInstance3D] = []
+var _out: int = -1
 
 
-func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConfig, font: Font) -> void:
+## Draws `c` in `team_colour`, holding its replicas in its team's paints (`realistic`: each bold scheme as its plain
+## colour).
+func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConfig, font: Font,
+		realistic: bool = false) -> void:
 	character_id = c.id
 	_hits = hits
 	name = "Figure_%d" % c.id
@@ -73,9 +84,31 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 	_arm.add_child(arm)
 	_arm.position = Vector3(BODY_RADIUS + ARM_SIZE.x * 0.5, hits.torso_top - hits.pivot_height, 0.0)
 	_upper.add_child(_arm)
+	for r in c.armament.replicas:
+		var held := _held_replica(r, c.team, realistic)
+		_replicas.append(held)
+		if held != null:
+			_upper.add_child(held)
 	_sign = make_sign(font, team_colour)
 	_sign.position = Vector3(0.0, SIGN_HEIGHT, 0.0)
 	add_child(_sign)
+
+
+## The models' figure version of `r`, held at its class's place and painted for `team` (null without a model).
+func _held_replica(r: ReplicaConfig, team: int, realistic: bool) -> MeshInstance3D:
+	var scene := load(MODEL_DIR + r.id + ".glb") as PackedScene
+	if scene == null:
+		return null
+	var model := scene.instantiate()
+	var held := model.find_child("Figure", true, false) as MeshInstance3D
+	if held != null:
+		held.get_parent().remove_child(held)
+		held.position = HOLD_PISTOL if r.site_class == &"pistol" else HOLD_RIFLE
+		held.visible = false
+		held.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		ReplicaPaint.apply(held, ReplicaPaint.bot_paint(team, r), realistic)
+	model.free()
+	return held
 
 
 ## The figure's material in `colour`; `faded` gives it the see-through variant a figure leaving the field fades with.
@@ -123,6 +156,14 @@ func update(c: Character, fraction: float) -> void:
 	if c.status == Character.Status.LEAVING:
 		fade = clampf(1.0 - c.status_time / maxf(_hits.vanish_time, 0.001), 0.0, 1.0)
 	visible = fade > 0.0
+	# The replica out: the one the character has in hand, put away as it fades (the paint is shared, so it can't fade).
+	var out := c.armament.active if fade >= 1.0 and c.armament.active < _replicas.size() else -1
+	if out != _out:
+		if _out >= 0 and _replicas[_out] != null:
+			_replicas[_out].visible = false
+		_out = out
+		if _out >= 0 and _replicas[_out] != null:
+			_replicas[_out].visible = true
 	var see_through := BaseMaterial3D.TRANSPARENCY_ALPHA if fade < 1.0 else BaseMaterial3D.TRANSPARENCY_DISABLED
 	if _mat.transparency != see_through:
 		_mat.transparency = see_through
