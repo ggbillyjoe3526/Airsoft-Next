@@ -93,6 +93,8 @@ var _rematch_left: float = -1.0
 var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
 ## Your kit was picked with levelling off: every match it plays stays out of the records, even after it is turned on.
 var _kit_unlocked_all: bool = false
+## The parts fitted to each kitted bot's replicas (Kit.parts), by character id, for its figure.
+var _bot_parts: Dictionary[int, Array] = {}
 var _ticks: int = 0
 ## What the smoke test checks: your shots, everyone's, BBs that landed anywhere, rounds played and matches finished.
 var shots: int = 0
@@ -179,6 +181,14 @@ func opponent_team() -> int:
 	return 1 - player_team
 
 
+## The rules the bots' kits are built by: the shipped pool with Dev content as the settings have it, and no progress, so
+## what you have unlocked never changes them.
+func _bot_kit_rules() -> LoadoutRules:
+	var rules := LoadoutRules.standard()
+	rules.dev_content = (settings if settings != null else Settings.shared()).active_dev().dev_content
+	return rules
+
+
 ## Staged build, a step a frame. The match runs from the frame after the last step, and `started` follows that frame's
 ## update (so the first picture it draws is the match, camera placed).
 func _advance_build() -> void:
@@ -208,10 +218,21 @@ func _start_simulation(map: MapData) -> void:
 	state.dev_content = state.dev_content or kit.dev
 	player = Character.new(PLAYER_ID, player_team, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
 	state.characters.append(player)
-	# Your teammates, then the other team: every character but you is a bot, carrying its replicas as they come.
+	# Your teammates carry their replicas as they come; the other team's bots each pick a kit by the difficulty.
+	_bot_parts.clear()
+	var kit_rules := _bot_kit_rules()
 	for i in _tuning.rounds.team_size * 2 - 1:
+		var id := PLAYER_ID + 1 + i
 		var team := player_team if i < _tuning.rounds.team_size - 1 else opponent_team()
-		state.characters.append(Character.new(PLAYER_ID + 1 + i, team, Vector3.ZERO, 0.0, loadout))
+		var plan := BotKits.shared().pick(difficulty, kit_rules, Seeds.kit_seed(match_seed, id)) \
+				if team != player_team else null
+		if plan == null:
+			state.characters.append(Character.new(id, team, Vector3.ZERO, 0.0, loadout))
+			continue
+		var bot_kit := BotKits.kit_of(plan, kit_rules)
+		state.characters.append(Character.new(id, team, Vector3.ZERO, 0.0, bot_kit.replicas, bot_kit.bb_weights))
+		_bot_parts[id] = bot_kit.parts
+		state.dev_content = state.dev_content or bot_kit.dev
 	for c in state.characters:
 		_commands.append(PlayerCommand.new())
 
@@ -246,7 +267,9 @@ func _build_views(ui: CanvasLayer) -> void:
 		if c.id == PLAYER_ID:
 			continue
 		var f := FigureView.new()
-		f.setup(c, _play.teams.colours[c.team], _tuning.hits, _tuning.body, sign_font, realistic)
+		var parts: Array[Dictionary] = []
+		parts.assign(_bot_parts.get(c.id, []))
+		f.setup(c, _play.teams.colours[c.team], _tuning.hits, _tuning.body, sign_font, realistic, parts)
 		add_child(f)
 		_figures.append(f)
 	var first_use: Array[Material] = [
