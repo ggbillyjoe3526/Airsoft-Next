@@ -5,14 +5,18 @@ extends Control
 
 const NOTICES := "res://THIRD_PARTY_NOTICES.txt"
 
+## Hidden again (Back or Esc), so whoever opened it can take the focus back.
+signal closed
+
 var _text: TextEdit
 var _back: Button
 
 
 func _ready() -> void:
+	theme = GameTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var plate := ColorRect.new()
-	plate.color = Color(0.08, 0.08, 0.08, 0.96)
+	plate.color = GameTheme.BG
 	plate.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(plate)
 	var box := VBoxContainer.new()
@@ -23,15 +27,16 @@ func _ready() -> void:
 	box.offset_bottom = -32
 	add_child(box)
 	var heading := Label.new()
-	heading.text = tr("CREDITS_TITLE")
-	heading.add_theme_font_size_override("font_size", 32)
+	heading.text = tr("CREDITS_TITLE").to_upper()
+	heading.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, GameTheme.LARGE_SIZE))
+	heading.add_theme_font_size_override("font_size", GameTheme.LARGE_SIZE)
 	box.add_child(heading)
 	_text = TextEdit.new()
 	_text.editable = false
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(_text)
 	_back = Button.new()
-	_back.text = tr("CREDITS_BACK")
+	_back.text = tr("CREDITS_BACK").to_upper()
 	_back.pressed.connect(close)
 	box.add_child(_back)
 
@@ -54,7 +59,10 @@ func open() -> void:
 
 
 func close() -> void:
+	if not visible:
+		return
 	visible = false
+	closed.emit()
 
 
 func text_length() -> int:

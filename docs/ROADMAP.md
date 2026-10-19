@@ -65,7 +65,8 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
    further. MG1 (the match guards) and BR1 (the balance report). Built.
 8. **Title, menus and the Match screen.** The title, the top bar with the level badge, the Match screen's map and
    mode cards and Your team, menus that scale with the window, a loading screen, the seed on the pause screen, and the
-   HUD restyled in the menus' look. A concept picture first.
+   HUD restyled in the menus' look. Concepts first (shared files, `concepts/step8-menus/`); MN1 (title and look),
+   MN2 (Match screen, loading, pause) and HD1 (the HUD).
 9. **Loadout.** Primary and secondary (Grenades greyed), BB weight, hop-up, colour schemes and realistic colours,
    power sources, saved loadouts.
 10. **Attachments.** Red dot, 2× scope, grips, magazines, barrels, the Silencer and the laser, the Performance sheet

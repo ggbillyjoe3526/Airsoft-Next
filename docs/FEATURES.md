@@ -27,4 +27,5 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 
 - Settings: a screen from the title screen and the pause menu for controls, audio, display and the FPS counter; every change applies and saves at once (SE1)
 - Dev tab: cheats and tools shown while the Dev settings box is ticked: game speed, ghost, bottomless magazines, spectate bots, retro pixels, reset save (DV2)
-- Map choice: the title screen picks Depot, or Woodland and Neon Heights while Dev content is on (DV2)
+- Map choice: the menus pick Depot, or Woodland and Neon Heights while Dev content is on (DV2)
+- Title screen and menus: a title with START, which opens a top bar of Match, Loadout, Armory (LATER), Settings and your level chip (MN1)
