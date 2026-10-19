@@ -96,14 +96,41 @@ msgstr "Click to play"
 msgid "BOOT_TITLE"
 msgstr "AIRSOFT"
 
-msgid "BOOT_PLAY"
-msgstr "Play Depot"
+msgid "MENU_TAGLINE"
+msgstr "Call your hit. Go again."
 
-msgid "BOOT_CREDITS"
-msgstr "Credits"
+msgid "MENU_START"
+msgstr "START"
 
-msgid "BOOT_QUIT"
-msgstr "Quit"
+msgid "MENU_LICENCES"
+msgstr "Licences"
+
+msgid "MENU_QUIT"
+msgstr "QUIT"
+
+msgid "MENU_TAB_MATCH"
+msgstr "MATCH"
+
+msgid "MENU_TAB_LOADOUT"
+msgstr "LOADOUT"
+
+msgid "MENU_TAB_ARMORY"
+msgstr "ARMORY"
+
+msgid "MENU_TAB_SETTINGS"
+msgstr "SETTINGS"
+
+msgid "MENU_LATER"
+msgstr "LATER"
+
+msgid "MENU_LEVEL"
+msgstr "LVL"
+
+msgid "MENU_MAP"
+msgstr "MAP"
+
+msgid "MENU_PLAY"
+msgstr "PLAY"
 
 msgid "CREDITS_TITLE"
 msgstr "Credits"
@@ -121,9 +148,6 @@ msgid "MAP_REFUSED"
 msgstr "This map could not be loaded: %s"
 
 msgid "PAUSE_SETTINGS"
-msgstr "Settings"
-
-msgid "BOOT_SETTINGS"
 msgstr "Settings"
 
 msgid "FPS_READOUT"

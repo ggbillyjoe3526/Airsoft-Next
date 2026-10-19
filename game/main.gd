@@ -1,10 +1,11 @@
 extends Node
-## The entry scene: the boot screen (the version, Play, the map, Settings, the credits, Quit), the F3 performance overlay
-## and the Show FPS readout. The map choice lists the public maps, and the dev ones too while the Dev settings' Dev
-## content switch is on (MapCatalog). Play opens a match on that map (PlaySession) on the `--seed` launch option's seed if given, else a
-## fresh one; leaving it comes back here. The title screen and menus replace this screen when the UI is built
-## (docs/KNOWN_ISSUES.md). `--smoke` (tools/smoke_test.sh) opens and closes the settings and the credits, plays a whole
-## match on Depot with a bot in your place (faster than real time), leaves, then quits with a report line.
+## The entry scene: the title (TitleScreen: START, Licences, Quit), the menus (MenuScreen: the top bar over the Match page,
+## which holds the map choice and PLAY until MN2), the settings under the top bar, the credits, the F3 performance
+## overlay and the Show FPS readout. The map choice lists the public maps, and the dev ones too while the Dev settings'
+## Dev content switch is on (MapCatalog). PLAY opens a match on that map (PlaySession) on the `--seed` launch option's
+## seed if given, else a fresh one; leaving it comes back to the title. The menus grow with a tall window (MenuScale).
+## `--smoke` (tools/smoke_test.sh) opens and closes the settings and the credits, plays a whole match on Depot with a
+## bot in your place (faster than real time), leaves, then quits with a report line.
 
 const SMOKE_SETTINGS_OPEN := 10
 const SMOKE_SETTINGS_CLOSE := 20
@@ -23,7 +24,8 @@ const SMOKE_MAP := "depot"
 
 var _credits: Credits
 var _settings_screen: SettingsScreen
-var _screen: Control
+var _title: TitleScreen
+var _menus: MenuScreen
 var _play: PlaySession
 var _map_choice: OptionButton
 ## The map Play opens, and the ids the choice lists in order.
@@ -45,69 +47,88 @@ func _ready() -> void:
 	_smoke = OS.get_cmdline_user_args().has("--smoke")
 	_launch_seed = LaunchSeed.parse(OS.get_cmdline_user_args())
 	var settings := Settings.shared()
-	_screen = _build_boot_screen(settings)
-	add_child(_screen)
-	_list_maps()
+	_build_screens()
+	_title.focus_start()
 	settings.changed.connect(_list_maps)
 	_credits = Credits.new()
 	_credits.visible = false
+	_credits.closed.connect(_credits_closed)
 	add_child(_credits)
 	add_child(FpsReadout.new(settings))
 	_perf = DebugPerf.new()
 	add_child(_perf)
+	_scale_menus()
+	get_window().size_changed.connect(_scale_menus)
 	set_process(_smoke)
 	print("[boot] Airsoft %s on Godot %s" % [Version.current(), Engine.get_version_info()["string"]])
 
 
-func _build_boot_screen(settings: Settings) -> Control:
-	var root := Control.new()
-	root.theme = GameTheme.get_theme()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	var box := VBoxContainer.new()
-	box.set_anchors_preset(Control.PRESET_CENTER)
-	box.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	box.grow_vertical = Control.GROW_DIRECTION_BOTH
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	root.add_child(box)
-	var title := Label.new()
-	title.text = tr("BOOT_TITLE")
-	title.add_theme_font_size_override("font_size", 64)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(title)
-	var version := Label.new()
-	version.text = Version.current()
-	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(version)
-	if not settings.load_message.is_empty():
-		var problem := Label.new()
-		problem.text = settings.load_message
-		problem.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		box.add_child(problem)
-	var play := Button.new()
-	play.text = tr("BOOT_PLAY")
-	play.pressed.connect(_start_play)
-	box.add_child(play)
-	_map_choice = OptionButton.new()
-	_map_choice.tooltip_text = tr("BOOT_MAP")
+func _exit_tree() -> void:
+	var window := get_window()
+	if window.size_changed.is_connected(_scale_menus):
+		window.size_changed.disconnect(_scale_menus)
+	MenuScale.apply(window, false)
+
+
+## The title and the menus page, built at boot and after each match; a match frees them (a hidden menu would keep
+## its nodes for the whole match).
+func _build_screens() -> void:
+	_menus = MenuScreen.new()
+	_menus.visible = false
+	_menus.back.connect(_show_title)
+	_menus.tab_requested.connect(_on_tab)
+	_menus.match_page().play_pressed.connect(_start_play)
+	_map_choice = _menus.match_page().map_choice
 	_map_choice.item_selected.connect(func(i: int) -> void: _map_id = _map_ids[i])
-	box.add_child(_map_choice)
-	var options := Button.new()
-	options.text = tr("BOOT_SETTINGS")
-	options.pressed.connect(_open_settings)
-	box.add_child(options)
-	var credits := Button.new()
-	credits.text = tr("BOOT_CREDITS")
-	credits.pressed.connect(_show_credits)
-	box.add_child(credits)
-	var quit := Button.new()
-	quit.text = tr("BOOT_QUIT")
-	quit.pressed.connect(get_tree().quit)
-	box.add_child(quit)
-	return root
+	add_child(_menus)
+	_title = TitleScreen.new()
+	_title.start_pressed.connect(_show_menus)
+	_title.credits_pressed.connect(_show_credits)
+	_title.quit_pressed.connect(get_tree().quit)
+	add_child(_title)
+	# first in the tree, under the credits, the readouts and any match
+	move_child(_menus, 0)
+	move_child(_title, 1)
+	_list_maps()
+
+
+func _free_screens() -> void:
+	_title.queue_free()
+	_title = null
+	_menus.queue_free()
+	_menus = null
+	_map_choice = null
+
+
+## Sizes the menus for the window: grown while they show, plain in play (the HUD has its own scale).
+func _scale_menus() -> void:
+	MenuScale.apply(get_window(), _play == null)
+
+
+func _show_menus() -> void:
+	_title.visible = false
+	_menus.visible = true
+	_menus.focus_play()
+
+
+func _show_title() -> void:
+	_menus.visible = false
+	_title.visible = true
+	_title.focus_start()
+
+
+## A top bar tab: Settings opens the settings under the bar, Match closes them.
+func _on_tab(tab: TopBar.Tab) -> void:
+	if tab == TopBar.Tab.SETTINGS:
+		_open_settings()
+	elif _settings_screen != null:
+		_settings_screen.close()
 
 
 ## Fills the map choice with the maps on offer now, keeping the one picked if it is still listed (else the first).
 func _list_maps() -> void:
+	if _map_choice == null:
+		return
 	var listed := MapCatalog.shared().fields(Settings.shared().active_dev().dev_content)
 	_map_choice.clear()
 	_map_ids.clear()
@@ -122,7 +143,7 @@ func _list_maps() -> void:
 	_map_choice.select(_map_ids.find(_map_id))
 
 
-## The settings over the boot screen, built when asked for and freed once closed (a hidden screen would keep its
+## The settings over the menus, built when asked for and freed once closed (a hidden screen would keep its
 ## couple of hundred nodes for the whole session).
 func _open_settings() -> void:
 	if _settings_screen == null:
@@ -130,22 +151,38 @@ func _open_settings() -> void:
 		_settings_screen.settings = Settings.shared()
 		_settings_screen.closed.connect(_settings_closed)
 		add_child(_settings_screen)
+		# under the top bar, which stays on show
+		_settings_screen.offset_top = TopBar.HEIGHT
+	_menus.top_bar().set_current(TopBar.Tab.SETTINGS)
 	_settings_screen.open()
 
 
 func _settings_closed() -> void:
 	_settings_screen.queue_free()
 	_settings_screen = null
+	if _menus == null:
+		return
+	_menus.top_bar().set_current(TopBar.Tab.MATCH)
+	if _menus.visible:
+		_menus.focus_play()
 
 
 func _show_credits() -> void:
 	_credits.open()
 
 
+## The credits only open from the title: Enter starts again once they close.
+func _credits_closed() -> void:
+	if _title != null and _title.visible:
+		_title.focus_start()
+
+
 func _start_play() -> void:
 	if _play != null:
 		return
-	_screen.visible = false
+	if _settings_screen != null:
+		_settings_screen.close()
+	_free_screens()
 	_play = PlaySession.new()
 	_play.autopilot = _smoke
 	_play.map_id = SMOKE_MAP if _smoke else _map_id
@@ -158,6 +195,7 @@ func _start_play() -> void:
 		_play.speed = SMOKE_SPEED
 	_play.left.connect(_end_play)
 	add_child(_play)
+	_scale_menus()
 	_perf.watch(_play)
 
 
@@ -173,7 +211,9 @@ func _end_play() -> void:
 	_perf.watch(null)
 	_play.queue_free()
 	_play = null
-	_screen.visible = true
+	_build_screens()
+	_title.focus_start()
+	_scale_menus()
 
 
 func _process(_delta: float) -> void:
@@ -181,6 +221,7 @@ func _process(_delta: float) -> void:
 		return
 	_frame += 1
 	if _frame == SMOKE_SETTINGS_OPEN:
+		_show_menus()
 		_open_settings()
 	elif _frame == SMOKE_SETTINGS_CLOSE:
 		if _settings_screen != null:

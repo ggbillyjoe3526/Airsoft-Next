@@ -11,8 +11,7 @@ extends Control
 ## The screen closed.
 signal closed
 
-const PLATE := Color(0.08, 0.08, 0.07, 1.0)
-const MARGIN_X := 200.0
+const MARGIN_X := 56.0
 const MARGIN_Y := 40.0
 const SAVE_DELAY := 0.5
 const ROW_LABEL_WIDTH := 320.0
@@ -31,7 +30,6 @@ const PERCENT_STEP := 1.0
 ## The Dev tab's switches, each a DevSettings field with a label DEV_<FIELD> and a help line DEV_<FIELD>_HELP.
 const DEV_SWITCHES: Array[StringName] = [&"dev_content", &"bottomless", &"ghost", &"bots_hold_fire", &"spectate_bots",
 		&"bot_intent", &"retro_pixels"]
-const HELP_COLOUR := Color(0.72, 0.72, 0.68)
 ## What the screen edits; the game's own by default.
 var settings: Settings = null
 ## Where it saves (a test points this at a temporary file).
@@ -74,7 +72,7 @@ func _ready() -> void:
 	theme = GameTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var plate := ColorRect.new()
-	plate.color = PLATE
+	plate.color = GameTheme.BG
 	plate.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(plate)
 	var box := VBoxContainer.new()
@@ -86,13 +84,13 @@ func _ready() -> void:
 	box.add_theme_constant_override("separation", ROW_GAP)
 	add_child(box)
 	var heading := Label.new()
-	heading.text = tr("SETTINGS_TITLE")
-	heading.add_theme_font_override("font", GameTheme.font(800))
+	heading.text = tr("SETTINGS_TITLE").to_upper()
+	heading.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, GameTheme.LARGE_SIZE))
 	heading.add_theme_font_size_override("font_size", GameTheme.LARGE_SIZE)
 	box.add_child(heading)
 	_load_message = Label.new()
 	_load_message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_load_message.add_theme_color_override("font_color", Color(1.0, 0.78, 0.4))
+	_load_message.add_theme_color_override("font_color", GameTheme.YELLOW)
 	box.add_child(_load_message)
 	_tabs = TabContainer.new()
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -109,7 +107,7 @@ func _ready() -> void:
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_note)
 	_back = Button.new()
-	_back.text = tr("SETTINGS_BACK")
+	_back.text = tr("SETTINGS_BACK").to_upper()
 	_back.pressed.connect(close)
 	box.add_child(_back)
 	_timer = Timer.new()
@@ -405,7 +403,7 @@ func _refresh() -> void:
 ## A scrolling tab page titled `title` (a tab takes its page's name), returned as the column to fill.
 func _page(title: String) -> VBoxContainer:
 	var scroll := ScrollContainer.new()
-	scroll.name = title
+	scroll.name = title.to_upper()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_tabs.add_child(scroll)
 	var page := VBoxContainer.new()
@@ -420,8 +418,10 @@ func _section(page: Control, text: String) -> void:
 	gap.custom_minimum_size = Vector2(0.0, SECTION_GAP)
 	page.add_child(gap)
 	var label := Label.new()
-	label.text = text
-	label.add_theme_font_override("font", GameTheme.font(800))
+	label.text = text.to_upper()
+	label.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_HEADING, GameTheme.HEADING_SIZE))
+	label.add_theme_font_size_override("font_size", GameTheme.HEADING_SIZE)
+	label.add_theme_color_override("font_color", GameTheme.MUTED)
 	page.add_child(label)
 
 
@@ -480,7 +480,7 @@ func _help(page: Control, key: String) -> void:
 	var help := Label.new()
 	help.text = tr(key)
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	help.add_theme_color_override("font_color", HELP_COLOUR)
+	help.add_theme_color_override("font_color", GameTheme.MUTED)
 	help.add_theme_font_size_override("font_size", GameTheme.SMALL_SIZE)
 	page.add_child(help)
 

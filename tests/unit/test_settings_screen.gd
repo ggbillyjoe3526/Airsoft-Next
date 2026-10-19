@@ -315,12 +315,12 @@ func test_the_fps_readout_leaves_no_connection_behind() -> void:
 	assert_eq(s.changed.get_connections().size(), 0)
 
 
-func test_the_title_screen_has_a_settings_button_that_opens_the_screen() -> void:
+func test_the_menus_have_a_settings_tab_that_opens_the_screen() -> void:
 	var main: Node = add_child_autofree(load("res://game/main.tscn").instantiate())
 	await wait_process_frames(2)
 	var button: Button = null
 	for b in main.find_children("*", "Button", true, false):
-		if (b as Button).text == tr("BOOT_SETTINGS"):
+		if (b as Button).text == tr("MENU_TAB_SETTINGS"):
 			button = b
 	assert_not_null(button, "a Settings button")
 	assert_null(_settings_child(main), "not built until asked for")
