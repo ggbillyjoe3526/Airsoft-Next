@@ -24,6 +24,7 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 | Debug | Retro pixels (Dev tab) is fixed at the browser's defaults (4 px blocks, 6 shades a channel): no size or colour sliders (DV2) | can wait | 2026-10-19 |
 | Play | A match with dev content or a cheat is marked off the record (`GameState.off_record`), but nothing reads the mark until records and XP exist (DV2) | document | 2026-10-19 |
 | Art | Depot is the greybox: one vertex-coloured mesh with a world grid, no bevels, decals or material families (`docs/ART.md`) | can wait | 2026-10-18 |
+| Art | The replica a figure holds is the model's cut-down figure mesh fixed at the shoulder or in front (no hands, no aim pitch, no recoil), stays put when the arm goes up for a hit call and disappears as the figure starts to fade (the paint is shared, so it can't fade) (LO3) | can wait | 2026-10-19 |
 | Art | The figures are capsules in the team colour, not `human.glb` or `robot.glb`; the raised arm and the "HIT!" sign are the whole hit call | can wait | 2026-10-18 |
 | Art | The replica in hand shares the main camera: no separate field of view, so it can clip into a wall when you stand against one, and the sight picture down the sights is a first pass | playtest | 2026-10-18 |
 | Graphics | No quality presets yet: SSAO and 70 m sun shadows are always on (`game/play/field_lighting.gd`), so a low preset can't shed them, and `pipeline/perf-budget.json` has no baseline. Presets come with a Graphics group in Settings | can wait | 2026-10-18 |

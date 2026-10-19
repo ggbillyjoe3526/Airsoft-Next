@@ -212,7 +212,9 @@ func _build_views(ui: CanvasLayer) -> void:
 	_hands = ReplicaView.new()
 	_hands.name = "Hands"
 	_eyes.camera.add_child(_hands)
-	_hands.setup(_play.viewmodel, player.armament.replicas, _level.query())
+	# Replica colours are read once a match: a change in Settings applies from the next.
+	var realistic := (settings if settings != null else Settings.shared()).realistic_colours
+	_hands.setup(_play.viewmodel, player.armament.replicas, _level.query(), kit.paints, realistic)
 	_bbs = BBView.new()
 	_bbs.setup(_play.effects, state.bbs.bbs.size())
 	add_child(_bbs)
@@ -227,7 +229,7 @@ func _build_views(ui: CanvasLayer) -> void:
 		if c.id == PLAYER_ID:
 			continue
 		var f := FigureView.new()
-		f.setup(c, _play.teams.colours[c.team], _tuning.hits, _tuning.body, sign_font)
+		f.setup(c, _play.teams.colours[c.team], _tuning.hits, _tuning.body, sign_font, realistic)
 		add_child(f)
 		_figures.append(f)
 	var first_use: Array[Material] = [
@@ -403,6 +405,7 @@ func _notification(what: int) -> void:
 
 
 func _exit_tree() -> void:
+	ReplicaPaint.clear()
 	if settings != null and settings.changed.is_connected(_apply_dev):
 		settings.changed.disconnect(_apply_dev)
 	if get_tree() != null:

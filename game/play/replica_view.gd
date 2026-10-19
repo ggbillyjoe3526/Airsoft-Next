@@ -47,12 +47,16 @@ var _query: WorldQuery = null
 var _wall: RayHit = RayHit.new()
 
 
-## Draws `loadout` from its models; `query` finds walls to pull back from.
-func setup(cfg: ViewModelConfig, loadout: Array[ReplicaConfig], query: WorldQuery) -> void:
+## Draws `loadout` from its models, slot `i` in `paints[i]` (the replica's default where the kit names none; see
+## ReplicaPaint) and, if `realistic`, every bold scheme as its plain colour; `query` finds walls to pull back from.
+func setup(cfg: ViewModelConfig, loadout: Array[ReplicaConfig], query: WorldQuery,
+		paints: Array[StringName] = [], realistic: bool = false) -> void:
 	_cfg = cfg
 	_query = query
-	for r in loadout:
-		_held.append(_load(r.id, r.power == SLIDE_LOCK_POWER))
+	for i in loadout.size():
+		var r := loadout[i]
+		var paint := paints[i] if i < paints.size() else ReplicaPaint.default_paint(r)
+		_held.append(_load(r.id, r.power == SLIDE_LOCK_POWER, paint, realistic))
 
 
 ## The muzzle of the replica in hand, in the world (where your BBs are drawn from).
@@ -194,7 +198,7 @@ func _seek(held: Held, clip: StringName, share: float) -> void:
 	held.anim.seek(share * held.anim.get_animation(clip).length, true)
 
 
-func _load(id: StringName, locks_slide: bool) -> Held:
+func _load(id: StringName, locks_slide: bool, paint: StringName, realistic: bool) -> Held:
 	var held := Held.new()
 	held.id = id
 	held.root = Node3D.new()
@@ -207,6 +211,7 @@ func _load(id: StringName, locks_slide: bool) -> Held:
 		return held
 	var model := scene.instantiate() as Node3D
 	held.root.add_child(model)
+	ReplicaPaint.apply(model, paint, realistic)
 	held.anim = model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	held.muzzle = model.find_child("Muzzle", true, false) as Node3D
 	var rear := model.find_child("RearSight", true, false) as Node3D

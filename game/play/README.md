@@ -8,9 +8,10 @@ and hands the tick's events on; everything else here draws the state every rende
 |---|---|
 | `play_session.gd` | `PlaySession`: the map, the simulation, the views, built in four steps (map, level, teams, views; one a frame while `staged`, reported by `progressed` for the loading screen, then `started` once drawn); you play `player_team` (Alpha or Beta); Esc and focus loss pause (the pause menu names the map, mode, round and seed); `left` back to the title; the smoke test's autopilot |
 | `first_person_view.gd` | `FirstPersonView`: the camera at the leaned eye (`Lean.offset`), rolled a little in a lean and eased out of one a wall cuts short, dipped and tipped over a vault, turned by the mouse every frame, lifted by recoil, zoomed by the sight |
-| `replica_view.gd` | `ReplicaView`: the replica in hand from its model: hip and sights, draw, the holster, sprint carry, reload cant and clip, kick, sway, pulled back from walls, a gas pistol's slide locked back on empty |
+| `replica_view.gd` | `ReplicaView`: the replica in hand from its model: hip and sights, draw, the holster, sprint carry, reload cant and clip, kick, sway, pulled back from walls, a gas pistol's slide locked back on empty, in the Kit's paint for its slot |
 | `bb_view.gd`, `puff_view.gd` | BBs in the air and the puffs where they land, each one MultiMesh |
-| `figure_view.gd` | `FigureView`: another player as a greybox figure in its team colour (legs, and a torso, head and arm that tilt about the hip pivot in a lean), arm up and "HIT!" while calling a hit |
+| `figure_view.gd` | `FigureView`: another player as a greybox figure in its team colour (legs, and a torso, head and arm that tilt about the hip pivot in a lean), holding the replica it has out in its team's paint, arm up and "HIT!" while calling a hit |
+| `replica_paint.gd` | `ReplicaPaint`: a `ReplicaSchemes` paint put on a replica model's Body, Furniture, Detail, Accent and Metal surfaces (the Cyber Pistol keeps its own); one shared material set per paint, built once; the paint a bot wears by team |
 | `sim_audio.gd` | `SimAudio`: every sound from the events (a vault's hands and kit too), positional for others, plain for you, on the bus layout `default_bus_layout.tres` (Effects, with Footsteps and the shot's Power part under it, Ambience and Interface; each has a volume in Settings) |
 | `wind_dust.gd` | `WindDust`: specks of dust round the eye drifting with the match's breeze, one GPU particle box |
 | `field_lighting.gd` | `FieldLighting`: the sun, the sky and the environment |

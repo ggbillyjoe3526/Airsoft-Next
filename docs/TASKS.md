@@ -21,16 +21,3 @@ acceptance:
 status: open
 attempts: 0
 
-## LO3 · Replica colours in play
-tier: ui
-perf: required
-touches: game/play/, tests/unit/
-contract: none
-acceptance:
-  1. The replica in hand, and on each figure, wears its scheme's five colours (body, furniture, detail, accent,
-     metal); bots wear their team's (Alpha Cobalt rifle and Onyx pistol, Beta Signal and Coral, as the browser game).
-  2. The Realistic colours setting (off by default) shows every bold scheme as its plain colour, the player's and the
-     bots'. The Cyber Pistol keeps its own colours.
-  3. Materials are built once per scheme and shared, never per frame.
-status: open
-attempts: 0
