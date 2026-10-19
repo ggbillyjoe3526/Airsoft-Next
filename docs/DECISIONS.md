@@ -422,7 +422,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 
 - **Settings after the Dev 6 playtest (owner, 2026-10-16; ST1).** Groups: Display, Graphics, Gameplay, Looks, Audio,
   Controls, Accessibility, Save file, Dev. Defaults: sound cues red, scoreboard 100 %, aim
-  Toggle, crouch Hold, volumes master 100 %, effects 80 %, power source 100 %, ambience 60 %, interface 50 %. The Retro
+  Toggle (now Hold: the 2026-10-18 ruling above), crouch Hold, volumes master 100 %, effects 80 %, power source 100 %, ambience 60 %, interface 50 %. The Retro
   look is a Dev setting again, Realistic colours moved to the Loadout's Colour tab (MR1), and the Voices placeholder is
   gone. The top bar's level reads "LVL 3".
 - **Small menu rulings (owner, 2026-10-03 to 2026-10-07).** The tagline is "Call your hit. Go again." Menu headings and

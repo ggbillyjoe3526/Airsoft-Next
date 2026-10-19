@@ -71,6 +71,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	var motion := event as InputEventMouseMotion
 	if motion != null:
 		var turn := _controls.radians_per_count * _controls.sensitivity
+		if _aiming():
+			turn *= _controls.aim_sensitivity
 		if _controls.scale_with_zoom:
 			turn /= maxf(zoom, 1.0)
 		view_yaw = wrapf(view_yaw - motion.screen_relative.x * turn, -PI, PI)
@@ -120,6 +122,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				_holster_latch = false
 
 
+## Whether the sight is up, held or toggled, as the aimed sensitivity reads it.
+func _aiming() -> bool:
+	return _aimed if _controls.aim_toggle else Input.is_action_pressed(AIM)
+
+
 ## This tick's command: held keys as they are now, presses since the last tick, the view as the mouse left it.
 ## `held_slot` is the replica in hand, which the mouse wheel steps from.
 func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
@@ -134,7 +141,7 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.walk = Input.is_action_pressed(WALK)
 	cmd.sprint = Input.is_action_pressed(SPRINT)
 	cmd.crouch = _crouched if _controls.crouch_toggle else Input.is_action_pressed(CROUCH)
-	cmd.aim = _aimed if _controls.aim_toggle else Input.is_action_pressed(AIM)
+	cmd.aim = _aiming()
 	# Lean is held, whatever crouch and aim do (owner, 2026-10-03).
 	cmd.lean = Input.get_action_strength(LEAN_RIGHT) - Input.get_action_strength(LEAN_LEFT)
 	cmd.fire = Input.is_action_pressed(FIRE) or _fire_latch

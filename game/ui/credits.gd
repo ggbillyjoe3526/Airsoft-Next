@@ -10,7 +10,7 @@ var _back: Button
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var plate := ColorRect.new()
 	plate.color = Color(0.08, 0.08, 0.08, 0.96)
 	plate.set_anchors_preset(Control.PRESET_FULL_RECT)

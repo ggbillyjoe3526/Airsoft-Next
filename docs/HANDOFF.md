@@ -26,8 +26,12 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
   a lean a wall cuts short eases out, a vault dips and tips the view, and "Space to vault" shows when Jump would vault.
 - **Bots vault low walls (BV1):** the nav grid links low walls a body can vault, bots take a link where it saves more
   than 3 m on foot and press Jump there; on Depot that is the hall wall.
-- **Next:** the build order in `docs/ROADMAP.md` › Build order, Foundations first: settings (SE1). Its block is in
-  `docs/TASKS.md`. Version names wait until the owner picks them up again (owner, 2026-10-18).
+- **Settings are done (SE1):** Controls (sensitivity as a slider or cm/360, invert, crouch and aim hold or toggle, two
+  keys per action), Audio (five volumes) and Display (window mode, V-Sync, field of view, show FPS), from the title and
+  the pause menu, saved in `user://settings.save`.
+- **Next:** the build order in `docs/ROADMAP.md` › Build order, after Foundations: debug tools and the Dev tab (step 6).
+  Its block is written in `docs/TASKS.md` when it comes up. Version names wait until the owner picks them up again
+  (owner, 2026-10-18).
 - **Waiting on the owner:** his play-through of `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
 - **Crouch and aim are both held** (owner, 2026-10-18), changed in the Depot thread.
 

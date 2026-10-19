@@ -30,7 +30,8 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `game/input/` | `PlayerInput`, the player's controller; default bindings in project.godot's input map (`game/input/README.md`) | built |
 | `game/play/` | `PlaySession` (a match, played) and the views drawn from the state: camera, replica in hand, BBs, puffs, figures, sound (`game/play/README.md`) | built |
 | `game/map/` | Maps from `data/maps/*.json`, their greybox and Jolt colliders behind `WorldQuery` and `CharacterMover` (`game/map/README.md`) | built |
-| `game/pool/`, `game/progress/`, `game/stats/`, `game/settings/` | Loadout, levels, records, settings (sensitivity, rebinding, graphics) | later |
+| `game/save/` | `SaveFile` and the player's settings (`Settings`, applied by `SettingsApply`); key bindings in `game/input/` | built |
+| `game/pool/`, `game/progress/`, `game/stats/` | Loadout, levels, records | later |
 | `data/` | The owner's six tables, read at start with `FileAccess`; `data/maps/*.json`, the map layouts | copied |
 | `assets/` | Models, fonts and sounds from the browser game (`assets/README.md`) | copied |
 | `tests/unit/` | GUT tests, `test_*.gd` | built |

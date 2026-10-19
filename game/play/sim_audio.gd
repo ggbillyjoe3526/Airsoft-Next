@@ -10,6 +10,8 @@ const BUS_EFFECTS := &"Effects"
 const BUS_FOOTSTEPS := &"Footsteps"
 const BUS_AMBIENCE := &"Ambience"
 const BUS_INTERFACE := &"Interface"
+## The shot's power source part (gas, the motor) has its own bus under Effects, for its own volume (settings).
+const BUS_POWER := &"Power"
 ## Cue names by RayHit.Surface (none sounds as concrete) and by GameEvent.Footstep.
 const SURFACE_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth"]
 const STEP_NAMES: PackedStringArray = ["run", "sprint", "land"]
@@ -77,7 +79,7 @@ func on_tick(state: GameState, player_id: int) -> void:
 			GameEvent.Kind.SHOT:
 				var p := _power_of(state, e.actor, e.slot)
 				_play(_shot.get(p, &""), e.position, own, _cfg.shot_gain, _cfg.shot_pitch, BUS_EFFECTS)
-				_play(_power.get(p, &""), e.position, own, _cfg.shot_gain, _cfg.shot_pitch, BUS_EFFECTS)
+				_play(_power.get(p, &""), e.position, own, _cfg.shot_gain, _cfg.shot_pitch, BUS_POWER)
 			GameEvent.Kind.DRY_FIRE:
 				_mechanism(_dry.get(_power_of(state, e.actor, e.slot), &""), state, e, own)
 			GameEvent.Kind.RELOAD_START:

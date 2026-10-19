@@ -114,7 +114,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_place(prompt, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-TOP_WIDTH * 0.5, cfg.vault_prompt_drop, TOP_WIDTH, 0.0))
 	add_child(prompt)
 	_vault_prompt = _label(prompt, GameTheme.SMALL_SIZE, 700, cfg.text_colour, HORIZONTAL_ALIGNMENT_CENTER)
-	_vault_prompt.text = tr("HUD_VAULT")
+	_vault_prompt.text = tr("HUD_VAULT") % KeyNames.of_action(&"jump")
 	_vault_prompt.add_theme_constant_override("outline_size", 6)
 	_vault_prompt.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.55))
 	_vault_prompt.visible = false
@@ -132,6 +132,9 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 ## Whether a Jump press would vault this tick: the prompt shows, and stays up vault_prompt_hold after.
 func set_vault_ready(ready: bool) -> void:
 	if ready:
+		if _vault_left <= 0.0:
+			# the key is whatever Jump is bound to now
+			_vault_prompt.text = tr("HUD_VAULT") % KeyNames.of_action(&"jump")
 		_vault_left = _cfg.vault_prompt_hold
 
 
