@@ -35,6 +35,11 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 	b.cover_cooldown -= dt
 	BotMovement.glance(b, w)
 	_choose_mode(b, w, target, dt)
+	# With a threat in mind, or walking its lane in the enemy's half (skill.slices_corners): walk and slice each corner
+	# ahead. Hunting with nothing heard, it hurries.
+	var near := b.skill.slices_corners and (b.threat_in_mind(w.time, cfg)
+			or (not b.hunting and w.planner.in_enemy_half(b)))
+	b.careful = near and (b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.SEARCH)
 	# A route's vault leg is the walk's own (BotRoutes.follow).
 	b.vault_leg = false
 	var moving := BotMovement.keep_apart(b, w, BotMovement.move(b, w, cmd, dt, target), cmd)
@@ -59,6 +64,9 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 		if b.mode == Bot.Mode.SEARCH and Vector2(b.last_known.x - me.position.x, b.last_known.z - me.position.z).length() \
 				< b.skill.search_walk_distance:
 			cmd.walk = true
+		if b.careful:
+			cmd.walk = true
+			cmd.sprint = false
 		# A low obstacle on its route: Jump once the vault is there, as the player's would be (the same rule).
 		if b.vault_leg:
 			cmd.jump = Vault.find_along(me, Vault.way(cmd, w.tuning), w.tuning, w.query, _vault_check)
@@ -102,6 +110,8 @@ static func _choose_mode(b: Bot, w: BotWorld, target: Character, dt: float) -> v
 			return
 		b.route_state = Bot.RouteState.NONE
 	if seeing:
+		# Back in sight: any watch for them is over.
+		b.watch_until = -INF
 		# A fresh contact at range while on the move: behind close crouch cover first, then peek.
 		if (b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.SEARCH) and b.cover_cooldown <= 0.0:
 			if _flat(target.position, me.position) >= b.skill.contact_cover_min_distance \
@@ -110,7 +120,12 @@ static func _choose_mode(b: Bot, w: BotWorld, target: Character, dt: float) -> v
 				return
 		b.mode = Bot.Mode.FIGHT
 	elif b.threat_in_mind(w.time, cfg):
+		if _reload_from_cover(b, w):
+			return
 		if b.mode != Bot.Mode.SEARCH:
+			# Lost sight of someone in a fight: a bot with peek_watch_time first watches where they ducked out.
+			if b.mode == Bot.Mode.FIGHT and b.contact != null and b.skill.peek_watch_time.y > 0.0:
+				b.watch_until = w.time + b.pick(b.skill.peek_watch_time)
 			b.route_state = Bot.RouteState.NONE
 			b.mode = Bot.Mode.SEARCH
 			BotMovement.start_search(b, w)
@@ -185,6 +200,19 @@ static func _take_cover(b: Bot, w: BotWorld, threat_eye: Vector3, down: float, r
 	b.route_state = Bot.RouteState.NONE
 	BotRoutes.want(b, b.cover.position, cfg)
 	return true
+
+
+## A low magazine with a threat in mind (skill.slices_corners): to cover from where the threat is known to be, to top
+## up there (BotCombat.reload_when_due waits for the spot). False if it needn't or no spot hides it.
+static func _reload_from_cover(b: Bot, w: BotWorld) -> bool:
+	var cfg := w.cfg
+	if not b.skill.slices_corners or b.cover_cooldown > 0.0 \
+			or not BotCombat.low_on_bbs(b, cfg.tactical_reload_fraction):
+		return false
+	# Cooled down whether or not a spot is found, as for ducking under fire: no search every tick while none is near.
+	b.cover_cooldown = cfg.cover_cooldown
+	return _take_cover(b, w, _known_threat_eye(b, w), b.pick(cfg.cover_time), cfg.cover_radius, cfg.cover_candidates,
+			false)
 
 
 ## Ducks back behind the cover it fights from (or leans back in), unless the spot no longer hides it from the threat

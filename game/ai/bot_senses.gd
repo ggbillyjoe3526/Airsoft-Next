@@ -100,8 +100,10 @@ static func perceive(b: Bot, w: BotWorld) -> void:
 		return
 	var c := _contact_for(b, best.id)
 	if w.time - c.seen_at > cfg.contact_grace:
-		c.react_at = w.time + b.pick(b.skill.reaction_time)
-		c.acquired_at = w.time
+		# Someone stepping out where the bot already aims (a held angle) is answered sooner and with a steadier aim.
+		var pre_aimed := _aimed_at(b, w, best, best_part)
+		c.react_at = w.time + b.pick(b.skill.pre_aim_reaction_time if pre_aimed else b.skill.reaction_time)
+		c.acquired_at = w.time - (b.skill.pre_aim_settled * b.skill.aim_settle_time if pre_aimed else 0.0)
 		c.first_seen_at = w.time
 		BotAim.fresh_error(b, cfg, true)
 	elif c != b.contact:
@@ -140,6 +142,14 @@ static func current_target(b: Bot, w: BotWorld) -> Character:
 ## True once `b` has reacted to the target it sees and may fire.
 static func has_reacted(b: Bot, w: BotWorld) -> bool:
 	return b.target_visible and b.contact != null and w.time >= b.contact.react_at
+
+
+## True if `b`'s view already points within pre_aim_cone_deg of the part of `target` it sees.
+static func _aimed_at(b: Bot, w: BotWorld, target: Character, part: float) -> bool:
+	var eye := eye_of(b.character, w.tuning)
+	var seen := body_point(target, w.tuning.hits, part)
+	var off := Vector2(wrapf(BotAim.look_yaw(eye, seen) - b.aim_yaw, -PI, PI), BotAim.look_pitch(eye, seen) - b.aim_pitch)
+	return off.length() <= deg_to_rad(w.cfg.pre_aim_cone_deg)
 
 
 static func _sight_clear(eye: Vector3, point: Vector3, viewer: Character, target: Character, w: BotWorld) -> bool:

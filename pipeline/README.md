@@ -125,7 +125,7 @@ seeded headless matches and judged against its band, never a pass or fail test: 
 past their bands and cost re-measure loops in the browser game (M73, M74). What must never happen on any seed
 (rounds settle, bots leave spawn, nobody falls through the floor, no friendly fire) stays a GUT test. A task that
 changes balance on purpose quotes its figures in its record. `tools/balance.sh [filter]` writes the report to
-`pipeline/out/balance-report.md` (about 30 minutes: Normal on 32 seeds a map, Easy and Hard on 16; `SEEDS=n`,
+`pipeline/out/balance-report.md` (about 40 minutes: Normal on 32 seeds a map, Easy, Hard and Pro on 16; `SEEDS=n`,
 `LEVEL_SEEDS=n` and `LEVELS=normal,hard` for less).
 
 **Content.** A new replica, part, map, mode or skin goes through the content toolkit (`docs/content/README.md`,

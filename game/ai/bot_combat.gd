@@ -9,6 +9,9 @@ static var _hit: RayHit = RayHit.new()
 static var _volume: Hitbox.Volume = Hitbox.Volume.new()
 ## The point aim() last aimed at (with lead): shoot() reads it the same tick.
 static var _aim_point: Vector3 = Vector3.ZERO
+## Where aim() looks with nobody in sight, set by the branch that decides it (and by _held_angle_look).
+static var _look_yaw: float = 0.0
+static var _look_pitch: float = 0.0
 
 
 ## Turns `b`'s view from `eye`: at its target (lead and aim error), else per its mode (`walking`: along b.move_dir).
@@ -31,28 +34,98 @@ static func aim(b: Bot, w: BotWorld, target: Character, eye: Vector3, walking: b
 		var first := BotAim.first_error_size(since, dist, b.skill)
 		var error := BotAim.error_size(since, walking or cmd.right != 0.0, dist, sideways, b.skill)
 		return BotAim.step(b, BotAim.look_yaw(eye, point), BotAim.look_pitch(eye, point), error - first, first, cfg, dt)
-	var yaw := b.aim_yaw
+	_look_yaw = b.aim_yaw
+	_look_pitch = 0.0
 	var walk_yaw := atan2(-b.move_dir.x, -b.move_dir.z)
 	var enemy := w.enemy_yaw(b.character.team)
 	if walking and b.vault_leg:
 		# At a low obstacle on its route: face the way over it, as nobody vaults without looking.
-		yaw = walk_yaw
+		_look_yaw = walk_yaw
 	elif b.mode == Bot.Mode.SEARCH and b.search_look_left > 0.0:
 		# At the end of a search: look round, one way then the other, from the way it arrived.
 		var t := 1.0 - b.search_look_left / b.search_look_time
-		yaw = b.search_look_yaw + sin(TAU * t) * deg_to_rad(cfg.search_look_deg)
+		_look_yaw = b.search_look_yaw + sin(TAU * t) * deg_to_rad(cfg.search_look_deg)
+	elif walking and b.careful and b.mode == Bot.Mode.SEARCH and b.has_last_known \
+			and _slice_towards_last_known(b, w, eye, cmd):
+		# Slicing towards someone heard or lost: while the spot is round a corner, aim at that corner and lean out.
+		pass
 	elif b.has_last_known and (b.mode == Bot.Mode.SEARCH or b.mode == Bot.Mode.COVER or not walking):
-		# Watch where the threat was, even on the way there.
-		yaw = BotAim.look_yaw(eye, b.last_known)
+		# Watch where the threat was, even on the way there; slicing corners, at head height there.
+		var y := b.last_known.y + w.tuning.body.stand_eye_height if b.skill.slices_corners else eye.y
+		var spot := Vector3(b.last_known.x, y, b.last_known.z)
+		_look_yaw = BotAim.look_yaw(eye, spot)
+		_look_pitch = BotAim.look_pitch(eye, spot)
+	elif walking and b.careful and b.mode == Bot.Mode.ADVANCE \
+			and _slice(b, w, _held_angle_look(b, w, eye, walk_yaw, false, INF), cmd):
+		# Slicing: walking near the enemy, aim at the corner ahead someone could step out of, not where it walks, and
+		# lean out past a near one to see round it a slice at a time.
+		pass
 	elif walking and not (b.mode == Bot.Mode.ADVANCE and not b.hunting and cos(walk_yaw - enemy) < 0.0):
-		yaw = walk_yaw
-	else:
-		# Holding, or walking back along its lane: face the enemy side, sweeping slowly across it while holding.
-		yaw = enemy
+		_look_yaw = walk_yaw
+	elif not (b.holding and b.skill.holds_angles and _held_angle_look(b, w, eye, enemy, false, INF) != null):
+		# Holding, or walking back along its lane: face the enemy side, sweeping slowly across it while holding. Pro
+		# aims at the corners someone would come round instead of sweeping.
+		_look_yaw = enemy
 		if b.holding:
-			yaw += sin(TAU * b.team_wait / cfg.hold_sweep_period) * deg_to_rad(cfg.hold_sweep_deg)
-	BotAim.step(b, yaw, 0.0, 0.0, 0.0, cfg, dt)
+			_look_yaw += sin(TAU * b.team_wait / cfg.hold_sweep_period) * deg_to_rad(cfg.hold_sweep_deg)
+	BotAim.step(b, _look_yaw, _look_pitch, 0.0, 0.0, cfg, dt)
 	return INF
+
+
+## Slicing: leans out past `a`, the corner aimed at, once within slice_lean_distance of it (towards its open side).
+## False if there is no corner to slice.
+static func _slice(b: Bot, w: BotWorld, a: BotAngles.HeldAngle, cmd: PlayerCommand) -> bool:
+	if a == null:
+		return false
+	var p := b.character.position
+	if Vector2(a.point.x - p.x, a.point.z - p.z).length() <= w.cfg.slice_lean_distance:
+		cmd.lean = a.side
+	return true
+
+
+## Closing in on where someone was heard or last seen: while that spot, at head height, is out of view round a corner,
+## slices the corner nearest its bearing. False once the spot is in plain view (then it watches the spot itself).
+static func _slice_towards_last_known(b: Bot, w: BotWorld, eye: Vector3, cmd: PlayerCommand) -> bool:
+	var head := b.last_known + Vector3(0.0, w.tuning.body.stand_eye_height, 0.0)
+	if BotSenses.line_clear(w.query, eye, head):
+		return false
+	# Only a corner short of the spot can be the one it is behind (not the far end of a long wall).
+	var to_spot := Vector2(head.x - eye.x, head.z - eye.z).length()
+	return _slice(b, w, _held_angle_look(b, w, eye, BotAim.look_yaw(eye, head), true, to_spot), cmd)
+
+
+## Holding with held angles, or slicing on the move: finds the corners in view of where it stands, facing about
+## `facing_yaw` (again every angle_refresh, or once it has moved angle_move_refresh), then looks at one of them: if
+## `nearest`, the one nearest `facing_yaw` among those within `within` m, else switching every angle_switch_time.
+## Returns it, or null if it found none.
+static func _held_angle_look(b: Bot, w: BotWorld, eye: Vector3, facing_yaw: float, nearest: bool,
+		within: float) -> BotAngles.HeldAngle:
+	var cfg := w.cfg
+	var p := b.character.position
+	var from := b.held_angles_from
+	if w.time - b.held_angles_at > cfg.angle_refresh \
+			or Vector2(p.x - from.x, p.z - from.z).length() > cfg.angle_move_refresh:
+		b.held_angles_at = w.time
+		b.held_angles_from = p
+		# The fan runs at standing eye height (over low cover), whatever the bot's own crouch; heads are at the same.
+		var head := p.y + w.tuning.body.stand_eye_height
+		b.held_angle_count = BotAngles.find(w.query, Vector3(p.x, head, p.z), head, facing_yaw, cfg, b.held_angles)
+	if b.held_angle_count == 0:
+		return null
+	var a: BotAngles.HeldAngle = b.held_angles[floori(b.team_wait / cfg.angle_switch_time) % b.held_angle_count]
+	if nearest:
+		a = null
+		for i in b.held_angle_count:
+			var o := b.held_angles[i]
+			if Vector2(o.point.x - p.x, o.point.z - p.z).length() > within:
+				continue
+			if a == null or absf(wrapf(o.yaw - facing_yaw, -PI, PI)) < absf(wrapf(a.yaw - facing_yaw, -PI, PI)):
+				a = o
+		if a == null:
+			return null
+	_look_yaw = BotAim.look_yaw(eye, a.point)
+	_look_pitch = BotAim.look_pitch(eye, a.point)
+	return a
 
 
 ## Bursts at the target once reacted and on aim (within fire_cone_deg), never with cover, a close wall, a teammate or
@@ -88,6 +161,9 @@ static func reload_when_due(b: Bot, w: BotWorld, cmd: PlayerCommand) -> void:
 	if a.mag() == 0:
 		cmd.reload = true
 	elif not b.target_visible and low_on_bbs(b, w.cfg.tactical_reload_fraction):
+		# With a threat in mind a corner-slicer tops up only once in cover (BotBrain: it heads there to reload).
+		if b.skill.slices_corners and b.threat_in_mind(w.time, w.cfg) and _heading_for_cover(b, w):
+			return
 		cmd.reload = true
 
 
@@ -97,6 +173,13 @@ static func low_on_bbs(b: Bot, share: float) -> bool:
 	if a.replicas.is_empty() or a.ammo[a.active].next_spare() < 0:
 		return false
 	return a.mag() < a.replica().mag_size * share
+
+
+## In cover mode and not there yet.
+static func _heading_for_cover(b: Bot, w: BotWorld) -> bool:
+	var p := b.character.position
+	return b.mode == Bot.Mode.COVER and Vector2(b.cover.position.x - p.x, b.cover.position.z - p.z).length() \
+			>= w.cfg.cover_arrive
 
 
 ## Seconds `b`'s BB takes to fly `dist` m: the replica in its hands, with the BBs it loads.

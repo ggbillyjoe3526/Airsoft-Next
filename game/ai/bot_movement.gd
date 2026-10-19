@@ -271,6 +271,9 @@ static func _pick_hold_cover(b: Bot, w: BotWorld) -> bool:
 
 ## Search: to the spot (round by a flank point first, if flanking), then crouch and look round.
 static func _search(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> bool:
+	# Watching where someone ducked out of sight (skill.peek_watch_time) before going after them: they may peek again.
+	if w.time < b.watch_until:
+		return false
 	if b.search_look_left > 0.0:
 		b.search_look_left -= dt
 		cmd.crouch = true

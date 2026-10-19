@@ -5,19 +5,21 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## DF2 · Pro: careful, not twitchier
+## DF2b · Pro: team play
 tier: core
 perf: required
-touches: game/config/bot_skill.gd, game/config/bot_tuning.tres, game/ai/, game/ui/match_options.gd, tests/
+touches: game/config/bot_skill.gd, game/config/bot_config.gd, game/config/bot_tuning.tres, game/ai/, tests/
 contract: Data, not literals (6); Seeded randomness (5)
 acceptance:
-  1. Pro bots hold and pre-aim angles: someone appearing near where a Pro bot already aims is answered in 0.18–0.28 s
-     with its aim half settled; anyone else no sooner than Hard (DECISIONS 2026-10-04). They slice corners, watch where
-     you ducked for 1.5–3 s before coming after you, and play as a team: trade a hit teammate, move in pairs, push
-     late when behind (the browser game's Pro, M38). Each habit is a BotSkill switch or number in bot_tuning.tres.
+  1. Pro bots play as a team (the browser game's Pro, M38): trade a hit teammate (run to where the hit came from for
+     trade_time, walking no more), share where they heard someone, move in pairs (one bounds while its partner holds,
+     within bound_distance, waiting at most bound_wait_max), and push late when behind (late_push_time or less left and
+     fewer of their team in play). Each habit hangs off BotSkill.team_play and numbers in bot_tuning.tres. Crossfires
+     wait for Attack/Defend (step 13).
   2. No bot aims at someone it hasn't seen or heard (the M37 test still passes at Pro).
-  3. Pro is offered on the Match screen only with Dev content on, and a Pro match is dev content (off the record).
-  4. The match guards and the balance report cover Pro (40–60 %).
+  3. The match guards and the balance report at Pro still pass (40–60 %).
+  4. Pro becomes public (owner, 2026-10-05: public in 0.1): `MatchOptions.DEV_BOT_LEVELS` empties, so Pro shows
+     without Dev content and counts for the records.
 status: open
 attempts: 0
 

@@ -31,8 +31,9 @@ func after_all() -> void:
 	level.free()
 
 
-## A match on Depot with seed `seed_value`: every character a bot when `player_id` is -1.
-func _start(seed_value: int, player_id: int = -1) -> void:
+## A match on Depot with seed `seed_value`: every character a bot when `player_id` is -1, each team at its level in
+## `levels` (Normal if not given).
+func _start(seed_value: int, player_id: int = -1, levels: Dictionary[int, StringName] = {}) -> void:
 	sim = Simulation.new(tuning, level.query(), level.mover(tuning.body), map.ends, map.kill_y)
 	sim.nav = nav
 	state = GameState.new(seed_value, tuning)
@@ -41,7 +42,7 @@ func _start(seed_value: int, player_id: int = -1) -> void:
 	for i in tuning.rounds.team_size * 2:
 		state.characters.append(Character.new(i, 0 if i < tuning.rounds.team_size else 1, Vector3.ZERO, 0.0, loadout))
 		commands.append(PlayerCommand.new())
-	bots = BotController.new(state, player_id, map, nav, level.query(), tuning, config)
+	bots = BotController.new(state, player_id, map, nav, level.query(), tuning, config, levels)
 	sim.start_match(state)
 	bots.observe(state)
 
@@ -295,6 +296,16 @@ func test_aim_error_settles_with_time_on_target() -> void:
 
 func test_bot_ticks_allocate_no_objects_once_warm() -> void:
 	_start(9)
+	_assert_warm_ticks_allocate_nothing()
+
+
+func test_pro_bot_ticks_allocate_no_objects_once_warm() -> void:
+	# Held angles, slicing, the careful walk, pre-aim and the peek watch (DF2a).
+	_start(9, -1, {0: &"pro", 1: &"pro"})
+	_assert_warm_ticks_allocate_nothing()
+
+
+func _assert_warm_ticks_allocate_nothing() -> void:
 	# Warm: a whole round played (contacts, cover searches, BBs in flight, the round's reset).
 	var rounds := 0
 	for t in roundi(tuning.rounds.round_time / DT) * 2:

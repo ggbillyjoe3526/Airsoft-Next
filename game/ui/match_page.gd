@@ -255,12 +255,7 @@ func _build_side() -> Control:
 		_team_cards.append(card)
 	side.add_child(team)
 	# The bots' level.
-	var bots_head := HBoxContainer.new()
-	bots_head.add_theme_constant_override("separation", TAG_GAP * 2)
-	bots_head.add_child(_heading(tr("MENU_BOTS")))
-	var later := MenuTag.make(tr("MENU_PRO_LATER"), GameTheme.DIM, GameTheme.DIM)
-	bots_head.add_child(later)
-	var bots := _section(bots_head)
+	var bots := _section(_heading(tr("MENU_BOTS")))
 	var bot_row := HBoxContainer.new()
 	bot_row.add_theme_constant_override("separation", BOT_GAP)
 	bots.add_child(bot_row)
@@ -276,7 +271,10 @@ func _build_side() -> Control:
 			b.add_theme_color_override(colour, GameTheme.TEXT)
 		b.add_theme_color_override("font_disabled_color", GameTheme.DIM)
 		b.custom_minimum_size = Vector2(0.0, BOT_SIZE + BOT_PAD * 2 + GameTheme.BORDER * 2)
-		b.disabled = not MatchOptions.BUILT_BOT_LEVELS.has(level)
+		if MatchOptions.DEV_BOT_LEVELS.has(level):
+			# A dev level's card carries the DEV tag beside its name, as a dev map's does.
+			b.add_content(_dev_level_face(b.text))
+			b.text = ""
 		b.pressed.connect(_pick_bots.bind(level))
 		bot_row.add_child(b)
 		_bot_buttons[level] = b
@@ -291,6 +289,19 @@ func _build_side() -> Control:
 		_chips_box.add_child(_chip(chip))
 	side.add_child(rules)
 	return side
+
+
+func _dev_level_face(level_name: String) -> Control:
+	var centre := CenterContainer.new()
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", TAG_GAP)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(_text(level_name, BOT_SIZE, 700, GameTheme.TEXT))
+	var tag := MenuTag.dev()
+	tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(tag)
+	centre.add_child(row)
+	return centre
 
 
 func _chip(chip: PackedStringArray) -> Control:
@@ -350,6 +361,7 @@ func _list_maps() -> void:
 	for e in fields:
 		offered.append(e.id)
 	if offered == _offered and not _map_cards.is_empty():
+		_refresh() # the bots' levels on offer may have changed
 		return
 	_offered = offered
 	# The maps that can play come first, then those greyed with LATER, each in the catalogue's order.
@@ -479,7 +491,11 @@ func _refresh() -> void:
 		card.set_picked(mode == picks.mode)
 	for t in _team_cards.size():
 		_team_cards[t].set_picked(t == picks.team)
+	var levels := MatchOptions.bot_levels(_settings.active_dev().dev_content)
+	if not levels.has(picks.bots):
+		picks.bots = MatchPicks.new().bots
 	for level: String in _bot_buttons:
+		_bot_buttons[level].visible = levels.has(level)
 		_bot_buttons[level].set_picked(level == picks.bots)
 	_summary_map.text = entry.display_name if entry != null else picks.map_id
 	_summary_rest.text = " · " + MatchOptions.summary_rest(picks.mode, picks.team, picks.bots)

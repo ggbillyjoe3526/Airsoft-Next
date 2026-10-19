@@ -22,6 +22,11 @@ sectors its team checked longest ago. In sight of an enemy it fights (strafing),
 and peeks over it, or round a tall corner by leaning. Shot at, reloading or empty, it takes cover. With the enemy gone
 it searches where it was last seen or heard, sometimes flanking.
 
+Each team plays at its level (`BotConfig.skill_for`: Easy, Normal, Hard, Pro). Pro is careful, not twitchier: holding,
+it aims at the corners someone would step out of (`BotAngles`) and answers someone appearing there sooner; near the
+enemy it walks and slices corners, leaning past a near one; it watches where someone ducked out before going after them,
+and with a threat in mind tops up only from cover.
+
 | File | What |
 |---|---|
 | `bot_controller.gd` | `BotController`: owns the bots; before each step one route search, then each bot's command; after it, hearing and the round's plan |
@@ -31,6 +36,7 @@ it searches where it was last seen or heard, sometimes flanking.
 | `bot_senses.gd`, `bot_hearing.gd` | Sight (view cone, walls, bodies, which part shows) and hearing (gunfire, feet, hit calls, near misses) |
 | `bot_aim.gd`, `bot_combat.gd` | Turning, aim error that settles, lead; bursts, line-of-fire checks, reloads |
 | `bot_holster.gd` | Holstering on a long, calm sprint through its own half, drawing again on a threat |
+| `bot_angles.gd` | Held angles: the corners and doorways in view where someone would step out, from the level's walls alone |
 | `bot_cover.gd` | Crouch cover and lean spots at tall corners that hide a bot from a threat |
 | `bot_movement.gd`, `bot_routes.gd` | Lanes, holds, hunting, searching, strafing, keeping apart; following nav routes |
 | `round_planner.gd` | Each round's team plans and lanes, and hunt spots from the team's memory |
@@ -40,5 +46,5 @@ routes.
 
 ## Not yet
 
-One skill (Normal), no names or personalities, no callouts or squad orders, no trades or magazine sharing
-(docs/KNOWN_ISSUES.md).
+No names or personalities, no callouts or squad orders, no team play (trades, pairs, the late push, crossfires) or
+magazine sharing (docs/KNOWN_ISSUES.md).

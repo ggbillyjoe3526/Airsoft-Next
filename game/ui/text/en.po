@@ -531,9 +531,6 @@ msgstr "YOUR TEAM"
 msgid "MENU_BOTS"
 msgstr "BOTS"
 
-msgid "MENU_PRO_LATER"
-msgstr "PRO LATER"
-
 msgid "MENU_RULES"
 msgstr "RULES"
 
