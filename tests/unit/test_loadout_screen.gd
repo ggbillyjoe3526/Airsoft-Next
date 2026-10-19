@@ -66,7 +66,7 @@ func test_the_loadout_tab_is_on_and_opens_the_gear_page() -> void:
 	var menus := MenuScreen.new(MatchPicks.new(), settings)
 	add_child_autofree(menus)
 	assert_false(menus.top_bar().tab_button(TopBar.Tab.LOADOUT).disabled)
-	assert_true(menus.top_bar().tab_button(TopBar.Tab.ARMORY).disabled, "Armory stays later")
+	assert_false(menus.top_bar().tab_button(TopBar.Tab.ARMORY).disabled, "the Armory is built (AR1)")
 	assert_null(menus.loadout_page(), "built when asked for")
 	menus.show_loadout()
 	var page := menus.loadout_page()

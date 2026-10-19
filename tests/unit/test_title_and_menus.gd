@@ -58,7 +58,7 @@ func test_the_title_buttons_send_their_signals() -> void:
 	assert_signal_emitted(title, "quit_pressed")
 
 
-func test_the_top_bar_has_the_four_tabs_and_armory_is_greyed() -> void:
+func test_the_top_bar_has_the_four_tabs_all_built() -> void:
 	var bar := TopBar.new()
 	add_child_autofree(bar)
 	assert_eq(bar.tab_button(TopBar.Tab.MATCH).text, "MATCH")
@@ -68,12 +68,12 @@ func test_the_top_bar_has_the_four_tabs_and_armory_is_greyed() -> void:
 	assert_false(bar.tab_button(TopBar.Tab.MATCH).disabled)
 	assert_false(bar.tab_button(TopBar.Tab.SETTINGS).disabled)
 	assert_false(bar.tab_button(TopBar.Tab.LOADOUT).disabled, "the Loadout tab is built (LO2)")
-	assert_true(bar.tab_button(TopBar.Tab.ARMORY).disabled)
+	assert_false(bar.tab_button(TopBar.Tab.ARMORY).disabled, "the Armory tab is built (AR1)")
 	var later := 0
 	for l in bar.find_children("*", "Label", true, false):
 		if (l as Label).text == "LATER":
 			later += 1
-	assert_eq(later, 1, "a LATER tag on Armory alone")
+	assert_eq(later, 0, "no LATER tag: every tab is built")
 
 
 func test_the_level_chip_reads_the_level_and_hides_with_levelling_off() -> void:
@@ -90,15 +90,15 @@ func test_the_level_chip_reads_the_level_and_hides_with_levelling_off() -> void:
 	assert_eq(bar.level_text(), "")
 
 
-func test_the_current_tab_is_lit_and_a_later_tab_cannot_be() -> void:
+func test_the_current_tab_is_lit() -> void:
 	var bar := TopBar.new()
 	add_child_autofree(bar)
 	assert_eq(bar.current(), TopBar.Tab.MATCH)
 	bar.set_current(TopBar.Tab.SETTINGS)
 	assert_eq(bar.current(), TopBar.Tab.SETTINGS)
 	bar.set_current(TopBar.Tab.ARMORY)
-	assert_eq(bar.current(), TopBar.Tab.SETTINGS, "a tab not built yet stays dark")
-	var lit := bar.tab_button(TopBar.Tab.SETTINGS).get_theme_stylebox("normal") as StyleBoxFlat
+	assert_eq(bar.current(), TopBar.Tab.ARMORY)
+	var lit := bar.tab_button(TopBar.Tab.ARMORY).get_theme_stylebox("normal") as StyleBoxFlat
 	assert_eq(lit.border_color, GameTheme.YELLOW)
 	var dark := bar.tab_button(TopBar.Tab.MATCH).get_theme_stylebox("normal") as StyleBoxFlat
 	assert_ne(dark.border_color, GameTheme.YELLOW)

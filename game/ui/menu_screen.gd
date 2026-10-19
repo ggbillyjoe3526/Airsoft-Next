@@ -1,8 +1,8 @@
 class_name MenuScreen
 extends Control
 ## The menus: the top bar over a page pinned to the window: the Match page (MatchPage, which keeps its picks in the
-## MatchPicks it is given) or the Loadout page (LoadoutPage, built when its tab is opened and freed, after saving, when
-## the Match tab or the title comes back). A tab press goes to the entry screen, which opens the settings under the bar and
+## MatchPicks it is given), the Loadout page (LoadoutPage, built when its tab is opened and freed, after saving, when
+## the Match tab or the title comes back) or the Armory (ArmoryPage, built and freed the same way). A tab press goes to the entry screen, which opens the settings under the bar and
 ## asks for the page. Esc backs out of what the page has open, then goes back to the title.
 
 signal back
@@ -12,6 +12,7 @@ signal tab_requested(tab: TopBar.Tab)
 var _bar: TopBar = null
 var _match: MatchPage = null
 var _loadout: LoadoutPage = null
+var _armory: ArmoryPage = null
 var _settings: Settings = null
 
 
@@ -35,13 +36,16 @@ func _init(picks: MatchPicks = null, settings: Settings = null) -> void:
 	show_level()
 
 
-## The chip shows the player's level, or nothing while levelling is off (Settings › Dev); an open Loadout page whose
-## locks changed under the settings (Disable levelling, Reset level) is built again.
+## The chip shows the player's level, or nothing while levelling is off (Settings › Dev); an open Loadout or Armory page
+## whose locks changed under the settings (Disable levelling, Reset level) is built again.
 func show_level() -> void:
 	_bar.set_level(-1 if _settings.active_dev().disable_levelling else Progress.shared().level())
 	if _loadout != null and _loadout.locks_changed():
 		leave_loadout()
 		show_loadout()
+	if _armory != null and _armory.stale():
+		leave_armory()
+		show_armory()
 
 
 func top_bar() -> TopBar:
@@ -57,9 +61,16 @@ func loadout_page() -> LoadoutPage:
 	return _loadout
 
 
-## The tab whose page is showing: MATCH or LOADOUT.
+## The Armory page while it is open, else null.
+func armory_page() -> ArmoryPage:
+	return _armory
+
+
+## The tab whose page is showing: MATCH, LOADOUT or ARMORY.
 func page_tab() -> TopBar.Tab:
-	return TopBar.Tab.LOADOUT if _loadout != null else TopBar.Tab.MATCH
+	if _loadout != null:
+		return TopBar.Tab.LOADOUT
+	return TopBar.Tab.ARMORY if _armory != null else TopBar.Tab.MATCH
 
 
 func focus_play() -> void:
@@ -70,12 +81,15 @@ func focus_play() -> void:
 func focus_page() -> void:
 	if _loadout != null:
 		_loadout.focus_default()
+	elif _armory != null:
+		_bar.tab_button(TopBar.Tab.ARMORY).grab_focus()
 	else:
 		_match.focus_play()
 
 
 ## Shows the Loadout page, building it the first time.
 func show_loadout() -> void:
+	leave_armory()
 	if _loadout == null:
 		_loadout = LoadoutPage.new(null, _settings)
 		_loadout.offset_top = TopBar.HEIGHT
@@ -87,9 +101,23 @@ func show_loadout() -> void:
 	_loadout.focus_default()
 
 
-## Shows the Match page again; the Loadout page is saved and freed.
+## Shows the Armory, building it the first time (the Loadout page is saved and freed).
+func show_armory() -> void:
+	leave_loadout()
+	if _armory == null:
+		_armory = ArmoryPage.new(_settings)
+		_armory.offset_top = TopBar.HEIGHT
+		add_child(_armory)
+		# under the bar, over the Match page
+		move_child(_armory, _bar.get_index())
+	_match.visible = false
+	_bar.set_current(TopBar.Tab.ARMORY)
+
+
+## Shows the Match page again; the Loadout page is saved and freed, the Armory freed.
 func show_match() -> void:
 	leave_loadout()
+	leave_armory()
 	_match.visible = true
 	_bar.set_current(TopBar.Tab.MATCH)
 
@@ -102,6 +130,15 @@ func leave_loadout() -> void:
 	remove_child(_loadout)
 	_loadout.queue_free()
 	_loadout = null
+
+
+## Frees the Armory page, if it is open, with the pictures it drew.
+func leave_armory() -> void:
+	if _armory == null:
+		return
+	remove_child(_armory)
+	_armory.queue_free()
+	_armory = null
 
 
 func _on_tab(tab: TopBar.Tab) -> void:

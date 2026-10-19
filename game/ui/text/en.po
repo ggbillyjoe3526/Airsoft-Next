@@ -1205,3 +1205,183 @@ msgstr "Your records were saved by a newer version of the game. They are kept as
 
 msgid "XP_NONE_DEV"
 msgstr "No XP: Dev settings or dev content were used in this match."
+
+msgid "ARMORY_LEVEL"
+msgstr "LEVEL"
+
+msgid "ARMORY_OF"
+msgstr "of %d"
+
+msgid "ARMORY_XP_INTO"
+msgstr "%s / %s XP"
+
+msgid "ARMORY_XP_TO_NEXT"
+msgstr "%s XP to level %d"
+
+msgid "ARMORY_CAP_LEFT"
+msgstr "Top level reached"
+
+msgid "ARMORY_CAP_RIGHT"
+msgstr "XP counts again when the level cap goes up."
+
+msgid "ARMORY_FACT_XP"
+msgstr "XP earned in all"
+
+msgid "ARMORY_FACT_UNLOCKED"
+msgstr "unlocked"
+
+msgid "ARMORY_OFF_BIG"
+msgstr "ALL UNLOCKED"
+
+msgid "ARMORY_OFF_NOTE"
+msgstr "Levelling is off (Settings › Dev › Disable levelling), so every replica and part is yours to carry. Your own level, %d, comes back when you turn it on."
+
+msgid "ARMORY_NEXT"
+msgstr "NEXT UNLOCK"
+
+msgid "ARMORY_NEXT_LEVEL"
+msgstr "NEXT UNLOCK · LEVEL %d"
+
+msgid "ARMORY_NEXT_NONE"
+msgstr "Nothing left"
+
+msgid "ARMORY_NEXT_NONE_NOTE"
+msgstr "You have every item. More come when the level cap goes up."
+
+msgid "ARMORY_NEXT_OFF"
+msgstr "Levelling is off, so every item is unlocked."
+
+msgid "ARMORY_NEXT_ALSO"
+msgstr "Also at this level: %s."
+
+msgid "ARMORY_EARN_HEAD"
+msgstr "HOW XP IS EARNED"
+
+msgid "ARMORY_EARN_MATCH"
+msgstr "Every match"
+
+msgid "ARMORY_EARN_WIN"
+msgstr "A win"
+
+msgid "ARMORY_EARN_ROUND"
+msgstr "Each round won"
+
+msgid "ARMORY_EARN_HIT"
+msgstr "Each hit on an opponent"
+
+msgid "ARMORY_EARN_XP"
+msgstr "%d XP"
+
+msgid "ARMORY_EARN_MORE"
+msgstr "%d more"
+
+msgid "ARMORY_MULTIPLIER"
+msgstr "%s ×%s"
+
+msgid "ARMORY_EARN_NOTE"
+msgstr "Then times the difficulty: %s. A first-to-5 win on Normal gives about %d XP. Practice, and matches with Dev settings, give none."
+
+msgid "ARMORY_LEVELS_HEAD"
+msgstr "LEVELS"
+
+msgid "ARMORY_LEVELS_NOTE"
+msgstr "Everything unlocked stays yours. Settings › Dev › Disable levelling unlocks it all."
+
+msgid "ARMORY_START"
+msgstr "STARTING KIT"
+
+msgid "ARMORY_ROW_LEVEL"
+msgstr "LEVEL %d"
+
+msgid "ARMORY_ROW_STATE"
+msgstr "%s XP · %s"
+
+msgid "ARMORY_STATE_UNLOCKED"
+msgstr "UNLOCKED"
+
+msgid "ARMORY_STATE_NEXT"
+msgstr "NEXT"
+
+msgid "ARMORY_STATE_LOCKED"
+msgstr "LOCKED"
+
+msgid "ARMORY_KIND_REPLICA"
+msgstr "REPLICA"
+
+msgid "ARMORY_KIND_POWER"
+msgstr "POWER"
+
+msgid "ARMORY_KIND_OPTIC"
+msgstr "OPTIC"
+
+msgid "ARMORY_KIND_GRIP"
+msgstr "GRIP"
+
+msgid "ARMORY_KIND_LASER"
+msgstr "LASER"
+
+msgid "ARMORY_KIND_MAGAZINE"
+msgstr "MAGAZINE"
+
+msgid "ARMORY_KIND_BARREL"
+msgstr "BARREL"
+
+msgid "ARMORY_KIND_MUZZLE"
+msgstr "MUZZLE"
+
+msgid "ARMORY_KIND_LIGHT"
+msgstr "LIGHT"
+
+msgid "ARMORY_BLURB_POWER_BATTERY"
+msgstr "A battery sets how fast an electric replica fires."
+
+msgid "ARMORY_BLURB_POWER_GAS"
+msgstr "A stronger gas pushes harder, and kicks harder too."
+
+msgid "ARMORY_BLURB_POWER_SPRING"
+msgstr "A spring sets how much energy a spring replica has."
+
+msgid "ARMORY_BLURB_REPLICA_PISTOL"
+msgstr "A gas pistol: light, quick to draw."
+
+msgid "ARMORY_BLURB_REPLICA_AEG"
+msgstr "An electric rifle with a rail for every part."
+
+msgid "ARMORY_BLURB_REPLICA_CYBER"
+msgstr "A pistol with its battery built in: nothing to pick for power."
+
+msgid "XP_LINE_MATCH_PLAYED"
+msgstr "Match played"
+
+msgid "XP_LINE_MATCH_WON"
+msgstr "Match won"
+
+msgid "XP_LINE_ROUND_WON"
+msgstr "Rounds won · %d × %d"
+
+msgid "XP_LINE_ROUND_WON_COUNT"
+msgstr "Rounds won · %d"
+
+msgid "XP_LINE_HIT"
+msgstr "Hits · %d × %d"
+
+msgid "XP_LINE_HIT_COUNT"
+msgstr "Hits · %d"
+
+msgid "XP_LINE_DIFFICULTY"
+msgstr "%s bots"
+
+msgid "XP_MULTIPLIER"
+msgstr "× %s"
+
+msgid "XP_EARNED"
+msgstr "XP EARNED"
+
+msgid "XP_TOTAL"
+msgstr "+%d"
+
+msgid "XP_LEVEL_UP"
+msgstr "LEVEL %d!"
+
+msgid "XP_UNLOCKED"
+msgstr "Unlocked: %s"
