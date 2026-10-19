@@ -104,6 +104,21 @@ func item(id: String) -> Item:
 	return null
 
 
+## The item named `item_name` (its Name, any case) or with that ID, waiting ones included; the first of two sharing a
+## Name; null if none.
+func named(item_name: String) -> Item:
+	var lower := item_name.to_lower()
+	for list: Array[Item] in [replicas, powers, parts, waiting]:
+		for it in list:
+			if it.id == item_name:
+				return it
+	for list: Array[Item] in [replicas, powers, parts, waiting]:
+		for it in list:
+			if it.display_name.to_lower() == lower:
+				return it
+	return null
+
+
 ## The replica whose Key is `key`, or null.
 func replica_by_key(key: StringName) -> Item:
 	for it in replicas:

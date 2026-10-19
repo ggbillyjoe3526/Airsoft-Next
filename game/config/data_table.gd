@@ -111,6 +111,15 @@ static func parse_number(raw: String) -> float:
 	return text.to_float()
 
 
+## A comma-separated cell's names, trimmed, empty ones dropped.
+static func names(cell: String) -> PackedStringArray:
+	var out := PackedStringArray()
+	for n in cell.split(","):
+		if n.strip_edges() != "":
+			out.append(n.strip_edges())
+	return out
+
+
 ## The first row whose first column is `row_key`, or null.
 func row(row_key: String) -> Row:
 	for r in rows:

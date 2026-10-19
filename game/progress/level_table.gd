@@ -157,9 +157,9 @@ func _read_levels(t: DataTable, pool: Pool) -> Dictionary[String, bool]:
 		return named
 	var stopped := false
 	for row in t.rows:
-		var names := _names(row.cell("Unlocks"))
+		var names := DataTable.names(row.cell("Unlocks"))
 		for n in names:
-			var found := _find(pool, n)
+			var found := pool.named(n)
 			if found != null:
 				named[found.id] = true
 		if stopped:
@@ -179,7 +179,7 @@ func _read_levels(t: DataTable, pool: Pool) -> Dictionary[String, bool]:
 		l.xp = xp
 		l.total = xp + (levels[number - 1].total if number > 0 else 0)
 		for n in names:
-			var it := _find(pool, n)
+			var it := pool.named(n)
 			if it == null:
 				problems.append("%s: \"%s\" isn't a Name or ID in pool.md" % [t.where(row.line), n])
 				continue
@@ -272,27 +272,6 @@ static func _first_column(tables: Array[DataTable], header: String) -> DataTable
 	for t in tables:
 		if not t.headers.is_empty() and t.headers[0] == header:
 			return t
-	return null
-
-
-## A comma-separated cell's names, trimmed, empty ones dropped.
-static func _names(cell: String) -> PackedStringArray:
-	var out := PackedStringArray()
-	for n in cell.split(","):
-		if n.strip_edges() != "":
-			out.append(n.strip_edges())
-	return out
-
-
-## The pool item named `name` (its Name, any case) or with that ID; the first of two sharing a Name.
-static func _find(pool: Pool, item_name: String) -> Pool.Item:
-	var by_id := pool.item(item_name)
-	if by_id != null:
-		return by_id
-	var lower := item_name.to_lower()
-	for it in _items(pool):
-		if it.display_name.to_lower() == lower:
-			return it
 	return null
 
 

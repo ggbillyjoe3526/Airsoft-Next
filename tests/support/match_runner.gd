@@ -37,6 +37,8 @@ class MatchTally:
 	extends RefCounted
 	var map_id: String = ""
 	var seed_value: int = 0
+	## The kit each bot picked, by character id ("" for one carrying its replicas as they come).
+	var kits: PackedStringArray = PackedStringArray()
 	var rounds: Array[RoundTally] = []
 	## A team won the match before the tick limit.
 	var finished: bool = false
@@ -73,6 +75,12 @@ class MatchTally:
 
 
 var tuning: SimTuning = null
+## Every bot, on both teams, picks a kit from data/bot-kits.md at this difficulty (the same weights for both, so the
+## map's ends stay comparable); off, they all carry their replicas as they come.
+var kitted: bool = true
+var difficulty: StringName = &"normal"
+var _kits: BotKits = null
+var _kit_rules: LoadoutRules = null
 var config: BotConfig = null
 var map: MapData = null
 var level: MapLevel = null
@@ -114,11 +122,23 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 	var loadout := ReplicaStats.default_loadout()
 	var commands: Array[PlayerCommand] = []
 	var size := tuning.rounds.team_size
+	var kit_names := PackedStringArray()
+	if kitted and _kits == null:
+		_kits = BotKits.shared()
+		_kit_rules = LoadoutRules.standard()
 	for i in size * 2:
-		state.characters.append(Character.new(i, 0 if i < size else 1, Vector3.ZERO, 0.0, loadout))
+		var plan := _kits.pick(difficulty, _kit_rules, Seeds.kit_seed(seed_value, i)) if kitted else null
+		kit_names.append(plan.kit_name if plan != null else "")
+		if plan == null:
+			state.characters.append(Character.new(i, 0 if i < size else 1, Vector3.ZERO, 0.0, loadout))
+		else:
+			var kit := BotKits.kit_of(plan, _kit_rules)
+			state.characters.append(Character.new(i, 0 if i < size else 1, Vector3.ZERO, 0.0, kit.replicas,
+					kit.bb_weights))
 		commands.append(PlayerCommand.new())
 	var bots := BotController.new(state, -1, map, nav, level.query(), tuning, config)
 	var t := MatchTally.new()
+	t.kits = kit_names
 	t.map_id = map.id
 	t.seed_value = seed_value
 	t.farthest.resize(state.characters.size())

@@ -12,6 +12,8 @@ const PLAN_OFFSET := 12345
 const BOT_MULTIPLIER := 7919
 const BOT_PER_CHARACTER := 104729
 const WIND_PER_MATCH := 7368787
+const KIT_MULTIPLIER := 2654435761
+const KIT_PER_CHARACTER := 40503
 
 
 ## `seed × multiplier + add`, wrapped to 32 bits (GDScript's 64-bit integers wrap on overflow, keeping the low 32 bits
@@ -34,6 +36,12 @@ static func bot_seed(seed_value: int, character_id: int) -> int:
 ## gets a new breeze.
 static func wind_seed(seed_value: int, match_number: int) -> int:
 	return derive(seed_value, 1, ((match_number - 1) * WIND_PER_MATCH) & MASK_32)
+
+
+## Bot `character_id`'s kit pick's seed (BotKits.pick) for a match seeded with `seed_value`: each bot's pick is its
+## own.
+static func kit_seed(seed_value: int, character_id: int) -> int:
+	return derive(seed_value, KIT_MULTIPLIER, ((character_id + 1) * KIT_PER_CHARACTER) & MASK_32)
 
 
 ## A generator seeded with `seed_value`: every random draw in the simulation comes from one of these.

@@ -5,23 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## BK1 · The bots' kits
-tier: core
-perf: required
-touches: game/ai/, game/loadout/, game/play/play_session.gd, game/config/, data/bot-kits.md, tests/unit/
-contract: none
-acceptance:
-  1. `data/bot-kits.md` is read at start against the pool (a name it lacks, a part that doesn't fit or two for one
-     slot is a warning with its line, and the row is left out); the shipped file reads clean.
-  2. Each opposing bot picks its kit at the start of a match by its difficulty's weights (seeded, so a seed replays
-     the same kits); teammates carry their replicas as they come. What you have unlocked never changes them.
-  3. A bot's kit applies in play as yours does: parts, power, magazines and the Silencer's quieter shots, with its
-     figure showing the parts' figure copies.
-  4. The match guards and the balance report still pass at Normal.
-status: open
-attempts: 0
-
-
 ## AR1 · The Armory screen and the XP at the end of a match
 tier: ui
 perf: required
