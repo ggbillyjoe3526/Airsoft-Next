@@ -1,0 +1,98 @@
+extends SceneTree
+## Renders each match field from a high three-quarter camera to assets/maps/<id>.jpg (the Match page's map cards and
+## the loading screen's backdrop, MN2). Needs a display and OpenGL, so under xvfb:
+##   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 -s res://tools/map_pictures.gd
+## Arguments after `--`: an output folder (default assets/maps/) and an optional map id to render alone. A map that
+## can't load is skipped with its reasons.
+
+## The picture's size (px) and its JPEG quality.
+const SIZE := Vector2i(700, 400)
+const QUALITY := 0.85
+const OUT_DIR := "res://assets/maps/"
+## The camera: how high it looks down from (degrees above the ground), which corner it stands at (degrees round from
+## +z), its vertical field of view, and how much of the frame the field may fill.
+const ELEVATION := 58.0
+const AZIMUTH := 205.0
+const FOV := 32.0
+const FILL := 0.97
+## The camera then moves in to this share of the distance that fits the field, so it fills the frame and the card's
+## crop (the Match page shows a 420x400 window of it) takes only the far corners.
+const CLOSER := 0.88
+const MSAA := Viewport.MSAA_4X
+## Frames drawn before the picture is taken, so the shadows and the sky are settled.
+const SETTLE_FRAMES := 4
+
+
+func _initialize() -> void:
+	_run.call_deferred()
+
+
+func _run() -> void:
+	var args := OS.get_cmdline_user_args()
+	var dir := args[0] if args.size() > 0 else OUT_DIR
+	var only := args[1] if args.size() > 1 else ""
+	DirAccess.make_dir_recursive_absolute(dir)
+	var play := PlayTuning.load_default()
+	var tuning := SimTuning.load_default()
+	var failed := 0
+	for entry in MapCatalog.shared().fields(true):
+		if not only.is_empty() and entry.id != only:
+			continue
+		var map := MapData.load_map(entry.id, play.map_style, tuning.rounds.team_size)
+		if not map.ok():
+			print("[map_pictures] %s skipped: %s" % [entry.id, "; ".join(map.problems)])
+			continue
+		var image := await _render(map, play)
+		var path := "%s/%s.jpg" % [dir.trim_suffix("/"), entry.id]
+		if image == null or image.save_jpg(path, QUALITY) != OK:
+			push_error("map_pictures: %s could not be written" % path)
+			failed += 1
+			continue
+		print("[map_pictures] %s -> %s" % [entry.id, path])
+	quit(1 if failed > 0 else 0)
+
+
+## One field drawn from above and to a side; null when nothing was drawn.
+func _render(map: MapData, play: PlayTuning) -> Image:
+	var port := SubViewport.new()
+	port.size = SIZE
+	port.msaa_3d = MSAA
+	port.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	root.add_child(port)
+	var level := MapLevel.new()
+	port.add_child(level)
+	level.build(map, play.map_style, SimTuning.load_default().body)
+	port.add_child(FieldLighting.build(play.lighting))
+	var camera := Camera3D.new()
+	camera.fov = FOV
+	port.add_child(camera)
+	_frame(camera, map)
+	for i in SETTLE_FRAMES:
+		await RenderingServer.frame_post_draw
+	var image := port.get_texture().get_image()
+	port.queue_free()
+	return image
+
+
+## Places `camera` to look at the middle of the map's blocks from far enough back that every corner of their box
+## sits inside FILL of the frame, then CLOSER.
+func _frame(camera: Camera3D, map: MapData) -> void:
+	var lo := Vector3(INF, INF, INF)
+	var hi := Vector3(-INF, -INF, -INF)
+	for b in map.blocks:
+		lo = lo.min(b.center - b.size * 0.5)
+		hi = hi.max(b.center + b.size * 0.5)
+	var middle := (lo + hi) * 0.5
+	var toward := Vector3.FORWARD.rotated(Vector3.RIGHT, -deg_to_rad(ELEVATION)).rotated(Vector3.UP,
+			deg_to_rad(AZIMUTH))
+	var basis := Basis.looking_at(toward, Vector3.UP)
+	var tan_v := tan(deg_to_rad(FOV) * 0.5)
+	var tan_h := tan_v * float(SIZE.x) / float(SIZE.y)
+	var back := 0.0
+	for i in 8:
+		var corner := Vector3(hi.x if i & 1 else lo.x, hi.y if i & 2 else lo.y, hi.z if i & 4 else lo.z) - middle
+		var local := basis.inverse() * corner
+		# a point is `depth` ahead of a camera `back` behind the middle: depth = back - local.z
+		back = maxf(back, absf(local.x) / (FILL * tan_h) + local.z)
+		back = maxf(back, absf(local.y) / (FILL * tan_v) + local.z)
+	camera.global_transform = Transform3D(basis, middle - toward * back * CLOSER)

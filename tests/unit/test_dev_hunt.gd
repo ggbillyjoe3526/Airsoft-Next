@@ -228,7 +228,7 @@ func test_the_catalogue_reads_what_it_can_and_names_the_rest() -> void:
 	assert_eq(missing.entries[0].id, "depot")
 
 
-func test_the_title_screens_map_choice_follows_dev_content() -> void:
+func test_the_match_pages_maps_follow_dev_content() -> void:
 	var shared := Settings.shared()
 	var was_enabled := shared.dev_enabled
 	var was_content := shared.dev.dev_content
@@ -236,19 +236,19 @@ func test_the_title_screens_map_choice_follows_dev_content() -> void:
 	shared.dev.dev_content = true
 	var main: Node = add_child_autofree(MAIN.instantiate())
 	await wait_process_frames(2)
-	var choice: OptionButton = main._map_choice
-	var public_count := choice.item_count
+	var page: MatchPage = main._menus.match_page()
+	var public_count := page.map_ids().size()
 	assert_eq(public_count, MapCatalog.shared().fields(false).size(), "box off: public maps only")
 	shared.dev_enabled = true
 	shared.mark_changed()
-	assert_eq(choice.item_count, MapCatalog.shared().fields(true).size())
-	assert_gt(choice.item_count, public_count)
-	main._map_id = "neonHeights"
+	assert_eq(page.map_ids().size(), MapCatalog.shared().fields(true).size())
+	assert_gt(page.map_ids().size(), public_count)
+	main._picks.map_id = "neonHeights"
 	shared.dev.dev_content = false
 	shared.mark_changed()
-	assert_eq(choice.item_count, public_count)
-	assert_eq(main._map_id, "depot", "a map no longer listed falls back")
-	assert_eq(choice.selected, main._map_ids.find("depot"))
+	assert_eq(page.map_ids().size(), public_count)
+	assert_eq(main._picks.map_id, "depot", "a map no longer listed falls back")
+	assert_true(page.map_card("depot").is_picked())
 	shared.dev_enabled = was_enabled
 	shared.dev.dev_content = was_content
 	main.free()

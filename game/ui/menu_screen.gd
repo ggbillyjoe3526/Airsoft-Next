@@ -1,7 +1,8 @@
 class_name MenuScreen
 extends Control
-## The menus: the top bar over a page pinned to the window. Only the Match page exists (its body is MatchPage until
-## MN2); a tab press goes to the entry screen, which opens the settings under the bar. Esc goes back to the title.
+## The menus: the top bar over a page pinned to the window. Only the Match page exists (MatchPage, which keeps its picks
+## in the MatchPicks it is given); a tab press goes to the entry screen, which opens the settings under the bar. Esc goes
+## back to the title.
 
 signal back
 ## A tab that is built was pressed.
@@ -11,7 +12,7 @@ var _bar: TopBar = null
 var _match: MatchPage = null
 
 
-func _init() -> void:
+func _init(picks: MatchPicks = null, settings: Settings = null) -> void:
 	name = "MenuScreen"
 	theme = GameTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -20,7 +21,7 @@ func _init() -> void:
 	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	plate.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(plate)
-	_match = MatchPage.new()
+	_match = MatchPage.new(picks, settings)
 	_match.offset_top = TopBar.HEIGHT
 	add_child(_match)
 	_bar = TopBar.new()

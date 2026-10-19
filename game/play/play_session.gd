@@ -7,18 +7,32 @@ extends Node3D
 ## `left` when the player leaves to the title screen. The Dev settings in force apply here and follow every change
 ## (game speed, bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions, Retro pixels, End the
 ## round now): the cheats through the simulation (DevCheats), the views built only while on.
+## The build is four steps (the map, the level, the teams, the views). Staged, one runs each rendered frame and
+## `progressed` reports each, for the loading screen; `started` follows the frame the match is first drawn. Not staged,
+## all four run in `_ready` (tests and tools).
 
 signal left
+## `done` of `total` build steps are finished; `step_key` is the translation key of the one running next ("" at the end).
+signal progressed(done: int, total: int, step_key: String)
+## The match has been drawn once (or the map was refused): the loading screen can go.
+signal started
 
 const PLAYER_ID := 0
-const PLAYER_TEAM := 0
-const OPPONENT_TEAM := 1
+## The build steps, in order, as the keys of the words the loading screen shows.
+const STEP_KEYS: Array[String] = ["LOAD_MAP", "LOAD_LEVEL", "LOAD_TEAMS", "LOAD_VIEWS"]
+## The teams' numbers in the simulation: Alpha 0, Beta 1.
+const TEAM_ALPHA := 0
+const TEAM_BETA := 1
 ## Every frame draws its mouse turn; a tick lasts this long (s).
 const TICK := 1.0 / 60.0
 
 ## The map to play (data/maps/<id>.json) and the match's seed.
 @export var map_id: String = "depot"
 @export var match_seed: int = 1
+## The team you play (TEAM_ALPHA or TEAM_BETA); the bots play the other and your teammates are on yours.
+@export var player_team: int = TEAM_ALPHA
+## True: build a step a frame (the loading screen follows it); false: all at once in `_ready`.
+var staged: bool = false
 ## The smoke test's pilot: a bot plays your character, with no mouse or keys.
 var autopilot: bool = false
 ## Simulation ticks per physics tick: the smoke test plays a whole match faster than real time.
@@ -49,6 +63,12 @@ var _audio: SimAudio = null
 var _debug: DebugView = null
 var _hud: Hud = null
 var _pause: PauseMenu = null
+var _map: MapData = null
+var _ui: CanvasLayer = null
+## The next build step, and whether the match runs (all built) or is waiting to be seen once.
+var _step: int = 0
+var _running: bool = false
+var _first_frame_due: bool = false
 var _pacer: TickPacer = TickPacer.new()
 ## Spectate any bot: on, and who it follows (-1: the next to be picked); the trigger last tick, to move on per pull.
 var _spectate_any: bool = false
@@ -71,26 +91,65 @@ func _ready() -> void:
 	name = "Play"
 	# Everything here is placed by hand between ticks (fraction below), so the engine's own interpolation stays off.
 	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	if staged:
+		progressed.emit(0, STEP_KEYS.size(), STEP_KEYS[0])
+		return
+	while _step < STEP_KEYS.size():
+		_build_step()
+	_running = _map.ok()
+
+
+## Runs the next build step and reports it.
+func _build_step() -> void:
+	match _step:
+		0:
+			_load_map()
+		1:
+			_build_level()
+		2:
+			_build_teams()
+		3:
+			_build_views_and_start()
+	_step += 1
+	var next := STEP_KEYS[_step] if _step < STEP_KEYS.size() else ""
+	progressed.emit(_step, STEP_KEYS.size(), next)
+
+
+func _load_map() -> void:
 	_tuning = SimTuning.load_default()
 	_play = PlayTuning.load_default()
-	var map := MapData.load_map(map_id, _play.map_style, _tuning.rounds.team_size)
-	var ui := CanvasLayer.new()
-	ui.name = "Interface"
-	add_child(ui)
-	if not map.ok():
-		push_error("PlaySession: map %s refused: %s" % [map_id, "; ".join(map.problems)])
-		_refuse(ui, map)
+	_map = MapData.load_map(map_id, _play.map_style, _tuning.rounds.team_size)
+	_ui = CanvasLayer.new()
+	_ui.name = "Interface"
+	add_child(_ui)
+	if not _map.ok():
+		push_error("PlaySession: map %s refused: %s" % [map_id, "; ".join(_map.problems)])
+		_refuse(_ui, _map)
+		_step = STEP_KEYS.size() - 1
+
+
+func _build_level() -> void:
+	if not _map.ok():
 		return
 	_level = MapLevel.new()
 	add_child(_level)
-	_level.build(map, _play.map_style, _tuning.body)
+	_level.build(_map, _play.map_style, _tuning.body)
 	add_child(FieldLighting.build(_play.lighting))
-	_start_simulation(map)
-	_build_views(ui)
+
+
+func _build_teams() -> void:
+	if _map.ok():
+		_start_simulation(_map)
+
+
+func _build_views_and_start() -> void:
+	if not _map.ok():
+		return
+	_build_views(_ui)
 	var config := BotConfig.load_default()
 	# With the pilot on, a bot plays your character too.
 	var nobody := -1
-	_bots = BotController.new(state, nobody if autopilot else PLAYER_ID, map, _sim.nav, _level.query(), _tuning, config)
+	_bots = BotController.new(state, nobody if autopilot else PLAYER_ID, _map, _sim.nav, _level.query(), _tuning, config)
 	if settings == null:
 		settings = Settings.shared()
 	settings.changed.connect(_apply_dev)
@@ -100,17 +159,36 @@ func _ready() -> void:
 	_capture()
 
 
+## The team the bots play against you.
+func opponent_team() -> int:
+	return 1 - player_team
+
+
+## Staged build, a step a frame. The match runs from the frame after the last step, and `started` follows that frame's
+## update (so the first picture it draws is the match, camera placed).
+func _advance_build() -> void:
+	if _step >= STEP_KEYS.size():
+		return
+	_build_step()
+	if _step >= STEP_KEYS.size():
+		if _map.ok():
+			_running = true
+			_first_frame_due = true
+		else:
+			started.emit()
+
+
 func _start_simulation(map: MapData) -> void:
 	_sim = Simulation.new(_tuning, _level.query(), _level.mover(_tuning.body), map.ends, map.kill_y)
 	_sim.nav = NavGrid.build(map, _tuning.nav, _tuning.body)
 	state = GameState.new(match_seed, _tuning)
 	state.dev_content = MapCatalog.shared().is_dev(map_id)
 	var loadout := ReplicaStats.default_loadout()
-	player = Character.new(PLAYER_ID, PLAYER_TEAM, Vector3.ZERO, 0.0, loadout)
+	player = Character.new(PLAYER_ID, player_team, Vector3.ZERO, 0.0, loadout)
 	state.characters.append(player)
 	# Your teammates, then the other team: every character but you is a bot.
 	for i in _tuning.rounds.team_size * 2 - 1:
-		var team := PLAYER_TEAM if i < _tuning.rounds.team_size - 1 else OPPONENT_TEAM
+		var team := player_team if i < _tuning.rounds.team_size - 1 else opponent_team()
 		state.characters.append(Character.new(PLAYER_ID + 1 + i, team, Vector3.ZERO, 0.0, loadout))
 	for c in state.characters:
 		_commands.append(PlayerCommand.new())
@@ -172,7 +250,7 @@ func _build_views(ui: CanvasLayer) -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if _sim == null:
+	if not _running:
 		return
 	_pacer.rate = speed * state.cheats.game_speed
 	for i in _pacer.ticks():
@@ -248,7 +326,9 @@ func _after_tick() -> void:
 
 
 func _process(delta: float) -> void:
-	if _sim == null:
+	if not _running:
+		if staged:
+			_advance_build()
 		return
 	if _rematch_left > 0.0:
 		_rematch_left = maxf(0.0, _rematch_left - delta)
@@ -271,6 +351,9 @@ func _process(delta: float) -> void:
 	_hud.update(state, _input.zoom, delta)
 	if _intents != null:
 		_intents.update(state, fraction)
+	if _first_frame_due:
+		_first_frame_due = false
+		started.emit()
 
 
 ## Whose eyes you see through: with Spectate any bot on, the bot it follows; else your own, or once you are out in the
@@ -297,7 +380,7 @@ func spectated() -> Character:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _sim == null:
+	if not _running:
 		return
 	# Esc while paused reaches the menu instead: this node is paused with the tree.
 	if event.is_action_pressed(&"pause") and not event.is_echo():
@@ -330,6 +413,9 @@ func _open_pause() -> void:
 	_input.release()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().paused = true
+	var listed := MapCatalog.shared().find(map_id)
+	_pause.set_match(listed.display_name if listed != null else _map.display_name, tr(MatchOptions.MODE_ELIMINATION_NAME),
+			state.round_state.number, state.match_seed)
 	_pause.open()
 
 

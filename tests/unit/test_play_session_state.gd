@@ -51,7 +51,7 @@ func test_a_click_on_the_title_after_leaving_does_not_leave_the_tree_paused() ->
 func test_a_finished_match_rematches_after_the_delay() -> void:
 	session.autopilot = false
 	for c in session.state.characters:
-		if c.team == PlaySession.OPPONENT_TEAM:
+		if c.team == session.opponent_team():
 			c.status = Character.Status.OUT
 	var rounds := session.state.round_state
 	await wait_physics_frames(3)

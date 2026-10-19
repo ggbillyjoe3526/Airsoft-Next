@@ -27,5 +27,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 
 - Settings: a screen from the title screen and the pause menu for controls, audio, display and the FPS counter; every change applies and saves at once (SE1)
 - Dev tab: cheats and tools shown while the Dev settings box is ticked: game speed, ghost, bottomless magazines, spectate bots, retro pixels, reset save (DV2)
-- Map choice: the menus pick Depot, or Woodland and Neon Heights while Dev content is on (DV2)
+- Match screen: pick a map from picture cards (Depot, or Neon Heights while Dev content is on; Woodland greyed, LATER), the mode (Elimination), your team (ALPHA or BETA) and the bots' level (Normal), with the rules as chips; picks stay while the game is open (MN2)
+- Loading screen: PLAY shows the map's picture, name and a progress bar until the match draws (MN2)
+- Pause menu: PAUSED, the map, mode and round, RESUME, SETTINGS, QUIT MATCH and the match's seed (MN2)
 - Title screen and menus: a title with START, which opens a top bar of Match, Loadout, Armory (LATER), Settings and your level chip (MN1)
