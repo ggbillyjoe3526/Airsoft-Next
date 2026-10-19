@@ -11,6 +11,11 @@ const PARTS: Array[StringName] = [&"Body", &"Furniture", &"Detail", &"Accent", &
 const OWN := &"own"
 ## The replica Keys that keep their own colours (the Cyber Pistol's light lines; schemes.ts hasFixedColours).
 const OWN_COLOURS: Array[StringName] = [&"cyber"]
+## Its own colours under Realistic colours (schemes.ts CYBER_COLOURS.realistic), by the model's material names: a dark
+## grey slab with plain grey lines and core, none of them glowing. Materials not listed keep the model's own.
+const OWN_REALISTIC: Dictionary[StringName, int] = {
+	&"CyberSlab": 0x4a4f57, &"CyberFrame": 0x23262c, &"CyberLine": 0x2a2d32, &"CyberCore": 0x6a7079,
+}
 
 ## The bold schemes in the order the Loadout lists them: name, the five colours (PARTS' order) and the plain family
 ## Realistic colours turns it into.

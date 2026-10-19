@@ -74,16 +74,16 @@ func test_a_loadouts_copy_and_dict_keep_their_own_parts() -> void:
 	assert_eq(s.slots.size(), 1)
 
 
-func test_the_cyber_pistol_takes_no_part_and_a_slot_holding_it_plays_the_default_as_it_comes() -> void:
+func test_the_cyber_pistol_takes_no_part_and_plays_as_it_comes() -> void:
 	var l := rules.default_loadout("Test")
 	l.equipped[Loadout.Slot.SECONDARY] = CYBER
 	for slot: StringName in Pool.PART_TABLES.values():
 		assert_eq(rules.parts_for(CYBER, slot), [] as Array[Pool.Item], "nothing for %s" % slot)
 		assert_false(rules.set_part(l, CYBER, slot, SILENCER))
 	var kit := rules.carried(l)
-	var base := rules.config(rules.pool.item(PISTOL))
-	assert_eq(kit.replicas[1].mag_size, base.mag_size)
-	assert_eq(kit.replicas[1].mags, base.mags)
+	assert_eq(kit.replicas[1].id, &"cyber", "playable since CP1")
+	assert_eq(kit.replicas[1].mag_size, 50)
+	assert_eq(kit.replicas[1].mags, 3)
 	assert_false(kit.replicas[1].rattles)
 	assert_eq(kit.replicas[1].heard_scale, 1.0)
 

@@ -225,11 +225,11 @@ func test_the_page_lays_out_at_small_and_4k_sizes() -> void:
 	assert_not_null(host)
 
 
-func test_the_cyber_pistol_cant_be_carried_yet_so_no_part_tab_can_reach_it() -> void:
+func test_the_cyber_pistol_can_be_carried_but_no_part_fits_it() -> void:
 	settings.dev_enabled = true
 	settings.dev.dev_content = true
 	saved.rules.dev_content = true
-	assert_false(saved.rules.equip(saved.carried(), Loadout.Slot.SECONDARY, CYBER), "no config yet: LATER")
+	assert_true(saved.rules.equip(saved.carried(), Loadout.Slot.SECONDARY, CYBER), "playable since CP1")
 	for t: StringName in Pool.PART_TABLES.values():
 		assert_true(saved.rules.parts_for(CYBER, t).is_empty())
 

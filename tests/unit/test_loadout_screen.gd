@@ -245,8 +245,10 @@ func test_picking_a_replica_for_a_slot_swaps_one_already_carried() -> void:
 	assert_eq(page.slot(), Loadout.Slot.SECONDARY)
 	page.gear().replica_card(PISTOL).pressed.emit()
 	assert_eq(saved.carried().equipped, PackedStringArray([AEG, PISTOL]))
-	assert_true(page.gear().replica_card(CYBER).disabled, "the Cyber Pistol is greyed")
-	assert_true(_words(page.gear().replica_card(CYBER)).has("LATER"))
+	assert_false(page.gear().replica_card(CYBER).disabled, "the Cyber Pistol plays (CP1); no levels in this test")
+	assert_false(_words(page.gear().replica_card(CYBER)).has("LATER"))
+	page.gear().replica_card(CYBER).pressed.emit()
+	assert_eq(saved.carried().equipped, PackedStringArray([AEG, CYBER]))
 
 
 func test_the_laser_and_light_are_greyed_and_power_lists_what_fits() -> void:

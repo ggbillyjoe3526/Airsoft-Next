@@ -143,7 +143,11 @@ func test_equip_swaps_when_the_other_slot_holds_it() -> void:
 	var l := rules.default_loadout("x")
 	assert_true(rules.equip(l, Loadout.Slot.PRIMARY, PISTOL))
 	assert_eq(l.equipped, PackedStringArray([PISTOL, AEG]))
-	assert_false(rules.equip(l, Loadout.Slot.PRIMARY, CYBER), "not offered")
+	var later := Pool.Item.new()
+	later.id = "000099"
+	later.key = &"spring"
+	rules.pool.replicas.append(later)
+	assert_false(rules.equip(l, Loadout.Slot.PRIMARY, later.id), "not offered: no built-in config")
 
 
 func test_bb_weight_and_dial_snap_and_clamp() -> void:

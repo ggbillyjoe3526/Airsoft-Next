@@ -110,8 +110,9 @@ A replica's file is its model in the hands, on the menus' pictures and on the fi
   frame meets the slide, above the trigger. The grip stays where the built-in pistols' is (raked back about 22°): the
   hands are posed in code.
 - **Objects.** `Body` (needed), `Magazine` (drops out on a reload), `FlashHider` (shown while no muzzle device is
-  fitted), `Figure` (the figures' cut-down version), and the empties `Muzzle` (needed: the centre of the muzzle's face,
-  where BBs leave), `TorchMount` and `SlideBack`. A rifle's figure is scaled so its butt-to-muzzle length is the
+  fitted), `Figure` (the figures' cut-down version), and the empties `RearSight` and `FrontSight` (the iron sights'
+  tops: aimed, the sight line runs through the eye), `Muzzle` (needed: the centre of the muzzle's face, where BBs
+  leave), `TorchMount` and `SlideBack`. A rifle's figure is scaled so its butt-to-muzzle length is the
   figures' rifle length; a pistol's keeps its size, the back of the slide at the figures' grip: the `SlideBack` empty's
   depth, else the body's rearmost point at the bore's height or above (mark it when the frame reaches back past the
   slide, as the Cyber Pistol's rear block does).

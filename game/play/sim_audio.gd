@@ -38,15 +38,18 @@ var _ambience: AudioStreamPlayer = null
 var _body: BodyConfig = null
 
 
-## Loads every cue `powers` (the loadouts' power sources) and the field need, and starts the ambience bed; replica
-## sounds come from the eyes of a character shaped as `body`.
-func setup(cfg: SoundConfig, powers: Array[StringName], body: BodyConfig) -> void:
+## Loads every cue `profiles` (the loadouts' sound profiles, ReplicaConfig.sound_profile) and the field need, and
+## starts the ambience bed; replica sounds come from the eyes of a character shaped as `body`. A profile with no power
+## part (the Cyber Pistol's) plays its shot alone.
+func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig) -> void:
 	_cfg = cfg
 	_body = body
 	name = "Sound"
-	for p in powers:
+	for p in profiles:
 		_shot[p] = _load("shot_%s" % p)
-		_power[p] = _load("power_%s" % p)
+		var power_part := "power_%s" % p
+		var has_part := ResourceLoader.exists("%s%s_1.wav" % [SoundConfig.CUE_DIR, power_part])
+		_power[p] = _load(power_part) if has_part else &""
 		_dry[p] = _load("dryFire_%s" % p)
 		_mag_out[p] = _load("magOut_%s" % p)
 		_mag_in[p] = _load("magIn_%s" % p)
@@ -146,11 +149,12 @@ func _mechanism(cue: StringName, state: GameState, e: GameEvent, own: bool) -> v
 	_play(cue, at, own, _cfg.mechanism_gain, _cfg.mechanism_pitch, BUS_EFFECTS)
 
 
+## The sound profile of `actor`'s replica in `slot` (its power's, or its own).
 func _power_of(state: GameState, actor: int, slot: int) -> StringName:
 	var c := state.character(actor)
 	if c == null or slot < 0 or slot >= c.armament.replicas.size():
 		return &""
-	return c.armament.replicas[slot].power
+	return c.armament.replicas[slot].sound_profile()
 
 
 ## Whether `actor`'s replica in `slot` is silenced.
