@@ -22,7 +22,7 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `game/main.tscn`, `main.gd` | The entry scene: the title, the menus, the credits, the perf overlay; `--smoke` drives the headless smoke test | built |
 | `game/core/` | Engine-wide helpers: `Version` (name and tag rules) | built |
 | `game/save/` | `SaveFile`: crash-safe writes (temp file, then rename, with a backup) | built |
-| `game/ui/` | Screens and HUD on one `GameTheme` (the navy and safety yellow palette, the slanted `SlantStyle` main button): `TitleScreen`, `MenuScreen` (`TopBar`, `MatchPage`), `SettingsScreen`, `Credits`, `Hud` (with `HudScore`, `HudBanner`, `ReplicaPanel`, `MagGauges` and the shared `HudStyle`), `PauseMenu`; `MenuScale` grows the menus with a tall window; the words by translation key in `text/en.po` | built |
+| `game/ui/` | Screens and HUD on one `GameTheme` (the navy and safety yellow palette, the slanted `SlantStyle` main button): `TitleScreen`, `MenuScreen` (`TopBar`, `MatchPage` with `MenuCard`, `MenuTag`, `MatchOptions` and the kept `MatchPicks`), `LoadingScreen`, `SettingsScreen`, `Credits`, `Hud` (with `HudScore`, `HudBanner`, `ReplicaPanel`, `MagGauges` and the shared `HudStyle`), `PauseMenu` (map, mode, round and the match seed); `MenuScale` grows the menus with a tall window; the words by translation key in `text/en.po` | built |
 | `game/debug/` | `DebugPerf` (F3: FPS, frame time, draw calls, nodes, orphans, and the match's seed, position and entities; `--perf` logs), `DebugView` (F4 BB paths, F5 hit areas, drawn only while on), `--seed <n>` | built |
 | `game/sim/` | The 60 Hz simulation: state, commands, events, rounds, BBs, hit calling, movement (`game/sim/README.md`) | built |
 | `game/ai/`, `game/nav/` | Bots (a controller like the player) and the layered nav grid | built |
@@ -33,7 +33,7 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `game/save/` | `SaveFile` and the player's settings (`Settings`, applied by `SettingsApply`, and the Dev tab's `DevSettings`); key bindings in `game/input/` | built |
 | `game/pool/`, `game/progress/`, `game/stats/` | Loadout, levels, records | later |
 | `data/` | The owner's six tables, read at start with `FileAccess`; `data/maps/*.json`, the map layouts | copied |
-| `assets/` | Models, fonts and sounds from the browser game (`assets/README.md`) | copied |
+| `assets/` | Models, fonts and sounds from the browser game, and the map pictures `tools/map_pictures.gd` renders (`assets/README.md`) | copied |
 | `tests/unit/` | GUT tests, `test_*.gd` | built |
 | `tests/guards/`, `tests/balance/`, `tests/support/` | The match guards (16 seeds a field, a CI job of their own), the balance report (`tools/balance.sh`, by hand) and `MatchRunner`, the headless bot match both play (`tests/README.md`) | built |
 | `legacy/` | Read-only reference, hidden from Godot by `.gdignore`, never exported | copied |

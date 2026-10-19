@@ -1,0 +1,327 @@
+extends GutTest
+## The Match page, the loading screen and the seed on the pause menu (MN2): the rules as chips read from the round
+## tuning, the modes a map hosts, the team you really play, a map that can't load greyed, the staged build behind the
+## loading screen, and the picks kept across the menus being freed for a match.
+
+const MAIN := preload("res://game/main.tscn")
+
+
+func _page(dev_content: bool) -> MatchPage:
+	var settings := Settings.new()
+	settings.dev_enabled = dev_content
+	settings.dev.dev_content = dev_content
+	var page := MatchPage.new(MatchPicks.new(), settings)
+	add_child_autofree(page)
+	return page
+
+
+func _labels(root: Node) -> PackedStringArray:
+	var out := PackedStringArray()
+	for l in root.find_children("*", "Label", true, false):
+		out.append((l as Label).text)
+	return out
+
+
+# --- the rules ---
+
+func test_the_chips_read_the_round_tuning() -> void:
+	var texts := PackedStringArray()
+	for chip in MatchOptions.rule_chips(RoundConfig.new(), HitConfig.new()):
+		texts.append(MatchOptions.chip_text(chip))
+	assert_eq(texts, PackedStringArray(["3 v 3", "First to 5", "Rounds 2:30", "Ends swap after 4",
+			"Ricochets Don't count"]))
+
+
+func test_the_chips_follow_a_changed_tuning() -> void:
+	var rounds := RoundConfig.new()
+	rounds.team_size = 5
+	rounds.wins_needed = 7
+	rounds.round_time = 95.0
+	rounds.half_time_after = 6
+	var hits := HitConfig.new()
+	hits.ricochets_count = true
+	var texts := PackedStringArray()
+	for chip in MatchOptions.rule_chips(rounds, hits):
+		texts.append(MatchOptions.chip_text(chip))
+	assert_eq(texts, PackedStringArray(["5 v 5", "First to 7", "Rounds 1:35", "Ends swap after 6", "Ricochets Count"]))
+
+
+func test_the_page_shows_the_chips_the_summary_and_play() -> void:
+	var page := _page(false)
+	assert_eq(page.chip_texts(), PackedStringArray(["3 v 3", "First to 5", "Rounds 2:30", "Ends swap after 4",
+			"Ricochets Don't count"]))
+	assert_eq(page.summary_text(), "Depot · Elimination · Alpha · Normal bots")
+	assert_eq(page.play_button().text, "PLAY")
+	var words := _labels(page)
+	for expected: String in ["MAP", "MODE", "YOUR TEAM", "BOTS", "RULES", "DEPOT", "An abandoned warehouse yard."]:
+		assert_true(words.has(expected), expected)
+
+
+# --- modes ---
+
+func test_a_map_offers_only_its_own_modes() -> void:
+	var catalog := MapCatalog.shared()
+	assert_eq(MatchOptions.modes_offered(catalog.find("depot")), PackedStringArray(["elimination"]))
+	assert_eq(MatchOptions.modes_offered(catalog.find("neonHeights")), PackedStringArray(["elimination"]))
+	assert_eq(MatchOptions.modes_offered(catalog.find("range")), PackedStringArray(["practice"]))
+	assert_eq(MatchOptions.modes_offered(null), PackedStringArray())
+	assert_true(MatchOptions.mode_pickable("elimination", catalog.find("depot")))
+	assert_false(MatchOptions.mode_pickable("attack_defend", catalog.find("depot")), "hosted by no map yet")
+	assert_false(MatchOptions.mode_pickable("practice", catalog.find("depot")), "the range's, and not built")
+	assert_false(MatchOptions.mode_pickable("elimination", catalog.find("range")), "not hosted by the range")
+
+
+func test_only_elimination_can_be_picked_and_the_rest_say_later() -> void:
+	var page := _page(false)
+	assert_false(page.mode_card("elimination").disabled)
+	assert_true(page.mode_card("elimination").is_picked())
+	for mode: String in ["attack_defend", "practice"]:
+		assert_true(page.mode_card(mode).disabled, mode)
+		assert_true(_labels(page.mode_card(mode)).has("LATER"), mode)
+	assert_false(_labels(page.mode_card("elimination")).has("LATER"))
+	for level: String in ["easy", "hard", "pro"]:
+		assert_true(page.bot_button(level).disabled, level)
+	assert_false(page.bot_button("normal").disabled)
+	assert_true(page.bot_button("normal").is_picked())
+
+
+# --- maps ---
+
+func test_dev_maps_are_tagged_and_a_map_that_cant_load_is_greyed_with_later() -> void:
+	var page := _page(true)
+	assert_eq(page.map_ids(), PackedStringArray(["depot", "neonHeights", "woodland"]))
+	assert_true(_labels(page.map_card("neonHeights")).has("DEV"))
+	assert_false(_labels(page.map_card("depot")).has("DEV"))
+	assert_false(page.is_unloadable("depot"))
+	assert_false(page.is_unloadable("neonHeights"))
+	var woodland := page.map_card("woodland")
+	assert_true(page.is_unloadable("woodland"), "MapData refuses it until its step")
+	assert_true(woodland.disabled)
+	assert_lt(woodland.modulate.a, 1.0)
+	var words := _labels(woodland)
+	assert_true(words.has("DEV") and words.has("LATER"))
+	assert_false(MatchOptions.map_problems("woodland", PlayTuning.load_default().map_style, 3).is_empty())
+	assert_true(MatchOptions.map_problems("depot", PlayTuning.load_default().map_style, 3).is_empty())
+
+
+func test_no_dev_maps_listed_with_dev_content_off() -> void:
+	var page := _page(false)
+	assert_eq(page.map_ids(), PackedStringArray(["depot"]))
+	assert_true(page.map_card("depot").is_picked())
+
+
+func test_picking_a_map_lights_its_card_and_the_summary() -> void:
+	var page := _page(true)
+	page.map_card("neonHeights").pressed.emit()
+	assert_eq(page.picks.map_id, "neonHeights")
+	assert_true(page.map_card("neonHeights").is_picked())
+	assert_false(page.map_card("depot").is_picked())
+	assert_true(page.summary_text().begins_with("Neon Heights · "))
+
+
+func test_a_picked_map_that_is_no_longer_listed_falls_back_to_a_playable_one() -> void:
+	var picks := MatchPicks.new()
+	picks.map_id = "woodland"
+	var page := MatchPage.new(picks, Settings.new())
+	add_child_autofree(page)
+	assert_eq(picks.map_id, "depot")
+
+
+# --- your team and the picks ---
+
+func test_your_team_is_alpha_or_beta_and_the_cards_say_nothing_else() -> void:
+	var page := _page(false)
+	assert_eq(_labels(page.team_card(0)), PackedStringArray(["ALPHA"]))
+	assert_eq(_labels(page.team_card(1)), PackedStringArray(["BETA"]))
+	assert_true(page.team_card(0).is_picked())
+	page.team_card(1).pressed.emit()
+	assert_eq(page.picks.team, PlaySession.TEAM_BETA)
+	assert_true(page.team_card(1).is_picked())
+	assert_false(page.team_card(0).is_picked())
+	assert_eq(page.summary_text(), "Depot · Elimination · Beta · Normal bots")
+
+
+func test_the_picks_survive_the_page_being_built_again() -> void:
+	var picks := MatchPicks.new()
+	var settings := Settings.new()
+	var first := MatchPage.new(picks, settings)
+	add_child(first)
+	first.team_card(1).pressed.emit()
+	first.free()
+	var second := MatchPage.new(picks, settings)
+	add_child_autofree(second)
+	assert_true(second.team_card(1).is_picked())
+	assert_false(second.team_card(0).is_picked())
+
+
+func test_the_page_lets_go_of_the_settings_when_freed() -> void:
+	var settings := Settings.new()
+	var page := MatchPage.new(MatchPicks.new(), settings)
+	add_child(page)
+	assert_eq(settings.changed.get_connections().size(), 1)
+	page.free()
+	assert_eq(settings.changed.get_connections().size(), 0)
+
+
+# --- the team actually played ---
+
+func test_beta_picked_means_character_zero_is_on_team_one() -> void:
+	var session := PlaySession.new()
+	session.autopilot = true
+	session.player_team = PlaySession.TEAM_BETA
+	add_child_autofree(session)
+	await wait_physics_frames(2)
+	var size := SimTuning.new().rounds.team_size
+	assert_eq(session.state.characters[0].team, 1)
+	assert_eq(session.player.team, 1)
+	assert_eq(session.opponent_team(), 0)
+	var per_team := PackedInt32Array([0, 0])
+	for c in session.state.characters:
+		per_team[c.team] += 1
+	assert_eq(per_team, PackedInt32Array([size, size]))
+	var mates := 0
+	for c in session.state.characters:
+		if c.team == 1 and c.id != 0:
+			mates += 1
+	assert_eq(mates, size - 1, "your teammates are on Beta with you")
+	assert_eq(session.player.end, Round.team_end(1, 1, SimTuning.new().rounds), "you start at Beta's end")
+
+
+func test_out_on_beta_you_watch_a_beta_teammate() -> void:
+	var session := PlaySession.new()
+	session.autopilot = false
+	session.bots_active = false
+	session.player_team = PlaySession.TEAM_BETA
+	add_child_autofree(session)
+	await wait_physics_frames(2)
+	session.player.status = Character.Status.OUT
+	assert_eq(session.spectated().team, 1)
+	assert_ne(session.spectated(), session.player)
+
+
+func test_alpha_is_still_the_default_team() -> void:
+	var session := PlaySession.new()
+	session.autopilot = true
+	add_child_autofree(session)
+	await wait_physics_frames(2)
+	assert_eq(session.player.team, 0)
+
+
+# --- the pause menu's words ---
+
+func test_the_pause_menu_names_the_match_and_shows_its_seed() -> void:
+	var menu := PauseMenu.new()
+	add_child_autofree(menu)
+	menu.set_match("Depot", "Elimination", 3, 48213)
+	assert_eq(menu.subtitle_text(), "Depot · Elimination · Round 3")
+	assert_eq(menu.seed_text(), "48213")
+	var words := _labels(menu)
+	assert_true(words.has("PAUSED"))
+	assert_true(words.has("Match seed"))
+
+
+func test_pausing_a_match_shows_its_own_seed_map_and_round() -> void:
+	var session := PlaySession.new()
+	session.autopilot = true
+	session.match_seed = 777
+	add_child_autofree(session)
+	await wait_physics_frames(2)
+	session._open_pause()
+	var menu := session.find_child("PauseMenu", true, false) as PauseMenu
+	assert_eq(menu.seed_text(), str(session.state.match_seed))
+	assert_eq(menu.seed_text(), "777")
+	assert_eq(menu.subtitle_text(), "Depot · Elimination · Round 1")
+	session._resume()
+
+
+# --- the loading screen ---
+
+func test_the_loading_screen_shows_the_matchs_words_and_a_bar() -> void:
+	var screen := LoadingScreen.new()
+	add_child_autofree(screen)
+	screen.setup("depot", "Depot", "An abandoned warehouse yard.", MatchOptions.kicker("elimination", 3, 0))
+	assert_eq(screen.kicker_text(), "ELIMINATION · 3 V 3 · YOU'RE ALPHA")
+	assert_eq(screen.title_text(), "DEPOT")
+	assert_eq(screen.blurb_text(), "An abandoned warehouse yard.")
+	assert_eq(MatchOptions.kicker("elimination", 3, 1), "ELIMINATION · 3 V 3 · YOU'RE BETA")
+	screen.set_progress_step(2, 4, "LOAD_TEAMS")
+	assert_almost_eq(screen.progress(), 0.5, 1e-6)
+	assert_eq(screen.percent_text(), "50 %")
+	assert_eq(screen.step_text(), "Placing the teams")
+	screen.set_progress_step(4, 4, "")
+	assert_almost_eq(screen.progress(), 1.0, 1e-6)
+	assert_eq(screen.percent_text(), "100 %")
+
+
+func test_a_staged_build_reports_every_step_then_starts_once_drawn() -> void:
+	var session := PlaySession.new()
+	session.autopilot = true
+	session.staged = true
+	var reports: Array = []
+	session.progressed.connect(func(done: int, total: int, key: String) -> void:
+		reports.append([done, total, key, Engine.get_process_frames()]))
+	watch_signals(session)
+	add_child_autofree(session)
+	assert_eq(reports.size(), 1)
+	assert_eq(reports[0].slice(0, 3), [0, 4, "LOAD_MAP"])
+	assert_null(session.state, "nothing built before the first frame")
+	var frames := 0
+	while get_signal_emit_count(session, "started") == 0 and frames < 30:
+		await wait_process_frames(1)
+		frames += 1
+	assert_lt(frames, 30)
+	assert_signal_emit_count(session, "started", 1)
+	assert_eq(reports.size(), 5, "0 to 4 of 4")
+	var keys: Array = []
+	for r: Array in reports:
+		keys.append(r.slice(0, 3))
+	assert_eq(keys, [[0, 4, "LOAD_MAP"], [1, 4, "LOAD_LEVEL"], [2, 4, "LOAD_TEAMS"], [3, 4, "LOAD_VIEWS"], [4, 4, ""]])
+	for i in range(2, reports.size()):
+		assert_gt(reports[i][3], reports[i - 1][3], "a step a frame, not all at once")
+	assert_not_null(session.state)
+	await wait_physics_frames(3)
+	assert_gt(session.ticks(), 0, "the match runs once built")
+
+
+func test_a_staged_refused_map_still_starts_so_the_loading_screen_goes() -> void:
+	var session := PlaySession.new()
+	session.map_id = "woodland"
+	session.staged = true
+	watch_signals(session)
+	add_child_autofree(session)
+	var frames := 0
+	while get_signal_emit_count(session, "started") == 0 and frames < 30:
+		await wait_process_frames(1)
+		frames += 1
+	assert_push_error("refused")
+	assert_signal_emit_count(session, "started", 1)
+	assert_null(session.state)
+
+
+# --- the entry scene ---
+
+func test_play_frees_the_menus_shows_loading_and_frees_it_once_the_match_runs() -> void:
+	var main: Node = add_child_autofree(MAIN.instantiate())
+	await wait_process_frames(2)
+	main._picks.team = PlaySession.TEAM_BETA
+	main._start_play()
+	assert_not_null(main._loading)
+	assert_eq(main._loading.kicker_text(), "ELIMINATION · 3 V 3 · YOU'RE BETA")
+	assert_eq(main._loading.title_text(), "DEPOT")
+	assert_null(main._title, "no title node lives during a match")
+	assert_null(main._menus, "no menu nodes live during a match")
+	var frames := 0
+	while main._loading != null and frames < 60:
+		await wait_process_frames(1)
+		frames += 1
+	assert_null(main._loading, "freed once the match has drawn")
+	assert_lt(frames, 60)
+	var play: PlaySession = main._play
+	assert_eq(play.player_team, PlaySession.TEAM_BETA)
+	await wait_process_frames(2)
+	assert_eq(main.find_children("*", "LoadingScreen", true, false).size(), 0)
+	main._end_play()
+	await wait_process_frames(2)
+	assert_not_null(main._title)
+	assert_not_null(main._menus)
+	assert_true(main._menus.match_page().team_card(1).is_picked(), "the pick is still there")

@@ -1,9 +1,11 @@
 extends Node
-## The entry scene: the title (TitleScreen: START, Licences, Quit), the menus (MenuScreen: the top bar over the Match page,
-## which holds the map choice and PLAY until MN2), the settings under the top bar, the credits, the F3 performance
-## overlay and the Show FPS readout. The map choice lists the public maps, and the dev ones too while the Dev settings'
-## Dev content switch is on (MapCatalog). PLAY opens a match on that map (PlaySession) on the `--seed` launch option's
-## seed if given, else a fresh one; leaving it comes back to the title. The menus grow with a tall window (MenuScale).
+## The entry scene: the title (TitleScreen: START, Licences, Quit), the menus (MenuScreen: the top bar over the Match page
+## with its map, mode, team, bots and rules), the settings under the top bar, the credits, the F3 performance overlay and
+## the Show FPS readout. The Match page lists the public maps, and the dev ones too while the Dev settings' Dev content
+## switch is on (MapCatalog). PLAY frees the title and the menus (no menu nodes live during a match) and opens a match
+## (PlaySession) on the picked map and team, on the `--seed` launch option's seed if given, else a fresh one, behind the
+## loading screen until it has drawn its first frame; leaving it builds them again and comes back to the title. The
+## picks live in a MatchPicks kept here. The menus grow with a tall window (MenuScale).
 ## `--smoke` (tools/smoke_test.sh) opens and closes the settings and the credits, plays a whole match on Depot with a
 ## bot in your place (faster than real time), leaves, then quits with a report line.
 
@@ -27,10 +29,9 @@ var _settings_screen: SettingsScreen
 var _title: TitleScreen
 var _menus: MenuScreen
 var _play: PlaySession
-var _map_choice: OptionButton
-## The map Play opens, and the ids the choice lists in order.
-var _map_id := SMOKE_MAP
-var _map_ids: PackedStringArray = PackedStringArray()
+var _loading: LoadingScreen
+## What the Match page has picked, kept while the menus are freed for a match.
+var _picks := MatchPicks.new()
 var _perf: DebugPerf
 var _smoke := false
 ## The `--seed` launch option, or LaunchSeed.NONE.
@@ -46,15 +47,13 @@ var _smoke_left_at := -1
 func _ready() -> void:
 	_smoke = OS.get_cmdline_user_args().has("--smoke")
 	_launch_seed = LaunchSeed.parse(OS.get_cmdline_user_args())
-	var settings := Settings.shared()
 	_build_screens()
 	_title.focus_start()
-	settings.changed.connect(_list_maps)
 	_credits = Credits.new()
 	_credits.visible = false
 	_credits.closed.connect(_credits_closed)
 	add_child(_credits)
-	add_child(FpsReadout.new(settings))
+	add_child(FpsReadout.new(Settings.shared()))
 	_perf = DebugPerf.new()
 	add_child(_perf)
 	_scale_menus()
@@ -73,23 +72,11 @@ func _exit_tree() -> void:
 ## The title and the menus page, built at boot and after each match; a match frees them (a hidden menu would keep
 ## its nodes for the whole match).
 func _build_screens() -> void:
-	_menus = MenuScreen.new()
-	_menus.visible = false
-	_menus.back.connect(_show_title)
-	_menus.tab_requested.connect(_on_tab)
-	_menus.match_page().play_pressed.connect(_start_play)
-	_map_choice = _menus.match_page().map_choice
-	_map_choice.item_selected.connect(func(i: int) -> void: _map_id = _map_ids[i])
-	add_child(_menus)
-	_title = TitleScreen.new()
-	_title.start_pressed.connect(_show_menus)
-	_title.credits_pressed.connect(_show_credits)
-	_title.quit_pressed.connect(get_tree().quit)
-	add_child(_title)
+	_build_menus()
+	_build_title()
 	# first in the tree, under the credits, the readouts and any match
 	move_child(_menus, 0)
 	move_child(_title, 1)
-	_list_maps()
 
 
 func _free_screens() -> void:
@@ -97,12 +84,28 @@ func _free_screens() -> void:
 	_title = null
 	_menus.queue_free()
 	_menus = null
-	_map_choice = null
 
 
 ## Sizes the menus for the window: grown while they show, plain in play (the HUD has its own scale).
 func _scale_menus() -> void:
 	MenuScale.apply(get_window(), _play == null)
+
+
+func _build_title() -> void:
+	_title = TitleScreen.new()
+	_title.start_pressed.connect(_show_menus)
+	_title.credits_pressed.connect(_show_credits)
+	_title.quit_pressed.connect(get_tree().quit)
+	add_child(_title)
+
+
+func _build_menus() -> void:
+	_menus = MenuScreen.new(_picks, Settings.shared())
+	_menus.visible = false
+	_menus.back.connect(_show_title)
+	_menus.tab_requested.connect(_on_tab)
+	_menus.match_page().play_pressed.connect(_start_play)
+	add_child(_menus)
 
 
 func _show_menus() -> void:
@@ -125,24 +128,6 @@ func _on_tab(tab: TopBar.Tab) -> void:
 		_settings_screen.close()
 
 
-## Fills the map choice with the maps on offer now, keeping the one picked if it is still listed (else the first).
-func _list_maps() -> void:
-	if _map_choice == null:
-		return
-	var listed := MapCatalog.shared().fields(Settings.shared().active_dev().dev_content)
-	_map_choice.clear()
-	_map_ids.clear()
-	for e in listed:
-		_map_choice.add_item(e.display_name)
-		_map_ids.append(e.id)
-	if _map_ids.is_empty():
-		_map_ids.append(SMOKE_MAP)
-		_map_choice.add_item(SMOKE_MAP)
-	if not _map_ids.has(_map_id):
-		_map_id = _map_ids[0]
-	_map_choice.select(_map_ids.find(_map_id))
-
-
 ## The settings over the menus, built when asked for and freed once closed (a hidden screen would keep its
 ## couple of hundred nodes for the whole session).
 func _open_settings() -> void:
@@ -160,11 +145,10 @@ func _open_settings() -> void:
 func _settings_closed() -> void:
 	_settings_screen.queue_free()
 	_settings_screen = null
-	if _menus == null:
-		return
-	_menus.top_bar().set_current(TopBar.Tab.MATCH)
-	if _menus.visible:
-		_menus.focus_play()
+	if _menus != null:
+		_menus.top_bar().set_current(TopBar.Tab.MATCH)
+		if _menus.visible:
+			_menus.focus_play()
 
 
 func _show_credits() -> void:
@@ -180,12 +164,16 @@ func _credits_closed() -> void:
 func _start_play() -> void:
 	if _play != null:
 		return
+	# No menu nodes live during a match: the title and the menus are freed now and built again when it ends.
 	if _settings_screen != null:
 		_settings_screen.close()
 	_free_screens()
+	var team := PlaySession.TEAM_ALPHA if _smoke else _picks.team
+	var map_id := SMOKE_MAP if _smoke else _picks.map_id
 	_play = PlaySession.new()
 	_play.autopilot = _smoke
-	_play.map_id = SMOKE_MAP if _smoke else _map_id
+	_play.map_id = map_id
+	_play.player_team = team
 	# --seed replays a match; else a fresh seed each Play (the smoke test keeps one fixed seed, so it plays the same match).
 	if _launch_seed != LaunchSeed.NONE:
 		_play.match_seed = _launch_seed
@@ -193,10 +181,30 @@ func _start_play() -> void:
 		_play.match_seed = SMOKE_SEED if _smoke else LaunchSeed.fresh()
 	if _smoke:
 		_play.speed = SMOKE_SPEED
+	_play.staged = true
+	_show_loading(map_id, team)
+	_play.progressed.connect(_loading.set_progress_step)
+	_play.started.connect(_free_loading)
 	_play.left.connect(_end_play)
 	add_child(_play)
 	_scale_menus()
 	_perf.watch(_play)
+
+
+## The loading screen over everything, from PLAY until the match has drawn.
+func _show_loading(map_id: String, team: int) -> void:
+	var catalog := MapCatalog.shared()
+	var entry := catalog.find(map_id)
+	_loading = LoadingScreen.new()
+	add_child(_loading)
+	_loading.setup(map_id, entry.display_name if entry != null else map_id, entry.blurb if entry != null else "",
+			MatchOptions.kicker(_picks.mode, SimTuning.load_default().rounds.team_size, team))
+
+
+func _free_loading() -> void:
+	if _loading != null:
+		_loading.queue_free()
+		_loading = null
 
 
 func _end_play() -> void:
@@ -209,6 +217,7 @@ func _end_play() -> void:
 		_smoke_matches = _play.matches_played
 		_smoke_left_at = _frame
 	_perf.watch(null)
+	_free_loading()
 	_play.queue_free()
 	_play = null
 	_build_screens()

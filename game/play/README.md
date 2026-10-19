@@ -6,7 +6,7 @@ and hands the tick's events on; everything else here draws the state every rende
 
 | File | What |
 |---|---|
-| `play_session.gd` | `PlaySession`: the map, the simulation, the views; Esc and focus loss pause; `left` back to the title; the smoke test's autopilot |
+| `play_session.gd` | `PlaySession`: the map, the simulation, the views, built in four steps (map, level, teams, views; one a frame while `staged`, reported by `progressed` for the loading screen, then `started` once drawn); you play `player_team` (Alpha or Beta); Esc and focus loss pause (the pause menu names the map, mode, round and seed); `left` back to the title; the smoke test's autopilot |
 | `first_person_view.gd` | `FirstPersonView`: the camera at the leaned eye (`Lean.offset`), rolled a little in a lean and eased out of one a wall cuts short, dipped and tipped over a vault, turned by the mouse every frame, lifted by recoil, zoomed by the sight |
 | `replica_view.gd` | `ReplicaView`: the replica in hand from its model: hip and sights, draw, the holster, sprint carry, reload cant and clip, kick, sway, pulled back from walls, a gas pistol's slide locked back on empty |
 | `bb_view.gd`, `puff_view.gd` | BBs in the air and the puffs where they land, each one MultiMesh |
@@ -20,6 +20,5 @@ and hands the tick's events on; everything else here draws the state every rende
 | `retro_pixels.gd`, `retro_pixels.gdshader` | `RetroPixels`: the Dev settings' Retro pixels, a full-screen filter under the HUD |
 | `shader_prewarm.gd` | `ShaderPrewarm`: draws the late materials (a fading figure, a BB, a puff, the sign) as specks for the first frames, so nothing compiles mid-match |
 
-Until bots come, you play Alpha alone against a team of stand-ins: Beta characters with no controller, who wait at
-their end and call their hits. Tuning: `PlayTuning` (`game/config/play_tuning.tres`). Tests:
+You play the team the Match page picked (Alpha by default) with bot teammates against bots on the other. Tuning: `PlayTuning` (`game/config/play_tuning.tres`). Tests:
 `tests/unit/test_play_session.gd`.

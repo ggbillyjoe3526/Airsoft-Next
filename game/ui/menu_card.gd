@@ -1,0 +1,96 @@
+class_name MenuCard
+extends Button
+## A card you click: a flat box with a border and content laid inside it (the Match page's maps, modes and teams).
+## Picked, its border takes the accent (safety yellow; a team's colour on the team cards) and its fill the picked
+## fill; with `ring` the border is doubled outwards, as the concept's picked map. Greyed: faded and not clickable.
+## An optional bar runs down the inside of its left edge (the team cards).
+
+const GREYED_ALPHA := 0.55
+const RING := 2
+const BAR_WIDTH := 6.0
+const HOVER_LIGHTEN := 0.06
+
+var fill: Color = GameTheme.CARD
+var picked_fill: Color = GameTheme.CARD_HI
+var accent: Color = GameTheme.YELLOW
+var ring: bool = false
+## The left bar's colour (transparent: none), and how much of it shows while the card isn't picked.
+var bar: Color = Color(0.0, 0.0, 0.0, 0.0)
+var bar_idle: float = 0.5
+
+var _picked: bool = false
+var _bar: ColorRect = null
+
+
+func _init() -> void:
+	focus_mode = Control.FOCUS_ALL
+	action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
+	clip_contents = false
+	_restyle()
+
+
+## Lays `content` inside the border and lets clicks through it to the card.
+func add_content(content: Control) -> void:
+	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for side: Side in [SIDE_LEFT, SIDE_TOP]:
+		content.set_offset(side, float(GameTheme.BORDER))
+	for side: Side in [SIDE_RIGHT, SIDE_BOTTOM]:
+		content.set_offset(side, -float(GameTheme.BORDER))
+	_ignore_mouse(content)
+	add_child(content)
+	if _bar != null:
+		move_child(_bar, get_child_count() - 1)
+
+
+func set_picked(on: bool) -> void:
+	_picked = on
+	_restyle()
+
+
+func is_picked() -> bool:
+	return _picked
+
+
+func set_greyed(on: bool) -> void:
+	disabled = on
+	modulate.a = GREYED_ALPHA if on else 1.0
+
+
+## Call after setting the colours: redraws the card and its bar.
+func refresh() -> void:
+	_restyle()
+
+
+func _restyle() -> void:
+	var edge := accent if _picked else GameTheme.LINE
+	var face := picked_fill if _picked else fill
+	for state: String in ["normal", "pressed", "disabled"]:
+		add_theme_stylebox_override(state, _box(face, edge))
+	add_theme_stylebox_override("hover", _box(face if _picked else face.lightened(HOVER_LIGHTEN), edge))
+	add_theme_stylebox_override("focus", GameTheme.focus_box())
+	if bar.a > 0.0:
+		if _bar == null:
+			_bar = ColorRect.new()
+			_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_bar.anchor_bottom = 1.0
+			_bar.offset_left = float(GameTheme.BORDER)
+			_bar.offset_right = float(GameTheme.BORDER) + BAR_WIDTH
+			_bar.offset_top = float(GameTheme.BORDER)
+			_bar.offset_bottom = -float(GameTheme.BORDER)
+			add_child(_bar)
+		_bar.color = Color(bar, 1.0 if _picked else bar_idle)
+
+
+func _box(face: Color, edge: Color) -> StyleBoxFlat:
+	var s := GameTheme.box(face, edge, 0, 0)
+	if ring and _picked:
+		s.set_border_width_all(GameTheme.BORDER + RING)
+		s.set_expand_margin_all(RING)
+	return s
+
+
+func _ignore_mouse(node: Node) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child in node.get_children():
+		_ignore_mouse(child)

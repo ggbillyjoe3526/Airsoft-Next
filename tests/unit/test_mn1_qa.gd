@@ -104,14 +104,15 @@ func test_dev_content_toggle_adds_and_removes_the_dev_map_choice() -> void:
 	s.dev_enabled = true
 	s.dev.dev_content = false
 	s.changed.emit()
-	var base: int = main._map_choice.item_count
+	var page: MatchPage = main._menus.match_page()
+	var base: int = page.map_ids().size()
 	s.dev.dev_content = true
 	s.changed.emit()
-	assert_gt(main._map_choice.item_count, base, "dev maps appear")
+	assert_gt(page.map_ids().size(), base, "dev maps appear")
 	s.dev.dev_content = false
 	s.changed.emit()
-	assert_eq(main._map_choice.item_count, base)
-	assert_true(main._map_ids.has(main._map_id))
+	assert_eq(page.map_ids().size(), base)
+	assert_true(page.map_ids().has(main._picks.map_id))
 	s.dev_enabled = was_en
 	s.dev.dev_content = was
 
@@ -167,7 +168,7 @@ func test_a_match_frees_the_title_and_menus_and_leaving_rebuilds_them() -> void:
 	assert_eq(_count_menus(main), 2, "title and menus back")
 	assert_true(main._title.visible)
 	assert_eq(get_viewport().gui_get_focus_owner(), main._title.start_button())
-	assert_gt(main._map_choice.item_count, 0, "the map choice is filled again")
+	assert_gt(main._menus.match_page().map_ids().size(), 0, "the Match page lists the maps again")
 
 
 func test_every_translation_key_used_in_the_new_ui_exists_in_en_po() -> void:

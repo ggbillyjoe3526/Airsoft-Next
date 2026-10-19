@@ -271,7 +271,7 @@ func test_the_pause_menu_has_resume_settings_and_leave() -> void:
 	var texts: Array[String] = []
 	for b in menu.find_children("*", "Button", true, false):
 		texts.append((b as Button).text)
-	assert_eq(texts, [tr("PAUSE_RESUME"), tr("PAUSE_SETTINGS"), tr("PAUSE_TITLE_SCREEN")])
+	assert_eq(texts, ["RESUME", "SETTINGS", "QUIT MATCH"])
 	assert_ne(tr("PAUSE_SETTINGS"), "PAUSE_SETTINGS")
 
 

@@ -492,5 +492,104 @@ msgstr "In cover"
 msgid "DEV_INTENT_SEARCH"
 msgstr "Searching"
 
-msgid "BOOT_MAP"
-msgstr "Map"
+msgid "MENU_MODE"
+msgstr "MODE"
+
+msgid "MENU_TEAM"
+msgstr "YOUR TEAM"
+
+msgid "MENU_BOTS"
+msgstr "BOTS"
+
+msgid "MENU_BOTS_LATER"
+msgstr "EASY, HARD AND PRO LATER"
+
+msgid "MENU_RULES"
+msgstr "RULES"
+
+msgid "MENU_DEV"
+msgstr "DEV"
+
+msgid "BOT_EASY"
+msgstr "Easy"
+
+msgid "BOT_NORMAL"
+msgstr "Normal"
+
+msgid "BOT_HARD"
+msgstr "Hard"
+
+msgid "BOT_PRO"
+msgstr "Pro"
+
+msgid "MODE_ELIMINATION"
+msgstr "Elimination"
+
+msgid "MODE_ELIMINATION_BLURB"
+msgstr "Knock out the other team. First to %d rounds."
+
+msgid "MODE_ATTACK_DEFEND"
+msgstr "Attack / Defend"
+
+msgid "MODE_ATTACK_DEFEND_BLURB"
+msgstr "Take the flag, or hold it until the clock runs out."
+
+msgid "MODE_PRACTICE"
+msgstr "Practice Range"
+
+msgid "MODE_PRACTICE_BLURB"
+msgstr "Targets, drills and the timed challenge."
+
+msgid "RULE_SIZE"
+msgstr "%d v %d"
+
+msgid "RULE_FIRST_TO"
+msgstr "First to"
+
+msgid "RULE_ROUNDS"
+msgstr "Rounds"
+
+msgid "RULE_SWAP"
+msgstr "Ends swap after"
+
+msgid "RULE_RICOCHETS"
+msgstr "Ricochets"
+
+msgid "RULE_RICOCHETS_NO"
+msgstr "Don't count"
+
+msgid "RULE_RICOCHETS_YES"
+msgstr "Count"
+
+msgid "MENU_SUMMARY_REST"
+msgstr "%s · %s · %s bots"
+
+msgid "LOAD_KICKER"
+msgstr "%s · %d v %d · You're %s"
+
+msgid "LOAD_MAP"
+msgstr "Loading the map"
+
+msgid "LOAD_LEVEL"
+msgstr "Building the field"
+
+msgid "LOAD_TEAMS"
+msgstr "Placing the teams"
+
+msgid "LOAD_VIEWS"
+msgstr "Building the views"
+
+msgid "LOAD_START"
+msgstr "Starting the match"
+
+msgid "LOAD_PERCENT"
+msgstr "%d %%"
+
+msgid "PAUSE_QUIT"
+msgstr "Quit match"
+
+msgid "PAUSE_SUBTITLE"
+msgstr "%s · %s · Round %d"
+
+msgid "PAUSE_SEED"
+msgstr "Match seed"
