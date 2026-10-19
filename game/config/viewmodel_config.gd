@@ -12,6 +12,18 @@ extends Resource
 ## Aimed, the sight line (rear to front sight) runs through the eye; the replica sits this far forward of it.
 @export var aim_forward: Dictionary[StringName, float] = {&"aeg": -0.2, &"pistol": -0.36}
 @export var aim_forward_default: float = -0.25
+## Looking through an optic, by its part Key (ReplicaView, OpticGlass): its glass's centre (z in the part's own space,
+## -z forward, on the sight line) and radius (m), measured from the part models; how far behind the glass the eye sits
+## aimed (m, so the glass shows as the approved sight concepts do); and the mark on the glass (dot: a lit red dot;
+## cross: a scope's reticle). An optic not listed is aimed along its sight line with no glass drawn.
+@export var optic_glass_z: Dictionary[StringName, float] = {&"redDot": 0.027, &"scope2x": 0.0522}
+@export var optic_glass_radius: Dictionary[StringName, float] = {&"redDot": 0.0118, &"scope2x": 0.0132}
+@export var optic_eye_back: Dictionary[StringName, float] = {&"redDot": 0.136, &"scope2x": 0.1728}
+@export var optic_mark: Dictionary[StringName, StringName] = {&"redDot": &"dot", &"scope2x": &"cross"}
+## The view through the glass is drawn this much wider than the glass shows on screen (room for sway), into a square
+## picture this share of the screen's height on a side.
+@export var glass_margin: float = 1.15
+@export var glass_share: float = 0.25
 ## How far the replica lags behind a turn (m per rad of turn), at most sway_max, springing back at return_rate (1/s).
 @export var sway_per_radian: float = 0.05
 @export var sway_max: float = 0.035

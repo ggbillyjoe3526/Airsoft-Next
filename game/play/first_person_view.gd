@@ -5,7 +5,7 @@ extends Node3D
 ## the eyes as the simulation does (Lean.offset, the one lean geometry) and rolls the view a little
 ## (ViewConfig.lean_camera_roll); a lean a wall cuts short eases out instead of snapping, never drawn into the wall. A
 ## vault dips and tips the view. Once hit, the view follows the character's own heading as it walks off. Zooms a little
-## as the sight comes up. The easing runs on rendered frames; the rules stay on the tick.
+## as the sight comes up (as its optic does; a scope zooms only inside its glass). The easing runs on rendered frames; the rules stay on the tick.
 
 ## Recoil on screen follows the simulation's at this rate (1/s), so a 60 Hz kick reads smoothly at any frame rate.
 const RECOIL_FOLLOW := 40.0
@@ -58,9 +58,17 @@ func update(c: Character, input: PlayerInput, fraction: float, delta: float, own
 	# Leaning right tips the view's top to the right: a roll about the line of sight (local -Z), negative about +Z.
 	rotation = Vector3(pitch + _recoil - _view.vault_tip * _vault, yaw, -_lean * _view.lean_camera_roll)
 	var r := c.armament.replica()
-	var zoom := lerpf(1.0, r.aim_zoom if r != null and r.aim_zoom > 0.0 else _view.aim_zoom, c.aim_raise)
+	var zoom := lerpf(1.0, aimed_zoom(r, _view), c.aim_raise)
 	input.zoom = zoom
 	camera.fov = _view.vertical_fov(zoom)
+
+
+## The view's zoom with `r`'s sight fully raised: its optic's, unless that zooms only inside its glass (a scope, drawn by
+## ReplicaView), else the iron sights'.
+static func aimed_zoom(r: ReplicaConfig, view: ViewConfig) -> float:
+	if r != null and r.aim_zoom > 0.0 and not r.zoom_in_glass:
+		return r.aim_zoom
+	return view.aim_zoom
 
 
 ## The lean to draw for the simulation's `lean`: it follows at once, except that a sudden drop (a wall cutting the lean

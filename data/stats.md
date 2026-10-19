@@ -76,13 +76,15 @@ Stacked parts (a strong gas with a long barrel, say) stop at the limit, and the 
 
 ## Optics
 
-| Key | Name | Zoom (×) | Raise time (×) |
-|---|---|---|---|
-| redDot | Red Dot | 1.25 | 1 |
-| scope2x | 2x Scope | 2 | 1.6 |
+| Key | Name | Zoom (×) | Raise time (×) | In the glass |
+|---|---|---|---|---|
+| redDot | Red Dot | 1.25 | 1 | no |
+| scope2x | 2x Scope | 2 | 1.6 | yes |
 
 - **Zoom.** How much aiming through it narrows the view (1 is none).
 - **Raise time.** The time to bring it to your eye.
+- **In the glass.** yes: only the view inside its glass is zoomed (a scope); the view round it stays as the iron sights'
+  (owner, 2026-10-19: no dark surround). no: the whole view zooms.
 
 ## Grips
 

@@ -2,16 +2,14 @@ class_name ReplicaPictures
 extends Node
 ## The replicas' pictures on the menus, drawn live from their models (assets/models/replicas/<key>.glb): each replica has
 ## one small viewport that looks at it from the right, flat (no perspective), in the paint it was last asked for, and every
-## card showing that replica shows the same texture. The parts fitted to it (assets/models/replicaParts/<key>.glb, one
-## top-level object per part named <slot>_<key>) are added to the model, its standard magazine hidden for a magazine part
-## and its flash hider for a muzzle part; the picture is drawn again only when its paint or parts change, and the parts it
-## replaces are freed. Each part also has a picture of its own, alone and in the same paint, for the Customise cards, kept
+## card showing that replica shows the same texture. The parts fitted to it are put on the model as they are in play
+## (ReplicaParts: the standard magazine or flash hider they replace hidden, the iron sights folded under an optic); the
+## picture is drawn again only when its paint or parts change, and the parts it replaces are freed. Each part also has a picture of its own, alone and in the same paint, for the Customise cards, kept
 ## only for the slot on show. A viewport draws once when the picture is made and once more for each repaint (not every
 ## frame). The paints' materials are ReplicaPaint's: built once each and shared with the match. The figure copies in the
 ## models are left out. Everything it makes is its child and goes with it.
 
 const MODEL_DIR := "res://assets/models/replicas/"
-const PART_DIR := "res://assets/models/replicaParts/"
 ## The picture's longer side (px); the other follows the replica's shape. A part's picture is smaller.
 const LONG_SIDE := 1024
 const PART_LONG_SIDE := 384
@@ -27,13 +25,6 @@ const AMBIENT_ENERGY := 0.75
 const AMBIENT := Color("c8d4ea")
 const MSAA := Viewport.MSAA_4X
 const FIGURE_NODE := "Figure"
-## A part model's figure copy (for the first-person figures) is named <part>_Figure and isn't drawn on the menus.
-const FIGURE_SUFFIX := "_Figure"
-## The replica's own parts a fitted one takes the place of: its magazine node(s), and its flash hider.
-const MAGAZINE_NODE := "Magazine"
-const MAGAZINE_SLOT := &"magazine"
-const FLASH_HIDER_NODE := "FlashHider"
-const MUZZLE_SLOT := &"muzzle"
 
 
 class Shot:
@@ -48,12 +39,9 @@ class Shot:
 	var extent: Vector2 = Vector2.ONE
 	var bare_extent: Vector2 = Vector2.ONE
 	var long_side: int = 0
-	## The parts on the model now, as "slot=key" words in slot order, and their nodes.
+	## The parts on the model now, as "slot=key" words in slot order, and what fitting them did.
 	var parts_sig: String = ""
-	var fitted: Array[Node3D] = []
-	## The replica's own magazine nodes and flash hider, which a fitted part replaces.
-	var magazines: Array[Node3D] = []
-	var flash_hider: Node3D = null
+	var fit: ReplicaParts.Fit = null
 
 
 var _shots: Dictionary[StringName, Shot] = {}
@@ -169,9 +157,6 @@ func _make(key: StringName) -> Shot:
 	if figure != null:
 		figure.visible = false
 	var shot := _rig(model, LONG_SIDE, "Picture_%s" % key)
-	for node in model.find_children(MAGAZINE_NODE, "Node3D", true, false):
-		shot.magazines.append(node as Node3D)
-	shot.flash_hider = model.find_child(FLASH_HIDER_NODE, true, false) as Node3D
 	shot.bare_extent = shot.extent
 	return shot
 
@@ -181,17 +166,10 @@ func _part_shot(key: StringName, slot: StringName, part: StringName) -> Shot:
 	var shot := _part_shots.get(id) as Shot
 	if shot != null:
 		return shot
-	var scene := load("%s%s.glb" % [PART_DIR, key]) as PackedScene
-	if scene == null:
+	var taken := ReplicaParts.take(key, {slot: part}, false)
+	if taken.is_empty():
 		return null
-	var holder := scene.instantiate() as Node3D
-	var node := holder.get_node_or_null("%s_%s" % [slot, part]) as Node3D
-	if node == null:
-		holder.free()
-		return null
-	holder.remove_child(node)
-	holder.free()
-	_adopt(node)
+	var node: Node3D = taken.values()[0]
 	var model := Node3D.new()
 	model.name = "Part"
 	model.add_child(node)
@@ -248,41 +226,12 @@ func _frame(shot: Shot) -> void:
 	shot.camera.position = box.get_center() + Vector3(CAMERA_DISTANCE, 0.0, 0.0)
 
 
-## Puts `parts` on the shot's model in place of the ones there: frees the old, adds the new, hides the replica's own
-## magazine and flash hider where a part takes their place, and frames the picture to the result.
+## Puts `parts` on the shot's model in place of the ones there (ReplicaParts) and frames the picture to the result.
 func _fit(shot: Shot, key: StringName, parts: Dictionary) -> void:
-	for node in shot.fitted:
-		shot.model.remove_child(node)
-		node.free()
-	shot.fitted.clear()
-	var scene := load("%s%s.glb" % [PART_DIR, key]) as PackedScene if not parts.is_empty() else null
-	if scene != null:
-		var holder := scene.instantiate() as Node3D
-		for slot: StringName in parts:
-			var node := holder.get_node_or_null("%s_%s" % [slot, parts[slot]]) as Node3D
-			if node != null:
-				holder.remove_child(node)
-				_adopt(node)
-				shot.model.add_child(node)
-				shot.fitted.append(node)
-		holder.free()
-	for mag in shot.magazines:
-		mag.visible = not parts.has(MAGAZINE_SLOT)
-	if shot.flash_hider != null:
-		shot.flash_hider.visible = not parts.has(MUZZLE_SLOT)
+	if shot.fit != null:
+		ReplicaParts.unfit(shot.fit)
+	shot.fit = ReplicaParts.fit(shot.model, key, parts)
 	_frame(shot)
-
-
-## Readies a part node taken out of its model for another one: it and what is under it let go of the model that owned
-## them, and its figure copy is freed.
-func _adopt(part: Node3D) -> void:
-	for child in part.get_children():
-		if child.name.ends_with(FIGURE_SUFFIX):
-			part.remove_child(child)
-			child.free()
-	part.owner = null
-	for child in part.find_children("*", "", true, true):
-		child.owner = null
 
 
 ## "slot=key" for each part, in slot order: what two calls must differ by to need a new picture.

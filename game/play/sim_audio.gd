@@ -1,7 +1,8 @@
 class_name SimAudio
 extends Node
-## The match's sound, from the tick's events (docs/ARCHITECTURE.md › Contracts 3): shots with their power part, dry
-## clicks, magazines, the selector, the hop-up dial and draws, BB impacts by surface, footsteps by surface and pace,
+## The match's sound, from the tick's events (docs/ARCHITECTURE.md › Contracts 3): shots with their power part (a silenced
+## one's shot duller and quieter; its power part and clicks as they are), dry clicks, magazines, the selector, the
+## hop-up dial and draws, BB impacts by surface, footsteps by surface and pace,
 ## vaults, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
 ## yours, the thump when it's you. Your own sounds play plain; everyone else's from where they happen. Every variant is loaded up front, so the first shot never hitches; the voices are
 ## pools reused oldest first. Variant and pitch choice is presentation only, on its own random stream.
@@ -12,6 +13,8 @@ const BUS_AMBIENCE := &"Ambience"
 const BUS_INTERFACE := &"Interface"
 ## The shot's power source part (gas, the motor) has its own bus under Effects, for its own volume (settings).
 const BUS_POWER := &"Power"
+## A silenced shot plays through this bus's low-pass filter (its first effect), under Effects.
+const BUS_MUFFLED := &"Muffled"
 ## Cue names by RayHit.Surface (none sounds as concrete) and by GameEvent.Footstep.
 const SURFACE_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth"]
 const STEP_NAMES: PackedStringArray = ["run", "sprint", "land"]
@@ -53,6 +56,7 @@ func setup(cfg: SoundConfig, powers: Array[StringName], body: BodyConfig) -> voi
 			_step.append(_load("step_%s_%s" % [s, k]))
 	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault", "foley_holster", "magRattle"]:
 		_load(cue)
+	_set_muffle(cfg.muffled_cutoff_hz)
 	for i in cfg.field_voices:
 		var v := AudioStreamPlayer3D.new()
 		v.unit_size = cfg.unit_size
@@ -78,7 +82,9 @@ func on_tick(state: GameState, player_id: int) -> void:
 		match e.kind:
 			GameEvent.Kind.SHOT:
 				var p := _power_of(state, e.actor, e.slot)
-				_play(_shot.get(p, &""), e.position, own, _cfg.shot_gain, _cfg.shot_pitch, BUS_EFFECTS)
+				var muffled := _muffled(state, e.actor, e.slot)
+				_play(_shot.get(p, &""), e.position, own, _cfg.shot_gain * (_cfg.muffled_gain if muffled else 1.0),
+						_cfg.shot_pitch, BUS_MUFFLED if muffled else BUS_EFFECTS)
 				_play(_power.get(p, &""), e.position, own, _cfg.shot_gain, _cfg.shot_pitch, BUS_POWER)
 			GameEvent.Kind.DRY_FIRE:
 				_mechanism(_dry.get(_power_of(state, e.actor, e.slot), &""), state, e, own)
@@ -145,6 +151,23 @@ func _power_of(state: GameState, actor: int, slot: int) -> StringName:
 	if c == null or slot < 0 or slot >= c.armament.replicas.size():
 		return &""
 	return c.armament.replicas[slot].power
+
+
+## Whether `actor`'s replica in `slot` is silenced.
+func _muffled(state: GameState, actor: int, slot: int) -> bool:
+	var c := state.character(actor)
+	return c != null and slot >= 0 and slot < c.armament.replicas.size() and c.armament.replicas[slot].muffled
+
+
+## The Muffled bus's low-pass cutoff (Hz), if the bus layout has it.
+static func _set_muffle(cutoff_hz: float) -> void:
+	var bus := AudioServer.get_bus_index(BUS_MUFFLED)
+	if bus < 0 or AudioServer.get_bus_effect_count(bus) == 0:
+		push_warning("SimAudio: no %s bus with a low-pass filter" % BUS_MUFFLED)
+		return
+	var filter := AudioServer.get_bus_effect(bus, 0) as AudioEffectFilter
+	if filter != null:
+		filter.cutoff_hz = cutoff_hz
 
 
 func _play(cue: StringName, at: Vector3, own: bool, gain: float, pitch_spread: float, bus: StringName) -> void:

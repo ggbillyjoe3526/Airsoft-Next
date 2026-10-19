@@ -16,6 +16,7 @@ const TABLES: Array[Dictionary] = [
 	{"heading": "Optics", "slot": &"optic", "columns": [
 		{"header": "Zoom (×)", "field": &"zoom", "kind": Kind.SCALE, "min": 1.0, "max": 8.0},
 		{"header": "Raise time (×)", "field": &"raise", "kind": Kind.SCALE, "min": 0.2, "max": 5.0},
+		{"header": "In the glass", "field": &"in_glass", "kind": Kind.YES_NO},
 	]},
 	{"heading": "Grips", "slot": &"grip", "columns": [
 		{"header": "Handling (×)", "field": &"handling", "kind": Kind.SCALE, "min": 0.2, "max": 5.0},
@@ -50,6 +51,8 @@ class Part:
 	## Aiming through it narrows the view this much (1: no zoom of its own), over this share of the raise time.
 	var zoom: float = 1.0
 	var raise: float = 1.0
+	## Only the view inside its glass is zoomed (a scope); the rest stays as the iron sights'.
+	var in_glass: bool = false
 	## The time to bring the replica up and raise a sight; how long a sprint's or landing's shake stays in the aim.
 	var handling: float = 1.0
 	var shake: float = 1.0

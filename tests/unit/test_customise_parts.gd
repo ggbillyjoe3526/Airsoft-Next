@@ -348,7 +348,9 @@ func test_the_replica_picture_shows_the_parts_and_returns_when_they_come_off() -
 	_pick(page, MUZZLE, 1)
 	_pick(page, MAGAZINE, 1)
 	assert_gt(pictures.extent(&"aeg").x, bare.x, "the silencer is longer than the flash hider")
-	assert_eq(model.get_child_count(), plain + 2, "a part node each")
+	assert_eq(model.get_child_count(), plain + 1, "the silencer on the model")
+	assert_not_null(model.find_child("magazine", true, false).get_node_or_null("magazine_hiCap"),
+			"the Hi-Cap on the magazine bone, as in hand (AT3)")
 	assert_not_null(model.get_node_or_null("muzzle_silencer"))
 	assert_null(model.get_node_or_null("muzzle_silencer/muzzle_silencer_Figure"), "the figure copy is left out")
 	assert_false((model.find_child("FlashHider", true, false) as Node3D).visible)

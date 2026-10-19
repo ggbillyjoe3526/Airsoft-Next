@@ -5,7 +5,8 @@ extends Node3D
 ## frame: at the hip or with its sight line through the eye as the sight comes up, dropped while it is drawn, carried low
 ## on a sprint, canted through a reload, kicked back by each shot, lagging a touch behind a turn and pulled back near a
 ## wall so it never pokes through one. A gas pistol's slide locks back on its last BB and closes near the end of the
-## reload. A child of the camera.
+## reload. Its parts are fitted from their models (ReplicaParts), as the menus show them; aimed with an optic, the eye
+## looks along the optic's sight line through its glass (OpticGlass). A child of the camera.
 
 const MODEL_DIR := "res://assets/models/replicas/"
 ## The models' animation clips (docs/CC0_ASSETS.md › Replica models).
@@ -31,6 +32,9 @@ class Held:
 	var slide_locked: bool = false
 	## A reload clip is posed part way (cleared when the reload ends or is cut short).
 	var in_reload: bool = false
+	## Its fitted parts, and its optic's glass (null: none, or the iron sights).
+	var fit: ReplicaParts.Fit = null
+	var window: OpticGlass.Sight = null
 
 var _cfg: ViewModelConfig = null
 var _held: Array[Held] = []
@@ -45,18 +49,37 @@ var _last_yaw: float = 0.0
 var _last_pitch: float = 0.0
 var _query: WorldQuery = null
 var _wall: RayHit = RayHit.new()
+var _glass: OpticGlass = null
 
 
 ## Draws `loadout` from its models, slot `i` in `paints[i]` (the replica's default where the kit names none; see
-## ReplicaPaint) and, if `realistic`, every bold scheme as its plain colour; `query` finds walls to pull back from.
+## ReplicaPaint) and, if `realistic`, every bold scheme as its plain colour, with `parts[i]` fitted (Kit.parts); `query`
+## finds walls to pull back from. `view` and `eyes` (the camera this is under) draw an optic's glass.
 func setup(cfg: ViewModelConfig, loadout: Array[ReplicaConfig], query: WorldQuery,
-		paints: Array[StringName] = [], realistic: bool = false) -> void:
+		paints: Array[StringName] = [], realistic: bool = false, parts: Array[Dictionary] = [],
+		view: ViewConfig = null, eyes: Camera3D = null) -> void:
 	_cfg = cfg
 	_query = query
+	if view != null and eyes != null:
+		_glass = OpticGlass.new()
+		_glass.setup(cfg, view, eyes)
+		add_child(_glass)
 	for i in loadout.size():
 		var r := loadout[i]
 		var paint := paints[i] if i < paints.size() else ReplicaPaint.default_paint(r)
-		_held.append(_load(r.id, r.power == SLIDE_LOCK_POWER, paint, realistic))
+		var fitted: Dictionary = parts[i] if i < parts.size() else {}
+		_held.append(_load(r, paint, realistic, fitted))
+
+
+## The optics' glass materials, for ShaderPrewarm, with the glass's picture readied now (none without an optic's glass).
+func prewarm_glass() -> Array[Material]:
+	var out: Array[Material] = []
+	for held in _held:
+		if held.window != null:
+			out.append(held.window.material)
+	if not out.is_empty():
+		_glass.prewarm()
+	return out
 
 
 ## The muzzle of the replica in hand, in the world (where your BBs are drawn from).
@@ -79,6 +102,8 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 	var a := c.armament
 	visible = Elimination.is_in_play(c) and not a.replicas.is_empty()
 	if not visible:
+		if _glass != null:
+			_glass.update(null, 0.0)
 		return
 	if a.active != _active:
 		_show(a.active)
@@ -150,6 +175,8 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 
 	held.root.position = pos
 	held.root.rotation = rot
+	if _glass != null:
+		_glass.update(held.window, c.aim_raise)
 
 
 ## True while `a`'s replica in hand would hold a gas pistol's slide back: its magazine is empty and no reload is under
@@ -185,6 +212,8 @@ func _pose_slide(held: Held, a: Armament) -> void:
 func _show(slot: int) -> void:
 	for i in _held.size():
 		_held[i].root.visible = i == slot
+		if _held[i].window != null:
+			_held[i].window.disc.visible = false
 	_active = slot
 	_kick = 0.0
 
@@ -198,24 +227,25 @@ func _seek(held: Held, clip: StringName, share: float) -> void:
 	held.anim.seek(share * held.anim.get_animation(clip).length, true)
 
 
-func _load(id: StringName, locks_slide: bool, paint: StringName, realistic: bool) -> Held:
+func _load(r: ReplicaConfig, paint: StringName, realistic: bool, parts: Dictionary) -> Held:
 	var held := Held.new()
-	held.id = id
+	held.id = r.id
 	held.root = Node3D.new()
-	held.root.name = "Held_%s" % id
+	held.root.name = "Held_%s" % r.id
 	held.root.visible = false
 	add_child(held.root)
-	var scene := load(MODEL_DIR + id + ".glb") as PackedScene
+	var scene := load(MODEL_DIR + r.id + ".glb") as PackedScene
 	if scene == null:
-		push_warning("ReplicaView: no model for replica %s" % id)
+		push_warning("ReplicaView: no model for replica %s" % r.id)
 		return held
 	var model := scene.instantiate() as Node3D
 	held.root.add_child(model)
+	held.fit = ReplicaParts.fit(model, r.id, parts, true)
 	ReplicaPaint.apply(model, paint, realistic)
 	held.anim = model.find_child("AnimationPlayer", true, false) as AnimationPlayer
-	held.muzzle = model.find_child("Muzzle", true, false) as Node3D
+	held.muzzle = held.fit.muzzle
 	var rear := model.find_child("RearSight", true, false) as Node3D
-	if locks_slide and held.anim != null and held.anim.has_animation(SLIDE_LOCK_CLIP):
+	if r.power == SLIDE_LOCK_POWER and held.anim != null and held.anim.has_animation(SLIDE_LOCK_CLIP):
 		held.slide = model.find_child("slide", true, false) as Node3D
 		if held.slide != null:
 			# Where the clip leaves the slide, then back to rest.
@@ -224,10 +254,29 @@ func _load(id: StringName, locks_slide: bool, paint: StringName, realistic: bool
 			_seek(held, FIRE_CLIP, 0.0)
 	if rear != null:
 		held.rear_sight = rear.position
-	# The figures' cut-down copy never shows in the hands, and the hands' replica casts no shadow on the field.
+	if held.fit.optic != null:
+		_aim_through(held, r)
+	# The figures' cut-down copy never shows in the hands, and the hands' replica casts no shadow on the field and
+	# stays out of the glass's view.
 	var figure := model.find_child("Figure", true, false) as Node3D
 	if figure != null:
 		figure.visible = false
 	for mesh: Node in model.find_children("*", "GeometryInstance3D", true, false):
 		(mesh as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		(mesh as GeometryInstance3D).layers = OpticGlass.HANDS_LAYER
 	return held
+
+
+## Aims `held` along its optic's sight line: with a glass, the eye sits optic_eye_back behind it (and the glass is drawn,
+## magnified for a scope); without, its sight line's mark is the rear sight.
+func _aim_through(held: Held, r: ReplicaConfig) -> void:
+	var fit := held.fit
+	held.rear_sight = fit.sight_line
+	if not _cfg.optic_eye_back.has(fit.optic_key) or not _cfg.optic_glass_z.has(fit.optic_key):
+		return
+	var glass_z := (fit.optic.transform * Vector3(0.0, 0.0, _cfg.optic_glass_z[fit.optic_key])).z
+	var forward: float = _cfg.aim_forward.get(held.id, _cfg.aim_forward_default)
+	held.rear_sight = Vector3(fit.sight_line.x, fit.sight_line.y, forward + glass_z + _cfg.optic_eye_back[fit.optic_key])
+	if _glass != null:
+		var magnify := r.aim_zoom if r.zoom_in_glass else 0.0
+		held.window = _glass.add_window(fit.model, fit.optic, fit.optic_key, fit.sight_line, magnify)

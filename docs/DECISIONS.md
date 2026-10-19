@@ -417,6 +417,12 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Aiming down the 2x scope looks like the red dot: the replica stays in view and the world shows round it (owner,
   2026-10-13, Dev 5 playtest note 5).** The view zooms 2× and the scope's rear glass shows the world; the dark surround
   is gone, so the scope's cost is its slower raise alone.
+- **Sights in play (owner, 2026-10-19, AT3).** The 2x scope magnifies only inside its glass, with its body showing round
+  it and no dark surround; the red dot is a lit dot on clear glass. Attachments look like their models at all times: in
+  hand, on figures and in menus, from the same model.
+- **Parts on figures wait for the art pass (owner, 2026-10-19).** A figure's replica is one cut-down mesh, so a part's
+  figure copy sits over its standard magazine or flash hider; the figure models get those split out in the art pass.
+  Nothing shows it until then (bots carry no parts).
 
 ## Menus, HUD, settings and accessibility
 

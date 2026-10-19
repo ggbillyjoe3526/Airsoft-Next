@@ -38,6 +38,8 @@ enum FireMode { SEMI, BURST, AUTO }
 ## aimed (0: the iron sights', ViewConfig.aim_zoom), and the share of the usual time to raise the sight.
 @export var aim_zoom: float = 0.0
 @export var raise_scale: float = 1.0
+## The aim_zoom is only inside the optic's glass (a scope): the view round it zooms as the iron sights'.
+@export var zoom_in_glass: bool = false
 ## How long a sprint's or landing's shake stays in the aim, as a share.
 @export var shake_scale: float = 1.0
 ## Its magazines rattle as you move: bots close by hear you even walking.

@@ -5,7 +5,7 @@ extends Node3D
 ## about the hip pivot in a lean, by the simulation's own geometry (HitConfig pivot_height and lean_max_angle, as the hit
 ## volume), while the legs stay put. Calling a hit, the arm goes up and "HIT!" shows above the head; it stays up on the
 ## walk off; a figure leaving the field fades out. It holds the replica it has out, the models' cut-down figure version
-## in its team's paint (ReplicaPaint), and puts it away as it fades.
+## in its team's paint (ReplicaPaint) with its parts' figure versions fitted (ReplicaParts), and puts it away as it fades.
 
 ## The figure's proportions (m): the legs' and torso's capsules, the head, the arm, and where the sign floats. The torso
 ## reaches this far below the pivot, so its round bottom covers the joint as it tilts.
@@ -39,9 +39,9 @@ var _out: int = -1
 
 
 ## Draws `c` in `team_colour`, holding its replicas in its team's paints (`realistic`: each bold scheme as its plain
-## colour).
+## colour) with `parts[i]` on replica `i` (Kit.parts; bots carry theirs as they come).
 func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConfig, font: Font,
-		realistic: bool = false) -> void:
+		realistic: bool = false, parts: Array[Dictionary] = []) -> void:
 	character_id = c.id
 	_hits = hits
 	name = "Figure_%d" % c.id
@@ -84,8 +84,8 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 	_arm.add_child(arm)
 	_arm.position = Vector3(BODY_RADIUS + ARM_SIZE.x * 0.5, hits.torso_top - hits.pivot_height, 0.0)
 	_upper.add_child(_arm)
-	for r in c.armament.replicas:
-		var held := _held_replica(r, c.team, realistic)
+	for i in c.armament.replicas.size():
+		var held := _held_replica(c.armament.replicas[i], c.team, realistic, parts[i] if i < parts.size() else {})
 		_replicas.append(held)
 		if held != null:
 			_upper.add_child(held)
@@ -94,8 +94,10 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 	add_child(_sign)
 
 
-## The models' figure version of `r`, held at its class's place and painted for `team` (null without a model).
-func _held_replica(r: ReplicaConfig, team: int, realistic: bool) -> MeshInstance3D:
+## The models' figure version of `r` with `parts`' figure versions on it, held at its class's place and painted for
+## `team` (null without a model). The figure version is one mesh, so a part shows over the standard magazine or flash
+## hider rather than in its place.
+func _held_replica(r: ReplicaConfig, team: int, realistic: bool, parts: Dictionary) -> MeshInstance3D:
 	var scene := load(MODEL_DIR + r.id + ".glb") as PackedScene
 	if scene == null:
 		return null
@@ -106,6 +108,9 @@ func _held_replica(r: ReplicaConfig, team: int, realistic: bool) -> MeshInstance
 		held.position = HOLD_PISTOL if r.site_class == &"pistol" else HOLD_RIFLE
 		held.visible = false
 		held.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		for part in ReplicaParts.figure_meshes(r.id, parts):
+			part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			held.add_child(part)
 		ReplicaPaint.apply(held, ReplicaPaint.bot_paint(team, r), realistic)
 	model.free()
 	return held
