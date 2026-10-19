@@ -26,6 +26,9 @@ const MUTED := Color("93a0b5")
 const DIM := Color("5c6a82")
 const YELLOW := Color("f2c230")
 const YELLOW_INK := Color("1a1405")
+## Better and worse (the Loadout's Performance sheet).
+const GOOD := Color("5fd08a")
+const BAD := Color("ff7a6b")
 
 ## Letter spacing in em (the concept's `letter-spacing`).
 const SPACING_HEADING := 0.08

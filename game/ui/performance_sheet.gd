@@ -1,0 +1,175 @@
+class_name PerformanceSheet
+extends PanelContainer
+## The Performance panel on the Loadout and Customise pages (concept `.perf`): a row for each figure with its bar and value,
+## the value green when it beats the replica as it comes and red when it falls short, then a line in words of what got better
+## and worse, and a yellow CAPPED tag with its line when the site limit cut the energy. Rows are built once; `show_sheet`
+## changes their texts, bars and colours.
+
+const PAD := Vector2i(24, 22)
+const WIDTH := 500.0
+const SUB_SIZE := 14
+const SUB_GAP := 16
+const ROW_HEIGHT := 38.0
+const ROW_GAP := 12
+const NAME_WIDTH := 150.0
+const VALUE_WIDTH := 130.0
+const NAME_SIZE := 16
+const VALUE_SIZE := 17
+const UNIT_SIZE := 13
+const UNIT_GAP := 5
+const BAR_HEIGHT := 8.0
+const BAR_BACK := Color(1.0, 1.0, 1.0, 0.08)
+const WORDS_SIZE := 15
+const WORDS_GAP := 6
+const WORDS_TOP := 14
+
+var _sub: Label = null
+var _rows: Array[Dictionary] = []
+var _better: Label = null
+var _worse: Label = null
+var _capped: Label = null
+
+
+func _init() -> void:
+	name = "PerformanceSheet"
+	custom_minimum_size = Vector2(WIDTH, 0.0)
+	add_theme_stylebox_override("panel", GameTheme.box(GameTheme.PANEL, GameTheme.LINE, PAD.x, PAD.y))
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 0)
+	add_child(column)
+	column.add_child(MenuParts.spaced(TranslationServer.translate("PERF_TITLE"), 22, 800, GameTheme.MUTED,
+			GameTheme.SPACING_HEADING))
+	column.add_child(_gap(SUB_GAP / 2))
+	_sub = MenuParts.text("", SUB_SIZE, 600, GameTheme.DIM)
+	_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(_sub)
+	column.add_child(_gap(SUB_GAP))
+	for spec in LoadoutPerformance.SPECS:
+		_rows.append(_build_row(column, spec))
+	column.add_child(_gap(WORDS_TOP))
+	_better = _words(column, GameTheme.GOOD)
+	_worse = _words(column, GameTheme.BAD)
+	_capped = _words(column, GameTheme.YELLOW)
+
+
+## The row for `field`'s value label, for the tests and the screenshots.
+func value_label(field: StringName) -> Label:
+	for r in _rows:
+		if r["field"] == field:
+			return r["value"]
+	return null
+
+
+## The CAPPED tag on the energy row.
+func capped_tag() -> Control:
+	return _rows[0]["tag"]
+
+
+func better_line() -> String:
+	return _better.text if _better.visible else ""
+
+
+func worse_line() -> String:
+	return _worse.text if _worse.visible else ""
+
+
+## The line in words about the site limit; "" when nothing was capped.
+func capped_line() -> String:
+	return _capped.text if _capped.visible else ""
+
+
+func sub_text() -> String:
+	return _sub.text
+
+
+## Shows `sheet` under the line `sub`.
+func show_sheet(sheet: LoadoutPerformance.Sheet, sub: String) -> void:
+	_sub.text = sub
+	for i in sheet.rows.size():
+		var row := sheet.rows[i]
+		var ui: Dictionary = _rows[i]
+		var colour := GameTheme.TEXT
+		if row.verdict > 0:
+			colour = GameTheme.GOOD
+		elif row.verdict < 0:
+			colour = GameTheme.BAD
+		(ui["value"] as Label).text = row.text
+		(ui["value"] as Label).add_theme_color_override("font_color", colour)
+		(ui["fill"] as ColorRect).anchor_right = row.bar
+		(ui["fill"] as ColorRect).color = colour
+		var unit: String = TranslationServer.translate(row.unit_key) if row.unit_key != "" else ""
+		(ui["unit"] as Label).text = unit
+		(ui["row"] as Control).tooltip_text = TranslationServer.translate("PERF_AS_COMES") % [
+				TranslationServer.translate(row.name_key), row.as_comes_text, unit]
+	var capped := sheet.capped
+	(_rows[0]["tag"] as Control).visible = capped
+	_set_line(_better, "PERF_BETTER", sheet.keys_with(1))
+	_set_line(_worse, "PERF_WORSE", sheet.keys_with(-1))
+	_capped.visible = capped
+	if capped:
+		_capped.text = TranslationServer.translate("PERF_CAPPED") % sheet.limit
+
+
+func _set_line(label: Label, key: String, names: PackedStringArray) -> void:
+	label.visible = not names.is_empty()
+	if label.visible:
+		var words := PackedStringArray()
+		for n in names:
+			words.append(TranslationServer.translate(n))
+		label.text = TranslationServer.translate(key) % ", ".join(words)
+
+
+func _build_row(into: Control, spec: Dictionary) -> Dictionary:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", ROW_GAP)
+	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+	into.add_child(row)
+	var label := MenuParts.text(TranslationServer.translate(spec["name"]), NAME_SIZE, 600, GameTheme.MUTED)
+	label.custom_minimum_size = Vector2(NAME_WIDTH, 0.0)
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(label)
+	var track := ColorRect.new()
+	track.color = BAR_BACK
+	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	track.custom_minimum_size = Vector2(0.0, BAR_HEIGHT)
+	track.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	track.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(track)
+	var fill := ColorRect.new()
+	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fill.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	fill.anchor_right = 0.0
+	track.add_child(fill)
+	var cell := HBoxContainer.new()
+	cell.add_theme_constant_override("separation", UNIT_GAP)
+	cell.alignment = BoxContainer.ALIGNMENT_END
+	cell.custom_minimum_size = Vector2(VALUE_WIDTH, 0.0)
+	cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(cell)
+	var tag := MenuTag.make(TranslationServer.translate("PERF_CAPPED_TAG"), GameTheme.YELLOW, GameTheme.YELLOW)
+	tag.visible = false
+	cell.add_child(tag)
+	var value := MenuParts.text("", VALUE_SIZE, 800, GameTheme.TEXT)
+	value.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	cell.add_child(value)
+	var unit := MenuParts.text("", UNIT_SIZE, 700, GameTheme.MUTED)
+	unit.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	cell.add_child(unit)
+	return {"field": spec["field"], "row": row, "fill": fill, "value": value, "unit": unit, "tag": tag}
+
+
+func _words(into: Control, colour: Color) -> Label:
+	var l := MenuParts.text("", WORDS_SIZE, 700, colour)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.visible = false
+	into.add_child(l)
+	into.add_child(_gap(WORDS_GAP))
+	return l
+
+
+func _gap(height: int) -> Control:
+	var g := Control.new()
+	g.custom_minimum_size = Vector2(0.0, height)
+	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return g

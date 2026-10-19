@@ -58,7 +58,7 @@ func test_the_title_buttons_send_their_signals() -> void:
 	assert_signal_emitted(title, "quit_pressed")
 
 
-func test_the_top_bar_has_the_four_tabs_and_the_later_ones_are_greyed() -> void:
+func test_the_top_bar_has_the_four_tabs_and_armory_is_greyed() -> void:
 	var bar := TopBar.new()
 	add_child_autofree(bar)
 	assert_eq(bar.tab_button(TopBar.Tab.MATCH).text, "MATCH")
@@ -67,13 +67,13 @@ func test_the_top_bar_has_the_four_tabs_and_the_later_ones_are_greyed() -> void:
 	assert_eq(bar.tab_button(TopBar.Tab.SETTINGS).text, "SETTINGS")
 	assert_false(bar.tab_button(TopBar.Tab.MATCH).disabled)
 	assert_false(bar.tab_button(TopBar.Tab.SETTINGS).disabled)
-	assert_true(bar.tab_button(TopBar.Tab.LOADOUT).disabled)
+	assert_false(bar.tab_button(TopBar.Tab.LOADOUT).disabled, "the Loadout tab is built (LO2)")
 	assert_true(bar.tab_button(TopBar.Tab.ARMORY).disabled)
 	var later := 0
 	for l in bar.find_children("*", "Label", true, false):
 		if (l as Label).text == "LATER":
 			later += 1
-	assert_eq(later, 2, "a LATER tag on each of the two")
+	assert_eq(later, 1, "a LATER tag on Armory alone")
 
 
 func test_the_level_chip_reads_lvl_1() -> void:
@@ -92,7 +92,7 @@ func test_the_current_tab_is_lit_and_a_later_tab_cannot_be() -> void:
 	assert_eq(bar.current(), TopBar.Tab.MATCH)
 	bar.set_current(TopBar.Tab.SETTINGS)
 	assert_eq(bar.current(), TopBar.Tab.SETTINGS)
-	bar.set_current(TopBar.Tab.LOADOUT)
+	bar.set_current(TopBar.Tab.ARMORY)
 	assert_eq(bar.current(), TopBar.Tab.SETTINGS, "a tab not built yet stays dark")
 	var lit := bar.tab_button(TopBar.Tab.SETTINGS).get_theme_stylebox("normal") as StyleBoxFlat
 	assert_eq(lit.border_color, GameTheme.YELLOW)

@@ -1,18 +1,22 @@
 extends Node
 ## The entry scene: the title (TitleScreen: START, Licences, Quit), the menus (MenuScreen: the top bar over the Match page
-## with its map, mode, team, bots and rules), the settings under the top bar, the credits, the F3 performance overlay and
-## the Show FPS readout. The Match page lists the public maps, and the dev ones too while the Dev settings' Dev content
-## switch is on (MapCatalog). PLAY frees the title and the menus (no menu nodes live during a match) and opens a match
-## (PlaySession) on the picked map and team, on the `--seed` launch option's seed if given, else a fresh one, behind the
-## loading screen until it has drawn its first frame; leaving it builds them again and comes back to the title. The
-## picks live in a MatchPicks kept here. The menus grow with a tall window (MenuScale).
-## `--smoke` (tools/smoke_test.sh) opens and closes the settings and the credits, plays a whole match on Depot with a
-## bot in your place (faster than real time), leaves, then quits with a report line.
+## with its map, mode, team, bots and rules, or the Loadout page, which the LOADOUT tab builds and leaving it saves and
+## frees), the settings under the top bar, the credits, the F3 performance overlay and the Show FPS readout. The Match page
+## lists the public maps, and the dev ones too while the Dev settings' Dev content switch is on (MapCatalog). PLAY saves the
+## loadouts, frees the title and the menus (no menu nodes live during a match) and opens a match (PlaySession) on the picked
+## map and team, on the `--seed` launch option's seed if given, else a fresh one, behind the loading screen until it has
+## drawn its first frame; leaving it builds them again and comes back to the title. The picks live in a MatchPicks kept
+## here. The menus grow with a tall window (MenuScale).
+## `--smoke` (tools/smoke_test.sh) opens and closes the settings, the credits and the Loadout page (with Customise),
+## plays a whole match on Depot with a bot in your place (faster than real time), leaves, then quits with a report line.
 
 const SMOKE_SETTINGS_OPEN := 10
 const SMOKE_SETTINGS_CLOSE := 20
 const SMOKE_CREDITS_OPEN := 30
 const SMOKE_CREDITS_CLOSE := 60
+const SMOKE_LOADOUT_OPEN := 65
+const SMOKE_CUSTOMISE_OPEN := 72
+const SMOKE_LOADOUT_CLOSE := 80
 const SMOKE_PLAY := 90
 ## Simulation ticks per physics tick in the smoke match; the most ticks it may take (a match that runs longer fails:
 ## 30 min of match time); and frames it waits after leaving, as a player back on the title screen would, so the audio
@@ -115,17 +119,24 @@ func _show_menus() -> void:
 
 
 func _show_title() -> void:
+	# the Loadout page is saved and freed; the menus open on the Match page again
+	_menus.show_match()
 	_menus.visible = false
 	_title.visible = true
 	_title.focus_start()
 
 
-## A top bar tab: Settings opens the settings under the bar, Match closes them.
+## A top bar tab: Settings opens the settings under the bar; Match and Loadout close them and show their page.
 func _on_tab(tab: TopBar.Tab) -> void:
 	if tab == TopBar.Tab.SETTINGS:
 		_open_settings()
-	elif _settings_screen != null:
+		return
+	if _settings_screen != null:
 		_settings_screen.close()
+	if tab == TopBar.Tab.LOADOUT:
+		_menus.show_loadout()
+	elif tab == TopBar.Tab.MATCH:
+		_menus.show_match()
 
 
 ## The settings over the menus, built when asked for and freed once closed (a hidden screen would keep its
@@ -146,9 +157,9 @@ func _settings_closed() -> void:
 	_settings_screen.queue_free()
 	_settings_screen = null
 	if _menus != null:
-		_menus.top_bar().set_current(TopBar.Tab.MATCH)
+		_menus.top_bar().set_current(_menus.page_tab())
 		if _menus.visible:
-			_menus.focus_play()
+			_menus.focus_page()
 
 
 func _show_credits() -> void:
@@ -164,9 +175,12 @@ func _credits_closed() -> void:
 func _start_play() -> void:
 	if _play != null:
 		return
-	# No menu nodes live during a match: the title and the menus are freed now and built again when it ends.
+	# No menu nodes live during a match: the title and the menus are freed now and built again when it ends. The loadouts
+	# are saved first (the Loadout page, if open, is part of what is freed).
 	if _settings_screen != null:
 		_settings_screen.close()
+	_menus.leave_loadout()
+	SavedLoadouts.shared().save_if_dirty()
 	_free_screens()
 	var team := PlaySession.TEAM_ALPHA if _smoke else _picks.team
 	var map_id := SMOKE_MAP if _smoke else _picks.map_id
@@ -239,6 +253,13 @@ func _process(_delta: float) -> void:
 		_credits.open()
 	elif _frame == SMOKE_CREDITS_CLOSE:
 		_credits.close()
+	elif _frame == SMOKE_LOADOUT_OPEN:
+		_on_tab(TopBar.Tab.LOADOUT)
+	elif _frame == SMOKE_CUSTOMISE_OPEN:
+		if _menus.loadout_page() != null:
+			_menus.loadout_page().show_customise()
+	elif _frame == SMOKE_LOADOUT_CLOSE:
+		_on_tab(TopBar.Tab.MATCH)
 	elif _frame == SMOKE_PLAY:
 		_start_play()
 	elif _play != null and (_play.matches_played > 0 or _play.ticks() >= SMOKE_MAX_TICKS):
