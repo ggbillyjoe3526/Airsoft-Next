@@ -55,7 +55,7 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
    vault. Built.
 4. **Bots vault** (BV1). Vault links in the nav grid, so bots go over low walls as you do. Built.
 5. **Settings** (SE1). Sensitivity, controls, rebinding, audio and display, saved and versioned, with the browser
-   game's other rows (field of view, show FPS, cm/360, a second key per action, every volume).
+   game's other rows (field of view, show FPS, cm/360, a second key per action, every volume). Built.
 6. **Debug tools and the Dev tab.** BB paths and hit areas drawn in the world, the seed and position on the overlay,
    a `--seed` launch option; the Dev settings (game speed, bottomless magazines, ghost, bots hold fire, spectate any
    bot, bot intentions, end the round, reset the save, Retro pixels) and the Dev content switch with each map, mode

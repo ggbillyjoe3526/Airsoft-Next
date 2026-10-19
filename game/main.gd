@@ -1,9 +1,12 @@
 extends Node
-## The entry scene: the boot screen (the version, Play, the credits, Quit) and the F3 performance overlay. Play opens a
+## The entry scene: the boot screen (the version, Play, Settings, the credits, Quit), the F3 performance overlay and
+## the Show FPS readout. Play opens a
 ## match on Depot (PlaySession); leaving it comes back here. The title screen and menus replace this screen when the UI
-## is built (docs/KNOWN_ISSUES.md). `--smoke` (tools/smoke_test.sh) opens and closes the credits, plays a whole match on
+## is built (docs/KNOWN_ISSUES.md). `--smoke` (tools/smoke_test.sh) opens and closes the settings and the credits, plays a whole match on
 ## Depot with a bot in your place (faster than real time), leaves, then quits with a report line.
 
+const SMOKE_SETTINGS_OPEN := 10
+const SMOKE_SETTINGS_CLOSE := 20
 const SMOKE_CREDITS_OPEN := 30
 const SMOKE_CREDITS_CLOSE := 60
 const SMOKE_PLAY := 90
@@ -15,6 +18,7 @@ const SMOKE_MAX_TICKS := 108000
 const SMOKE_SETTLE := 30
 
 var _credits: Credits
+var _settings_screen: SettingsScreen
 var _screen: Control
 var _play: PlaySession
 var _smoke := false
@@ -28,17 +32,19 @@ var _smoke_left_at := -1
 
 func _ready() -> void:
 	_smoke = OS.get_cmdline_user_args().has("--smoke")
-	_screen = _build_boot_screen()
+	var settings := Settings.shared()
+	_screen = _build_boot_screen(settings)
 	add_child(_screen)
 	_credits = Credits.new()
 	_credits.visible = false
 	add_child(_credits)
+	add_child(FpsReadout.new(settings))
 	add_child(DebugPerf.new())
 	set_process(_smoke)
 	print("[boot] Airsoft %s on Godot %s" % [Version.current(), Engine.get_version_info()["string"]])
 
 
-func _build_boot_screen() -> Control:
+func _build_boot_screen(settings: Settings) -> Control:
 	var root := Control.new()
 	root.theme = GameTheme.get_theme()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -57,10 +63,19 @@ func _build_boot_screen() -> Control:
 	version.text = Version.current()
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(version)
+	if not settings.load_message.is_empty():
+		var problem := Label.new()
+		problem.text = settings.load_message
+		problem.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		box.add_child(problem)
 	var play := Button.new()
 	play.text = tr("BOOT_PLAY")
 	play.pressed.connect(_start_play)
 	box.add_child(play)
+	var options := Button.new()
+	options.text = tr("BOOT_SETTINGS")
+	options.pressed.connect(_open_settings)
+	box.add_child(options)
 	var credits := Button.new()
 	credits.text = tr("BOOT_CREDITS")
 	credits.pressed.connect(_show_credits)
@@ -70,6 +85,22 @@ func _build_boot_screen() -> Control:
 	quit.pressed.connect(get_tree().quit)
 	box.add_child(quit)
 	return root
+
+
+## The settings over the boot screen, built when asked for and freed once closed (a hidden screen would keep its
+## couple of hundred nodes for the whole session).
+func _open_settings() -> void:
+	if _settings_screen == null:
+		_settings_screen = SettingsScreen.new()
+		_settings_screen.settings = Settings.shared()
+		_settings_screen.closed.connect(_settings_closed)
+		add_child(_settings_screen)
+	_settings_screen.open()
+
+
+func _settings_closed() -> void:
+	_settings_screen.queue_free()
+	_settings_screen = null
 
 
 func _show_credits() -> void:
@@ -106,7 +137,12 @@ func _process(_delta: float) -> void:
 	if not _smoke:
 		return
 	_frame += 1
-	if _frame == SMOKE_CREDITS_OPEN:
+	if _frame == SMOKE_SETTINGS_OPEN:
+		_open_settings()
+	elif _frame == SMOKE_SETTINGS_CLOSE:
+		if _settings_screen != null:
+			_settings_screen.close()
+	elif _frame == SMOKE_CREDITS_OPEN:
 		_credits.open()
 	elif _frame == SMOKE_CREDITS_CLOSE:
 		_credits.close()

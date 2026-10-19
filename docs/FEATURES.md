@@ -22,3 +22,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - HUD: score, round clock, magazine, spares and fire mode, a gauge per magazine (loaded first, then spares fullest first; orange when the loaded one runs low), a crosshair that opens with your spread, and round banners (FP1, MZ1)
 - Depot: a greybox field with sun, sky, shadows, positional sound and an ambience loop; BBs puff on metal, wood, concrete or ground in its colour (FP1)
 - Bots: Alpha with two bot teammates against three bots, Elimination rounds, first to five; bots see a 120 degree view, hear sound through walls muffled, take cover, peek, lean, hunt and flank, and vault low walls on their routes; one difficulty, Normal (BE1, BV1)
+
+## Menus and settings
+
+- Settings: a screen from the title screen and the pause menu for controls, audio, display and the FPS counter; every change applies and saves at once (SE1)

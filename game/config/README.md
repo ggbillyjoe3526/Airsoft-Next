@@ -22,7 +22,7 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `replica_config.gd`, `replicas/*.tres` | One replica's stats, the built-in values; `data/stats.md` wins over them |
 | `replica_stats.gd`, `data_table.gd` | Read `data/stats.md`'s tables (a cell that won't read keeps the built-in value and warns) |
 | `play_tuning.gd`, `play_tuning.tres` | Bundles the play screen's configs below, and the rematch delay |
-| `controls_config.gd` | Mouse turn, sensitivity, invert, slower while zoomed, crouch and aim toggle or hold |
+| `controls_config.gd` | Mouse turn, sensitivity (hip, and a multiplier aimed), invert, slower while zoomed, crouch and aim toggle or hold; the settings screen writes its values over these |
 | `view_config.gd` | Field of view, the sight's zoom, near and far, the view's roll in a lean, a cut lean's easing, a vault's dip and tip |
 | `viewmodel_config.gd` | The replica in hand: hip and sight positions, sway, kick, sprint carry, draw, the holster, reload cant, wall pull-back |
 | `effects_config.gd` | BB size and colour, the muzzle blend, puffs by surface, the wind dust |

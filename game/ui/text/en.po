@@ -49,7 +49,7 @@ msgid "HUD_RICOCHET"
 msgstr "Ricochet: play on"
 
 msgid "HUD_VAULT"
-msgstr "Space to vault"
+msgstr "%s to vault"
 
 msgid "HUD_HOLSTERED"
 msgstr "Holstered"
@@ -119,3 +119,240 @@ msgstr "The licence notices could not be read. They ship beside the game as THIR
 
 msgid "MAP_REFUSED"
 msgstr "This map could not be loaded: %s"
+
+msgid "PAUSE_SETTINGS"
+msgstr "Settings"
+
+msgid "BOOT_SETTINGS"
+msgstr "Settings"
+
+msgid "FPS_READOUT"
+msgstr "FPS %d"
+
+msgid "SETTINGS_TITLE"
+msgstr "SETTINGS"
+
+msgid "SETTINGS_BACK"
+msgstr "Back"
+
+msgid "SETTINGS_DAMAGED"
+msgstr "Your saved settings could not be read, so the defaults are in use."
+
+msgid "SETTINGS_NEWER"
+msgstr "Your saved settings are from a different version of the game, so the defaults are in use."
+
+msgid "SETTINGS_CONTROLS"
+msgstr "CONTROLS"
+
+msgid "SETTINGS_AUDIO"
+msgstr "AUDIO"
+
+msgid "SETTINGS_DISPLAY"
+msgstr "DISPLAY"
+
+msgid "SETTINGS_MOUSE"
+msgstr "MOUSE"
+
+msgid "SETTINGS_SENSITIVITY"
+msgstr "HIP SENSITIVITY"
+
+msgid "SETTINGS_AIM_SENSITIVITY"
+msgstr "AIMED SENSITIVITY"
+
+msgid "SETTINGS_DPI"
+msgstr "MOUSE DPI"
+
+msgid "SETTINGS_CM360"
+msgstr "CM PER 360 TURN"
+
+msgid "SETTINGS_INVERT"
+msgstr "INVERT VERTICAL LOOK"
+
+msgid "SETTINGS_ON"
+msgstr "On"
+
+msgid "SETTINGS_TOGGLE"
+msgstr "Toggle"
+
+msgid "SETTINGS_HOLD"
+msgstr "Hold"
+
+msgid "SETTINGS_OFF"
+msgstr "Off"
+
+msgid "SETTINGS_STANCE"
+msgstr "CROUCH AND AIM"
+
+msgid "SETTINGS_CROUCH"
+msgstr "CROUCH"
+
+msgid "SETTINGS_AIM"
+msgstr "AIM DOWN SIGHTS"
+
+msgid "SETTINGS_KEYS"
+msgstr "KEY BINDINGS"
+
+msgid "SETTINGS_KEYS_HINT"
+msgstr "Click a key, then press the new one. Esc cancels; Backspace or Delete clears it. A key used elsewhere is swapped."
+
+msgid "SETTINGS_KEYS_RESET"
+msgstr "Reset keys"
+
+msgid "SETTINGS_VOLUME"
+msgstr "VOLUME"
+
+msgid "SETTINGS_VOL_MASTER"
+msgstr "MASTER"
+
+msgid "SETTINGS_VOL_EFFECTS"
+msgstr "EFFECTS"
+
+msgid "SETTINGS_VOL_POWER"
+msgstr "POWER SOURCE"
+
+msgid "SETTINGS_VOL_AMBIENCE"
+msgstr "AMBIENCE"
+
+msgid "SETTINGS_VOL_INTERFACE"
+msgstr "INTERFACE"
+
+msgid "SETTINGS_WINDOW"
+msgstr "WINDOW"
+
+msgid "SETTINGS_WINDOW_MODE"
+msgstr "WINDOW MODE"
+
+msgid "SETTINGS_WINDOWED"
+msgstr "Windowed"
+
+msgid "SETTINGS_BORDERLESS"
+msgstr "Borderless fullscreen"
+
+msgid "SETTINGS_EXCLUSIVE"
+msgstr "Exclusive fullscreen"
+
+msgid "SETTINGS_VSYNC"
+msgstr "V-SYNC"
+
+msgid "SETTINGS_VIEW"
+msgstr "VIEW"
+
+msgid "SETTINGS_FOV"
+msgstr "FIELD OF VIEW"
+
+msgid "SETTINGS_SHOW_FPS"
+msgstr "SHOW FPS"
+
+msgid "KEYS_PRESS"
+msgstr "Press a key..."
+
+msgid "KEYS_CANCELLED"
+msgstr "Cancelled."
+
+msgid "KEYS_RESET"
+msgstr "Keys back to the defaults."
+
+msgid "KEYS_REFUSED"
+msgstr "%s can't be bound. Press another key."
+
+msgid "KEYS_STRANDS"
+msgstr "%s would be left with no key by giving up %s. Press another key."
+
+msgid "KEYS_SWAPPED"
+msgstr "%s is now %s; %s lost that key."
+
+msgid "KEYS_BOUND"
+msgstr "%s is now %s."
+
+msgid "KEYS_CLEARED"
+msgstr "%s: key cleared."
+
+msgid "KEYS_NEEDS_ONE"
+msgstr "%s needs a key."
+
+msgid "KEY_MOUSE_LEFT"
+msgstr "Left mouse"
+
+msgid "KEY_MOUSE_RIGHT"
+msgstr "Right mouse"
+
+msgid "KEY_MOUSE_MIDDLE"
+msgstr "Middle mouse"
+
+msgid "KEY_WHEEL_UP"
+msgstr "Wheel up"
+
+msgid "KEY_WHEEL_DOWN"
+msgstr "Wheel down"
+
+msgid "KEY_MOUSE_4"
+msgstr "Mouse 4"
+
+msgid "KEY_MOUSE_5"
+msgstr "Mouse 5"
+
+msgid "KEY_MOUSE_OTHER"
+msgstr "Mouse button"
+
+msgid "ACT_MOVE_FORWARD"
+msgstr "MOVE FORWARD"
+
+msgid "ACT_MOVE_BACK"
+msgstr "MOVE BACK"
+
+msgid "ACT_MOVE_LEFT"
+msgstr "MOVE LEFT"
+
+msgid "ACT_MOVE_RIGHT"
+msgstr "MOVE RIGHT"
+
+msgid "ACT_WALK"
+msgstr "WALK"
+
+msgid "ACT_SPRINT"
+msgstr "SPRINT"
+
+msgid "ACT_CROUCH"
+msgstr "CROUCH"
+
+msgid "ACT_JUMP"
+msgstr "JUMP AND VAULT"
+
+msgid "ACT_LEAN_LEFT"
+msgstr "LEAN LEFT"
+
+msgid "ACT_LEAN_RIGHT"
+msgstr "LEAN RIGHT"
+
+msgid "ACT_FIRE"
+msgstr "FIRE"
+
+msgid "ACT_AIM"
+msgstr "AIM"
+
+msgid "ACT_RELOAD"
+msgstr "RELOAD"
+
+msgid "ACT_FIRE_MODE"
+msgstr "FIRE MODE"
+
+msgid "ACT_SLOT_1"
+msgstr "REPLICA 1"
+
+msgid "ACT_SLOT_2"
+msgstr "REPLICA 2"
+
+msgid "ACT_HOLSTER"
+msgstr "HOLSTER"
+
+msgid "ACT_SLOT_NEXT"
+msgstr "NEXT REPLICA"
+
+msgid "ACT_SLOT_PREVIOUS"
+msgstr "PREVIOUS REPLICA"
+
+msgid "ACT_HOP_UP_LESS"
+msgstr "HOP-UP LESS"
+
+msgid "ACT_HOP_UP_MORE"
+msgstr "HOP-UP MORE"

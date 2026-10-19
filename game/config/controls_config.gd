@@ -1,11 +1,13 @@
 class_name ControlsConfig
 extends Resource
-## The mouse (the browser game's config/controls.ts MOUSE). Read by PlayerInput. The settings screen will save the
-## player's own sensitivity over these defaults.
+## The mouse (the browser game's config/controls.ts MOUSE). Read by PlayerInput. The settings screen (Settings) writes
+## the player's own values over these defaults.
 
 ## View turn per mouse count at sensitivity 1 (rad): 1 is about 26 cm a full turn at 1600 DPI.
 @export var radians_per_count: float = 0.001
 @export var sensitivity: float = 1.0
+## A multiplier on the turn while aiming down sights (1: the same as the hip), on top of scale_with_zoom.
+@export var aim_sensitivity: float = 1.0
 ## Mouse forward looks down, like a flight stick.
 @export var invert_y: bool = false
 ## Aiming down sights turns slower by the sight's zoom, so a mouse movement covers the same share of the view.
