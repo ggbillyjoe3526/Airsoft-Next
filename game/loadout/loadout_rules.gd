@@ -4,14 +4,19 @@ extends RefCounted
 ## replicas on offer, each replica's setup as it comes, the edits the Loadout makes (each checked and snapped), and the
 ## kit a loadout is carried as. Pure: the pool, stats.md and the replica rules are handed in.
 ##
-## Gear that is saved but not on offer now (a dev replica with Dev content off) stays picked and plays as the slot's
-## default (docs/DECISIONS.md › Loadout).
+## Gear that is saved but not on offer now (a dev replica with Dev content off, or one not unlocked yet) stays picked and
+## plays as the slot's default (docs/DECISIONS.md › Loadout). Items are locked only while `levels` is set (the menus and
+## your own kit: `follow_progress`); without it, as for the bots, everything is unlocked.
 
 var pool: Pool = null
 var stats: ReplicaStats = null
 var rules: ReplicaRulesConfig = null
 ## Dev content on: dev items are offered too.
 var dev_content: bool = false
+## The levels and the player's progress, read live (a Reset level shows at once); null: everything is unlocked
+## (levelling off, or no player's progress applies).
+var levels: LevelTable = null
+var progress: Progress = null
 var _configs: Dictionary[StringName, ReplicaConfig] = {}
 
 
@@ -26,6 +31,22 @@ static func standard() -> LoadoutRules:
 	var s := ReplicaStats.read_file()
 	s.warn()
 	return LoadoutRules.new(Pool.shared(), s, SimTuning.load_default().replica_rules)
+
+
+## Locks what `progress` hasn't unlocked, unless `levelling_off` (Settings › Dev › Disable levelling) unlocks it all.
+func follow_progress(progress_in: Progress, levelling_off: bool) -> void:
+	levels = null if levelling_off else progress_in.table
+	progress = progress_in
+
+
+## True if item `id` isn't unlocked yet (an item no level unlocks is locked for good).
+func is_locked(id: String) -> bool:
+	return levels != null and not progress.has(id)
+
+
+## The level that unlocks item `id`, or -1 if none does.
+func unlock_level(id: String) -> int:
+	return levels.unlock_level(id) if levels != null else -1
 
 
 ## The replicas a player can carry now, in pool order: those the game can play (a built-in config), public ones and,
@@ -43,6 +64,11 @@ func is_offered(id: String) -> bool:
 		if it.id == id:
 			return true
 	return false
+
+
+## On offer and unlocked: it can be picked and plays as it is.
+func is_available(id: String) -> bool:
+	return is_offered(id) and not is_locked(id)
 
 
 ## The replica's stats as it comes (stats.md over the built-in config), or null if the game can't play it.
@@ -91,9 +117,9 @@ func tune_of(loadout: Loadout, id: String) -> ReplicaTune:
 	return default_tune(pool.item(id))
 
 
-## Carries replica `id` in `slot`; one already in the other slot swaps places. False if it isn't on offer.
+## Carries replica `id` in `slot`; one already in the other slot swaps places. False if it isn't on offer or unlocked.
 func equip(loadout: Loadout, slot: Loadout.Slot, id: String) -> bool:
-	if not is_offered(id):
+	if not is_available(id):
 		return false
 	var other := 1 - int(slot)
 	if loadout.equipped[other] == id:
@@ -125,11 +151,13 @@ func set_paint(loadout: Loadout, id: String, paint: StringName) -> bool:
 	return true
 
 
-## Fits power source `power_id` to replica `id`; false (and nothing changed) if it doesn't fit or isn't on offer.
+## Fits power source `power_id` to replica `id`; false (and nothing changed) if it doesn't fit, isn't on offer or isn't
+## unlocked.
 func set_power(loadout: Loadout, id: String, power_id: String) -> bool:
 	var it := pool.item(id)
 	var pw := pool.item(power_id)
-	if it == null or pw == null or pw.kind != Pool.Kind.POWER or not pool.powers_for(it, dev_content).has(pw):
+	if it == null or pw == null or pw.kind != Pool.Kind.POWER or not pool.powers_for(it, dev_content).has(pw) \
+			or is_locked(power_id):
 		return false
 	_editable(loadout, id).power_id = power_id
 	return true
@@ -144,7 +172,7 @@ func parts_for(id: String, slot: StringName) -> Array[Pool.Item]:
 
 
 ## Fits part `part_id` to replica `id` in `slot`, or takes the slot's part off for "" (as it comes); false (and nothing
-## changed) if the part isn't one for that slot that fits and is on offer.
+## changed) if the part isn't one for that slot that fits, is on offer and is unlocked.
 func set_part(loadout: Loadout, id: String, slot: StringName, part_id: String) -> bool:
 	if not Pool.PART_TABLES.values().has(slot):
 		return false
@@ -154,7 +182,7 @@ func set_part(loadout: Loadout, id: String, slot: StringName, part_id: String) -
 			return false
 		_editable(loadout, id).parts.erase(slot)
 		return true
-	if not parts_for(id, slot).has(pool.item(part_id)):
+	if not parts_for(id, slot).has(pool.item(part_id)) or is_locked(part_id):
 		return false
 	_editable(loadout, id).parts[slot] = part_id
 	return true
@@ -216,15 +244,15 @@ func clean(loadout: Loadout) -> Array[String]:
 	return out
 
 
-## What `loadout` plays as: each slot's replica (the slot's default if it isn't on offer now) with its power source
-## (the default one if it isn't on offer now), its parts (as it comes where a part isn't on offer now) and dial, and its
+## What `loadout` plays as: each slot's replica (the slot's default if it isn't on offer or unlocked now) with its power
+## source (the default one if it isn't), its parts (as it comes where a part isn't) and dial, and its
 ## BB weight and paint. A slot whose replica the game can't play is left out.
 func carried(loadout: Loadout) -> Kit:
 	var kit := Kit.new()
 	var used := PackedStringArray()
 	for slot: Loadout.Slot in [Loadout.Slot.PRIMARY, Loadout.Slot.SECONDARY]:
 		var id := loadout.equipped[slot]
-		if not is_offered(id) or used.has(id):
+		if not is_available(id) or used.has(id):
 			id = default_id(slot) if not used.has(default_id(slot)) else default_id(1 - int(slot) as Loadout.Slot)
 		var it := pool.item(id)
 		var base := config(it)
@@ -234,7 +262,7 @@ func carried(loadout: Loadout) -> Kit:
 		var t := tune_of(loadout, id)
 		var power_id := t.power_id
 		var pw := pool.item(power_id)
-		if pw == null or not pool.powers_for(it, dev_content).has(pw):
+		if pw == null or not pool.powers_for(it, dev_content).has(pw) or is_locked(power_id):
 			power_id = default_tune(it).power_id
 			pw = pool.item(power_id)
 		var r := base.duplicate() as ReplicaConfig
@@ -264,7 +292,7 @@ func _fitted(it: Pool.Item, t: ReplicaTune) -> Dictionary[StringName, Pool.Item]
 	var out: Dictionary[StringName, Pool.Item] = {}
 	for slot: StringName in t.parts:
 		var pt := pool.item(t.parts[slot])
-		if pt != null and pt.slot == slot and pool.parts_for(it, slot, dev_content).has(pt):
+		if pt != null and pt.slot == slot and pool.parts_for(it, slot, dev_content).has(pt) and not is_locked(pt.id):
 			out[slot] = pt
 	return out
 

@@ -157,6 +157,8 @@ func _settings_closed() -> void:
 	_settings_screen.queue_free()
 	_settings_screen = null
 	if _menus != null:
+		# Disable levelling or Reset level may have changed it.
+		_menus.show_level()
 		_menus.top_bar().set_current(_menus.page_tab())
 		if _menus.visible:
 			_menus.focus_page()
@@ -186,6 +188,9 @@ func _start_play() -> void:
 	var map_id := SMOKE_MAP if _smoke else _picks.map_id
 	_play = PlaySession.new()
 	_play.autopilot = _smoke
+	_play.counts = not _smoke
+	_play.mode = _picks.mode
+	_play.difficulty = StringName(_picks.bots)
 	_play.map_id = map_id
 	_play.player_team = team
 	# --seed replays a match; else a fresh seed each Play (the smoke test keeps one fixed seed, so it plays the same match).

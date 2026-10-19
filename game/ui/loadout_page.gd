@@ -30,6 +30,8 @@ var _customise: CustomiseView = null
 var _notice: Label = null
 var _slot: Loadout.Slot = Loadout.Slot.PRIMARY
 var _customising: bool = false
+## What the locks were built from (the game's own loadouts only; "" for a test's).
+var _lock_key: String = ""
 
 
 func _init(saved_in: SavedLoadouts = null, settings_in: Settings = null) -> void:
@@ -37,6 +39,10 @@ func _init(saved_in: SavedLoadouts = null, settings_in: Settings = null) -> void
 	saved = saved_in if saved_in != null else SavedLoadouts.shared()
 	settings = settings_in if settings_in != null else Settings.shared()
 	saved.rules.dev_content = settings.active_dev().dev_content
+	# The game's own loadouts lock what the player hasn't unlocked (a test's own are all unlocked).
+	if saved_in == null:
+		saved.rules.follow_progress(Progress.shared(), settings.active_dev().disable_levelling)
+		_lock_key = _locks_now()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_facts = LoadoutFacts.new(saved)
 	_pictures = ReplicaPictures.new()
@@ -97,6 +103,15 @@ func _notification(what: int) -> void:
 
 func strip() -> LoadoutStrip:
 	return _strip
+
+
+## True if the game's levelling changed since the page was built (Disable levelling, or what is unlocked).
+func locks_changed() -> bool:
+	return _lock_key != "" and _locks_now() != _lock_key
+
+
+func _locks_now() -> String:
+	return "%s:%d" % [settings.active_dev().disable_levelling, Progress.shared().unlocked.size()]
 
 
 func gear() -> LoadoutGear:

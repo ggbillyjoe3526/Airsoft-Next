@@ -718,6 +718,9 @@ func _power_card(pw: Pool.Item) -> MenuCard:
 	var title := HBoxContainer.new()
 	title.add_theme_constant_override("separation", SUB_GAP)
 	title.add_child(MenuParts.text(LoadoutFacts.power_label(pw), POWER_NAME_SIZE, 800, GameTheme.TEXT))
+	var rules := _facts.rules()
+	if rules.is_locked(pw.id):
+		title.add_child(MenuTag.level(rules.unlock_level(pw.id)))
 	if pw.is_dev():
 		title.add_child(MenuTag.dev())
 	text.add_child(title)
@@ -730,6 +733,7 @@ func _power_card(pw: Pool.Item) -> MenuCard:
 	pad.add_child(row)
 	card.add_content(pad)
 	card.pressed.connect(func() -> void: power_picked.emit(pw.id))
+	card.set_greyed(rules.is_locked(pw.id))
 	return card
 
 

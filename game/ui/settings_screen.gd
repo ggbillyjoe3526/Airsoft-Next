@@ -28,8 +28,8 @@ const DPI_STEP := 50.0
 const FOV_STEP := 1.0
 const PERCENT_STEP := 1.0
 ## The Dev tab's switches, each a DevSettings field with a label DEV_<FIELD> and a help line DEV_<FIELD>_HELP.
-const DEV_SWITCHES: Array[StringName] = [&"dev_content", &"bottomless", &"ghost", &"bots_hold_fire", &"spectate_bots",
-		&"bot_intent", &"retro_pixels"]
+const DEV_SWITCHES: Array[StringName] = [&"dev_content", &"disable_levelling", &"bottomless", &"ghost",
+		&"bots_hold_fire", &"spectate_bots", &"bot_intent", &"retro_pixels"]
 ## What the screen edits; the game's own by default.
 var settings: Settings = null
 ## Where it saves (a test points this at a temporary file).
@@ -37,6 +37,8 @@ var save_path: String = Settings.PATH
 ## The match's End the round now, set when opened from the pause menu (returns false when no round is live); empty
 ## from the title screen.
 var end_round: Callable = Callable()
+## Whose level the Dev tab's Reset level resets: the game's own when unset (a test gives its own).
+var progress: Progress = null
 
 var _back: Button = null
 var _tabs: TabContainer = null
@@ -62,6 +64,7 @@ var _dev_checks: Dictionary[StringName, CheckButton] = {}
 var _speed: HSlider = null
 var _end_round: Button = null
 var _confirm_reset: ConfirmationDialog = null
+var _confirm_level: ConfirmationDialog = null
 
 
 func _ready() -> void:
@@ -321,6 +324,18 @@ func _build_dev() -> void:
 	_end_round.pressed.connect(_on_end_round)
 	end_row.add_child(_end_round)
 	_help(page, "DEV_END_ROUND_HELP")
+	var level_row := _row(page, "DEV_RESET_LEVEL")
+	var reset_level := Button.new()
+	reset_level.text = tr("DEV_RESET_LEVEL_BUTTON")
+	level_row.add_child(reset_level)
+	_help(page, "DEV_RESET_LEVEL_HELP")
+	_confirm_level = ConfirmationDialog.new()
+	_confirm_level.title = tr("DEV_RESET_LEVEL_TITLE")
+	_confirm_level.dialog_text = tr("DEV_RESET_LEVEL_QUESTION")
+	_confirm_level.ok_button_text = tr("DEV_RESET_LEVEL_BUTTON")
+	_confirm_level.confirmed.connect(_on_reset_level)
+	add_child(_confirm_level)
+	reset_level.pressed.connect(_confirm_level.popup_centered)
 	var reset_row := _row(page, "DEV_RESET_SAVE")
 	var reset := Button.new()
 	reset.text = tr("DEV_RESET_SAVE_BUTTON")
@@ -349,6 +364,14 @@ func _on_dev_switch(on: bool, field: StringName) -> void:
 func _on_end_round() -> void:
 	var ended: bool = end_round.is_valid() and bool(end_round.call())
 	_note.text = tr("DEV_DONE") if ended else tr("DEV_NO_ROUND")
+
+
+## Back to level 0 with the starting kit alone (the game's own progress, or `progress` a test gives).
+func _on_reset_level() -> void:
+	var p := progress if progress != null else Progress.shared()
+	p.reset()
+	p.save_if_dirty()
+	_note.text = tr("DEV_DONE")
 
 
 func _on_reset_save() -> void:

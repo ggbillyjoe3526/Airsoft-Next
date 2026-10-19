@@ -423,6 +423,12 @@ msgstr "DEV CONTENT"
 msgid "DEV_DEV_CONTENT_HELP"
 msgstr "Shows maps still being built. Matches on them don't go into your records."
 
+msgid "DEV_DISABLE_LEVELLING"
+msgstr "DISABLE LEVELLING"
+
+msgid "DEV_DISABLE_LEVELLING_HELP"
+msgstr "Every replica and part is unlocked to carry, and matches give no XP. Your own level and unlocks stay as they are and come back when you turn it off."
+
 msgid "DEV_BOTTOMLESS"
 msgstr "BOTTOMLESS MAGAZINES"
 
@@ -467,6 +473,21 @@ msgstr "End round"
 
 msgid "DEV_END_ROUND_HELP"
 msgstr "Runs the round's clock out, so it ends as on time. Open it from the pause menu in a match, then Resume. That match stays out of your records."
+
+msgid "DEV_RESET_LEVEL"
+msgstr "RESET YOUR LEVEL"
+
+msgid "DEV_RESET_LEVEL_BUTTON"
+msgstr "Reset level"
+
+msgid "DEV_RESET_LEVEL_HELP"
+msgstr "Back to level 0 with the starting kit alone. Your records stay."
+
+msgid "DEV_RESET_LEVEL_TITLE"
+msgstr "Reset your level?"
+
+msgid "DEV_RESET_LEVEL_QUESTION"
+msgstr "Your XP and everything you unlocked go, back to the starting kit. This can't be undone."
 
 msgid "DEV_RESET_SAVE"
 msgstr "RESET THE SAVE"
@@ -518,6 +539,9 @@ msgstr "RULES"
 
 msgid "MENU_DEV"
 msgstr "DEV"
+
+msgid "MENU_LEVEL_TAG"
+msgstr "LEVEL %d"
 
 msgid "BOT_EASY"
 msgstr "Easy"
@@ -1166,3 +1190,18 @@ msgstr "slower draw"
 
 msgid "PART_WORSE_RATTLES"
 msgstr "rattles while you move"
+
+msgid "PROGRESS_DAMAGED"
+msgstr "Your level couldn't be read, so it starts again from level 0. The damaged file was set aside."
+
+msgid "PROGRESS_NEWER"
+msgstr "Your level was saved by a newer version of the game. It is kept as it is; this version plays from level 0 and won't save over it."
+
+msgid "RECORDS_DAMAGED"
+msgstr "Your records couldn't be read, so they start again. The damaged file was set aside."
+
+msgid "RECORDS_NEWER"
+msgstr "Your records were saved by a newer version of the game. They are kept as they are and this version won't save over them."
+
+msgid "XP_NONE_DEV"
+msgstr "No XP: Dev settings or dev content were used in this match."

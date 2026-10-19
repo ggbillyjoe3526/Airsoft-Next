@@ -12,11 +12,13 @@ const POWER_TABLE := "Power sources"
 const ACCESS: Array[StringName] = [&"public", &"dev"]
 const POWER_TYPES: Array[StringName] = [&"battery", &"gas", &"spring"]
 ## The part tables and the loadout slot each fills (a replica's standard magazine, barrel and iron sights are built in;
-## these are the alternatives). Lights wait for night fields.
+## these are the alternatives). Lights wait for night fields: read into `waiting`, never offered.
 const PART_TABLES: Dictionary[String, StringName] = {
 	"Optics": &"optic", "Grips": &"grip", "Lasers": &"laser", "Magazines": &"magazine", "Barrels": &"barrel",
 	"Muzzle parts": &"muzzle",
 }
+## The tables read but not offered yet, and the slot each will fill.
+const WAITING_TABLES: Dictionary[String, StringName] = {"Lights": &"light"}
 ## A replica tag that means its power source is built in: nothing fits its power slot and it needs nothing.
 const BUILT_IN_POWER := "built-in-power"
 ## Six digits, as pool.md › Identifiers has them.
@@ -51,6 +53,8 @@ class Item:
 var replicas: Array[Item] = []
 var powers: Array[Item] = []
 var parts: Array[Item] = []
+## Items read but not in play yet (WAITING_TABLES): levels.md still names them, nothing offers them.
+var waiting: Array[Item] = []
 ## What couldn't be read, each "pool.md:line: …".
 var problems: Array[String] = []
 
@@ -84,6 +88,10 @@ static func parse(text: String) -> Pool:
 		var t := DataTable.find(tables, heading)
 		if t != null:
 			p._read(t, Kind.PART, p.parts, PART_TABLES[heading])
+	for heading: String in WAITING_TABLES:
+		var t := DataTable.find(tables, heading)
+		if t != null:
+			p._read(t, Kind.PART, p.waiting, WAITING_TABLES[heading])
 	return p
 
 

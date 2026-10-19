@@ -16,6 +16,8 @@ signal left
 signal progressed(done: int, total: int, step_key: String)
 ## The match has been drawn once (or the map was refused): the loading screen can go.
 signal started
+## A finished match counted: its XP, levels reached and records (`settled`).
+signal match_settled
 
 const PLAYER_ID := 0
 ## The build steps, in order, as the keys of the words the loading screen shows.
@@ -43,6 +45,14 @@ var settings: Settings = null
 var kit: Kit = null
 ## False: the bots stand idle (tests that need a still target).
 var bots_active: bool = true
+## The match's mode and the bots' difficulty (MatchOptions), for its XP and the records.
+var mode: String = MatchOptions.MODE_ELIMINATION
+var difficulty: StringName = &"normal"
+## True: a finished match gives XP and goes into the records (the game's own match; tests and the smoke test leave it
+## off, so they never touch the player's progress).
+var counts: bool = false
+## What the last finished match gave, once counted (null before).
+var settled: PlayerTally.Settled = null
 
 var state: GameState = null
 var player: Character = null
@@ -80,6 +90,9 @@ var _watch_input: PlayerCommand = PlayerCommand.new()
 var _intents: BotIntentView = null
 var _retro: RetroPixels = null
 var _rematch_left: float = -1.0
+var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
+## Your kit was picked with levelling off: every match it plays stays out of the records, even after it is turned on.
+var _kit_unlocked_all: bool = false
 var _ticks: int = 0
 ## What the smoke test checks: your shots, everyone's, BBs that landed anywhere, rounds played and matches finished.
 var shots: int = 0
@@ -188,7 +201,10 @@ func _start_simulation(map: MapData) -> void:
 	var loadout := ReplicaStats.default_loadout()
 	if kit == null:
 		var s := settings if settings != null else Settings.shared()
-		kit = SavedLoadouts.shared().carried_kit(s.active_dev().dev_content)
+		var saved := SavedLoadouts.shared()
+		saved.rules.follow_progress(Progress.shared(), s.active_dev().disable_levelling)
+		kit = saved.carried_kit(s.active_dev().dev_content)
+		_kit_unlocked_all = s.active_dev().disable_levelling
 	state.dev_content = state.dev_content or kit.dev
 	player = Character.new(PLAYER_ID, player_team, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
 	state.characters.append(player)
@@ -308,6 +324,7 @@ func _after_tick() -> void:
 	_audio.on_tick(state, PLAYER_ID)
 	_hud.on_tick(state)
 	_hud.set_vault_ready(_vault_ready())
+	_tally.on_tick(state)
 	var events := state.events
 	for i in events.count:
 		var e := events.items[i]
@@ -333,6 +350,8 @@ func _after_tick() -> void:
 			GameEvent.Kind.MATCH_OVER:
 				matches_played += 1
 				_rematch_left = _play.rematch_delay
+				if counts:
+					_settle()
 
 
 func _process(delta: float) -> void:
@@ -468,6 +487,22 @@ func _vault_ready() -> bool:
 		return false
 	var way := Vault.way(_commands[PLAYER_ID], _tuning)
 	return way != Vector2.ZERO and Vault.find_along(player, way, _tuning, _level.query(), _vault_probe)
+
+
+## Gives the finished match's XP and adds it to the records, then saves both (once a match: a few small writes).
+func _settle() -> void:
+	var progress := Progress.shared()
+	var records := Records.shared()
+	# Your teammates are bots at the same difficulty as the other team's for now.
+	var mates := difficulty if _tuning.rounds.team_size > 1 else &""
+	var s := _tally.settle(progress, records, state.off_record or _kit_unlocked_all, player_team,
+			_tuning.rounds.wins_needed, mode, difficulty, mates)
+	if s == null:
+		return
+	progress.save_if_dirty()
+	records.save_if_dirty()
+	settled = s
+	match_settled.emit()
 
 
 ## The Dev settings in force, put into play: the cheats into the simulation, and the views they ask for built or freed.

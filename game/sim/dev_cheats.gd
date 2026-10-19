@@ -16,11 +16,13 @@ var bots_hold_fire: bool = false
 ## A cheat that only changes what you see or follow (spectate any bot, bot intentions): no rule changes, but the
 ## match still stays out of the records.
 var watching: bool = false
+## Disable levelling: every item unlocked to carry, so the match gives no XP (the loadout reads it, not the rules).
+var levelling_off: bool = false
 
 
 ## Any cheat on.
 func any() -> bool:
-	return game_speed != 1.0 or bottomless or ghost or bots_hold_fire or watching
+	return game_speed != 1.0 or bottomless or ghost or bots_hold_fire or watching or levelling_off
 
 
 ## Puts `cheats` into `state` (a copy is kept): the player `player_id`'s ghost and bottomless magazines, the rest read
@@ -32,6 +34,7 @@ static func apply(state: GameState, cheats: DevCheats, player_id: int) -> void:
 	kept.ghost = cheats.ghost
 	kept.bots_hold_fire = cheats.bots_hold_fire
 	kept.watching = cheats.watching
+	kept.levelling_off = cheats.levelling_off
 	for c in state.characters:
 		var mine := c.id == player_id
 		c.ghost = mine and kept.ghost

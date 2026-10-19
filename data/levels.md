@@ -4,11 +4,11 @@ Matches give XP, XP raises your level, and each level unlocks the items in its r
 plan: what you start with, what each level unlocks, how much XP each level takes and what a match gives. Edit it to
 change any of that, or to raise the level cap.
 
-**The game reads this file.** It is bundled into the build and read when the game starts (`src/progress/levels.ts`,
-`src/progress/gameLevels.ts`), like [pool.md](pool.md) and [stats.md](stats.md). Change a row, run the game, and it
-changes. After editing, run `npm run test`: `src/progress/levels.test.ts` reads this file and fails with the line
-number of anything it can't understand. A row the game can't read is left out with a warning in the browser console,
-so a typo never stops the game from starting.
+**The game reads this file.** It is bundled into the build and read when the game starts
+(`game/progress/level_table.gd`), like [pool.md](pool.md) and [stats.md](stats.md). Change a row, run the game, and it
+changes. After editing, run `tools/unit_tests.sh`: `tests/unit/test_levels.gd` reads this file and fails with the line
+number of anything it can't understand. A row the game can't read is left out with a warning in the game's log, so a
+typo never stops the game from starting.
 
 ---
 

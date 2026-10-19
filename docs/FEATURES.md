@@ -25,13 +25,15 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - HUD: navy and yellow look matching the menus; top bar with each team's score as pips toward the win, round clock, round number and FIRST TO 5; slanted banners for round start, half time with ends swapped, and who took the round or match; bottom right replica panel with BB count, fire-mode chips (S, B, A) with the current one lit, a box per magazine (loaded first, then fullest spare), HOLSTERED, RELOADING, LAST MAG or OUT OF BBS, and a low magazine turns yellow; a crosshair that opens with your spread (FP1, MZ1, HD1)
 - Depot: a greybox field with sun, sky, shadows, positional sound and an ambience loop; BBs puff on metal, wood, concrete or ground in its colour (FP1)
 - Bots: Alpha with two bot teammates against three bots, Elimination rounds, first to five; bots see a 120 degree view, hear sound through walls muffled, take cover, peek, lean, hunt and flank, and vault low walls on their routes; one difficulty, Normal (BE1, BV1)
+- Levels and XP: matches give XP for playing, winning, each round you won and took part in, and each hit, less for a shorter match and multiplied by difficulty; levels 1 to 10 unlock replicas, power sources and parts; records keep wins and losses per difficulty and mode, best accuracy and the longest win streak (LV1)
 
 ## Menus and settings
 
 - Settings: a screen from the title screen and the pause menu for controls, audio, display and the FPS counter; every change applies and saves at once (SE1)
-- Dev tab: cheats and tools shown while the Dev settings box is ticked: game speed, ghost, bottomless magazines, spectate bots, retro pixels, reset save (DV2)
+- Dev tab: cheats and tools shown while the Dev settings box is ticked: game speed, ghost, bottomless magazines, spectate bots, retro pixels, reset save (DV2), disable levelling and reset level (LV1)
 - Match screen: pick a map from picture cards (Depot, or Neon Heights while Dev content is on; Woodland greyed, LATER), the mode (Elimination), your team (ALPHA or BETA) and the bots' level (Normal), with the rules as chips; picks stay while the game is open (MN2)
 - Loading screen: PLAY shows the map's picture, name and a progress bar until the match draws (MN2)
 - Pause menu: PAUSED, the map, mode and round, RESUME, SETTINGS, QUIT MATCH and the match's seed (MN2)
 - Title screen and menus: a title with START, which opens a top bar of Match, Loadout, Armory (LATER), Settings and your level chip (MN1)
 - Loadout and Customise screens: the LOADOUT tab with five saved loadouts, your carried replicas and a Performance sheet; CUSTOMISE sets each replica's colour, BB weight, hop-up and power source (LO2)
+- Locked items: a replica, power source or part above your level is listed greyed with "LEVEL n" and can't be picked; the top bar's chip shows your level (LV1)

@@ -1,8 +1,8 @@
 class_name TopBar
 extends PanelContainer
 ## The bar on every menu page: the wordmark, the tabs MATCH, LOADOUT and ARMORY (the last greyed with a LATER tag
-## until it is built), SETTINGS, and the level chip. The current tab is lit with a yellow rule. A tab press is
-## sent as `tab_pressed`; the page decides what to show and calls `set_current`.
+## until it is built), SETTINGS, and the level chip (`set_level`; hidden while levelling is off). The current tab is
+## lit with a yellow rule. A tab press is sent as `tab_pressed`; the page decides what to show and calls `set_current`.
 
 signal tab_pressed(tab: Tab)
 
@@ -17,8 +17,6 @@ const TAG_SIZE := 13
 const TAB_PAD_X := 24
 const TAG_GAP := 10
 const CHIP_SIZE := 18
-## The level the chip shows until levels exist (docs/TASKS.md MN1).
-const LEVEL := 1
 ## Tabs not built yet, shown greyed with the LATER tag.
 const LATER_TABS: Array[Tab] = [Tab.ARMORY]
 const TAB_KEYS: Dictionary[Tab, String] = {
@@ -30,6 +28,8 @@ const TAB_KEYS: Dictionary[Tab, String] = {
 
 var _tabs: Dictionary[Tab, Button] = {}
 var _current: Tab = Tab.MATCH
+var _chip: Control = null
+var _level: Label = null
 
 
 func _init() -> void:
@@ -54,8 +54,19 @@ func _init() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
-	row.add_child(_build_chip())
+	_chip = _build_chip()
+	row.add_child(_chip)
 	set_current(Tab.MATCH)
+
+
+## Shows the player's level on the chip; a level below 0 (levelling off) hides it.
+func set_level(level: int) -> void:
+	_chip.visible = level >= 0
+	_level.text = str(maxi(0, level))
+
+
+func level_text() -> String:
+	return _level.text if _chip.visible else ""
 
 
 ## The tab's button.
@@ -139,10 +150,10 @@ func _build_chip() -> Control:
 	p.add_child(row)
 	var word := Label.new()
 	word.text = tr("MENU_LEVEL")
-	var level := Label.new()
-	level.text = str(LEVEL)
-	level.add_theme_color_override("font_color", GameTheme.YELLOW)
-	for l: Label in [word, level]:
+	_level = Label.new()
+	_level.text = "0"
+	_level.add_theme_color_override("font_color", GameTheme.YELLOW)
+	for l: Label in [word, _level]:
 		l.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, CHIP_SIZE))
 		l.add_theme_font_size_override("font_size", CHIP_SIZE)
 		row.add_child(l)
