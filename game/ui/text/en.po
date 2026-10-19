@@ -54,15 +54,6 @@ msgstr "%s to vault"
 msgid "HUD_HOLSTERED"
 msgstr "Holstered"
 
-msgid "HUD_MODE_SEMI"
-msgstr "Semi"
-
-msgid "HUD_MODE_BURST"
-msgstr "Burst"
-
-msgid "HUD_MODE_AUTO"
-msgstr "Auto"
-
 msgid "HUD_ROUND"
 msgstr "Round %d"
 
@@ -73,7 +64,22 @@ msgid "HUD_ROUND_WON"
 msgstr "%s take the round"
 
 msgid "HUD_ROUND_DRAW"
-msgstr "Draw: the round is played again"
+msgstr "Draw"
+
+msgid "HUD_ROUND_DRAW_SUB"
+msgstr "The round is played again"
+
+msgid "HUD_HALF_TIME"
+msgstr "Half time · ends swapped"
+
+msgid "HUD_CHIP_SEMI"
+msgstr "S"
+
+msgid "HUD_CHIP_BURST"
+msgstr "B"
+
+msgid "HUD_CHIP_AUTO"
+msgstr "A"
 
 msgid "HUD_MATCH_WON"
 msgstr "%s win the match"

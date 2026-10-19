@@ -28,7 +28,7 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `effects_config.gd` | BB size and colour, the muzzle blend, puffs by surface, the wind dust |
 | `sound_config.gd` | Cue and loop folders, gains, distances, voice pools, the ambience |
 | `debug_view_config.gd` | The F4/F5 debug draw: a BB trail's length and colours, the hit volumes' colours and roundness |
-| `hud_config.gd` | HUD colours, the low-magazine share, the crosshair, the hit marker, banner times, the hop-up readout, the vault prompt |
+| `hud_config.gd` | the low-magazine share, the magazine boxes' sizes, the crosshair, the hit marker, banner times, the hop-up readout, the vault prompt |
 | `map_style.gd` | A map's greybox: colours and surface by block kind, the ground, the world grid |
 | `lighting_config.gd` | The sun, the sky, ambient light, SSAO and exposure |
 | `team_config.gd` | Team names (translation keys) and colours |

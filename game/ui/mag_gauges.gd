@@ -1,9 +1,9 @@
 class_name MagGauges
 extends Control
-## One gauge per magazine the replica in hand carries, on the HUD's replica panel: the loaded one first, then the
-## pouch's spares fullest first (the next a reload takes sits beside it). Each gauge fills from the bottom by its share of
-## BBs left over a dark well, so an empty magazine is a dark outline and the gauges read without colour, on bright walls
-## as in shade. Redrawn only on a change.
+## One box per magazine the replica in hand carries, on the HUD's replica panel (the concept's `.mags`): the loaded one
+## first, then the pouch's spares fullest first (the next a reload takes sits beside it). Each box fills from the bottom
+## by its share of BBs left, so an empty magazine is a hollow outline and the boxes read without colour. Redrawn only
+## on a change.
 
 var _cfg: HudConfig = null
 ## Each gauge's share of a full magazine, loaded first; `_count` of them are in use.
@@ -19,7 +19,7 @@ func setup(cfg: HudConfig) -> void:
 	_cfg = cfg
 	name = "MagGauges"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	custom_minimum_size = Vector2(0.0, cfg.gauge_height + cfg.gauge_backing * 2.0)
+	custom_minimum_size = Vector2(0.0, cfg.gauge_height)
 
 
 ## Follows `a`'s magazines; rebuilds and redraws only when the slot, the loaded magazine or the pouch changed.
@@ -70,19 +70,16 @@ func _draw() -> void:
 	var w := _cfg.gauge_width
 	var h := _cfg.gauge_height
 	var line := _cfg.gauge_line
-	var total := w * _count + _cfg.gauge_gap * (_count - 2) + _cfg.gauge_loaded_gap if _count > 1 else w
-	var x := size.x - total - _cfg.gauge_backing
-	var top := size.y - h - _cfg.gauge_backing
+	var x := 0.0
 	for i in _count:
 		var share := _shares[i]
-		var colour := _cfg.gauge_spare_colour
+		var colour := Color(GameTheme.TEXT, HudStyle.MAG_SPARE_ALPHA)
 		if i == 0:
-			colour = _cfg.warn_colour if share <= _cfg.low_mag_share else _cfg.text_colour
-		var box := Rect2(x, top, w, h)
-		draw_rect(box.grow(_cfg.gauge_backing), _cfg.gauge_backing_colour)
+			colour = GameTheme.YELLOW if share <= _cfg.low_mag_share else GameTheme.TEXT
+		var box := Rect2(x, 0.0, w, h)
 		draw_rect(box.grow(-line * 0.5), colour, false, line)
 		if share > 0.0:
 			var inner := box.grow(-line - _cfg.gauge_inset)
-			var fill_h := maxf(_cfg.gauge_line, inner.size.y * share)
+			var fill_h := maxf(line, inner.size.y * share)
 			draw_rect(Rect2(inner.position.x, inner.end.y - fill_h, inner.size.x, fill_h), colour)
 		x += w + (_cfg.gauge_loaded_gap if i == 0 else _cfg.gauge_gap)
