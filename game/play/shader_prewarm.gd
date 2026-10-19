@@ -1,6 +1,6 @@
 class_name ShaderPrewarm
 extends Node3D
-## Draws each material the field shows only later (a figure fading out, a BB, a puff, the "HIT!" sign) as a speck just
+## Draws each material the field shows only later (a figure fading out, a BB, a puff, an optic's glass, the "HIT!" sign) as a speck just
 ## in front of the camera for the first few frames, so their shaders compile while the player is still clicking in,
 ## not on the first shot or the first walk-off. It frees itself when done.
 

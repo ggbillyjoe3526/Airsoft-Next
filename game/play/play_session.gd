@@ -214,7 +214,8 @@ func _build_views(ui: CanvasLayer) -> void:
 	_eyes.camera.add_child(_hands)
 	# Replica colours are read once a match: a change in Settings applies from the next.
 	var realistic := (settings if settings != null else Settings.shared()).realistic_colours
-	_hands.setup(_play.viewmodel, player.armament.replicas, _level.query(), kit.paints, realistic)
+	_hands.setup(_play.viewmodel, player.armament.replicas, _level.query(), kit.paints, realistic, kit.parts, _play.view,
+			_eyes.camera)
 	_bbs = BBView.new()
 	_bbs.setup(_play.effects, state.bbs.bbs.size())
 	add_child(_bbs)
@@ -235,6 +236,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	var first_use: Array[Material] = [
 		_bbs.drawn_material(), _puffs.drawn_material(), FigureView.material(Color.WHITE, true)
 	]
+	first_use.append_array(_hands.prewarm_glass())
 	ShaderPrewarm.new().setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE))
 	var powers: Array[StringName] = []
 	for c in state.characters:
