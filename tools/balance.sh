@@ -2,14 +2,14 @@
 # The bot balance report (BR1): seeded headless bot matches on each field, every figure judged against its band and
 # its standard error, written to pipeline/out/balance-report.md. Measured, never asserted: the checks and CI don't run
 # it; the bug pass reads it (docs/DECISIONS.md › Bots and balance). Each level plays against itself: Normal on 32 seeds
-# a map, Easy and Hard on 16, about 30 minutes in all.
+# a map, Easy, Hard and Pro on 16, about 40 minutes in all.
 # Usage: tools/balance.sh [filter]   (a map id or part of one; SEEDS=n for Normal's seed count, LEVEL_SEEDS=n for the
 # other levels', LEVELS=normal,hard to choose the levels; GODOT=/path/to/godot)
 set -uo pipefail
 GODOT="${GODOT:-godot}"
 SEEDS="${SEEDS:-32}"
 LEVEL_SEEDS="${LEVEL_SEEDS:-16}"
-LEVELS="${LEVELS:-normal,easy,hard}"
+LEVELS="${LEVELS:-normal,easy,hard,pro}"
 cd "$(dirname "$0")/.."
 mkdir -p pipeline/out
 OUT="pipeline/out/balance-report.md"

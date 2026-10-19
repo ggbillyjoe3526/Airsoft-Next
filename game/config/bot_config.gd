@@ -203,6 +203,30 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var flank_offset: float = 4.0
 @export var flank_back: float = 2.0
 
+@export_group("Held angles and slicing")
+## Held angles (BotSkill.holds_angles): a fan of this many rays over this many degrees across the enemy side at
+## standing eye height. An edge is a ray stopped by a wall beside one running at least angle_jump further (m); it aims
+## angle_past beyond the wall's end (m) at head height. Walls nearer than angle_min_distance don't count, rays stop at
+## angle_max_distance, and corners about angle_best_distance away score best (m). It keeps the best few at least
+## angle_separation_deg apart.
+@export var angle_fan_deg: float = 140.0
+@export var angle_rays: int = 29
+@export var angle_jump: float = 2.5
+@export var angle_past: float = 0.6
+@export var angle_min_distance: float = 2.0
+@export var angle_max_distance: float = 30.0
+@export var angle_best_distance: float = 10.0
+@export var angle_separation_deg: float = 15.0
+## Holding, it switches between its angles every this many seconds; it looks for them afresh every angle_refresh
+## seconds, or once it has moved angle_move_refresh (m).
+@export var angle_switch_time: float = 3.0
+@export var angle_refresh: float = 2.0
+@export var angle_move_refresh: float = 0.5
+## Someone appearing within this many degrees of where a bot aims counts as pre-aimed (BotSkill.pre_aim_reaction_time).
+@export var pre_aim_cone_deg: float = 6.0
+## Slicing a corner, it leans out past it once within this many metres of it.
+@export var slice_lean_distance: float = 6.0
+
 @export_group("Hunting")
 ## Once its lane is swept a bot hunts: the field in square sectors (m), the stalest of this many random spots (each
 ## drawn in at most this many tries), each metre nearer the middle counting like this many seconds staler.

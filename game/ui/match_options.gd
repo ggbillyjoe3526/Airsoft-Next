@@ -26,9 +26,10 @@ const KIND_MODES: Dictionary[StringName, PackedStringArray] = {
 	&"field": ["elimination"],
 	&"range": ["practice"],
 }
-## The bots' levels, in the order shown; Pro comes with its tactics (DF2).
+## The bots' levels, in the order shown, and those that are dev content: offered only with the Dev settings' Dev
+## content on, and off the record (Pro, as in the browser game).
 const BOT_LEVELS: PackedStringArray = ["easy", "normal", "hard", "pro"]
-const BUILT_BOT_LEVELS: PackedStringArray = ["easy", "normal", "hard"]
+const DEV_BOT_LEVELS: PackedStringArray = ["pro"]
 const TEAM_KEYS: PackedStringArray = ["TEAM_ALPHA", "TEAM_BETA"]
 
 
@@ -80,6 +81,15 @@ static func size_text(team_size: int) -> String:
 ## The loading screen's kicker: "ELIMINATION · 3 V 3 · YOU'RE ALPHA".
 static func kicker(mode: String, team_size: int, team: int) -> String:
 	return (_tr("LOAD_KICKER") % [_tr(MODE_NAME[mode]), team_size, team_size, _tr(TEAM_KEYS[team])]).to_upper()
+
+
+## The bots' levels on offer, in the order shown: the dev ones only with `dev_content`.
+static func bot_levels(dev_content: bool) -> PackedStringArray:
+	var out := PackedStringArray()
+	for level in BOT_LEVELS:
+		if dev_content or not DEV_BOT_LEVELS.has(level):
+			out.append(level)
+	return out
 
 
 ## The summary line's tail after the map's name: "Elimination · Alpha · Normal bots".

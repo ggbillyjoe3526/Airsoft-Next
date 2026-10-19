@@ -39,3 +39,17 @@ extends Resource
 @export var flank_chance: float = 0.25
 ## How long (s) a hunt sector its team checked stays checked; then it is worth a look again.
 @export var hunt_memory: float = 40.0
+## Held angles (Pro): holding still, it aims at the corners and doorways someone would step out of (BotAngles) instead
+## of sweeping its view across the enemy side.
+@export var holds_angles: bool = false
+## Someone appearing where it already aims (within BotConfig.pre_aim_cone_deg) is answered in this time instead of
+## reaction_time (s), with this share of its aim settling already done. Below Pro the same as reaction_time, and none.
+@export var pre_aim_reaction_time: Vector2 = Vector2(0.35, 0.6)
+@export var pre_aim_settled: float = 0.0
+## Clearing corners (Pro): near the enemy (in their half, or with a threat in mind) it walks and aims at each corner
+## ahead as it opens instead of where it walks, leaning out past a near one; closing in on someone heard or lost, at the
+## corner they are behind. With a threat in mind it tops up its magazine only from cover.
+@export var slices_corners: bool = false
+## Having lost sight of someone in a fight, it watches where they were this long before going after them (s); zero
+## goes at once.
+@export var peek_watch_time: Vector2 = Vector2.ZERO

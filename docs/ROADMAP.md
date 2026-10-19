@@ -76,9 +76,9 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 11. **The Cyber Pistol, levels and the Armory,** with the bots' kits per level, locked items greyed, Disable
     levelling, and the collection and records saved apart from settings. LV1, CP1, BK1, AR1. Built.
 12. **Bot difficulty.** Easy and Hard per team, then Pro (dev); bot names and personalities (`data/bots.md`);
-    adaptive difficulty as a Dev setting. DF1 (Easy and Hard, a level per team), DF2 (Pro), MN3 (Opponents and
-    Teammates on the Match screen; concepts first, `concepts/step12-bots/`), BN1 (names and personalities), AD1
-    (adaptive).
+    adaptive difficulty as a Dev setting. DF1 (Easy and Hard, a level per team), DF2a and DF2b (Pro's own habits,
+    then its team play), MN3 (Opponents and Teammates on the Match screen; concepts first, `concepts/step12-bots/`),
+    BN1 (names and personalities), AD1 (adaptive).
 13. **Attack / Defend and the overtime flag** (browser OT1).
 14. **Match info.** The hit feed (one feed, placeable) with teammate markers, WON, LOST or DRAW, the scoreboard on
     Tab and round stats, the end-of-match summary with records, "What got you" and Pro tips, crosshair, hit marker,

@@ -130,6 +130,16 @@ var flanking: bool = false
 var flank_goal: Vector3 = Vector3.ZERO
 ## Glances taken (hunting by eye), for the even spread over its view.
 var glances: int = 0
+## Held angles (BotAngles; skill.holds_angles or slices_corners): the best found, how many, and when and where they
+## were last looked for.
+var held_angles: Array[BotAngles.HeldAngle] = []
+var held_angle_count: int = 0
+var held_angles_at: float = -INF
+var held_angles_from: Vector3 = Vector3.ZERO
+## Near the enemy with skill.slices_corners: walking and slicing each corner ahead (BotBrain).
+var careful: bool = false
+## Lost sight of someone in a fight: watching where they were until this time before going after them (s).
+var watch_until: float = -INF
 
 
 func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: int) -> void:
@@ -138,6 +148,8 @@ func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: i
 	skill = bot_skill
 	for i in roster_size:
 		contacts.append(Contact.new())
+	for i in BotAngles.KEPT:
+		held_angles.append(BotAngles.HeldAngle.new())
 	aim_yaw = body.yaw
 
 
@@ -198,6 +210,10 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	strafe_left = 0.0
 	search_look_left = 0.0
 	flanking = false
+	held_angle_count = 0
+	held_angles_at = -INF
+	careful = false
+	watch_until = -INF
 
 
 func forget_target() -> void:

@@ -106,8 +106,7 @@ func test_a_greyed_map_card_ignores_the_keyboard() -> void:
 		Input.parse_input_event(ev)
 		await wait_process_frames(1)
 	assert_eq(page.picks.map_id, before)
-	# Mode and bot cards that are not built stay dead too.
-	assert_true(page.bot_button("pro").disabled, "Pro comes with its tactics (DF2)")
+	# Mode cards that are not built stay dead too.
 	assert_eq(page.picks.bots, "normal")
 	assert_true(page.mode_card("practice").disabled)
 	assert_true(page.mode_card("attack_defend").disabled)

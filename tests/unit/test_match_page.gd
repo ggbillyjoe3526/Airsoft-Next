@@ -79,9 +79,28 @@ func test_only_elimination_can_be_picked_and_the_rest_say_later() -> void:
 		assert_true(page.mode_card(mode).disabled, mode)
 		assert_true(_labels(page.mode_card(mode)).has("LATER"), mode)
 	assert_false(_labels(page.mode_card("elimination")).has("LATER"))
-	assert_true(page.bot_button("pro").disabled, "Pro comes with its tactics (DF2)")
+	assert_false(page.bot_button("pro").visible, "Pro is a dev level: not offered with Dev content off")
 	for level: String in ["easy", "normal", "hard"]:
 		assert_false(page.bot_button(level).disabled, level)
+		assert_true(page.bot_button(level).visible, level)
+	assert_true(page.bot_button("normal").is_picked())
+
+
+func test_pro_is_offered_with_dev_content_tagged_dev_and_dropped_when_it_goes_off() -> void:
+	var page := _page(true)
+	var pro := page.bot_button("pro")
+	assert_true(pro.visible)
+	assert_false(pro.disabled)
+	assert_true(_labels(pro).has("PRO"), "its name")
+	assert_true(_labels(pro).has("DEV"), "and the DEV tag beside it")
+	assert_false(_labels(page.bot_button("hard")).has("DEV"))
+	pro.pressed.emit()
+	assert_eq(page.picks.bots, "pro")
+	assert_string_ends_with(page.summary_text(), "Pro bots")
+	page._settings.dev.dev_content = false
+	page._settings.changed.emit()
+	assert_false(pro.visible)
+	assert_eq(page.picks.bots, "normal", "a dev level picked falls back to Normal once Dev content is off")
 	assert_true(page.bot_button("normal").is_picked())
 
 
