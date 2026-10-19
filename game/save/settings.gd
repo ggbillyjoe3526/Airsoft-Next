@@ -43,6 +43,9 @@ var window_mode: WindowMode = WindowMode.WINDOWED
 var vsync: bool = true
 var fov: float = FOV_DEFAULT
 var show_fps: bool = false
+## The Dev settings box, and the Dev tab's switches (kept while the box is off; they apply only while it is ticked).
+var dev_enabled: bool = false
+var dev: DevSettings = DevSettings.new()
 ## What the settings write into: the camera and the mouse (the same resource PlaySession loads).
 var tuning: PlayTuning = null
 ## Why the saved settings weren't used, or empty.
@@ -51,6 +54,7 @@ var load_message: String = ""
 var dirty: bool = false
 
 static var _shared: Settings = null
+static var _dev_defaults: DevSettings = DevSettings.new()
 
 
 func _init(play_tuning: PlayTuning = null) -> void:
@@ -112,7 +116,7 @@ func to_dict() -> Dictionary:
 		"sensitivity": sensitivity, "aim_sensitivity": aim_sensitivity, "invert_y": invert_y,
 		"crouch_toggle": crouch_toggle, "aim_toggle": aim_toggle, "mouse_dpi": mouse_dpi,
 		"bindings": bindings.to_dict(), "volumes": vol, "window_mode": int(window_mode), "vsync": vsync,
-		"fov": fov, "show_fps": show_fps,
+		"fov": fov, "show_fps": show_fps, "dev_enabled": dev_enabled, "dev": dev.to_dict(),
 	}
 
 
@@ -134,6 +138,24 @@ func from_dict(data: Dictionary) -> void:
 	vsync = _flag(data, "vsync", true)
 	fov = _number(data, "fov", FOV_DEFAULT, FOV_MIN, FOV_MAX)
 	show_fps = _flag(data, "show_fps", false)
+	dev_enabled = _flag(data, "dev_enabled", false)
+	var saved_dev: Variant = data.get("dev")
+	dev.from_dict(saved_dev if saved_dev is Dictionary else {})
+
+
+## The Dev settings in force: the Dev tab's while its box is ticked, else the defaults.
+func active_dev() -> DevSettings:
+	return dev if dev_enabled else _dev_defaults
+
+
+## The Dev tab's Reset the save: the file and its backups go and every setting is back to its default, applied at once.
+## The first-launch state, as for a new player.
+func reset_save(path: String = PATH) -> void:
+	SaveFile.remove(path)
+	from_dict({})
+	load_message = ""
+	dirty = false
+	SettingsApply.apply_all(self)
 
 
 ## The value at `key` if it is a number within [lo, hi], else `fallback`.

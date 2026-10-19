@@ -32,7 +32,8 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 	w.setup_sectors(w.planner.bounds_lo, w.planner.bounds_hi)
 
 
-## Writes each bot's command for this tick into `commands` (indexed by character id).
+## Writes each bot's command for this tick into `commands` (indexed by character id). With the Dev settings' Bots hold
+## fire on (`state.cheats`), no bot pulls its trigger.
 func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	var w := world
 	w.time = state.time
@@ -41,8 +42,21 @@ func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		if Elimination.is_in_play(c):
 			w.mark_visited(c.team, c.position)
 	_plan_one_route(state)
+	var hold_fire := state.cheats.bots_hold_fire
 	for b in w.bots:
-		BotBrain.think(b, w, commands[b.character.id], dt)
+		var cmd := commands[b.character.id]
+		BotBrain.think(b, w, cmd, dt)
+		if hold_fire:
+			cmd.fire = false
+
+
+## What the bot driving `character_id` is doing (a Bot.Mode), or -1 when no bot drives it: the Dev settings' Bot
+## intentions show it.
+func mode_of(character_id: int) -> int:
+	for b in world.bots:
+		if b.character.id == character_id:
+			return b.mode
+	return -1
 
 
 ## What the bots heard in the step just taken (or the match's start), and a fresh plan when a round has started.

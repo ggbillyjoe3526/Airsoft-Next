@@ -44,6 +44,7 @@ func _init(sim_tuning: SimTuning, world: WorldQuery, character_mover: CharacterM
 func start_match(state: GameState) -> void:
 	state.events.clear()
 	state.match_number += 1
+	state.off_record = state.dev_content or state.cheats.any()
 	state.wind.draw(Seeds.wind_seed(state.match_seed, state.match_number), tuning.wind)
 	Round.start_match(state.round_state, state.characters, ends, state.bbs, tuning, state.events)
 

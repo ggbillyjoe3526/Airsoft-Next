@@ -356,3 +356,111 @@ msgstr "HOP-UP LESS"
 
 msgid "ACT_HOP_UP_MORE"
 msgstr "HOP-UP MORE"
+
+msgid "SETTINGS_DEV"
+msgstr "DEV"
+
+msgid "DEV_SETTINGS_BOX"
+msgstr "Dev settings"
+
+msgid "DEV_INTRO"
+msgstr "For trying things out. They apply only while Dev settings is ticked. With Game speed, Bottomless magazines, Ghost, Bots hold fire, Spectate any bot or Bot intentions changed, matches don't go into your records."
+
+msgid "DEV_SWITCHES"
+msgstr "SWITCHES"
+
+msgid "DEV_ACTIONS"
+msgstr "ACTIONS"
+
+msgid "DEV_GAME_SPEED"
+msgstr "GAME SPEED"
+
+msgid "DEV_GAME_SPEED_HELP"
+msgstr "Below 100% everything slows down, BBs too; above it, everything speeds up."
+
+msgid "DEV_DEV_CONTENT"
+msgstr "DEV CONTENT"
+
+msgid "DEV_DEV_CONTENT_HELP"
+msgstr "Shows maps still being built. Matches on them don't go into your records."
+
+msgid "DEV_BOTTOMLESS"
+msgstr "BOTTOMLESS MAGAZINES"
+
+msgid "DEV_BOTTOMLESS_HELP"
+msgstr "Your magazines never run dry."
+
+msgid "DEV_GHOST"
+msgstr "GHOST"
+
+msgid "DEV_GHOST_HELP"
+msgstr "BBs pass straight through you. The bots still shoot at you."
+
+msgid "DEV_BOTS_HOLD_FIRE"
+msgstr "BOTS HOLD FIRE"
+
+msgid "DEV_BOTS_HOLD_FIRE_HELP"
+msgstr "No bot pulls its trigger: walk the map or watch them move without being shot."
+
+msgid "DEV_SPECTATE_BOTS"
+msgstr "SPECTATE ANY BOT"
+
+msgid "DEV_SPECTATE_BOTS_HELP"
+msgstr "In a match your view follows a bot while you stand still; your fire key moves to the next bot, on either team."
+
+msgid "DEV_BOT_INTENT"
+msgstr "BOT INTENTIONS"
+
+msgid "DEV_BOT_INTENT_HELP"
+msgstr "A small label over each bot in play says what it is doing: advancing, fighting, in cover, searching."
+
+msgid "DEV_RETRO_PIXELS"
+msgstr "RETRO PIXELS"
+
+msgid "DEV_RETRO_PIXELS_HELP"
+msgstr "The 3D view in chunky pixels and a small dithered palette. Changes only what you see."
+
+msgid "DEV_END_ROUND"
+msgstr "END THE ROUND NOW"
+
+msgid "DEV_END_ROUND_BUTTON"
+msgstr "End round"
+
+msgid "DEV_END_ROUND_HELP"
+msgstr "Runs the round's clock out, so it ends as on time. Open it from the pause menu in a match, then Resume. That match stays out of your records."
+
+msgid "DEV_RESET_SAVE"
+msgstr "RESET THE SAVE"
+
+msgid "DEV_RESET_SAVE_BUTTON"
+msgstr "Reset save"
+
+msgid "DEV_RESET_SAVE_HELP"
+msgstr "Deletes the saved settings and key bindings and starts again as a new player."
+
+msgid "DEV_RESET_SAVE_TITLE"
+msgstr "Reset the save?"
+
+msgid "DEV_RESET_SAVE_QUESTION"
+msgstr "Your settings and key bindings go back to how a new player finds them. This can't be undone."
+
+msgid "DEV_DONE"
+msgstr "Done"
+
+msgid "DEV_NO_ROUND"
+msgstr "No round under way"
+
+msgid "DEV_INTENT_ADVANCE"
+msgstr "Advancing"
+
+msgid "DEV_INTENT_FIGHT"
+msgstr "Fighting"
+
+msgid "DEV_INTENT_COVER"
+msgstr "In cover"
+
+msgid "DEV_INTENT_SEARCH"
+msgstr "Searching"
+
+msgid "BOOT_MAP"
+msgstr "Map"

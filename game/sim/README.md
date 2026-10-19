@@ -16,6 +16,7 @@ character follows the hit-calling routine instead of its command. Nothing is all
 |---|---|
 | `simulation.gd` | `Simulation`: the services the rules need (tuning, `WorldQuery`, `CharacterMover`, the map's ends) and `step` |
 | `game_state.gd`, `character.gd`, `player_command.gd` | The state, one character, the one input every character acts through |
+| `dev_cheats.gd` | `DevCheats`: the Dev settings that change play (ghost, bottomless magazines, bots hold fire, game speed), End the round now, and the match's record mark |
 | `game_event.gd`, `sim_events.gd` | The tick's events (shots, hits, footsteps, rounds), pooled: the only channel to sound, HUD and effects |
 | `seeds.gd` | Seeded streams: every random draw comes from the match's `RandomNumberGenerator` or one derived from its seed |
 | `world_query.gd`, `ray_hit.gd`, `character_mover.gd` | What the rules ask the level, behind two interfaces (Contracts 4) |

@@ -29,8 +29,8 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `game/config/` | Tuning as typed `Resource`s (`sim_tuning.tres` for the rules, `play_tuning.tres` for the view, sound and HUD), replicas and the `data/stats.md` reader (`game/config/README.md`) | built |
 | `game/input/` | `PlayerInput`, the player's controller; default bindings in project.godot's input map (`game/input/README.md`) | built |
 | `game/play/` | `PlaySession` (a match, played) and the views drawn from the state: camera, replica in hand, BBs, puffs, figures, sound (`game/play/README.md`) | built |
-| `game/map/` | Maps from `data/maps/*.json`, their greybox and Jolt colliders behind `WorldQuery` and `CharacterMover` (`game/map/README.md`) | built |
-| `game/save/` | `SaveFile` and the player's settings (`Settings`, applied by `SettingsApply`); key bindings in `game/input/` | built |
+| `game/map/` | Maps from `data/maps/*.json` (listed and tagged public or dev by `MapCatalog` from `data/maps.md`), their greybox and Jolt colliders behind `WorldQuery` and `CharacterMover` (`game/map/README.md`) | built |
+| `game/save/` | `SaveFile` and the player's settings (`Settings`, applied by `SettingsApply`, and the Dev tab's `DevSettings`); key bindings in `game/input/` | built |
 | `game/pool/`, `game/progress/`, `game/stats/` | Loadout, levels, records | later |
 | `data/` | The owner's six tables, read at start with `FileAccess`; `data/maps/*.json`, the map layouts | copied |
 | `assets/` | Models, fonts and sounds from the browser game (`assets/README.md`) | copied |

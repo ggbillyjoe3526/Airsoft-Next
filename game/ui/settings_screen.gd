@@ -1,7 +1,9 @@
 class_name SettingsScreen
 extends Control
 ## The settings, in three tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
-## (a volume for each bus) and Display (window mode, V-Sync, field of view, show FPS). Opened from the title screen and
+## (a volume for each bus) and Display (window mode, V-Sync, field of view, show FPS); and a fourth, Dev, shown while the
+## Dev settings box under the tabs is ticked (its switches apply only then; docs/DECISIONS.md › Content tags and dev
+## content). Opened from the title screen and
 ## the pause menu; works while the tree is paused. Every change is applied at once through SettingsApply and saved:
 ## a slider a moment after it stops moving, anything else straight away, and the last change always on close. Esc or
 ## Back closes it. While it is open, keys the controls don't use stop here, so none reaches play.
@@ -26,10 +28,17 @@ const CM_STEP := 0.01
 const DPI_STEP := 50.0
 const FOV_STEP := 1.0
 const PERCENT_STEP := 1.0
+## The Dev tab's switches, each a DevSettings field with a label DEV_<FIELD> and a help line DEV_<FIELD>_HELP.
+const DEV_SWITCHES: Array[StringName] = [&"dev_content", &"bottomless", &"ghost", &"bots_hold_fire", &"spectate_bots",
+		&"bot_intent", &"retro_pixels"]
+const HELP_COLOUR := Color(0.72, 0.72, 0.68)
 ## What the screen edits; the game's own by default.
 var settings: Settings = null
 ## Where it saves (a test points this at a temporary file).
 var save_path: String = Settings.PATH
+## The match's End the round now, set when opened from the pause menu (returns false when no round is live); empty
+## from the title screen.
+var end_round: Callable = Callable()
 
 var _back: Button = null
 var _tabs: TabContainer = null
@@ -49,6 +58,12 @@ var _window: OptionButton = null
 var _vsync: CheckButton = null
 var _fov: HSlider = null
 var _fps: CheckButton = null
+var _dev_box: CheckButton = null
+var _dev_page: Control = null
+var _dev_checks: Dictionary[StringName, CheckButton] = {}
+var _speed: HSlider = null
+var _end_round: Button = null
+var _confirm_reset: ConfirmationDialog = null
 
 
 func _ready() -> void:
@@ -85,6 +100,11 @@ func _ready() -> void:
 	_build_controls()
 	_build_audio()
 	_build_display()
+	_build_dev()
+	_dev_box = CheckButton.new()
+	_dev_box.text = tr("DEV_SETTINGS_BOX")
+	_dev_box.toggled.connect(_on_dev_box)
+	box.add_child(_dev_box)
 	_note = Label.new()
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_note)
@@ -277,6 +297,76 @@ func _build_display() -> void:
 		_changed(true))
 
 
+# --- Dev ---
+
+func _build_dev() -> void:
+	_dev_page = _page(tr("SETTINGS_DEV"))
+	var page := _dev_page as VBoxContainer
+	_help(page, "DEV_INTRO")
+	_section(page, tr("DEV_SWITCHES"))
+	_speed = _slider_row(page, "DEV_GAME_SPEED", DevCheats.SPEED_MIN * 100.0, DevCheats.SPEED_MAX * 100.0,
+			DevSettings.SPEED_STEP * 100.0, "%d %%")
+	_speed.value_changed.connect(func(v: float) -> void:
+		settings.dev.game_speed = v / 100.0
+		_changed())
+	_help(page, "DEV_GAME_SPEED_HELP")
+	for field: StringName in DEV_SWITCHES:
+		var key := "DEV_" + String(field).to_upper()
+		var check := _check_row(page, key, "SETTINGS_ON", "SETTINGS_OFF")
+		check.toggled.connect(_on_dev_switch.bind(field))
+		_dev_checks[field] = check
+		_help(page, key + "_HELP")
+	_section(page, tr("DEV_ACTIONS"))
+	var end_row := _row(page, "DEV_END_ROUND")
+	_end_round = Button.new()
+	_end_round.text = tr("DEV_END_ROUND_BUTTON")
+	_end_round.pressed.connect(_on_end_round)
+	end_row.add_child(_end_round)
+	_help(page, "DEV_END_ROUND_HELP")
+	var reset_row := _row(page, "DEV_RESET_SAVE")
+	var reset := Button.new()
+	reset.text = tr("DEV_RESET_SAVE_BUTTON")
+	reset_row.add_child(reset)
+	_help(page, "DEV_RESET_SAVE_HELP")
+	_confirm_reset = ConfirmationDialog.new()
+	_confirm_reset.title = tr("DEV_RESET_SAVE_TITLE")
+	_confirm_reset.dialog_text = tr("DEV_RESET_SAVE_QUESTION")
+	_confirm_reset.ok_button_text = tr("DEV_RESET_SAVE_BUTTON")
+	_confirm_reset.confirmed.connect(_on_reset_save)
+	add_child(_confirm_reset)
+	reset.pressed.connect(_confirm_reset.popup_centered)
+
+
+func _on_dev_box(on: bool) -> void:
+	settings.dev_enabled = on
+	_show_dev_tab()
+	_changed(true)
+
+
+func _on_dev_switch(on: bool, field: StringName) -> void:
+	settings.dev.set(field, on)
+	_changed(true)
+
+
+func _on_end_round() -> void:
+	var ended: bool = end_round.is_valid() and bool(end_round.call())
+	_note.text = tr("DEV_DONE") if ended else tr("DEV_NO_ROUND")
+
+
+func _on_reset_save() -> void:
+	settings.reset_save(save_path)
+	_refresh()
+	_note.text = tr("DEV_DONE")
+
+
+## The Dev tab shows only while its box is ticked; hiding it while it is open goes back to the first tab.
+func _show_dev_tab() -> void:
+	var index := _dev_page.get_parent().get_index()
+	if not settings.dev_enabled and _tabs.current_tab == index:
+		_tabs.current_tab = 0
+	_tabs.set_tab_hidden(index, not settings.dev_enabled)
+
+
 ## Runs `apply` on the settings, then saves (at once if `immediate`).
 func _applied(apply: Callable, immediate: bool = false) -> void:
 	apply.call(settings)
@@ -302,6 +392,12 @@ func _refresh() -> void:
 	_set_check(_vsync, settings.vsync)
 	_set_slider(_fov, settings.fov)
 	_set_check(_fps, settings.show_fps)
+	_dev_box.set_pressed_no_signal(settings.dev_enabled)
+	_show_dev_tab()
+	_set_slider(_speed, settings.dev.game_speed * 100.0)
+	for field: StringName in DEV_SWITCHES:
+		_set_check(_dev_checks[field], settings.dev.get(field) as bool)
+	_end_round.disabled = not end_round.is_valid()
 
 
 # --- Building blocks ---
@@ -377,6 +473,16 @@ func _spin_row(page: Control, label_key: String, lo: float, hi: float, step: flo
 	spin.custom_minimum_size = Vector2(BOX_WIDTH, 0.0)
 	row.add_child(spin)
 	return spin
+
+
+## A help line under a row, wrapped and in a quieter colour.
+func _help(page: Control, key: String) -> void:
+	var help := Label.new()
+	help.text = tr(key)
+	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	help.add_theme_color_override("font_color", HELP_COLOUR)
+	help.add_theme_font_size_override("font_size", GameTheme.SMALL_SIZE)
+	page.add_child(help)
 
 
 ## A label and a switch whose text says its state (`on_key` or `off_key`).

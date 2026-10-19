@@ -19,6 +19,11 @@ var round_state: RoundState = null
 ## first starts.
 var match_number: int = 0
 var wind: Wind = null
+## The Dev settings that change play (DevCheats.apply writes them); the match is on a map or with content tagged dev;
+## and the match stays out of the records (dev content, or a cheat on at any time since it started).
+var cheats: DevCheats = DevCheats.new()
+var dev_content: bool = false
+var off_record: bool = false
 
 
 func _init(seed_value: int = 0, tuning: SimTuning = null) -> void:

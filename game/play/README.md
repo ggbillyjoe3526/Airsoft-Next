@@ -14,6 +14,10 @@ and hands the tick's events on; everything else here draws the state every rende
 | `sim_audio.gd` | `SimAudio`: every sound from the events (a vault's hands and kit too), positional for others, plain for you, on the bus layout `default_bus_layout.tres` (Effects, with Footsteps and the shot's Power part under it, Ambience and Interface; each has a volume in Settings) |
 | `wind_dust.gd` | `WindDust`: specks of dust round the eye drifting with the match's breeze, one GPU particle box |
 | `field_lighting.gd` | `FieldLighting`: the sun, the sky and the environment |
+| `tick_pacer.gd` | `TickPacer`: how many fixed ticks each physics tick runs at the Dev settings' game speed (or the smoke test's speed-up), and the drawing fraction between them |
+| `spectate.gd` | `Spectate`: the next bot in play Spectate any bot follows |
+| `bot_intent_view.gd` | `BotIntentView`: the Dev settings' Bot intentions, a label over each bot saying what it is doing |
+| `retro_pixels.gd`, `retro_pixels.gdshader` | `RetroPixels`: the Dev settings' Retro pixels, a full-screen filter under the HUD |
 | `shader_prewarm.gd` | `ShaderPrewarm`: draws the late materials (a fading figure, a BB, a puff, the sign) as specks for the first frames, so nothing compiles mid-match |
 
 Until bots come, you play Alpha alone against a team of stand-ins: Beta characters with no controller, who wait at

@@ -9,6 +9,9 @@ signal left
 const BACKDROP := Color(0.08, 0.08, 0.07, 0.6)
 const BUTTON_WIDTH := 360.0
 
+## The match's End the round now (returns false when no round is live), handed to the settings' Dev tab.
+var end_round: Callable = Callable()
+
 var _resume: Button = null
 var _settings_button: Button = null
 ## The settings screen, built the first time it is asked for.
@@ -67,6 +70,7 @@ func close() -> void:
 func open_settings() -> void:
 	if _screen == null:
 		_screen = SettingsScreen.new()
+		_screen.end_round = end_round
 		_screen.closed.connect(_settings_closed)
 		add_child(_screen)
 	_screen.open()
