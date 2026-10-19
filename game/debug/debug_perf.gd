@@ -4,12 +4,14 @@ extends CanvasLayer
 ## time, draw calls, primitives, live nodes, orphan nodes and nodes added per second. `--perf` also logs a line every
 ## 2 s and a summary at exit, so two runs of the same seed can be compared on one machine. Frame times only mean
 ## something on real hardware; the node, object and draw-call counts match on any machine.
-## It samples only while it is shown or logging, so a normal session pays nothing for it.
+## While a match is on (`watch`) it also shows the match's seed, your position and the entity count. F4 and F5 draw the
+## BB paths and hit areas (DebugView). It samples only while it is shown or logging, so a normal session pays nothing for it.
 
 const LOG_EVERY := 2.0
 const REFRESH := 0.5
 const LAYER := 100
 
+var _session: PlaySession = null
 var _label: Label
 var _plate: ColorRect
 var _log := false
@@ -57,6 +59,20 @@ func _on_node_added(_n: Node) -> void:
 		_added += 1
 
 
+## The match to report on (null: none, as on the title screen). Read through PlaySession's accessors only.
+func watch(session: PlaySession) -> void:
+	_session = session
+
+
+## The match line (empty without a match): seed, your position (2 decimals) and the entities (characters and BBs in the air).
+func match_line() -> String:
+	if _session == null or not is_instance_valid(_session) or _session.state == null:
+		return ""
+	var at := _session.player_position()
+	return "\nSeed %d  ·  pos %.2f %.2f %.2f  ·  entities %d" % [_session.match_seed_used(), at.x, at.y, at.z,
+			_session.entity_count()]
+
+
 func _set_shown(on: bool) -> void:
 	_plate.visible = on
 	_label.visible = on
@@ -86,8 +102,9 @@ func _process(delta: float) -> void:
 	if _fps_t >= REFRESH:
 		var fps := _fps_frames / _fps_t
 		if _label.visible:
-			_label.text = "FPS %d  ·  %.1f ms (max %.1f)\nDraw calls %d  ·  primitives %dK\nNodes %d  ·  orphans %d  ·  new %d/s" % [
-				roundi(fps), 1000.0 / maxf(fps, 0.001), _ms_max, draw, prims / 1000, nodes, orphans, roundi(_added / _fps_t)]
+			_label.text = "FPS %d  ·  %.1f ms (max %.1f)\nDraw calls %d  ·  primitives %dK\nNodes %d  ·  orphans %d  ·  new %d/s%s" % [
+				roundi(fps), 1000.0 / maxf(fps, 0.001), _ms_max, draw, prims / 1000, nodes, orphans, roundi(_added / _fps_t),
+				match_line()]
 			_label.size = Vector2.ZERO
 			_plate.size = _label.get_minimum_size() + Vector2(12, 4)
 		_fps_t = 0.0

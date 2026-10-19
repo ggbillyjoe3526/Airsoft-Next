@@ -42,6 +42,7 @@ var _dust: WindDust = null
 var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
 var _audio: SimAudio = null
+var _debug: DebugView = null
 var _hud: Hud = null
 var _pause: PauseMenu = null
 var _rematch_left: float = -1.0
@@ -140,6 +141,9 @@ func _build_views(ui: CanvasLayer) -> void:
 	_audio = SimAudio.new()
 	add_child(_audio)
 	_audio.setup(_play.sound, powers, _tuning.body)
+	_debug = DebugView.new()
+	_debug.setup(state, _tuning.hits, _play.debug_view)
+	add_child(_debug)
 	_hud = Hud.new()
 	ui.add_child(_hud)
 	_hud.setup(_play.hud, _play.teams, _play.view, _tuning, player)
@@ -174,9 +178,24 @@ func ticks() -> int:
 	return _ticks
 
 
+## What the F3 overlay reads (DebugPerf), so it never reaches into the session's fields: the match's seed, where you
+## stand, and how many entities exist (characters and BBs in the air).
+func match_seed_used() -> int:
+	return state.match_seed if state != null else 0
+
+
+func player_position() -> Vector3:
+	return player.position if player != null else Vector3.ZERO
+
+
+func entity_count() -> int:
+	return state.characters.size() + state.bbs.active_count() if state != null else 0
+
+
 ## Hands the tick's events to the bots' ears, sound, the HUD and the effects.
 func _after_tick() -> void:
 	_bots.observe(state)
+	_debug.on_tick()
 	_audio.on_tick(state, PLAYER_ID)
 	_hud.on_tick(state)
 	_hud.set_vault_ready(_vault_ready())
@@ -214,6 +233,7 @@ func _process(delta: float) -> void:
 		_rematch_left = maxf(0.0, _rematch_left - delta)
 	var fraction := Engine.get_physics_interpolation_fraction()
 	var watched := spectated()
+	_debug.viewer_id = watched.id
 	_eyes.update(watched, _input, fraction, delta, watched == player)
 	var look := -_eyes.global_basis.z
 	_hands.visible = watched == player

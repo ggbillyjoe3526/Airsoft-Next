@@ -209,12 +209,14 @@ None of these reach the shipped game except the perf overlay. Run them from the 
   the project, a bot plays a headless match, any script error fails) and `gdlint game tests tools` (gdtoolkit 4.5.0).
 - **Licence notices:** `godot --headless --path . -s res://tools/make_notices.gd` regenerates
   `THIRD_PARTY_NOTICES.txt`; CI fails if it is stale.
-- **The perf overlay:** **F3** in any build shows the frame rate, frame time, draw calls and nodes, and the match's
-  seed.
+- **The perf overlay:** **F3** in any build shows the frame rate, frame time, draw calls and nodes, and in a match its
+  seed, your position and the entity count. **F4** draws every BB's recent flight and **F5** the characters' hit
+  volumes in the world; all three keys are reserved (they can't be rebound).
 - **Debug flags** (planned; they come with the systems they drive). Godot passes them after `--`, as in
   `godot --path . -- --autoplay --seed=1234`:
   - `--autoplay`: a bot plays in your place and logs what it does. The smoke test uses it.
-  - `--seed=<n>`: plays the match with that seed, so a reported seed replays it.
+  - `--seed <n>` (or `--seed=<n>`; built, DV1): plays the match with that seed, so a reported seed replays it. A bad
+    value is ignored with a warning.
   - `--perf`: the perf overlay from the start, a log line every 2 s and a summary at exit.
 
 ## The pipeline

@@ -59,7 +59,7 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 6. **Debug tools and the Dev tab.** BB paths and hit areas drawn in the world, the seed and position on the overlay,
    a `--seed` launch option; the Dev settings (game speed, bottomless magazines, ghost, bots hold fire, spectate any
    bot, bot intentions, end the round, reset the save, Retro pixels) and the Dev content switch with each map, mode
-   and difficulty tagged public or dev.
+   and difficulty tagged public or dev. Two tasks: DV1 (the debug view, built) and DV2 (the Dev tab and dev content).
 7. **Whole-match checks and the balance report.** Headless bot matches over 16 seeds that guard what must never
    happen (stuck bots, unsettled rounds, teammate hits), and the bot balance report (browser TE4), before bots change
    further.
