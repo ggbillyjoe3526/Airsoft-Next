@@ -63,6 +63,8 @@ var dry_fired_this_pull: bool = false
 ## The trigger last tick, for press detection. Kept through a refill, so a trigger held as a round starts needs a fresh
 ## pull for a semi shot.
 var trigger_was_down: bool = false
+## Shots never use up the magazine: the Dev settings' Bottomless magazines, kept between rounds (DevCheats).
+var bottomless: bool = false
 ## The upward aim kick from recoil now (rad).
 var recoil: float = 0.0
 ## BBs still to come in the burst under way (0: none).
@@ -298,7 +300,8 @@ static func step(c: Character, cmd: PlayerCommand, eye: Vector3, kick_scale: flo
 	a.pending_press = 0.0
 	if a.burst_shots_left > 0:
 		a.burst_shots_left -= 1
-	ammo_now.mag -= 1
+	if not a.bottomless:
+		ammo_now.mag -= 1
 	a.cooldown += 1.0 / replica_now.fire_rate
 	a._fire(c, replica_now, eye, kick_scale, pool, rng, events, tuning)
 

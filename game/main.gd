@@ -1,6 +1,7 @@
 extends Node
-## The entry scene: the boot screen (the version, Play, Settings, the credits, Quit), the F3 performance overlay and
-## the Show FPS readout. Play opens a match on Depot (PlaySession) on the `--seed` launch option's seed if given, else a
+## The entry scene: the boot screen (the version, Play, the map, Settings, the credits, Quit), the F3 performance overlay
+## and the Show FPS readout. The map choice lists the public maps, and the dev ones too while the Dev settings' Dev
+## content switch is on (MapCatalog). Play opens a match on that map (PlaySession) on the `--seed` launch option's seed if given, else a
 ## fresh one; leaving it comes back here. The title screen and menus replace this screen when the UI is built
 ## (docs/KNOWN_ISSUES.md). `--smoke` (tools/smoke_test.sh) opens and closes the settings and the credits, plays a whole
 ## match on Depot with a bot in your place (faster than real time), leaves, then quits with a report line.
@@ -16,13 +17,18 @@ const SMOKE_PLAY := 90
 const SMOKE_SPEED := 8
 const SMOKE_MAX_TICKS := 108000
 const SMOKE_SETTLE := 30
-## The smoke match's seed, so every run plays the same match.
+## The smoke match's seed and map, so every run plays the same match.
 const SMOKE_SEED := 1
+const SMOKE_MAP := "depot"
 
 var _credits: Credits
 var _settings_screen: SettingsScreen
 var _screen: Control
 var _play: PlaySession
+var _map_choice: OptionButton
+## The map Play opens, and the ids the choice lists in order.
+var _map_id := SMOKE_MAP
+var _map_ids: PackedStringArray = PackedStringArray()
 var _perf: DebugPerf
 var _smoke := false
 ## The `--seed` launch option, or LaunchSeed.NONE.
@@ -41,6 +47,8 @@ func _ready() -> void:
 	var settings := Settings.shared()
 	_screen = _build_boot_screen(settings)
 	add_child(_screen)
+	_list_maps()
+	settings.changed.connect(_list_maps)
 	_credits = Credits.new()
 	_credits.visible = false
 	add_child(_credits)
@@ -79,6 +87,10 @@ func _build_boot_screen(settings: Settings) -> Control:
 	play.text = tr("BOOT_PLAY")
 	play.pressed.connect(_start_play)
 	box.add_child(play)
+	_map_choice = OptionButton.new()
+	_map_choice.tooltip_text = tr("BOOT_MAP")
+	_map_choice.item_selected.connect(func(i: int) -> void: _map_id = _map_ids[i])
+	box.add_child(_map_choice)
 	var options := Button.new()
 	options.text = tr("BOOT_SETTINGS")
 	options.pressed.connect(_open_settings)
@@ -92,6 +104,22 @@ func _build_boot_screen(settings: Settings) -> Control:
 	quit.pressed.connect(get_tree().quit)
 	box.add_child(quit)
 	return root
+
+
+## Fills the map choice with the maps on offer now, keeping the one picked if it is still listed (else the first).
+func _list_maps() -> void:
+	var listed := MapCatalog.shared().fields(Settings.shared().active_dev().dev_content)
+	_map_choice.clear()
+	_map_ids.clear()
+	for e in listed:
+		_map_choice.add_item(e.display_name)
+		_map_ids.append(e.id)
+	if _map_ids.is_empty():
+		_map_ids.append(SMOKE_MAP)
+		_map_choice.add_item(SMOKE_MAP)
+	if not _map_ids.has(_map_id):
+		_map_id = _map_ids[0]
+	_map_choice.select(_map_ids.find(_map_id))
 
 
 ## The settings over the boot screen, built when asked for and freed once closed (a hidden screen would keep its
@@ -120,6 +148,7 @@ func _start_play() -> void:
 	_screen.visible = false
 	_play = PlaySession.new()
 	_play.autopilot = _smoke
+	_play.map_id = SMOKE_MAP if _smoke else _map_id
 	# --seed replays a match; else a fresh seed each Play (the smoke test keeps one fixed seed, so it plays the same match).
 	if _launch_seed != LaunchSeed.NONE:
 		_play.match_seed = _launch_seed

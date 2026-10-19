@@ -59,6 +59,15 @@ static func step(rs: RoundState, characters: Array[Character], ends: Array[MapEn
 		_end_round(rs, -1, GameEvent.RoundEnd.TIME, tuning.rounds, events)
 
 
+## Runs a live round's clock out, so the next tick ends it as on time (the Dev tab's End the round now). False when no
+## round is live.
+static func run_clock_out(rs: RoundState) -> bool:
+	if not rs.is_live():
+		return false
+	rs.clock = 0.0
+	return true
+
+
 ## The end of the map (0 or 1) `team` starts from in round `number`: Alpha at RoundConfig.first_end, Beta at the other,
 ## swapped after half_time_after rounds.
 static func team_end(team: int, number: int, rounds: RoundConfig) -> int:

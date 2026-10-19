@@ -101,12 +101,13 @@ static func _prepare(characters: Array[Character], hits: HitConfig) -> void:
 
 
 ## The first body along the BB's segment this tick (from prev_position along `dir`, before `max_t`) into _reached and
-## _reached_at. Every body counts, whatever its status; only the shooter is skipped, until the BB has bounced.
+## _reached_at. Every body counts, whatever its status; only the shooter is skipped, until the BB has bounced, and a
+## ghost (DevCheats).
 static func _first_body(bb: BB, dir: Vector3, max_t: float, characters: Array[Character]) -> void:
 	_reached = -1
 	var best := max_t
 	for i in characters.size():
-		if characters[i].id == bb.owner_id and bb.bounces == 0:
+		if (characters[i].id == bb.owner_id and bb.bounces == 0) or characters[i].ghost:
 			continue
 		var d := Hitbox.ray_character(bb.prev_position, dir, best, _volumes[i])
 		if d <= best:

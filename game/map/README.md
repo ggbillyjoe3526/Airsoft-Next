@@ -7,6 +7,7 @@ two interfaces the simulation asks the level through (docs/ARCHITECTURE.md › C
 | File | What |
 |---|---|
 | `map_data.gd` | `MapData`: blocks (boxes and ramps, each with its surface), the two ends, the kill height; refuses a map that can't be played (no floor, a missing end, fewer spawns than a team) |
+| `map_catalog.gd` | `MapCatalog`: every map's name, kind (field or range) and public or dev tag from `data/maps.md`; the fields to list, dev ones only with the Dev settings' Dev content on |
 | `map_level.gd` | `MapLevel`: builds the greybox (every block and the ground as one vertex-coloured mesh with a metre grid, one draw call) and the static colliders, one body per surface; owns the movers' kinematic bodies |
 | `jolt_query.gd` | `JoltQuery` (WorldQuery): BB rays and what is underfoot through one `RayCast3D` cast on demand (no allocation a ray) |
 | `jolt_mover.gd` | `JoltMover` (CharacterMover): the same cylinder BoxWorld moves, swept with `body_test_motion`: vertical, then level with slides, then a step up; the ground probe sweeps a thin disc down |

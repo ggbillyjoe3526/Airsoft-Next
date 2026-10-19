@@ -78,6 +78,8 @@ var vault: VaultState = VaultState.new()
 ## Seconds until the replica can fire again after a vault (0: ready): carried through it, up a moment after.
 var fire_lockout: float = 0.0
 var armament: Armament = null
+## BBs pass straight through: the Dev settings' Ghost, the player's only, kept between rounds (DevCheats).
+var ghost: bool = false
 
 
 func _init(character_id: int = 0, character_team: int = 0, spawn: Vector3 = Vector3.ZERO, facing: float = 0.0,

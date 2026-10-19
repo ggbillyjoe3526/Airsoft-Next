@@ -4,7 +4,9 @@ extends Node3D
 ## player's command and the bots' (BotController), and everything else drawn from its state and events every rendered
 ## frame (the camera, the replica in hand, BBs, puffs, the other players, sound and the HUD). You play Alpha with two bot
 ## teammates against three bots on Beta, Elimination rounds to five wins. Esc pauses; losing focus pauses too. Emits
-## `left` when the player leaves to the title screen.
+## `left` when the player leaves to the title screen. The Dev settings in force apply here and follow every change
+## (game speed, bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions, Retro pixels, End the
+## round now): the cheats through the simulation (DevCheats), the views built only while on.
 
 signal left
 
@@ -21,6 +23,8 @@ const TICK := 1.0 / 60.0
 var autopilot: bool = false
 ## Simulation ticks per physics tick: the smoke test plays a whole match faster than real time.
 var speed: int = 1
+## Whose Dev settings apply (the game's own by default; a test gives its own).
+var settings: Settings = null
 ## False: the bots stand idle (tests that need a still target).
 var bots_active: bool = true
 
@@ -45,6 +49,14 @@ var _audio: SimAudio = null
 var _debug: DebugView = null
 var _hud: Hud = null
 var _pause: PauseMenu = null
+var _pacer: TickPacer = TickPacer.new()
+## Spectate any bot: on, and who it follows (-1: the next to be picked); the trigger last tick, to move on per pull.
+var _spectate_any: bool = false
+var _watch_id: int = -1
+var _watch_fire_was: bool = false
+var _watch_input: PlayerCommand = PlayerCommand.new()
+var _intents: BotIntentView = null
+var _retro: RetroPixels = null
 var _rematch_left: float = -1.0
 var _ticks: int = 0
 ## What the smoke test checks: your shots, everyone's, BBs that landed anywhere, rounds played and matches finished.
@@ -79,6 +91,10 @@ func _ready() -> void:
 	# With the pilot on, a bot plays your character too.
 	var nobody := -1
 	_bots = BotController.new(state, nobody if autopilot else PLAYER_ID, map, _sim.nav, _level.query(), _tuning, config)
+	if settings == null:
+		settings = Settings.shared()
+	settings.changed.connect(_apply_dev)
+	_apply_dev()
 	_sim.start_match(state)
 	_after_tick()
 	_capture()
@@ -88,6 +104,7 @@ func _start_simulation(map: MapData) -> void:
 	_sim = Simulation.new(_tuning, _level.query(), _level.mover(_tuning.body), map.ends, map.kill_y)
 	_sim.nav = NavGrid.build(map, _tuning.nav, _tuning.body)
 	state = GameState.new(match_seed, _tuning)
+	state.dev_content = MapCatalog.shared().is_dev(map_id)
 	var loadout := ReplicaStats.default_loadout()
 	player = Character.new(PLAYER_ID, PLAYER_TEAM, Vector3.ZERO, 0.0, loadout)
 	state.characters.append(player)
@@ -151,24 +168,28 @@ func _build_views(ui: CanvasLayer) -> void:
 	ui.add_child(_pause)
 	_pause.resumed.connect(_resume)
 	_pause.left.connect(_leave)
+	_pause.end_round = _end_round_now
 
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if _sim == null:
 		return
-	for i in speed:
+	_pacer.rate = speed * state.cheats.game_speed
+	for i in _pacer.ticks():
 		if _rematch_left == 0.0:
 			_rematch_left = -1.0
 			_sim.start_match(state)
 			_after_tick()
 		if bots_active:
-			_bots.think(state, _commands, delta)
+			_bots.think(state, _commands, TICK)
 		else:
 			for c in state.characters:
 				_commands[c.id].reset(c.yaw, c.pitch)
-		if not autopilot:
+		if _spectate_any and not autopilot:
+			_follow_next_on_pull()
+		elif not autopilot:
 			_input.fill(_commands[PLAYER_ID], player.armament.active)
-		_sim.step(state, _commands, delta)
+		_sim.step(state, _commands, TICK)
 		_ticks += 1
 		_after_tick()
 
@@ -231,13 +252,14 @@ func _process(delta: float) -> void:
 		return
 	if _rematch_left > 0.0:
 		_rematch_left = maxf(0.0, _rematch_left - delta)
-	var fraction := Engine.get_physics_interpolation_fraction()
+	var fraction := _pacer.fraction(Engine.get_physics_interpolation_fraction())
 	var watched := spectated()
 	_debug.viewer_id = watched.id
 	_eyes.update(watched, _input, fraction, delta, watched == player)
 	var look := -_eyes.global_basis.z
-	_hands.visible = watched == player
 	_hands.update(player, _input.view_yaw, _input.view_pitch, _eyes.global_position, look, delta)
+	# Your replica only through your own eyes (update shows it whenever you are in play).
+	_hands.visible = _hands.visible and watched == player
 	_bbs.update(state.bbs, PLAYER_ID, _hands.muzzle_position() - _eyes.global_position, fraction, TICK)
 	_puffs.update(delta)
 	_dust.update(_eyes.global_position, state.wind.at(state.time), delta)
@@ -247,10 +269,20 @@ func _process(delta: float) -> void:
 		if f.character_id == watched.id:
 			f.visible = false
 	_hud.update(state, _input.zoom, delta)
+	if _intents != null:
+		_intents.update(state, fraction)
 
 
-## Whose eyes you see through: your own, or once you are out in the dead zone, a teammate still in play (else anyone).
+## Whose eyes you see through: with Spectate any bot on, the bot it follows; else your own, or once you are out in the
+## dead zone, a teammate still in play (else anyone).
 func spectated() -> Character:
+	if _spectate_any:
+		var followed := state.character(_watch_id)
+		if followed == null or not Elimination.is_in_play(followed):
+			_watch_id = Spectate.next_bot(state.characters, _watch_id, PLAYER_ID)
+			followed = state.character(_watch_id)
+		if followed != null:
+			return followed
 	if player.status != Character.Status.OUT:
 		return player
 	var anyone: Character = null
@@ -282,6 +314,8 @@ func _notification(what: int) -> void:
 
 
 func _exit_tree() -> void:
+	if settings != null and settings.changed.is_connected(_apply_dev):
+		settings.changed.disconnect(_apply_dev)
 	if get_tree() != null:
 		get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -337,3 +371,40 @@ func _vault_ready() -> bool:
 		return false
 	var way := Vault.way(_commands[PLAYER_ID], _tuning)
 	return way != Vector2.ZERO and Vault.find_along(player, way, _tuning, _level.query(), _vault_probe)
+
+
+## The Dev settings in force, put into play: the cheats into the simulation, and the views they ask for built or freed.
+func _apply_dev() -> void:
+	var dev := settings.active_dev()
+	DevCheats.apply(state, dev.cheats(), PLAYER_ID)
+	_spectate_any = dev.spectate_bots
+	if not _spectate_any:
+		_watch_id = -1
+	if dev.bot_intent and _intents == null:
+		_intents = BotIntentView.new()
+		_intents.setup(state, _bots, _tuning.body, PLAYER_ID)
+		add_child(_intents)
+	elif not dev.bot_intent and _intents != null:
+		_intents.queue_free()
+		_intents = null
+	if dev.retro_pixels and _retro == null:
+		_retro = RetroPixels.new()
+		add_child(_retro)
+	elif not dev.retro_pixels and _retro != null:
+		_retro.queue_free()
+		_retro = null
+
+
+## Spectate any bot: you stand still, and each pull of the trigger follows the next bot. Your keys still go through
+## PlayerInput, so a press made meanwhile isn't kept for later.
+func _follow_next_on_pull() -> void:
+	_input.fill(_watch_input, player.armament.active)
+	if _watch_input.fire and not _watch_fire_was:
+		_watch_id = Spectate.next_bot(state.characters, _watch_id, PLAYER_ID)
+	_watch_fire_was = _watch_input.fire
+	_commands[PLAYER_ID].reset(player.yaw, player.pitch)
+
+
+## The Dev tab's End the round now, from the pause menu: false when no round is live.
+func _end_round_now() -> bool:
+	return DevCheats.end_round(state) if state != null else false
