@@ -11,6 +11,9 @@ enum FireMode { SEMI, BURST, AUTO }
 @export var display_name: String = ""
 ## What drives it: "electric" (a battery and motor, an AEG) or "gas".
 @export var power: StringName = &"electric"
+## The sounds it makes (assets/audio/cues/shot_<sound>_*.wav and the rest), when they aren't its power's own (the Cyber
+## Pistol's, which has no power part apart); "" for its power's.
+@export var sound: StringName = &""
 ## The modes its fire selector offers, in the order the selector key steps through them, and the one it starts in.
 @export var fire_modes: Array[FireMode] = [FireMode.SEMI]
 @export var default_fire_mode: FireMode = FireMode.SEMI
@@ -47,3 +50,8 @@ enum FireMode { SEMI, BURST, AUTO }
 ## How far its shots are heard, as a share, and whether they sound muffled (a silencer).
 @export var heard_scale: float = 1.0
 @export var muffled: bool = false
+
+
+## The sound profile its shots, dry clicks and magazines play: its own, else its power's.
+func sound_profile() -> StringName:
+	return sound if sound != &"" else power

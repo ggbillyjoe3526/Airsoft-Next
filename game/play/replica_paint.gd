@@ -4,7 +4,8 @@ extends RefCounted
 ## five materials the replica models name Body, Furniture, Detail, Accent and Metal are overridden on each mesh
 ## surface that carries one, the rest (rubber, the BB, the orange tip) keep the model's own. The materials are built
 ## once per paint and shared by every replica wearing it; a paint with no colours (the Cyber Pistol's) leaves the
-## model's own. The glb files are never edited.
+## model's own, except under Realistic colours, which turns its glowing lines plain grey (ReplicaSchemes.OWN_REALISTIC).
+## The glb files are never edited.
 
 ## How a painted part is drawn: plastic, with the metal parts a little shiny.
 const ROUGHNESS := 0.5
@@ -16,6 +17,8 @@ const MAX_SETS := 32
 
 ## The materials per paint (PARTS' order), keyed "<paint>" or "<paint>/realistic".
 static var _sets: Dictionary[String, Array] = {}
+## The own colours' realistic materials, by the model's material name; built once.
+static var _own_realistic: Dictionary[StringName, StandardMaterial3D] = {}
 
 
 ## The paint a bot on `team` carries on `replica`: its team's for the replica's class, or its own colours.
@@ -59,7 +62,8 @@ static func materials(paint: StringName, realistic: bool) -> Array[StandardMater
 ## Puts `paint` on every surface of `model` and below it whose material is one of the five parts.
 static func apply(model: Node, paint: StringName, realistic: bool) -> void:
 	var painted := materials(paint, realistic)
-	if painted.is_empty():
+	var own_colours := paint == ReplicaSchemes.OWN
+	if painted.is_empty() and not own_colours:
 		return
 	var meshes := model.find_children("*", "MeshInstance3D", true, false)
 	if model is MeshInstance3D:
@@ -72,11 +76,29 @@ static func apply(model: Node, paint: StringName, realistic: bool) -> void:
 			var own := mesh_node.mesh.surface_get_material(i)
 			if own == null:
 				continue
-			var part := ReplicaSchemes.PARTS.find(StringName(own.resource_name))
+			var material_name := StringName(own.resource_name)
+			if own_colours:
+				# Its own colours, or their realistic grey (and back again, a menu picture being repainted).
+				if ReplicaSchemes.OWN_REALISTIC.has(material_name):
+					mesh_node.set_surface_override_material(i, _realistic_own(material_name) if realistic else null)
+				continue
+			var part := ReplicaSchemes.PARTS.find(material_name)
 			if part >= 0 and part < painted.size():
 				mesh_node.set_surface_override_material(i, painted[part])
+
+
+## The plain material, with no glow, that the own colours' `material_name` turns into under Realistic colours.
+static func _realistic_own(material_name: StringName) -> StandardMaterial3D:
+	if not _own_realistic.has(material_name):
+		var m := StandardMaterial3D.new()
+		m.resource_name = "own/realistic_%s" % material_name
+		m.albedo_color = Color.hex((ReplicaSchemes.OWN_REALISTIC[material_name] << 8) | 0xff)
+		m.roughness = ROUGHNESS
+		_own_realistic[material_name] = m
+	return _own_realistic[material_name]
 
 
 ## Lets go of the shared materials (a match ends); replicas still wearing them keep theirs until freed.
 static func clear() -> void:
 	_sets.clear()
+	_own_realistic.clear()

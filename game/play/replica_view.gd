@@ -2,11 +2,12 @@ class_name ReplicaView
 extends Node3D
 ## The replica in your hands (the browser game's render/replicas/viewmodel.ts): each replica of the loadout drawn from
 ## its model (assets/models/replicas/<id>.glb), the one in hand shown, posed from the character's state every rendered
-## frame: at the hip or with its sight line through the eye as the sight comes up, dropped while it is drawn, carried low
-## on a sprint, canted through a reload, kicked back by each shot, lagging a touch behind a turn and pulled back near a
-## wall so it never pokes through one. A gas pistol's slide locks back on its last BB and closes near the end of the
-## reload. Its parts are fitted from their models (ReplicaParts), as the menus show them; aimed with an optic, the eye
-## looks along the optic's sight line through its glass (OpticGlass). A child of the camera.
+## frame: at the hip or with its sight line through the eye as the sight comes up, dropped while it is drawn, carried
+## low on a sprint, canted through a reload, kicked back by each shot, lagging a touch behind a turn and pulled back
+## near a wall so it never pokes through one. A gas pistol's slide locks back on its last BB and closes near the end of
+## the reload; the fire selector shows the mode it is set to (SelectorPose). Its parts are fitted from their models
+## (ReplicaParts), as the menus show them; aimed with an optic, the eye looks along the optic's sight line through its
+## glass (OpticGlass). A child of the camera.
 
 const MODEL_DIR := "res://assets/models/replicas/"
 ## The models' animation clips (docs/CC0_ASSETS.md › Replica models).
@@ -35,6 +36,8 @@ class Held:
 	## Its fitted parts, and its optic's glass (null: none, or the iron sights).
 	var fit: ReplicaParts.Fit = null
 	var window: OpticGlass.Sight = null
+	## Holds its fire selector at the mode it is set to (null: the model has none).
+	var selector: SelectorPose = null
 
 var _cfg: ViewModelConfig = null
 var _held: Array[Held] = []
@@ -165,6 +168,8 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 		held.slide_locked = false
 	if held.slide != null:
 		_pose_slide(held, a)
+	if held.selector != null:
+		held.selector.mode = a.fire_mode()
 
 	# Pulled back from a wall in front.
 	var pull := 0.0
@@ -212,6 +217,9 @@ func _pose_slide(held: Held, a: Armament) -> void:
 func _show(slot: int) -> void:
 	for i in _held.size():
 		_held[i].root.visible = i == slot
+		# Only the replica in hand updates its skeleton each frame.
+		if _held[i].selector != null:
+			_held[i].selector.active = i == slot
 		if _held[i].window != null:
 			_held[i].window.disc.visible = false
 	_active = slot
@@ -243,6 +251,7 @@ func _load(r: ReplicaConfig, paint: StringName, realistic: bool, parts: Dictiona
 	held.fit = ReplicaParts.fit(model, r.id, parts, true)
 	ReplicaPaint.apply(model, paint, realistic)
 	held.anim = model.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	held.selector = SelectorPose.attach(model, held.anim)
 	held.muzzle = held.fit.muzzle
 	var rear := model.find_child("RearSight", true, false) as Node3D
 	if r.power == SLIDE_LOCK_POWER and held.anim != null and held.anim.has_animation(SLIDE_LOCK_CLIP):

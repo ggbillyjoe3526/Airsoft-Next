@@ -5,21 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## CP1 · The Cyber Pistol in play
-tier: core
-perf: required
-touches: game/config/, game/play/, game/loadout/, assets/models/replicas/, tests/unit/
-contract: none
-acceptance:
-  1. The Cyber Pistol (pool 000019, stats.md's `cyber` row) can be carried as a secondary once unlocked (level 10),
-     shoots by its stats, and shows in hand, on figures and in the menus from `cyber.glb` with its own colours (no
-     scheme applies) and its fire, reload and selector clips.
-  2. Its battery is built in: no power source fits it, and the Customise POWER tab says so.
-  3. Its light lines stay readable in play and in menus; nothing it adds allocates per frame.
-status: open
-attempts: 0
-
-
 ## BK1 · The bots' kits
 tier: core
 perf: required

@@ -10,6 +10,8 @@ const STANDARD := "000003"
 const LIPO := "000015"
 const GREEN := "000004"
 const BLACK := "000009"
+## A replica the pool lists but the game has no built-in config for (added to the rules' pool by _unplayable).
+const UNPLAYABLE := "000099"
 
 var rules: LoadoutRules
 
@@ -68,9 +70,19 @@ func test_a_bad_row_is_left_out_and_reported_with_its_line() -> void:
 	assert_string_contains(pool.problems[0], "pool.md:4")
 
 
+func _unplayable() -> void:
+	var it := Pool.Item.new()
+	it.id = UNPLAYABLE
+	it.key = &"spring"
+	it.display_name = "Spring Rifle"
+	it.tags = PackedStringArray(["rifle"])
+	rules.pool.replicas.append(it)
+
+
 func test_only_replicas_the_game_can_play_are_offered() -> void:
+	_unplayable()
 	var offered := rules.offered().map(func(i: Pool.Item) -> String: return i.id)
-	assert_eq(offered, [PISTOL, AEG], "the Cyber Pistol has no built-in config until levels (step 11)")
+	assert_eq(offered, [PISTOL, AEG, CYBER], "the Cyber Pistol plays since CP1; a replica with no config isn't offered")
 
 
 func test_a_new_player_carries_the_browser_games_defaults() -> void:
@@ -92,8 +104,11 @@ func test_carrying_the_other_slots_replica_swaps_the_two() -> void:
 	var l := rules.default_loadout("L")
 	assert_true(rules.equip(l, Loadout.Slot.PRIMARY, PISTOL))
 	assert_eq(l.equipped, PackedStringArray([PISTOL, AEG]))
-	assert_false(rules.equip(l, Loadout.Slot.SECONDARY, CYBER), "not on offer")
+	_unplayable()
+	assert_false(rules.equip(l, Loadout.Slot.SECONDARY, UNPLAYABLE), "not on offer")
 	assert_eq(l.equipped, PackedStringArray([PISTOL, AEG]))
+	assert_true(rules.equip(l, Loadout.Slot.SECONDARY, CYBER))
+	assert_eq(l.equipped, PackedStringArray([PISTOL, CYBER]))
 
 
 func test_bb_weight_and_hop_up_stay_in_range_on_their_steps() -> void:
@@ -171,9 +186,10 @@ func test_the_kit_carries_the_dial_weight_and_paint_into_the_armament() -> void:
 
 func test_gear_not_on_offer_stays_picked_and_plays_as_the_default() -> void:
 	var l := rules.default_loadout("L")
-	l.equipped[Loadout.Slot.SECONDARY] = CYBER
+	_unplayable()
+	l.equipped[Loadout.Slot.SECONDARY] = UNPLAYABLE
 	assert_eq(rules.clean(l), [] as Array[String], "a real replica stays picked")
-	assert_eq(l.equipped[1], CYBER)
+	assert_eq(l.equipped[1], UNPLAYABLE)
 	var kit := rules.carried(l)
 	assert_eq(kit.replicas.map(func(r: ReplicaConfig) -> StringName: return r.id), [&"aeg", &"pistol"])
 

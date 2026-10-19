@@ -254,14 +254,14 @@ func _build_views(ui: CanvasLayer) -> void:
 	]
 	first_use.append_array(_hands.prewarm_glass())
 	ShaderPrewarm.new().setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE))
-	var powers: Array[StringName] = []
+	var profiles: Array[StringName] = []
 	for c in state.characters:
 		for r in c.armament.replicas:
-			if not powers.has(r.power):
-				powers.append(r.power)
+			if not profiles.has(r.sound_profile()):
+				profiles.append(r.sound_profile())
 	_audio = SimAudio.new()
 	add_child(_audio)
-	_audio.setup(_play.sound, powers, _tuning.body)
+	_audio.setup(_play.sound, profiles, _tuning.body)
 	_debug = DebugView.new()
 	_debug.setup(state, _tuning.hits, _play.debug_view)
 	add_child(_debug)
