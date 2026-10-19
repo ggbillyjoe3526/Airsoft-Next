@@ -62,7 +62,7 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
    and difficulty tagged public or dev. DV1 (the debug view) and DV2 (the Dev tab and dev content). Built.
 7. **Whole-match checks and the balance report.** Headless bot matches over 16 seeds that guard what must never
    happen (stuck bots, unsettled rounds, teammate hits), and the bot balance report (browser TE4), before bots change
-   further.
+   further. Two tasks: MG1 (the match guards, built) and BR1 (the balance report).
 8. **Title, menus and the Match screen.** The title, the top bar with the level badge, the Match screen's map and
    mode cards and Your team, menus that scale with the window, a loading screen, the seed on the pause screen, and the
    HUD restyled in the menus' look. A concept picture first.

@@ -1,8 +1,8 @@
 name: Checks
 
 # Every pull request and every push to main: lint the scripts, check the changelog notes, run the GUT unit tests,
-# import the project and run the headless smoke test, and check the licence notices are current (pipeline/README.md
-# › The checks). Fails on any script error or failed test. The Review line is checked by review.yml.
+# import the project and run the headless smoke test, check the licence notices are current, and play the match guards
+# (whole bot matches over 16 seeds, a job of their own; pipeline/README.md › The checks). Fails on any script error or failed test. The Review line is checked by review.yml.
 on:
   pull_request:
   push:
@@ -59,6 +59,30 @@ jobs:
             import.log
             smoke.log
             unit.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+  guards:
+    name: Match guards (16 seeds a field)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          status: ${{ env.GODOT_STATUS }}
+
+      - name: Match guards (tests/guards)
+        run: tools/match_guards.sh
+
+      - name: Keep the log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: guards-log
+          path: guards.log
           if-no-files-found: ignore
           retention-days: 14
 

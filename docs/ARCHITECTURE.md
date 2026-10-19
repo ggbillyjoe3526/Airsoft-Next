@@ -35,6 +35,7 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `data/` | The owner's six tables, read at start with `FileAccess`; `data/maps/*.json`, the map layouts | copied |
 | `assets/` | Models, fonts and sounds from the browser game (`assets/README.md`) | copied |
 | `tests/unit/` | GUT tests, `test_*.gd` | built |
+| `tests/guards/`, `tests/support/` | The match guards (16 seeds a field, a CI job of their own) and `MatchRunner`, the headless bot match they play (`tests/README.md`) | built |
 | `legacy/` | Read-only reference, hidden from Godot by `.gdignore`, never exported | copied |
 
 ## Contracts
