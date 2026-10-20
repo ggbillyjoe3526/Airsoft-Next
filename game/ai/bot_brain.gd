@@ -39,7 +39,9 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 	# ahead. Hunting with nothing heard, it hurries.
 	var near := b.skill.slices_corners and (b.threat_in_mind(w.time, cfg)
 			or (not b.hunting and w.planner.in_enemy_half(b)))
-	b.careful = near and (b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.SEARCH)
+	var trading := w.trading(b)
+	b.careful = near and not trading and (b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.SEARCH) \
+			and not w.pushing_late(b)
 	# A route's vault leg is the walk's own (BotRoutes.follow).
 	b.vault_leg = false
 	var moving := BotMovement.keep_apart(b, w, BotMovement.move(b, w, cmd, dt, target), cmd)
@@ -60,8 +62,8 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 		cmd.right = cos(b.aim_yaw) * d.x - sin(b.aim_yaw) * d.z
 		var calm := w.time - b.last_threat_at > cfg.sprint_when_calm_for
 		cmd.sprint = b.mode == Bot.Mode.ADVANCE and calm and cmd.forward > cfg.sprint_forward
-		# Closing in on where someone was: walk, so its feet don't give it away.
-		if b.mode == Bot.Mode.SEARCH and Vector2(b.last_known.x - me.position.x, b.last_known.z - me.position.z).length() \
+		# Closing in on where someone was: walk, so its feet don't give it away (not while trading: it runs).
+		if b.mode == Bot.Mode.SEARCH and not trading and Vector2(b.last_known.x - me.position.x, b.last_known.z - me.position.z).length() \
 				< b.skill.search_walk_distance:
 			cmd.walk = true
 		if b.careful:
@@ -120,7 +122,7 @@ static func _choose_mode(b: Bot, w: BotWorld, target: Character, dt: float) -> v
 				return
 		b.mode = Bot.Mode.FIGHT
 	elif b.threat_in_mind(w.time, cfg):
-		if _reload_from_cover(b, w):
+		if _trade_hit(b, w) or _reload_from_cover(b, w):
 			return
 		if b.mode != Bot.Mode.SEARCH:
 			# Lost sight of someone in a fight: a bot with peek_watch_time first watches where they ducked out.
@@ -139,6 +141,13 @@ static func _choose_mode(b: Bot, w: BotWorld, target: Character, dt: float) -> v
 		# Back to the lane point it left.
 		if not b.hunting and b.lane_index >= 0:
 			b.lane_index -= b.lane_dir
+	if b.mode == Bot.Mode.ADVANCE and not b.hunting and w.pushing_late(b):
+		# Behind on players late in the round (team play): stop holding the lane and go looking for them.
+		b.hunting = true
+		BotRoutes.drop(b)
+		b.hold_left = 0.0
+		b.wait_for_team = false
+		b.hold_cover = false
 
 
 ## One tick in cover: settling in, ducked, peeking. Returns true when the episode is over (exposed, given up, out of
@@ -199,6 +208,19 @@ static func _take_cover(b: Bot, w: BotWorld, threat_eye: Vector3, down: float, r
 	b.from_cover = false
 	b.route_state = Bot.RouteState.NONE
 	BotRoutes.want(b, b.cover.position, cfg)
+	return true
+
+
+## Team play: a teammate's hit call heard within trade_time: once, to cover within trade_cover_radius to peek where
+## the shot came from; with none there it goes straight there (search). False if it isn't trading now.
+static func _trade_hit(b: Bot, w: BotWorld) -> bool:
+	var cfg := w.cfg
+	if not b.skill.team_play or b.trade_tried or w.time - b.trade_at > cfg.trade_time or b.cover_cooldown > 0.0:
+		return false
+	b.trade_tried = true
+	if not _take_cover(b, w, _known_threat_eye(b, w), 0.0, cfg.trade_cover_radius, 0, true):
+		return false
+	b.cover_cooldown = cfg.cover_cooldown
 	return true
 
 

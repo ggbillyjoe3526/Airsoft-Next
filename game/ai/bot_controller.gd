@@ -40,6 +40,7 @@ func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	var w := world
 	w.time = state.time
 	w.live = state.round_state.is_live()
+	w.round_clock = state.round_state.clock
 	for c in state.characters:
 		if Elimination.is_in_play(c):
 			w.mark_visited(c.team, c.position)

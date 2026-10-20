@@ -157,13 +157,12 @@ func test_a_pro_match_plays_the_same_twice_and_no_bot_stays_stuck() -> void:
 	assert_gt(tally[0].hits, 0, "Pro shoots")
 
 
-func test_a_pro_pick_saved_with_dev_content_off_opens_as_normal() -> void:
-	var settings := Settings.new()
+func test_a_pro_pick_saved_opens_as_pro_with_dev_content_off() -> void:
 	var picks := MatchPicks.new()
 	picks.bots = "pro"
-	var page := MatchPage.new(picks, settings)
+	var page := MatchPage.new(picks, Settings.new())
 	add_child_autofree(page)
 	await wait_physics_frames(2)
-	assert_eq(page.picks.bots, "normal")
-	assert_string_ends_with(page.summary_text(), "Normal bots")
-	assert_false(page.bot_button("pro").visible)
+	assert_eq(page.picks.bots, "pro", "Pro is public since DF2b")
+	assert_string_ends_with(page.summary_text(), "Pro bots")
+	assert_true(page.bot_button("pro").is_picked())

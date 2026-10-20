@@ -25,7 +25,9 @@ it searches where it was last seen or heard, sometimes flanking.
 Each team plays at its level (`BotConfig.skill_for`: Easy, Normal, Hard, Pro). Pro is careful, not twitchier: holding,
 it aims at the corners someone would step out of (`BotAngles`) and answers someone appearing there sooner; near the
 enemy it walks and slices corners, leaning past a near one; it watches where someone ducked out before going after them,
-and with a threat in mind tops up only from cover.
+and with a threat in mind tops up only from cover. It plays as a team: it goes to trade a teammate it heard call a hit,
+tells its teammates where it heard someone, moves along a lane in pairs (one waits while its partner moves) and pushes
+late when its team is behind.
 
 | File | What |
 |---|---|
@@ -46,5 +48,5 @@ routes.
 
 ## Not yet
 
-No names or personalities, no callouts or squad orders, no team play (trades, pairs, the late push, crossfires) or
-magazine sharing (docs/KNOWN_ISSUES.md).
+No names or personalities, no callouts or squad orders, no crossfires (Attack/Defend's) and no magazine sharing
+(docs/KNOWN_ISSUES.md).

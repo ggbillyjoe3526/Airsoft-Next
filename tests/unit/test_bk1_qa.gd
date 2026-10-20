@@ -195,8 +195,7 @@ func test_a_bots_figure_gets_its_parts_and_a_single_replica_kit_does_not_break()
 
 
 func test_a_session_with_dev_content_off_never_picks_dev_gear() -> void:
-	# Hard: Pro is itself a dev level since DF2a, so a Pro match is dev content whatever its kits.
-	var s := _session(3, &"hard")
+	var s := _session(3, &"pro")
 	await wait_physics_frames(3)
 	assert_false(s.state.dev_content)
 	assert_false(s.state.off_record)

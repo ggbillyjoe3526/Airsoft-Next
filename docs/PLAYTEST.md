@@ -414,10 +414,10 @@ The Match screen's Practice card, then Start practice.
 Your squad against a home team on a timed run, rebuilt with its rework for the Modes Update (`docs/ROADMAP.md` ›
 0.3 · Modes Update). The browser game's checks for it are in `legacy/browser/docs/`.
 
-## Pro difficulty (dev content)
+## Pro difficulty
 
-Turn on Dev content, then Play › Match › Opponents › Pro; play each map once in Elimination and once in Attack /
-Defend. Pro pays XP ×2 but counts for nothing while it is dev content.
+Play › Match › Bots › Pro; play each map once in Elimination (and once in Attack / Defend when it comes). Pro pays
+XP ×2.
 
 - [ ] **Slow down.** Pro bots hold still aiming at corners and doorways and walk quietly towards where they heard you.
   Run past a corner and you lose; slice it a step at a time and you win.

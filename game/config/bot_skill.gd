@@ -53,3 +53,6 @@ extends Resource
 ## Having lost sight of someone in a fight, it watches where they were this long before going after them (s); zero
 ## goes at once.
 @export var peek_watch_time: Vector2 = Vector2.ZERO
+## Team play (Pro): trades a hit teammate, tells its teammates where it heard someone, moves in pairs along a lane and
+## pushes late when behind (BotConfig's trade_*, bound_* and late_push_time).
+@export var team_play: bool = false

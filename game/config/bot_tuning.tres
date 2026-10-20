@@ -72,6 +72,7 @@ pre_aim_reaction_time = Vector2(0.18, 0.28)
 pre_aim_settled = 0.5
 slices_corners = true
 peek_watch_time = Vector2(1.5, 3)
+team_play = true
 
 [resource]
 script = ExtResource("1_bcfg1")
