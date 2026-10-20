@@ -2,7 +2,7 @@ extends GutTest
 ## Pro's own habits (DF2): held angles found from the level's walls alone, someone stepping out where a Pro bot already
 ## aims answered sooner and steadier, corners sliced near the enemy, a watch where someone ducked out before going after
 ## them, a top-up only from cover with a threat in mind, and at every level no aim at an enemy unseen and unheard (the
-## browser game's M37 test). Pro is a dev level (game/ai/bot_angles.gd, bot_combat.gd, bot_senses.gd, bot_brain.gd).
+## browser game's M37 test; game/ai/bot_angles.gd, bot_combat.gd, bot_senses.gd, bot_brain.gd).
 
 const DT := 1.0 / 60.0
 const EYE := 1.6
@@ -315,31 +315,18 @@ func test_a_corner_slicer_tops_up_only_from_cover_with_a_threat_in_mind() -> voi
 		assert_true(cmd.reload, "%s once there" % level)
 
 
-# --- the menu and the records ---
+# --- the records ---
 
-func test_pro_is_offered_only_with_dev_content() -> void:
-	assert_eq(MatchOptions.bot_levels(false), PackedStringArray(["easy", "normal", "hard"]))
-	assert_eq(MatchOptions.bot_levels(true), MatchOptions.BOT_LEVELS)
-
-
-func test_a_pro_match_is_dev_content_off_the_record() -> void:
-	for level: StringName in [&"pro", &"hard"]:
-		var s := PlaySession.new()
-		s.autopilot = true
-		s.settings = Settings.new()
-		s.difficulty = level
-		add_child_autofree(s)
-		await wait_physics_frames(2)
-		assert_eq(s.state.dev_content, level == &"pro", level)
-		assert_eq(s.state.off_record, level == &"pro", level)
-	var mates := PlaySession.new()
-	mates.autopilot = true
-	mates.settings = Settings.new()
-	mates.difficulty = &"hard"
-	mates.teammate_difficulty = &"pro"
-	add_child_autofree(mates)
+func test_a_pro_match_counts_for_the_records() -> void:
+	var s := PlaySession.new()
+	s.autopilot = true
+	s.settings = Settings.new()
+	s.difficulty = &"pro"
+	add_child_autofree(s)
 	await wait_physics_frames(2)
-	assert_true(mates.state.dev_content, "Pro teammates too")
+	assert_false(s.state.dev_content, "Pro is public (owner, 2026-10-05)")
+	assert_false(s.state.off_record)
+	assert_true(s.counts_for_records())
 
 
 # --- never aiming at someone unseen and unheard (M37) ---

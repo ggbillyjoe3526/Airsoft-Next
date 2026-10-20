@@ -237,10 +237,6 @@ func _start_simulation(map: MapData) -> void:
 		state.characters.append(Character.new(id, team, Vector3.ZERO, 0.0, bot_kit.replicas, bot_kit.bb_weights))
 		_bot_parts[id] = bot_kit.parts
 		state.dev_content = state.dev_content or bot_kit.dev
-	# A dev level (Pro) on either side makes the match dev content, off the record.
-	var mates := teammates_level() if _tuning.rounds.team_size > 1 else &""
-	state.dev_content = state.dev_content or MatchOptions.DEV_BOT_LEVELS.has(difficulty) \
-			or MatchOptions.DEV_BOT_LEVELS.has(mates)
 	for c in state.characters:
 		_commands.append(PlayerCommand.new())
 

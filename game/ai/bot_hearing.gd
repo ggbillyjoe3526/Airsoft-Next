@@ -1,5 +1,5 @@
 class_name BotHearing
-## What the bots hear and feel of a tick (the browser game's ai/hearing.ts, without props, cases and team play): gunfire
+## What the bots hear and feel of a tick (the browser game's ai/hearing.ts, without props and cases): gunfire
 ## (as far as the shooter's replica is heard: a silencer halves it), a teammate's hit call, running, sprinting, landing
 ## and vaulting feet, a rattling magazine, and enemy BBs landing close. Each gives a rough guess of where the enemy
 ## is, off by up to hearing_error of the distance; walls between muffle a sound to wall_hearing of its range, judged by
@@ -60,7 +60,7 @@ static func _hit_call(e: GameEvent, w: BotWorld) -> void:
 	if flat.length() > 1e-6:
 		flat = flat.normalized() * back
 		guess -= Vector3(flat.x, 0.0, flat.y)
-	_hear(w, shooter, victim.position, victim.position, w.cfg.hearing_distance, null, guess)
+	_hear(w, shooter, victim.position, victim.position, w.cfg.hearing_distance, null, guess, true)
 
 
 ## An enemy BB landing near a bot puts it under fire and gives away roughly where it came from, however far the shot.
@@ -80,9 +80,10 @@ static func _near_miss(e: GameEvent, w: BotWorld) -> void:
 
 ## Bots not on `source`'s team within `range_m` of `heard_at` learn roughly where `source` is (or `at` when given: a hit
 ## call's guess); `only` limits it to one bot. A bot already watching the source learns nothing; one fighting someone
-## else keeps it for later. Gunfire from about the same place keeps the same guess.
+## else keeps it for later. Gunfire from about the same place keeps the same guess. A bot that plays as a team goes to
+## trade a teammate's `hit_call`, and tells its teammates where it heard someone.
 static func _hear(w: BotWorld, source: Character, heard_at: Vector3, source_feet: Vector3, range_m: float, only: Bot,
-		at: Vector3 = Vector3.INF) -> void:
+		at: Vector3 = Vector3.INF, hit_call: bool = false) -> void:
 	var cfg := w.cfg
 	var where := source.position if at == Vector3.INF else at
 	for b in w.bots:
@@ -113,6 +114,28 @@ static func _hear(w: BotWorld, source: Character, heard_at: Vector3, source_feet
 		b.has_last_known = true
 		b.heard_at = w.time
 		b.last_threat_at = w.time
+		if not b.skill.team_play:
+			continue
+		if hit_call:
+			b.trade_at = w.time
+			b.trade_tried = false
+		_share_heard(w, b)
+
+
+## Team play: `b` tells its team-play teammates where it heard someone (the bots' version of the player's minimap). A
+## teammate fighting, or with fresher news of its own, keeps its own; nobody trades on hearsay.
+static func _share_heard(w: BotWorld, b: Bot) -> void:
+	var cfg := w.cfg
+	for m in w.bots:
+		if m == b or not m.skill.team_play or m.character.team != b.character.team or m.target_visible \
+				or not Elimination.is_in_play(m.character):
+			continue
+		if m.has_last_known and w.time - maxf(m.last_seen_at(), m.heard_at) < cfg.hearing_contact_time:
+			continue
+		m.last_known = b.last_known
+		m.has_last_known = true
+		m.heard_at = w.time
+		m.last_threat_at = w.time
 
 
 ## The share (0..1) of the rays from `ear` to `feet` raised by hearing_ray_heights that a wall blocks.

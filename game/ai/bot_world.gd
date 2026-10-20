@@ -18,6 +18,8 @@ var planner: RoundPlanner = null
 ## Seconds of match time, and whether the round is live (bots hold fire otherwise).
 var time: float = 0.0
 var live: bool = true
+## Seconds left in the live round (team play's late push).
+var round_clock: float = INF
 
 ## The field split into square sectors (BotConfig.hunt_sector_size) from (min_x, min_z): when each team last checked
 ## each one (-INF never).
@@ -62,6 +64,23 @@ func mark_visited(team: int, p: Vector3) -> void:
 ## When team `team` last checked the sector of `p`.
 func visited_at(team: int, p: Vector3) -> float:
 	return _visited[team][sector_of(p)]
+
+
+## Team play: true if `b` plays as a team, the round is live with late_push_time or less left, and fewer of its team
+## are in play than of the other.
+func pushing_late(b: Bot) -> bool:
+	if not b.skill.team_play or not live or round_clock > cfg.late_push_time:
+		return false
+	var balance := 0
+	for c in characters:
+		if Elimination.is_in_play(c):
+			balance += 1 if c.team == b.character.team else -1
+	return balance < 0
+
+
+## Team play: true while `b` goes to trade a teammate's hit call it heard.
+func trading(b: Bot) -> bool:
+	return time - b.trade_at < cfg.trade_time
 
 
 ## The enemy side's direction (yaw) for `team` this round.

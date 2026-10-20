@@ -137,7 +137,11 @@ static func _advance(b: Bot, w: BotWorld, dt: float) -> bool:
 		b.team_wait += dt
 		b.holding = true
 		return false
-	if b.wait_for_team and b.team_wait < cfg.team_wait_max and w.planner.ahead_of_team(b, w):
+	# At a lane point well ahead of the team: wait for them to catch up. Moving in pairs (team play): also while a lane
+	# partner nearby is on the move (for up to bound_wait_max), so one covers while the other moves.
+	var waiting := (b.team_wait < cfg.team_wait_max and w.planner.ahead_of_team(b, w)) \
+			or (b.skill.team_play and b.team_wait < cfg.bound_wait_max and _partner_moving(b, w))
+	if b.wait_for_team and waiting:
 		b.team_wait += dt
 		b.holding = true
 		return false
@@ -267,6 +271,21 @@ static func _pick_hold_cover(b: Bot, w: BotWorld) -> bool:
 	var taken := BotRoutes.teammate_spots(b, w)
 	return BotCover.find(p, threat, w, b.rng, b.hold_spot, cfg.hold_cover_radius, 0, true, BotRoutes.taken(), taken) \
 			and b.hold_spot.crouch_only
+
+
+## True if a bot teammate on the same lane, within bound_distance, is walking it now (team play: one moves, one covers).
+static func _partner_moving(b: Bot, w: BotWorld) -> bool:
+	var p := b.character.position
+	for o in w.bots:
+		if o == b or o.character.team != b.character.team or o.lane != b.lane or not Elimination.is_in_play(o.character):
+			continue
+		# Set off this tick (its route still wanted) counts: bots think in turn, and two at their points must not both go.
+		if o.mode != Bot.Mode.ADVANCE or o.hunting or o.holding \
+				or (o.route_state != Bot.RouteState.OK and o.route_state != Bot.RouteState.WANTED):
+			continue
+		if Vector2(o.character.position.x - p.x, o.character.position.z - p.z).length() <= w.cfg.bound_distance:
+			return true
+	return false
 
 
 ## Search: to the spot (round by a flank point first, if flanking), then crouch and look round.

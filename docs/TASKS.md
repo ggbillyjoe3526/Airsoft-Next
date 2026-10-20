@@ -5,24 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## DF2b · Pro: team play
-tier: core
-perf: required
-touches: game/config/bot_skill.gd, game/config/bot_config.gd, game/config/bot_tuning.tres, game/ai/, tests/
-contract: Data, not literals (6); Seeded randomness (5)
-acceptance:
-  1. Pro bots play as a team (the browser game's Pro, M38): trade a hit teammate (run to where the hit came from for
-     trade_time, walking no more), share where they heard someone, move in pairs (one bounds while its partner holds,
-     within bound_distance, waiting at most bound_wait_max), and push late when behind (late_push_time or less left and
-     fewer of their team in play). Each habit hangs off BotSkill.team_play and numbers in bot_tuning.tres. Crossfires
-     wait for Attack/Defend (step 13).
-  2. No bot aims at someone it hasn't seen or heard (the M37 test still passes at Pro).
-  3. The match guards and the balance report at Pro still pass (40–60 %).
-  4. Pro becomes public (owner, 2026-10-05: public in 0.1): `MatchOptions.DEV_BOT_LEVELS` empties, so Pro shows
-     without Dev content and counts for the records.
-status: open
-attempts: 0
-
 ## MN3 · Opponents and Teammates on the Match screen
 tier: ui
 perf: optional

@@ -140,6 +140,9 @@ var held_angles_from: Vector3 = Vector3.ZERO
 var careful: bool = false
 ## Lost sight of someone in a fight: watching where they were until this time before going after them (s).
 var watch_until: float = -INF
+## Team play: when it heard a teammate's hit call (to trade), and whether it has tried for cover to trade from.
+var trade_at: float = -INF
+var trade_tried: bool = false
 
 
 func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: int) -> void:
@@ -214,6 +217,8 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	held_angles_at = -INF
 	careful = false
 	watch_until = -INF
+	trade_at = -INF
+	trade_tried = false
 
 
 func forget_target() -> void:

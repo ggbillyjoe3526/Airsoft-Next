@@ -227,6 +227,19 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## Slicing a corner, it leans out past it once within this many metres of it.
 @export var slice_lean_distance: float = 6.0
 
+@export_group("Team play")
+## A teammate's hit call heard (BotSkill.team_play): for this long (s) it goes to trade, running there, peeking first
+## from cover within trade_cover_radius (m) of where it is if there is any.
+@export var trade_time: float = 4.0
+@export var trade_cover_radius: float = 6.0
+## Moving in pairs: at a lane point it waits while a lane partner within bound_distance (m) moves, for at most
+## bound_wait_max (s), so one covers while the other goes.
+@export var bound_distance: float = 15.0
+@export var bound_wait_max: float = 8.0
+## With this many seconds left or fewer and fewer of its team in play than of the other, it stops holding its lane and
+## goes looking for them.
+@export var late_push_time: float = 30.0
+
 @export_group("Hunting")
 ## Once its lane is swept a bot hunts: the field in square sectors (m), the stalest of this many random spots (each
 ## drawn in at most this many tries), each metre nearer the middle counting like this many seconds staler.
