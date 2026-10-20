@@ -20,6 +20,7 @@ var _rng: RandomNumberGenerator = null
 ## Scratch for dealing lanes (reused each round).
 var _order: PackedInt32Array = PackedInt32Array()
 var _members: Array[Bot] = []
+var _dealt: PackedInt32Array = PackedInt32Array()
 
 
 func _init(match_seed: int) -> void:
@@ -43,20 +44,29 @@ func plan(w: BotWorld) -> void:
 			p = Plan.SPLIT
 		plans[team] = p
 		_shuffle_lanes(lane_count)
+		_dealt.resize(_members.size())
 		for i in _members.size():
-			var b := _members[i]
 			var lane := -1
 			if lane_count > 0:
 				var slot := 0 if p == Plan.STACK else ((0 if i < 2 else i - 1) if p == Plan.PAIR else i)
 				lane = _order[slot % lane_count]
+			_dealt[i] = lane
+		_take_own_lanes(w.lanes)
+		for i in _members.size():
+			var b := _members[i]
+			var lane := _dealt[i]
 			var ahead := 0
 			for k in i:
-				if _members[k].lane == lane:
+				if _dealt[k] == lane:
 					ahead += 1
 			var hold := 0.0
 			for k in ahead:
 				hold += b.pick(cfg.lane_follow_delay)
 			var points := w.lanes[lane].size() if lane >= 0 else 0
+			# An anchor (bots.md › Holds until) walks its lane only to the last point short of the middle, and holds
+			# there (BotPersonality.anchor_holding).
+			if b.style.holds and points > 0:
+				points = maxi(1, _points_to_middle(w.lanes[lane], team, b.character.end) - 1)
 			b.reset(lane, points, hold, cfg)
 
 
@@ -66,7 +76,8 @@ func ahead_of_team(b: Bot, w: BotWorld) -> bool:
 	var rear := INF
 	for o in w.bots:
 		var c := o.character
-		if c == me or c.team != me.team or not Elimination.is_in_play(c):
+		# An anchor holds short of the middle: nobody waits for it.
+		if c == me or c.team != me.team or not Elimination.is_in_play(c) or BotPersonality.anchor_holding(o, w):
 			continue
 		rear = minf(rear, _progress(c))
 	return _progress(me) - rear > w.cfg.team_spread
@@ -122,6 +133,54 @@ func _pick_plan(cfg: BotConfig) -> Plan:
 	if r < cfg.plan_split_weight + cfg.plan_pair_weight:
 		return Plan.PAIR
 	return Plan.STACK
+
+
+## A bot that keeps a lane of its own (bots.md › Own lane) and was dealt one a teammate shares in _dealt takes the free
+## lane furthest from the lanes the others walk, if there is one.
+func _take_own_lanes(lanes: Array[PackedVector3Array]) -> void:
+	for i in _members.size():
+		var lane := _dealt[i]
+		if not _members[i].style.own_lane or lane < 0 or _dealt.count(lane) < 2:
+			continue
+		var best := -1
+		var best_gap := -1.0
+		for free in lanes.size():
+			if _dealt.has(free) or lanes[free].is_empty():
+				continue
+			var mid := _lane_middle(lanes[free])
+			var gap := INF
+			for j in _members.size():
+				if j != i and _dealt[j] >= 0 and not lanes[_dealt[j]].is_empty():
+					gap = minf(gap, mid.distance_to(_lane_middle(lanes[_dealt[j]])))
+			if gap > best_gap:
+				best_gap = gap
+				best = free
+		if best >= 0:
+			_dealt[i] = best
+
+
+## The middle of a lane's points (x, z).
+static func _lane_middle(points: PackedVector3Array) -> Vector2:
+	var sum := Vector2.ZERO
+	for q in points:
+		sum += Vector2(q.x, q.z)
+	return sum / points.size()
+
+
+## How many of `points` a bot of `team` walking from `end` passes to reach the first one past the middle of the field
+## (all of them if none is).
+func _points_to_middle(points: PackedVector3Array, team: int, end: int) -> int:
+	var home := spawn_centre[team]
+	var enemy := spawn_centre[1 - team]
+	var half := Vector2(enemy.x - home.x, enemy.z - home.z).length() * 0.5
+	var dir := attack_dir[team]
+	var n := points.size()
+	for k in n:
+		# From end 0 the points go first to last, from end 1 last to first (Bot.reset).
+		var q := points[k if end == 0 else n - 1 - k]
+		if Vector2(q.x - home.x, q.z - home.z).dot(dir) >= half:
+			return k + 1
+	return n
 
 
 ## _order = 0..count-1 shuffled (Fisher-Yates on the planner's stream).

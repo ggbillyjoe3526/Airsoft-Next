@@ -21,25 +21,6 @@ acceptance:
 status: open
 attempts: 0
 
-## BN1 · Bot names and personalities
-tier: core
-perf: required
-touches: game/config/bots_file.gd (new), game/ai/, game/loadout/bot_kits.gd, game/play/, data/bots.md, tests/
-contract: Data, not literals (6); Seeded randomness (5)
-acceptance:
-  1. data/bots.md is read when the game starts (the browser game's botsFile.ts): a problem is reported with its line,
-     and a cell it can't read plays as if the personality changed nothing there.
-  2. Every bot has a name from the roster, drawn on a seeded stream of its own, no name twice in a match, and each
-     team gets a mix of personalities while there are enough. A name always plays the same personality.
-  3. Each personality's (×), (+) and yes/no columns change how it plays at its difficulty, never how well. A column
-     whose system isn't built yet (the flag) is read and checked, and named in KNOWN_ISSUES.
-  4. Bot kits lean towards kits whose Suits column names the bot's personality.
-  5. Names show where bots are named today (Dev's bot intentions, the spectate view); whether they show over heads is
-     the owner's call (asked 2026-10-19).
-  6. The balance report adds each personality's share of hits, measured only.
-status: open
-attempts: 0
-
 ## AD1 · Adaptive difficulty (Dev)
 when: build order step 31, after the late features (owner, 2026-10-22)
 tier: core

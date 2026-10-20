@@ -30,7 +30,7 @@ class Slot:
 
 
 ## A kit: its name, its replicas (the primary, then the sidearm if it has one), the personalities it suits (lower case;
-## read and checked, used once bots have personalities) and each difficulty's weight.
+## a bot of one leans towards it) and each difficulty's weight.
 class Plan:
 	extends RefCounted
 	var kit_name: String = ""
@@ -111,23 +111,51 @@ static func parse(text: String, pool: Pool, known: PackedStringArray = PackedStr
 
 
 ## The kit a bot at `difficulty` carries, drawn by the weights from `seed_value` (Seeds.kit_seed) among the kits whose
-## every item `rules` offers (dev gear only with its Dev content on); null (the replicas as they come) when none is
-## weighted above 0.
-func pick(difficulty: StringName, rules: LoadoutRules, seed_value: int) -> Plan:
+## every item `rules` offers (dev gear only with its Dev content on), leaning towards those that suit its `personality`
+## by `lean` (weights); null (the replicas as they come) when none is weighted above 0.
+func pick(difficulty: StringName, rules: LoadoutRules, seed_value: int, personality: StringName = &"",
+		lean: float = 1.0) -> Plan:
 	var candidates: Array[Plan] = []
-	var total := 0.0
 	for k in kits:
 		if k.weights.get(difficulty, 0.0) > 0.0 and offers(rules, k):
 			candidates.append(k)
-			total += k.weights[difficulty]
+	var w := weights(candidates, difficulty, personality, lean)
+	var total := 0.0
+	for x in w:
+		total += x
 	if total <= 0.0:
 		return null
 	var left := Seeds.stream(seed_value).randf() * total
-	for k in candidates:
-		left -= k.weights[difficulty]
+	for i in candidates.size():
+		left -= w[i]
 		if left < 0.0:
-			return k
+			return candidates[i]
 	return candidates[candidates.size() - 1]
+
+
+## The weights a bot at `difficulty` with `personality` (&"": none) picks `candidates` by. A kit whose Suits names it
+## weighs `lean` times its weight against the other kits with Suits, and those kits together keep the weight the table
+## gives them, so a kit with no Suits (the Factory) keeps its chance: the level decides how often a bot carries gear, its
+## personality which. Without a personality, or one no kit suits, the table's weights as they are.
+static func weights(candidates: Array[Plan], difficulty: StringName, personality: StringName, lean: float) \
+		-> PackedFloat64Array:
+	var out := PackedFloat64Array()
+	var total := 0.0
+	var leaned := 0.0
+	for k in candidates:
+		var x: float = k.weights.get(difficulty, 0.0)
+		out.append(x)
+		if not k.suits.is_empty():
+			total += x
+			leaned += x * (lean if k.suits.has(String(personality)) else 1.0)
+	if personality == &"" or leaned == total or leaned <= 0.0:
+		return out
+	var scale := total / leaned
+	for i in candidates.size():
+		var k := candidates[i]
+		if not k.suits.is_empty():
+			out[i] *= (lean if k.suits.has(String(personality)) else 1.0) * scale
+	return out
 
 
 ## Whether `rules` offers everything `plan` holds: each replica playable and each item public, or dev with Dev content.

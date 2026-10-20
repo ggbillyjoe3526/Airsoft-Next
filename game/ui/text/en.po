@@ -21,6 +21,9 @@ msgstr "HIT!"
 msgid "HUD_WALK_OFF"
 msgstr "Hand up, walk off to the dead zone"
 
+msgid "HUD_WATCHING"
+msgstr "Watching %s"
+
 msgid "HUD_RELOADING"
 msgstr "Reloading"
 
@@ -521,6 +524,9 @@ msgstr "In cover"
 
 msgid "DEV_INTENT_SEARCH"
 msgstr "Searching"
+
+msgid "DEV_INTENT_NAMED"
+msgstr "%s · %s"
 
 msgid "MENU_MODE"
 msgstr "MODE"

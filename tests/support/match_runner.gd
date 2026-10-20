@@ -7,8 +7,9 @@ extends RefCounted
 
 const DT := 1.0 / 60.0
 const TICKS_PER_SECOND := 60
-## Held up: a bot walking its lane or hunting (Bot.Mode ADVANCE or SEARCH) that has moved less than HELD_UP_DISTANCE
-## (m) over the last HELD_UP_SECONDS (sampled once a second) counts one episode until it moves on.
+## Held up: a bot that has been walking its lane or hunting (Bot.Mode ADVANCE or SEARCH) at every sample of the last
+## HELD_UP_SECONDS (once a second) and is back within HELD_UP_DISTANCE (m) of where it was then, frozen or going round
+## in a loop, counts one episode until it moves on. A fight or a hold on purpose in between is not held up.
 const HELD_UP_SECONDS := 10
 const HELD_UP_DISTANCE := 0.5
 ## A character that ends a round in play without ever getting this far from its spawn (m) stayed home that round.
@@ -39,6 +40,9 @@ class MatchTally:
 	var seed_value: int = 0
 	## The kit each bot picked, by character id ("" for one carrying its replicas as they come).
 	var kits: PackedStringArray = PackedStringArray()
+	## Each bot's personality (bots.md, &"" for none) and its knock-outs of an opponent, by character id.
+	var personalities: Array[StringName] = []
+	var hits_by: PackedInt32Array = PackedInt32Array()
 	var rounds: Array[RoundTally] = []
 	## A team won the match before the tick limit.
 	var finished: bool = false
@@ -82,6 +86,8 @@ var kitted: bool = true
 ## against another.
 var difficulty: StringName = &"normal"
 var beta_difficulty: StringName = &""
+## Every bot gets a name and personality from data/bots.md as in a match (their kits lean by it); off, none has one.
+var personalities: bool = true
 var _kits: BotKits = null
 var _kit_rules: LoadoutRules = null
 var config: BotConfig = null
@@ -135,9 +141,22 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 		_kits = BotKits.shared()
 		_kit_rules = LoadoutRules.standard()
 	var levels: Dictionary[int, StringName] = {0: difficulty, 1: team_level(1)}
+	var ids := PackedInt32Array()
+	var teams := PackedInt32Array()
 	for i in size * 2:
+		ids.append(i)
+		teams.append(0 if i < size else 1)
+	var identities: Dictionary[int, BotRoster.Identity] = {}
+	if personalities:
+		identities = BotRoster.draw(seed_value, ids, teams, BotsFile.shared())
+	var t := MatchTally.new()
+	for i in size * 2:
+		var who: BotRoster.Identity = identities.get(i)
+		var personality: StringName = who.personality if who != null else &""
+		t.personalities.append(personality)
 		var kit_level := levels[0 if i < size else 1]
-		var plan := _kits.pick(kit_level, _kit_rules, Seeds.kit_seed(seed_value, i)) if kitted else null
+		var plan := _kits.pick(kit_level, _kit_rules, Seeds.kit_seed(seed_value, i), personality,
+				config.kit_suit_lean) if kitted else null
 		kit_names.append(plan.kit_name if plan != null else "")
 		if plan == null:
 			state.characters.append(Character.new(i, 0 if i < size else 1, Vector3.ZERO, 0.0, loadout))
@@ -146,9 +165,9 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 			state.characters.append(Character.new(i, 0 if i < size else 1, Vector3.ZERO, 0.0, kit.replicas,
 					kit.bb_weights))
 		commands.append(PlayerCommand.new())
-	var bots := BotController.new(state, -1, map, nav, level.query(), tuning, config, levels)
-	var t := MatchTally.new()
+	var bots := BotController.new(state, -1, map, nav, level.query(), tuning, config, levels, identities)
 	t.kits = kit_names
+	t.hits_by.resize(state.characters.size())
 	t.map_id = map.id
 	t.seed_value = seed_value
 	t.farthest.resize(state.characters.size())
@@ -158,7 +177,8 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 	var round_start := state.time
 	var limit := roundi(max_seconds / DT)
 	var n := state.characters.size()
-	# Each character's position once a second for the last HELD_UP_SECONDS, and whether it is held up now.
+	# Each character's position once a second for the last HELD_UP_SECONDS (INF where it wasn't on its way), and
+	# whether it is held up now.
 	var trail: Array[PackedVector3Array] = []
 	var held := PackedByteArray()
 	held.resize(n)
@@ -216,6 +236,8 @@ static func count_hit(state: GameState, e: GameEvent, t: MatchTally) -> void:
 		t.self_hits += 1
 	elif shooter.team == target.team:
 		t.friendly_hits += 1
+	elif e.actor < t.hits_by.size():
+		t.hits_by[e.actor] += 1
 
 
 ## A bounced BB that reached someone while ricochets don't count (a RICOCHET_TICK): counted if it was a teammate's.
@@ -236,21 +258,33 @@ func _new_round(state: GameState) -> RoundTally:
 	return r
 
 
-## Once a second: a bot that should be walking (its lane, or a hunt) but has barely moved for HELD_UP_SECONDS starts
-## a held-up episode, which lasts until it moves on.
+## Once a second: a bot held up (held_up_sample) starts a held-up episode, which lasts until it moves on.
 func _watch_held_up(state: GameState, bots: BotController, t: MatchTally, trail: Array[PackedVector3Array],
 		held: PackedByteArray, slot: int) -> void:
 	for c in state.characters:
-		var ring := trail[c.id]
-		var then := ring[slot]
-		ring[slot] = c.position
+		var b := _bot_of(bots, c.id)
 		var mode := bots.mode_of(c.id)
-		var walking := mode == Bot.Mode.ADVANCE or mode == Bot.Mode.SEARCH
-		var still := then != Vector3.INF and c.position.distance_to(then) < HELD_UP_DISTANCE
-		var now := 1 if Elimination.is_in_play(c) and state.round_state.is_live() and walking and still else 0
+		var walking := (mode == Bot.Mode.ADVANCE or mode == Bot.Mode.SEARCH) \
+				and not (b != null and holding_on_purpose(b, bots.world.time))
+		var on_way := Elimination.is_in_play(c) and state.round_state.is_live() and walking
+		var now := 1 if held_up_sample(trail[c.id], slot, c.position, on_way) else 0
 		if now == 1 and held[c.id] == 0:
 			t.held_up += 1
 		held[c.id] = now
+
+
+## Records this second's sample in `ring` (one a second for HELD_UP_SECONDS; INF for a second it wasn't on its way) at
+## `slot`, and whether it is held up now: on its way at every sample and back within HELD_UP_DISTANCE of the place
+## HELD_UP_SECONDS ago.
+static func held_up_sample(ring: PackedVector3Array, slot: int, position: Vector3, on_way: bool) -> bool:
+	var then := ring[slot]
+	ring[slot] = position if on_way else Vector3.INF
+	if not on_way or then == Vector3.INF:
+		return false
+	for p: Vector3 in ring:
+		if p == Vector3.INF:
+			return false
+	return position.distance_to(then) < HELD_UP_DISTANCE
 
 
 ## The tick's heights, air time and distances from spawn, for everyone still in play. Distances only while the round
@@ -271,3 +305,17 @@ func _watch(state: GameState, t: MatchTally, r: RoundTally) -> void:
 		var away := Vector2(c.position.x - c.spawn_position.x, c.position.z - c.spawn_position.z).length()
 		t.farthest[c.id] = maxf(t.farthest[c.id], away)
 		r.farthest[c.id] = maxf(r.farthest[c.id], away)
+
+
+## Standing still on purpose, not held up: an anchor settled at its post (bots.md › Holds until), a bot watching where
+## someone ducked out of sight (Watch where you ducked), or one pausing at a lane point or waiting there for its team
+## (holding this tick, on its lane).
+static func holding_on_purpose(b: Bot, time: float) -> bool:
+	return b.at_post or time < b.watch_until or (b.mode == Bot.Mode.ADVANCE and b.holding)
+
+
+static func _bot_of(bots: BotController, id: int) -> Bot:
+	for b in bots.world.bots:
+		if b.character.id == id:
+			return b
+	return null

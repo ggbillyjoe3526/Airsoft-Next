@@ -1,7 +1,7 @@
 class_name BotIntentView
 extends Node3D
-## The Dev settings' Bot intentions: a small label over each bot in play saying what it is doing (advancing, fighting,
-## in cover, searching), read from the bots' controller each frame. Built only while it is on; a label's text is set
+## The Dev settings' Bot intentions: a small label over each bot in play with its name and what it is doing (advancing,
+## fighting, in cover, searching), read from the bots' controller each frame. Built only while it is on; a label's text is set
 ## only when its bot's mode changes.
 
 ## Over the eyes (m), as the browser game's DEV_BOT_INTENT; the label's font size, and its size per pixel at a metre
@@ -49,7 +49,8 @@ func update(state: GameState, fraction: float) -> void:
 		var mode := _bots.mode_of(c.id)
 		if mode != _shown[i] and mode >= 0 and mode < MODE_KEYS.size():
 			_shown[i] = mode
-			l.text = tr(MODE_KEYS[mode])
+			var bot_name := _bots.name_of(c.id)
+			l.text = tr(MODE_KEYS[mode]) if bot_name == "" else tr("DEV_INTENT_NAMED") % [bot_name, tr(MODE_KEYS[mode])]
 		var feet := c.prev_position.lerp(c.position, fraction)
 		var eye := Character.eye_height(lerpf(c.prev_crouch_amount, c.crouch_amount, fraction), _body)
 		l.position = feet + Vector3(0.0, eye + ABOVE_EYES, 0.0)

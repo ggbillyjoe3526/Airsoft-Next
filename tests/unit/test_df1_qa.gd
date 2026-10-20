@@ -25,7 +25,11 @@ func test_the_player_on_beta_gets_the_teammate_level_and_alpha_the_picked_one() 
 	var config := BotConfig.load_default()
 	for b in s._bots.world.bots:
 		var want := &"normal" if b.character.team == PlaySession.TEAM_BETA else &"easy"
-		assert_same(b.skill, config.skill_for(want), "character %d" % b.character.id)
+		# Its level's skill, under its personality (BN1): a personality changes how it plays, never how well.
+		var level_skill := config.skill_for(want)
+		assert_eq(b.skill.reaction_time, level_skill.reaction_time, "character %d" % b.character.id)
+		assert_eq(b.skill.aim_error_settled_deg, level_skill.aim_error_settled_deg, "character %d" % b.character.id)
+		assert_eq(b.skill.turn_rate, level_skill.turn_rate, "character %d" % b.character.id)
 
 
 func test_every_level_skill_field_matches_the_browser_game() -> void:

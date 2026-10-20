@@ -143,6 +143,16 @@ var watch_until: float = -INF
 ## Team play: when it heard a teammate's hit call (to trade), and whether it has tried for cover to trade from.
 var trade_at: float = -INF
 var trade_tried: bool = false
+## Who it is this match (BotRoster): its name ("" without one) and the personality it plays (BotsFile), laid over its
+## skill once (BotPersonality.personal_skill); the neutral style for a bot without one.
+var bot_name: String = ""
+var personality: StringName = &""
+var style: BotsFile.Style = BotsFile.neutral()
+## Settled at its post (an anchor's last lane point) since last tick: whether to crouch there is chosen on arrival.
+var at_post: bool = false
+## Pushing in: whether a step forward keeps the target in sight, looked at once a sidestep or for a new target.
+var push_in_sight: bool = false
+var push_look_for: int = -1
 
 
 func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: int) -> void:
@@ -219,6 +229,8 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	watch_until = -INF
 	trade_at = -INF
 	trade_tried = false
+	at_post = false
+	push_look_for = -1
 
 
 func forget_target() -> void:

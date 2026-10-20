@@ -1,33 +1,33 @@
 # Bots: names and personalities
 
 Who the bots are and how each kind plays: every bot's name and personality, and what each personality changes. Read
-it to add a name, or to make a personality play differently. What each personality carries comes with the bot gear
-table (Dev 6 item 23), not here.
+it to add a name, or to make a personality play differently. What each personality tends to carry is the Suits column
+of [bot-kits.md](bot-kits.md), not here.
 
 **The game reads this file**, as it reads [pool.md](pool.md) and [stats.md](stats.md): it is bundled into the build
-and parsed when the game starts (`src/config/botsFile.ts`, `src/config/botPersonalities.ts`). Change a name or a
-number, run the game, and it changes. After editing, run `npm run test`: `src/config/botsFile.test.ts` reads this file
-and fails with the line number of anything it can't understand. A cell the game can't read plays as if the
-personality changed nothing there, with a warning in the browser console, so a typo never stops the game from
-starting.
+and parsed when the game starts (`game/config/bots_file.gd`). Change a name or a number, run the game, and it changes.
+After editing, run `tools/check.sh`: `tests/unit/test_bots_file.gd` reads this file and fails with the line number of
+anything it can't understand. A cell the game can't read plays as if the personality changed nothing there, with a
+warning in Godot's output, so a typo never stops the game from starting.
 
 A personality changes how a bot plays, never how well: its reaction, turning and aim stay its difficulty's
-(`src/config/bots.ts`).
+(`game/config/bot_tuning.tres`).
 
 ---
 
 ## How to read and edit this file
 
 - **Names.** Each name always plays the same personality, so you learn who to watch. A match gives every bot a
-  different name, and each team gets different personalities while there are enough. Keep names short (they sit over
-  heads and in the hit feed: 12 characters at most), friendly and made up: no real people and no brands.
+  different name, and each team gets different personalities while there are enough. Keep names short (they show in the
+  hit feed and when you spectate: 12 characters at most), friendly and made up: no real people and no brands.
 - **A new personality** is a row in every table below with the same name in its first column, and at least one name
   in the Roster. What each column does is coded; a new kind of behaviour needs code first.
 - **(×) columns** multiply the difficulty's number: 1 changes nothing, below 1 is less, above 1 more. **(+) columns**
   add to it (a chance from 0 to 1). **(s)** is seconds, a range written `1.5–3`.
 - **Yes, no or –.** Yes turns a habit on, no turns it off, and – leaves it as the difficulty plays it (off where the
   difficulty has no such habit).
-- **Card note.** The line the "What got you" card adds about the bot that hit you; `{name}` is the bot's name.
+- **Card note.** The line the "What got you" card adds about the bot that hit you; `{name}` is the bot's name. Read
+  and checked now; it shows once the card is built.
 
 ### What the columns do
 
@@ -50,14 +50,14 @@ A personality changes how a bot plays, never how well: its reaction, turning and
 - **Holds until (s left).** In Elimination it walks its lane only to the last point short of the middle and holds
   there, from crouch cover when there is some, going after noises only nearby; it moves on once the round clock is
   down to this or it is the last of its team in play. – never holds.
-- **Aims from cover.** Standing still to fight or hold, it raises its sight; over a ledge or crate the replica rests
-  on it (steadier, as yours does).
+- **Aims from cover.** Standing still to fight or hold, it raises its sight.
 - **Holds angles.** Holding still, it aims at the corners and doorways someone would step out of.
 - **Slices corners.** Near the enemy it walks and aims at each corner as it opens, and tops up its magazine from
   cover.
 - **Watches the flag first (s).** In Elimination's overtime it first holds cover near the flag for this long, aiming at
   it, before it goes in to touch it; it goes at once when it is the last of its team in play, and every bot goes in
   for the overtime's last seconds. – goes straight for the flag. The column can be left out: then nobody watches first.
+  Read and checked now; it plays once the overtime flag is built.
 
 ## Roster
 

@@ -14,9 +14,12 @@ const GLANCE_OUT := 0.5698402909980532
 ## Moves per mode. Returns whether the bot walks (direction in b.move_dir). `target`: whom it fights.
 static func move(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float, target: Character) -> bool:
 	b.holding = false
+	# Any tick not spent settled at its post (_advance sets it again) ends the hold there: the next is a fresh one.
+	var at_post := b.at_post
+	b.at_post = false
 	match b.mode:
 		Bot.Mode.ADVANCE:
-			return _advance(b, w, dt)
+			return _advance(b, w, dt, at_post)
 		Bot.Mode.SEARCH:
 			return _search(b, w, cmd, dt)
 		Bot.Mode.COVER:
@@ -129,8 +132,8 @@ static func keep_apart(b: Bot, w: BotWorld, moving: bool, cmd: PlayerCommand) ->
 
 
 ## Advance: lane points with a pause (and maybe crouch cover) at each, waiting for the team where it got ahead, then
-## hunting.
-static func _advance(b: Bot, w: BotWorld, dt: float) -> bool:
+## hunting; an anchor holds its last point instead until its time (`at_post`: it was settled there last tick).
+static func _advance(b: Bot, w: BotWorld, dt: float, at_post: bool = false) -> bool:
 	var cfg := w.cfg
 	if b.hold_left > 0.0:
 		b.hold_left -= dt
@@ -138,9 +141,10 @@ static func _advance(b: Bot, w: BotWorld, dt: float) -> bool:
 		b.holding = true
 		return false
 	# At a lane point well ahead of the team: wait for them to catch up. Moving in pairs (team play): also while a lane
-	# partner nearby is on the move (for up to bound_wait_max), so one covers while the other moves.
-	var waiting := (b.team_wait < cfg.team_wait_max and w.planner.ahead_of_team(b, w)) \
-			or (b.skill.team_play and b.team_wait < cfg.bound_wait_max and _partner_moving(b, w))
+	# partner nearby is on the move (for up to bound_wait_max), so one covers while the other moves. A personality that
+	# never waits for the team goes on.
+	var waiting := b.style.waits_for_team and ((b.team_wait < cfg.team_wait_max and w.planner.ahead_of_team(b, w))
+			or (b.skill.team_play and b.team_wait < cfg.bound_wait_max and _partner_moving(b, w)))
 	if b.wait_for_team and waiting:
 		b.team_wait += dt
 		b.holding = true
@@ -153,6 +157,10 @@ static func _advance(b: Bot, w: BotWorld, dt: float) -> bool:
 		if b.route_state == Bot.RouteState.WANTED:
 			return false
 		b.hold_cover = false
+		if BotPersonality.anchor_holding(b, w):
+			# An anchor's post is the cover by its last lane point: it holds there (_next_goal gives it no goal).
+			BotRoutes.drop(b)
+			return false
 		_start_hold(b, w)
 		b.route_state = Bot.RouteState.NONE
 		BotRoutes.want(b, b.lane_goal, cfg)
@@ -170,6 +178,8 @@ static func _advance(b: Bot, w: BotWorld, dt: float) -> bool:
 				w.mark_visited(b.character.team, b.route_goal)
 		var reached := BotRoutes.arrived(b)
 		if not _next_goal(b, w):
+			if BotPersonality.anchor_holding(b, w):
+				_hold_post(b, w, dt, reached, at_post)
 			return false
 		if reached and not b.hunting:
 			if _pick_hold_cover(b, w):
@@ -195,6 +205,9 @@ static func _next_goal(b: Bot, w: BotWorld) -> bool:
 			b.lane_index = next
 			b.lane_goal = _jitter(b, w, lane[next], w.cfg.lane_jitter)
 			return true
+	# An anchor holds its last point, short of the middle, until late in the round; then it hunts.
+	if BotPersonality.anchor_holding(b, w):
+		return false
 	b.hunting = true
 	return _pick_hunt(b, w)
 
@@ -238,6 +251,24 @@ static func _jitter(b: Bot, w: BotWorld, point: Vector3, radius: float) -> Vecto
 static func _on_same_floor(w: BotWorld, point: Vector3, x: float, z: float) -> bool:
 	var at := Vector3(x, point.y, z)
 	return w.nav.is_walkable_at(at) and absf(w.nav.floor_at(at) - point.y) <= w.tuning.body.max_step
+
+
+## An anchor at its last lane point: just come to it, it may step into crouch cover by it (as at any lane point) and
+## hold from there; else it holds where it stands, crouched if crouched eyes still see the enemy side (chosen once, on
+## arrival: `at_post`, it was here last tick too).
+static func _hold_post(b: Bot, w: BotWorld, dt: float, arrived: bool, at_post: bool) -> void:
+	if arrived:
+		# The route walked is done with, so it isn't "arrived" again next tick: one look per arrival.
+		BotRoutes.drop(b)
+		if _pick_hold_cover(b, w):
+			b.hold_cover = true
+			BotRoutes.want(b, b.hold_spot.position, w.cfg)
+			return
+	if not at_post:
+		b.hold_crouch = _crouched_view_clear(b, w, b.character.position)
+	b.at_post = true
+	b.holding = true
+	b.team_wait += dt
 
 
 ## The pause at the lane point just reached: how long, whether to wait for the team, whether to crouch.
@@ -331,11 +362,23 @@ static func _forget_search(b: Bot, w: BotWorld) -> void:
 static func _strafe(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float, target: Character) -> void:
 	var cfg := w.cfg
 	b.strafe_left -= dt
-	if b.strafe_left <= 0.0:
+	var new_step := b.strafe_left <= 0.0
+	if new_step:
 		b.strafe_left = b.pick(cfg.strafe_time)
 		b.strafe_dir = -1 if b.rng.randf() < 0.5 else 1
+	# Pushing in (a personality's habit): whether a step forward keeps the target in sight is looked at once a sidestep
+	# or for a new target; whether the ground ahead is there, every tick.
+	var pusher := target != null and BotPersonality.pushes_in(b)
+	if pusher and (new_step or b.push_look_for != target.id):
+		b.push_in_sight = not _step_blocked(b, w, 0.0, 1.0, target)
+		b.push_look_for = target.id
 	if _step_blocked(b, w, b.strafe_dir, 0.0, target):
 		b.strafe_dir = -b.strafe_dir
+	# It closes in as it sidesteps, until push_distance from its target.
+	if pusher and b.push_in_sight and Vector2(target.position.x - b.character.position.x,
+			target.position.z - b.character.position.z).length() > cfg.push_distance \
+			and not _step_off_ground(b, w, 0.0, 1.0):
+		cmd.forward = cfg.strafe_input
 	if not _step_blocked(b, w, b.strafe_dir, 0.0, target):
 		cmd.right = b.strafe_dir * cfg.strafe_input
 	elif not _step_blocked(b, w, 0.0, b.strafe_dir, target):
