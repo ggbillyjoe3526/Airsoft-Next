@@ -53,6 +53,9 @@ var mode: String = MatchOptions.MODE_ELIMINATION
 var difficulty: StringName = &"normal"
 ## Your teammates' difficulty; &"" follows the other team's (BotConfig.teammates_following).
 var teammate_difficulty: StringName = &""
+## The Custom rule set's switches the match plays; null plays Skirmish, the tuning as it is. A Custom match never goes
+## into the records and its XP is capped (MatchXp).
+var custom_rules: CustomRules = null
 ## True: a finished match gives XP and goes into the records (the game's own match; tests and the smoke test leave it
 ## off, so they never touch the player's progress).
 var counts: bool = false
@@ -152,6 +155,8 @@ func _build_step() -> void:
 
 func _load_map() -> void:
 	_tuning = SimTuning.load_default()
+	if custom_rules != null:
+		_tuning = custom_rules.applied_to(_tuning)
 	_play = PlayTuning.load_default()
 	_map = MapData.load_map(map_id, _play.map_style, _tuning.rounds.team_size)
 	_ui = CanvasLayer.new()
@@ -727,8 +732,11 @@ func teammates_level() -> StringName:
 
 ## Whether a finished match goes into the records (the browser game's countsForRecords): the records are per the other
 ## team's difficulty, so your teammates must be at its level or the one they follow by default; Hard opponents with
-## Easy teammates would mix an easier match into Hard's record. A match with no teammates always counts.
+## Easy teammates would mix an easier match into Hard's record. A match with no teammates always counts; a Custom one
+## never does.
 func counts_for_records() -> bool:
+	if custom_rules != null:
+		return false
 	if _tuning != null and _tuning.rounds.team_size <= 1:
 		return true
 	var mates := teammates_level()
@@ -741,7 +749,7 @@ func _settle() -> void:
 	var records := Records.shared()
 	var mates := teammates_level() if _tuning.rounds.team_size > 1 else &""
 	var s := _tally.settle(progress, records if counts_for_records() else null, state.off_record or _kit_unlocked_all,
-			player_team, _tuning.rounds.wins_needed, mode, difficulty, mates)
+			player_team, _tuning.rounds.wins_needed, mode, difficulty, mates, custom_rules != null)
 	if s == null:
 		return
 	progress.save_if_dirty()

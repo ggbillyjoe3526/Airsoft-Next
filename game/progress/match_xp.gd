@@ -2,8 +2,8 @@ class_name MatchXp
 extends RefCounted
 ## What a finished match gives (the browser game's progress/xp.ts), by levels.md's XP tables: Match played, Match won and
 ## each Round won scaled to the match's length (rounds to win ÷ 5, at most 1), each hit on an opponent, then the lower of
-## the two teams' difficulty multipliers. A round sat out gives nothing (PlayerTally counts only those you took part
-## in). Pure.
+## the two teams' difficulty multipliers, held to the Custom row's in a Custom match. A round sat out gives nothing
+## (PlayerTally counts only those you took part in). Pure.
 
 ## The standard match's rounds to win: Match played, Match won and Round won are given in full from here on.
 const FULL_MATCH_WINS := 5
@@ -22,6 +22,8 @@ class Outcome:
 	## The opponents' difficulty, and your teammates' (&"" with none: the opponents' alone counts).
 	var difficulty: StringName = &"normal"
 	var teammate_difficulty: StringName = &""
+	## Played under the Custom rule set: the multiplier is at most LevelTable.CUSTOM's.
+	var custom: bool = false
 
 
 ## One line of a match's XP: what it was for (LevelTable.DEFAULT_EARN's keys), how many, and its XP before the
@@ -56,6 +58,8 @@ static func earned(table: LevelTable, o: Outcome) -> Earned:
 	e.multiplier = table.multiplier(o.difficulty)
 	if o.teammate_difficulty != &"":
 		e.multiplier = minf(e.multiplier, table.multiplier(o.teammate_difficulty))
+	if o.custom:
+		e.multiplier = minf(e.multiplier, table.multiplier(LevelTable.CUSTOM))
 	var sum := 0
 	for l in e.lines:
 		sum += l.xp

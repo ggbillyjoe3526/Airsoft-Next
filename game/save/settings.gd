@@ -51,6 +51,8 @@ var realistic_colours: bool = false
 var what_got_you: WhatGotYou = WhatGotYou.AUTO
 ## The HUD tab's choices: the crosshair, the hit marker, the ammo counter, the hit feed and the panels' opacity.
 var hud: HudPrefs = HudPrefs.new()
+## The Custom rule set's switches, kept between Custom matches (the Match screen picks Skirmish or Custom).
+var custom_rules: CustomRules = CustomRules.new()
 ## The Dev settings box, and the Dev tab's switches (kept while the box is off; they apply only while it is ticked).
 var dev_enabled: bool = false
 var dev: DevSettings = DevSettings.new()
@@ -125,7 +127,7 @@ func to_dict() -> Dictionary:
 		"crouch_toggle": crouch_toggle, "aim_toggle": aim_toggle, "mouse_dpi": mouse_dpi,
 		"bindings": bindings.to_dict(), "volumes": vol, "window_mode": int(window_mode), "vsync": vsync,
 		"fov": fov, "show_fps": show_fps, "realistic_colours": realistic_colours, "what_got_you": int(what_got_you),
-		"hud": hud.to_dict(), "dev_enabled": dev_enabled, "dev": dev.to_dict(),
+		"hud": hud.to_dict(), "custom_rules": custom_rules.to_dict(), "dev_enabled": dev_enabled, "dev": dev.to_dict(),
 	}
 
 
@@ -151,6 +153,8 @@ func from_dict(data: Dictionary) -> void:
 	what_got_you = roundi(_number(data, "what_got_you", WhatGotYou.AUTO, 0.0, WhatGotYou.size() - 1.0)) as WhatGotYou
 	var saved_hud: Variant = data.get("hud")
 	hud.from_dict(saved_hud if saved_hud is Dictionary else {})
+	var saved_rules: Variant = data.get("custom_rules")
+	custom_rules.from_dict(saved_rules if saved_rules is Dictionary else {})
 	dev_enabled = _flag(data, "dev_enabled", false)
 	var saved_dev: Variant = data.get("dev")
 	dev.from_dict(saved_dev if saved_dev is Dictionary else {})
