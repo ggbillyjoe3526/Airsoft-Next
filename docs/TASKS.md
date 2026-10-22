@@ -22,20 +22,6 @@ acceptance:
 status: open
 attempts: 0
 
-## RG2 · The timed challenge's rules and its best
-tier: core
-perf: required
-touches: game/sim/range_challenge.gd, game/sim/game_state.gd, game/sim/game_event.gd, game/sim/simulation.gd,
-  game/config/range_config.gd, game/config/sim_tuning.tres, game/progress/records.gd, tests/unit/
-contract: Events (3); Seeded randomness (5); Data, not literals (6); Saves (8)
-acceptance:
-  1. Off, ready, countdown and running as rangeChallenge.ts with RANGE_CHALLENGE's numbers; cues are CHALLENGE events;
-     switching off drops a run.
-  2. A run's end raises Records' best for its course, never with a cheat on since START; old records files load.
-  3. The browser's rangeChallenge tests pass in GUT; a running tick allocates nothing.
-status: open
-attempts: 0
-
 ## RG4 · Practice on the Match screen, its HUD and pause menu
 tier: ui
 perf: optional
