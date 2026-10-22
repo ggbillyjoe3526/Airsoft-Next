@@ -192,3 +192,9 @@ func test_every_map_file_names_a_known_ambience_or_none() -> void:
 		assert_eq(m.warnings.filter(func(w: String) -> bool: return w.begins_with("ambience")), [], file)
 		assert_true(AmbienceConfig.known(m.ambience), file)
 
+
+func test_a_set_left_null_in_the_config_plays_the_default() -> void:
+	var a := AmbienceConfig.new()
+	a.day[&"woods"] = null
+	a.day[AmbienceConfig.DEFAULT_ID] = AmbienceSet.new()
+	assert_same(a.set_for(&"woods", false), a.day[AmbienceConfig.DEFAULT_ID])

@@ -24,9 +24,9 @@ static func known(ambience: StringName) -> bool:
 ## empty set (with a warning) when that is missing too.
 func set_for(ambience: StringName, at_night: bool) -> AmbienceSet:
 	var sets: Dictionary[StringName, AmbienceSet] = night if at_night else day
-	if sets.has(ambience):
+	if sets.get(ambience) != null:
 		return sets[ambience]
-	if sets.has(DEFAULT_ID):
+	if sets.get(DEFAULT_ID) != null:
 		return sets[DEFAULT_ID]
 	push_warning("AmbienceConfig: no %s set for %s or %s" % ["night" if at_night else "day", ambience, DEFAULT_ID])
 	return AmbienceSet.new()
