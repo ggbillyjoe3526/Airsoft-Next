@@ -121,7 +121,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _orders_allowed and _order_key(event):
 		return
 	if event.is_action(ORDER_WHEEL):
-		_open_wheel()
+		if not _wheel.open: # a second key bound to the wheel doesn't recentre it
+			_open_wheel()
 	elif event.is_action(FIRE):
 		_fire_latch = true
 	elif event.is_action(AIM) and _controls.aim_toggle:
