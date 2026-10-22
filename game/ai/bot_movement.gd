@@ -279,6 +279,7 @@ static func _next_goal(b: Bot, w: BotWorld) -> bool:
 		if next >= 0 and next < lane.size() and walked < b.lane_points:
 			b.lane_index = next
 			b.lane_goal = _jitter(b, w, lane[next], w.cfg.lane_jitter)
+			_stagger_hold(b, w)
 			return true
 	# Attack / Defend: a defender holds its last point; an attacker goes for the pole (BotFlag.wants_flag).
 	match BotFlag.role(b, w):
@@ -292,6 +293,94 @@ static func _next_goal(b: Bot, w: BotWorld) -> bool:
 		return false
 	b.hunting = true
 	return _pick_hunt(b, w)
+
+
+## Defenders sharing a lane (Attack / Defend): with a teammate holding at (or heading to hold at) about b.lane_goal, the
+## goal moves lane_hold_offset to one side, across the way to the enemy (a random side first, onto its own floor), so
+## the two hold side by side, not one inside the other. A defender that plays as a team sets a crossfire instead, if it
+## can. (The browser game staggers every bot's lane points; here only defenders', who stop on them.)
+static func _stagger_hold(b: Bot, w: BotWorld) -> void:
+	if BotFlag.role(b, w) != BotFlag.Role.DEFEND:
+		return
+	var cfg := w.cfg
+	var g := b.lane_goal
+	var mate := Vector3.INF
+	for o in w.bots:
+		if o == b or o.character.team != b.character.team or not Elimination.is_in_play(o.character):
+			continue
+		var p := o.character.position
+		if Vector2(p.x - g.x, p.z - g.z).length() < cfg.lane_hold_spacing:
+			mate = p
+			break
+		var heading := o.mode == Bot.Mode.ADVANCE and not o.hunting and o.lane == b.lane
+		if heading and Vector2(o.lane_goal.x - g.x, o.lane_goal.z - g.z).length() < cfg.lane_hold_spacing:
+			mate = o.lane_goal
+			break
+	if mate == Vector3.INF:
+		return
+	if b.skill.team_play and _crossfire_spot(b, w, mate):
+		return
+	var yaw := w.enemy_yaw(b.character.team)
+	# The view's right on the ground is (cos yaw, 0, -sin yaw).
+	var side := 1.0 if b.rng.randf() < 0.5 else -1.0
+	for k in 2:
+		var x := g.x + cos(yaw) * cfg.lane_hold_offset * side
+		var z := g.z - sin(yaw) * cfg.lane_hold_offset * side
+		if _on_same_floor(w, g, x, z):
+			b.lane_goal = Vector3(x, g.y, z)
+			return
+		side = -side
+
+
+## Crossfire: moves b.lane_goal round the lane's next point (the choke towards the attackers) by crossfire_turn_deg, at
+## the same distance from it, to the first spot on its floor that sees the choke at head height from an angle at least
+## crossfire_min_deg away from `mate`'s. False (goal unchanged) if the lane has no next point or no spot will do.
+static func _crossfire_spot(b: Bot, w: BotWorld, mate: Vector3) -> bool:
+	var cfg := w.cfg
+	if b.lane < 0 or b.lane >= w.lanes.size():
+		return false
+	var lane := w.lanes[b.lane]
+	var at := b.lane_index + b.lane_dir
+	if at < 0 or at >= lane.size():
+		return false
+	var choke := lane[at]
+	var g := b.lane_goal
+	var dx := g.x - choke.x
+	var dz := g.z - choke.z
+	if Vector2(dx, dz).length() < 1e-6:
+		return false
+	var eye_up := w.tuning.body.stand_eye_height
+	var choke_eye := Vector3(choke.x, choke.y + eye_up, choke.z)
+	var mate_yaw := atan2(mate.x - choke.x, mate.z - choke.z)
+	var least := cfg.crossfire_turn_deg.x
+	var most := cfg.crossfire_turn_deg.y
+	for k in 3:
+		var turn := deg_to_rad(least + (most - least) * k / 2.0)
+		for j in 2:
+			var side := 1.0 if j == 0 else -1.0
+			var c := cos(turn * side)
+			var s := sin(turn * side)
+			var x := choke.x + dx * c + dz * s
+			var z := choke.z - dx * s + dz * c
+			if not _on_same_floor(w, g, x, z):
+				continue
+			if absf(angle_difference(mate_yaw, atan2(x - choke.x, z - choke.z))) < deg_to_rad(cfg.crossfire_min_deg):
+				continue
+			var floor_y := w.nav.floor_at(Vector3(x, g.y, z))
+			if not BotSenses.line_clear(w.query, Vector3(x, floor_y + eye_up, z), choke_eye):
+				continue
+			b.lane_goal = Vector3(x, floor_y, z)
+			return true
+	return false
+
+
+## True if a teammate bot in play walks or holds `b`'s lane too (not hunting).
+static func _lane_shared(b: Bot, w: BotWorld) -> bool:
+	for o in w.bots:
+		if o != b and o.character.team == b.character.team and o.lane == b.lane and o.mode == Bot.Mode.ADVANCE \
+				and not o.hunting and Elimination.is_in_play(o.character):
+			return true
+	return false
 
 
 ## True if the lane point `b` last reached is the last it walks (b.lane_points).
@@ -380,8 +469,12 @@ static func _crouched_view_clear(b: Bot, w: BotWorld, at: Vector3) -> bool:
 
 
 ## At a lane point, maybe (the skill's hold_cover_chance) crouch cover close by to hold from: hidden from a point
-## hold_cover_threat_distance towards the enemy, off teammates' spots. False to hold where it stands.
+## hold_cover_threat_distance towards the enemy, off teammates' spots. False to hold where it stands (always, for a
+## defender that plays as a team on a shared lane: it holds its crossfire point).
 static func _pick_hold_cover(b: Bot, w: BotWorld) -> bool:
+	# Two defenders that play as a team sharing a lane hold their crossfire points, not cover beside them.
+	if b.skill.team_play and BotFlag.role(b, w) == BotFlag.Role.DEFEND and _lane_shared(b, w):
+		return false
 	if b.rng.randf() >= b.skill.hold_cover_chance:
 		return false
 	var cfg := w.cfg

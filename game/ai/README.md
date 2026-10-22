@@ -25,7 +25,8 @@ it searches where it was last seen or heard, sometimes flanking.
 In Attack / Defend (`BotFlag`) the attackers walk their lanes just past the middle, then make for the pole: the nearest
 raises the flag, crouched at the rope, while the others guard it from crouch cover near by. The defenders hold their
 lane's first or second point, go after only what they see or hear near the pole, and the two nearest pull the flag down
-once it is off the bottom.
+once it is off the bottom. Two defenders at one point stand side by side, or, playing as a team (Pro), in a crossfire
+on the lane's next point.
 
 Each team plays at its level (`BotConfig.skill_for`: Easy, Normal, Hard, Pro). Pro is careful, not twitchier: holding,
 it aims at the corners someone would step out of (`BotAngles`) and answers someone appearing there sooner; near the
@@ -60,5 +61,5 @@ routes.
 
 ## Not yet
 
-No callouts or squad orders, no crossfires or staggered holds on defence (Pro team play) and no magazine sharing
+No callouts or squad orders and no magazine sharing
 (docs/KNOWN_ISSUES.md).

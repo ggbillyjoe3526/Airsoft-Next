@@ -97,6 +97,10 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## Lane points move up to this far at random (m, onto walkable ground on their floor), in this many tries.
 @export var lane_jitter: float = 1.2
 @export var lane_jitter_tries: int = 6
+## Bots sharing a lane: a lane point with a teammate holding there (or heading there to hold) within lane_hold_spacing
+## (m) moves lane_hold_offset (m) to one side, across the way to the enemy, so the two hold side by side.
+@export var lane_hold_spacing: float = 1.5
+@export var lane_hold_offset: float = 1.0
 ## A bot more than this far ahead (m, towards the enemy) of its rearmost bot teammate waits at lane points, for at most
 ## team_wait_max (s) a point.
 @export var team_spread: float = 7.0
@@ -236,6 +240,12 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## bound_wait_max (s), so one covers while the other goes.
 @export var bound_distance: float = 15.0
 @export var bound_wait_max: float = 8.0
+## Crossfire (Attack / Defend): of two defenders at one lane point, the second holds as far from the lane's next point
+## (the choke) as its own point, swung round the choke by crossfire_turn_deg (degrees: the smaller end, the middle, then
+## the larger, either way), on the same floor with a clear view of the choke, so the two see it from angles at least
+## crossfire_min_deg apart.
+@export var crossfire_turn_deg: Vector2 = Vector2(35.0, 65.0)
+@export var crossfire_min_deg: float = 30.0
 ## With this many seconds left or fewer and fewer of its team in play than of the other, it stops holding its lane and
 ## goes looking for them.
 @export var late_push_time: float = 30.0
