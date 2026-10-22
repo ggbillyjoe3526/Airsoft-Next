@@ -25,6 +25,7 @@ enum Kind {
 	HOLSTER, ## actor put the replica in slot away.
 	FLAG_ROPE, ## Attack / Defend's flag passed a rope step at position (the pole), value 1 going up, 0 coming down.
 	TARGET_HIT, ## actor's BB hit range target at position along direction; value: its RangeTarget.Kind; value2 1: bounced.
+	CHALLENGE, ## the timed challenge's cue value (RangeChallenge.Cue) for actor (the player); value2: a count's seconds left.
 }
 
 ## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.

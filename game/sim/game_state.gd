@@ -17,6 +17,8 @@ var rng: RandomNumberGenerator = null
 var round_state: RoundState = null
 ## The practice range's targets (RangeTargets.create from the map's specs); empty in a match.
 var targets: Array[RangeTarget] = []
+## The practice range's timed challenge on those targets: off until switched on (RangeChallenge.set_on).
+var challenge: RangeChallenge = RangeChallenge.new()
 ## Matches started on this state (a rematch is the next), and the breeze of the one being played: still air until the
 ## first starts.
 var match_number: int = 0
