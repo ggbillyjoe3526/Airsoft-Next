@@ -294,3 +294,44 @@ func test_attack_defend_stamps_the_match_with_your_team_first_and_shows_the_summ
 	assert_eq(session.hud().banner_text().get_slice(" / ", 0), "LOST")
 	assert_string_contains(session.hud().banner_text(), "%s 4 – 5 %s" % [you, them])
 	assert_eq(session.hud().summary().table().lines().size(), session.state.characters.size())
+
+
+# --- attempt 2: the score bar and feed make way; the not-counted note beside the heading ---
+
+func test_the_score_bar_and_feed_make_way_for_the_summary_and_come_back_on_the_next_match() -> void:
+	session = _session(&"normal")
+	await wait_physics_frames(2)
+	session.counts = false
+	var hud := session.hud()
+	_end_match_table_up(0)
+	assert_true(hud._top.visible and hud.feed().visible, "up while the last round's table holds the results")
+	session._move_on()
+	hud.update(session.state, 1.0, 0.0)
+	assert_false(hud._top.visible, "the score bar makes way")
+	assert_false(hud.feed().visible, "the feed makes way")
+	session._start_now()
+	_tick([K.ROUND_START], -1, -1, 1)
+	hud.update(session.state, 1.0, 0.0)
+	assert_true(hud._top.visible, "the score bar is back in the next match")
+	assert_true(hud.feed().visible, "the feed is back in the next match")
+	assert_true(hud._bottom.visible and hud._replica.visible)
+
+
+func test_the_longest_heading_with_the_not_counted_note_stays_on_the_screen() -> void:
+	session = _session(&"normal")
+	await wait_physics_frames(2)
+	session.counts = false
+	_end_match(0)
+	var hud := session.hud()
+	hud.summary().set_records(Records.new(), PackedInt32Array([1, 2]), null,
+			tr("SUM_RECORDS") % [tr("BOT_NORMAL"), tr("MODE_ATTACK_DEFEND")])
+	hud.size = Vector2(1920.0, 1080.0)
+	for i in 4:
+		await wait_process_frames(1)
+	var side := hud.summary()._side.get_global_rect()
+	gut.p("records %s side %s" % [hud.summary().records().get_global_rect(), side])
+	assert_true(side.end.x <= hud.size.x, "the column (to %.0f) stays on the screen" % side.end.x)
+	var words: Array[String] = []
+	for l in hud.summary().records().find_children("*", "Label", true, false):
+		words.append((l as Label).text)
+	assert_has(words, tr("SUM_NOT_COUNTED"))
