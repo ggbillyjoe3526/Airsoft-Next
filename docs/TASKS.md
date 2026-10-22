@@ -5,25 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## CR2 · The Rules section on the Match screen
-tier: ui
-perf: optional
-touches: game/ui/match_page.gd, game/ui/match_options.gd, game/ui/match_picks.gd, game/ui/text/en.po, game/main.gd,
-  tests/unit/
-contract: none
-acceptance:
-  1. RULES sits under the mode cards with a SKIRMISH | CUSTOM picker and the picked one's blurb, as concepts
-     `rules-skirmish.png` and `rules-custom.png` show (`/mnt/project-files/concepts/step15-rules/`, approved by the
-     owner 2026-10-22 11:49). Skirmish shows the rule chips (with Friendly fire); Custom shows rows for team size
-     (1v1-3v3), first to (3, 5, 7, 10), round time (1:30-5:00 in half minutes), friendly fire and ricochets, each with
-     its blurb (the browser game's matchRules.ts choices).
-  2. A Custom change saves at once into Settings.custom_rules (CR1); the pick reaches MatchPicks.rules, and the summary
-     line adds "Custom 2v2" (its team size) when Custom is picked.
-  3. What reads the round tuning on the page follows Custom: the Elimination card's "First to N", the maps a team size
-     can't load.
-status: open
-attempts: 0
-
 ## MN3 · Opponents and Teammates on the Match screen
 tier: ui
 perf: optional

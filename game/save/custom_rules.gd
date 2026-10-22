@@ -46,6 +46,14 @@ func applied_to(tuning: SimTuning) -> SimTuning:
 	return t
 
 
+## A snapshot: the same switches in an object of their own, so a match plays what was picked at Play whatever the
+## settings change after.
+func copy() -> CustomRules:
+	var c := CustomRules.new()
+	c.from_dict(to_dict())
+	return c
+
+
 func to_dict() -> Dictionary:
 	return {
 		"team_size": team_size, "wins_needed": wins_needed, "round_time": round_time, "friendly_fire": friendly_fire,

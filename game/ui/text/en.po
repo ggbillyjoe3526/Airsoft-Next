@@ -648,8 +648,77 @@ msgstr "Don't count"
 msgid "RULE_RICOCHETS_YES"
 msgstr "Count"
 
+msgid "RULE_FRIENDLY_FIRE"
+msgstr "Friendly fire"
+
+msgid "RULE_ON"
+msgstr "On"
+
+msgid "RULE_OFF"
+msgstr "Off"
+
+msgid "RULE_SIZE_SHORT"
+msgstr "%dv%d"
+
+msgid "RULE_XP_CAP"
+msgstr "×%s"
+
+msgid "RULES_SKIRMISH"
+msgstr "Skirmish"
+
+msgid "RULES_CUSTOM"
+msgstr "Custom"
+
+msgid "RULES_SKIRMISH_BLURB"
+msgstr "The match as you know it: %s, first to %d, %s rounds, friendly fire %s."
+
+msgid "RULES_CUSTOM_BLURB"
+msgstr "Every switch is yours. Custom matches stay out of the records and give XP at no more than %s."
+
+msgid "RULES_TEAM_SIZE"
+msgstr "Team size"
+
+msgid "RULES_ROUND_TIME"
+msgstr "Round time"
+
+msgid "RULE_TEAM_BLURB_1"
+msgstr "You against one bot: no teammates, nobody to cover you."
+
+msgid "RULE_TEAM_BLURB_2"
+msgstr "You and one bot teammate against two bots."
+
+msgid "RULE_TEAM_BLURB_3"
+msgstr "You and two bot teammates against three bots."
+
+msgid "RULE_WINS_BLURB_3"
+msgstr "A quick match: first to %d round wins."
+
+msgid "RULE_WINS_BLURB_5"
+msgstr "The standard match: first to %d round wins."
+
+msgid "RULE_WINS_BLURB_7"
+msgstr "A long match: first to %d round wins."
+
+msgid "RULE_WINS_BLURB_10"
+msgstr "A marathon: first to %d round wins."
+
+msgid "RULE_FRIENDLY_FIRE_BLURB_0"
+msgstr "BBs pass your teammates by: only the other team can knock you out."
+
+msgid "RULE_FRIENDLY_FIRE_BLURB_1"
+msgstr "Your BBs knock out teammates too, as at a real site. Check your line."
+
+msgid "RULE_RICOCHETS_BLURB_0"
+msgstr "A BB that has bounced off a wall or the floor ticks you, but you're still in."
+
+msgid "RULE_RICOCHETS_BLURB_1"
+msgstr "A bounced BB still knocks out whoever it hits, as at fields that count ricochets."
+
 msgid "MENU_SUMMARY_REST"
 msgstr "%s · %s · %s bots"
+
+msgid "MENU_SUMMARY_CUSTOM"
+msgstr " · Custom %s"
 
 msgid "LOAD_KICKER"
 msgstr "%s · %d v %d · You're %s"
