@@ -100,13 +100,13 @@ func _init(picked: MatchPicks = null, settings: Settings = null) -> void:
 
 
 func _enter_tree() -> void:
-	if not _settings.changed.is_connected(_list_maps):
-		_settings.changed.connect(_list_maps)
+	if not _settings.changed.is_connected(_on_rules_changed):
+		_settings.changed.connect(_on_rules_changed)
 
 
 func _exit_tree() -> void:
-	if _settings.changed.is_connected(_list_maps):
-		_settings.changed.disconnect(_list_maps)
+	if _settings.changed.is_connected(_on_rules_changed):
+		_settings.changed.disconnect(_on_rules_changed)
 
 
 func play_button() -> Button:
@@ -485,7 +485,8 @@ func _round_tuning() -> SimTuning:
 	return base if custom == null else custom.applied_to(base)
 
 
-## The rule set or a Custom switch changed: the round tuning is read again, and what reads it redrawn.
+## The rule set, a Custom switch or any setting changed (Dev content, a reset save): the round tuning is read again,
+## and what reads it redrawn, the Custom rows included.
 func _on_rules_changed() -> void:
 	_tuning = _round_tuning()
 	_rules.show_tuning(_tuning)

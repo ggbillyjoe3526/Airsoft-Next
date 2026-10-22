@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-22 | 1 | Sonnet | pass | pending | |
+| 2026-10-22 | 1 | Sonnet | pass | | QA: a reset save (Dev tab) left the Custom rows and the page's tuning stale |
+| 2026-10-22 | 2 | Opus (build thread) | pass | pending | |
 
 ## Decisions
 
@@ -33,3 +34,5 @@
   its rules; `RULE_SETS` is built from `RULES_SKIRMISH` and `RULES_CUSTOM`.
 - **Not done here:** the concepts' Opponents and Teammates rows (MN3), the three bot levels' look and the Pro level
   stay as they are.
+- **The page follows any settings change** (QA, attempt 1): it re-reads the round tuning and the Custom rows on the
+  settings' `changed`, as it listed the maps again before, so a reset save or Dev content shows what Play will play.
