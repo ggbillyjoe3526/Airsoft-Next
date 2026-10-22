@@ -153,10 +153,6 @@ static func round_won(team_name_key: String) -> String:
 	return (TranslationServer.translate(&"HUD_ROUND_WON") % TranslationServer.translate(team_name_key)).to_upper()
 
 
-static func match_won(team_name_key: String) -> String:
-	return (TranslationServer.translate(&"HUD_MATCH_WON") % TranslationServer.translate(team_name_key)).to_upper()
-
-
 ## "FIRST TO 5": the match's aim, under the clock.
 static func first_to(wins: int) -> String:
 	return (TranslationServer.translate(&"HUD_FIRST_TO") % wins).to_upper()

@@ -5,19 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## SM1 · The match summary
-tier: ui
-perf: optional
-touches: game/ui/, game/play/, game/progress/, game/ui/text/en.po, tests/unit/
-contract: none
-acceptance:
-  1. As `summary.png`: the match's stamp (WON, LOST or DRAW with the score, map and bots), everyone's numbers for the
-     match, the XP card as it is (AR1), your records for this difficulty and mode with NEW RECORD when beaten
-     (accuracy counts from 30 BBs), What got you for each time you were hit, and the next Pro tip (Pro only).
-  2. The next match starts on its own after it ("A new match starts shortly · click to start now").
-status: open
-attempts: 0
-
 ## HO1 · HUD settings
 tier: ui
 perf: optional

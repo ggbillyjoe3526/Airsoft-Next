@@ -126,12 +126,6 @@ msgstr "B"
 msgid "HUD_CHIP_AUTO"
 msgstr "A"
 
-msgid "HUD_MATCH_WON"
-msgstr "%s win the match"
-
-msgid "HUD_NEW_MATCH"
-msgstr "A new match starts shortly"
-
 msgid "PAUSE_TITLE"
 msgstr "Paused"
 
@@ -1586,3 +1580,87 @@ msgstr "Skipping the round"
 
 msgid "PAUSE_SKIP_ROUND"
 msgstr "Skip to next round"
+
+msgid "SUM_THE_MATCH"
+msgstr "The match"
+
+msgid "SUM_STAMP_SUB"
+msgstr "The match · %s %d – %d %s"
+
+msgid "SUM_MATCH_TAIL"
+msgstr "%s · %s bots"
+
+msgid "SUM_NEXT"
+msgstr "A new match starts shortly · Click to start now"
+
+msgid "SUM_RECORDS"
+msgstr "Your records · %s %s"
+
+msgid "SUM_WON_LOST"
+msgstr "Won and lost"
+
+msgid "SUM_WON_LOST_VALUE"
+msgstr "%d won · %d lost"
+
+msgid "SUM_BEST_ACCURACY"
+msgstr "Best accuracy"
+
+msgid "SUM_WAS"
+msgstr "was %s"
+
+msgid "SUM_FROM_BBS"
+msgstr "counts from %d BBs"
+
+msgid "SUM_STREAK"
+msgstr "Wins in a row"
+
+msgid "SUM_BEST"
+msgstr "best %d"
+
+msgid "SUM_NEW_RECORD"
+msgstr "New record"
+
+msgid "SUM_NOT_COUNTED"
+msgstr "This match stays out of your records."
+
+msgid "SUM_ROUND"
+msgstr "Round %d"
+
+msgid "SUM_NO_HITS"
+msgstr "Nobody got you this match."
+
+msgid "SUM_EARLIER_HITS"
+msgstr "%d earlier"
+
+msgid "WGY_SHORT_FRONT"
+msgstr "Ahead, %d m"
+
+msgid "WGY_SHORT_LEFT"
+msgstr "From your left, %d m"
+
+msgid "WGY_SHORT_RIGHT"
+msgstr "From your right, %d m"
+
+msgid "WGY_SHORT_BEHIND"
+msgstr "From behind, %d m"
+
+msgid "WGY_SHORT_HELD"
+msgstr "holding the angle"
+
+msgid "WGY_SHORT_SEEN"
+msgstr "seen for %.1f s"
+
+msgid "WGY_SHORT_BOUNCED"
+msgstr "off a bounce"
+
+msgid "WGY_GOT_YOU_TWICE"
+msgstr "%s got you twice"
+
+msgid "WGY_GOT_YOU_TIMES"
+msgstr "%s got you %d times"
+
+msgid "WGY_BOTH_HELD"
+msgstr ", both times holding the angle"
+
+msgid "WGY_ALL_HELD"
+msgstr ", every time holding the angle"

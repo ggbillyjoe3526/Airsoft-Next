@@ -198,9 +198,11 @@ func _build_views_and_start() -> void:
 	_hud.setup_field(_level.query(), _tuning.body, names, state.characters, _stats)
 	var listed := MapCatalog.shared().find(map_id)
 	var size := _tuning.rounds.team_size
-	_hud.set_board_match(listed.display_name if listed != null else _map.display_name,
-			tr("HUD_BOARD_SUB") % [tr(MatchOptions.MODE_NAME[mode]), tr("BOT_" + String(difficulty).to_upper()), size, size],
+	var map_name := listed.display_name if listed != null else _map.display_name
+	var bots := tr("BOT_" + String(difficulty).to_upper())
+	_hud.set_board_match(map_name, tr("HUD_BOARD_SUB") % [tr(MatchOptions.MODE_NAME[mode]), bots, size, size],
 			difficulty == &"pro")
+	_hud.set_match_tail(tr("SUM_MATCH_TAIL") % [map_name, bots])
 	_capture()
 
 
@@ -461,6 +463,8 @@ func _after_tick() -> void:
 			GameEvent.Kind.MATCH_OVER:
 				matches_played += 1
 				_rematch_left = _play.rematch_delay
+				var tip := tr(HudScoreboard.tip_for(state.round_state.number + 1)) if difficulty == &"pro" else ""
+				_hud.open_summary(state, what_got_you_shown(), tip)
 				if counts:
 					_settle()
 
@@ -541,6 +545,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed(&"fire") and not event.is_echo() and _input.active and _hud.round_result().is_up():
 		_move_on()
 		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"fire") and not event.is_echo() and _input.active and _hud.summary_up():
+		_start_now()
+		get_viewport().set_input_as_handled()
 
 
 ## A click on the round's table: the next round starts now (or the match's last table makes way for the results), and
@@ -548,6 +555,13 @@ func _unhandled_input(event: InputEvent) -> void:
 func _move_on() -> void:
 	Round.end_wait(state.round_state)
 	_hud.round_result().close()
+	_input.hold_fire()
+
+
+## A click on the match's summary: the next match starts on the next tick, and the click is not a shot.
+func _start_now() -> void:
+	if _rematch_left > 0.0:
+		_rematch_left = 0.0
 	_input.hold_fire()
 
 
@@ -635,23 +649,31 @@ func _skip_from_pause() -> void:
 	start_skip()
 
 
-## Your hit was called (`shooter_id`'s BB): "What got you", when the setting wants it (Auto: against Pro bots).
+## Your hit was called (`shooter_id`'s BB): kept for the match's summary, and "What got you" when the setting wants it.
 func _hit_called(shooter_id: int) -> void:
 	var facts := last_hit()
 	var shooter := state.character(shooter_id)
 	if facts == null or shooter == null or shooter_id == PLAYER_ID or facts.time != state.time \
 			or facts.shooter_id != shooter_id:
 		return
-	match settings.what_got_you:
-		Settings.WhatGotYou.OFF:
-			return
-		Settings.WhatGotYou.AUTO:
-			if difficulty != &"pro":
-				return
 	var who := _bots.name_of(shooter_id)
 	if who == "":
 		who = tr(_play.teams.names[shooter.team])
-	_hud.show_what_got_you(facts, who, _play.teams.colours[shooter.team], _bots.card_note_of(shooter_id))
+	var colour := _play.teams.colours[shooter.team]
+	var note := _bots.card_note_of(shooter_id)
+	_hud.add_hit_on_you(state.round_state.number, facts, who, colour, note)
+	if what_got_you_shown():
+		_hud.show_what_got_you(facts, who, colour, note)
+
+
+## Whether What got you shows, on the card and in the summary: On, or Auto against Pro bots.
+func what_got_you_shown() -> bool:
+	match settings.what_got_you:
+		Settings.WhatGotYou.ON:
+			return true
+		Settings.WhatGotYou.AUTO:
+			return difficulty == &"pro"
+	return false
 
 
 func _resume() -> void:
@@ -722,6 +744,8 @@ func _settle() -> void:
 	records.save_if_dirty()
 	settled = s
 	_hud.show_xp(s, difficulty, progress)
+	_hud.summary().set_records(records, records.win_loss(difficulty, mode), s.news,
+			tr("SUM_RECORDS") % [tr("BOT_" + String(difficulty).to_upper()), tr(MatchOptions.MODE_NAME[mode])])
 	match_settled.emit()
 
 

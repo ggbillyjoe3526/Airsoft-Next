@@ -47,3 +47,19 @@ func record(at_time: float, victim: Character, shooter: Character, bounced: bool
 	held_known = is_held_known
 	held = was_held and is_held_known
 	in_view = seen_for
+
+
+## Copies every fact of `other` into this one (the match summary keeps one per hit on you).
+func copy_from(other: HitFacts) -> void:
+	time = other.time
+	victim_id = other.victim_id
+	shooter_id = other.shooter_id
+	from_shooter = other.from_shooter
+	victim_yaw = other.victim_yaw
+	distance = other.distance
+	moving = other.moving
+	friendly = other.friendly
+	ricochet = other.ricochet
+	held_known = other.held_known
+	held = other.held
+	in_view = other.in_view

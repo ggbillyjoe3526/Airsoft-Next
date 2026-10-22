@@ -4,7 +4,8 @@ extends Control
 ## replica's real spread, the hit marker when your BB knocks someone out, the replica panel (ReplicaPanel: count, spare,
 ## fire modes, a box per magazine, reloading, the hop-up dial while you turn it), the score bar and "First to N"
 ## (HudScore), the round's banners (HudBanner), a ricochet that only ticks you, the big "HIT!" when you're hit, and under
-## the win banner the XP the match gave (XpCard, up until the next match starts), and whose eyes you watch through once
+## the match's WON / LOST stamp its summary (MatchSummary) round the XP the match gave (XpCard), up until the next match
+## starts, and whose eyes you watch through once
 ## you are out (or with the Dev settings' Spectate any bot) at the bottom. In Attack / Defend (concepts `hud-attack.png`,
 ## `hud-defend.png`, `round-end.png`): the ATK / DEF tags and the overtime clock on the score bar, the flag gauge under
 ## it (HudFlagGauge), the warning while the other team's flag goes up, the marker over the pole with its distance, and
@@ -60,6 +61,11 @@ var _hits := HitFeed.new()
 var _feed: HudFeed = null
 var _team_markers: HudTeamMarkers = null
 var _round_result: HudRoundResult = null
+var _summary: MatchSummary = null
+## The bottom line (whom you watch, the skip hint), hidden with the replica panel under the summary.
+var _bottom: VBoxContainer = null
+## "DEPOT · PRO BOTS": the end of the match stamp's line.
+var _match_tail := ""
 var _board: HudScoreboard = null
 var _board_wanted: bool = false
 var _what_got_you: WhatGotYouCard = null
@@ -179,6 +185,10 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_round_result.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	add_child(_round_result)
 	_round_result.setup(cfg, teams, sim.rounds, teams.colours[player.team])
+	# The match's summary, its panels either side of the XP card and level with it.
+	_summary = MatchSummary.new()
+	add_child(_summary)
+	_summary.setup(teams, teams.colours[player.team], XP_GAP - MIDDLE_RAISE)
 	# The scoreboard while Tab is held, over everything in the middle.
 	_board = HudScoreboard.new()
 	_place(_board, Vector4(0.5, 0.0, 0.5, 0.0), Rect2(0.0, BOARD_TOP, 0.0, 0.0))
@@ -187,6 +197,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_board.setup(cfg, teams, teams.colours[player.team], sim.flag.max_overtime)
 	# Whose eyes you watch through, bottom centre.
 	var bottom := VBoxContainer.new()
+	_bottom = bottom
 	_place(bottom, Vector4(0.5, 1.0, 0.5, 1.0), Rect2(-TOP_WIDTH * 0.5, -MARGIN, TOP_WIDTH, 0.0))
 	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom.alignment = BoxContainer.ALIGNMENT_END
@@ -208,6 +219,7 @@ func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, 
 	_team_markers.setup(_cfg, body, query, characters, _player)
 	_feed.set_names(names)
 	_round_result.set_names(names)
+	_summary.set_names(names)
 	_names = names
 	_stats = stats
 
@@ -216,6 +228,32 @@ func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, 
 ## tips show only then).
 func set_board_match(map_name: String, sub: String, pro: bool) -> void:
 	_board.set_match(_names, map_name, sub, pro)
+
+
+## The end of the match stamp's line ("DEPOT · PRO BOTS").
+func set_match_tail(tail: String) -> void:
+	_match_tail = tail.to_upper()
+
+
+## The match `state` just finished: its summary, as the HUD's match numbers stand (What got you when `show_hits`, the
+## Pro tip `tip`, "" for none). It shows once the last round's table makes way.
+func open_summary(state: GameState, show_hits: bool, tip: String) -> void:
+	_summary.open(state, _stats, _player, show_hits, tip)
+
+
+## You were hit in round `number` (`facts`, by `shooter_name` in their team's `colour`, the bot's `note`), for the
+## summary's What got you.
+func add_hit_on_you(number: int, facts: HitFacts, shooter_name: String, colour: Color, note: String) -> void:
+	_summary.add_hit(number, facts, shooter_name, colour, note)
+
+
+func summary() -> MatchSummary:
+	return _summary
+
+
+## Whether the summary is on screen (a click then starts the next match).
+func summary_up() -> bool:
+	return _summary.visible
 
 
 ## Whether the scoreboard's key is held. Let go, it hides at once (the pause menu opening).
@@ -342,8 +380,10 @@ func on_tick(state: GameState) -> void:
 				_hits.release_kept()
 				if e.value == 1:
 					hide_xp()
+					_summary.close()
 					if state.round_state.draws == 0:
 						_hits.clear()
+						_summary.clear_hits()
 				var rs := state.round_state
 				if rs.mode == RoundState.Mode.ATTACK_DEFEND:
 					var attacking := _player.team == rs.attackers
@@ -355,8 +395,8 @@ func on_tick(state: GameState) -> void:
 				_round_over(state.round_state, e, state.time)
 			GameEvent.Kind.MATCH_OVER:
 				_round_result.match_over()
-				_show_banner(HudStyle.match_won(_teams.names[e.value]), HudStyle.caps("HUD_NEW_MATCH"),
-						_teams.colours[e.value])
+				_show_banner(HudStyle.round_stamp(e.value, _player.team), _match_stamp_sub(state.round_state.score),
+						_teams.colours[e.value] if e.value >= 0 else Color.TRANSPARENT)
 
 
 ## The finished match's XP under the banner (`settled`, at the bots' `difficulty`, `progress` as it stands now), until the
@@ -397,7 +437,12 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		_board.update(state, _stats, _player, _board_wanted)
 	if _xp != null:
 		_xp.visible = not _round_result.holds_results()
-	if _banner_left > 0.0 and _xp == null and not _round_result.is_open():
+	_summary.visible = _summary.is_open() and not _round_result.holds_results()
+	_replica.visible = not _summary.visible
+	_bottom.visible = not _summary.visible
+	if _summary.visible and _what_got_you != null:
+		hide_what_got_you()
+	if _banner_left > 0.0 and _xp == null and not _summary.is_open() and not _round_result.is_open():
 		_banner_left -= delta
 		if _banner_left <= 0.0:
 			_banner.visible = false
@@ -522,6 +567,13 @@ func _round_over(rs: RoundState, e: GameEvent, state_time: float) -> void:
 			_teams.colours[e.value] if e.value >= 0 else Color.TRANSPARENT)
 	var played := _rounds.round_time - rs.clock + (rs.overtime if is_finite(rs.overtime) else 0.0)
 	_round_result.round_over(rs.number, roundi(played), state_time)
+
+
+## "THE MATCH · ALPHA 5 – 3 BETA · DEPOT · PRO BOTS": your team first.
+func _match_stamp_sub(score: PackedInt32Array) -> String:
+	var you := _player.team
+	var line := tr("SUM_STAMP_SUB") % [tr(_teams.names[you]), score[you], score[1 - you], tr(_teams.names[1 - you])]
+	return (line + " · " + _match_tail if _match_tail != "" else line).to_upper()
 
 
 func _show_banner(text: String, sub: String, colour: Color = Color.TRANSPARENT) -> void:

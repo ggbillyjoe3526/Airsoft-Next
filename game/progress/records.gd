@@ -10,8 +10,9 @@ const PATH := "user://records.save"
 const KIND := "records"
 const VERSION := 1
 const KNOWN_KEYS: Array[String] = ["results", "best_accuracy", "streak", "best_streak"]
-## A match counts towards best accuracy only with at least this many BBs fired, so three lucky shots aren't a record.
-const ACCURACY_MIN_BBS := 20
+## A match counts towards best accuracy only with at least this many BBs fired, so three lucky shots aren't a record
+## (the browser game's minBBsForAccuracyRecord).
+const ACCURACY_MIN_BBS := 30
 ## "normal.elimination": a difficulty and a mode id.
 const RESULT_KEY_PATTERN := "^[a-z][a-zA-Z0-9]*\\.[a-z][a-zA-Z0-9]*$"
 
@@ -26,11 +27,12 @@ class Result:
 	var bbs_fired: int = 0
 
 
-## What a match changed, for "new record" tags.
+## What a match changed, for "new record" tags: which bests it beat, and the best accuracy before it (-1: none).
 class News:
 	extends RefCounted
 	var best_accuracy: bool = false
 	var best_streak: bool = false
+	var was_accuracy: float = -1.0
 
 
 ## Wins and losses by "<difficulty>.<mode>", each [wins, losses].
@@ -77,6 +79,7 @@ func add(r: Result) -> News:
 	if r.bbs_fired >= ACCURACY_MIN_BBS:
 		var acc := clampf(float(r.hits) / r.bbs_fired, 0.0, 1.0)
 		if acc > best_accuracy:
+			news.was_accuracy = best_accuracy
 			best_accuracy = acc
 			news.best_accuracy = true
 	dirty = true

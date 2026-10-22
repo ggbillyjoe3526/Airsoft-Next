@@ -74,10 +74,12 @@ func test_a_ricochet_tick_shows_one_line_but_never_over_a_round_banner() -> void
 	assert_eq(hud._banner.big_text(), "ROUND 3")
 
 
-func test_the_match_won_banner_offers_a_new_match() -> void:
+func test_the_match_stamp_reads_won_or_lost_with_the_score_your_team_first() -> void:
 	_tick_with(GameEvent.Kind.MATCH_OVER, 0)
-	assert_eq(hud._banner.big_text(), "ALPHA WIN THE MATCH")
-	assert_ne(hud._banner.sub_text(), "")
+	assert_eq(hud._banner.big_text(), "WON")
+	assert_string_starts_with(hud._banner.sub_text(), "THE MATCH · ALPHA ")
+	_tick_with(GameEvent.Kind.MATCH_OVER, 1)
+	assert_eq(hud._banner.big_text(), "LOST")
 
 
 func test_the_banner_hides_after_its_time() -> void:
