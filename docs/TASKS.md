@@ -55,29 +55,6 @@ acceptance:
 status: open
 attempts: 0
 
-## SO2 · Follow me and Regroup
-tier: core
-perf: required
-touches: game/ai/squad_orders.gd, game/ai/bot.gd, game/ai/bot_brain.gd, game/ai/bot_movement.gd,
-  game/ai/bot_controller.gd, game/config/squad_config.gd, game/config/bot_tuning.tres, game/ai/README.md,
-  tests/unit/, tests/guards/, tests/support/match_runner.gd
-contract: Commands (2); Data, not literals (6)
-acceptance:
-  1. Follow me's spots as followSpot (pairs either side, rows back, the straight-behind and closer fallbacks, never
-     inside the giver while there is room, measured from the walkable cell beside a giver in a wall's margin, never
-     down a lip, along ramps and while the giver jumps); the heading eased at heading_turn_rate.
-  2. Followers keep the giver's pace (walk, run, sprint), a pace faster behind their spot and slower ahead of it,
-     sprint beyond catch_up until rush_ease inside it, steer by the checked line near a drop, take the giver's way
-     round when no straight line; settled, they watch 180, 90, -90 degrees from the heading.
-  3. Regroup sprints back; within regroup_arrive each turns to Follow me, and the order reads Follow me once all have.
-  4. The browser's remaining squadOrders tests pass in GUT (pace, corridor, thin wall, ramp, lip, ramp foot, M-08,
-     G11). A guard: on Depot a leader bot gives Follow me through its command at each round start, seeds 1-4, 90 s:
-     each seed judges >= 1000 ticks, > 95 % within follow_distance + catch_up_gap + 2 m, worst < catch_up; standing
-     still while the leader moves < 3 % over the four (re-measure and record the Godot numbers first).
-  5. A tick with followers allocates nothing.
-status: open
-attempts: 0
-
 ## SO3 · Order keys, the wheel's input and the radio click
 tier: core
 perf: optional
