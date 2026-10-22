@@ -31,6 +31,9 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var hit_tick_gain: float = 1.0
 @export var hit_marker_gain: float = 0.55
 @export var beep_gain: float = 1.9
+## A teammate's radio keyed twice, in your ear only: a squad order you gave was taken (M22).
+@export var radio_ack_gain: float = 0.5
+@export var radio_ack_pitch: float = 0.02
 ## The practice range (M21): steel rings, a plywood figure knocks (an impact on wood), each heard target_reach (m) away,
 ## all the way down the range (its far corner is 74 m from the back).
 @export var target_reach: float = 80.0

@@ -5,7 +5,8 @@ extends Node
 ## hop-up dial and draws, BB impacts by surface, footsteps by surface and pace, vaults, the flag's rope ratcheting up
 ## or down, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
 ## yours, the thump when it's you. On the practice range steel rings and a figure knocks, heard down its whole length,
-## your own target hit plays the confirmation, and the timed challenge's countdown, Go and Time beep. Your own sounds
+## your own target hit plays the confirmation, and the timed challenge's countdown, Go and Time beep. A squad order of
+## yours that a teammate took plays a radio's double click in your ear (on_order). Your own sounds
 ## play plain; everyone else's from where they happen. Every variant is loaded up front, so the first shot never
 ## hitches; the voices are pools reused oldest first. Variant and pitch choice is presentation only, on its own random
 ## stream.
@@ -39,6 +40,8 @@ var _impact: Array[StringName] = []
 var _step: Array[StringName] = []
 var _ambience: AudioStreamPlayer = null
 var _body: BodyConfig = null
+## The squad order outcome last heard (SquadOrders.Outcome.serial).
+var _order_serial: int = 0
 
 
 ## Loads every cue `profiles` (the loadouts' sound profiles, ReplicaConfig.sound_profile) and the field need, and
@@ -61,7 +64,7 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig) -> v
 		for k in STEP_NAMES:
 			_step.append(_load("step_%s_%s" % [s, k]))
 	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault",
-			"foley_holster", "magRattle", "rope_up", "rope_down", "steelRing"]:
+			"foley_holster", "magRattle", "rope_up", "rope_down", "steelRing", "radio_ack"]:
 		_load(cue)
 	_set_muffle(cfg.muffled_cutoff_hz)
 	for i in cfg.field_voices:
@@ -156,6 +159,23 @@ func on_tick(state: GameState, player_id: int) -> void:
 			# Practice has no rounds to start: no start beep on the range.
 			GameEvent.Kind.ROUND_START when not state.round_state.practice:
 				_play(&"count_beep", Vector3.ZERO, true, _cfg.beep_gain, 0.0, BUS_INTERFACE)
+
+
+## The radio click, in your ear only, when the squad order last recorded in `outcome` (since the last call) is one of
+## `player_id`'s that a teammate took; a refused or cancelled order, or one nobody was there to take, plays nothing.
+func on_order(outcome: SquadOrders.Outcome, player_id: int) -> void:
+	if outcome.serial == _order_serial:
+		return
+	_order_serial = outcome.serial
+	if order_taken(outcome, player_id):
+		_play(&"radio_ack", Vector3.ZERO, true, _cfg.radio_ack_gain, _cfg.radio_ack_pitch, BUS_INTERFACE)
+
+
+## Whether `outcome` is an order from `player_id` that a teammate took (the browser game's orderHeard: a result that
+## isn't none).
+static func order_taken(outcome: SquadOrders.Outcome, player_id: int) -> bool:
+	return outcome.giver == player_id and outcome.notice == SquadOrders.Notice.NONE \
+			and outcome.order != SquadOrder.Kind.NONE
 
 
 ## Stops every voice on the way out, so no playback outlives the match (and its stream with it).

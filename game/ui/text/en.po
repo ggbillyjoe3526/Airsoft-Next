@@ -1638,6 +1638,30 @@ msgstr "Hold a corner yourself: stand still with your view on the doorway and le
 msgid "ACT_SCOREBOARD"
 msgstr "SCOREBOARD"
 
+msgid "ACT_ORDER_WHEEL"
+msgstr "SQUAD: ORDER WHEEL (HOLD)"
+
+msgid "ACT_ORDER_FOLLOW"
+msgstr "SQUAD: FOLLOW ME"
+
+msgid "ACT_ORDER_HOLD"
+msgstr "SQUAD: HOLD HERE"
+
+msgid "ACT_ORDER_REGROUP"
+msgstr "SQUAD: REGROUP"
+
+msgid "ORDER_FOLLOW"
+msgstr "Follow Me"
+
+msgid "ORDER_HOLD"
+msgstr "Hold Here"
+
+msgid "ORDER_REGROUP"
+msgstr "Regroup"
+
+msgid "ORDER_TEAM_PLAN"
+msgstr "Team Plan"
+
 msgid "HUD_BOARD_ROUND_OT"
 msgstr "Round %d · overtime %s"
 

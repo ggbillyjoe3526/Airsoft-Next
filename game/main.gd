@@ -8,8 +8,9 @@ extends Node
 ## drawn its first frame; leaving it builds them again and comes back to the title. The picks live in a MatchPicks kept
 ## here. The menus grow with a tall window (MenuScale).
 ## `--smoke` (tools/smoke_test.sh) opens and closes the settings, the credits, the Loadout page (with Customise) and the Armory,
-## plays a whole match on Depot with a bot in your place (faster than real time), leaves, opens practice on the range
-## where a pilot shoots till it rings a plate, leaves, then quits with a report line.
+## plays a whole match on Depot with a bot in your place (faster than real time), giving squad orders once the first
+## round is live (F twice, then the order wheel held, pointed up and let go), leaves, opens practice on the range where
+## a pilot shoots till it rings a plate, leaves, then quits with a report line.
 
 const SMOKE_SETTINGS_OPEN := 10
 const SMOKE_SETTINGS_CLOSE := 20
@@ -34,6 +35,12 @@ const SMOKE_MAP := "depot"
 const SMOKE_RANGE_MAX_TICKS := 3600
 ## Practice is played on the range (M21).
 const PRACTICE_MAP := "range"
+## The smoke match's squad orders, one step a frame once the first round is live: Follow me's key pressed (+) and let
+## go (-) twice (given, then cancelled), then the order wheel's key held, the mouse flicked up onto its top order (an
+## empty step), and let go.
+const SMOKE_ORDER_STEPS: PackedStringArray = ["+order_follow", "-order_follow", "+order_follow", "-order_follow",
+		"+order_wheel", "", "-order_wheel"]
+const SMOKE_WHEEL_FLICK := Vector2(0.0, -400.0)
 
 var _credits: Credits
 var _settings_screen: SettingsScreen
@@ -55,6 +62,8 @@ var _smoke_matches := -1
 var _smoke_left_at := -1
 var _smoke_plates := -1
 var _smoke_range_left_at := -1
+var _smoke_order_step := 0
+var _smoke_orders := -1
 
 
 func _ready() -> void:
@@ -259,6 +268,7 @@ func _end_play() -> void:
 		_smoke_impacts = _play.impacts
 		_smoke_rounds = _play.rounds_played
 		_smoke_matches = _play.matches_played
+		_smoke_orders = _play.orders_given
 		_smoke_left_at = _frame
 	_perf.watch(null)
 	_free_loading()
@@ -296,6 +306,8 @@ func _process(_delta: float) -> void:
 		_on_tab(TopBar.Tab.MATCH)
 	elif _frame == SMOKE_PLAY:
 		_start_play()
+	elif _smoke_ordering():
+		_smoke_order()
 	elif _play != null and not _play.practice and (_play.matches_played > 0 or _play.ticks() >= SMOKE_MAX_TICKS):
 		_end_play()
 	elif _play != null and _play.practice and (_play.plate_hits > 0 or _play.ticks() >= SMOKE_RANGE_MAX_TICKS):
@@ -304,6 +316,30 @@ func _process(_delta: float) -> void:
 		_start_play(true)
 	elif _smoke_range_left_at >= 0 and _frame >= _smoke_range_left_at + SMOKE_SETTLE:
 		_smoke_report()
+
+
+## Whether the smoke match is ready for its next squad order step: the first round live, you in play.
+func _smoke_ordering() -> bool:
+	if _play == null or _play.practice or _play.ticks() == 0 or _smoke_order_step >= SMOKE_ORDER_STEPS.size():
+		return false
+	return _play.state.round_state.is_live() and Elimination.is_in_play(_play.player)
+
+
+## The next squad order step, through the input as a player's keys and mouse would come (a step's key is let go on the
+## step after).
+func _smoke_order() -> void:
+	var step := SMOKE_ORDER_STEPS[_smoke_order_step]
+	_smoke_order_step += 1
+	if step.is_empty():
+		var motion := InputEventMouseMotion.new()
+		motion.relative = SMOKE_WHEEL_FLICK
+		motion.screen_relative = SMOKE_WHEEL_FLICK
+		Input.parse_input_event(motion)
+		return
+	var e := InputEventAction.new()
+	e.action = StringName(step.substr(1))
+	e.pressed = step.begins_with("+")
+	Input.parse_input_event(e)
 
 
 func _smoke_report() -> void:
@@ -321,6 +357,11 @@ func _smoke_report() -> void:
 		push_error("smoke: practice on the range rang no plate")
 		get_tree().quit(1)
 		return
-	print("[smoke] ok frames=%d credits_chars=%d shots=%d impacts=%d rounds=%d plates=%d" % [_frame,
-			_credits.text_length(), _smoke_shots, _smoke_impacts, _smoke_rounds, _smoke_plates])
+	if _smoke_orders <= 0:
+		push_error("smoke: no squad order of yours reached the match (%d of %d steps)" % [_smoke_order_step,
+				SMOKE_ORDER_STEPS.size()])
+		get_tree().quit(1)
+		return
+	print("[smoke] ok frames=%d credits_chars=%d shots=%d impacts=%d rounds=%d plates=%d orders=%d" % [_frame,
+			_credits.text_length(), _smoke_shots, _smoke_impacts, _smoke_rounds, _smoke_plates, _smoke_orders])
 	get_tree().quit(0)

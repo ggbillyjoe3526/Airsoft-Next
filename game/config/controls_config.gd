@@ -1,7 +1,7 @@
 class_name ControlsConfig
 extends Resource
-## The mouse (the browser game's config/controls.ts MOUSE). Read by PlayerInput. The settings screen (Settings) writes
-## the player's own values over these defaults.
+## The mouse and the order wheel (the browser game's config/controls.ts MOUSE, config/squad.ts ORDER_WHEEL). Read by
+## PlayerInput. The settings screen (Settings) writes the player's own values over these defaults.
 
 ## View turn per mouse count at sensitivity 1 (rad): 1 is about 26 cm a full turn at 1600 DPI.
 @export var radians_per_count: float = 0.001
@@ -17,3 +17,25 @@ extends Resource
 @export var crouch_toggle: bool = false
 ## Aim down sights stays up until pressed again; off, the default, aim is held (owner, 2026-10-18).
 @export var aim_toggle: bool = false
+
+## How an order on the order wheel is given (Settings › Controls › Order wheel, M23): HOVER, point at it and let go of
+## the wheel's key (let go in the middle to give nothing), the default; CLICK, point at it and click (letting go of the
+## key gives nothing). A click on an order gives it either way.
+enum WheelPick { HOVER, CLICK }
+
+@export var wheel_pick: WheelPick = WheelPick.HOVER
+## The order wheel (M23; the browser game's config/squad.ts ORDER_WHEEL): its orders clockwise from the top, each an
+## equal slice; each order's key (an action in KeyBindings.ACTIONS; empty for none), which gives it straight away; and
+## its name on the wheel (a translation key; a button, so in title case). Team Plan ends the order in force.
+@export var wheel_orders: Array[SquadOrder.Kind] = [
+	SquadOrder.Kind.FOLLOW, SquadOrder.Kind.HOLD, SquadOrder.Kind.REGROUP, SquadOrder.Kind.TEAM_PLAN,
+]
+@export var wheel_keys: Array[StringName] = [&"order_follow", &"order_hold", &"order_regroup", &""]
+@export var wheel_labels: PackedStringArray = PackedStringArray(["ORDER_FOLLOW", "ORDER_HOLD", "ORDER_REGROUP",
+		"ORDER_TEAM_PLAN"])
+## While the wheel is open the mouse moves its own pointer, not the view: this many px a mouse count, times the
+## sensitivity; never further than wheel_reach (px) from the middle, so coming back from a flick is short; on no order
+## within wheel_dead_zone (px) of it.
+@export var wheel_gain: float = 0.5
+@export var wheel_reach: float = 90.0
+@export var wheel_dead_zone: float = 24.0
