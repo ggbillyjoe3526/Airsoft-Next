@@ -21,6 +21,7 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `replica_rules_config.gd` | Recoil recovery, the trigger, BB weight, the hop-up dial's range and notch, the draw from the holster |
 | `replica_config.gd`, `replicas/*.tres` | One replica's stats, the built-in values; `data/stats.md` wins over them |
 | `replica_stats.gd`, `data_table.gd` | Read `data/stats.md`'s tables, the power sources too (a cell that won't read keeps the built-in value and warns) |
+| `bots_file.gd` | Read `data/bots.md`: the bots' roster of names and what each personality changes (a cell that won't read plays neutral and warns) |
 | `part_stats.gd` | Read `data/stats.md`'s part tables: optics, grips, lasers, magazines, barrels and muzzle parts (a part with no row changes nothing) |
 | `replica_schemes.gd` | Replica colours: the eight bold schemes and four plain colours, each class's default, the bots' team colours, Realistic colours |
 | `play_tuning.gd`, `play_tuning.tres` | Bundles the play screen's configs below, and the rematch delay |

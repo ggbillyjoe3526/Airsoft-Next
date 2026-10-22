@@ -160,6 +160,34 @@ static func figures(map_name: String, ends: Array[String], matches: Array[MatchR
 	return out
 
 
+## Each personality's share of the knock-outs of an opponent at `level`, against its share of the bots: measured only,
+## to see whether a personality plays better or worse rather than only differently (bots.md: never how well).
+static func personality_shares(map_name: String, matches: Array[MatchRunner.MatchTally],
+		level: StringName = &"normal") -> Array[Figure]:
+	var kinds: Array[StringName] = []
+	var hits: Dictionary[StringName, int] = {}
+	var bots: Dictionary[StringName, int] = {}
+	var all_hits := 0
+	var all_bots := 0
+	for m in matches:
+		for id in m.personalities.size():
+			var kind := m.personalities[id]
+			if kind == &"":
+				continue
+			if not kinds.has(kind):
+				kinds.append(kind)
+			bots[kind] = bots.get(kind, 0) + 1
+			hits[kind] = hits.get(kind, 0) + m.hits_by[id]
+			all_bots += 1
+			all_hits += m.hits_by[id]
+	var out: Array[Figure] = []
+	for kind in kinds:
+		out.append(share("%s, Elimination, %s: %s bots' share of hits on an opponent" % [map_name, level_name(level),
+				level_name(kind)], hits[kind], all_hits, -INF, INF, "%d of %d hits; %d of %d bots" % [hits[kind],
+				all_hits, bots[kind], all_bots]))
+	return out
+
+
 ## Easy's mean round length on a map as a multiple of Normal's (at most EASY_ROUNDS_MAX).
 static func easy_rounds(map_name: String, easy: Array[MatchRunner.MatchTally],
 		normal: Array[MatchRunner.MatchTally]) -> Figure:

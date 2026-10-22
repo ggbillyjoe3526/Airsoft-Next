@@ -61,6 +61,7 @@ func _run() -> void:
 			by_level[StringName(level)] = matches
 			rows.append_array(BalanceReport.figures(name, BalanceReport.end_names(runner.map), matches,
 					StringName(level)))
+			rows.append_array(BalanceReport.personality_shares(name, matches, StringName(level)))
 			print("%s, %s: %d matches in %.0f s" % [name, BalanceReport.level_name(StringName(level)), matches.size(),
 					(Time.get_ticks_msec() - started) / 1000.0])
 		if by_level.has(&"easy") and by_level.has(&"normal"):

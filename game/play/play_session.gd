@@ -97,6 +97,9 @@ var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
 var _kit_unlocked_all: bool = false
 ## The parts fitted to each kitted bot's replicas (Kit.parts), by character id, for its figure.
 var _bot_parts: Dictionary[int, Array] = {}
+## The bots' names and personalities this match (BotRoster), by character id, and their tuning.
+var _identities: Dictionary[int, BotRoster.Identity] = {}
+var _bot_config: BotConfig = null
 var _ticks: int = 0
 ## What the smoke test checks: your shots, everyone's, BBs that landed anywhere, rounds played and matches finished.
 var shots: int = 0
@@ -165,12 +168,11 @@ func _build_views_and_start() -> void:
 	if not _map.ok():
 		return
 	_build_views(_ui)
-	var config := BotConfig.load_default()
 	# With the pilot on, a bot plays your character too.
 	var nobody := -1
 	var levels: Dictionary[int, StringName] = {player_team: teammates_level(), opponent_team(): difficulty}
-	_bots = BotController.new(state, nobody if autopilot else PLAYER_ID, _map, _sim.nav, _level.query(), _tuning, config,
-			levels)
+	_bots = BotController.new(state, nobody if autopilot else PLAYER_ID, _map, _sim.nav, _level.query(), _tuning,
+			_bot_config, levels, _identities)
 	if settings == null:
 		settings = Settings.shared()
 	settings.changed.connect(_apply_dev)
@@ -222,14 +224,23 @@ func _start_simulation(map: MapData) -> void:
 	state.dev_content = state.dev_content or kit.dev
 	player = Character.new(PLAYER_ID, player_team, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
 	state.characters.append(player)
-	# Your teammates carry their replicas as they come; the other team's bots each pick a kit by the difficulty.
+	# Every bot's name and personality, drawn on the match's seed. Your teammates carry their replicas as they come;
+	# the other team's bots each pick a kit by the difficulty, leaning towards kits that suit their personality.
 	_bot_parts.clear()
-	var kit_rules := _bot_kit_rules()
+	_bot_config = BotConfig.load_default()
+	var ids := PackedInt32Array()
+	var teams := PackedInt32Array()
 	for i in _tuning.rounds.team_size * 2 - 1:
-		var id := PLAYER_ID + 1 + i
-		var team := player_team if i < _tuning.rounds.team_size - 1 else opponent_team()
-		var plan := BotKits.shared().pick(difficulty, kit_rules, Seeds.kit_seed(match_seed, id)) \
-				if team != player_team else null
+		ids.append(PLAYER_ID + 1 + i)
+		teams.append(player_team if i < _tuning.rounds.team_size - 1 else opponent_team())
+	_identities = BotRoster.draw(match_seed, ids, teams, BotsFile.shared())
+	var kit_rules := _bot_kit_rules()
+	for i in ids.size():
+		var id := ids[i]
+		var team := teams[i]
+		var who: BotRoster.Identity = _identities.get(id)
+		var plan := BotKits.shared().pick(difficulty, kit_rules, Seeds.kit_seed(match_seed, id),
+				who.personality if who != null else &"", _bot_config.kit_suit_lean) if team != player_team else null
 		if plan == null:
 			state.characters.append(Character.new(id, team, Vector3.ZERO, 0.0, loadout))
 			continue
@@ -405,6 +416,7 @@ func _process(delta: float) -> void:
 		if f.character_id == watched.id:
 			f.visible = false
 	_hud.update(state, _input.zoom, delta)
+	_hud.set_watching(_bots.name_of(watched.id) if watched != player else "")
 	if _intents != null:
 		_intents.update(state, fraction)
 	if _first_frame_due:

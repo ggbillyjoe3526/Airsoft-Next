@@ -29,6 +29,11 @@ and with a threat in mind tops up only from cover. It plays as a team: it goes t
 tells its teammates where it heard someone, moves along a lane in pairs (one waits while its partner moves) and pushes
 late when its team is behind.
 
+Every bot has a name and personality from `data/bots.md` (`BotsFile`), drawn on the match's seed (`BotRoster`): a
+rusher pushes in and never waits, an anchor holds its lane short of the middle until late and aims from cover, a flanker
+takes a lane of its own and flanks more, a careful bot walks and clears corners. A personality changes how a bot plays
+at its level, never how well (`BotPersonality`).
+
 | File | What |
 |---|---|
 | `bot_controller.gd` | `BotController`: owns the bots; before each step one route search, then each bot's command; after it, hearing and the round's plan |
@@ -41,12 +46,13 @@ late when its team is behind.
 | `bot_angles.gd` | Held angles: the corners and doorways in view where someone would step out, from the level's walls alone |
 | `bot_cover.gd` | Crouch cover and lean spots at tall corners that hide a bot from a threat |
 | `bot_movement.gd`, `bot_routes.gd` | Lanes, holds, hunting, searching, strafing, keeping apart; following nav routes |
-| `round_planner.gd` | Each round's team plans and lanes, and hunt spots from the team's memory |
+| `round_planner.gd` | Each round's team plans and lanes (a flanker's own, an anchor's short one), and hunt spots from the team's memory |
+| `bot_roster.gd`, `bot_personality.gd` | Each bot's name and personality for a match; a personality laid over the level's skill, and its habits |
 
 Nothing allocates per tick once warm. Route searches (`NavGrid.find_route`) are queued, one a tick, shared with walk-off
 routes.
 
 ## Not yet
 
-No names or personalities, no callouts or squad orders, no crossfires (Attack/Defend's) and no magazine sharing
+No callouts or squad orders, no crossfires (Attack/Defend's) and no magazine sharing
 (docs/KNOWN_ISSUES.md).

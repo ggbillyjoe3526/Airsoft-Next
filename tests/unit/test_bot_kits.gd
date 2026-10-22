@@ -183,7 +183,9 @@ func test_in_a_session_the_opponents_carry_their_kits_and_your_teammates_theirs_
 			assert_eq(c.armament.replicas[0].id, &"aeg", "a teammate carries the AEG as it comes")
 			assert_false(s._bot_parts.has(c.id))
 			continue
-		var plan := k.pick(&"pro", s._bot_kit_rules(), Seeds.kit_seed(11, c.id))
+		# Its kit leans towards its personality (BN1).
+		var plan := k.pick(&"pro", s._bot_kit_rules(), Seeds.kit_seed(11, c.id), s._identities[c.id].personality,
+				s._bot_config.kit_suit_lean)
 		var kit := BotKits.kit_of(plan, s._bot_kit_rules())
 		assert_eq(c.armament.replicas.size(), kit.size())
 		for i in kit.size():

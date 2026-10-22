@@ -14,6 +14,8 @@ const BOT_PER_CHARACTER := 104729
 const WIND_PER_MATCH := 7368787
 const KIT_MULTIPLIER := 2654435761
 const KIT_PER_CHARACTER := 40503
+## The bots' names' stream (BotRoster) is the seed with these bits flipped ("name"), as the browser game's rosterSeed.
+const ROSTER_XOR := 0x6e616d65
 
 
 ## `seed × multiplier + add`, wrapped to 32 bits (GDScript's 64-bit integers wrap on overflow, keeping the low 32 bits
@@ -42,6 +44,12 @@ static func wind_seed(seed_value: int, match_number: int) -> int:
 ## own.
 static func kit_seed(seed_value: int, character_id: int) -> int:
 	return derive(seed_value, KIT_MULTIPLIER, ((character_id + 1) * KIT_PER_CHARACTER) & MASK_32)
+
+
+## The bots' names' stream's seed (BotRoster.draw) for a match seeded with `seed_value`: apart from every other, so a
+## seed replays the same names and no other roll moves.
+static func roster_seed(seed_value: int) -> int:
+	return (seed_value & MASK_32) ^ ROSTER_XOR
 
 
 ## A generator seeded with `seed_value`: every random draw in the simulation comes from one of these.

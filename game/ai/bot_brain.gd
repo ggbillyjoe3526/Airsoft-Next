@@ -40,7 +40,8 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 	var near := b.skill.slices_corners and (b.threat_in_mind(w.time, cfg)
 			or (not b.hunting and w.planner.in_enemy_half(b)))
 	var trading := w.trading(b)
-	b.careful = near and not trading and (b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.SEARCH) \
+	var pusher := BotPersonality.pushes_in(b)
+	b.careful = near and not trading and not pusher and (b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.SEARCH) \
 			and not w.pushing_late(b)
 	# A route's vault leg is the walk's own (BotRoutes.follow).
 	b.vault_leg = false
@@ -61,9 +62,12 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 		cmd.forward = -sin(b.aim_yaw) * d.x - cos(b.aim_yaw) * d.z
 		cmd.right = cos(b.aim_yaw) * d.x - sin(b.aim_yaw) * d.z
 		var calm := w.time - b.last_threat_at > cfg.sprint_when_calm_for
-		cmd.sprint = b.mode == Bot.Mode.ADVANCE and calm and cmd.forward > cfg.sprint_forward
-		# Closing in on where someone was: walk, so its feet don't give it away (not while trading: it runs).
-		if b.mode == Bot.Mode.SEARCH and not trading and Vector2(b.last_known.x - me.position.x, b.last_known.z - me.position.z).length() \
+		# A bot that pushes in runs at where someone was, footsteps and all.
+		var going := b.mode == Bot.Mode.ADVANCE or (pusher and b.mode == Bot.Mode.SEARCH)
+		cmd.sprint = going and (calm or pusher) and cmd.forward > cfg.sprint_forward
+		# Closing in on where someone was: walk, so its feet don't give it away (not while trading or pushing in).
+		if b.mode == Bot.Mode.SEARCH and not trading and not pusher \
+				and Vector2(b.last_known.x - me.position.x, b.last_known.z - me.position.z).length() \
 				< b.skill.search_walk_distance:
 			cmd.walk = true
 		if b.careful:
@@ -72,6 +76,12 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 		# A low obstacle on its route: Jump once the vault is there, as the player's would be (the same rule).
 		if b.vault_leg:
 			cmd.jump = Vault.find_along(me, Vault.way(cmd, w.tuning), w.tuning, w.query, _vault_check)
+	# A personality that aims from cover raises its sight standing still to fight, to look over its cover or to hold;
+	# never to draw a holstered replica (BotHolster decides that). Every other bot fires from the hip.
+	if b.style.aims_from_cover and not moving and cmd.forward == 0.0 and cmd.right == 0.0 \
+			and not me.armament.holstered and (b.mode == Bot.Mode.FIGHT or b.holding
+			or (b.mode == Bot.Mode.COVER and b.cover_phase == Bot.CoverPhase.PEEK)):
+		cmd.aim = true
 	BotCombat.shoot(b, w, target, eye, off_aim, cmd, dt)
 	BotCombat.reload_when_due(b, w, cmd)
 	BotHolster.step(b, w, cmd, dt)
@@ -111,28 +121,39 @@ static func _choose_mode(b: Bot, w: BotWorld, target: Character, dt: float) -> v
 		if not _stay_in_cover(b, w, seeing, reloading, at_cover, cover_over, dt):
 			return
 		b.route_state = Bot.RouteState.NONE
+	# An anchor holding short of the middle goes only after what is near its post, on its own floor; anything else it
+	# watches from there until it is old news.
+	var fresh := b.threat_in_mind(w.time, cfg)
+	var anchoring := BotPersonality.anchor_holding(b, w)
+	var watch_from_post := fresh and anchoring and (_flat(b.last_known, b.lane_goal) > cfg.anchor_search_radius \
+			or absf(b.last_known.y - b.lane_goal.y) > cfg.anchor_search_rise)
 	if seeing:
 		# Back in sight: any watch for them is over.
 		b.watch_until = -INF
 		# A fresh contact at range while on the move: behind close crouch cover first, then peek.
-		if (b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.SEARCH) and b.cover_cooldown <= 0.0:
+		# A personality that pushes in fights where it is.
+		if (b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.SEARCH) and b.cover_cooldown <= 0.0 \
+				and not BotPersonality.pushes_in(b):
 			if _flat(target.position, me.position) >= b.skill.contact_cover_min_distance \
 					and _take_cover(b, w, BotSenses.eye_of(target, w.tuning), 0.0, cfg.contact_cover_radius, 0, true):
 				b.cover_cooldown = cfg.cover_cooldown
 				return
 		b.mode = Bot.Mode.FIGHT
-	elif b.threat_in_mind(w.time, cfg):
-		if _trade_hit(b, w) or _reload_from_cover(b, w):
-			return
+	elif fresh and (_trade_hit(b, w) or _reload_from_cover(b, w)):
+		return
+	elif fresh and not watch_from_post:
 		if b.mode != Bot.Mode.SEARCH:
-			# Lost sight of someone in a fight: a bot with peek_watch_time first watches where they ducked out.
-			if b.mode == Bot.Mode.FIGHT and b.contact != null and b.skill.peek_watch_time.y > 0.0:
+			# Lost sight of someone in a fight: a bot with peek_watch_time first watches where they ducked out; one
+			# that pushes in goes straight after them.
+			if b.mode == Bot.Mode.FIGHT and b.contact != null and b.skill.peek_watch_time.y > 0.0 \
+					and not BotPersonality.pushes_in(b):
 				b.watch_until = w.time + b.pick(b.skill.peek_watch_time)
 			b.route_state = Bot.RouteState.NONE
 			b.mode = Bot.Mode.SEARCH
 			BotMovement.start_search(b, w)
 	elif b.mode != Bot.Mode.ADVANCE:
-		b.has_last_known = false
+		# Back to the lane, still watching that way if holding its post.
+		b.has_last_known = watch_from_post
 		b.mode = Bot.Mode.ADVANCE
 		BotRoutes.drop(b)
 		b.wait_for_team = false
@@ -141,6 +162,9 @@ static func _choose_mode(b: Bot, w: BotWorld, target: Character, dt: float) -> v
 		# Back to the lane point it left.
 		if not b.hunting and b.lane_index >= 0:
 			b.lane_index -= b.lane_dir
+	elif anchoring and not fresh:
+		# Holding its post: stop watching where a noise was once it is old news.
+		b.has_last_known = false
 	if b.mode == Bot.Mode.ADVANCE and not b.hunting and w.pushing_late(b):
 		# Behind on players late in the round (team play): stop holding the lane and go looking for them.
 		b.hunting = true

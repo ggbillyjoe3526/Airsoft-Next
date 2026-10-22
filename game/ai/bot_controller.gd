@@ -11,10 +11,12 @@ var _next_route: int = 0
 
 
 ## Bots for every character in `state` but `player_id` (-1: everyone), on `map` with its nav grid and level rays, each
-## team at its level in `team_levels` (team: a MatchOptions.BOT_LEVELS id; a team not in it plays Normal). Their first
+## team at its level in `team_levels` (team: a MatchOptions.BOT_LEVELS id; a team not in it plays Normal), each with its
+## name and personality in `identities` (by character id, BotRoster.draw; a bot not in it has neither). Their first
 ## plan comes with the match's first ROUND_START (observe).
 func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: WorldQuery, tuning: SimTuning,
-		config: BotConfig, team_levels: Dictionary[int, StringName] = {}) -> void:
+		config: BotConfig, team_levels: Dictionary[int, StringName] = {},
+		identities: Dictionary[int, BotRoster.Identity] = {}) -> void:
 	var w := world
 	w.tuning = tuning
 	w.cfg = config
@@ -29,7 +31,15 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 	for c in state.characters:
 		if c.id != player_id:
 			var skill := config.skill_for(team_levels.get(c.team, &"normal"))
-			w.bots.append(Bot.new(c, Seeds.bot_seed(state.match_seed, c.id), skill, state.characters.size()))
+			var who: BotRoster.Identity = identities.get(c.id)
+			if who != null:
+				skill = BotPersonality.personal_skill(skill, who.style)
+			var b := Bot.new(c, Seeds.bot_seed(state.match_seed, c.id), skill, state.characters.size())
+			if who != null:
+				b.bot_name = who.bot_name
+				b.personality = who.personality
+				b.style = who.style
+			w.bots.append(b)
 	_measure_field(map)
 	w.setup_sectors(w.planner.bounds_lo, w.planner.bounds_hi)
 
@@ -60,6 +70,14 @@ func mode_of(character_id: int) -> int:
 		if b.character.id == character_id:
 			return b.mode
 	return -1
+
+
+## The name of the bot driving `character_id`, or "" (no bot drives it, or it has no name).
+func name_of(character_id: int) -> String:
+	for b in world.bots:
+		if b.character.id == character_id:
+			return b.bot_name
+	return ""
 
 
 ## What the bots heard in the step just taken (or the match's start), and a fresh plan when a round has started.

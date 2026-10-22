@@ -240,6 +240,19 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## goes looking for them.
 @export var late_push_time: float = 30.0
 
+@export_group("Personalities")
+## A personality that pushes in (bots.md) closes in on its target as it sidesteps, until this far from it (m).
+@export var push_distance: float = 8.0
+## An anchor holding short of the middle goes after someone seen or heard within this far of its post (m); further off,
+## it watches that way from its post.
+@export var anchor_search_radius: float = 12.0
+## ...and no further above or below it than this (m): a noise on another floor is watched from the post, not chased down
+## the stairs (Neon Heights' upper posts).
+@export var anchor_search_rise: float = 2.0
+## A kit whose Suits names a bot's personality weighs this many times its weight against the other kits with Suits
+## (BotKits.weights), so the level decides how often a bot carries gear and its personality which.
+@export var kit_suit_lean: float = 3.0
+
 @export_group("Hunting")
 ## Once its lane is swept a bot hunts: the field in square sectors (m), the stalest of this many random spots (each
 ## drawn in at most this many tries), each metre nearer the middle counting like this many seconds staler.

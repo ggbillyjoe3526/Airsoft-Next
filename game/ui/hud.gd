@@ -4,7 +4,8 @@ extends Control
 ## replica's real spread, the hit marker when your BB knocks someone out, the replica panel (ReplicaPanel: count, spare,
 ## fire modes, a box per magazine, reloading, the hop-up dial while you turn it), the score bar and "First to N"
 ## (HudScore), the round's banners (HudBanner), a ricochet that only ticks you, the big "HIT!" when you're hit, and under
-## the win banner the XP the match gave (XpCard, up until the next match starts). Text
+## the win banner the XP the match gave (XpCard, up until the next match starts), and whose eyes you watch through once
+## you are out (or with the Dev settings' Spectate any bot) at the bottom. Text
 ## is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 32.0
@@ -34,6 +35,8 @@ var _hit_sub: Label = null
 var _vault_prompt: Label = null
 var _vault_left: float = 0.0
 var _xp: XpCard = null
+var _watching: Label = null
+var _watching_name: String = ""
 
 var _marker_left: float = 0.0
 var _banner_left: float = 0.0
@@ -102,6 +105,19 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_banner = HudBanner.new()
 	_banner.setup()
 	middle.add_child(_banner)
+	# Whose eyes you watch through, bottom centre.
+	var bottom := VBoxContainer.new()
+	_place(bottom, Vector4(0.5, 1.0, 0.5, 1.0), Rect2(-TOP_WIDTH * 0.5, -MARGIN, TOP_WIDTH, 0.0))
+	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom.alignment = BoxContainer.ALIGNMENT_END
+	bottom.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	add_child(bottom)
+	_watching = HudStyle.label(bottom, HudStyle.AIM_SIZE, 700, Color(GameTheme.TEXT, 0.8), HORIZONTAL_ALIGNMENT_CENTER,
+			HudStyle.SPACING_AIM)
+	_watching.uppercase = true
+	_watching.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_watching.add_theme_stylebox_override("normal", HudStyle.panel_box(HudStyle.BACKING_AIM, 12, 4))
+	_watching.visible = false
 
 
 ## Whether a Jump press would vault this tick: the prompt shows, and stays up vault_prompt_hold after.
@@ -111,6 +127,16 @@ func set_vault_ready(ready: bool) -> void:
 			# the key is whatever Jump is bound to now
 			_vault_prompt.text = tr("HUD_VAULT") % KeyNames.of_action(&"jump")
 		_vault_left = _cfg.vault_prompt_hold
+
+
+## Whose eyes the view is from: a bot's name, or "" for your own (or a bot with no name). The line shows only then.
+func set_watching(bot_name: String) -> void:
+	if bot_name == _watching_name:
+		return
+	_watching_name = bot_name
+	_watching.visible = bot_name != ""
+	if _watching.visible:
+		_watching.text = tr("HUD_WATCHING") % bot_name
 
 
 ## The tick's events: your hits, the round's turns.

@@ -105,7 +105,11 @@ func test_a_session_starts_each_team_at_its_level() -> void:
 	var seen := 0
 	for b in s._bots.world.bots:
 		var want := &"easy" if b.character.team == s.player_team else &"hard"
-		assert_same(b.skill, config.skill_for(want), "character %d" % b.character.id)
+		# Its level's skill, under its personality (BN1): a personality changes how it plays, never how well.
+		var level_skill := config.skill_for(want)
+		assert_eq(b.skill.reaction_time, level_skill.reaction_time, "character %d" % b.character.id)
+		assert_eq(b.skill.aim_error_settled_deg, level_skill.aim_error_settled_deg, "character %d" % b.character.id)
+		assert_eq(b.skill.turn_rate, level_skill.turn_rate, "character %d" % b.character.id)
 		seen += 1
 	assert_eq(seen, s.state.characters.size(), "the autopilot's character plays too")
 
