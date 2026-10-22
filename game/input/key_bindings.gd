@@ -16,7 +16,7 @@ const NONE := 0
 const ACTIONS: Array[StringName] = [
 	&"move_forward", &"move_back", &"move_left", &"move_right", &"walk", &"sprint", &"crouch", &"jump",
 	&"lean_left", &"lean_right", &"fire", &"aim", &"reload", &"fire_mode", &"slot_1", &"slot_2", &"holster",
-	&"slot_next", &"slot_previous", &"hop_up_less", &"hop_up_more",
+	&"slot_next", &"slot_previous", &"hop_up_less", &"hop_up_more", &"scoreboard",
 ]
 ## Actions that can never be left keyless (owner rule, DECISIONS › Menus, HUD, settings and accessibility).
 const ESSENTIAL: Array[StringName] = [&"fire", &"move_forward", &"move_back", &"move_left", &"move_right"]
@@ -43,6 +43,7 @@ const DEFAULTS: Dictionary = {
 	&"slot_previous": [-MOUSE_BUTTON_WHEEL_UP],
 	&"hop_up_less": [KEY_4, KEY_PAGEDOWN],
 	&"hop_up_more": [KEY_5, KEY_PAGEUP],
+	&"scoreboard": [KEY_TAB],
 }
 ## Keys that can't be bound: Esc (menus), PrintScreen, Pause, F11 (fullscreen), the debug keys (F3 the overlay, F4 BB
 ## paths, F5 hit areas; they stay reserved) and the OS keys. A test checks every `debug_*` action's key is here.

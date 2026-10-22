@@ -27,6 +27,7 @@ const PREVIOUS_SLOT := &"slot_previous"
 const HOP_UP_LESS := &"hop_up_less"
 const HOP_UP_MORE := &"hop_up_more"
 const HOLSTER := &"holster"
+const SCOREBOARD := &"scoreboard"
 
 ## The view, absolute (rad): yaw 0 looks down -Z and turns left positive; pitch up positive.
 var view_yaw: float = 0.0
@@ -125,6 +126,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## Whether the sight is up, held or toggled, as the aimed sensitivity reads it.
+## Whether the scoreboard's key is held (only while the mouse is captured, so a menu's Tab never shows it).
+func scoreboard_held() -> bool:
+	return active and Input.is_action_pressed(SCOREBOARD)
+
+
 func _aiming() -> bool:
 	return _aimed if _controls.aim_toggle else Input.is_action_pressed(AIM)
 

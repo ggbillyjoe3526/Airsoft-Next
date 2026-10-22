@@ -1487,3 +1487,42 @@ msgstr "Click for the next round"
 
 msgid "HUD_RESULTS_CLICK"
 msgstr "Click for the results"
+
+msgid "HUD_COL_THIS_ROUND"
+msgstr "This round"
+
+msgid "HUD_COL_TIMES_HIT"
+msgstr "Times hit"
+
+msgid "HUD_COL_ACCURACY"
+msgstr "Accuracy"
+
+msgid "HUD_BOARD_SUB"
+msgstr "%s · %s bots · %d v %d"
+
+msgid "HUD_BOARD_ROUND_LEFT"
+msgstr "Round %d · %s left"
+
+msgid "HUD_BOARD_IN_PLAY"
+msgstr "%d of %d in play"
+
+msgid "HUD_BOARD_YOUR_TEAM"
+msgstr "Your team · %s"
+
+msgid "HUD_PRO_TIP"
+msgstr "Pro tip"
+
+msgid "PRO_TIP_1"
+msgstr "Slice corners: open each one a step at a time, from wide, instead of running past it."
+
+msgid "PRO_TIP_2"
+msgstr "Short peeks: show yourself for a heartbeat and step back. A Pro bot needs a moment to answer, and a quick peek costs you nothing."
+
+msgid "PRO_TIP_3"
+msgstr "Listen: a bot on the move is loud. Stand still, hear which way they come, then peek."
+
+msgid "PRO_TIP_4"
+msgstr "Hold a corner yourself: stand still with your view on the doorway and let them walk into your aim."
+
+msgid "ACT_SCOREBOARD"
+msgstr "SCOREBOARD"
