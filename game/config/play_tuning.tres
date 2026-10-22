@@ -2,21 +2,32 @@
 
 [ext_resource type="Script" path="res://game/config/controls_config.gd" id="1_ermsw"]
 [ext_resource type="Script" path="res://game/config/effects_config.gd" id="2_hfql4"]
+[ext_resource type="Script" path="res://game/config/debug_view_config.gd" id="2_yrloc"]
 [ext_resource type="Script" path="res://game/config/hud_config.gd" id="3_264px"]
+[ext_resource type="Script" path="res://game/config/flag_view_config.gd" id="4_b3fuu"]
 [ext_resource type="Script" path="res://game/config/lighting_config.gd" id="4_yrloc"]
 [ext_resource type="Script" path="res://game/config/map_style.gd" id="5_b3fuu"]
 [ext_resource type="Script" path="res://game/config/play_tuning.gd" id="6_q2qxh"]
 [ext_resource type="Script" path="res://game/config/sound_config.gd" id="7_2hh1h"]
+[ext_resource type="Script" path="res://game/config/range_view_config.gd" id="8_q2qxh"]
 [ext_resource type="Script" path="res://game/config/team_config.gd" id="8_s0wu6"]
 [ext_resource type="Script" path="res://game/config/view_config.gd" id="9_3isbp"]
 [ext_resource type="Script" path="res://game/config/viewmodel_config.gd" id="10_bqp2c"]
 
 [sub_resource type="Resource" id="Resource_01h5l"]
 script = ExtResource("1_ermsw")
+wheel_labels = PackedStringArray("ORDER_FOLLOW", "ORDER_HOLD", "ORDER_REGROUP", "ORDER_TEAM_PLAN")
+
+[sub_resource type="Resource" id="Resource_2hh1h"]
+script = ExtResource("2_yrloc")
+hit_colours = PackedColorArray(0.3, 0.7, 1, 0.9, 1, 0.45, 0.2, 0.9)
 
 [sub_resource type="Resource" id="Resource_ev06m"]
 script = ExtResource("2_hfql4")
 puff_colours = PackedColorArray(0.8, 0.78, 0.72, 0.7, 0.82, 0.8, 0.75, 0.7, 0.78, 0.8, 0.82, 0.6, 0.76, 0.66, 0.5, 0.7, 0.6, 0.52, 0.4, 0.75)
+
+[sub_resource type="Resource" id="Resource_s0wu6"]
+script = ExtResource("4_b3fuu")
 
 [sub_resource type="Resource" id="Resource_bjbwn"]
 script = ExtResource("3_264px")
@@ -26,6 +37,9 @@ script = ExtResource("4_yrloc")
 
 [sub_resource type="Resource" id="Resource_ca7sx"]
 script = ExtResource("5_b3fuu")
+
+[sub_resource type="Resource" id="Resource_3isbp"]
+script = ExtResource("8_q2qxh")
 
 [sub_resource type="Resource" id="Resource_4l7r4"]
 script = ExtResource("7_2hh1h")
@@ -53,3 +67,6 @@ hud = SubResource("Resource_bjbwn")
 map_style = SubResource("Resource_ca7sx")
 lighting = SubResource("Resource_ynup1")
 teams = SubResource("Resource_rbn8w")
+debug_view = SubResource("Resource_2hh1h")
+flag = SubResource("Resource_s0wu6")
+range_view = SubResource("Resource_3isbp")

@@ -26,6 +26,15 @@
   code the smoke test couldn't exercise. The KNOWN_ISSUES row names it.
 - `game/save/settings_apply.gd` (outside touches) gets one line carrying `wheel_pick` into the controls.
 
+## Also fixed here
+
+- **The exported game crashed on starting a match** (on main too, unseen because the export test only runs when the
+  release files change; the last run was PR #48). `sim_tuning.tres` and `play_tuning.tres` left out configs added
+  since (wind, ricochet, vault, flag, targets; debug view, flag view, range view); an export converts the .tres in the
+  editor, where the scripts' `= Config.new()` defaults don't run, so they shipped as null. Both files now write every
+  config out, `tests/unit/test_saved_configs.gd` fails if a saved config file leaves one out, and the export test now
+  also runs when a `game/config` .tres changes. Exported Linux build checked locally: smoke ok, no script errors.
+
 ## Known issues left
 
 - Until SO4 draws it, holding Z stops the view with nothing on screen; don't tag a build between SO3 and SO4 unless
