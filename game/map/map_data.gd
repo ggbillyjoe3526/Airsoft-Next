@@ -1,10 +1,10 @@
 class_name MapData
 extends RefCounted
 ## A map's layout as plain data, read from data/maps/<id>.json (the browser game's map/mapTypes.ts, exported by the
-## salvage): its blocks, its two ends, its kill height and, on the range, its targets. MapLevel builds the greybox and
-## the Jolt colliders from it; the simulation reads its ends and targets. A file that can't be played (no floor, a
-## missing end, too few spawns for a team) is refused with the reasons in `problems`; a target that can't stand is left
-## out with a warning (`warnings`).
+## salvage): its blocks, its two ends, its kill height, its named areas and storeys and, on the range, its targets.
+## MapLevel builds the greybox and the Jolt colliders from it; the simulation reads its ends and targets. A file that
+## can't be played (no floor, a missing end, too few spawns for a team) is refused with the reasons in `problems`; a
+## target that can't stand or a malformed area is left out with a warning (`warnings`).
 
 const DIR := "res://data/maps/"
 
@@ -42,6 +42,10 @@ var lanes: Array[PackedVector3Array] = []
 ## The practice range's targets (`targets` in the file: config/range.ts rangeLayout()'s specs), in the file's order;
 ## empty on a field.
 var targets: Array[RangeTarget.Spec] = []
+## The named areas (MapAreas.area_at), in the file's order: the first that holds a point names it. None on the range.
+var areas: Array[MapAreas.Area] = []
+## The floor heights (m) of a map built in storeys, lowest first (Neon Heights' 0, 3 and 6); empty on a map of one.
+var storeys: PackedFloat64Array = PackedFloat64Array()
 ## Why the file was refused; empty when it loaded.
 var problems: Array[String] = []
 ## What in the file was left out or kept at its default (a target that can't stand, a number that won't read), each
@@ -81,6 +85,10 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m._read_ends(d.get("spawns"), d.get("deadZones"), team_size)
 	m._read_lanes(d.get("lanes"))
 	m._read_targets(d.get("targets"))
+	m.areas = MapAreas.read(d.get("areas"), m.warnings)
+	m._read_storeys(d.get("storeys"))
+	for w in m.warnings:
+		push_warning("MapData: " + w)
 	var pole: Variant = d.get("flag")
 	m.has_pole = pole is Dictionary and (pole as Dictionary).has("x") and (pole as Dictionary).has("z")
 	m.pole = _vec(d.get("flag"))
@@ -197,8 +205,20 @@ func _read_targets(list: Variant) -> void:
 			var spec := RangeTarget.Spec.from_dict((list as Array)[i], i, warnings)
 			if spec != null:
 				targets.append(spec)
-	for w in warnings:
-		push_warning("MapData: " + w)
+
+
+## Storeys are optional: a map of one floor has none. A height that isn't a number above the one before is left out.
+func _read_storeys(list: Variant) -> void:
+	if list == null:
+		return
+	if not list is Array:
+		warnings.append("storeys is not a list")
+		return
+	for raw: Variant in list:
+		if not (raw is float or raw is int) or (not storeys.is_empty() and float(raw) <= storeys[storeys.size() - 1]):
+			warnings.append("storey %s is not a height above the one before; left out" % str(raw))
+			continue
+		storeys.append(float(raw))
 
 
 static func _spots(list: Variant) -> Array[SpawnPoint]:
