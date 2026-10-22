@@ -185,7 +185,7 @@ func _build_views_and_start() -> void:
 	var names := PackedStringArray()
 	for c in state.characters:
 		names.append("" if c.id == PLAYER_ID else _bots.name_of(c.id))
-	_hud.setup_field(_level.query(), _tuning.body, names, state.characters)
+	_hud.setup_field(_level.query(), _tuning.body, names, state.characters, _stats)
 	_capture()
 
 
@@ -436,7 +436,8 @@ func _process(delta: float) -> void:
 		if staged:
 			_advance_build()
 		return
-	if _rematch_left > 0.0:
+	# The next match waits while the last round's table holds the results back.
+	if _rematch_left > 0.0 and not _hud.holds_results():
 		_rematch_left = maxf(0.0, _rematch_left - delta)
 	var fraction := _pacer.fraction(Engine.get_physics_interpolation_fraction())
 	var watched := spectated()
@@ -501,6 +502,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.is_pressed() and not _input.active and not get_tree().paused:
 		_capture()
 		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"fire") and not event.is_echo() and _input.active and _hud.round_result().is_up():
+		_move_on()
+		get_viewport().set_input_as_handled()
+
+
+## A click on the round's table: the next round starts now (or the match's last table makes way for the results), and
+## the click is not a shot.
+func _move_on() -> void:
+	Round.end_wait(state.round_state)
+	_hud.round_result().close()
+	_input.hold_fire()
 
 
 func _notification(what: int) -> void:

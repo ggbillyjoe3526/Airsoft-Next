@@ -51,7 +51,7 @@ func test_the_round_after_the_half_says_half_time() -> void:
 
 func test_a_won_round_is_in_the_winners_colour() -> void:
 	_tick_with(GameEvent.Kind.ROUND_OVER, 1)
-	assert_eq(hud._banner.big_text(), "BETA TAKE THE ROUND")
+	assert_eq(hud._banner.big_text(), "LOST", "from your side (RR1)")
 	assert_eq(_big_colour(), hud._teams.colours[1])
 	_tick_with(GameEvent.Kind.ROUND_OVER, 0)
 	assert_eq(_big_colour(), hud._teams.colours[0])
@@ -60,7 +60,7 @@ func test_a_won_round_is_in_the_winners_colour() -> void:
 func test_a_draw_banner_has_two_lines_in_the_text_colour() -> void:
 	_tick_with(GameEvent.Kind.ROUND_OVER, -1)
 	assert_eq(hud._banner.big_text(), "DRAW")
-	assert_eq(hud._banner.sub_text(), "THE ROUND IS PLAYED AGAIN")
+	assert_string_ends_with(hud._banner.sub_text(), " · THE ROUND IS PLAYED AGAIN")
 	assert_eq(_big_colour(), GameTheme.TEXT, "no stale team colour from the banner before")
 
 

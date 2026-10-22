@@ -18,6 +18,8 @@ class Stats:
 	var bbs_fired: int = 0
 	## Seconds in play while rounds were live.
 	var time_in_play: float = 0.0
+	## Who hit this player last (their BB, or their own bounced one), -1 if nobody yet.
+	var hit_by: int = -1
 
 	func clear() -> void:
 		hits = 0
@@ -25,6 +27,7 @@ class Stats:
 		friendly_hits = 0
 		bbs_fired = 0
 		time_in_play = 0.0
+		hit_by = -1
 
 	## The share of BBs fired that hit an opponent (0..1), or -1 before the first BB. Friendly hits don't count.
 	func accuracy() -> float:
@@ -122,6 +125,8 @@ func _add_hit(state: GameState, shooter_id: int, victim_id: int) -> void:
 		return
 	_match[victim_id].times_hit += 1
 	_round[victim_id].times_hit += 1
+	_match[victim_id].hit_by = shooter_id
+	_round[victim_id].hit_by = shooter_id
 	version += 1
 	# Your own bounced BB is a time you were hit, not a hit on anyone.
 	if shooter == null or shooter_id == victim_id:

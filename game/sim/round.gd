@@ -90,6 +90,15 @@ static func run_clock_out(rs: RoundState) -> bool:
 	return true
 
 
+## Ends the wait between rounds now, so the next tick starts the next round (a click on the round's table). False when
+## no round is over and waiting.
+static func end_wait(rs: RoundState) -> bool:
+	if rs.phase != RoundState.Phase.OVER:
+		return false
+	rs.timer = 0.0
+	return true
+
+
 ## The end of the map (0 or 1) `team` starts from in round `number`. Elimination: Alpha at RoundConfig.first_end,
 ## Beta at the other. Attack / Defend: the attackers at end 0, the defenders at end 1 by the pole. Either way swapped
 ## after half_time_after rounds.

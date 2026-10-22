@@ -50,6 +50,8 @@ var _slot_steps: int = 0
 var _crouched: bool = false
 ## Aiming, while aim toggles (ControlsConfig.aim_toggle).
 var _aimed: bool = false
+## Fire is ignored until it is let go (hold_fire).
+var _fire_held_back: bool = false
 
 
 func setup(controls: ControlsConfig, max_pitch: float) -> void:
@@ -144,7 +146,9 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.aim = _aiming()
 	# Lean is held, whatever crouch and aim do (owner, 2026-10-03).
 	cmd.lean = Input.get_action_strength(LEAN_RIGHT) - Input.get_action_strength(LEAN_LEFT)
-	cmd.fire = Input.is_action_pressed(FIRE) or _fire_latch
+	if _fire_held_back and not Input.is_action_pressed(FIRE):
+		_fire_held_back = false
+	cmd.fire = not _fire_held_back and (Input.is_action_pressed(FIRE) or _fire_latch)
 	cmd.jump = _jump_latch # a press, not a hold: holding Space doesn't hop on every landing
 	cmd.reload = _reload_latch
 	cmd.cycle_fire_mode = _mode_latch
@@ -154,6 +158,12 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	if _slot_steps != 0:
 		cmd.switch_to = posmod(held_slot + _slot_steps, SLOTS.size())
 	_clear_latches()
+
+
+## Ignores the fire button until it is let go: a click that moved the round on is not the next round's first shot.
+func hold_fire() -> void:
+	_fire_held_back = true
+	_fire_latch = false
 
 
 ## Lets go of everything (focus lost, the menu opened), so no key stays held.

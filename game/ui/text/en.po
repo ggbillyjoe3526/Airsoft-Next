@@ -1451,3 +1451,39 @@ msgstr "You"
 
 msgid "HUD_HIT_TAG"
 msgstr "Hit"
+
+msgid "HUD_WON"
+msgstr "Won"
+
+msgid "HUD_LOST"
+msgstr "Lost"
+
+msgid "HUD_PLAYED"
+msgstr "%s played"
+
+msgid "HUD_OUT_TAG"
+msgstr "Out"
+
+msgid "HUD_COL_PLAYER"
+msgstr "Player"
+
+msgid "HUD_COL_HITS"
+msgstr "Hits"
+
+msgid "HUD_COL_BBS"
+msgstr "BBs fired"
+
+msgid "HUD_COL_TIME"
+msgstr "Time in play"
+
+msgid "HUD_COL_HIT_BY"
+msgstr "Hit by"
+
+msgid "HUD_STILL_IN"
+msgstr "Still in"
+
+msgid "HUD_NEXT_ROUND_CLICK"
+msgstr "Click for the next round"
+
+msgid "HUD_RESULTS_CLICK"
+msgstr "Click for the results"

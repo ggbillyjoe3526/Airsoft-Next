@@ -210,19 +210,19 @@ func test_a_round_ended_by_the_flag_or_the_clock_shows_its_banner() -> void:
 	won.value = 0
 	won.value2 = GameEvent.RoundEnd.CAPTURED
 	hud.on_tick(state)
-	assert_eq(hud.banner_text(), "FLAG RAISED / ALPHA TAKE THE ROUND")
+	assert_eq(hud.banner_text(), "WON / ROUND 1 · FLAG RAISED · ALPHA TAKE THE ROUND")
 	state.events.clear()
 	var held := state.events.add(GameEvent.Kind.ROUND_OVER)
 	held.value = 1
 	held.value2 = GameEvent.RoundEnd.TIME
 	hud.on_tick(state)
-	assert_eq(hud.banner_text(), "DEFENDED / TIME'S UP · BETA HELD THE POLE")
+	assert_eq(hud.banner_text(), "LOST / ROUND 1 · DEFENDED · TIME'S UP · BETA HELD THE POLE")
 	state.events.clear()
 	var out := state.events.add(GameEvent.Kind.ROUND_OVER)
 	out.value = 1
 	out.value2 = GameEvent.RoundEnd.ELIMINATED
 	hud.on_tick(state)
-	assert_eq(hud.banner_text(), "BETA TAKE THE ROUND / ", "won by eliminations: Elimination's banner")
+	assert_eq(hud.banner_text(), "LOST / ROUND 1 · BETA TAKE THE ROUND", "won by eliminations: Elimination's line")
 	state.events.clear()
 
 
