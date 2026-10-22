@@ -1,6 +1,6 @@
 # Handoff
 
-What is happening now (as of 2026-10-18), for a session picking up the work. The plan is `docs/ROADMAP.md`, the
+What is happening now (as of 2026-10-22), for a session picking up the work. The plan is `docs/ROADMAP.md`, the
 rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
 
 ## Now
@@ -31,9 +31,10 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
   the pause menu, saved in `user://settings.save`.
 - **The debug view is done (DV1):** F3 also shows the match seed, your position and the entity count, F4 draws BB paths
   and F5 hit areas in the world (made only while on, keys reserved), and `-- --seed <n>` replays a match.
-- **Next:** the build order in `docs/ROADMAP.md` › Build order, after Foundations: the Dev tab and dev content (step 6,
-  DV2; its block is in `docs/TASKS.md`). Version names wait until the owner picks them up again
-  (owner, 2026-10-18).
+- **Next:** steps 1 to 11 of `docs/ROADMAP.md` › Build order are built, and step 12's DF1, DF2a and DF2b. BN1 (names
+  and personalities) is next, then MN3 once its concepts are approved, then step 13. The owner moved the overtime flag,
+  the tutorial, pings and the magazine hand-off, bot callouts, adaptive difficulty and all Blender work to the end
+  (steps 27 to 32; 2026-10-22). Version names wait until the owner picks them up again (owner, 2026-10-18).
 - **Waiting on the owner:** his play-through of `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
 - **Crouch and aim are both held** (owner, 2026-10-18), changed in the Depot thread.
 
