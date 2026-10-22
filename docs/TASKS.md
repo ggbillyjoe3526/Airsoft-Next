@@ -74,26 +74,6 @@ acceptance:
 status: open
 attempts: 0
 
-## MM3 · The field drawing
-tier: ui
-perf: required
-touches: game/ui/minimap_field.gd, game/config/minimap_config.gd, game/config/play_tuning.tres, game/ui/README.md,
-  tests/unit/
-contract: Simulation and presentation (1); Data, not literals (6)
-acceptance:
-  1. MinimapField builds, once per match from MapData, one Image per storey (one on a map without storeys) at
-     layer_scale px/m over the map's floors: ground, raised floor, ramp, low cover and tall walls as the browser's
-     rules; a storey's image leaves out blocks starting more than storey_cut above its floor and washes the floors
-     below it darker. storey_of(feet height) as storey_pick.
-  2. Depot's loading dock draws as raised floor and is told apart from the ground under a patch (the browser's known
-     issue fixed or recorded with a reason).
-  3. Tests read pixels: a Depot wall is tall, a barrier low, the dock raised, the ramp a ramp; on Neon Heights the
-     upper storey leaves out the roof over it and darkens the street.
-  4. No image's longest side exceeds 2048 px (layer_scale lowered for that map); the build time and memory for each
-     field are measured and recorded; nothing is built on the range; the images are freed with the session.
-status: open
-attempts: 0
-
 ## MM4 · The minimap on the HUD
 tier: ui
 perf: required
