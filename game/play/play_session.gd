@@ -7,6 +7,9 @@ extends Node3D
 ## `left` when the player leaves to the title screen. The Dev settings in force apply here and follow every change
 ## (game speed, bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions, Retro pixels, End the
 ## round now): the cheats through the simulation (DevCheats), the views built only while on.
+## Practice (`practice`, M21) plays the range instead: you alone with its targets (RangeTargetsView, its markings
+## RangeView), no bots and no rounds, a breeze, spare magazines kept full, no XP and no match records; the timed
+## challenge (off unless switched on) keeps its best.
 ## The build is four steps (the map, the level, the teams, the views). Staged, one runs each rendered frame and
 ## `progressed` reports each, for the loading screen; `started` follows the frame the match is first drawn. Not staged,
 ## all four run in `_ready` (tests and tools).
@@ -61,6 +64,15 @@ var custom_rules: CustomRules = null
 var counts: bool = false
 ## What the last finished match gave, once counted (null before).
 var settled: PlayerTally.Settled = null
+## Practice on the range (M21): `map_id`'s targets, you alone (no bots, no rounds, a team of one), a ricochet of your
+## own only ticking you, `mode` practice; no XP or match records. Set before it enters the tree, as the map is.
+var practice: bool = false
+## Practice: the timed challenge on from the start (the pause menu's switch; set_challenge changes it in play).
+var challenge_on: bool = false
+## Practice, when `counts`: where a timed challenge run's best is kept and saved (null: Records.shared(), saved to its
+## file as a settled match's records are). Tests give their own and a path of their own.
+var records: Records = null
+var records_path: String = Records.PATH
 
 var state: GameState = null
 var player: Character = null
@@ -109,6 +121,9 @@ var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
 var _stats: MatchStats = MatchStats.new()
 ## Attack / Defend's pole; null in Elimination.
 var _flag: FlagView = null
+## Practice: the targets and the range's markings; the smoke test's pilot on the range.
+var _targets_view: RangeTargetsView = null
+var _pilot: RangePilot = null
 ## Your kit was picked with levelling off: every match it plays stays out of the records, even after it is turned on.
 var _kit_unlocked_all: bool = false
 ## The parts fitted to each kitted bot's replicas (Kit.parts), by character id, for its figure.
@@ -123,6 +138,9 @@ var all_shots: int = 0
 var impacts: int = 0
 var rounds_played: int = 0
 var matches_played: int = 0
+## Practice: targets your BBs hit, and how many of those were steel plates (never the START plate).
+var target_hits: int = 0
+var plate_hits: int = 0
 
 
 func _ready() -> void:
@@ -155,7 +173,9 @@ func _build_step() -> void:
 
 func _load_map() -> void:
 	_tuning = SimTuning.load_default()
-	if custom_rules != null:
+	if practice:
+		_tuning = practice_tuning(_tuning)
+	elif custom_rules != null:
 		_tuning = custom_rules.applied_to(_tuning)
 	_play = PlayTuning.load_default()
 	_map = MapData.load_map(map_id, _play.map_style, _tuning.rounds.team_size)
@@ -189,8 +209,11 @@ func _build_views_and_start() -> void:
 	# With the pilot on, a bot plays your character too.
 	var nobody := -1
 	var levels: Dictionary[int, StringName] = {player_team: teammates_level(), opponent_team(): difficulty}
-	_bots = BotController.new(state, nobody if autopilot else PLAYER_ID, _map, _sim.nav, _level.query(), _tuning,
-			_bot_config, levels, _identities)
+	_bots = BotController.new(state, nobody if autopilot and not practice else PLAYER_ID, _map, _sim.nav,
+			_level.query(), _tuning, _bot_config, levels, _identities)
+	# On the range the pilot shoots a plate instead (there is no one to play against).
+	if autopilot and practice:
+		_pilot = RangePilot.new()
 	if settings == null:
 		settings = Settings.shared()
 	settings.changed.connect(_apply_dev)
@@ -266,6 +289,9 @@ func _start_simulation(map: MapData) -> void:
 	# the other team's bots each pick a kit by the difficulty, leaning towards kits that suit their personality.
 	_bot_parts.clear()
 	_bot_config = BotConfig.load_default()
+	if practice:
+		_start_practice(map)
+		return
 	var ids := PackedInt32Array()
 	var teams := PackedInt32Array()
 	for i in _tuning.rounds.team_size * 2 - 1:
@@ -288,6 +314,56 @@ func _start_simulation(map: MapData) -> void:
 		state.dev_content = state.dev_content or bot_kit.dev
 	for c in state.characters:
 		_commands.append(PlayerCommand.new())
+
+
+## Practice's state: no rounds, the map's targets laid out on the match's stream, and the timed challenge on the map's
+## course with its best so far (kept only when the session counts), on if asked for.
+func _start_practice(map: MapData) -> void:
+	mode = MatchOptions.MODE_PRACTICE
+	state.round_state.practice = true
+	state.targets = RangeTargets.create(map.targets, _tuning, state.rng)
+	var challenge := state.challenge
+	challenge.course = map_id
+	challenge.player_id = PLAYER_ID
+	challenge.best = _records().challenge_best(map_id) if counts else 0
+	set_challenge(challenge_on)
+	_commands.append(PlayerCommand.new())
+
+
+## Practice's rules on a copy of `base` (SimTuning.load_default() is shared, never written): a team of one, and a BB of
+## your own that bounces back at you only ticks you (ricochets never count), so the range never knocks you out.
+static func practice_tuning(base: SimTuning) -> SimTuning:
+	var t := base.duplicate() as SimTuning
+	t.rounds = base.rounds.duplicate() as RoundConfig
+	t.hits = base.hits.duplicate() as HitConfig
+	t.rounds.team_size = 1
+	t.hits.ricochets_count = false
+	return t
+
+
+## Practice: the timed challenge on (its START plate stands, waiting) or off (free practice; a run under way is dropped,
+## with no score). The pause menu's switch; before the range is built it only sets `challenge_on`.
+func set_challenge(on: bool) -> void:
+	challenge_on = on
+	if practice and state != null:
+		state.challenge.set_on(on, state.targets, _tuning.targets, state.rng)
+
+
+func _records() -> Records:
+	if records == null:
+		records = Records.shared()
+	return records
+
+
+## A timed challenge run is over (its Time cue): kept as its course's best if it beats it (never one helped by a Dev
+## setting), and the records saved, only when the session counts.
+func _keep_challenge_run() -> void:
+	var run := state.challenge.last
+	if not counts or run == null:
+		return
+	var r := _records()
+	if r.add_challenge_run(state.challenge.course, run):
+		r.save_if_dirty(records_path)
 
 
 func _build_views(ui: CanvasLayer) -> void:
@@ -316,6 +392,15 @@ func _build_views(ui: CanvasLayer) -> void:
 	_dust.setup(_play.effects)
 	add_child(_dust)
 	var sign_font := GameTheme.font(800)
+	var range_materials: Array[Material] = []
+	if practice:
+		var marks := RangeView.new()
+		add_child(marks)
+		marks.setup(_play.range_view, _tuning.targets, sign_font)
+		_targets_view = RangeTargetsView.new()
+		add_child(_targets_view)
+		_targets_view.setup(state.targets, _play.range_view, _tuning, sign_font)
+		range_materials = _targets_view.materials()
 	for c in state.characters:
 		if c.id == PLAYER_ID:
 			continue
@@ -334,6 +419,7 @@ func _build_views(ui: CanvasLayer) -> void:
 		add_child(_flag)
 		first_use.append_array(_flag.materials())
 	first_use.append_array(_hands.prewarm_glass())
+	first_use.append_array(range_materials)
 	ShaderPrewarm.new().setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE))
 	var profiles: Array[StringName] = []
 	for c in state.characters:
@@ -384,7 +470,9 @@ func _physics_process(_delta: float) -> void:
 		else:
 			for c in state.characters:
 				_commands[c.id].reset(c.yaw, c.pitch)
-		if _spectate_any and not autopilot:
+		if _pilot != null:
+			_pilot.fill(_commands[PLAYER_ID], player, state.targets, _tuning.body)
+		elif _spectate_any and not autopilot:
 			_follow_next_on_pull()
 		elif not autopilot:
 			_input.fill(_commands[PLAYER_ID], player.armament.active)
@@ -440,6 +528,8 @@ func _after_tick() -> void:
 	_hud.set_vault_ready(_vault_ready())
 	_tally.on_tick(state)
 	_stats.after_tick(state, TICK)
+	if _targets_view != null:
+		_targets_view.on_tick(state)
 	var events := state.events
 	for i in events.count:
 		var e := events.items[i]
@@ -461,6 +551,15 @@ func _after_tick() -> void:
 					_hit_called(e.actor)
 			GameEvent.Kind.RICOCHET_TICK:
 				_puffs.body_hit(e.position)
+			GameEvent.Kind.TARGET_HIT:
+				var steel := e.value == RangeTarget.Kind.STEEL
+				_puffs.impact(e.position, RayHit.Surface.METAL if steel else RayHit.Surface.WOOD)
+				if e.actor == PLAYER_ID:
+					target_hits += 1
+					if steel and not state.targets[e.target].start:
+						plate_hits += 1
+			GameEvent.Kind.CHALLENGE when e.value == RangeChallenge.Cue.TIME:
+				_keep_challenge_run()
 			GameEvent.Kind.ROUND_OVER:
 				rounds_played += 1
 				_stop_skip()
@@ -496,6 +595,8 @@ func _process(delta: float) -> void:
 	_bbs.update(state.bbs, PLAYER_ID, _hands.muzzle_position() - _eyes.global_position, fraction, TICK)
 	_puffs.update(delta)
 	_dust.update(_eyes.global_position, state.wind.at(state.time), delta)
+	if _targets_view != null:
+		_targets_view.update(state.targets, fraction, delta)
 	for f in _figures:
 		f.update(state.characters[f.character_id], fraction)
 		# Watching through someone's eyes: their own figure would fill the view.
@@ -746,17 +847,17 @@ func counts_for_records() -> bool:
 ## Gives the finished match's XP and adds it to the records, then saves both (once a match: a few small writes).
 func _settle() -> void:
 	var progress := Progress.shared()
-	var records := Records.shared()
+	var kept := Records.shared()
 	var mates := teammates_level() if _tuning.rounds.team_size > 1 else &""
-	var s := _tally.settle(progress, records if counts_for_records() else null, state.off_record or _kit_unlocked_all,
+	var s := _tally.settle(progress, kept if counts_for_records() else null, state.off_record or _kit_unlocked_all,
 			player_team, _tuning.rounds.wins_needed, mode, difficulty, mates, custom_rules != null)
 	if s == null:
 		return
 	progress.save_if_dirty()
-	records.save_if_dirty()
+	kept.save_if_dirty()
 	settled = s
 	_hud.show_xp(s, difficulty, progress)
-	_hud.summary().set_records(records, records.win_loss(difficulty, mode), s.news,
+	_hud.summary().set_records(kept, kept.win_loss(difficulty, mode), s.news,
 			tr("SUM_RECORDS") % [tr("BOT_" + String(difficulty).to_upper()), tr(MatchOptions.MODE_NAME[mode])])
 	match_settled.emit()
 
@@ -772,7 +873,8 @@ func _apply_hud() -> void:
 func _apply_dev() -> void:
 	var dev := settings.active_dev()
 	DevCheats.apply(state, dev.cheats(), PLAYER_ID)
-	_spectate_any = dev.spectate_bots
+	# No bots to follow on the range: you keep playing.
+	_spectate_any = dev.spectate_bots and not practice
 	if not _spectate_any:
 		_watch_id = -1
 	if dev.bot_intent and _intents == null:

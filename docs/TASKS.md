@@ -22,37 +22,6 @@ acceptance:
 status: open
 attempts: 0
 
-## RG2 · The timed challenge's rules and its best
-tier: core
-perf: required
-touches: game/sim/range_challenge.gd, game/sim/game_state.gd, game/sim/game_event.gd, game/sim/simulation.gd,
-  game/config/range_config.gd, game/config/sim_tuning.tres, game/progress/records.gd, tests/unit/
-contract: Events (3); Seeded randomness (5); Data, not literals (6); Saves (8)
-acceptance:
-  1. Off, ready, countdown and running as rangeChallenge.ts with RANGE_CHALLENGE's numbers; cues are CHALLENGE events;
-     switching off drops a run.
-  2. A run's end raises Records' best for its course, never with a cheat on since START; old records files load.
-  3. The browser's rangeChallenge tests pass in GUT; a running tick allocates nothing.
-status: open
-attempts: 0
-
-## RG3 · The range drawn, heard and played
-tier: core
-perf: required
-touches: game/play/play_session.gd, game/play/range_view.gd, game/play/range_targets_view.gd, game/play/sim_audio.gd,
-  game/config/range_view_config.gd, game/config/play_tuning.tres, game/main.gd, tests/unit/
-contract: Simulation and presentation (1); Headless (9)
-acceptance:
-  1. PlaySession's practice mode: the range, you alone, no bots, a breeze, no XP or match records; views freed with it.
-  2. Targets and their gear drawn in greybox from the specs and RANGE_VISUALS (swing, fall, rise, lit glow, START);
-     floor lines and wall boards at 10 to 60 m.
-  3. Steel rings (80 m), figures knock, your hit plays the hit marker; countdown and Go beep, Time a stand-in.
-  4. On the challenge's TIME cue, `Records.add_challenge_run(course, challenge.last)` with the course the map's id, and
-     the records saved.
-  5. The smoke test opens the range, hits a plate and leaves with no script errors; frame time within Depot's.
-status: open
-attempts: 0
-
 ## RG4 · Practice on the Match screen, its HUD and pause menu
 tier: ui
 perf: optional
