@@ -234,7 +234,8 @@ func test_an_order_ends_for_the_calling_walking_off_and_leaving_states_too() -> 
 		mates[1].character.status = status
 		_tick()
 		assert_eq(mates[1].order, SquadOrder.Kind.NONE, "a bot that is hit drops it (%d)" % status)
-		assert_eq(mates[0].order, SquadOrder.Kind.REGROUP)
+		# A bot that reaches you turns Regroup into Follow me (SO2), so it only has to keep an order.
+		assert_ne(mates[0].order, SquadOrder.Kind.NONE)
 		mates[0].character.status = status
 		_tick()
 		assert_eq(bots.order_of(YOU), SquadOrder.Kind.NONE, "nobody carries it: nothing in force (%d)" % status)
@@ -557,7 +558,8 @@ func test_ticks_giving_every_kind_of_order_cancelling_and_being_refused_allocate
 func test_attack_defend_ticks_with_orders_allocate_nothing() -> void:
 	_squad([], true, 1)
 	state.round_state.flag.progress = 0.4
-	_cycle(450, 0)
+	# Long enough a warm-up for the event pool to reach its size once followers move.
+	_cycle(1050, 0)
 	var objects := Performance.get_monitor(Performance.OBJECT_COUNT)
-	_cycle(600, 450)
+	_cycle(600, 1050)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), objects)
