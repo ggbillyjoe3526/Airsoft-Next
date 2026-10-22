@@ -29,17 +29,18 @@ static func personal_skill(skill: BotSkill, style: BotsFile.Style) -> BotSkill:
 
 
 ## Pushes in (bots.md › Habits): closes in on its target as it sidesteps, takes no cover on a fresh sighting and runs at
-## where someone was.
+## where someone was. Not under a squad order: it does what it was asked.
 static func pushes_in(b: Bot) -> bool:
-	return b.style.pushes_in
+	return b.style.pushes_in and b.order == SquadOrder.Kind.NONE
 
 
 ## An anchor holding (bots.md › Holds until), in Elimination: on its lane, not hunting, while the round clock is above
 ## the personality's mark and a teammate is still in play. It stops at the last lane point short of the middle
-## (RoundPlanner.plan) and holds there; once it hunts (the late push, or its mark passed) it goes on from where it
-## stands.
+## (RoundPlanner.plan) and holds there; once it hunts (the late push, its mark passed, or a squad order ended) it goes
+## on from where it stands. Not under a squad order: it does what it was asked.
 static func anchor_holding(b: Bot, w: BotWorld) -> bool:
-	if w.mode != RoundState.Mode.ELIMINATION or not b.style.holds or b.hunting or w.round_clock <= b.style.hold_until:
+	if w.mode != RoundState.Mode.ELIMINATION or not b.style.holds or b.hunting or w.round_clock <= b.style.hold_until \
+			or b.order != SquadOrder.Kind.NONE:
 		return false
 	var me := b.character
 	for c in w.characters:

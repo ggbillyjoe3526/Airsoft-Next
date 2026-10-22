@@ -32,6 +32,10 @@ var hop_up_steps: int = 0
 ## Put the replica in hand away (one-shot; the holster): nothing to fire or aim, a faster run that never passes the
 ## sprint. A slot, a fresh trigger pull, an aim press or a reload draws it again, slower than a switch.
 var holster: bool = false
+## A squad order to this character's bot teammates (one-shot; SquadOrder), and whether it was picked on the order wheel
+## (picked again there, the order in force stays; its key again cancels it).
+var squad_order: SquadOrder.Kind = SquadOrder.Kind.NONE
+var order_from_wheel: bool = false
 
 
 ## Back to no input, looking along (yaw, pitch).
@@ -52,6 +56,8 @@ func reset(view_yaw: float = 0.0, view_pitch: float = 0.0) -> void:
 	lean = 0.0
 	hop_up_steps = 0
 	holster = false
+	squad_order = SquadOrder.Kind.NONE
+	order_from_wheel = false
 
 
 func copy_from(other: PlayerCommand) -> void:
@@ -71,3 +77,5 @@ func copy_from(other: PlayerCommand) -> void:
 	lean = other.lean
 	hop_up_steps = other.hop_up_steps
 	holster = other.holster
+	squad_order = other.squad_order
+	order_from_wheel = other.order_from_wheel

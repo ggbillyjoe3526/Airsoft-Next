@@ -16,6 +16,7 @@ warm (checked by `test_simulation.gd` and, on the range, `test_range_map.gd`).
 |---|---|
 | `simulation.gd` | `Simulation`: the services the rules need (tuning, `WorldQuery`, `CharacterMover`, the map's ends) and `step` |
 | `game_state.gd`, `character.gd`, `player_command.gd` | The state, one character, the one input every character acts through |
+| `squad_order.gd` | The squad orders a command can carry (Follow me, Hold here, Regroup, Team plan), turned into events for the bots |
 | `dev_cheats.gd` | `DevCheats`: the Dev settings that change play (ghost, bottomless magazines, bots hold fire, game speed), End the round now, and the match's record mark |
 | `game_event.gd`, `sim_events.gd` | The tick's events (shots, hits, footsteps, rounds), pooled: the only channel to sound, HUD and effects |
 | `seeds.gd` | Seeded streams: every random draw comes from the match's `RandomNumberGenerator` or one derived from its seed |

@@ -11,7 +11,8 @@ extends RefCounted
 ## targets); then the round flow, or in practice (RoundState.practice) the range's targets, the timed challenge and full
 ## spares instead.
 ## Characters without a command keep their view and stand still; hit characters follow the hit-calling routine instead
-## of their command, and once out and standing in the dead zone they are only timed.
+## of their command, and once out and standing in the dead zone they are only timed. A squad order in a command becomes
+## an event for the bots' controller and changes nothing here.
 
 var tuning: SimTuning = null
 var query: WorldQuery = null
@@ -68,6 +69,7 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		c.prev_walk_cycle = c.walk_cycle
 		c.prev_yaw = c.yaw
 		c.prev_pitch = c.pitch
+		_squad_order(c, commands, live, state.events)
 		# Out and standing in the dead zone: only its clock runs (audit SIM-15).
 		if Elimination.is_parked(c):
 			Elimination.step(c, tuning.hits, dt)
@@ -123,3 +125,16 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		Round.step(state.round_state, state.characters, ends, state.bbs, tuning, state.events, dt)
 	state.tick += 1
 	state.time += dt
+
+
+## A squad order in `c`'s command this tick: a SQUAD_ORDER event from a character in play in a `live` round, otherwise
+## a refused one (out, or between rounds).
+static func _squad_order(c: Character, commands: Array[PlayerCommand], live: bool, events: SimEvents) -> void:
+	var cmd: PlayerCommand = commands[c.id] if c.id >= 0 and c.id < commands.size() else null
+	if cmd == null or cmd.squad_order == SquadOrder.Kind.NONE:
+		return
+	var taken := live and Elimination.is_in_play(c)
+	var e := events.add(GameEvent.Kind.SQUAD_ORDER if taken else GameEvent.Kind.SQUAD_ORDER_REFUSED)
+	e.actor = c.id
+	e.value = cmd.squad_order
+	e.value2 = 1 if cmd.order_from_wheel else 0

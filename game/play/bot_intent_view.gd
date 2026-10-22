@@ -1,8 +1,8 @@
 class_name BotIntentView
 extends Node3D
 ## The Dev settings' Bot intentions: a small label over each bot in play with its name and what it is doing (advancing,
-## fighting, in cover, searching), read from the bots' controller each frame. Built only while it is on; a label's text is set
-## only when its bot's mode changes.
+## fighting, in cover, searching, at the flag, under a squad order), read from the bots' controller each frame. Built
+## only while it is on; a label's text is set only when its bot's mode changes.
 
 ## Over the eyes (m), as the browser game's DEV_BOT_INTENT; the label's font size, and its size per pixel at a metre
 ## (it keeps one size on screen at any distance, about 25 px tall).
@@ -10,7 +10,7 @@ const ABOVE_EYES := 0.55
 const FONT_SIZE := 32
 const PIXEL := 0.001
 const MODE_KEYS: Array[StringName] = [&"DEV_INTENT_ADVANCE", &"DEV_INTENT_FIGHT", &"DEV_INTENT_COVER",
-		&"DEV_INTENT_SEARCH", &"DEV_INTENT_FLAG"]
+		&"DEV_INTENT_SEARCH", &"DEV_INTENT_FLAG", &"DEV_INTENT_ORDER"]
 
 var _bots: BotController = null
 var _body: BodyConfig = null

@@ -2,8 +2,8 @@ class_name BotBrain
 ## One bot's decisions each tick (the browser game's ai/botBrain.ts): look (ten times a second), pick a mode, move, aim,
 ## fire and reload, all written into the PlayerCommand its body follows, as the player's input is. The modes: walk its
 ## lane, then hunt (advance); fight someone in sight; get into cover and peek from it (over crouch cover, or leaning out
-## round a corner); go to where someone was seen or heard (search); in Attack / Defend, work or guard the pole (flag).
-## Allocates nothing.
+## round a corner); go to where someone was seen or heard (search); in Attack / Defend, work or guard the pole (flag);
+## carry out a teammate's squad order (order). Allocates nothing.
 
 ## The vault check's answer for a bot on a vault leg (one at a time: bots think in turn).
 static var _vault_check: VaultState = VaultState.new()
@@ -136,13 +136,21 @@ static func _choose_mode(b: Bot, w: BotWorld, target: Character, dt: float) -> v
 		b.watch_until = -INF
 		# A fresh contact at range while on the move: behind close crouch cover first, then peek.
 		# A personality that pushes in fights where it is.
-		if (b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.SEARCH) and b.cover_cooldown <= 0.0 \
-				and not BotPersonality.pushes_in(b):
+		if (b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.SEARCH or b.mode == Bot.Mode.ORDER) \
+				and b.cover_cooldown <= 0.0 and not BotPersonality.pushes_in(b):
 			if _flat(target.position, me.position) >= b.skill.contact_cover_min_distance \
 					and _take_cover(b, w, BotSenses.eye_of(target, w.tuning), 0.0, cfg.contact_cover_radius, 0, true):
 				b.cover_cooldown = cfg.cover_cooldown
 				return
 		b.mode = Bot.Mode.FIGHT
+	elif b.order != SquadOrder.Kind.NONE:
+		# A squad order comes before the team plan: the pole, chasing noises and the lane. A noise still turns its head
+		# (BotCombat.aim watches last_known) until it is old news.
+		if b.mode != Bot.Mode.ORDER:
+			b.mode = Bot.Mode.ORDER
+			BotRoutes.drop(b)
+		if not fresh:
+			b.has_last_known = false
 	elif BotFlag.wants_flag(b, w):
 		# Attack / Defend: the pole comes before chasing noises.
 		if b.mode != Bot.Mode.FLAG:

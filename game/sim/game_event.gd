@@ -26,6 +26,8 @@ enum Kind {
 	FLAG_ROPE, ## Attack / Defend's flag passed a rope step at position (the pole), value 1 going up, 0 coming down.
 	TARGET_HIT, ## actor's BB hit range target at position along direction; value: its RangeTarget.Kind; value2 1: bounced.
 	CHALLENGE, ## the timed challenge's cue value (RangeChallenge.Cue) for actor (the player); value2: a count's seconds left.
+	SQUAD_ORDER, ## actor (in play, the round live) gave squad order value (SquadOrder.Kind); value2 1: from the order wheel.
+	SQUAD_ORDER_REFUSED, ## actor's squad order value came while it was out or between rounds; value2 1: from the wheel.
 }
 
 ## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.
@@ -40,7 +42,7 @@ var actor: int = -1
 var target: int = -1
 ## The loadout slot of the replica involved, or -1.
 var slot: int = -1
-## The event's number: a fire mode, a winner, a round, a footstep kind, a range target's kind.
+## The event's number: a fire mode, a winner, a round, a footstep kind, a range target's kind, a squad order.
 var value: int = 0
 ## A second number: a footstep's or an impact's surface, a round's end reason.
 var value2: int = 0

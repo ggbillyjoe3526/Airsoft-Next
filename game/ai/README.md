@@ -35,6 +35,14 @@ and with a threat in mind tops up only from cover. It plays as a team: it goes t
 tells its teammates where it heard someone, moves along a lane in pairs (one waits while its partner moves) and pushes
 late when its team is behind.
 
+A teammate in play can order its bot teammates (`SquadOrders`, M22): the order travels as the giver's command, the
+simulation turns it into an event, and the controller hands it out. An ordered bot still fights whoever it sees; the
+order replaces only where it goes between fights (before the pole, noises and the lane), it is never picked for the
+pole, nobody waits for it and its personality stands aside. Hold here sends them to the spot the giver looks at, side
+by side across their view, looking their way. The order in force given again cancels it (from the order wheel it
+stays), Team plan ends it, and it ends when its giver is out and at each round start. Back on the plan, in Elimination
+the bot hunts from where it stands; in Attack / Defend it takes up its post.
+
 Every bot has a name and personality from `data/bots.md` (`BotsFile`), drawn on the match's seed (`BotRoster`): a
 rusher pushes in and never waits, an anchor holds its lane short of the middle until late and aims from cover, a flanker
 takes a lane of its own and flanks more, a careful bot walks and clears corners. A personality changes how a bot plays
@@ -45,7 +53,7 @@ at its level, never how well (`BotPersonality`).
 | `bot_controller.gd` | `BotController`: owns the bots; before each step one route search, then each bot's command; after it, hearing and the round's plan |
 | `bot_world.gd` | `BotWorld`: what every bot thinks with (tuning, rays, nav grid, lanes, cover, everyone, the plan, the time, each team's hunt memory) |
 | `bot.gd` | `Bot`: one bot's own state (mode, contacts, aim, route, lane, cover, timers) and its seeded stream |
-| `bot_brain.gd` | The tick: look, pick a mode (advance, fight, cover, search, flag), move, aim, fire, reload |
+| `bot_brain.gd` | The tick: look, pick a mode (advance, fight, cover, search, flag, order), move, aim, fire, reload |
 | `bot_senses.gd`, `bot_hearing.gd` | Sight (view cone, walls, bodies, which part shows) and hearing (gunfire, feet, hit calls, near misses) |
 | `bot_aim.gd`, `bot_combat.gd` | Turning, aim error that settles, lead; bursts, line-of-fire checks, reloads |
 | `bot_holster.gd` | Holstering on a long, calm sprint through its own half, drawing again on a threat |
@@ -54,6 +62,7 @@ at its level, never how well (`BotPersonality`).
 | `bot_movement.gd`, `bot_routes.gd` | Lanes, holds, hunting, searching, strafing, keeping apart; following nav routes |
 | `round_planner.gd` | Each round's team plans and lanes (a flanker's own, an anchor's short one, attackers to the middle, defenders their first points), and hunt spots from the team's memory |
 | `bot_flag.gd` | Attack / Defend: each bot's side, which attacker raises the flag and which defenders pull it down, when a bot wants the pole |
+| `squad_orders.gd` | Squad orders: handing one out and ending it, Hold here's spot and each holder's place, walking there |
 | `bot_roster.gd`, `bot_personality.gd` | Each bot's name and personality for a match; a personality laid over the level's skill, and its habits |
 
 Nothing allocates per tick once warm. Route searches (`NavGrid.find_route`) are queued, one a tick, shared with walk-off
@@ -61,5 +70,5 @@ routes.
 
 ## Not yet
 
-No callouts or squad orders and no magazine sharing
+No callouts and no magazine sharing; Follow me and Regroup are handed out but walk nothing yet
 (docs/KNOWN_ISSUES.md).

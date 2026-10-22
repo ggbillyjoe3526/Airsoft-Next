@@ -94,8 +94,10 @@ func ahead_of_team(b: Bot, w: BotWorld) -> bool:
 	var rear := INF
 	for o in w.bots:
 		var c := o.character
-		# An anchor holds short of the middle, a defender at its post: nobody waits for them.
-		if c == me or c.team != me.team or not Elimination.is_in_play(c) or BotFlag.holds_post(o, w):
+		# An anchor holds short of the middle, a defender at its post, a bot under a squad order goes its own way: nobody
+		# waits for them.
+		if c == me or c.team != me.team or not Elimination.is_in_play(c) or BotFlag.holds_post(o, w) \
+				or o.order != SquadOrder.Kind.NONE:
 			continue
 		rear = minf(rear, _progress(c))
 	return _progress(me) - rear > w.cfg.team_spread
