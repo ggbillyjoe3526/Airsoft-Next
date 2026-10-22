@@ -54,3 +54,14 @@ extends Resource
 @export var wall_height: float = 3.0
 @export var behind_line: float = 6.0
 @export var spawn_back: float = 2.0
+## The timed challenge (M93; the browser game's RANGE_CHALLENGE), read by game/sim/range_challenge.gd: shooting the
+## START plate starts a countdown of challenge_countdown seconds (a beep each second), then a run of challenge_run_time.
+## challenge_lit_at_once targets are lit at a time, each for challenge_lit_time plus challenge_lit_per_metre a metre of
+## its marked distance (the BB's flight; a lying pop-up's rise_time on top), then it goes out, a miss. A target hit or
+## gone out rests challenge_rest seconds before it can light again.
+@export var challenge_countdown: float = 3.0
+@export var challenge_run_time: float = 60.0
+@export var challenge_lit_at_once: int = 2
+@export var challenge_lit_time: float = 3.0
+@export var challenge_lit_per_metre: float = 0.04
+@export var challenge_rest: float = 1.0

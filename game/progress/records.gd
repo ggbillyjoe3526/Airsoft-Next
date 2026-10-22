@@ -1,20 +1,22 @@
 class_name Records
 extends RefCounted
-## Local records (the browser game's stats/records.ts): wins and losses per difficulty and mode, the best match accuracy
-## and the longest run of match wins. Records only, never levels or unlocks. Saved through SaveFile at
-## user://records.save (kind "records", version 1), apart from the settings, loadouts and progress; a damaged file is
-## set aside and empty records used, one from a newer build is never written over. Fields this build doesn't know are
-## kept.
+## Local records (the browser game's stats/records.ts): wins and losses per difficulty and mode, the best match accuracy,
+## the longest run of match wins and the timed challenge's best per course. Records only, never levels or unlocks. Saved
+## through SaveFile at user://records.save (kind "records", version 1), apart from the settings, loadouts and progress;
+## a damaged file is set aside and empty records used, one from a newer build is never written over. Fields this build
+## doesn't know are kept.
 
 const PATH := "user://records.save"
 const KIND := "records"
 const VERSION := 1
-const KNOWN_KEYS: Array[String] = ["results", "best_accuracy", "streak", "best_streak"]
+const KNOWN_KEYS: Array[String] = ["results", "best_accuracy", "streak", "best_streak", "best_challenge"]
 ## A match counts towards best accuracy only with at least this many BBs fired, so three lucky shots aren't a record
 ## (the browser game's minBBsForAccuracyRecord).
 const ACCURACY_MIN_BBS := 30
 ## "normal.elimination": a difficulty and a mode id.
 const RESULT_KEY_PATTERN := "^[a-z][a-zA-Z0-9]*\\.[a-z][a-zA-Z0-9]*$"
+## "range": a timed challenge course (RangeChallenge.course, a map's id).
+const COURSE_PATTERN := "^[a-z][a-zA-Z0-9]*$"
 
 
 ## A finished match, as the records see it.
@@ -42,11 +44,14 @@ var best_accuracy: float = -1.0
 ## Match wins in a row now, and the most ever.
 var streak: int = 0
 var best_streak: int = 0
+## The timed challenge's best (lit targets hit in one run) by course (M93); absent from files saved before it.
+var best_challenge: Dictionary[String, int] = {}
 var dirty: bool = false
 var load_message: String = ""
 var _newer_on_disk: bool = false
 var _extra: Dictionary = {}
 var _key_pattern: RegEx = RegEx.create_from_string(RESULT_KEY_PATTERN)
+var _course_pattern: RegEx = RegEx.create_from_string(COURSE_PATTERN)
 
 static var _shared: Records = null
 
@@ -84,6 +89,21 @@ func add(r: Result) -> News:
 			news.best_accuracy = true
 	dirty = true
 	return news
+
+
+## The timed challenge's best on `course` (0 before a run is kept).
+func challenge_best(course: String) -> int:
+	return best_challenge.get(course, 0)
+
+
+## A finished timed challenge run on `course`: kept if it beats the best and no Dev setting that changes play was on
+## during it (RangeChallenge.Run.helped); true when it was.
+func add_challenge_run(course: String, run: RangeChallenge.Run) -> bool:
+	if run.helped or run.hits <= challenge_best(course) or _course_pattern.search(course) == null:
+		return false
+	best_challenge[course] = run.hits
+	dirty = true
+	return true
 
 
 ## Wins and losses at `difficulty` in `mode`: [wins, losses].
@@ -132,6 +152,7 @@ func to_dict() -> Dictionary:
 	out["best_accuracy"] = best_accuracy if best_accuracy >= 0.0 else null
 	out["streak"] = streak
 	out["best_streak"] = best_streak
+	out["best_challenge"] = best_challenge.duplicate()
 	return out
 
 
@@ -156,6 +177,15 @@ func from_dict(data: Dictionary) -> Array[String]:
 	best_accuracy = clampf(float(acc), 0.0, 1.0) if (acc is float or acc is int) and float(acc) >= 0.0 else -1.0
 	streak = maxi(0, _count(data.get("streak")))
 	best_streak = maxi(streak, _count(data.get("best_streak")))
+	# The timed challenge's bests: absent from older files; a course this build doesn't know is kept.
+	best_challenge = {}
+	var challenge: Variant = data.get("best_challenge")
+	if challenge is Dictionary:
+		for course: Variant in challenge:
+			if not course is String or _course_pattern.search(course) == null or _count(challenge[course]) < 0:
+				problems.append("a timed challenge best \"%s\" won't do: left out" % str(course))
+			elif _count(challenge[course]) > 0:
+				best_challenge[course] = _count(challenge[course])
 	dirty = false
 	return problems
 

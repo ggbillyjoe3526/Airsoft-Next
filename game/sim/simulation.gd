@@ -8,7 +8,8 @@ extends RefCounted
 ## Order within a tick: each character moves (stance, pace, jump, collision; a Jump press at a low obstacle vaults it
 ## instead, and a vault under way follows its path), its legs swing, it leans and its aim settles, then it uses its
 ## replica (BBs leave from the new, leaned eye position); then every BB flies (hitting the level, bodies or range
-## targets); then the round flow, or in practice (RoundState.practice) the range's targets and full spares instead.
+## targets); then the round flow, or in practice (RoundState.practice) the range's targets, the timed challenge and full
+## spares instead.
 ## Characters without a command keep their view and stand still; hit characters follow the hit-calling routine instead
 ## of their command, and once out and standing in the dead zone they are only timed.
 
@@ -115,6 +116,7 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	if state.round_state.practice:
 		# Practice has no rounds: it's always live, with no clock.
 		RangeTargets.step(state.targets, tuning, dt, state.rng)
+		state.challenge.step(state.targets, state.events, tuning.targets, dt, state.rng, state.cheats.any())
 		for c in state.characters:
 			RangeTargets.refill_spares(c.armament)
 	else:
