@@ -138,6 +138,7 @@ func _hear(source: Character, at: Vector3, reach: float, sound: Sound, listener:
 	p.heard_at = time
 	p.sound = sound
 	if p.live and Vector2(feet.x - p.centre.x, feet.z - p.centre.z).length() <= p.radius:
+		p.centre.y = feet.y # heard on another storey: the patch takes the floor it came from
 		return
 	var share := _cfg.shot_blur_share if sound == Sound.SHOT else _cfg.step_blur_share
 	var blur := clampf(Vector2(feet.x - ear.x, feet.z - ear.z).length() * share, _cfg.blur_min, _cfg.blur_max)
