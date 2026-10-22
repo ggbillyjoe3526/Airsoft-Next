@@ -140,7 +140,7 @@ func test_a_model_without_a_selector_clip_gets_no_selector_pose() -> void:
 func test_it_sounds_as_its_own_with_no_power_part() -> void:
 	var audio := SimAudio.new()
 	add_child_autofree(audio)
-	audio.setup(SoundConfig.new(), [&"cyber", &"electric"] as Array[StringName], BodyConfig.new())
+	audio.setup(SoundConfig.new(), [&"cyber", &"electric"] as Array[StringName], BodyConfig.new(), null, null)
 	assert_eq(audio._power[&"cyber"], &"", "no power part apart")
 	assert_ne(audio._power[&"electric"], &"")
 	for cue: StringName in [audio._shot[&"cyber"], audio._dry[&"cyber"], audio._mag_out[&"cyber"],
@@ -151,6 +151,6 @@ func test_it_sounds_as_its_own_with_no_power_part() -> void:
 	var e := state.events.add(GameEvent.Kind.SHOT)
 	e.actor = 0
 	e.slot = 0
-	audio.on_tick(state, 0)
+	audio.on_tick(state, 0, null)
 	assert_not_null(audio._own[0].stream, "the shot played")
 	assert_null(audio._own[1].stream, "no second voice for a power part")

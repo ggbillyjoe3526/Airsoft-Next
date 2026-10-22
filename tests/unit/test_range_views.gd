@@ -183,13 +183,13 @@ func test_steel_rings_down_the_range_a_figure_knocks_and_your_hit_confirms() -> 
 	var audio := SimAudio.new()
 	add_child_autofree(audio)
 	var sound := SoundConfig.new()
-	audio.setup(sound, [] as Array[StringName], BodyConfig.new())
+	audio.setup(sound, [] as Array[StringName], BodyConfig.new(), null, null)
 	var state := GameState.new(1)
 	var ring := state.events.add(GameEvent.Kind.TARGET_HIT)
 	ring.actor = 0
 	ring.value = RangeTarget.Kind.STEEL
 	ring.position = Vector3(-9.0, 1.25, -60.0)
-	audio.on_tick(state, 0)
+	audio.on_tick(state, 0, null)
 	assert_true((audio._streams[&"steelRing"] as Array).has(audio._field[0].stream), "steel rings")
 	assert_eq(audio._field[0].max_distance, sound.target_reach)
 	assert_true((audio._streams[&"hitMarker"] as Array).has(audio._own[0].stream), "your hit confirmed")
@@ -197,7 +197,7 @@ func test_steel_rings_down_the_range_a_figure_knocks_and_your_hit_confirms() -> 
 	var knock := state.events.add(GameEvent.Kind.TARGET_HIT)
 	knock.actor = 3
 	knock.value = RangeTarget.Kind.FIGURE
-	audio.on_tick(state, 0)
+	audio.on_tick(state, 0, null)
 	assert_true((audio._streams[&"impact_wood"] as Array).has(audio._field[1].stream), "a figure knocks")
 	assert_null(audio._own[1].stream, "someone else's hit: no confirmation")
 
@@ -206,11 +206,11 @@ func test_the_challenge_beeps_its_countdown_go_and_time_and_the_range_has_no_sta
 	var audio := SimAudio.new()
 	add_child_autofree(audio)
 	var sound := SoundConfig.new()
-	audio.setup(sound, [] as Array[StringName], BodyConfig.new())
+	audio.setup(sound, [] as Array[StringName], BodyConfig.new(), null, null)
 	var state := GameState.new(1)
 	state.round_state.practice = true
 	state.events.add(GameEvent.Kind.ROUND_START)
-	audio.on_tick(state, 0)
+	audio.on_tick(state, 0, null)
 	assert_null(audio._own[0].stream, "practice starts with no beep")
 	var pitches := PackedFloat64Array()
 	for cue: RangeChallenge.Cue in [RangeChallenge.Cue.COUNT, RangeChallenge.Cue.GO, RangeChallenge.Cue.TIME]:
@@ -218,7 +218,7 @@ func test_the_challenge_beeps_its_countdown_go_and_time_and_the_range_has_no_sta
 		var e := state.events.add(GameEvent.Kind.CHALLENGE)
 		e.actor = 0
 		e.value = cue
-		audio.on_tick(state, 0)
+		audio.on_tick(state, 0, null)
 		pitches.append(audio._own[pitches.size()].pitch_scale)
 	var wanted := PackedFloat64Array([1.0, sound.go_pitch, sound.time_pitch])
 	for i in wanted.size():

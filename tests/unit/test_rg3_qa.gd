@@ -284,7 +284,7 @@ func test_a_match_on_depot_is_as_it_was() -> void:
 	var audio := s.find_child("Sound", true, false) as SimAudio
 	var st := GameState.new(1)
 	st.events.add(GameEvent.Kind.ROUND_START)
-	audio.on_tick(st, 0)
+	audio.on_tick(st, 0, null)
 	var beeped := false
 	for v in audio._own:
 		beeped = beeped or (audio._streams[&"count_beep"] as Array).has(v.stream)

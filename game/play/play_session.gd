@@ -92,6 +92,8 @@ var _dust: WindDust = null
 var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
 var _audio: SimAudio = null
+## The field's mix: muffled while you are out, dipped under your hit and the whistle (SoundMix).
+var _mix: SoundMix = null
 var _debug: DebugView = null
 var _hud: Hud = null
 var _pause: PauseMenu = null
@@ -433,7 +435,10 @@ func _build_views(ui: CanvasLayer) -> void:
 				profiles.append(r.sound_profile())
 	_audio = SimAudio.new()
 	add_child(_audio)
-	_audio.setup(_play.sound, profiles, _tuning.body)
+	_audio.setup(_play.sound, profiles, _tuning.body, _level.query(), _map)
+	_mix = SoundMix.new()
+	add_child(_mix)
+	_mix.setup(_play.sound)
 	_debug = DebugView.new()
 	_debug.setup(state, _tuning.hits, _play.debug_view)
 	add_child(_debug)
@@ -534,13 +539,15 @@ func entity_count() -> int:
 	return state.characters.size() + state.bbs.active_count() if state != null else 0
 
 
-## Hands the tick's events to the bots' ears, the minimap's (through the eyes the view is through), sound, the HUD and
-## the effects.
+## Hands the tick's events to the bots' ears, the minimap's and sound's (through the eyes the view is through), the
+## field's mix, the HUD and the effects.
 func _after_tick() -> void:
 	_bots.observe(state)
-	_heard.on_tick(state, spectated())
+	var ears := spectated()
+	_heard.on_tick(state, ears)
 	_debug.on_tick()
-	_audio.on_tick(state, PLAYER_ID)
+	_audio.on_tick(state, PLAYER_ID, ears)
+	_mix.on_tick(state, PLAYER_ID)
 	_audio.on_order(_bots.order_outcome, PLAYER_ID)
 	_hud.on_tick(state)
 	_hud.set_vault_ready(_vault_ready())

@@ -183,7 +183,7 @@ func test_a_match_with_aeg_gbb_and_cyber_loads_each_profile_once_and_all_sound()
 	assert_eq(profiles.size(), 3)
 	var audio := SimAudio.new()
 	add_child_autofree(audio)
-	audio.setup(SoundConfig.new(), profiles, BodyConfig.new())
+	audio.setup(SoundConfig.new(), profiles, BodyConfig.new(), null, null)
 	for p in profiles:
 		for table: Dictionary in [audio._shot, audio._dry, audio._mag_out, audio._mag_in]:
 			assert_true(table.has(p), "%s has its cue" % p)
@@ -197,7 +197,7 @@ func test_a_match_with_aeg_gbb_and_cyber_loads_each_profile_once_and_all_sound()
 func test_every_event_of_a_cyber_holder_plays_without_error() -> void:
 	var audio := SimAudio.new()
 	add_child_autofree(audio)
-	audio.setup(SoundConfig.new(), [&"cyber"] as Array[StringName], BodyConfig.new())
+	audio.setup(SoundConfig.new(), [&"cyber"] as Array[StringName], BodyConfig.new(), null, null)
 	var state := GameState.new(1)
 	state.characters.append(Character.new(0, 0, Vector3.ZERO, 0.0, [_cyber()] as Array[ReplicaConfig]))
 	state.characters.append(Character.new(1, 1, Vector3(3.0, 0.0, 0.0), 0.0, [_cyber()] as Array[ReplicaConfig]))
@@ -207,7 +207,7 @@ func test_every_event_of_a_cyber_holder_plays_without_error() -> void:
 			var e := state.events.add(kind)
 			e.actor = actor
 			e.slot = 0
-	audio.on_tick(state, 0)
+	audio.on_tick(state, 0, null)
 	assert_true(true, "no script error")
 
 

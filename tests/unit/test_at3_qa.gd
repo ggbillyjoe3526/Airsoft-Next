@@ -194,15 +194,15 @@ func test_a_silenced_dry_fire_is_not_muffled_and_a_silenced_shot_uses_the_muffle
 	state.characters.append(Character.new(0, 0, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights))
 	var audio := SimAudio.new()
 	add_child_autofree(audio)
-	audio.setup(cfg, [kit.replicas[0].power] as Array[StringName], BodyConfig.new())
+	audio.setup(cfg, [kit.replicas[0].power] as Array[StringName], BodyConfig.new(), null, null)
 	var e := state.events.add(GameEvent.Kind.DRY_FIRE)
 	e.actor = 0
 	e.slot = 0
-	audio.on_tick(state, 0)  # must not error
+	audio.on_tick(state, 0, null)  # must not error
 	var shots := state.events.add(GameEvent.Kind.SHOT)
 	shots.actor = 7  # an actor that does not exist
 	shots.slot = 3
-	audio.on_tick(state, 0)
+	audio.on_tick(state, 0, null)
 	pass_test("no error")
 
 

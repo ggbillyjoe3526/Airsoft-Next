@@ -15,6 +15,8 @@ Work the owner wants one day but hasn't placed in a version.
   decided; nothing is built for it until he places it.
 - **An Audio redesign (owner, 2026-10-16).** A fresh sound for the game, to be done at some point. Timing not decided;
   nothing is built for it until he places it.
+  For it: the browser game's short reverb per field on every in-world sound (Depot 0.8 s, wet 0.22), left out of the
+  step 19 sound pass (plan §5.6).
 - **A Performance update (owner, 2026-10-16).** An update that focuses on making the game run better. Timing not
   decided; nothing is built for it until he places it.
 

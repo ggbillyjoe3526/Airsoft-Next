@@ -251,12 +251,14 @@ func test_a_scope_zooms_only_in_its_glass_and_a_red_dot_the_whole_view() -> void
 
 func test_a_silenced_shot_plays_duller_and_quieter() -> void:
 	var cfg := SoundConfig.new()
+	# No level spread, so the level read is the muffled share exactly.
+	cfg.shot_spread_db = 0.0
 	var kit := _kit(AEG, {&"muzzle": SILENCER})
 	var state := GameState.new(1)
 	state.characters.append(Character.new(0, 0, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights))
 	var audio := SimAudio.new()
 	add_child_autofree(audio)
-	audio.setup(cfg, [kit.replicas[0].power] as Array[StringName], BodyConfig.new())
+	audio.setup(cfg, [kit.replicas[0].power] as Array[StringName], BodyConfig.new(), null, null)
 	var bus := AudioServer.get_bus_index(SimAudio.BUS_MUFFLED)
 	assert_eq(AudioServer.get_bus_send(bus), SimAudio.BUS_EFFECTS)
 	assert_almost_eq((AudioServer.get_bus_effect(bus, 0) as AudioEffectLowPassFilter).cutoff_hz, cfg.muffled_cutoff_hz,
@@ -264,14 +266,14 @@ func test_a_silenced_shot_plays_duller_and_quieter() -> void:
 	var e := state.events.add(GameEvent.Kind.SHOT)
 	e.actor = 0
 	e.slot = 0
-	audio.on_tick(state, 0)
+	audio.on_tick(state, 0, null)
 	var shot := audio._own[0]
 	assert_eq(shot.bus, SimAudio.BUS_MUFFLED)
 	assert_almost_eq(shot.volume_db, linear_to_db(cfg.shot_gain * cfg.muffled_gain), 0.01)
 	assert_eq(audio._own[1].bus, SimAudio.BUS_POWER, "the motor sounds as it is")
 	kit = _kit(AEG, {})
 	state.characters[0] = Character.new(0, 0, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
-	audio.on_tick(state, 0)
+	audio.on_tick(state, 0, null)
 	assert_eq(audio._own[2].bus, SimAudio.BUS_EFFECTS)
 
 
