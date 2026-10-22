@@ -62,13 +62,14 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 
 
 ## Writes each bot's command for this tick into `commands` (indexed by character id). With the Dev settings' Bots hold
-## fire on (`state.cheats`), no bot pulls its trigger.
+## fire on (`state.cheats`), no bot pulls its trigger. First, a bot back from Regroup turns to Follow me.
 func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	var w := world
 	w.time = state.time
 	w.live = state.round_state.is_live()
 	w.round_clock = state.round_state.clock
 	_sync_round(state)
+	_regroup_arrivals()
 	for c in state.characters:
 		if Elimination.is_in_play(c):
 			w.mark_visited(c.team, c.position)
@@ -266,6 +267,21 @@ func _update_orders() -> void:
 		if not carried:
 			_given[id] = SquadOrder.Kind.NONE
 			_own_spot[id] = 0
+
+
+## Before the bots think (as the browser game's updateOrders): each bot back within regroup_arrive of whoever gave it
+## Regroup turns to Follow me, and the order reads Follow me once all have.
+func _regroup_arrivals() -> void:
+	for id in _given.size():
+		if _given[id] != SquadOrder.Kind.REGROUP:
+			continue
+		var regrouping := false
+		for b in world.bots:
+			if b.order == SquadOrder.Kind.REGROUP and b.order_giver != null and b.order_giver.id == id \
+					and not SquadOrders.regrouped(b, world):
+				regrouping = true
+		if not regrouping:
+			_given[id] = SquadOrder.Kind.FOLLOW
 
 
 ## The character `id` of the field (a giver of orders), or null.
