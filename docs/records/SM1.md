@@ -1,13 +1,13 @@
 # SM1 · The match summary
 
-**Review:** pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-22 | 1 | Opus (build thread) | pass | | QA: at 1080p the right column ran off the screen in a long match out of the records |
-| 2026-10-22 | 2 | Opus (build thread) | pass | | |
+| 2026-10-22 | 2 | Opus (build thread) | pass | 7/8 accept | (a broken FEATURES line fixed before merge) |
 
 ## Decisions
 
