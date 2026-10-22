@@ -23,6 +23,7 @@ and hands the tick's events on; everything else here draws the state every rende
 | `field_lighting.gd` | `FieldLighting`: the sun, the sky and the environment |
 | `tick_pacer.gd` | `TickPacer`: how many fixed ticks each physics tick runs at the Dev settings' game speed (or the smoke test's speed-up), and the drawing fraction between them |
 | `spectate.gd` | `Spectate`: the next bot in play Spectate any bot follows |
+| `minimap_hearing.gd` | `MinimapHearing`: what your side heard for the minimap, fed each tick's events through the ears the view is through: one patch per enemy, the last footstep, vault or shot heard within its reach (a silencer halves a shot's), off their real place by a blur on the match's minimap stream (`Seeds.minimap_seed`) with them always inside it, renewed in place while they stay in it, fading after its life; a hit call removes theirs, a new round clears all; `beyond_view` for the rim. Plain data for the HUD (`PlaySession.minimap_hearing`) |
 | `bot_intent_view.gd` | `BotIntentView`: the Dev settings' Bot intentions, a label over each bot saying what it is doing |
 | `retro_pixels.gd`, `retro_pixels.gdshader` | `RetroPixels`: the Dev settings' Retro pixels, a full-screen filter under the HUD |
 | `shader_prewarm.gd` | `ShaderPrewarm`: draws the late materials (a fading figure, a BB, a puff, the sign) as specks for the first frames, so nothing compiles mid-match |

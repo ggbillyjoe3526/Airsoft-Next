@@ -74,31 +74,6 @@ acceptance:
 status: open
 attempts: 0
 
-## MM2 · What your side heard: the enemy patches
-tier: core
-perf: required
-touches: game/play/minimap_hearing.gd, game/play/play_session.gd, game/play/README.md, game/sim/seeds.gd,
-  game/config/minimap_config.gd, game/config/play_tuning.tres, tests/unit/
-contract: Simulation and presentation (1); Events (3); Seeded randomness (5); Data, not literals (6)
-acceptance:
-  1. MinimapHearing is plain data (no Node), fed each tick's events after the step by PlaySession; it never writes
-     state. It hears from one character, the one the view is through (you, or the teammate you watch once out); a
-     change of listener keeps the patches already heard. Its side is that character's team.
-  2. An enemy in play is heard when a FOOTSTEP (any kind) or VAULT of theirs lands within the step reach, or a SHOT
-     within the shot reach × the replica's heard_scale, of the listener (flat distance, walls not checked, as the
-     browser). Teammates, your own sounds and anyone out make none.
-  3. One patch per enemy, the last thing heard: a centre off their real position by a seeded draw up to the kind's
-     blur share of the distance, clamped to [minimum, maximum], radius blur + pad (they are always inside it); life
-     and fade from MinimapConfig. A sound from someone still inside their live patch renews its life and kind and
-     keeps its centre (no jitter, no tracking); outside it, a fresh centre.
-  4. Their CHARACTER_HIT removes that player's patch at once; ROUND_START clears all. A heard enemy beyond the view
-     radius is marked for the rim.
-  5. The blur draws from the match's own minimap stream (Seeds), so the same seed gives the same patches; records are
-     made once per match for each enemy and a tick allocates nothing. GUT tests: reaches by kind and a silencer,
-     inside always, renew vs move, hit call and round start, nobody heard on the range, the listener changing.
-status: open
-attempts: 0
-
 ## MM3 · The field drawing
 tier: ui
 perf: required

@@ -96,6 +96,8 @@ var _debug: DebugView = null
 var _hud: Hud = null
 var _pause: PauseMenu = null
 var _map: MapData = null
+## What your side heard of the other team, for the minimap (MM4 draws it).
+var _heard: MinimapHearing = null
 var _ui: CanvasLayer = null
 ## The next build step, and whether the match runs (all built) or is waiting to be seen once.
 var _step: int = 0
@@ -269,6 +271,7 @@ func _start_simulation(map: MapData) -> void:
 	_sim = Simulation.new(_tuning, _level.query(), _level.mover(_tuning.body), map.ends, map.kill_y)
 	_sim.nav = NavGrid.build(map, _tuning.nav, _tuning.body)
 	state = GameState.new(match_seed, _tuning)
+	_heard = MinimapHearing.new(_play.minimap)
 	state.dev_content = MapCatalog.shared().is_dev(map_id)
 	var loadout := ReplicaStats.default_loadout()
 	if kit == null:
@@ -512,6 +515,11 @@ func flag_view() -> FlagView:
 	return _flag
 
 
+## The enemy patches your side heard, for the minimap.
+func minimap_hearing() -> MinimapHearing:
+	return _heard
+
+
 ## What the F3 overlay reads (DebugPerf), so it never reaches into the session's fields: the match's seed, where you
 ## stand, and how many entities exist (characters and BBs in the air).
 func match_seed_used() -> int:
@@ -526,9 +534,11 @@ func entity_count() -> int:
 	return state.characters.size() + state.bbs.active_count() if state != null else 0
 
 
-## Hands the tick's events to the bots' ears, sound, the HUD and the effects.
+## Hands the tick's events to the bots' ears, the minimap's (through the eyes the view is through), sound, the HUD and
+## the effects.
 func _after_tick() -> void:
 	_bots.observe(state)
+	_heard.on_tick(state, spectated())
 	_debug.on_tick()
 	_audio.on_tick(state, PLAYER_ID)
 	_audio.on_order(_bots.order_outcome, PLAYER_ID)

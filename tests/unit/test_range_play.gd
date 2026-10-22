@@ -79,6 +79,7 @@ func test_the_pilot_rings_a_plate_and_it_sounds_and_swings() -> void:
 			break
 	assert_gt(session.plate_hits, 0, "a plate rang")
 	assert_gt(session.target_hits, 0)
+	assert_eq(session.minimap_hearing().live_count(), 0, "nobody is heard on the range")
 	await wait_process_frames(3)
 	var plate := RangePilot.nearest_plate(session.state.targets)
 	assert_ne(session._targets_view._drawn[plate.id].pivot.rotation.x, 0.0, "it swings on its hanger")
