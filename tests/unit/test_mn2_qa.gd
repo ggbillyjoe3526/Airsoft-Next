@@ -109,7 +109,7 @@ func test_a_greyed_map_card_ignores_the_keyboard() -> void:
 	# Mode cards that are not built stay dead too.
 	assert_eq(page.picks.bots, "normal")
 	assert_true(page.mode_card("practice").disabled)
-	assert_true(page.mode_card("attack_defend").disabled)
+	assert_false(page.mode_card("attack_defend").disabled, "Depot has a pole")
 
 
 func test_dev_content_off_with_a_dev_map_picked_keeps_a_playable_pick_and_play_enabled() -> void:

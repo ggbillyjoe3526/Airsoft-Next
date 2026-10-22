@@ -41,6 +41,21 @@ const MAG_SPARE_ALPHA := 0.85
 const BANNER_PAD := Vector4(80.0, 20.0, 80.0, 20.0)
 const BANNER_RULE := 4.0
 const BANNER_SUB_GAP := 8
+## Attack / Defend: the ATK / DEF tags over the team blocks (height, type size), "OT" before the clock (size, gap), the
+## flag gauge under the bar (height, type size, the gap between notches) and its warning (type size, padding).
+const TAG_HEIGHT := 18.0
+const TAG_SIZE := 12
+const OT_SIZE := 24
+const OT_GAP := 8.0
+const GAUGE_HEIGHT := 28.0
+const GAUGE_LABEL_SIZE := 12
+const GAUGE_LABEL_WIDTH := 58.0
+const GAUGE_NOTCH_GAP := 3.0
+const GAUGE_PAD := 10.0
+const WARNING_SIZE := 30
+## The warning's opacity at the low point of its pulse; the marker over the pole's type size.
+const WARNING_PULSE_LOW := 0.4
+const MARKER_SIZE := 21
 ## Letter spacing in em: the clock's round line, the aim line, banners and their second line.
 const SPACING_ROUND := 0.1
 const SPACING_AIM := 0.08
@@ -79,6 +94,35 @@ static func round_sub(number: int, half_time_after: int) -> String:
 	if half_time_after > 0 and number == half_time_after + 1:
 		return TranslationServer.translate(&"HUD_HALF_TIME").to_upper()
 	return ""
+
+
+## Attack / Defend's round start: "ROUND 3 · ATTACK" or "ROUND 3 · DEFEND", and the job under it (or half time).
+static func side_round_title(number: int, attacking: bool) -> String:
+	var side := TranslationServer.translate(&"HUD_ATTACK" if attacking else &"HUD_DEFEND")
+	return (TranslationServer.translate(&"HUD_ROUND_SIDE") % [number, side]).to_upper()
+
+
+static func side_round_sub(number: int, half_time_after: int, attacking: bool) -> String:
+	var half := round_sub(number, half_time_after)
+	if not half.is_empty():
+		return half
+	return caps("HUD_TAKE_FLAG" if attacking else "HUD_HOLD_POLE")
+
+
+## Attack / Defend's round end by the flag or the clock: "FLAG RAISED" / "ALPHA TAKE THE ROUND", or "DEFENDED" /
+## "TIME'S UP · BETA HELD THE POLE".
+static func flag_round_won(reason: GameEvent.RoundEnd) -> String:
+	return caps("HUD_FLAG_RAISED" if reason == GameEvent.RoundEnd.CAPTURED else "HUD_DEFENDED")
+
+
+static func flag_round_sub(reason: GameEvent.RoundEnd, team_name_key: String) -> String:
+	var key := &"HUD_ROUND_WON" if reason == GameEvent.RoundEnd.CAPTURED else &"HUD_HELD_POLE"
+	return (TranslationServer.translate(key) % TranslationServer.translate(team_name_key)).to_upper()
+
+
+## The overtime left on the clock (whole seconds, never below 0): `max_overtime` less what has been played.
+static func overtime_left(overtime: float, max_overtime: float) -> int:
+	return maxi(0, ceili(maxf(0.0, max_overtime - overtime)) if is_finite(overtime) else 0)
 
 
 static func round_won(team_name_key: String) -> String:

@@ -61,28 +61,52 @@ func test_the_page_shows_the_chips_the_summary_and_play() -> void:
 
 func test_a_map_offers_only_its_own_modes() -> void:
 	var catalog := MapCatalog.shared()
-	assert_eq(MatchOptions.modes_offered(catalog.find("depot")), PackedStringArray(["elimination"]))
-	assert_eq(MatchOptions.modes_offered(catalog.find("neonHeights")), PackedStringArray(["elimination"]))
+	var field := PackedStringArray(["elimination", "attack_defend"])
+	assert_eq(MatchOptions.modes_offered(catalog.find("depot")), field)
+	assert_eq(MatchOptions.modes_offered(catalog.find("neonHeights")), field)
 	assert_eq(MatchOptions.modes_offered(catalog.find("range")), PackedStringArray(["practice"]))
 	assert_eq(MatchOptions.modes_offered(null), PackedStringArray())
-	assert_true(MatchOptions.mode_pickable("elimination", catalog.find("depot")))
-	assert_false(MatchOptions.mode_pickable("attack_defend", catalog.find("depot")), "hosted by no map yet")
-	assert_false(MatchOptions.mode_pickable("practice", catalog.find("depot")), "the range's, and not built")
-	assert_false(MatchOptions.mode_pickable("elimination", catalog.find("range")), "not hosted by the range")
+	assert_true(MatchOptions.mode_pickable("elimination", catalog.find("depot"), true))
+	assert_true(MatchOptions.mode_pickable("attack_defend", catalog.find("depot"), true))
+	assert_false(MatchOptions.mode_pickable("attack_defend", catalog.find("depot"), false), "no pole on the map")
+	assert_true(MatchOptions.mode_pickable("elimination", catalog.find("depot"), false), "Elimination needs no pole")
+	assert_false(MatchOptions.mode_pickable("practice", catalog.find("depot"), true), "the range's, and not built")
+	assert_false(MatchOptions.mode_pickable("elimination", catalog.find("range"), false), "not hosted by the range")
 
 
-func test_only_elimination_can_be_picked_and_the_rest_say_later() -> void:
+func test_a_pole_mode_on_a_map_without_a_pole_says_so_rather_than_later() -> void:
+	var depot := MapCatalog.shared().find("depot")
+	assert_true(MatchOptions.needs_pole("attack_defend", depot, false))
+	assert_false(MatchOptions.needs_pole("attack_defend", depot, true))
+	assert_false(MatchOptions.needs_pole("elimination", depot, false))
+	assert_false(MatchOptions.needs_pole("practice", depot, false), "not built: it says later instead")
+
+
+func test_elimination_and_attack_defend_can_be_picked_and_practice_says_later() -> void:
 	var page := _page(false)
-	assert_false(page.mode_card("elimination").disabled)
 	assert_true(page.mode_card("elimination").is_picked())
-	for mode: String in ["attack_defend", "practice"]:
-		assert_true(page.mode_card(mode).disabled, mode)
-		assert_true(_labels(page.mode_card(mode)).has("LATER"), mode)
-	assert_false(_labels(page.mode_card("elimination")).has("LATER"))
+	for mode: String in ["elimination", "attack_defend"]:
+		assert_false(page.mode_card(mode).disabled, mode)
+		assert_false(_labels(page.mode_card(mode)).has("LATER"), mode)
+		assert_false(page.says_needs_pole(mode), "Depot has a pole")
+	assert_true(page.mode_card("practice").disabled)
+	assert_true(_labels(page.mode_card("practice")).has("LATER"))
 	for level: String in MatchOptions.BOT_LEVELS:
 		assert_false(page.bot_button(level).disabled, level)
 		assert_true(page.bot_button(level).visible, level)
 	assert_true(page.bot_button("normal").is_picked())
+
+
+func test_picking_attack_defend_names_who_attacks_first() -> void:
+	var page := _page(false)
+	assert_eq(page.attack_line(), "", "Elimination has no attackers")
+	page.mode_card("attack_defend").pressed.emit()
+	assert_eq(page.picks.mode, "attack_defend")
+	assert_true(page.mode_card("attack_defend").is_picked())
+	assert_eq(page.attack_line(), "Alpha attacks first, sides swap at half time")
+	assert_string_contains(page.summary_text(), "attacks first")
+	page.team_card(1).pressed.emit()
+	assert_string_contains(page.attack_line(), "Beta attacks first", "the team you pick attacks first")
 
 
 func test_pro_is_offered_without_dev_content_and_named_in_the_summary() -> void:

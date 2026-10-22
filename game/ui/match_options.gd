@@ -10,7 +10,9 @@ const MODE_PRACTICE := "practice"
 ## Every mode, in the order the cards show them.
 const MODES: PackedStringArray = ["elimination", "attack_defend", "practice"]
 ## The modes that are built; the others show greyed with a LATER tag.
-const BUILT_MODES: PackedStringArray = ["elimination"]
+const BUILT_MODES: PackedStringArray = ["elimination", "attack_defend"]
+## The modes that need a map with a flagpole (MapData.has_pole).
+const POLE_MODES: PackedStringArray = ["attack_defend"]
 ## The words of a mode: its name and its line (translation keys).
 const MODE_NAME: Dictionary[String, String] = {
 	"elimination": "MODE_ELIMINATION", "attack_defend": "MODE_ATTACK_DEFEND", "practice": "MODE_PRACTICE",
@@ -20,10 +22,10 @@ const MODE_BLURB: Dictionary[String, String] = {
 	"practice": "MODE_PRACTICE_BLURB",
 }
 const MODE_ELIMINATION_NAME := "MODE_ELIMINATION"
-## The modes a map of each kind hosts (data/maps.md's Kind): today every field hosts Elimination only and the range
-## its own practice mode. A map that hosts more says so here when its mode is built.
+## The modes a map of each kind hosts (data/maps.md's Kind): every field hosts Elimination and Attack / Defend (the
+## latter only with a flagpole), the range its own practice mode.
 const KIND_MODES: Dictionary[StringName, PackedStringArray] = {
-	&"field": ["elimination"],
+	&"field": ["elimination", "attack_defend"],
 	&"range": ["practice"],
 }
 ## The bots' levels, in the order shown.
@@ -43,14 +45,25 @@ static func modes_offered(map: MapCatalog.Entry) -> PackedStringArray:
 	return out
 
 
-## Whether `mode` can be picked on `map`: built, and hosted by that map.
-static func mode_pickable(mode: String, map: MapCatalog.Entry) -> bool:
-	return BUILT_MODES.has(mode) and modes_offered(map).has(mode)
+## Whether `mode` can be picked on `map`: built, hosted by that map, and for a pole mode the map has a flagpole
+## (`has_pole`).
+static func mode_pickable(mode: String, map: MapCatalog.Entry, has_pole: bool) -> bool:
+	return BUILT_MODES.has(mode) and modes_offered(map).has(mode) and (has_pole or not POLE_MODES.has(mode))
+
+
+## Whether `mode` is held back on `map` only for want of a flagpole: the card says so.
+static func needs_pole(mode: String, map: MapCatalog.Entry, has_pole: bool) -> bool:
+	return not has_pole and POLE_MODES.has(mode) and BUILT_MODES.has(mode) and modes_offered(map).has(mode)
+
+
+## `map_id` loaded as the Match page lists it: its problems (empty when it can be played) and whether it has a pole.
+static func map_check(map_id: String, style: MapStyle, team_size: int) -> MapData:
+	return MapData.load_map(map_id, style, team_size)
 
 
 ## Why `map_id` can't be played now (MapData's problems), empty when it loads.
 static func map_problems(map_id: String, style: MapStyle, team_size: int) -> Array[String]:
-	return MapData.load_map(map_id, style, team_size).problems
+	return map_check(map_id, style, team_size).problems
 
 
 ## The rules as chips, each a (label, value) pair; the first has no label. Read from the round tuning and the hit rules.
@@ -81,9 +94,13 @@ static func kicker(mode: String, team_size: int, team: int) -> String:
 	return (_tr("LOAD_KICKER") % [_tr(MODE_NAME[mode]), team_size, team_size, _tr(TEAM_KEYS[team])]).to_upper()
 
 
-## The summary line's tail after the map's name: "Elimination · Alpha · Normal bots".
+## The summary line's tail after the map's name: "Elimination · Alpha · Normal bots", or in Attack / Defend "Attack /
+## Defend · Alpha attacks first · Normal bots".
 static func summary_rest(mode: String, team: int, bots: String) -> String:
-	return _tr("MENU_SUMMARY_REST") % [_tr(MODE_NAME[mode]), _tr(TEAM_KEYS[team]), _tr("BOT_" + bots.to_upper())]
+	var side := _tr(TEAM_KEYS[team])
+	if POLE_MODES.has(mode):
+		side = _tr("MENU_ATTACKS_FIRST_SHORT") % side
+	return _tr("MENU_SUMMARY_REST") % [_tr(MODE_NAME[mode]), side, _tr("BOT_" + bots.to_upper())]
 
 
 static func _tr(key: String) -> String:

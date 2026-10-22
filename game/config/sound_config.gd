@@ -22,6 +22,9 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var vault_gain: float = 0.7
 @export var own_vault_gain: float = 0.4
 @export var vault_pitch: float = 0.06
+## Attack / Defend's flag rope ratcheting a notch at the pole (FLAG_ROPE), heard from the pole.
+@export var rope_gain: float = 0.8
+@export var rope_pitch: float = 0.04
 @export var impact_gain: float = 0.9
 @export var impact_pitch: float = 0.1
 @export var body_hit_gain: float = 1.0

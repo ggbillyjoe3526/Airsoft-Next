@@ -94,6 +94,8 @@ var _retro: RetroPixels = null
 var _rematch_left: float = -1.0
 var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
 var _stats: MatchStats = MatchStats.new()
+## Attack / Defend's pole; null in Elimination.
+var _flag: FlagView = null
 ## Your kit was picked with levelling off: every match it plays stays out of the records, even after it is turned on.
 var _kit_unlocked_all: bool = false
 ## The parts fitted to each kitted bot's replicas (Kit.parts), by character id, for its figure.
@@ -225,6 +227,13 @@ func _start_simulation(map: MapData) -> void:
 	state.dev_content = state.dev_content or kit.dev
 	player = Character.new(PLAYER_ID, player_team, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
 	state.characters.append(player)
+	# Attack / Defend on a map with a pole, your team attacking first; on a map without one, Elimination.
+	if mode == MatchOptions.MODE_ATTACK_DEFEND and map.has_pole:
+		state.round_state.mode = RoundState.Mode.ATTACK_DEFEND
+		state.round_state.pole = map.pole
+		state.round_state.first_attackers = player_team
+	else:
+		mode = MatchOptions.MODE_ELIMINATION
 	# Every bot's name and personality, drawn on the match's seed. Your teammates carry their replicas as they come;
 	# the other team's bots each pick a kit by the difficulty, leaning towards kits that suit their personality.
 	_bot_parts.clear()
@@ -291,6 +300,11 @@ func _build_views(ui: CanvasLayer) -> void:
 	var first_use: Array[Material] = [
 		_bbs.drawn_material(), _puffs.drawn_material(), FigureView.material(Color.WHITE, true)
 	]
+	if state.round_state.mode == RoundState.Mode.ATTACK_DEFEND:
+		_flag = FlagView.new()
+		_flag.setup(_play.flag, _play.teams, state.round_state.pole, _tuning.flag.radius)
+		add_child(_flag)
+		first_use.append_array(_flag.materials())
 	first_use.append_array(_hands.prewarm_glass())
 	ShaderPrewarm.new().setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE))
 	var profiles: Array[StringName] = []
@@ -350,6 +364,15 @@ func match_stats() -> MatchStats:
 ## The last hit on you, for the "What got you" card (time -INF until the first).
 func last_hit() -> HitFacts:
 	return _bots.last_hit if _bots != null else null
+
+
+## The HUD, and the flag pole (null outside Attack / Defend): for tests.
+func hud() -> Hud:
+	return _hud
+
+
+func flag_view() -> FlagView:
+	return _flag
 
 
 ## What the F3 overlay reads (DebugPerf), so it never reaches into the session's fields: the match's seed, where you
@@ -428,6 +451,10 @@ func _process(delta: float) -> void:
 		if f.character_id == watched.id:
 			f.visible = false
 	_hud.update(state, _input.zoom, delta)
+	if _flag != null:
+		var rs := state.round_state
+		_flag.refresh(rs.flag, rs.attackers)
+		_hud.place_flag_marker(_eyes.camera, rs.pole, rs.attackers >= 0)
 	_hud.set_watching(_bots.name_of(watched.id) if watched != player else "")
 	if _intents != null:
 		_intents.update(state, fraction)

@@ -16,6 +16,7 @@ const DEFAULT_PATH := "res://game/config/play_tuning.tres"
 @export var lighting: LightingConfig = LightingConfig.new()
 @export var teams: TeamConfig = TeamConfig.new()
 @export var debug_view: DebugViewConfig = DebugViewConfig.new()
+@export var flag: FlagViewConfig = FlagViewConfig.new()
 ## Seconds from a match's end to the next match starting.
 @export var rematch_delay: float = 8.0
 
