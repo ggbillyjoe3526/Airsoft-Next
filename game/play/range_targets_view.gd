@@ -102,10 +102,12 @@ func update(targets: Array[RangeTarget], fraction: float, delta: float) -> void:
 				d.carrier.position.x = at.x * t.face_z - at.z * t.face_x
 			RangeTarget.Motion.SWINGER:
 				d.pivot.rotation.z = RangeTargets.swing_angle(lerpf(t.prev_clock, t.clock, fraction), _range)
-		if t.kind == RangeTarget.Kind.FIGURE:
-			d.pivot.rotation.x = -fall_angle(t, _cfg, _range)
-		elif t.motion != RangeTarget.Motion.SWINGER:
-			d.pivot.rotation.x = _swing(d, delta)
+		if t.kind != RangeTarget.Kind.FIGURE and t.motion == RangeTarget.Motion.SWINGER:
+			continue
+		var tilt := -fall_angle(t, _cfg, _range) if t.kind == RangeTarget.Kind.FIGURE else _swing(d, delta)
+		# Written only when it changes: a still target's children aren't sent to the renderer again every frame.
+		if d.pivot.rotation.x != tilt:
+			d.pivot.rotation.x = tilt
 
 
 ## How far a figure lies back on its hinge (rad): falling over fall_time from the start of its time down, flat
