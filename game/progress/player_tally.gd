@@ -60,7 +60,8 @@ func on_tick(state: GameState) -> void:
 						hits += 1
 						_hit_this_round = true
 			GameEvent.Kind.ROUND_START:
-				if e.value == 1:
+				# A drawn round 1 played again is the same match.
+				if e.value == 1 and state.round_state.draws == 0:
 					begin()
 				_hit_this_round = false
 			GameEvent.Kind.ROUND_OVER:

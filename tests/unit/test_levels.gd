@@ -296,6 +296,20 @@ func test_a_match_is_tallied_and_settled_once_and_none_off_the_record() -> void:
 	assert_eq(r.win_loss(&"normal", "elimination"), PackedInt32Array([1, 0]))
 
 
+
+func test_a_drawn_round_1_played_again_keeps_the_tally() -> void:
+	var state := GameState.new(1)
+	state.characters.append_array([Character.new(0, 0, Vector3.ZERO, 0.0, ReplicaStats.default_loadout()),
+			Character.new(1, 1, Vector3.ZERO, 0.0, ReplicaStats.default_loadout())])
+	var tally := PlayerTally.new(0)
+	_events(state, [[GameEvent.Kind.ROUND_START, -1, -1, 1], [GameEvent.Kind.SHOT, 0, -1, 0],
+			[GameEvent.Kind.CHARACTER_HIT, 0, 1, 0]])
+	tally.on_tick(state)
+	state.round_state.draws = 1
+	_events(state, [[GameEvent.Kind.ROUND_OVER, -1, -1, -1], [GameEvent.Kind.ROUND_START, -1, -1, 1]])
+	tally.on_tick(state)
+	assert_eq([tally.hits, tally.bbs_fired], [1, 1], "the drawn round's hit and BB stay in the match")
+
 ## Replaces the state's events with `list`: each [kind, actor, target, value].
 func _events(state: GameState, list: Array) -> void:
 	state.events.clear()

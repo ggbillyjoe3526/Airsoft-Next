@@ -100,15 +100,18 @@ func observe(state: GameState) -> void:
 		for i in events.count:
 			var e := events.items[i]
 			if e.kind == GameEvent.Kind.CHARACTER_HIT and e.target == _player_id:
-				_record_hit(state, e.actor)
+				_record_hit(state, e.actor, e.value == 1)
+			elif e.kind == GameEvent.Kind.ROUND_START and e.value == 1 and state.round_state.draws == 0:
+				# A new match: no hit on the player yet.
+				last_hit.time = -INF
 	if state.events.count_of(GameEvent.Kind.ROUND_START) > 0:
 		_new_round(state)
 
 
-## Writes the hit on the player by `shooter_id` into last_hit, with what the shooting bot knew: whether it was holding
-## the angle and how long it had the player in view (from its contact). A teammate's BB or a shooter no bot drives
-## leaves both unknown.
-func _record_hit(state: GameState, shooter_id: int) -> void:
+## Writes the hit on the player by `shooter_id` (with a bounced BB when `bounced`) into last_hit, with what the shooting
+## bot knew: whether it was holding the angle and how long it had the player in view (from its contact). A teammate's
+## BB, a bounced one or a shooter no bot drives leaves both unknown.
+func _record_hit(state: GameState, shooter_id: int, bounced: bool) -> void:
 	var victim := state.character(_player_id)
 	var shooter := state.character(shooter_id)
 	if victim == null or shooter == null:
@@ -116,7 +119,7 @@ func _record_hit(state: GameState, shooter_id: int) -> void:
 	var known := false
 	var held := false
 	var seen_for := -1.0
-	if shooter.team != victim.team:
+	if shooter.team != victim.team and not bounced:
 		for b in world.bots:
 			if b.character != shooter:
 				continue
@@ -129,7 +132,7 @@ func _record_hit(state: GameState, shooter_id: int) -> void:
 					var end := c.seen_at if state.time - c.seen_at > world.cfg.contact_grace else state.time
 					seen_for = maxf(0.0, end - c.first_seen_at)
 			break
-	last_hit.record(state.time, victim, shooter, known, held, seen_for, world.cfg.hit_moving_speed)
+	last_hit.record(state.time, victim, shooter, bounced, known, held, seen_for, world.cfg.hit_moving_speed)
 
 
 func _new_round(state: GameState) -> void:

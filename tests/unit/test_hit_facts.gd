@@ -149,3 +149,18 @@ func _hit(actor: int, target: int) -> void:
 	e.actor = actor
 	e.target = target
 	bots.observe(state)
+
+
+func test_a_new_match_clears_the_last_hit_but_a_drawn_round_1_does_not() -> void:
+	_start()
+	_hit(SHOOTER, PLAYER)
+	state.events.clear()
+	state.round_state.draws = 1
+	state.events.add(GameEvent.Kind.ROUND_START).value = 1
+	bots.observe(state)
+	assert_gt(bots.last_hit.time, -INF, "round 1 played again after a draw: the same match")
+	state.events.clear()
+	state.round_state.draws = 0
+	state.events.add(GameEvent.Kind.ROUND_START).value = 1
+	bots.observe(state)
+	assert_eq(bots.last_hit.time, -INF, "a rematch starts with no hit on you")

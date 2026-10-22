@@ -2,7 +2,8 @@ class_name MatchStats
 extends RefCounted
 ## Every player's numbers for the match so far and for the round in play, or the one just played (the browser game's
 ## stats/matchStats.ts), read from each tick's events: what the scoreboard, the round result and the match summary show.
-## Reads the simulation, never writes it. Round 1's start begins a new match (a rematch too).
+## Reads the simulation, never writes it. Round 1's start begins a new match (a rematch too), unless it is a drawn
+## round 1 played again.
 
 
 ## One player's numbers over a round or a match.
@@ -36,6 +37,7 @@ var version: int = 0
 var _match: Array[Stats] = []
 var _round: Array[Stats] = []
 var _rounds_won_with: PackedInt32Array = PackedInt32Array()
+## What an unknown id reads (shared: callers only read what these functions return).
 var _empty: Stats = Stats.new()
 
 
@@ -63,7 +65,7 @@ func after_tick(state: GameState, dt: float) -> void:
 		var e := events.items[i]
 		match e.kind:
 			GameEvent.Kind.ROUND_START:
-				if e.value == 1:
+				if e.value == 1 and state.round_state.draws == 0:
 					_reset()
 				for s in _round:
 					s.clear()
