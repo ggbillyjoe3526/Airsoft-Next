@@ -522,7 +522,7 @@ func _open_pause() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().paused = true
 	var listed := MapCatalog.shared().find(map_id)
-	_pause.set_match(listed.display_name if listed != null else _map.display_name, tr(MatchOptions.MODE_ELIMINATION_NAME),
+	_pause.set_match(listed.display_name if listed != null else _map.display_name, tr(MatchOptions.MODE_NAME[mode]),
 			state.round_state.number, state.match_seed)
 	_pause.open()
 

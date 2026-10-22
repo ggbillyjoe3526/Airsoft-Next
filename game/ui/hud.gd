@@ -20,6 +20,9 @@ const MIDDLE_SIZE := Vector2(1500.0, 260.0)
 const MIDDLE_RAISE := 200.0
 ## The finished match's XP (XpCard) hangs this far under the banner.
 const XP_GAP := 28.0
+## The flag warning's plate margins and the gap between its flag and its words.
+const WARNING_PAD := Vector2i(36, 10)
+const WARNING_GAP := 18
 ## The hit marker's four strokes, out from the centre.
 const MARKER_DIRECTIONS: Array[Vector2] = [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]
 
@@ -41,9 +44,9 @@ var _xp: XpCard = null
 var _watching: Label = null
 var _watching_name: String = ""
 var _gauge: HudFlagGauge = null
-var _warning: Label = null
-var _flag_marker: Label = null
-var _marker_metres: int = -1
+var _warning: PanelContainer = null
+var _warning_flag: HudFlagGlyph = null
+var _flag_marker: HudFlagMarker = null
 var _pulse: float = 0.0
 
 var _marker_left: float = 0.0
@@ -92,23 +95,30 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	aim.text = HudStyle.first_to(_rounds.wins_needed)
 	aim.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	aim.add_theme_stylebox_override("normal", HudStyle.panel_box(HudStyle.BACKING_AIM, 12, 4))
-	_warning = HudStyle.label(top, HudStyle.WARNING_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER,
-			HudStyle.SPACING_BANNER)
-	_warning.text = HudStyle.caps("HUD_FLAG_GOING_UP")
+	# The warning: the attackers' flag and "THEIR FLAG IS GOING UP!" on a plate with a yellow top rule.
+	_warning = PanelContainer.new()
+	_warning.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_warning.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var warn_box := HudStyle.panel_box(HudStyle.BACKING_BANNER, 40, 10)
+	var warn_box := HudStyle.panel_box(HudStyle.BACKING_BANNER, WARNING_PAD.x, WARNING_PAD.y)
 	warn_box.border_color = GameTheme.YELLOW
 	warn_box.border_width_top = roundi(HudStyle.BANNER_RULE)
-	_warning.add_theme_stylebox_override("normal", warn_box)
+	_warning.add_theme_stylebox_override("panel", warn_box)
 	_warning.visible = false
+	top.add_child(_warning)
+	var warn_row := HBoxContainer.new()
+	warn_row.add_theme_constant_override("separation", WARNING_GAP)
+	warn_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_warning.add_child(warn_row)
+	_warning_flag = HudFlagGlyph.new(HudStyle.WARNING_GLYPH, GameTheme.YELLOW)
+	_warning_flag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	warn_row.add_child(_warning_flag)
+	var warn_text := HudStyle.label(warn_row, HudStyle.WARNING_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER,
+			HudStyle.SPACING_BANNER)
+	warn_text.text = HudStyle.caps("HUD_FLAG_GOING_UP")
 	# The marker over the pole, placed each frame (place_flag_marker).
-	_flag_marker = HudStyle.label(self, HudStyle.MARKER_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER,
-			HudStyle.SPACING_AIM)
-	var marker_box := HudStyle.panel_box(HudStyle.BACKING_CLOCK, 14, 6)
-	marker_box.border_color = GameTheme.YELLOW
-	marker_box.border_width_top = 2
-	_flag_marker.add_theme_stylebox_override("normal", marker_box)
-	_flag_marker.visible = false
+	_flag_marker = HudFlagMarker.new()
+	add_child(_flag_marker)
+	_flag_marker.setup(_cfg)
 	# Banners and the hit call, centre.
 	var middle := VBoxContainer.new()
 	_place(middle, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-MIDDLE_SIZE.x * 0.5, -MIDDLE_RAISE - MIDDLE_SIZE.y,
@@ -278,38 +288,15 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	queue_redraw()
 
 
-## Places the marker over the pole at `pole` as seen by `camera`: "FLAG · 24 m", kept inside the screen's edges (behind
-## you, along the bottom), hidden within flag_marker_hide_within and outside Attack / Defend (`show` false).
+## Places the marker over the pole at `pole` as seen by `camera` (HudFlagMarker); hidden outside Attack / Defend
+## (`show` false).
 func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool) -> void:
-	var eye := camera.global_position
-	var metres := roundi(Vector2(pole.x - eye.x, pole.z - eye.z).length())
-	_flag_marker.visible = show and metres >= _cfg.flag_marker_hide_within
-	if not _flag_marker.visible:
-		return
-	if metres != _marker_metres:
-		_marker_metres = metres
-		_flag_marker.text = (tr("HUD_FLAG_MARKER") % metres).to_upper()
-		_flag_marker.reset_size()
-	var top := pole + Vector3.UP * _cfg.flag_marker_height
-	# The camera projects into the viewport's visible rect, the HUD's own space (it fills the screen).
-	var view := get_viewport_rect().size
-	var at: Vector2
-	if camera.is_position_behind(top):
-		# Behind you: on the bottom edge, on the side it is.
-		var side := camera.global_basis.x.dot(top - eye)
-		at = Vector2(view.x * (0.5 + 0.5 * signf(side)), view.y)
-	else:
-		at = camera.unproject_position(top)
-	var half := _flag_marker.size * 0.5
-	var edge := _cfg.flag_marker_edge
-	at.x = clampf(at.x, edge + half.x, size.x - edge - half.x)
-	at.y = clampf(at.y, edge + _flag_marker.size.y, size.y - edge)
-	_flag_marker.position = Vector2(at.x - half.x, at.y - _flag_marker.size.y)
+	_flag_marker.place(camera, pole, show, size)
 
 
-## The marker's words, or "" while it is hidden: for tests.
+## The marker's words ("FLAG · 24 m"), or "" while it is hidden: for tests.
 func flag_marker_text() -> String:
-	return _flag_marker.text if _flag_marker.visible else ""
+	return _flag_marker.text()
 
 
 ## Whether the "Their flag is going up!" warning shows: for tests.
@@ -339,6 +326,7 @@ func _update_warning(rs: RoundState, delta: float) -> void:
 			and c.team != rs.attackers and rs.flag.status == FlagState.Status.RAISING and not at_rope
 	_warning.visible = show
 	if show:
+		_warning_flag.colour = _teams.colours[rs.attackers]
 		_pulse += delta
 		var swing := 1.0 - HudStyle.WARNING_PULSE_LOW
 		_warning.modulate.a = HudStyle.WARNING_PULSE_LOW + swing * (0.5 + 0.5 * cos(_pulse * TAU * _cfg.flag_warning_pulse))

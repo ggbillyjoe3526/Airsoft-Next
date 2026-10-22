@@ -8,6 +8,9 @@ extends Node3D
 const CLOTH_SHADER := preload("res://game/play/flag_cloth.gdshader")
 ## Segments of the ring and of the cloth's mesh (along and up).
 const RING_SEGMENTS := 96
+const POLE_SEGMENTS := 20
+const BASE_SEGMENTS := 28
+const ROPE_SEGMENTS := 6
 const CLOTH_GRID := Vector2i(14, 6)
 ## The ring and its edge sit this far over the floor (m), the edge just under the ring.
 const RING_LIFT := 0.025
@@ -42,8 +45,8 @@ func setup(cfg: FlagViewConfig, teams: TeamConfig, foot: Vector3, reach: float) 
 	rope_mat.albedo_color = cfg.rope_colour
 	rope_mat.roughness = ROPE_ROUGHNESS
 	var h := cfg.pole_height
-	_add(_cylinder(cfg.pole_radius, cfg.pole_radius, h, 20), alu, Vector3(0.0, h * 0.5, 0.0))
-	_add(_cylinder(cfg.base_radius.y, cfg.base_radius.x, cfg.base_height, 28), dark,
+	_add(_cylinder(cfg.pole_radius, cfg.pole_radius, h, POLE_SEGMENTS), alu, Vector3(0.0, h * 0.5, 0.0))
+	_add(_cylinder(cfg.base_radius.y, cfg.base_radius.x, cfg.base_height, BASE_SEGMENTS), dark,
 			Vector3(0.0, cfg.base_height * 0.5, 0.0))
 	var ball := SphereMesh.new()
 	ball.radius = cfg.finial_radius
@@ -51,11 +54,14 @@ func setup(cfg: FlagViewConfig, teams: TeamConfig, foot: Vector3, reach: float) 
 	_add(ball, alu, Vector3(0.0, h + cfg.finial_radius * 0.5, 0.0))
 	var rope_h := h - cfg.cloth_low
 	for side: float in [-1.0, 1.0]:
-		_add(_cylinder(cfg.rope_radius, cfg.rope_radius, rope_h, 6), rope_mat,
+		# The ropes and the cleat are too thin to shade anything: no shadow pass for them.
+		var rope := _add(_cylinder(cfg.rope_radius, cfg.rope_radius, rope_h, ROPE_SEGMENTS), rope_mat,
 				Vector3(0.0, cfg.cloth_low + rope_h * 0.5, side * cfg.rope_offset))
+		rope.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var cleat := BoxMesh.new()
 	cleat.size = cfg.cleat_size
-	_add(cleat, dark, Vector3(0.0, cfg.cleat_height, cfg.rope_offset))
+	_add(cleat, dark, Vector3(0.0, cfg.cleat_height, cfg.rope_offset)).cast_shadow = \
+			GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_cloth_mat = ShaderMaterial.new()
 	_cloth_mat.shader = CLOTH_SHADER
 	_cloth_mat.set_shader_parameter(&"pale", cfg.cloth_pale)

@@ -21,7 +21,6 @@ const MODE_BLURB: Dictionary[String, String] = {
 	"elimination": "MODE_ELIMINATION_BLURB", "attack_defend": "MODE_ATTACK_DEFEND_BLURB",
 	"practice": "MODE_PRACTICE_BLURB",
 }
-const MODE_ELIMINATION_NAME := "MODE_ELIMINATION"
 ## The modes a map of each kind hosts (data/maps.md's Kind): every field hosts Elimination and Attack / Defend (the
 ## latter only with a flagpole), the range its own practice mode.
 const KIND_MODES: Dictionary[StringName, PackedStringArray] = {

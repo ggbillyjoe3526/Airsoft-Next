@@ -111,8 +111,8 @@ msgstr "OT"
 msgid "HUD_FLAG"
 msgstr "Flag"
 
-msgid "HUD_FLAG_MARKER"
-msgstr "Flag · %d m"
+msgid "HUD_FLAG_DISTANCE"
+msgstr "· %d m"
 
 msgid "HUD_FLAG_GOING_UP"
 msgstr "Their flag is going up!"

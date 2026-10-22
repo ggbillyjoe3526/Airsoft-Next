@@ -56,6 +56,7 @@ const WARNING_SIZE := 30
 ## The warning's opacity at the low point of its pulse; the marker over the pole's type size.
 const WARNING_PULSE_LOW := 0.4
 const MARKER_SIZE := 21
+const WARNING_GLYPH := 36.0
 ## Letter spacing in em: the clock's round line, the aim line, banners and their second line.
 const SPACING_ROUND := 0.1
 const SPACING_AIM := 0.08

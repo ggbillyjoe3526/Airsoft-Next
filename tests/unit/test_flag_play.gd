@@ -60,6 +60,12 @@ func test_the_pole_hands_its_materials_to_the_prewarm() -> void:
 	assert_eq(_view().materials().size(), 2, "the cloth and the ring")
 
 
+func test_the_pole_is_only_drawn_so_bbs_pass_through_it() -> void:
+	var view := _view()
+	assert_eq(view.find_children("*", "CollisionObject3D", true, false).size(), 0)
+	assert_eq(view.find_children("*", "CollisionShape3D", true, false).size(), 0)
+
+
 # --- a match ---
 
 func test_attack_defend_puts_up_the_pole_and_your_team_attacks_first() -> void:
@@ -129,6 +135,11 @@ func test_the_warning_shows_while_their_flag_goes_up_and_you_are_off_the_rope() 
 	rs.attackers = 1 - session.player.team
 	hud.update(session.state, 1.0, 0.0)
 	assert_true(hud.flag_warning_shown())
+	var flag := hud.find_children("*", "HudFlagGlyph", true, false)
+	var colours: Array[Color] = []
+	for g: Node in flag:
+		colours.append((g as HudFlagGlyph).colour)
+	assert_has(colours, PlayTuning.new().teams.colours[rs.attackers], "the warning flies the attackers' flag")
 	session.player.position = rs.flag.position
 	hud.update(session.state, 1.0, 0.0)
 	assert_false(hud.flag_warning_shown(), "already at the rope pulling it down")
@@ -147,16 +158,51 @@ func test_the_marker_names_how_far_the_pole_is_and_hides_close_by() -> void:
 	camera.global_position = pole + Vector3(0.0, 1.7, 24.0)
 	var hud := session.hud()
 	hud.place_flag_marker(camera, pole, true)
-	assert_eq(hud.flag_marker_text(), "FLAG · 24 M")
+	assert_eq(hud.flag_marker_text(), "FLAG · 24 m")
 	camera.global_position = pole + Vector3(0.0, 1.7, -24.0) # facing away: kept on the bottom edge
 	hud.place_flag_marker(camera, pole, true)
-	assert_eq(hud.flag_marker_text(), "FLAG · 24 M")
+	assert_eq(hud.flag_marker_text(), "FLAG · 24 m")
 	camera.global_position = pole + Vector3(0.0, 1.7, 3.0)
 	hud.place_flag_marker(camera, pole, true)
 	assert_eq(hud.flag_marker_text(), "", "within reach")
 	camera.global_position = pole + Vector3(0.0, 1.7, 24.0)
 	hud.place_flag_marker(camera, pole, false)
 	assert_eq(hud.flag_marker_text(), "", "not in Attack / Defend")
+
+
+func test_the_pause_card_names_attack_defend() -> void:
+	session = _session(MatchOptions.MODE_ATTACK_DEFEND)
+	await wait_physics_frames(2)
+	session._open_pause()
+	var menu := session.find_child("PauseMenu", true, false) as PauseMenu
+	assert_eq(menu.subtitle_text(), "Depot · Attack / Defend · Round 1")
+	session._resume()
+
+
+func test_a_round_ended_by_the_flag_or_the_clock_shows_its_banner() -> void:
+	session = _session(MatchOptions.MODE_ATTACK_DEFEND)
+	await wait_physics_frames(2)
+	var state := session.state
+	var hud := session.hud()
+	state.events.clear()
+	var won := state.events.add(GameEvent.Kind.ROUND_OVER)
+	won.value = 0
+	won.value2 = GameEvent.RoundEnd.CAPTURED
+	hud.on_tick(state)
+	assert_eq(hud.banner_text(), "FLAG RAISED / ALPHA TAKE THE ROUND")
+	state.events.clear()
+	var held := state.events.add(GameEvent.Kind.ROUND_OVER)
+	held.value = 1
+	held.value2 = GameEvent.RoundEnd.TIME
+	hud.on_tick(state)
+	assert_eq(hud.banner_text(), "DEFENDED / TIME'S UP · BETA HELD THE POLE")
+	state.events.clear()
+	var out := state.events.add(GameEvent.Kind.ROUND_OVER)
+	out.value = 1
+	out.value2 = GameEvent.RoundEnd.ELIMINATED
+	hud.on_tick(state)
+	assert_eq(hud.banner_text(), "BETA TAKE THE ROUND / ", "won by eliminations: Elimination's banner")
+	state.events.clear()
 
 
 func test_a_round_won_by_the_flag_or_the_clock_says_so() -> void:
@@ -166,3 +212,4 @@ func test_a_round_won_by_the_flag_or_the_clock_says_so() -> void:
 	assert_eq(HudStyle.flag_round_sub(GameEvent.RoundEnd.TIME, "TEAM_BETA"), "TIME'S UP · BETA HELD THE POLE")
 	assert_eq(HudStyle.side_round_title(3, false), "ROUND 3 · DEFEND")
 	assert_eq(HudStyle.side_round_sub(3, 4, false), "HOLD THE POLE")
+
