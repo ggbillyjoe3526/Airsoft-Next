@@ -149,3 +149,20 @@ func test_the_pause_menu_hides_the_board() -> void:
 	session._open_pause()
 	assert_false(hud.board().visible)
 	session._resume()
+
+
+func test_bbs_alone_refill_the_board_at_most_every_refill_gap() -> void:
+	session = _session()
+	await wait_physics_frames(2)
+	var hud := session.hud()
+	var state := session.state
+	_show(hud)
+	state.events.clear()
+	state.events.add(GameEvent.Kind.SHOT).actor = 0
+	session.match_stats().after_tick(state, 0.0)
+	state.events.clear()
+	hud.update(state, 1.0, 0.0)
+	assert_string_starts_with(hud.board().table().lines()[0], "You | 0 | 0 | 0 | 0 |", "not yet: a BB alone waits")
+	state.time += PlayTuning.new().hud.board_refill_gap
+	hud.update(state, 1.0, 0.0)
+	assert_string_starts_with(hud.board().table().lines()[0], "You | 0 | 0 | 0 | 1 |", "then the BB shows")

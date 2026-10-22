@@ -59,3 +59,6 @@ extends Resource
 @export var table_hold: float = 4.0
 @export var table_slide: float = 0.25
 @export var table_slide_px: float = 24.0
+## The scoreboard: when only the match's numbers moved (each BB fired moves them), it refills at most this often (s of
+## simulation time); a new round, the clock's second or someone going out refills it at once.
+@export var board_refill_gap: float = 0.25

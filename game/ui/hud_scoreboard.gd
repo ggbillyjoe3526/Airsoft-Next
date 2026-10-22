@@ -4,7 +4,8 @@ extends VBoxContainer
 ## the bots and the size, the round and its time left; each team with its score and how many are in play, your team
 ## first and you first in it; per player this round's hits, then the match's hits, times hit, BBs fired, accuracy and
 ## time in play (MatchStats), those out this round greyed with a raised hand. Against Pro bots a Pro tip under it, one
-## per round in order. The field stays live under it: it refills when the numbers change and once a second.
+## per round in order. The field stays live under it: it refills at once when a round, the clock's second or who is in
+## play changes, and when only the numbers moved (each BB fired moves them) at most every HudConfig.board_refill_gap.
 
 ## The player's column width (px), then the columns after it: header keys and widths (px). "This round" is shaded.
 const PLAYER_WIDTH := 220.0
@@ -20,7 +21,11 @@ const TIP_PAD := Vector2i(16, 14)
 const TIP_GAP := 18
 const NO_ACCURACY := "–"
 
+var _cfg: HudConfig = null
 var _teams: TeamConfig = null
+## The teams' names as the board shows them, and one empty colours list every row shares (no cell has its own).
+var _team_names := PackedStringArray()
+var _no_colours: Array[Color] = []
 var _table: HudTable = null
 var _tip_box: PanelContainer = null
 var _tip: Label = null
@@ -35,11 +40,15 @@ var _shown_version: int = -1
 var _shown_round: int = -1
 var _shown_second: int = -1
 var _shown_in_play: int = -1
+var _filled_at: float = 0.0
 
 
-func setup(teams: TeamConfig, mate_colour: Color, max_overtime: float) -> void:
+func setup(cfg: HudConfig, teams: TeamConfig, mate_colour: Color, max_overtime: float) -> void:
 	name = "HudScoreboard"
+	_cfg = cfg
 	_teams = teams
+	for key in teams.names:
+		_team_names.append(HudStyle.caps(key))
 	_max_overtime = max_overtime
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_constant_override("separation", 0)
@@ -95,9 +104,10 @@ func update(state: GameState, stats: MatchStats, you: Character, show: bool) -> 
 	for c in state.characters:
 		if Elimination.is_in_play(c):
 			in_play |= 1 << c.id
-	if stats.version == _shown_version and rs.number == _shown_round and second == _shown_second \
-			and in_play == _shown_in_play:
+	if rs.number == _shown_round and second == _shown_second and in_play == _shown_in_play \
+			and (stats.version == _shown_version or state.time - _filled_at < _cfg.board_refill_gap):
 		return
+	_filled_at = state.time
 	_shown_version = stats.version
 	_shown_round = rs.number
 	_shown_second = second
@@ -125,7 +135,8 @@ func _fill(state: GameState, stats: MatchStats, you: Character, second: int) -> 
 	var when := tr("HUD_BOARD_ROUND_LEFT") % [rs.number, HudStyle.clock_text(second)] if second >= 0 \
 			else tr("HUD_BOARD_ROUND_OT") % [rs.number, HudStyle.clock_text(-1 - second)]
 	_table.heading(_map_name, _sub, when.to_upper())
-	for side: int in [you.team, 1 - you.team]:
+	for i in 2:
+		var side := you.team if i == 0 else 1 - you.team
 		var count := 0
 		var playing := 0
 		for c in state.characters:
@@ -136,7 +147,7 @@ func _fill(state: GameState, stats: MatchStats, you: Character, second: int) -> 
 		var note := tr("HUD_BOARD_IN_PLAY") % [playing, count]
 		if side == you.team:
 			note = tr("HUD_BOARD_YOUR_TEAM") % note
-		_table.add_team(_teams.colours[side], HudStyle.caps(_teams.names[side]), str(rs.score[side]), note.to_upper())
+		_table.add_team(_teams.colours[side], _team_names[side], str(rs.score[side]), note.to_upper())
 		if side == you.team:
 			_add_row(you, stats, you)
 		for c in state.characters:
@@ -154,8 +165,7 @@ func _add_row(c: Character, stats: MatchStats, you: Character) -> void:
 	var accuracy := m.accuracy()
 	var cells := PackedStringArray([str(stats.round_of(c.id).hits), str(m.hits), str(m.times_hit), str(m.bbs_fired),
 			NO_ACCURACY if accuracy < 0.0 else "%d%%" % roundi(accuracy * 100.0), HudStyle.clock_text(roundi(m.time_in_play))])
-	var none: Array[Color] = []
 	var name_text := tr("HUD_YOU") if c.id == you.id \
 			else (_names[c.id] if c.id < _names.size() and _names[c.id] != "" else tr(_teams.names[c.team]))
 	_table.add_row(name_text, c.id == you.id, c.team == you.team and c.id != you.id, not Elimination.is_in_play(c),
-			cells, none)
+			cells, _no_colours)

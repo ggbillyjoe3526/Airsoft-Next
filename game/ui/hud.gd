@@ -174,7 +174,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_place(_board, Vector4(0.5, 0.0, 0.5, 0.0), Rect2(0.0, BOARD_TOP, 0.0, 0.0))
 	_board.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	add_child(_board)
-	_board.setup(teams, teams.colours[player.team], sim.flag.max_overtime)
+	_board.setup(cfg, teams, teams.colours[player.team], sim.flag.max_overtime)
 	# Whose eyes you watch through, bottom centre.
 	var bottom := VBoxContainer.new()
 	_place(bottom, Vector4(0.5, 1.0, 0.5, 1.0), Rect2(-TOP_WIDTH * 0.5, -MARGIN, TOP_WIDTH, 0.0))
