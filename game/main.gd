@@ -195,6 +195,7 @@ func _start_play() -> void:
 	_play.counts = not _smoke
 	_play.mode = _picks.mode
 	_play.difficulty = StringName(_picks.bots)
+	_play.teammate_difficulty = StringName(_picks.teammates)
 	var custom: CustomRules = null if _smoke else _picks.custom_rules(Settings.shared())
 	_play.custom_rules = custom.copy() if custom != null else null
 	_play.map_id = map_id

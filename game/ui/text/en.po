@@ -588,6 +588,21 @@ msgstr "YOUR TEAM"
 msgid "MENU_BOTS"
 msgstr "BOTS"
 
+msgid "BOTS_OPPONENTS"
+msgstr "Opponents"
+
+msgid "BOTS_TEAMMATES"
+msgstr "Teammates"
+
+msgid "BOTS_FOLLOWS"
+msgstr "· FOLLOWS OPPONENTS"
+
+msgid "BOTS_FOLLOW_AGAIN"
+msgstr "· FOLLOW OPPONENTS"
+
+msgid "BOTS_NO_MATES"
+msgstr "No teammates in a 1v1."
+
 msgid "MENU_RULES"
 msgstr "RULES"
 
@@ -608,6 +623,33 @@ msgstr "Hard"
 
 msgid "BOT_PRO"
 msgstr "Pro"
+
+msgid "BOT_EASY_BLURB"
+msgstr "Slow to react, shaky aim. Learn the map."
+
+msgid "BOT_NORMAL_BLURB"
+msgstr "A fair fight: their first BBs up close can miss."
+
+msgid "BOT_HARD_BLURB"
+msgstr "Quick and steady, each on kit of its own. Get seen first and you're out."
+
+msgid "BOT_PRO_BLURB"
+msgstr "Tournament-sharp: patient, accurate and well kitted. Slow down and slice every corner."
+
+msgid "BOT_EASY_MATES"
+msgstr "Slow to react, shaky aim: you carry the team."
+
+msgid "BOT_NORMAL_MATES"
+msgstr "They hold their own in a fair fight."
+
+msgid "BOT_HARD_MATES"
+msgstr "Quick and steady: they win fights for you."
+
+msgid "BOT_PRO_MATES"
+msgstr "Patient and accurate: they hold their angles and win their duels."
+
+msgid "BOT_XP"
+msgstr "XP ×%s"
 
 msgid "MODE_ELIMINATION"
 msgstr "Elimination"
@@ -716,6 +758,9 @@ msgstr "A bounced BB still knocks out whoever it hits, as at fields that count r
 
 msgid "MENU_SUMMARY_REST"
 msgstr "%s · %s · %s bots"
+
+msgid "MENU_SUMMARY_MATES"
+msgstr " · %s teammates"
 
 msgid "MENU_SUMMARY_CUSTOM"
 msgstr " · Custom %s"

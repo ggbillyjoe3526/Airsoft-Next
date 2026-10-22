@@ -139,15 +139,40 @@ static func kicker(mode: String, team_size: int, team: int) -> String:
 
 
 ## The summary line's tail after the map's name: "Elimination · Alpha · Normal bots", or in Attack / Defend "Attack /
-## Defend · Alpha attacks first · Normal bots"; with Custom rules (`custom`) it ends " · Custom 2v2".
-static func summary_rest(mode: String, team: int, bots: String, custom: CustomRules = null) -> String:
+## Defend · Alpha attacks first · Normal bots"; it names the teammates' level when it differs from the opponents'
+## (`mates`, "" for none), and with Custom rules (`custom`) it ends " · Custom 2v2".
+static func summary_rest(mode: String, team: int, bots: String, custom: CustomRules = null,
+		mates: String = "") -> String:
 	var side := _tr(TEAM_KEYS[team])
 	if POLE_MODES.has(mode):
 		side = _tr("MENU_ATTACKS_FIRST_SHORT") % side
 	var rest := _tr("MENU_SUMMARY_REST") % [_tr(MODE_NAME[mode]), side, _tr("BOT_" + bots.to_upper())]
+	if not mates.is_empty() and mates != bots:
+		rest += _tr("MENU_SUMMARY_MATES") % _tr("BOT_" + mates.to_upper())
 	if custom != null:
 		rest += _tr("MENU_SUMMARY_CUSTOM") % size_short(custom.team_size)
 	return rest
+
+
+## Your teammates' level as played: the one picked, or the opponents' as it follows (BotConfig.teammates_following).
+static func teammates_level(opponents: String, picked: String) -> String:
+	return picked if not picked.is_empty() else String(BotConfig.teammates_following(StringName(opponents)))
+
+
+## The Opponents row's line for `level` (the browser game's DIFFICULTIES blurb), with the match's XP multiplier `xp` in
+## bold and `lit` (bbcode).
+static func opponents_blurb(level: String, xp: float, lit: Color) -> String:
+	return "%s %s" % [_tr("BOT_%s_BLURB" % level.to_upper()), xp_note(xp, lit)]
+
+
+## The Teammates row's line for `level` (the browser game's TEAMMATE_DIFFICULTIES blurb).
+static func teammates_blurb(level: String) -> String:
+	return _tr("BOT_%s_MATES" % level.to_upper())
+
+
+## "XP ×1.5" in bold and `lit` (bbcode).
+static func xp_note(xp: float, lit: Color) -> String:
+	return "[color=#%s][b]%s[/b][/color]" % [lit.to_html(false), _tr("BOT_XP") % ArmoryFacts.multiplier_text(xp)]
 
 
 static func _tr(key: String) -> String:
