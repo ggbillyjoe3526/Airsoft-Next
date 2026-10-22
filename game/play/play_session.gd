@@ -96,9 +96,11 @@ var _intents: BotIntentView = null
 var _retro: RetroPixels = null
 var _rematch_left: float = -1.0
 ## Skipping the round you are out of: the rest plays at PlayTuning.skip_speed with the HUD hidden; how long Jump has
-## been held towards it; the line that says so.
+## been held towards it, and whether it was up once you could skip (a press made before does not count); the line that
+## says so.
 var _skipping: bool = false
 var _skip_held_for: float = 0.0
+var _skip_armed: bool = false
 var _skip_note: Label = null
 var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
 var _stats: MatchStats = MatchStats.new()
@@ -338,13 +340,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	_hud = Hud.new()
 	ui.add_child(_hud)
 	_hud.setup(_play.hud, _play.teams, _play.view, _tuning, player)
-	_pause = PauseMenu.new()
-	ui.add_child(_pause)
-	_pause.resumed.connect(_resume)
-	_pause.left.connect(_leave)
-	_pause.end_round = _end_round_now
-	_pause.skipped.connect(_skip_from_pause)
-	# Over the field while the HUD is hidden.
+	# Over the field while the HUD is hidden, under the pause menu.
 	var skip_layer := Control.new()
 	skip_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	skip_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -357,6 +353,12 @@ func _build_views(ui: CanvasLayer) -> void:
 			SKIP_NOTE_MARGIN)
 	_skip_note.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_skip_note.visible = false
+	_pause = PauseMenu.new()
+	ui.add_child(_pause)
+	_pause.resumed.connect(_resume)
+	_pause.left.connect(_leave)
+	_pause.end_round = _end_round_now
+	_pause.skipped.connect(_skip_from_pause)
 
 
 func _physics_process(_delta: float) -> void:
@@ -571,6 +573,9 @@ func _capture() -> void:
 func _open_pause() -> void:
 	_input.release()
 	_hud.show_board(false)
+	# The hint comes back on resume naming Jump's key as bound then (Settings can rebind it); a hold starts over.
+	_hud.set_skip_hint(false)
+	_skip_armed = false
 	_pause.set_can_skip(can_skip() and not _skipping)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().paused = true
@@ -594,12 +599,15 @@ func skipping() -> bool:
 func _follow_skip(delta: float) -> void:
 	var can := can_skip() and not _skipping
 	_hud.set_skip_hint(can)
-	if can and _input.skip_held():
+	var held := _input.skip_held()
+	if can and held and _skip_armed:
 		_skip_held_for += delta
 		if _skip_held_for >= _play.skip_hold:
 			start_skip()
 	else:
 		_skip_held_for = 0.0
+		# Only a press made once you can skip counts: Jump held through the hit, or through a pause, does not.
+		_skip_armed = can and not held
 
 
 ## Skips the rest of the round: it plays at skip_speed with the HUD hidden and "Skipping the round" showing, until it

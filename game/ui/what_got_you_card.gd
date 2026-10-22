@@ -95,18 +95,22 @@ func _init(facts: HitFacts, shooter_name: String, colour: Color, note: String) -
 	who.text = shooter_name
 	var from := HudStyle.label(words, FROM_SIZE, 600, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_LEFT)
 	from.text = from_words(facts)
+	# One rule above each row, shared by them all.
+	var rule := GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0, 0.0), 0, 0)
+	rule.border_width_top = 1
+	rule.border_color = GameTheme.LINE
 	var rows := VBoxContainer.new()
 	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_theme_constant_override("separation", 0)
 	column.add_child(rows)
 	if facts.ricochet:
-		_row(rows, tr("WGY_BOUNCED"), tr("WGY_YES"), GameTheme.YELLOW)
+		_row(rows, rule, tr("WGY_BOUNCED"), tr("WGY_YES"), GameTheme.YELLOW)
 	if facts.held_known:
-		_row(rows, tr("WGY_HELD") % shooter_name, tr("WGY_YES" if facts.held else "WGY_NO"),
+		_row(rows, rule, tr("WGY_HELD") % shooter_name, tr("WGY_YES" if facts.held else "WGY_NO"),
 				GameTheme.YELLOW if facts.held else GameTheme.TEXT)
 	if facts.in_view >= 0.0:
-		_row(rows, tr("WGY_IN_VIEW") % shooter_name, tr("WGY_SECONDS") % facts.in_view, GameTheme.TEXT)
-	_row(rows, tr("WGY_YOU_WERE"), tr("WGY_MOVING" if facts.moving else "WGY_STILL"), GameTheme.TEXT)
+		_row(rows, rule, tr("WGY_IN_VIEW") % shooter_name, tr("WGY_SECONDS") % facts.in_view, GameTheme.TEXT)
+	_row(rows, rule, tr("WGY_YOU_WERE"), tr("WGY_MOVING" if facts.moving else "WGY_STILL"), GameTheme.TEXT)
 	if note != "":
 		var text := RichTextLabel.new()
 		text.bbcode_enabled = true
@@ -159,12 +163,9 @@ static func note_bbcode(note: String, colour: Color) -> String:
 	return "[b][color=#%s]%s[/color][/b]%s" % [colour.to_html(false), safe.substr(0, cut + 1), safe.substr(cut + 1)]
 
 
-func _row(parent: Control, words: String, value: String, value_colour: Color) -> void:
+func _row(parent: Control, rule: StyleBox, words: String, value: String, value_colour: Color) -> void:
 	var row := PanelContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var rule := GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0, 0.0), 0, 0)
-	rule.border_width_top = 1
-	rule.border_color = GameTheme.LINE
 	row.add_theme_stylebox_override("panel", rule)
 	row.custom_minimum_size.y = ROW_HEIGHT
 	parent.add_child(row)
