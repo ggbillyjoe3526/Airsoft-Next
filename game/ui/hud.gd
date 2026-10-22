@@ -320,8 +320,7 @@ func score() -> HudScore:
 ## The warning pulses while the other team raises its flag and you aren't at the rope pulling it down.
 func _update_warning(rs: RoundState, delta: float) -> void:
 	var c := _player
-	var at_rope := Elimination.is_in_play(c) \
-			and Vector2(c.position.x - rs.flag.position.x, c.position.z - rs.flag.position.z).length() <= _sim.flag.radius
+	var at_rope := Flag.at_pole(c, rs.flag, _sim.flag)
 	var show := rs.mode == RoundState.Mode.ATTACK_DEFEND and rs.is_live() and rs.attackers >= 0 \
 			and c.team != rs.attackers and rs.flag.status == FlagState.Status.RAISING and not at_rope
 	_warning.visible = show

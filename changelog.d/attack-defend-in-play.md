@@ -6,7 +6,7 @@
 - The flag climbs the pole in the attackers' colour, and the rope ratchets as it goes up or down.
 - The HUD shows ATK and DEF tags over the scores, and a FLAG gauge with 12 notches that fill as the flag rises.
 - "OT" on the clock shows the overtime left once time runs out while attackers are on the rope.
-- "Their flag is going up!" pulses when you defend and are away from the rope. A "FLAG · 24 M" marker sits over the pole and hides within 5 m.
+- "Their flag is going up!" pulses when you defend and are away from the rope. A "FLAG · 24 m" marker sits over the pole and hides within 5 m.
 - Rounds open with "ROUND 1 · ATTACK / TAKE THE FLAG" or "ROUND 1 · DEFEND / HOLD THE POLE".
 - Rounds end with "FLAG RAISED / ALPHA TAKE THE ROUND" or "DEFENDED / TIME'S UP · BETA HELD THE POLE".
 - Attack / Defend matches give XP and count for your records, as Elimination does.
