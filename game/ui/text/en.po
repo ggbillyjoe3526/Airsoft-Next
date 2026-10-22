@@ -1445,3 +1445,9 @@ msgstr "LEVEL %d!"
 
 msgid "XP_UNLOCKED"
 msgstr "Unlocked: %s"
+
+msgid "HUD_YOU"
+msgstr "You"
+
+msgid "HUD_HIT_TAG"
+msgstr "Hit"

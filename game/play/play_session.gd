@@ -182,6 +182,10 @@ func _build_views_and_start() -> void:
 	_apply_dev()
 	_sim.start_match(state)
 	_after_tick()
+	var names := PackedStringArray()
+	for c in state.characters:
+		names.append("" if c.id == PLAYER_ID else _bots.name_of(c.id))
+	_hud.setup_field(_level.query(), _tuning.body, names, state.characters)
 	_capture()
 
 
@@ -451,6 +455,7 @@ func _process(delta: float) -> void:
 		if f.character_id == watched.id:
 			f.visible = false
 	_hud.update(state, _input.zoom, delta)
+	_hud.place_team_markers(_eyes.camera, state.characters, watched, fraction)
 	if _flag != null:
 		var rs := state.round_state
 		_flag.refresh(rs.flag, rs.attackers)
