@@ -5,20 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## SB1 · Scoreboard on Tab and Pro tips
-tier: ui
-perf: required
-touches: game/ui/, game/play/, game/ui/text/en.po, data/, tests/unit/
-contract: none
-acceptance:
-  1. As `scoreboard.png`, while Tab is held: the map, mode, bots and size, the round and time left; your team first,
-     your line in yellow; per player this round's hits and the match's hits, times hit, BBs fired, accuracy and time
-     in play (MatchStats), players out this round greyed with a raised hand; each team's count in play. The field
-     stays live.
-  2. Against Pro bots only, a Pro tip under the table, one per round in order, from the browser game's tips.
-status: open
-attempts: 0
-
 ## WG1 · What got you and skipping the round
 tier: ui
 perf: optional

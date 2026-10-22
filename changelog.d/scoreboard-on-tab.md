@@ -1,0 +1,11 @@
+### Scoreboard on Tab
+- Hold Tab in a match to see the scoreboard over the field; the match keeps playing.
+- The top line names the map, the mode, the bots' level and the size, such as "ELIMINATION · PRO BOTS · 3 V 3".
+- The round and its time left sit beside it; in Attack / Defend overtime the clock counts the overtime down.
+- Each team shows its score and how many of its players are still in play. Your team comes first, and you come first on it, in yellow.
+- Each player shows this round's hits, then the match's hits, times hit, BBs fired, accuracy (hits per BB) and time in play.
+- Players out this round are greyed out, with an OUT tag and a raised hand.
+- Against Pro bots, a Pro tip sits under the table, and a new one shows each round.
+- Teammate markers hide while Tab is held.
+- Tab can be rebound on the Controls screen (Scoreboard).
+- Pausing hides the board.

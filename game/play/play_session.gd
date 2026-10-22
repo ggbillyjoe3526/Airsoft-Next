@@ -186,6 +186,11 @@ func _build_views_and_start() -> void:
 	for c in state.characters:
 		names.append("" if c.id == PLAYER_ID else _bots.name_of(c.id))
 	_hud.setup_field(_level.query(), _tuning.body, names, state.characters, _stats)
+	var listed := MapCatalog.shared().find(map_id)
+	var size := _tuning.rounds.team_size
+	_hud.set_board_match(listed.display_name if listed != null else _map.display_name,
+			tr("HUD_BOARD_SUB") % [tr(MatchOptions.MODE_NAME[mode]), tr("BOT_" + String(difficulty).to_upper()), size, size],
+			difficulty == &"pro")
 	_capture()
 
 
@@ -455,6 +460,7 @@ func _process(delta: float) -> void:
 		# Watching through someone's eyes: their own figure would fill the view.
 		if f.character_id == watched.id:
 			f.visible = false
+	_hud.show_board(_input.scoreboard_held())
 	_hud.update(state, _input.zoom, delta)
 	_hud.place_team_markers(_eyes.camera, state.characters, watched, fraction)
 	if _flag != null:
@@ -536,6 +542,7 @@ func _capture() -> void:
 
 func _open_pause() -> void:
 	_input.release()
+	_hud.show_board(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().paused = true
 	var listed := MapCatalog.shared().find(map_id)

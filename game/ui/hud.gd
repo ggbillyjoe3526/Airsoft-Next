@@ -20,6 +20,8 @@ const MIDDLE_SIZE := Vector2(1500.0, 260.0)
 const MIDDLE_RAISE := 200.0
 ## The finished match's XP (XpCard) hangs this far under the banner.
 const XP_GAP := 28.0
+## The scoreboard's top edge, under the score.
+const BOARD_TOP := 160.0
 ## The flag warning's plate margins and the gap between its flag and its words.
 const WARNING_PAD := Vector2i(36, 10)
 const WARNING_GAP := 18
@@ -51,6 +53,9 @@ var _hits := HitFeed.new()
 var _feed: HudFeed = null
 var _team_markers: HudTeamMarkers = null
 var _round_result: HudRoundResult = null
+var _board: HudScoreboard = null
+var _board_wanted: bool = false
+var _names := PackedStringArray()
 var _stats: MatchStats = null
 var _pulse: float = 0.0
 
@@ -164,6 +169,12 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_round_result.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	add_child(_round_result)
 	_round_result.setup(cfg, teams, sim.rounds, teams.colours[player.team])
+	# The scoreboard while Tab is held, over everything in the middle.
+	_board = HudScoreboard.new()
+	_place(_board, Vector4(0.5, 0.0, 0.5, 0.0), Rect2(0.0, BOARD_TOP, 0.0, 0.0))
+	_board.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	add_child(_board)
+	_board.setup(cfg, teams, teams.colours[player.team], sim.flag.max_overtime)
 	# Whose eyes you watch through, bottom centre.
 	var bottom := VBoxContainer.new()
 	_place(bottom, Vector4(0.5, 1.0, 0.5, 1.0), Rect2(-TOP_WIDTH * 0.5, -MARGIN, TOP_WIDTH, 0.0))
@@ -186,7 +197,25 @@ func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, 
 	_team_markers.setup(_cfg, body, query, characters, _player)
 	_feed.set_names(names)
 	_round_result.set_names(names)
+	_names = names
 	_stats = stats
+
+
+## What the scoreboard's heading says: the map's name and the line after it, and whether the opponents are Pro (its
+## tips show only then).
+func set_board_match(map_name: String, sub: String, pro: bool) -> void:
+	_board.set_match(_names, map_name, sub, pro)
+
+
+## Whether the scoreboard's key is held. Let go, it hides at once (the pause menu opening).
+func show_board(held: bool) -> void:
+	_board_wanted = held
+	if not held:
+		_board.visible = false
+
+
+func board() -> HudScoreboard:
+	return _board
 
 
 ## The hit feed's corner: top right (newest on top) or bottom left (newest at the bottom).
@@ -205,7 +234,7 @@ func set_feed_corner(where: HudFeed.Place) -> void:
 
 ## Places the teammate markers as `camera` sees them (HudTeamMarkers), `watched` being whose eyes it is.
 func place_team_markers(camera: Camera3D, characters: Array[Character], watched: Character, fraction: float) -> void:
-	_team_markers.place(camera, characters, watched, _teams.colours[_player.team], fraction, true)
+	_team_markers.place(camera, characters, watched, _teams.colours[_player.team], fraction, not _board.visible)
 
 
 func feed() -> HudFeed:
@@ -319,6 +348,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	# The round's stamp stays up as long as the table under it, the match's banner as long as the XP.
 	if _stats != null:
 		_round_result.update(state, _stats, _player)
+		_board.update(state, _stats, _player, _board_wanted)
 	if _xp != null:
 		_xp.visible = not _round_result.holds_results()
 	if _banner_left > 0.0 and _xp == null and not _round_result.is_open():
