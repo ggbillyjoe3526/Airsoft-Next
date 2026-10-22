@@ -21,6 +21,7 @@ warm (checked by `test_simulation.gd` and, on the range, `test_range_map.gd`).
 | `game_event.gd`, `sim_events.gd` | The tick's events (shots, hits, footsteps, rounds), pooled: the only channel to sound, HUD and effects |
 | `seeds.gd` | Seeded streams: every random draw comes from the match's `RandomNumberGenerator` or one derived from its seed |
 | `world_query.gd`, `ray_hit.gd`, `character_mover.gd` | What the rules ask the level, behind two interfaces (Contracts 4) |
+| `sound_path.gd` | `SoundPath`: the share of rays from an ear to a character's knees and head that the level blocks, and a line stopping short of a surface; the bots' hearing and the player's muffling hear through the same walls |
 | `box_world.gd` | A level of boxes answering both interfaces without a physics engine, for headless tests and tools |
 | `map_end.gd`, `spawn_point.gd` | A map's two ends: spawns and dead-zone spots |
 | `movement.gd`, `accuracy.gd`, `aiming.gd`, `footsteps.gd` | Paces, crouch and jump; spread by stance and motion; aiming down sights; footsteps and landings |
