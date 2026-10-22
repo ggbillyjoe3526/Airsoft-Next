@@ -101,3 +101,113 @@ acceptance:
      The smoke test plays its match with the minimap up and no script errors.
 status: open
 attempts: 0
+
+## SP1 · The mix: voice pools with spread, the buses, out and ducking
+tier: core
+perf: required
+touches: game/play/voice_pool.gd, game/play/sound_mix.gd, game/play/sim_audio.gd, game/play/play_session.gd,
+  game/play/README.md, game/config/sound_config.gd, game/config/play_tuning.tres, game/config/README.md,
+  default_bus_layout.tres, tests/unit/test_voice_pool.gd, tests/unit/test_sound_mix.gd
+contract: Simulation and presentation (1); Events (3); Data, not literals (6); Headless (9)
+acceptance:
+  1. VoicePool (plain RefCounted, katanashotgun's voice_pool.gd) over the voices made at setup: a play takes a free
+     voice, else its cue's oldest once that cue is at its max voices, else the oldest of the lowest priority no higher
+     than its own, else it is dropped and counted. Priorities: interface cues and your own sounds above others' shots
+     and hits, above steps, mechanisms and impacts, above ambience calls. katanashotgun's four pool tests pass in GUT.
+  2. Spread: a cue never plays the same variant twice running; pitch ± its kind's spread (as today) and level ± its
+     kind's volume spread (dB; 0 on interface cues), on SimAudio's presentation stream.
+  3. Limits and reaches, the browser's: others' steps start at most 4 per 0.1 s and only within 22 m, impacts 8 per
+     0.1 s; other field sounds within 60 m, the range's targets 80 m. Each a SoundConfig number, documented.
+  4. Buses: Effects and Ambience feed a new Field bus under Master that carries the out low-pass and the dips;
+     Interface goes straight to Master. A low-pass bus for half and for full muffling under Effects and under Power
+     (for SP2), their corners and levels from SoundConfig's occlusion numbers (the browser's: rays 0.45 and 1.5 m,
+     18 kHz to 700 Hz, level to 0.55, surface gap 0.2 m, reach 60 m, far ramp) plus a refresh and a ray budget.
+     Settings' five sliders and an old settings file are unchanged.
+  5. SoundMix (Node, presentation): while the character you play is out of play the Field bus is low-passed to
+     out_hz and turned to out_gain, easing over out_ease, until it is back in play. Your own CHARACTER_HIT dips Field
+     to the hit shape; ROUND_OVER, MATCH_OVER and the challenge's Time to the whistle shape; overlapping dips keep the
+     deeper depth and the later end. The envelope is a plain DuckEnvelope with GUT tests (shape, overlap, out × dip).
+  6. Leaving play (quit, match over, a scene change mid-dip) leaves Field at 0 dB with its filter open, so menus are
+     never muffled. Pausing is checked for a click; a pause_fade is added only if it clicks (recorded either way).
+  7. SimAudio.setup takes the WorldQuery and MapData, and on_tick the listener (the character the view is through),
+     for SP2 and SP4. Voices are made once; a tick and a frame allocate nothing. The smoke test plays its match with
+     no script errors.
+status: open
+attempts: 0
+
+## SP2 · Muffling through walls
+tier: core
+perf: required
+touches: game/sim/sound_path.gd, game/sim/README.md, game/ai/bot_hearing.gd, game/ai/README.md,
+  game/play/sound_occlusion.gd, game/play/sim_audio.gd, game/play/README.md, tests/unit/test_sound_path.gd,
+  tests/unit/test_sound_occlusion.gd
+contract: Simulation and presentation (1); Physics behind two interfaces (4); Data, not literals (6)
+acceptance:
+  1. SoundPath.blocked_share(query, ear, feet, heights, hit) (the browser's sim/soundPath.ts, static, no Node): the
+     share of rays from the ear to the feet raised by each height that level geometry blocks, through WorldQuery.
+     BotHearing uses it in place of its own copy; every bot test passes unchanged.
+  2. Every sound another character makes (shot, power part, mechanism, step, vault, a hit on them) plays on the bus
+     for its share from the listener's eyes: open, half (low cover) or full (a wall), at the browser's level for that
+     share. A silenced shot takes the more muffled corner of the two and both levels. A BB impact casts one ray that
+     stops surface_gap short of its surface. Your own sounds and interface cues are never muffled.
+  3. Budget: a character's share is reused for refresh_ticks; a tick casts at most ray_budget rays (a sound over the
+     budget uses its character's last share, an impact over it plays open); no ray beyond reach, where the share
+     closes to full over far_ramp. Rays per tick (max and mean) and the time they cost on the smoke match are
+     measured and recorded; a tick allocates nothing.
+  4. GUT tests on a BoxWorld: open, half behind a barrier, full behind a wall, the impact's gap, the budget held, the
+     cache reused, the listener changing to the teammate you watch once out.
+status: open
+attempts: 0
+
+## SP3 · The referee's whistle and each field's ambience as data
+tier: core
+perf: skip
+touches: tools/render_whistle.gd, assets/audio/cues/, assets/audio/README.md, docs/ASSETS.md,
+  game/config/ambience_config.gd, game/config/sound_config.gd, game/config/play_tuning.tres, game/config/README.md,
+  game/map/map_data.gd, game/map/README.md, tests/unit/test_whistle_sound.gd, tests/unit/test_ambience_config.gd
+contract: Data, not literals (6); Headless (9)
+acceptance:
+  1. tools/render_whistle.gd (run headless, as map_pictures.gd; no add-on) renders the browser's pea whistle from
+     SoundConfig's whistle numbers (2900 Hz, 28 Hz warble by 4 %, 20 ms in, 50 ms out) as whistle_short (0.14 s) and
+     whistle_long (0.8 s), three variants each (the warble's phase moved), 16-bit mono 44.1 kHz like the other cues,
+     with their .import files. assets/audio/README.md and ASSETS say how to re-render; made by the project.
+  2. A test reads each file: its length, its peak, and its pitch within 2 % of 2900 Hz.
+  3. SoundConfig holds the whistle's level and blast pattern: round start two short (the second 1.6 lengths on), round
+     over one long, match over three more long 1.3 lengths apart.
+  4. AmbienceConfig (typed Resource): per ambience (yard, woods, city) a day and a night set of beds (loop, gain,
+     width) and calls (cue, level, gap min and max, distance min and max, height, seed): the browser's AMBIENCES, in
+     play_tuning.tres. Tests: every loop and cue named exists on disk; no call louder than a bird, no bed louder than
+     the yard's (DECISIONS 2026-10-05).
+  5. MapData reads `ambience`: none means yard, an unknown id warns and means yard. Depot yard, Woodland woods, Neon
+     Heights city, the range yard.
+status: open
+attempts: 0
+
+## SP4 · Kit rustle, landing thuds, whistles and ambience calls
+tier: core
+perf: required
+touches: game/play/foley_tracker.gd, game/play/ambient_calls.gd, game/play/sim_audio.gd, game/play/README.md,
+  game/sim/footsteps.gd, game/sim/game_event.gd, game/config/sound_config.gd, game/config/play_tuning.tres,
+  game/config/README.md, tests/unit/test_foley_tracker.gd, tests/unit/test_ambient_calls.gd,
+  tests/unit/test_footsteps.gd
+contract: Simulation and presentation (1); Events (3); Data, not literals (6); Headless (9)
+acceptance:
+  1. FoleyTracker (plain, the browser's foley.ts): a crouch, a stand, or a lean away from upright starting plays
+     foley_crouch, _stand or _lean once per movement, read from the state's crouch and lean and their previous values
+     for anyone in play; leaning back is quiet. Others' within 9 m, at most 3 per 0.15 s, muffled as SP2; yours at
+     the own_foley level. Presentation only: bots don't hear it. Per-character records made once per match.
+  2. Landing thuds: FOOTSTEP LAND carries the touchdown speed (GameEvent documents where). The landing's level and
+     pitch follow it from land_min_speed (today's sound) to hard_land_speed (× land_hard_gain, pitch × land_hard_pitch),
+     with a rustle under a hard one; your own landing at own_land_gain. Bots hear landings as today (Footsteps tests
+     pass, plus the speed).
+  3. The whistle (SP3's files and pattern) on the Interface bus: two short blasts start a round (in place of the
+     beep), one long ends it, three more end the match; the challenge's Time is the long blast (its count and Go beeps
+     stay). A new round's whistle cuts the last short. Blasts wait in a fixed queue: no timer or node made per play.
+  4. The map's ambience (SP3): its day beds through the Ambience bus, and its calls, each kind on its own seeded gaps
+     at a random bearing and its distance round the listener, at its height, positional, at the pool's lowest
+     priority; the same seed gives the same calls. The night set waits for step 26's flag. ambience_gain and
+     SoundConfig.ambience retired.
+  5. GUT tests: rustle once per movement and none on leaning back; the call schedule by seed and its distances; the
+     landing level by speed. A tick allocates nothing; the smoke test plays its match with no script errors.
+status: open
+attempts: 0
