@@ -36,3 +36,7 @@
   stay as they are.
 - **The page follows any settings change** (QA, attempt 1): it re-reads the round tuning and the Custom rows on the
   settings' `changed`, as it listed the maps again before, so a reset save or Dev content shows what Play will play.
+- **Tests never write into the loaded tuning** (gates, attempt 2): a QA helper leaked a MatchPage, which held the
+  cached SimTuning alive across test files, so test_df1_qa's team size of 1 reached every later test. The helper no
+  longer builds a page, and the tests that changed the loaded tuning (df1 QA, the match runner's, the balance report's)
+  change a copy.

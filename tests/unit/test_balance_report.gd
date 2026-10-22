@@ -77,7 +77,7 @@ func test_markdown_puts_the_most_urgent_first() -> void:
 
 
 func test_figures_use_the_end_each_round_was_played_from_and_ends_swap_at_half_time() -> void:
-	var tuning := SimTuning.load_default()
+	var tuning := SimTuning.load_default().duplicate(true) as SimTuning
 	tuning.rounds.wins_needed = 4
 	tuning.rounds.half_time_after = 2
 	tuning.rounds.first_end = 0

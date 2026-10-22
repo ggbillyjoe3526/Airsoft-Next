@@ -133,7 +133,7 @@ func test_freeing_and_rebuilding_the_page_keeps_the_picks_and_leaks_nothing() ->
 
 
 func page_blurb(n: int) -> String:
-	return MatchPage.new().tr(MatchOptions.MODE_BLURB[MatchOptions.MODE_ELIMINATION]) % n
+	return tr(MatchOptions.MODE_BLURB[MatchOptions.MODE_ELIMINATION]) % n
 
 
 func test_many_edits_do_not_grow_the_node_count() -> void:

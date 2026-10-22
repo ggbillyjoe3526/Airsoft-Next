@@ -22,7 +22,7 @@ func test_tick_limit_leaves_match_unfinished_and_stops_on_time() -> void:
 
 
 func test_clock_rounds_are_recorded_as_draws_and_counted_on_time() -> void:
-	var tuning := SimTuning.load_default()
+	var tuning := SimTuning.load_default().duplicate(true) as SimTuning
 	tuning.rounds.round_time = 4.0
 	var r := await _runner("depot", tuning)
 	var m := r.play(SEED, 40.0)
@@ -39,7 +39,7 @@ func test_clock_rounds_are_recorded_as_draws_and_counted_on_time() -> void:
 
 
 func test_a_bot_that_never_gets_away_from_its_spawn_stays_home() -> void:
-	var tuning := SimTuning.load_default()
+	var tuning := SimTuning.load_default().duplicate(true) as SimTuning
 	tuning.rounds.round_time = 1.0
 	var r := await _runner("depot", tuning)
 	var m := r.play(SEED, 12.0)
@@ -53,7 +53,7 @@ func test_a_bot_that_never_gets_away_from_its_spawn_stays_home() -> void:
 
 
 func test_a_won_match_records_winner_first_hit_and_every_character_moving() -> void:
-	var tuning := SimTuning.load_default()
+	var tuning := SimTuning.load_default().duplicate(true) as SimTuning
 	tuning.rounds.wins_needed = 1
 	var r := await _runner("depot", tuning)
 	var m := r.play(SEED, 20.0 * 60.0)
