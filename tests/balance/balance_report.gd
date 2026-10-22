@@ -25,6 +25,14 @@ const LEVEL_BANDS: Dictionary[StringName, Vector2] = {
 const EASY_ROUNDS_MAX := 1.6
 ## Rounds that run out the clock: under 1 in 10 (the browser's ON_TIME_BAND).
 const ON_TIME_MAX := 0.1
+## Attack / Defend: the attackers' share of all rounds, each level against itself (the browser game's depotFlag,
+## depotProFlag and neonHeightsFlag balance files): Normal's per map (Depot's, any other map's), the other levels' as in
+## LEVEL_BANDS but wider at Normal's level of play on the pole.
+const ATTACK_BANDS: Dictionary[StringName, Vector2] = {
+	&"easy": Vector2(0.35, 0.65), &"hard": Vector2(0.35, 0.65), &"pro": Vector2(0.4, 0.6),
+}
+const ATTACK_NORMAL_BANDS: Dictionary[String, Vector2] = {"depot": Vector2(0.38, 0.67)}
+const ATTACK_NORMAL_BAND := Vector2(0.4, 0.65)
 
 
 ## One figure: a share (`of` > 0, value 0..1) or a plain number in `unit`, with its band (either end may be open).
@@ -157,6 +165,36 @@ static func figures(map_name: String, ends: Array[String], matches: Array[MatchR
 			"%d rounds with a hit" % hit_times.size()))
 	out.append(number("%s: median range of a round's first hit" % at, median(hit_ranges), "m",
 			"%d rounds with a hit" % hit_ranges.size()))
+	return out
+
+
+## A map's Attack / Defend figures over its matches at `level`: the attackers' share of all rounds (its band, by map at
+## Normal), rounds that run out the clock, and the share won by raising the flag (measured).
+static func flag_figures(map_id: String, map_name: String, matches: Array[MatchRunner.MatchTally],
+		level: StringName = &"normal") -> Array[Figure]:
+	var rounds := 0
+	var attack_wins := 0
+	var on_time := 0
+	var captures := 0
+	for m in matches:
+		for r in m.rounds:
+			rounds += 1
+			if r.winner >= 0 and r.winner == r.attackers:
+				attack_wins += 1
+			if r.reason == GameEvent.RoundEnd.TIME:
+				on_time += 1
+			elif r.reason == GameEvent.RoundEnd.CAPTURED:
+				captures += 1
+	var at := "%s, Attack / Defend, %s" % [map_name, level_name(level)]
+	var band: Vector2 = ATTACK_NORMAL_BANDS.get(map_id, ATTACK_NORMAL_BAND) if level == &"normal" \
+			else ATTACK_BANDS.get(level, ATTACK_NORMAL_BAND)
+	var out: Array[Figure] = []
+	out.append(share("%s: the attackers' share of rounds" % at, attack_wins, rounds, band.x, band.y,
+			"%d of %d rounds" % [attack_wins, rounds]))
+	out.append(share("%s: rounds that run out the clock" % at, on_time, rounds, -INF, ON_TIME_MAX,
+			"%d of %d rounds" % [on_time, rounds]))
+	out.append(share("%s: rounds won by raising the flag" % at, captures, rounds, -INF, INF,
+			"%d of %d rounds" % [captures, rounds]))
 	return out
 
 

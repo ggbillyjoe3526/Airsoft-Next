@@ -1,15 +1,15 @@
 class_name MatchRunner
 extends RefCounted
-## Whole Elimination matches of bots against bots, headless and as fast as the machine allows: the map's level built
+## Whole matches of bots against bots (Elimination, or Attack / Defend on a map with a pole), headless and as fast as the machine allows: the map's level built
 ## once (its Jolt colliders, so it must be in the tree), then each match stepped tick by tick with no rendering and no
 ## waiting for frames. Each match comes back as a MatchTally of what the guards (tests/guards/) and the balance report
 ## (BR1) read. Test-only (tests/ never ships).
 
 const DT := 1.0 / 60.0
 const TICKS_PER_SECOND := 60
-## Held up: a bot that has been walking its lane or hunting (Bot.Mode ADVANCE or SEARCH) at every sample of the last
-## HELD_UP_SECONDS (once a second) and is back within HELD_UP_DISTANCE (m) of where it was then, frozen or going round
-## in a loop, counts one episode until it moves on. A fight or a hold on purpose in between is not held up.
+## Held up: a bot that has been walking its lane, hunting or making for the pole (Bot.Mode ADVANCE, SEARCH or FLAG) at
+## every sample of the last HELD_UP_SECONDS (once a second) and is back within HELD_UP_DISTANCE (m) of where it was
+## then, frozen or going round in a loop, counts one episode until it moves on. A fight or a hold on purpose in between is not held up.
 const HELD_UP_SECONDS := 10
 const HELD_UP_DISTANCE := 0.5
 ## A character that ends a round in play without ever getting this far from its spawn (m) stayed home that round.
@@ -31,6 +31,9 @@ class RoundTally:
 	var first_hit_range: float = -1.0
 	## Each character's farthest distance from this round's spawn (m, level).
 	var farthest: PackedFloat32Array = PackedFloat32Array()
+	## Attack / Defend: the team attacking (-1 in Elimination), and how far the flag got up (0 to 1).
+	var attackers: int = -1
+	var top_flag: float = 0.0
 
 
 ## One match: its rounds and everything that must never happen, counted.
@@ -71,9 +74,23 @@ class MatchTally:
 
 	## Rounds that ran out the clock.
 	func on_time() -> int:
+		return _ended(GameEvent.RoundEnd.TIME)
+
+	## Attack / Defend: rounds won by raising the flag.
+	func captures() -> int:
+		return _ended(GameEvent.RoundEnd.CAPTURED)
+
+	## Attack / Defend: the flag got all the way up in some round.
+	func flag_raised() -> bool:
+		for r in rounds:
+			if r.top_flag >= 1.0:
+				return true
+		return false
+
+	func _ended(reason: GameEvent.RoundEnd) -> int:
 		var n := 0
 		for r in rounds:
-			if r.reason == GameEvent.RoundEnd.TIME:
+			if r.reason == reason:
 				n += 1
 		return n
 
@@ -88,6 +105,9 @@ var difficulty: StringName = &"normal"
 var beta_difficulty: StringName = &""
 ## Every bot gets a name and personality from data/bots.md as in a match (their kits lean by it); off, none has one.
 var personalities: bool = true
+## The match's mode: Attack / Defend needs a map with a pole (MapData.has_pole); team 0 attacks first, as in the browser
+## game's guards.
+var mode: RoundState.Mode = RoundState.Mode.ELIMINATION
 var _kits: BotKits = null
 var _kit_rules: LoadoutRules = null
 var config: BotConfig = null
@@ -171,6 +191,10 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 	t.map_id = map.id
 	t.seed_value = seed_value
 	t.farthest.resize(state.characters.size())
+	if mode == RoundState.Mode.ATTACK_DEFEND:
+		state.round_state.mode = mode
+		state.round_state.pole = map.pole
+		state.round_state.first_attackers = 0
 	sim.start_match(state)
 	bots.observe(state)
 	var round_now := _new_round(state)
@@ -208,8 +232,10 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 				GameEvent.Kind.RICOCHET_TICK:
 					count_ricochet(state, e, t)
 				GameEvent.Kind.ROUND_OVER:
+					# In Attack / Defend only the attackers must leave: defenders hold by their pole.
 					for c in state.characters:
-						if Elimination.is_in_play(c) and round_now.farthest[c.id] <= LEAVES_SPAWN:
+						if Elimination.is_in_play(c) and round_now.farthest[c.id] <= LEAVES_SPAWN \
+								and (round_now.attackers < 0 or c.team == round_now.attackers):
 							t.stayed_home += 1
 					round_now.winner = e.value
 					round_now.reason = int(e.value2)
@@ -251,6 +277,7 @@ static func count_ricochet(state: GameState, e: GameEvent, t: MatchTally) -> voi
 func _new_round(state: GameState) -> RoundTally:
 	var r := RoundTally.new()
 	r.farthest.resize(state.characters.size())
+	r.attackers = state.round_state.attackers
 	for c in state.characters:
 		if c.team == 0:
 			r.alpha_end = c.end
@@ -263,8 +290,8 @@ func _watch_held_up(state: GameState, bots: BotController, t: MatchTally, trail:
 		held: PackedByteArray, slot: int) -> void:
 	for c in state.characters:
 		var b := _bot_of(bots, c.id)
-		var mode := bots.mode_of(c.id)
-		var walking := (mode == Bot.Mode.ADVANCE or mode == Bot.Mode.SEARCH) \
+		var bot_mode := bots.mode_of(c.id)
+		var walking := (bot_mode == Bot.Mode.ADVANCE or bot_mode == Bot.Mode.SEARCH or bot_mode == Bot.Mode.FLAG) \
 				and not (b != null and holding_on_purpose(b, bots.world.time))
 		var on_way := Elimination.is_in_play(c) and state.round_state.is_live() and walking
 		var now := 1 if held_up_sample(trail[c.id], slot, c.position, on_way) else 0
@@ -291,6 +318,7 @@ static func held_up_sample(ring: PackedVector3Array, slot: int, position: Vector
 ## is live: between rounds the ends may swap, so a spawn moves before its character does.
 func _watch(state: GameState, t: MatchTally, r: RoundTally) -> void:
 	var live := state.round_state.is_live()
+	r.top_flag = maxf(r.top_flag, state.round_state.flag.progress)
 	for c in state.characters:
 		if c.position.y < map.kill_y + 1.0:
 			t.rescued += 1
@@ -309,9 +337,10 @@ func _watch(state: GameState, t: MatchTally, r: RoundTally) -> void:
 
 ## Standing still on purpose, not held up: an anchor settled at its post (bots.md › Holds until), a bot watching where
 ## someone ducked out of sight (Watch where you ducked), or one pausing at a lane point or waiting there for its team
-## (holding this tick, on its lane).
+## (holding this tick, on its lane), or at its spot by the pole (Attack / Defend: its route there done).
 static func holding_on_purpose(b: Bot, time: float) -> bool:
-	return b.at_post or time < b.watch_until or (b.mode == Bot.Mode.ADVANCE and b.holding)
+	return b.at_post or time < b.watch_until or (b.mode == Bot.Mode.ADVANCE and b.holding) \
+			or (b.mode == Bot.Mode.FLAG and b.route_state == Bot.RouteState.NONE)
 
 
 static func _bot_of(bots: BotController, id: int) -> Bot:

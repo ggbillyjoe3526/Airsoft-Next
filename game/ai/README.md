@@ -2,8 +2,8 @@
 
 The bots: plain data and static functions, no `Node` (docs/ARCHITECTURE.md › Contracts 1). A bot is just another
 controller: each tick it writes the same `PlayerCommand` the player's input fills, and the simulation plays it by the
-same rules. Rewritten from the browser game's `legacy/browser/src/ai/` (Elimination's part). Tuning is `BotConfig` and
-its `BotSkill` (`game/config/bot_tuning.tres`).
+same rules. Rewritten from the browser game's `legacy/browser/src/ai/` (Elimination and Attack / Defend). Tuning is `BotConfig`
+and its `BotSkill` (`game/config/bot_tuning.tres`).
 
 ## What a bot knows
 
@@ -22,6 +22,11 @@ sectors its team checked longest ago. In sight of an enemy it fights (strafing),
 and peeks over it, or round a tall corner by leaning. Shot at, reloading or empty, it takes cover. With the enemy gone
 it searches where it was last seen or heard, sometimes flanking.
 
+In Attack / Defend (`BotFlag`) the attackers walk their lanes just past the middle, then make for the pole: the nearest
+raises the flag, crouched at the rope, while the others guard it from crouch cover near by. The defenders hold their
+lane's first or second point, go after only what they see or hear near the pole, and the two nearest pull the flag down
+once it is off the bottom.
+
 Each team plays at its level (`BotConfig.skill_for`: Easy, Normal, Hard, Pro). Pro is careful, not twitchier: holding,
 it aims at the corners someone would step out of (`BotAngles`) and answers someone appearing there sooner; near the
 enemy it walks and slices corners, leaning past a near one; it watches where someone ducked out before going after them,
@@ -39,14 +44,15 @@ at its level, never how well (`BotPersonality`).
 | `bot_controller.gd` | `BotController`: owns the bots; before each step one route search, then each bot's command; after it, hearing and the round's plan |
 | `bot_world.gd` | `BotWorld`: what every bot thinks with (tuning, rays, nav grid, lanes, cover, everyone, the plan, the time, each team's hunt memory) |
 | `bot.gd` | `Bot`: one bot's own state (mode, contacts, aim, route, lane, cover, timers) and its seeded stream |
-| `bot_brain.gd` | The tick: look, pick a mode (advance, fight, cover, search), move, aim, fire, reload |
+| `bot_brain.gd` | The tick: look, pick a mode (advance, fight, cover, search, flag), move, aim, fire, reload |
 | `bot_senses.gd`, `bot_hearing.gd` | Sight (view cone, walls, bodies, which part shows) and hearing (gunfire, feet, hit calls, near misses) |
 | `bot_aim.gd`, `bot_combat.gd` | Turning, aim error that settles, lead; bursts, line-of-fire checks, reloads |
 | `bot_holster.gd` | Holstering on a long, calm sprint through its own half, drawing again on a threat |
 | `bot_angles.gd` | Held angles: the corners and doorways in view where someone would step out, from the level's walls alone |
 | `bot_cover.gd` | Crouch cover and lean spots at tall corners that hide a bot from a threat |
 | `bot_movement.gd`, `bot_routes.gd` | Lanes, holds, hunting, searching, strafing, keeping apart; following nav routes |
-| `round_planner.gd` | Each round's team plans and lanes (a flanker's own, an anchor's short one), and hunt spots from the team's memory |
+| `round_planner.gd` | Each round's team plans and lanes (a flanker's own, an anchor's short one, attackers to the middle, defenders their first points), and hunt spots from the team's memory |
+| `bot_flag.gd` | Attack / Defend: each bot's side, which attacker raises the flag and which defenders pull it down, when a bot wants the pole |
 | `bot_roster.gd`, `bot_personality.gd` | Each bot's name and personality for a match; a personality laid over the level's skill, and its habits |
 
 Nothing allocates per tick once warm. Route searches (`NavGrid.find_route`) are queued, one a tick, shared with walk-off
@@ -54,5 +60,5 @@ routes.
 
 ## Not yet
 
-No callouts or squad orders, no crossfires (Attack/Defend's) and no magazine sharing
+No callouts or squad orders, no crossfires or staggered holds on defence (Pro team play) and no magazine sharing
 (docs/KNOWN_ISSUES.md).

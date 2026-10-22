@@ -1,10 +1,11 @@
 class_name BotMovement
-## Where a bot walks (the browser game's ai/botMovement.ts, Elimination's part): its lane point by point with a pause at
-## each (crouched where that still sees ahead, or from crouch cover close by), waiting for a team that falls behind,
-## then hunting the stalest spot its team hasn't checked; to where someone was seen or heard (round by a flank first,
-## sometimes) and a look round there; into cover and onto a lean spot; sidestepping in a fight without stepping off a
-## floor, into a wall or out of sight of its target; and keeping apart from everyone else. Writes the way to walk into
-## Bot.move_dir. Allocates nothing.
+## Where a bot walks (the browser game's ai/botMovement.ts): its lane point by point with a pause at each (crouched
+## where that still sees ahead, or from crouch cover close by), waiting for a team that falls behind, then hunting the
+## stalest spot its team hasn't checked (in Attack / Defend, a defender holds its last point and an attacker makes for
+## the pole); at the pole, raising or pulling down the flag, or guarding it from cover; to where someone was seen or heard
+## (round by a flank first, sometimes) and a look round there; into cover and onto a lean spot; sidestepping in a fight
+## without stepping off a floor, into a wall or out of sight of its target; and keeping apart from everyone else. Writes
+## the way to walk into Bot.move_dir. Allocates nothing.
 
 ## The two steps of an R2 sequence: a bot's glances spread evenly over its view, with no dice.
 const GLANCE_ACROSS := 0.7548776662466927
@@ -30,11 +31,83 @@ static func move(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float, target: Cha
 				cmd.crouch = b.route_state == Bot.RouteState.NONE and b.cover_phase == Bot.CoverPhase.DOWN
 				return false
 			return b.route_state == Bot.RouteState.NONE and BotRoutes.step_onto(b, w, b.cover.position, cmd, dt)
+		Bot.Mode.FLAG:
+			return _flag(b, w, cmd, dt)
 		Bot.Mode.FIGHT:
-			if b.from_cover:
+			# Fighting from cover, or at the pole raising the flag: it stays put.
+			if b.from_cover or (b.raiser and Flag.at_pole(b.character, w.flag, w.tuning.flag)):
 				return false
 			_strafe(b, w, cmd, dt, target)
 	return false
+
+
+## Into flag mode (BotFlag.wants_flag): picks its spot by the pole and heads there.
+static func enter_flag(b: Bot, w: BotWorld) -> void:
+	b.mode = Bot.Mode.FLAG
+	_pick_flag_spot(b, w)
+
+
+## Flag mode: whether `b` guards the pole from cover rather than going to it (an attacker that isn't raising).
+static func _guards_flag(b: Bot, w: BotWorld) -> bool:
+	return BotFlag.role(b, w) == BotFlag.Role.ATTACK and not b.raiser
+
+
+## The raiser (and a defender pulling the flag down) stands at a random spot within flag_stand of the pole; a guard takes
+## crouch cover within flag_guard_radius of it, hidden from where an enemy was last known (or from a point
+## flag_guard_threat_distance towards the defenders' side), or failing that a random spot that far out.
+static func _pick_flag_spot(b: Bot, w: BotWorld) -> void:
+	var cfg := w.cfg
+	var pole := w.flag.position
+	b.flag_guard = _guards_flag(b, w)
+	b.team_wait = 0.0
+	b.flanking = false
+	BotRoutes.drop(b)
+	if not b.flag_guard:
+		b.flag_goal = _jitter(b, w, pole, cfg.flag_stand)
+		return
+	var threat := Vector3.ZERO
+	if b.has_last_known:
+		threat = Vector3(b.last_known.x, 0.0, b.last_known.z)
+	else:
+		var yaw := w.enemy_yaw(b.character.team)
+		threat = Vector3(pole.x - sin(yaw) * cfg.flag_guard_threat_distance, 0.0,
+				pole.z - cos(yaw) * cfg.flag_guard_threat_distance)
+	threat.y = pole.y + w.tuning.body.stand_eye_height
+	var taken := BotRoutes.teammate_spots(b, w)
+	if BotCover.find(pole, threat, w, b.rng, b.hold_spot, cfg.flag_guard_radius, 0, true, BotRoutes.taken(), taken):
+		b.flag_goal = b.hold_spot.position
+	else:
+		b.flag_goal = _jitter(b, w, pole, cfg.flag_guard_radius)
+	b.hold_crouch = _crouched_view_clear(b, w, b.flag_goal)
+
+
+## Flag mode: to the spot by the pole (or the guard spot) and stay there, crouched working the rope, or holding guard.
+static func _flag(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> bool:
+	var cfg := w.cfg
+	# The raiser changed (hit, or the player took the rope): raise, or guard, instead.
+	if b.flag_guard != _guards_flag(b, w):
+		_pick_flag_spot(b, w)
+	var p := b.character.position
+	var arrive := cfg.cover_arrive if b.flag_guard else cfg.flag_arrive
+	if Vector2(b.flag_goal.x - p.x, b.flag_goal.z - p.z).length() <= arrive:
+		BotRoutes.drop(b)
+		b.holding = b.flag_guard
+		if b.flag_guard:
+			b.team_wait += dt
+		else:
+			cmd.crouch = true
+		return false
+	var pole := w.flag.position
+	if b.route_state == Bot.RouteState.FAILED:
+		if not b.flag_guard and (b.flag_goal.x != pole.x or b.flag_goal.z != pole.z):
+			# No way to that spot: try the foot of the pole itself.
+			b.flag_goal = pole
+			b.route_state = Bot.RouteState.NONE
+		elif w.time >= b.route_retry_at:
+			# No way there either: try again every route_retry_delay rather than stand there for good.
+			b.route_state = Bot.RouteState.NONE
+	BotRoutes.want(b, b.flag_goal, cfg)
+	return BotRoutes.follow(b, w, dt)
 
 
 ## A search begins: with the skill's flank_chance, and a far enough spot, go round by a point to one side first.
@@ -157,8 +230,9 @@ static func _advance(b: Bot, w: BotWorld, dt: float, at_post: bool = false) -> b
 		if b.route_state == Bot.RouteState.WANTED:
 			return false
 		b.hold_cover = false
-		if BotPersonality.anchor_holding(b, w):
-			# An anchor's post is the cover by its last lane point: it holds there (_next_goal gives it no goal).
+		if BotFlag.holds_post(b, w) and _at_last_point(b, w):
+			# A defender's or an anchor's post is the cover by its last lane point: it holds there (_next_goal gives it no
+			# goal).
 			BotRoutes.drop(b)
 			return false
 		_start_hold(b, w)
@@ -178,7 +252,7 @@ static func _advance(b: Bot, w: BotWorld, dt: float, at_post: bool = false) -> b
 				w.mark_visited(b.character.team, b.route_goal)
 		var reached := BotRoutes.arrived(b)
 		if not _next_goal(b, w):
-			if BotPersonality.anchor_holding(b, w):
+			if BotFlag.holds_post(b, w):
 				_hold_post(b, w, dt, reached, at_post)
 			return false
 		if reached and not b.hunting:
@@ -195,7 +269,8 @@ static func _advance(b: Bot, w: BotWorld, dt: float, at_post: bool = false) -> b
 
 
 ## The next place to go while advancing, into lane_goal (the next lane point, moved a little at random) or, the lane
-## swept, hunt_goal. False if there is none.
+## swept, hunt_goal. False if there is none: an anchor holding, or in Attack / Defend a defender at its post or an
+## attacker off to the pole (lane_done).
 static func _next_goal(b: Bot, w: BotWorld) -> bool:
 	if not b.hunting and b.lane >= 0 and b.lane < w.lanes.size():
 		var lane := w.lanes[b.lane]
@@ -205,11 +280,26 @@ static func _next_goal(b: Bot, w: BotWorld) -> bool:
 			b.lane_index = next
 			b.lane_goal = _jitter(b, w, lane[next], w.cfg.lane_jitter)
 			return true
+	# Attack / Defend: a defender holds its last point; an attacker goes for the pole (BotFlag.wants_flag).
+	match BotFlag.role(b, w):
+		BotFlag.Role.DEFEND:
+			return false
+		BotFlag.Role.ATTACK:
+			b.lane_done = true
+			return false
 	# An anchor holds its last point, short of the middle, until late in the round; then it hunts.
 	if BotPersonality.anchor_holding(b, w):
 		return false
 	b.hunting = true
 	return _pick_hunt(b, w)
+
+
+## True if the lane point `b` last reached is the last it walks (b.lane_points).
+static func _at_last_point(b: Bot, w: BotWorld) -> bool:
+	if b.hunting or b.lane < 0 or b.lane >= w.lanes.size() or b.lane_index < 0:
+		return false
+	var walked := b.lane_index if b.lane_dir > 0 else w.lanes[b.lane].size() - 1 - b.lane_index
+	return walked + 1 >= b.lane_points
 
 
 static func _pick_hunt(b: Bot, w: BotWorld) -> bool:
@@ -253,7 +343,7 @@ static func _on_same_floor(w: BotWorld, point: Vector3, x: float, z: float) -> b
 	return w.nav.is_walkable_at(at) and absf(w.nav.floor_at(at) - point.y) <= w.tuning.body.max_step
 
 
-## An anchor at its last lane point: just come to it, it may step into crouch cover by it (as at any lane point) and
+## A defender or an anchor at its last lane point: just come to it, it may step into crouch cover by it (as at any lane point) and
 ## hold from there; else it holds where it stands, crouched if crouched eyes still see the enemy side (chosen once, on
 ## arrival: `at_post`, it was here last tick too).
 static func _hold_post(b: Bot, w: BotWorld, dt: float, arrived: bool, at_post: bool) -> void:
