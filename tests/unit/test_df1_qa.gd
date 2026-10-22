@@ -7,8 +7,10 @@ func test_a_one_versus_one_match_counts_for_records_whatever_the_unused_teammate
 	s.settings = Settings.new()
 	s.difficulty = &"hard"
 	s.teammate_difficulty = &"easy"
-	s._tuning = SimTuning.load_default()
-	s._tuning.rounds.team_size = 1
+	# A copy: the loaded tuning is one cached resource, shared by every later load while anything holds it.
+	var one := CustomRules.new()
+	one.team_size = 1
+	s._tuning = one.applied_to(SimTuning.load_default())
 	assert_true(s.counts_for_records(), "with no teammates there is no pair to be non-standard")
 	s.free()
 

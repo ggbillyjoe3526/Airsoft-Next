@@ -41,7 +41,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - Settings: a screen from the title screen and the pause menu for controls, audio, display and the FPS counter; every change applies and saves at once (SE1)
 - HUD tab in Settings, after Display: crosshair shape, colour, size, thickness, gap, opacity, spread and outline with a live preview; hit marker; ammo counter; hit feed corner and fade; HUD panel opacity; What got you (HO1)
 - Dev tab: cheats and tools shown while the Dev settings box is ticked: game speed, ghost, bottomless magazines, spectate bots, retro pixels, reset save (DV2), disable levelling and reset level (LV1)
-- Match screen: pick a map from picture cards (Depot, or Neon Heights while Dev content is on; Woodland greyed, LATER), the mode (Elimination), your team (ALPHA or BETA) and the bots' level (Normal), with the rules as chips; picks stay while the game is open (MN2)
+- Match screen: pick a map from picture cards (Depot, or Neon Heights while Dev content is on; Woodland greyed, LATER), the mode (Elimination), your team (ALPHA or BETA) and the bots' level (Normal), with a Rules section under the modes: Skirmish (rules as chips) or Custom (five switches: team size, rounds to win, round time, friendly fire, ricochets, each saved as you change it); picks stay while the game is open (MN2)
 - Loading screen: PLAY shows the map's picture, name and a progress bar until the match draws (MN2)
 - Pause menu: PAUSED, the map, mode and round, RESUME, SETTINGS, Skip to next round while you can skip, QUIT MATCH and the match's seed (MN2, WG1)
 - Title screen and menus: a title with START, which opens a top bar of Match, Loadout, Armory, Settings and your level chip (MN1)

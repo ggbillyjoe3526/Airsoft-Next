@@ -31,7 +31,12 @@ const KIND_MODES: Dictionary[StringName, PackedStringArray] = {
 ## the settings' CustomRules.
 const RULES_SKIRMISH := "skirmish"
 const RULES_CUSTOM := "custom"
-const RULE_SETS: PackedStringArray = ["skirmish", "custom"]
+const RULE_SETS: PackedStringArray = [RULES_SKIRMISH, RULES_CUSTOM]
+## The words of a rule set: its name and its blurb (translation keys).
+const RULES_NAME: Dictionary[String, String] = {RULES_SKIRMISH: "RULES_SKIRMISH", RULES_CUSTOM: "RULES_CUSTOM"}
+const RULES_BLURB: Dictionary[String, String] = {
+	RULES_SKIRMISH: "RULES_SKIRMISH_BLURB", RULES_CUSTOM: "RULES_CUSTOM_BLURB",
+}
 ## The bots' levels, in the order shown.
 const BOT_LEVELS: PackedStringArray = ["easy", "normal", "hard", "pro"]
 const TEAM_KEYS: PackedStringArray = ["TEAM_ALPHA", "TEAM_BETA"]
@@ -72,14 +77,14 @@ static func map_problems(map_id: String, style: MapStyle, team_size: int) -> Arr
 
 ## The rules as chips, each a (label, value) pair; the first has no label. Read from the round tuning and the hit rules.
 static func rule_chips(rounds: RoundConfig, hits: HitConfig) -> Array[PackedStringArray]:
-	var clock := ceili(rounds.round_time)
 	var ricochets := "RULE_RICOCHETS_YES" if hits.ricochets_count else "RULE_RICOCHETS_NO"
 	var out: Array[PackedStringArray] = []
 	out.append(PackedStringArray(["", size_text(rounds.team_size)]))
 	out.append(PackedStringArray([_tr("RULE_FIRST_TO"), str(rounds.wins_needed)]))
-	out.append(PackedStringArray([_tr("RULE_ROUNDS"), "%d:%02d" % [clock / 60, clock % 60]]))
+	out.append(PackedStringArray([_tr("RULE_ROUNDS"), clock_text(rounds.round_time)]))
 	out.append(PackedStringArray([_tr("RULE_SWAP"), str(rounds.half_time_after)]))
 	out.append(PackedStringArray([_tr("RULE_RICOCHETS"), _tr(ricochets)]))
+	out.append(PackedStringArray([_tr("RULE_FRIENDLY_FIRE"), _tr(switch_key(hits.friendly_fire))]))
 	return out
 
 
@@ -93,18 +98,56 @@ static func size_text(team_size: int) -> String:
 	return _tr("RULE_SIZE") % [team_size, team_size]
 
 
+## "2:30": `seconds` as minutes and seconds, a part-second counted whole.
+static func clock_text(seconds: float) -> String:
+	var clock := ceili(seconds)
+	return "%d:%02d" % [clock / 60, clock % 60]
+
+
+## "3v3": a Custom team size's button.
+static func size_short(team_size: int) -> String:
+	return _tr("RULE_SIZE_SHORT") % [team_size, team_size]
+
+
+## The key of a switch's word: On or Off.
+static func switch_key(on: bool) -> String:
+	return "RULE_ON" if on else "RULE_OFF"
+
+
+## What Skirmish says under its name: the match as the round tuning and the hit rules play it.
+static func skirmish_blurb(rounds: RoundConfig, hits: HitConfig) -> String:
+	return _tr(RULES_BLURB[RULES_SKIRMISH]) % [size_short(rounds.team_size), rounds.wins_needed,
+			clock_text(rounds.round_time), _tr(switch_key(hits.friendly_fire)).to_lower()]
+
+
+## What Custom says under its name, with its XP cap in bold and `lit` (bbcode): `cap` is the Custom multiplier.
+static func custom_blurb(cap: float, lit: Color) -> String:
+	var cap_text := _tr("RULE_XP_CAP") % ArmoryFacts.multiplier_text(cap)
+	return _tr(RULES_BLURB[RULES_CUSTOM]) % ("[color=#%s][b]%s[/b][/color]" % [lit.to_html(false), cap_text])
+
+
+## The line under a Custom row's buttons for the choice `value` (a team size, rounds to win, or a switch's 0 or 1): the
+## browser game's blurb of that choice. `row` is "TEAM", "WINS", "FRIENDLY_FIRE" or "RICOCHETS".
+static func choice_blurb(row: String, value: int) -> String:
+	var words := _tr("RULE_%s_BLURB_%d" % [row, value])
+	return words % value if words.contains("%d") else words
+
+
 ## The loading screen's kicker: "ELIMINATION · 3 V 3 · YOU'RE ALPHA".
 static func kicker(mode: String, team_size: int, team: int) -> String:
 	return (_tr("LOAD_KICKER") % [_tr(MODE_NAME[mode]), team_size, team_size, _tr(TEAM_KEYS[team])]).to_upper()
 
 
 ## The summary line's tail after the map's name: "Elimination · Alpha · Normal bots", or in Attack / Defend "Attack /
-## Defend · Alpha attacks first · Normal bots".
-static func summary_rest(mode: String, team: int, bots: String) -> String:
+## Defend · Alpha attacks first · Normal bots"; with Custom rules (`custom`) it ends " · Custom 2v2".
+static func summary_rest(mode: String, team: int, bots: String, custom: CustomRules = null) -> String:
 	var side := _tr(TEAM_KEYS[team])
 	if POLE_MODES.has(mode):
 		side = _tr("MENU_ATTACKS_FIRST_SHORT") % side
-	return _tr("MENU_SUMMARY_REST") % [_tr(MODE_NAME[mode]), side, _tr("BOT_" + bots.to_upper())]
+	var rest := _tr("MENU_SUMMARY_REST") % [_tr(MODE_NAME[mode]), side, _tr("BOT_" + bots.to_upper())]
+	if custom != null:
+		rest += _tr("MENU_SUMMARY_CUSTOM") % size_short(custom.team_size)
+	return rest
 
 
 static func _tr(key: String) -> String:

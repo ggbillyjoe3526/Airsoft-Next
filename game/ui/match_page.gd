@@ -1,9 +1,11 @@
 class_name MatchPage
 extends Control
-## The Match page's body (concept `match.png`, docs/records/MN2.md): map picture cards, mode cards, your team, the
-## bots' level and the rules as chips; a one-line summary bottom left and the slanted PLAY bottom right. A map that
-## can't load (MapData's problems) is greyed with LATER, as a mode or a level that isn't built. Picks go into the
-## MatchPicks it is given (kept by the entry scene across the menus' being freed). `play_pressed` starts the match.
+## The Match page's body (concept `match.png`, docs/records/MN2.md): map picture cards, mode cards with the rules under
+## them (MatchRulesBox: Skirmish's chips or Custom's rows, docs/records/CR2.md), your team and the bots' level; a
+## one-line summary bottom left and the slanted PLAY bottom right. A map that can't load (MapData's problems) is
+## greyed with LATER, as a mode or a level that isn't built. Picks go into the MatchPicks it is given (kept by the entry
+## scene across the menus' being freed). What reads the round tuning (the Elimination card, the maps a team size can't
+## load) reads the Custom switches while Custom is picked. `play_pressed` starts the match.
 ## Everything is drawn for 1920x1080 and the window's stretch scales it.
 
 signal play_pressed
@@ -50,10 +52,6 @@ const NEEDS_DARKEN := 0.3
 const BOT_GAP := 8
 const BOT_SIZE := 16
 const BOT_PAD := 10
-const CHIP_GAP := 10
-const CHIP_SIZE := 16
-const CHIP_PAD := Vector2(14.0, 8.0)
-const CHIP_WORD_GAP := 5
 
 var picks: MatchPicks = null
 
@@ -78,7 +76,11 @@ var _needs_pole: Dictionary[String, Control] = {}
 ## Under the team cards in Attack / Defend: ATK, the team attacking first, and the rest of the line.
 var _attack_row: HBoxContainer = null
 var _attack_team: Label = null
-var _chips_box: HFlowContainer = null
+var _rules: MatchRulesBox = null
+## The mode cards' blurbs (Elimination's reads the rounds to win).
+var _mode_blurbs: Dictionary[String, Label] = {}
+## The team size the maps were last checked for.
+var _checked_size: int = 0
 var _summary_map: Label = null
 var _summary_rest: Label = null
 var _play: Button = null
@@ -88,7 +90,7 @@ func _init(picked: MatchPicks = null, settings: Settings = null) -> void:
 	name = "MatchPage"
 	picks = picked if picked != null else MatchPicks.new()
 	_settings = settings if settings != null else Settings.shared()
-	_tuning = SimTuning.load_default()
+	_tuning = _round_tuning()
 	_play_tuning = PlayTuning.load_default()
 	_catalog = MapCatalog.shared()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -98,13 +100,13 @@ func _init(picked: MatchPicks = null, settings: Settings = null) -> void:
 
 
 func _enter_tree() -> void:
-	if not _settings.changed.is_connected(_list_maps):
-		_settings.changed.connect(_list_maps)
+	if not _settings.changed.is_connected(_on_rules_changed):
+		_settings.changed.connect(_on_rules_changed)
 
 
 func _exit_tree() -> void:
-	if _settings.changed.is_connected(_list_maps):
-		_settings.changed.disconnect(_list_maps)
+	if _settings.changed.is_connected(_on_rules_changed):
+		_settings.changed.disconnect(_on_rules_changed)
 
 
 func play_button() -> Button:
@@ -136,15 +138,26 @@ func bot_button(level: String) -> MenuCard:
 	return _bot_buttons[level]
 
 
-## The rule chips as shown, one line each.
+func rules_box() -> MatchRulesBox:
+	return _rules
+
+
+## The rule chips of the round tuning in force, one line each (shown in Skirmish; Custom shows its rows instead).
 func chip_texts() -> PackedStringArray:
-	var out := PackedStringArray()
-	for chip in MatchOptions.rule_chips(_tuning.rounds, _tuning.hits):
-		out.append(MatchOptions.chip_text(chip))
-	return out
+	return _rules.chip_texts()
 
 
-## The summary line as shown: "Depot · Elimination · Alpha · Normal bots".
+## The team size the maps were last checked for (the round tuning's: Custom's while Custom is picked).
+func map_check_size() -> int:
+	return _checked_size
+
+
+## A mode card's blurb as shown.
+func mode_blurb(mode: String) -> String:
+	return _mode_blurbs[mode].text
+
+
+## The summary line as shown: "Depot · Elimination · Alpha · Normal bots", with " · Custom 2v2" under Custom.
 func summary_text() -> String:
 	return _summary_map.text + _summary_rest.text
 
@@ -177,7 +190,7 @@ func _build() -> void:
 	columns.add_theme_constant_override("separation", COLUMN_GAP)
 	margin.add_child(columns)
 	columns.add_child(_build_maps())
-	columns.add_child(_build_modes())
+	columns.add_child(_build_middle())
 	columns.add_child(_build_side())
 	_build_foot()
 
@@ -218,6 +231,18 @@ func _build_maps() -> Control:
 	return column
 
 
+## The middle column: the mode cards, and the rules under them.
+func _build_middle() -> Control:
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", SECTION_GAP)
+	column.add_child(_build_modes())
+	_rules = MatchRulesBox.new(picks, _settings, _tuning)
+	_rules.changed.connect(_on_rules_changed)
+	column.add_child(_rules)
+	return column
+
+
 func _build_modes() -> Control:
 	var column := _section(_heading(tr("MENU_MODE")))
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -238,12 +263,10 @@ func _build_modes() -> Control:
 		if not MatchOptions.BUILT_MODES.has(mode):
 			title.add_child(MenuTag.later())
 		rows.add_child(title)
-		var blurb_text := tr(MatchOptions.MODE_BLURB[mode])
-		if blurb_text.contains("%d"):
-			blurb_text = blurb_text % _tuning.rounds.wins_needed
-		var blurb := _text(blurb_text, MODE_BLURB_SIZE, 600, GameTheme.MUTED)
+		var blurb := _text("", MODE_BLURB_SIZE, 600, GameTheme.MUTED)
 		blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		rows.add_child(blurb)
+		_mode_blurbs[mode] = blurb
 		if MatchOptions.POLE_MODES.has(mode):
 			var needs := _text(tr("MENU_NEEDS_POLE"), MODE_BLURB_SIZE, 700, GameTheme.YELLOW.darkened(NEEDS_DARKEN))
 			needs.name = "NeedsPole"
@@ -314,29 +337,7 @@ func _build_side() -> Control:
 		bot_row.add_child(b)
 		_bot_buttons[level] = b
 	side.add_child(bots)
-	# The rules.
-	var rules := _section(_heading(tr("MENU_RULES")))
-	_chips_box = HFlowContainer.new()
-	_chips_box.add_theme_constant_override("h_separation", CHIP_GAP)
-	_chips_box.add_theme_constant_override("v_separation", CHIP_GAP)
-	rules.add_child(_chips_box)
-	for chip in MatchOptions.rule_chips(_tuning.rounds, _tuning.hits):
-		_chips_box.add_child(_chip(chip))
-	side.add_child(rules)
 	return side
-
-
-func _chip(chip: PackedStringArray) -> Control:
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", GameTheme.box(GameTheme.CARD, GameTheme.LINE, int(CHIP_PAD.x),
-			int(CHIP_PAD.y)))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", CHIP_WORD_GAP)
-	panel.add_child(row)
-	if not chip[0].is_empty():
-		row.add_child(_text(chip[0], CHIP_SIZE, 600, GameTheme.MUTED))
-	row.add_child(_text(chip[1], CHIP_SIZE, 700, GameTheme.TEXT))
-	return panel
 
 
 func _build_foot() -> void:
@@ -382,9 +383,10 @@ func _list_maps() -> void:
 	var offered := PackedStringArray()
 	for e in fields:
 		offered.append(e.id)
-	if offered == _offered and not _map_cards.is_empty():
+	if offered == _offered and _checked_size == _tuning.rounds.team_size and not _map_cards.is_empty():
 		return
 	_offered = offered
+	_checked_size = _tuning.rounds.team_size
 	# The maps that can play come first, then those greyed with LATER, each in the catalogue's order.
 	var problems: Dictionary[String, bool] = {}
 	var playable: Array[MapCatalog.Entry] = []
@@ -476,6 +478,22 @@ func _picture(map_id: String, height: float) -> Control:
 	return picture
 
 
+## The round tuning the page reads: the loaded one, with the Custom switches in force while Custom is picked.
+func _round_tuning() -> SimTuning:
+	var base := SimTuning.load_default()
+	var custom := picks.custom_rules(_settings)
+	return base if custom == null else custom.applied_to(base)
+
+
+## The rule set, a Custom switch or any setting changed (Dev content, a reset save): the round tuning is read again,
+## and what reads it redrawn, the Custom rows included.
+func _on_rules_changed() -> void:
+	_tuning = _round_tuning()
+	_rules.show_tuning(_tuning)
+	_list_maps()
+	_refresh()
+
+
 func _pick_map(map_id: String) -> void:
 	picks.map_id = map_id
 	_refresh()
@@ -524,4 +542,8 @@ func _refresh() -> void:
 	for level: String in _bot_buttons:
 		_bot_buttons[level].set_picked(level == picks.bots)
 	_summary_map.text = entry.display_name if entry != null else picks.map_id
-	_summary_rest.text = " · " + MatchOptions.summary_rest(picks.mode, picks.team, picks.bots)
+	for mode: String in _mode_blurbs:
+		var blurb_text := tr(MatchOptions.MODE_BLURB[mode])
+		_mode_blurbs[mode].text = blurb_text % _tuning.rounds.wins_needed if blurb_text.contains("%d") else blurb_text
+	_summary_rest.text = " · " + MatchOptions.summary_rest(picks.mode, picks.team, picks.bots,
+			picks.custom_rules(_settings))

@@ -2,7 +2,8 @@ class_name MenuChoice
 extends HBoxContainer
 ## A row of buttons of which one is picked (the concept `hud-options.png`'s Cross / Cross and Dot / Circle / Dot): each a
 ## card-coloured box with its words in capitals, the picked one edged in yellow. Arrow keys and Tab move between them,
-## Space or Enter picks; `picked` tells the page.
+## Space or Enter picks; `picked` tells the page. Compact: the buttons share the row's width, with their words as given
+## in a plain size-16 face and the unpicked ones dim (the Match page's Custom rows, concept `rules-custom.png`).
 
 ## A button was picked: its index.
 signal picked(index: int)
@@ -10,29 +11,37 @@ signal picked(index: int)
 const GAP := 6
 const PAD := Vector2i(16, 6)
 const TEXT_SIZE := 15
+const COMPACT_PAD := Vector2i(0, 6)
+const COMPACT_SIZE := 16
 
 var _buttons: Array[Button] = []
 var _group := ButtonGroup.new()
 
 
 ## The buttons, one per word in `words` (already translated), in order.
-func _init(words: PackedStringArray) -> void:
+func _init(words: PackedStringArray, compact: bool = false) -> void:
 	add_theme_constant_override("separation", GAP)
-	var font := GameTheme.spaced_font(800, GameTheme.SPACING_TAB, TEXT_SIZE)
-	var plain := GameTheme.box(GameTheme.CARD, GameTheme.LINE, PAD.x, PAD.y)
-	var hover := GameTheme.box(GameTheme.CARD_HI, GameTheme.LINE, PAD.x, PAD.y)
-	var lit := GameTheme.box(GameTheme.CARD_HI, GameTheme.YELLOW, PAD.x, PAD.y)
+	var pad := COMPACT_PAD if compact else PAD
+	var text_size := COMPACT_SIZE if compact else TEXT_SIZE
+	var font := GameTheme.font(700) if compact else GameTheme.spaced_font(800, GameTheme.SPACING_TAB, text_size)
+	var plain := GameTheme.box(GameTheme.CARD, GameTheme.LINE, pad.x, pad.y)
+	var hover := GameTheme.box(GameTheme.CARD_HI, GameTheme.LINE, pad.x, pad.y)
+	var lit := GameTheme.box(GameTheme.CARD_HI, GameTheme.YELLOW, pad.x, pad.y)
 	for i in words.size():
 		var b := Button.new()
-		b.text = words[i].to_upper()
+		b.text = words[i] if compact else words[i].to_upper()
 		b.add_theme_font_override("font", font)
-		b.add_theme_font_size_override("font_size", TEXT_SIZE)
+		b.add_theme_font_size_override("font_size", text_size)
 		b.add_theme_stylebox_override("normal", plain)
 		b.add_theme_stylebox_override("hover", hover)
 		b.add_theme_stylebox_override("pressed", lit)
 		b.add_theme_stylebox_override("hover_pressed", lit)
-		b.add_theme_color_override("font_color", GameTheme.MUTED)
+		b.add_theme_color_override("font_color", GameTheme.DIM if compact else GameTheme.MUTED)
 		b.add_theme_color_override("font_hover_color", GameTheme.TEXT)
+		if compact:
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			b.add_theme_color_override("font_pressed_color", GameTheme.TEXT)
+			b.add_theme_color_override("font_hover_pressed_color", GameTheme.TEXT)
 		add(b)
 
 

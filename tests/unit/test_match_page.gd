@@ -29,7 +29,7 @@ func test_the_chips_read_the_round_tuning() -> void:
 	for chip in MatchOptions.rule_chips(RoundConfig.new(), HitConfig.new()):
 		texts.append(MatchOptions.chip_text(chip))
 	assert_eq(texts, PackedStringArray(["3 v 3", "First to 5", "Rounds 2:30", "Ends swap after 4",
-			"Ricochets Don't count"]))
+			"Ricochets Don't count", "Friendly fire On"]))
 
 
 func test_the_chips_follow_a_changed_tuning() -> void:
@@ -43,13 +43,14 @@ func test_the_chips_follow_a_changed_tuning() -> void:
 	var texts := PackedStringArray()
 	for chip in MatchOptions.rule_chips(rounds, hits):
 		texts.append(MatchOptions.chip_text(chip))
-	assert_eq(texts, PackedStringArray(["5 v 5", "First to 7", "Rounds 1:35", "Ends swap after 6", "Ricochets Count"]))
+	assert_eq(texts, PackedStringArray(["5 v 5", "First to 7", "Rounds 1:35", "Ends swap after 6", "Ricochets Count",
+			"Friendly fire On"]))
 
 
 func test_the_page_shows_the_chips_the_summary_and_play() -> void:
 	var page := _page(false)
 	assert_eq(page.chip_texts(), PackedStringArray(["3 v 3", "First to 5", "Rounds 2:30", "Ends swap after 4",
-			"Ricochets Don't count"]))
+			"Ricochets Don't count", "Friendly fire On"]))
 	assert_eq(page.summary_text(), "Depot · Elimination · Alpha · Normal bots")
 	assert_eq(page.play_button().text, "PLAY")
 	var words := _labels(page)

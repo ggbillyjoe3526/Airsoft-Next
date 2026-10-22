@@ -54,6 +54,7 @@ const UNDERLINE_GAP := 4
 static var _theme: Theme = null
 static var _fonts: Dictionary[int, Font] = {}
 static var _spaced: Dictionary[int, FontVariation] = {}
+static var _knob: Texture2D = null
 
 
 ## Inter at `weight` (500, 600, 700 or 800), with its marks face as the fallback.
@@ -96,6 +97,20 @@ static func box(fill: Color, edge: Color = Color(0.0, 0.0, 0.0, 0.0), margin_x: 
 	s.content_margin_top = margin_y
 	s.content_margin_bottom = margin_y
 	return s
+
+
+## A slider's round yellow knob (`SLIDER_GRABBER` px, edge smoothed; the concept's `rules-custom.png` round time).
+static func knob() -> Texture2D:
+	if _knob != null:
+		return _knob
+	var image := Image.create(SLIDER_GRABBER, SLIDER_GRABBER, false, Image.FORMAT_RGBA8)
+	var centre := Vector2.ONE * (SLIDER_GRABBER / 2.0)
+	for y in SLIDER_GRABBER:
+		for x in SLIDER_GRABBER:
+			var reach := (Vector2(x + 0.5, y + 0.5) - centre).length()
+			image.set_pixel(x, y, Color(YELLOW, clampf(SLIDER_GRABBER / 2.0 - reach + 0.5, 0.0, 1.0)))
+	_knob = ImageTexture.create_from_image(image)
+	return _knob
 
 
 ## A box with a yellow rule under it (the selected tab).
