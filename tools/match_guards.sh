@@ -11,10 +11,12 @@ LOG="${GUARDS_LOG:-guards.log}"
 
 "$GODOT" --headless --path . --import > import.log 2>&1
 
+# One file stops inside its CI job's 30 minutes, so the summary below still prints; both run longer.
 select=()
-if [ -n "${1:-}" ]; then select=("-gselect=$1"); fi
-timeout 2700 "$GODOT" --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/guards -gprefix=test_ \
-  -gsuffix=.gd "${select[@]}" -gexit > "$LOG" 2>&1
+limit=2700
+if [ -n "${1:-}" ]; then select=("-gselect=$1"); limit=1500; fi
+timeout "$limit" "$GODOT" --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/guards -gprefix=test_ \
+  -gsuffix=.gd ${select[@]+"${select[@]}"} -gexit > "$LOG" 2>&1
 status=$?
 grep -E "\[Failed\]|rounds over|Passing Tests|Failing Tests" "$LOG" | head -40
 if grep -qE "SCRIPT ERROR|Parse Error" "$LOG"; then

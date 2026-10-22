@@ -28,7 +28,15 @@
 - **Balance report:** the attackers' share of rounds per map and level (Depot 38–67 %, other maps 40–65 % at Normal;
   Easy and Hard 35–65 %, Pro 40–60 %), rounds on time, and captures (measured). `MODES=` picks one mode.
 
+- **QA (Pass, `test_fg2_qa.gd`, 6 tests, each checked to fail on a mutation) and performance (Pass: Elimination plays
+  the same match as before; Attack / Defend allocates nothing after warm-up, bot think about 435 µs a tick at 6 bots),
+  acted on:** each guard file stops inside its CI job's 30 minutes so the summary prints, the guard script runs on old
+  bash without a file, and retakers are picked only once the flag is off the bottom. Left as they are: held-up episodes
+  keep Elimination's limit of 10 a match (the browser's measure), and the raiser and retakers are re-picked every tick
+  (about 25 µs at 6 bots).
+
 ## Measured
 
 - Depot, 16 seeds at Normal: 123 rounds, 13 won by raising the flag, a flag raised in 7 matches, none on time (the
   browser game after FA4: 13 in 120, 7 of 16).
+- Neon Heights, 16 seeds at Normal: 121 rounds, 23 won by raising the flag, a flag raised in 12 matches, none on time.

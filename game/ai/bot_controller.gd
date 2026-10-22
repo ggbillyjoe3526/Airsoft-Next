@@ -57,7 +57,9 @@ func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 			w.mark_visited(c.team, c.position)
 	_plan_one_route(state)
 	if w.mode == RoundState.Mode.ATTACK_DEFEND:
-		BotFlag.pick_retakers(w)
+		# Retakers matter only once the flag is off the bottom (BotFlag.wants_flag).
+		if w.flag.progress > 0.0:
+			BotFlag.pick_retakers(w)
 		BotFlag.pick_raiser(w)
 	var hold_fire := state.cheats.bots_hold_fire
 	for b in w.bots:
