@@ -105,6 +105,7 @@ static func perceive(b: Bot, w: BotWorld) -> void:
 		c.react_at = w.time + b.pick(b.skill.pre_aim_reaction_time if pre_aimed else b.skill.reaction_time)
 		c.acquired_at = w.time - (b.skill.pre_aim_settled * b.skill.aim_settle_time if pre_aimed else 0.0)
 		c.first_seen_at = w.time
+		c.held = b.skill.holds_angles and b.holding and pre_aimed
 		BotAim.fresh_error(b, cfg, true)
 	elif c != b.contact:
 		# Back on someone seen moments ago: no new reaction, but this target's aim error, not the last one's.

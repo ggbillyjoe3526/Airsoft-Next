@@ -29,6 +29,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - Bot names and personalities: every bot has a name and one of four personalities (rusher, anchor, flanker, careful) that changes how it plays, never how well; names show in the Dev tab and while spectating (BN1)
 - Bots play Attack / Defend: attackers walk to the middle then raise the flag, one on the rope and the others guarding it from cover; defenders hold near the pole, chase only what is near it, and the two nearest pull a raised flag down; two defenders on a lane stand side by side, and Pro pairs set a crossfire (FG2b); not playable until the pole, HUD and Match card are built (FG2)
 - Levels and XP: matches give XP for playing, winning, each round you won and took part in, and each hit, less for a shorter match and multiplied by difficulty; levels 1 to 10 unlock replicas, power sources and parts; records keep wins and losses per difficulty and mode, best accuracy and the longest win streak (LV1)
+- Match numbers: every player's hits, times hit, friendly hits, BBs fired and time in play for the round and the match, and what got you on each hit (where from, how far, held angle, time in view); not on screen until step 14's screens (MI1)
 
 ## Menus and settings
 

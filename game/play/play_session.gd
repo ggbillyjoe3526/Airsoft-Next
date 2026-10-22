@@ -93,6 +93,7 @@ var _intents: BotIntentView = null
 var _retro: RetroPixels = null
 var _rematch_left: float = -1.0
 var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
+var _stats: MatchStats = MatchStats.new()
 ## Your kit was picked with levelling off: every match it plays stays out of the records, even after it is turned on.
 var _kit_unlocked_all: bool = false
 ## The parts fitted to each kitted bot's replicas (Kit.parts), by character id, for its figure.
@@ -341,6 +342,16 @@ func ticks() -> int:
 	return _ticks
 
 
+## Everyone's numbers this match and round, for the scoreboard and the match summary.
+func match_stats() -> MatchStats:
+	return _stats
+
+
+## The last hit on you, for the "What got you" card (time -INF until the first).
+func last_hit() -> HitFacts:
+	return _bots.last_hit if _bots != null else null
+
+
 ## What the F3 overlay reads (DebugPerf), so it never reaches into the session's fields: the match's seed, where you
 ## stand, and how many entities exist (characters and BBs in the air).
 func match_seed_used() -> int:
@@ -363,6 +374,7 @@ func _after_tick() -> void:
 	_hud.on_tick(state)
 	_hud.set_vault_ready(_vault_ready())
 	_tally.on_tick(state)
+	_stats.after_tick(state, TICK)
 	var events := state.events
 	for i in events.count:
 		var e := events.items[i]
