@@ -73,3 +73,99 @@ acceptance:
   5. Wheel and marker are freed with the session; a tick with neither shown allocates nothing.
 status: open
 attempts: 0
+
+## MM1 · Named areas and the minimap's numbers
+tier: core
+perf: required
+touches: game/map/map_data.gd, game/map/map_areas.gd, game/map/README.md, game/config/minimap_config.gd,
+  game/config/play_tuning.gd, game/config/play_tuning.tres, game/config/README.md, tests/unit/
+contract: Data, not literals (6); Headless (9)
+acceptance:
+  1. MapData reads `areas` (name, box [x0, x1, z0, z1], optional floor band [from, to)) and `storeys`; a malformed
+     area (empty name, over 14 characters, a box or band the wrong way round) is left out with a warning naming it,
+     never a refusal of the map. Depot, Woodland and Neon Heights load 15, 14 and 25 areas; the range none.
+  2. MapAreas.area_at(areas, position) as the browser's areaAt: the first area holding the point wins, a box holds from
+     its low edge to just short of its high edge, a band is [from, to), '' outside every area and with none; it
+     allocates nothing. The browser's areas tests pass in GUT, plus spots on Depot (the Dock, the Crate yard) and on
+     Neon Heights by storey.
+  3. Every walkable cell of Depot's nav grid lies in an area (the browser's map.areas rule; the other fields at
+     step 24); a test names any cell that doesn't.
+  4. MinimapConfig (in play_tuning.tres) holds the browser's MINIMAP numbers: size, caption room, pin steps, view
+     radius, layer scale, hearing reaches (steps 22 m, shots 60 m), patch life and fade, blur shares, minimum and
+     maximum, pad, rim patch, low cover top, floor contact, raised floor, storey pick and cut, and the drawing's
+     colours; each documented.
+status: open
+attempts: 0
+
+## MM2 · What your side heard: the enemy patches
+tier: core
+perf: required
+touches: game/play/minimap_hearing.gd, game/play/play_session.gd, game/play/README.md, game/sim/seeds.gd,
+  game/config/minimap_config.gd, game/config/play_tuning.tres, tests/unit/
+contract: Simulation and presentation (1); Events (3); Seeded randomness (5); Data, not literals (6)
+acceptance:
+  1. MinimapHearing is plain data (no Node), fed each tick's events after the step by PlaySession; it never writes
+     state. It hears from one character, the one the view is through (you, or the teammate you watch once out); a
+     change of listener keeps the patches already heard. Its side is that character's team.
+  2. An enemy in play is heard when a FOOTSTEP (any kind) or VAULT of theirs lands within the step reach, or a SHOT
+     within the shot reach × the replica's heard_scale, of the listener (flat distance, walls not checked, as the
+     browser). Teammates, your own sounds and anyone out make none.
+  3. One patch per enemy, the last thing heard: a centre off their real position by a seeded draw up to the kind's
+     blur share of the distance, clamped to [minimum, maximum], radius blur + pad (they are always inside it); life
+     and fade from MinimapConfig. A sound from someone still inside their live patch renews its life and kind and
+     keeps its centre (no jitter, no tracking); outside it, a fresh centre.
+  4. Their CHARACTER_HIT removes that player's patch at once; ROUND_START clears all. A heard enemy beyond the view
+     radius is marked for the rim.
+  5. The blur draws from the match's own minimap stream (Seeds), so the same seed gives the same patches; records are
+     made once per match for each enemy and a tick allocates nothing. GUT tests: reaches by kind and a silencer,
+     inside always, renew vs move, hit call and round start, nobody heard on the range, the listener changing.
+status: open
+attempts: 0
+
+## MM3 · The field drawing
+tier: ui
+perf: required
+touches: game/ui/minimap_field.gd, game/config/minimap_config.gd, game/config/play_tuning.tres, game/ui/README.md,
+  tests/unit/
+contract: Simulation and presentation (1); Data, not literals (6)
+acceptance:
+  1. MinimapField builds, once per match from MapData, one Image per storey (one on a map without storeys) at
+     layer_scale px/m over the map's floors: ground, raised floor, ramp, low cover and tall walls as the browser's
+     rules; a storey's image leaves out blocks starting more than storey_cut above its floor and washes the floors
+     below it darker. storey_of(feet height) as storey_pick.
+  2. Depot's loading dock draws as raised floor and is told apart from the ground under a patch (the browser's known
+     issue fixed or recorded with a reason).
+  3. Tests read pixels: a Depot wall is tall, a barrier low, the dock raised, the ramp a ramp; on Neon Heights the
+     upper storey leaves out the roof over it and darkens the street.
+  4. No image's longest side exceeds 2048 px (layer_scale lowered for that map); the build time and memory for each
+     field are measured and recorded; nothing is built on the range; the images are freed with the session.
+status: open
+attempts: 0
+
+## MM4 · The minimap on the HUD
+tier: ui
+perf: required
+touches: game/ui/hud_minimap.gd, game/ui/hud.gd, game/ui/hud_flag_marker.gd, game/ui/what_got_you_card.gd,
+  game/config/hud_config.gd, game/config/minimap_config.gd, game/config/play_tuning.tres, game/play/play_session.gd,
+  game/save/hud_prefs.gd, game/ui/settings_hud_page.gd, game/ui/text/en.po, tests/unit/
+contract: Simulation and presentation (1); Data, not literals (6); Saves (8); Headless (9)
+acceptance:
+  1. The panel, caption, area label, markers, the moved What got you card and the Settings row look as the concepts
+     in `/mnt/project-files/concepts/step18-minimap/` show (awaiting the owner's approval); the panels' opacity
+     applies; nothing overlaps at 1280×720 and 1920×1080 with the feed in either corner and the Tab scoreboard up.
+  2. Centred on the character the view is through; Rotating turns the field so the view is up, Fixed keeps north (-z)
+     up and turns the arrow. Settings › HUD › Minimap: Rotating / Fixed, saved in HudPrefs (Rotating by default; an
+     old settings file loads).
+  3. You a white arrow; each teammate a dot in the team colour, grey once hit, pinned to the edge when off the panel,
+     with an up or down arrow on another storey; only that storey's drawing shows. No enemy is ever drawn except as
+     MM2's patches: dashed for steps, a dot for a shot, fading; a rim patch beyond the edge.
+  4. Your Hold here's spot (SquadOrderBook.hold_spot) as a diamond while it is in force, none for a hold where each
+     stood; the pole in Attack / Defend while the round is live.
+  5. The area label names where the watched character stands (MapAreas), rebuilt only when it changes; the caption
+     reads the map and round. The flag marker (and SO4's hold marker once landed) pinned past the panel's side sits
+     under it, pin_step apart, never behind it.
+  6. None on the range; hidden with the HUD while skipping and under the match summary; freed with the session (no
+     orphan nodes); one Control drawing over the field texture, and a frame with the minimap up allocates nothing.
+     The smoke test plays its match with the minimap up and no script errors.
+status: open
+attempts: 0
