@@ -125,12 +125,12 @@ func _unhandled_input(event: InputEvent) -> void:
 				_holster_latch = false
 
 
-## Whether the sight is up, held or toggled, as the aimed sensitivity reads it.
 ## Whether the scoreboard's key is held (only while the mouse is captured, so a menu's Tab never shows it).
 func scoreboard_held() -> bool:
 	return active and Input.is_action_pressed(SCOREBOARD)
 
 
+## Whether the sight is up, held or toggled, as the aimed sensitivity reads it.
 func _aiming() -> bool:
 	return _aimed if _controls.aim_toggle else Input.is_action_pressed(AIM)
 

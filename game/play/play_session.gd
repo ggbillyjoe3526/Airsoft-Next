@@ -542,6 +542,7 @@ func _capture() -> void:
 
 func _open_pause() -> void:
 	_input.release()
+	_hud.show_board(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().paused = true
 	var listed := MapCatalog.shared().find(map_id)

@@ -28,6 +28,8 @@ var _names := PackedStringArray()
 var _map_name := ""
 var _sub := ""
 var _pro: bool = false
+## Attack / Defend's longest overtime (s), for the heading's OT countdown.
+var _max_overtime: float = 0.0
 ## What the board last showed: the numbers' version, the round, the clock's second and who was in play (bits by id).
 var _shown_version: int = -1
 var _shown_round: int = -1
@@ -35,9 +37,10 @@ var _shown_second: int = -1
 var _shown_in_play: int = -1
 
 
-func setup(teams: TeamConfig, mate_colour: Color) -> void:
+func setup(teams: TeamConfig, mate_colour: Color, max_overtime: float) -> void:
 	name = "HudScoreboard"
 	_teams = teams
+	_max_overtime = max_overtime
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_constant_override("separation", 0)
 	visible = false
@@ -79,12 +82,15 @@ func set_match(names: PackedStringArray, map_name: String, sub: String, pro: boo
 
 
 ## Shows the board (`show`) as `state` and `stats` stand, as `you` see it; refills only when something on it changed.
+## The clock's second is negative in overtime (-1 - the OT seconds left), so the key moves then too.
 func update(state: GameState, stats: MatchStats, you: Character, show: bool) -> void:
 	visible = show
 	if not show:
 		return
 	var rs := state.round_state
-	var second := ceili(rs.clock)
+	# In Attack / Defend's overtime the clock stands at 0 and the OT countdown runs instead (as the score bar shows).
+	var overtime := rs.mode == RoundState.Mode.ATTACK_DEFEND and rs.clock <= 0.0 and rs.overtime > 0.0 and rs.is_live()
+	var second := -1 - HudStyle.overtime_left(rs.overtime, _max_overtime) if overtime else ceili(rs.clock)
 	var in_play := 0
 	for c in state.characters:
 		if Elimination.is_in_play(c):
@@ -116,7 +122,9 @@ static func tip_for(number: int) -> StringName:
 func _fill(state: GameState, stats: MatchStats, you: Character, second: int) -> void:
 	var rs := state.round_state
 	_table.begin("")
-	_table.heading(_map_name, _sub, (tr("HUD_BOARD_ROUND_LEFT") % [rs.number, HudStyle.clock_text(second)]).to_upper())
+	var when := tr("HUD_BOARD_ROUND_LEFT") % [rs.number, HudStyle.clock_text(second)] if second >= 0 \
+			else tr("HUD_BOARD_ROUND_OT") % [rs.number, HudStyle.clock_text(-1 - second)]
+	_table.heading(_map_name, _sub, when.to_upper())
 	for side: int in [you.team, 1 - you.team]:
 		var count := 0
 		var playing := 0

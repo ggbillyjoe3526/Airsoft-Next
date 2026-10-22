@@ -1526,3 +1526,6 @@ msgstr "Hold a corner yourself: stand still with your view on the doorway and le
 
 msgid "ACT_SCOREBOARD"
 msgstr "SCOREBOARD"
+
+msgid "HUD_BOARD_ROUND_OT"
+msgstr "Round %d · overtime %s"

@@ -115,3 +115,37 @@ func test_against_pro_bots_a_tip_shows_for_the_round() -> void:
 	_show(hud)
 	assert_eq(hud.board().tip_text(), tr("PRO_TIP_1"))
 	assert_string_contains(hud.board().table().heading_text(), "PRO BOTS")
+
+
+func test_in_overtime_the_board_counts_the_overtime_down_and_keeps_moving() -> void:
+	var s := PlaySession.new()
+	s.bots_active = false
+	s.mode = MatchOptions.MODE_ATTACK_DEFEND
+	add_child_autofree(s)
+	session = s
+	await wait_physics_frames(2)
+	var hud := session.hud()
+	var state := session.state
+	var rs := state.round_state
+	rs.clock = 0.0
+	rs.overtime = 1.0
+	_show(hud)
+	var max_ot := SimTuning.new().flag.max_overtime
+	assert_string_ends_with(hud.board().table().heading_text(),
+			"ROUND 1 · OVERTIME %s" % HudStyle.clock_text(ceili(max_ot - 1.0)))
+	rs.overtime = 5.0
+	state.time += 4.0
+	session.match_stats().after_tick(state, 4.0)
+	hud.update(state, 1.0, 0.0)
+	assert_string_ends_with(hud.board().table().heading_text(), HudStyle.clock_text(ceili(max_ot - 5.0)))
+	assert_string_ends_with(hud.board().table().lines()[0], " | 0:04", "time in play still moves in overtime")
+
+
+func test_the_pause_menu_hides_the_board() -> void:
+	session = _session()
+	await wait_physics_frames(2)
+	var hud := session.hud()
+	_show(hud)
+	session._open_pause()
+	assert_false(hud.board().visible)
+	session._resume()
