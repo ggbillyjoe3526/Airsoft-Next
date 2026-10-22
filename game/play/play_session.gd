@@ -454,7 +454,7 @@ func _process(delta: float) -> void:
 	if _flag != null:
 		var rs := state.round_state
 		_flag.refresh(rs.flag, rs.attackers)
-		_hud.place_flag_marker(_eyes.camera, rs.pole, rs.attackers >= 0)
+		_hud.place_flag_marker(_eyes.camera, rs.pole, rs.attackers >= 0 and rs.is_live())
 	_hud.set_watching(_bots.name_of(watched.id) if watched != player else "")
 	if _intents != null:
 		_intents.update(state, fraction)

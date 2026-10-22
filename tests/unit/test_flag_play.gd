@@ -170,6 +170,27 @@ func test_the_marker_names_how_far_the_pole_is_and_hides_close_by() -> void:
 	assert_eq(hud.flag_marker_text(), "", "not in Attack / Defend")
 
 
+func test_the_rope_ratchets_at_the_pole_as_the_flag_moves() -> void:
+	var audio := SimAudio.new()
+	add_child_autofree(audio)
+	audio.setup(SoundConfig.new(), [] as Array[StringName], BodyConfig.new())
+	var state := GameState.new(1)
+	for up: int in [1, 0]:
+		state.events.clear()
+		var e := state.events.add(GameEvent.Kind.FLAG_ROPE)
+		e.position = Vector3(11.5, 0.0, 1.0) + Vector3.UP * up
+		e.value = up
+		audio.on_tick(state, 0)
+		var heard: Array[String] = []
+		for c: Node in audio.find_children("*", "AudioStreamPlayer3D", true, false):
+			var p := c as AudioStreamPlayer3D
+			if p.stream != null and p.global_position.is_equal_approx(e.position):
+				heard.append(p.stream.resource_path.get_file())
+		assert_eq(heard.size(), 1, str(up))
+		if heard.size() == 1:
+			assert_string_starts_with(heard[0], "rope_up" if up == 1 else "rope_down")
+
+
 func test_the_pause_card_names_attack_defend() -> void:
 	session = _session(MatchOptions.MODE_ATTACK_DEFEND)
 	await wait_physics_frames(2)
