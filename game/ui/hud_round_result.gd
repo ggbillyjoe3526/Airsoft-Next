@@ -21,8 +21,12 @@ var _rounds: RoundConfig = null
 var _table: HudTable = null
 var _hint: Label = null
 var _names := PackedStringArray()
-## Seconds since the round ended (-1: no round ended), and whether this was the match's last round.
+## The simulation time the round ended (the wait between rounds runs on it too, so game speed and a pause move both
+## alike), seconds since then (-1: no round ended), whether the slide-in is done, and whether this was the match's last
+## round.
+var _ended_at: float = 0.0
 var _since: float = -1.0
+var _slid: bool = false
 var _final: bool = false
 var _number: int = 0
 var _played: int = 0
@@ -52,9 +56,11 @@ func set_names(names: PackedStringArray) -> void:
 	_names = names
 
 
-## Round `number` just ended after `played` seconds of play.
-func round_over(number: int, played: int) -> void:
+## Round `number` just ended at simulation time `now`, after `played` seconds of play.
+func round_over(number: int, played: int, now: float) -> void:
+	_ended_at = now
 	_since = 0.0
+	_slid = false
 	_final = false
 	_number = number
 	_played = played
@@ -87,11 +93,11 @@ func holds_results() -> bool:
 	return _final and _since >= 0.0 and _since < _cfg.table_delay + _cfg.table_hold
 
 
-## Counts `delta` seconds; shows the table, filled from `state` and `stats` as `you` see it, once table_delay has passed.
-func update(state: GameState, stats: MatchStats, you: Character, delta: float) -> void:
+## Shows the table, filled from `state` and `stats` as `you` see it, once table_delay of simulation time has passed.
+func update(state: GameState, stats: MatchStats, you: Character) -> void:
 	if _since < 0.0:
 		return
-	_since += delta
+	_since = state.time - _ended_at
 	if _final and _since >= _cfg.table_delay + _cfg.table_hold:
 		close()
 		return
@@ -100,10 +106,13 @@ func update(state: GameState, stats: MatchStats, you: Character, delta: float) -
 	if not visible:
 		_fill(state, stats, you)
 		visible = true
+	elif _slid:
+		return
 	# Slides up into place over table_slide.
 	var t := clampf((_since - _cfg.table_delay) / maxf(_cfg.table_slide, 0.001), 0.0, 1.0)
 	modulate.a = t
 	_table.position.y = (1.0 - t) * _cfg.table_slide_px
+	_slid = t >= 1.0
 
 
 func table() -> HudTable:

@@ -78,6 +78,7 @@ var _team_font: Font = null
 var _chip_font: Font = null
 var _backing := Color.BLACK
 var _chip_word := ""
+var _player_word := ""
 
 
 ## The player's column `player_width` (px) wide, then the columns after it (their header words) and each one's width
@@ -102,6 +103,7 @@ func setup(player_width: float, columns: PackedStringArray, widths: PackedFloat3
 	_chip_font = GameTheme.spaced_font(800, HudStyle.SPACING_AIM, CHIP_SIZE)
 	_backing = HudStyle.backing(HudStyle.BACKING_CLOCK)
 	_chip_word = HudStyle.caps("HUD_OUT_TAG")
+	_player_word = HudStyle.caps("HUD_COL_PLAYER")
 	custom_minimum_size.x = _width
 
 
@@ -213,7 +215,7 @@ func _draw_team(team: Team) -> void:
 		draw_string(_head_font, Vector2(PAD.x, base), team.note, HORIZONTAL_ALIGNMENT_RIGHT, size.x - PAD.x * 2.0,
 				TEAM_NOTE_SIZE, GameTheme.MUTED)
 	var head := team.head_y + _head_font.get_ascent(HEAD_SIZE)
-	draw_string(_head_font, Vector2(PAD.x + YOU_BAR + CELL_PAD * 0.5, head), HudStyle.caps("HUD_COL_PLAYER"),
+	draw_string(_head_font, Vector2(PAD.x + YOU_BAR + CELL_PAD * 0.5, head), _player_word,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, HEAD_SIZE, GameTheme.MUTED)
 	for c in _columns.size():
 		_right(_head_font, _columns[c], _rights[c] - CELL_PAD * 0.5, head, HEAD_SIZE, GameTheme.MUTED)

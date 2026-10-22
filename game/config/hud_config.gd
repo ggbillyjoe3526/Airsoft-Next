@@ -52,7 +52,7 @@ extends Resource
 ## level every team_marker_check frames for each teammate.
 @export var team_marker_lift: float = 0.55
 @export var team_marker_check: int = 4
-## The round's table (concept `round-result.png`): table_delay (s) after a round ends it slides table_slide_px up into
+## The round's table (concept `round-result.png`): table_delay (s of simulation time) after a round ends it slides table_slide_px up into
 ## place over table_slide (s) and stays until the next round; after the match's last round it holds table_hold (s) more
 ## unless a click closes it sooner.
 @export var table_delay: float = 2.0

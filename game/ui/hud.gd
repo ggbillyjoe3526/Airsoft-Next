@@ -277,7 +277,7 @@ func on_tick(state: GameState) -> void:
 				else:
 					_show_banner(HudStyle.round_title(e.value), HudStyle.round_sub(e.value, _rounds.half_time_after))
 			GameEvent.Kind.ROUND_OVER:
-				_round_over(state.round_state, e)
+				_round_over(state.round_state, e, state.time)
 			GameEvent.Kind.MATCH_OVER:
 				_round_result.match_over()
 				_show_banner(HudStyle.match_won(_teams.names[e.value]), HudStyle.caps("HUD_NEW_MATCH"),
@@ -318,7 +318,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	_vault_prompt.visible = _vault_left > 0.0 and in_play
 	# The round's stamp stays up as long as the table under it, the match's banner as long as the XP.
 	if _stats != null:
-		_round_result.update(state, _stats, _player, delta)
+		_round_result.update(state, _stats, _player)
 	if _xp != null:
 		_xp.visible = not _round_result.holds_results()
 	if _banner_left > 0.0 and _xp == null and not _round_result.is_open():
@@ -437,7 +437,7 @@ func _show_hop_up(dial: float) -> void:
 
 ## A round ended (`e`, ROUND_OVER): the stamp from your side (WON, LOST or DRAW, in the winners' colour) over the round
 ## and how it was won, and the round's table under it soon after.
-func _round_over(rs: RoundState, e: GameEvent) -> void:
+func _round_over(rs: RoundState, e: GameEvent, state_time: float) -> void:
 	var reason := e.value2 as GameEvent.RoundEnd
 	var by_flag := rs.mode == RoundState.Mode.ATTACK_DEFEND and reason != GameEvent.RoundEnd.ELIMINATED
 	var key := _teams.names[e.value] if e.value >= 0 else ""
@@ -445,7 +445,7 @@ func _round_over(rs: RoundState, e: GameEvent) -> void:
 			HudStyle.round_stamp_sub(rs.number, e.value, key, by_flag, reason),
 			_teams.colours[e.value] if e.value >= 0 else Color.TRANSPARENT)
 	var played := _rounds.round_time - rs.clock + (rs.overtime if is_finite(rs.overtime) else 0.0)
-	_round_result.round_over(rs.number, roundi(played))
+	_round_result.round_over(rs.number, roundi(played), state_time)
 
 
 func _show_banner(text: String, sub: String, colour: Color = Color.TRANSPARENT) -> void:

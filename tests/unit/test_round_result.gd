@@ -36,6 +36,12 @@ func _end_round(winner: int, clock: float, last: bool = false) -> void:
 	state.events.clear()
 
 
+## `seconds` of simulation time pass, and the HUD shows them.
+func _wait(seconds: float) -> void:
+	session.state.time += seconds
+	session.hud().update(session.state, 1.0, 0.0)
+
+
 func _hit(shooter: int, victim: int) -> void:
 	var state := session.state
 	state.events.clear()
@@ -101,9 +107,9 @@ func test_a_won_round_stamps_won_in_your_colour_and_the_table_follows() -> void:
 	_end_round(0, 60.0)
 	assert_eq(hud.banner_text(), "WON / ROUND 1 · ALPHA TAKE THE ROUND")
 	var table := hud.round_result()
-	hud.update(session.state, 1.0, 1.9)
+	_wait(1.9)
 	assert_false(table.is_up(), "not before table_delay")
-	hud.update(session.state, 1.0, 0.2)
+	_wait(0.2)
 	assert_true(table.is_up())
 	assert_eq(table.table().title(), "ROUND 1 · 1:30 PLAYED")
 	var lines := table.table().lines()
@@ -122,7 +128,7 @@ func test_a_lost_round_says_lost_and_the_stamp_lasts_until_the_next_round() -> v
 	var hud := session.hud()
 	_end_round(1, 30.0)
 	assert_eq(hud.banner_text(), "LOST / ROUND 1 · BETA TAKE THE ROUND")
-	hud.update(session.state, 1.0, 5.0)
+	_wait(5.0)
 	assert_ne(hud.banner_text(), "", "held while the table is up")
 	var state := session.state
 	state.events.clear()
@@ -137,7 +143,7 @@ func test_a_click_on_the_table_starts_the_next_round_and_is_not_a_shot() -> void
 	await wait_physics_frames(2)
 	var hud := session.hud()
 	_end_round(0, 60.0)
-	hud.update(session.state, 1.0, 2.1)
+	_wait(2.1)
 	session._input.active = true
 	var click := InputEventAction.new()
 	click.action = &"fire"
@@ -163,13 +169,13 @@ func test_the_last_round_holds_the_results_until_a_click_or_table_hold() -> void
 	var hud := session.hud()
 	var cfg := PlayTuning.new().hud
 	_end_round(0, 60.0, true)
-	hud.update(session.state, 1.0, cfg.table_delay + 0.1)
+	_wait(cfg.table_delay + 0.1)
 	assert_true(hud.holds_results())
 	assert_eq(hud.round_result().hint_text(), "CLICK FOR THE RESULTS")
 	session._rematch_left = 8.0
 	session._process(1.0)
 	assert_eq(session._rematch_left, 8.0, "the next match waits for the results")
-	hud.update(session.state, 1.0, cfg.table_hold)
+	_wait(cfg.table_hold)
 	assert_false(hud.holds_results(), "table_hold later it makes way")
 	assert_false(hud.round_result().is_up())
 	session._rematch_left = -1.0
