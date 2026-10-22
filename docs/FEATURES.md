@@ -25,7 +25,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - Movement: walk, run, sprint, crouch, a limited jump (FP1), lean with Q or E (slows to a walk; eases back when a wall cuts it short) and vault over low walls with Jump, with "Space to vault" under the crosshair (BE1, MO1)
 - HUD: navy and yellow look matching the menus; top bar with each team's score as pips toward the win, round clock, round number and FIRST TO 5; slanted banners for round start, half time with ends swapped, and who took the round or match; bottom right replica panel with BB count, fire-mode chips (S, B, A) with the current one lit, a box per magazine (loaded first, then fullest spare), HOLSTERED, RELOADING, LAST MAG or OUT OF BBS, and a low magazine turns yellow; a crosshair that opens with your spread (FP1, MZ1, HD1)
 - Hit feed and teammate markers: a hit feed in the top right shows who fired, the BB trail and who was hit with its HIT call, and your own hit stays framed in it until the next round; teammates wear a chevron that shows through walls and greys out when hit (HF1, WG1)
-- What got you card: when your hit is called, a card on the left shows the shooter's side, distance, held angle, time in view and whether you were moving, when known; the Display tab's What got you setting is Auto (Pro bots only), On or Off (WG1)
+- What got you card: when your hit is called, a card on the left shows the shooter's side, distance, held angle, time in view and whether you were moving, when known; the HUD tab's What got you setting is Auto (Pro bots only), On or Off (WG1, HO1)
 - Skipping the round: once out, hold Jump for half a second to play the rest at six times speed with the HUD hidden; the hint names Jump's bound key, and the pause menu's Skip to next round shows while you can skip (WG1)
 - Round result and table: a banner says WON, LOST or DRAW from your side at each round's end, then the round's table slides in with each team's score, every player's hits, BBs fired, time in play and who hit them; click for the next round (RR1)
 - Scoreboard on Tab: hold Tab for the match table over the field, with each team's score, each player's stats and Pro tips against Pro bots (SB1)
@@ -39,6 +39,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 ## Menus and settings
 
 - Settings: a screen from the title screen and the pause menu for controls, audio, display and the FPS counter; every change applies and saves at once (SE1)
+- HUD tab in Settings, after Display: crosshair shape, colour, size, thickness, gap, opacity, spread and outline with a live preview; hit marker; ammo counter; hit feed corner and fade; HUD panel opacity; What got you (HO1)
 - Dev tab: cheats and tools shown while the Dev settings box is ticked: game speed, ghost, bottomless magazines, spectate bots, retro pixels, reset save (DV2), disable levelling and reset level (LV1)
 - Match screen: pick a map from picture cards (Depot, or Neon Heights while Dev content is on; Woodland greyed, LATER), the mode (Elimination), your team (ALPHA or BETA) and the bots' level (Normal), with the rules as chips; picks stay while the game is open (MN2)
 - Loading screen: PLAY shows the map's picture, name and a progress bar until the match draws (MN2)

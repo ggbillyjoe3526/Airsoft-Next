@@ -54,7 +54,7 @@ func _draw() -> void:
 	if h <= 0.0:
 		return
 	var face := SlantStyle.corners(Rect2(0.0, 0.0, w, h))
-	draw_colored_polygon(face, HudStyle.backing(HudStyle.BACKING_BANNER))
+	draw_colored_polygon(face, HudStyle.backing_on(self, HudStyle.BACKING_BANNER))
 	# The rule: the top strip of the same parallelogram, its ends on the slanted edges.
 	var lean := SlantStyle.SKEW
 	var r := HudStyle.BANNER_RULE

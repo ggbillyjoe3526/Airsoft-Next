@@ -72,7 +72,7 @@ func _notification(what: int) -> void:
 
 func _draw() -> void:
 	var h := size.y
-	draw_rect(Rect2(Vector2.ZERO, size), HudStyle.backing(HudStyle.BACKING_SIDE))
+	draw_rect(Rect2(Vector2.ZERO, size), HudStyle.backing_on(self, HudStyle.BACKING_SIDE))
 	var x0 := HudStyle.GAUGE_PAD + HudStyle.GAUGE_LABEL_WIDTH
 	var track := _track_width()
 	var gap := HudStyle.GAUGE_NOTCH_GAP

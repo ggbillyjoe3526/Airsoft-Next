@@ -290,13 +290,12 @@ func test_the_settings_screen_maps_its_options_to_the_setting() -> void:
 	add_child_autofree(screen)
 	s.what_got_you = Settings.WhatGotYou.OFF
 	screen.open()
-	var option: OptionButton = screen._what_got_you
-	assert_eq(option.item_count, Settings.WhatGotYou.size())
-	assert_eq(option.selected, Settings.WhatGotYou.OFF)
-	assert_eq(option.get_item_text(Settings.WhatGotYou.AUTO), tr("SETTINGS_AUTO"))
-	assert_eq(option.get_item_text(Settings.WhatGotYou.ON), tr("SETTINGS_ON"))
-	assert_eq(option.get_item_text(Settings.WhatGotYou.OFF), tr("SETTINGS_OFF"))
-	option.select(Settings.WhatGotYou.ON)
-	option.item_selected.emit(Settings.WhatGotYou.ON)
+	var choice: MenuChoice = screen._hud_page._what_got_you
+	assert_eq(choice.get_child_count(), Settings.WhatGotYou.size())
+	assert_eq(choice.selected(), Settings.WhatGotYou.OFF)
+	assert_eq(choice.button(Settings.WhatGotYou.AUTO).text, tr("SETTINGS_AUTO").to_upper())
+	assert_eq(choice.button(Settings.WhatGotYou.ON).text, tr("SETTINGS_ON").to_upper())
+	assert_eq(choice.button(Settings.WhatGotYou.OFF).text, tr("SETTINGS_OFF").to_upper())
+	choice.button(Settings.WhatGotYou.ON).pressed.emit()
 	assert_eq(s.what_got_you, Settings.WhatGotYou.ON)
 	DirAccess.remove_absolute("user://test-wg1-qa-settings.save")

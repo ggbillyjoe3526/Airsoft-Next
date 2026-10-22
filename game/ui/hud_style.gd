@@ -29,6 +29,11 @@ const CHIP_SIZE := 13
 const NOTE_SIZE := 15
 const COUNT_SIZE := 40
 const SPARE_SIZE := 16
+## A navy box's alpha before the panel opacity (a meta on the box), the panel opacity a part draws at (a meta on the
+## part), and the slots restyle() looks in.
+const BOX_ALPHA := &"hud_alpha"
+const OPACITY := &"hud_opacity"
+const BOX_SLOTS: Array[StringName] = [&"panel", &"normal"]
 ## How dark each backing is (the page colour at this opacity).
 const BACKING_SIDE := 0.82
 const BACKING_CLOCK := 0.92
@@ -64,9 +69,36 @@ const SPACING_BANNER := 0.06
 const SPACING_SUB := 0.08
 
 
-## The page colour at `alpha`: every HUD backing.
-static func backing(alpha: float) -> Color:
-	return Color(GameTheme.BG, alpha)
+## The page colour at `alpha`, scaled by the HUD tab's panel `opacity` (HudPrefs.panel_opacity): every HUD backing.
+static func backing(alpha: float, opacity: float = 1.0) -> Color:
+	return Color(GameTheme.BG, alpha * opacity)
+
+
+## The backing a HUD `part` draws itself at `alpha`: at the panel opacity restyle() gave it (100% until then).
+static func backing_on(part: CanvasItem, alpha: float) -> Color:
+	return backing(alpha, part.get_meta(OPACITY, 1.0) as float)
+
+
+## A navy panel at `alpha` with an `edge` and the given margins, at 100% until restyle() brings it to a panel opacity.
+static func navy_box(alpha: float, edge: Color, margin_x: int, margin_y: int) -> StyleBoxFlat:
+	var box := GameTheme.box(backing(alpha), edge, margin_x, margin_y)
+	box.set_meta(BOX_ALPHA, alpha)
+	return box
+
+
+## Brings `root` and every part under it to the panel `opacity`: each navy_box, and each part that draws its own
+## backing (backing_on). Whoever owns the parts calls it again for parts added later.
+static func restyle(root: Control, opacity: float) -> void:
+	for slot: StringName in BOX_SLOTS:
+		var box := root.get_theme_stylebox(slot) as StyleBoxFlat if root.has_theme_stylebox_override(slot) else null
+		if box != null and box.has_meta(BOX_ALPHA):
+			box.bg_color.a = (box.get_meta(BOX_ALPHA) as float) * opacity
+	root.set_meta(OPACITY, opacity)
+	root.queue_redraw()
+	for child in root.get_children():
+		var sub := child as Control
+		if sub != null:
+			restyle(sub, opacity)
 
 
 ## How many of `count` pips a score of `wins` fills: one per win, never more than there are.
@@ -164,7 +196,7 @@ static func caps(key: String) -> String:
 
 ## A flat panel in the page colour at `alpha` with the given margins.
 static func panel_box(alpha: float, margin_x: int, margin_y: int) -> StyleBoxFlat:
-	return GameTheme.box(backing(alpha), Color(0.0, 0.0, 0.0, 0.0), margin_x, margin_y)
+	return navy_box(alpha, Color(0.0, 0.0, 0.0, 0.0), margin_x, margin_y)
 
 
 ## A Label under `parent` in Inter at `weight`, with `em_spacing` between letters (0 for none).

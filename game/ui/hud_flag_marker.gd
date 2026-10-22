@@ -14,7 +14,6 @@ var _plate: PanelContainer = null
 var _distance: Label = null
 var _metres: int = -1
 var _tail := PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
-var _tail_colour := Color.WHITE
 
 
 func setup(cfg: HudConfig) -> void:
@@ -27,7 +26,6 @@ func setup(cfg: HudConfig) -> void:
 	box.border_color = GameTheme.YELLOW
 	box.border_width_top = RULE
 	_plate.add_theme_stylebox_override("panel", box)
-	_tail_colour = box.bg_color
 	add_child(_plate)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", GAP)
@@ -88,4 +86,4 @@ func _fit() -> void:
 
 
 func _draw() -> void:
-	draw_colored_polygon(_tail, _tail_colour)
+	draw_colored_polygon(_tail, HudStyle.backing_on(self, HudStyle.BACKING_CLOCK))

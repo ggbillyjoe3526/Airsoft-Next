@@ -146,17 +146,17 @@ func set_round(number: int) -> void:
 func _draw() -> void:
 	var h := HudStyle.SCORE_HEIGHT
 	var block := HudStyle.BLOCK_WIDTH
-	var side_back := HudStyle.backing(HudStyle.BACKING_SIDE)
+	var side_back := HudStyle.backing_on(self, HudStyle.BACKING_SIDE)
 	var right := _clock_x + HudStyle.CLOCK_WIDTH
 	draw_rect(Rect2(0.0, 0.0, _side_width, h), side_back)
 	draw_rect(Rect2(_side_width, 0.0, block, h), _teams.colours[0])
-	draw_rect(Rect2(_clock_x, 0.0, HudStyle.CLOCK_WIDTH, h), HudStyle.backing(HudStyle.BACKING_CLOCK))
+	draw_rect(Rect2(_clock_x, 0.0, HudStyle.CLOCK_WIDTH, h), HudStyle.backing_on(self, HudStyle.BACKING_CLOCK))
 	draw_rect(Rect2(right, 0.0, block, h), _teams.colours[1])
 	draw_rect(Rect2(right + block, 0.0, _side_width, h), side_back)
 	if _attackers >= 0:
 		for side in 2:
 			var tag := _tags[side]
-			var fill := GameTheme.YELLOW if side == _attackers else HudStyle.backing(HudStyle.BACKING_CLOCK)
+			var fill := GameTheme.YELLOW if side == _attackers else HudStyle.backing_on(self, HudStyle.BACKING_CLOCK)
 			draw_rect(Rect2(tag.position, tag.size), fill)
 	var empty := Color(GameTheme.TEXT, HudStyle.PIP_EMPTY_ALPHA)
 	for side in 2:

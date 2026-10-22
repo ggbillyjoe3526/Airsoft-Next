@@ -47,7 +47,6 @@ class Who:
 var _name_font: Font = null
 var _you_font: Font = null
 var _tag_font: Font = null
-var _backing := Color.BLACK
 var _shooter := ""
 var _victim := ""
 var _shooter_colour := Color.WHITE
@@ -79,7 +78,6 @@ func _init() -> void:
 	_name_font = GameTheme.font(700)
 	_you_font = GameTheme.font(800)
 	_tag_font = GameTheme.spaced_font(800, HudStyle.SPACING_AIM, TAG_SIZE)
-	_backing = HudStyle.backing(HudStyle.BACKING_CLOCK)
 	_tag_word = HudStyle.caps("HUD_HIT_TAG")
 
 
@@ -154,7 +152,7 @@ static func _centred_baseline(f: Font, font_size: int) -> float:
 
 func _draw() -> void:
 	var w := size.x
-	draw_rect(Rect2(0.0, 0.0, w, HEIGHT), _backing)
+	draw_rect(Rect2(0.0, 0.0, w, HEIGHT), HudStyle.backing_on(self, HudStyle.BACKING_CLOCK))
 	draw_rect(Rect2(0.0, 0.0, BAR, HEIGHT), _bar)
 	if _shooter_mate:
 		_shooter_chevron.paint(self, _mate_colour, false)

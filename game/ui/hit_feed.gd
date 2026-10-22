@@ -2,7 +2,8 @@ class_name HitFeed
 extends RefCounted
 ## The hit feed's lines (the browser game's HIT_FEED): who fired, who was hit and called it, and when (simulation
 ## time), newest first. At most `max_lines`; a line lasts `line_time`, fading over its last `fade_time`, unless it is
-## kept (the line you were hit in stays up until the round ends: `release_kept`). Plain data: the HUD draws it
+## kept (the line you were hit in stays up until the round ends: `release_kept`), or all lines stay when `stay` (the
+## HUD tab's Keep: only the newest `max_lines` go on, for the whole match). Plain data: the HUD draws it
 ## (HudFeed). The lines are made once and reused.
 
 class Line:
@@ -15,6 +16,8 @@ class Line:
 var max_lines: int = 6
 var line_time: float = 6.0
 var fade_time: float = 1.0
+## Every line stays (never ages out or fades) until it is pushed off or the feed is cleared.
+var stay: bool = false
 ## Bumped whenever the lines change (one added or one gone), so the HUD rebuilds rows only then.
 var version: int = 0
 
@@ -55,6 +58,8 @@ func add(shooter: int, victim: int, at: float, kept: bool = false) -> void:
 
 ## Drops the lines older than line_time at `now`, but not the kept ones; the rest keep their order.
 func prune(now: float) -> void:
+	if stay:
+		return
 	var left := 0
 	for i in _count:
 		var line := _lines[i]
@@ -92,7 +97,7 @@ func line(i: int) -> Line:
 
 ## How opaque the `i`th line is at `now`: 1 until its last fade_time, then down to 0.
 func alpha(i: int, now: float) -> float:
-	if _lines[i].keep:
+	if _lines[i].keep or stay:
 		return 1.0
 	var left := line_time - (now - _lines[i].time)
 	if fade_time <= 0.0 or left >= fade_time:

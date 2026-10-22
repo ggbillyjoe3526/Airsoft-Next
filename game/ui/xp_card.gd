@@ -34,7 +34,7 @@ func _init(settled: PlayerTally.Settled, difficulty: StringName, progress: Progr
 	_pool = pool
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	custom_minimum_size = Vector2(WIDTH, 0.0)
-	add_theme_stylebox_override("panel", GameTheme.box(Color(GameTheme.BG, BACKING), GameTheme.LINE, PAD.x, PAD.y))
+	add_theme_stylebox_override("panel", HudStyle.navy_box(BACKING, GameTheme.LINE, PAD.x, PAD.y))
 	var column := VBoxContainer.new()
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_theme_constant_override("separation", 0)

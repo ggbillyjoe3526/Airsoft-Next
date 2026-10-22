@@ -189,7 +189,9 @@ func _build_views_and_start() -> void:
 	if settings == null:
 		settings = Settings.shared()
 	settings.changed.connect(_apply_dev)
+	settings.changed.connect(_apply_hud)
 	_apply_dev()
+	_apply_hud()
 	_sim.start_match(state)
 	_after_tick()
 	var names := PackedStringArray()
@@ -574,6 +576,8 @@ func _exit_tree() -> void:
 	ReplicaPaint.clear()
 	if settings != null and settings.changed.is_connected(_apply_dev):
 		settings.changed.disconnect(_apply_dev)
+	if settings != null and settings.changed.is_connected(_apply_hud):
+		settings.changed.disconnect(_apply_hud)
 	if get_tree() != null:
 		get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -747,6 +751,13 @@ func _settle() -> void:
 	_hud.summary().set_records(records, records.win_loss(difficulty, mode), s.news,
 			tr("SUM_RECORDS") % [tr("BOT_" + String(difficulty).to_upper()), tr(MatchOptions.MODE_NAME[mode])])
 	match_settled.emit()
+
+
+## The HUD tab's choices, at the start and on every change (the settings can open from the pause menu).
+func _apply_hud() -> void:
+	_hud.apply_prefs(settings.hud)
+	# The skipping note sits outside the HUD, over it.
+	HudStyle.restyle(_skip_note, settings.hud.panel_opacity)
 
 
 ## The Dev settings in force, put into play: the cheats into the simulation, and the views they ask for built or freed.

@@ -472,8 +472,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   mag-check key (owner, 2026-10-06).
 - **Key bindings: a key belongs to one action, and taking a used key swaps the two (2026-09-30).** Esc, PrintScreen,
   Pause, F11 (fullscreen) and the debug keys can't be bound. Fire and the four move keys can never be left keyless.
-- **The hit marker is a bold red X with its own settings, off by default (owner, 2026-10-13, Dev 5 playtest note 4).**
-  Settings › Gameplay › Crosshair: on or off, scale, thickness, outline and colour. Whether it starts on is his call.
+- **The hit marker has its own settings: on or off, colour and size (owner, 2026-10-13, Dev 5 playtest note 4; as the
+  HUD tab concept he approved 2026-10-22, HO1).** The concept shows it on and white, so it starts as the HUD always drew
+  it: on, a white X; red is one of its six colours. This replaces the 2026-10-13 "bold red X, off by default"; whether
+  it starts on stays his call.
 - **The menus are compact, to concepts the owner approved (owner, 2026-10-16, Dev 6 playtest items 9 to 21; MR1).**
   Match, Loadout, Customise and the Armory use the 15 px step for small text and 32 to 40 px controls. A mode is offered
   only on a map that hosts it, and a rule the mode doesn't read is hidden.
