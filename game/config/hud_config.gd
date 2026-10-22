@@ -12,13 +12,9 @@ extends Resource
 @export var gauge_inset: float = 0.0
 @export var gauge_gap: float = 6.0
 @export var gauge_loaded_gap: float = 10.0
-## The crosshair: arm length and thickness (px), and the gap (px) per degree of spread, never under gap_min.
-@export var cross_arm: float = 7.0
-@export var cross_thickness: float = 2.0
-@export var gap_per_degree: float = 18.0
-@export var gap_min: float = 4.0
-## The hit marker on your hit: its size (px) and how long it shows (s).
+## The hit marker on your hit: its strokes' length and width (px, before the player's size) and how long it shows (s).
 @export var marker_size: float = 12.0
+@export var marker_width: float = 3.0
 @export var marker_time: float = 0.35
 ## The hop-up readout shows this long (s) after the last turn of the dial; a BB counts as flat while it stays within
 ## hop_band (m) of the aim line, followed at most hop_range (m).

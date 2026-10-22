@@ -33,8 +33,6 @@ const BOARD_TOP := 160.0
 ## The flag warning's plate margins and the gap between its flag and its words.
 const WARNING_PAD := Vector2i(36, 10)
 const WARNING_GAP := 18
-## The hit marker's four strokes, out from the centre.
-const MARKER_DIRECTIONS: Array[Vector2] = [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]
 
 var _cfg: HudConfig = null
 var _teams: TeamConfig = null
@@ -84,6 +82,10 @@ var _gap: float = 0.0
 var _show_cross: bool = true
 ## The slot the hop-up readout is about.
 var _hop_slot: int = -1
+## The HUD tab's choices (apply_prefs).
+var _prefs := HudPrefs.new()
+## The panel opacity the HUD's parts show (HudStyle.restyle).
+var _opacity: float = 1.0
 
 
 func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, player: Character) -> void:
@@ -102,7 +104,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	add_child(_team_markers)
 	_hits.setup(cfg.feed_lines, cfg.feed_line_time, cfg.feed_fade_time)
 	_feed = HudFeed.new()
-	_feed.setup(cfg.feed_lines, cfg.feed_gap, teams)
+	_feed.setup(maxi(cfg.feed_lines, HudPrefs.KEPT_LINES), cfg.feed_gap, teams)
 	add_child(_feed)
 	set_feed_corner(HudFeed.Place.TOP_RIGHT)
 	# The replica panel, bottom right.
@@ -270,6 +272,33 @@ func board() -> HudScoreboard:
 	return _board
 
 
+## Takes the HUD tab's choices `prefs` (kept, so the crosshair and marker follow later changes too; call again after
+## one): the feed's corner and whether its lines fade or stay, the ammo counter, and the panels' opacity.
+func apply_prefs(prefs: HudPrefs) -> void:
+	_prefs = prefs
+	var right := prefs.feed_corner == HudPrefs.FeedCorner.TOP_RIGHT
+	var where := HudFeed.Place.TOP_RIGHT if right else HudFeed.Place.BOTTOM_LEFT
+	if where != _feed.corner:
+		set_feed_corner(where)
+	var stay := prefs.feed_lines == HudPrefs.FeedLines.KEEP
+	if stay != _hits.stay:
+		_hits.setup(HudPrefs.KEPT_LINES if stay else _cfg.feed_lines, _cfg.feed_line_time, _cfg.feed_fade_time)
+		_hits.stay = stay
+	_replica.set_counted(prefs.ammo_counter)
+	if not is_equal_approx(prefs.panel_opacity, _opacity):
+		_opacity = prefs.panel_opacity
+		HudStyle.restyle(self, _opacity)
+
+
+func prefs() -> HudPrefs:
+	return _prefs
+
+
+## The hit feed's lines: for tests.
+func hit_lines() -> HitFeed:
+	return _hits
+
+
 ## The hit feed's corner: top right (newest on top) or bottom left (newest at the bottom).
 func set_feed_corner(where: HudFeed.Place) -> void:
 	_feed.set_corner(where)
@@ -322,6 +351,7 @@ func show_what_got_you(facts: HitFacts, shooter_name: String, colour: Color, not
 	_what_got_you = WhatGotYouCard.new(facts, shooter_name, colour, note)
 	_place(_what_got_you, Vector4(0.0, 0.0, 0.0, 0.0), Rect2(CARD_LEFT, CARD_TOP, WhatGotYouCard.WIDTH, 0.0))
 	add_child(_what_got_you)
+	HudStyle.restyle(_what_got_you, _opacity)
 
 
 func hide_what_got_you() -> void:
@@ -409,6 +439,7 @@ func show_xp(settled: PlayerTally.Settled, difficulty: StringName, progress: Pro
 	_xp = XpCard.new(settled, difficulty, progress, Pool.shared())
 	_place(_xp, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-XpCard.WIDTH * 0.5, XP_GAP - MIDDLE_RAISE, XpCard.WIDTH, 0.0))
 	add_child(_xp)
+	HudStyle.restyle(_xp, _opacity)
 	_xp.visible = not _round_result.holds_results()
 
 
@@ -458,7 +489,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	if _show_cross:
 		var spread := deg_to_rad(a.replica().spread_deg * c.spread_scale) * 2.0
 		var half_fov := deg_to_rad(_view.vertical_fov(zoom)) * 0.5
-		_gap = maxf(_cfg.gap_min, tan(spread) / tan(half_fov) * size.y * 0.5)
+		_gap = CrosshairDraw.gap(_prefs, tan(spread) / tan(half_fov) * size.y * 0.5)
 	if not a.replicas.is_empty():
 		_replica.refresh(a)
 		if a.active != _hop_slot and _hop_left > 0.0:
@@ -530,20 +561,11 @@ func _update_warning(rs: RoundState, delta: float) -> void:
 
 func _draw() -> void:
 	var centre := size * 0.5
-	var t := _cfg.cross_thickness
 	if _show_cross:
-		var arm := _cfg.cross_arm
-		var col := GameTheme.TEXT
-		draw_rect(Rect2(centre.x - t * 0.5, centre.y - _gap - arm, t, arm), col)
-		draw_rect(Rect2(centre.x - t * 0.5, centre.y + _gap, t, arm), col)
-		draw_rect(Rect2(centre.x - _gap - arm, centre.y - t * 0.5, arm, t), col)
-		draw_rect(Rect2(centre.x + _gap, centre.y - t * 0.5, arm, t), col)
-	if _marker_left > 0.0:
-		var m := _cfg.marker_size
-		var inner := _cfg.gap_min + 2.0
-		var col := Color(GameTheme.TEXT, _marker_left / _cfg.marker_time)
-		for d in MARKER_DIRECTIONS:
-			draw_line(centre + d * inner, centre + d * (inner + m), col, t + 1.0, true)
+		CrosshairDraw.cross(self, centre, _prefs, _gap)
+	if _marker_left > 0.0 and _prefs.marker:
+		CrosshairDraw.marker(self, centre, _prefs, _gap, _cfg.marker_size, _cfg.marker_width,
+				_marker_left / _cfg.marker_time)
 
 
 ## The hop-up readout for the replica in hand with its dial at `dial`: the setting and how far a level shot stays flat.

@@ -2,13 +2,14 @@ class_name MagGauges
 extends Control
 ## One box per magazine the replica in hand carries, on the HUD's replica panel (the concept's `.mags`): the loaded one
 ## first, then the pouch's spares fullest first (the next a reload takes sits beside it). Each box fills from the bottom
-## by its share of BBs left, so an empty magazine is a hollow outline and the boxes read without colour. Redrawn only
-## on a change.
+## by its share of BBs left, so an empty magazine is a hollow outline and the boxes read without colour; with the ammo
+## counter off (set_counted) a box is solid while its magazine holds any BBs and never warns. Redrawn only on a change.
 
 var _cfg: HudConfig = null
 ## Each gauge's share of a full magazine, loaded first; `_count` of them are in use.
 var _shares: PackedFloat32Array = PackedFloat32Array()
 var _count: int = 0
+var _counted: bool = true
 ## What the gauges show now: the slot, the loaded magazine and a copy of the pouch.
 var _shown_slot: int = -1
 var _shown_mag: int = -1
@@ -20,6 +21,12 @@ func setup(cfg: HudConfig) -> void:
 	name = "MagGauges"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	custom_minimum_size = Vector2(0.0, cfg.gauge_height)
+
+
+func set_counted(on: bool) -> void:
+	if on != _counted:
+		_counted = on
+		queue_redraw()
 
 
 ## Follows `a`'s magazines; rebuilds and redraws only when the slot, the loaded magazine or the pouch changed.
@@ -72,10 +79,10 @@ func _draw() -> void:
 	var line := _cfg.gauge_line
 	var x := 0.0
 	for i in _count:
-		var share := _shares[i]
+		var share := _shares[i] if _counted or _shares[i] <= 0.0 else 1.0
 		var colour := Color(GameTheme.TEXT, HudStyle.MAG_SPARE_ALPHA)
 		if i == 0:
-			colour = GameTheme.YELLOW if share <= _cfg.low_mag_share else GameTheme.TEXT
+			colour = GameTheme.YELLOW if _counted and share <= _cfg.low_mag_share else GameTheme.TEXT
 		var box := Rect2(x, 0.0, w, h)
 		draw_rect(box.grow(-line * 0.5), colour, false, line)
 		if share > 0.0:

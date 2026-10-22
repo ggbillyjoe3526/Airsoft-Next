@@ -50,7 +50,7 @@ class Dial:
 	func _draw() -> void:
 		var centre := size * 0.5
 		var r := minf(size.x, size.y) * 0.5 - RING
-		draw_circle(centre, r, HudStyle.backing(BACKING))
+		draw_circle(centre, r, HudStyle.backing_on(self, BACKING))
 		draw_arc(centre, r, 0.0, TAU, 64, GameTheme.LINE, RING, true)
 		var inner := r * INNER_SHARE
 		for i in DASHES:

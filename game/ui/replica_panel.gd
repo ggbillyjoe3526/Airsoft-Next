@@ -3,7 +3,8 @@ extends VBoxContainer
 ## The replica panel, bottom right (the concept's `.rep`): a framed dark panel with a yellow rule on its left holding the
 ## loaded count and the spare BBs, the fire modes the replica offers as S / B / A chips with the one in use lit, and a
 ## box per magazine (MagGauges). Above it two small notes: the hop-up readout while you turn the dial, and the status
-## (reloading, out of BBs, last magazine, holstered). Text is rebuilt only when what it shows changes.
+## (reloading, out of BBs, last magazine, holstered). With the HUD tab's ammo counter off there are no counts and each
+## box shows only whether its magazine holds BBs. Text is rebuilt only when what it shows changes.
 
 ## The framed panel's width (px at 1080p, the browser's UI2 compact panel), its yellow rule, its padding (left, top,
 ## right, bottom: the left one is past the rule) and the space between its rows.
@@ -26,6 +27,7 @@ var _hop: Label = null
 var _status: Label = null
 var _mag: Label = null
 var _spare: Label = null
+var _counts: HBoxContainer = null
 var _chips: Array[Label] = []
 var _lit: StyleBoxFlat = null
 var _unlit: StyleBoxFlat = null
@@ -67,6 +69,7 @@ func setup(cfg: HudConfig) -> void:
 	rows.add_theme_constant_override("separation", ROW_GAP)
 	panel.add_child(rows)
 	var counts := HBoxContainer.new()
+	_counts = counts
 	counts.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	counts.add_theme_constant_override("separation", ROW_GAP)
 	rows.add_child(counts)
@@ -88,6 +91,17 @@ func setup(cfg: HudConfig) -> void:
 	_gauges = MagGauges.new()
 	_gauges.setup(cfg)
 	rows.add_child(_gauges)
+
+
+## The ammo counter on (the counts, and each box filled to its BBs) or off (no counts; a box shows only whether its
+## magazine holds BBs).
+func set_counted(on: bool) -> void:
+	_counts.visible = on
+	_gauges.set_counted(on)
+
+
+func counted() -> bool:
+	return _counts.visible
 
 
 ## Shows the hop-up readout `text`.

@@ -5,20 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## HO1 · HUD settings
-tier: ui
-perf: optional
-touches: game/ui/, game/settings/, game/config/, game/ui/text/en.po, tests/unit/
-contract: none
-acceptance:
-  1. As `hud-options.png`, a HUD tab in Settings with a live preview: crosshair shape (cross, cross and dot, circle,
-     dot), colour (no team colours), size, thickness, gap, opacity, dynamic or static spread, outline; hit marker on or
-     off, colour and size; ammo counter on or off; hit feed position (top right, bottom left) and lines (fade, keep the
-     last 10); HUD opacity for the navy panels; What got you Auto, On or Off.
-  2. Saved with the settings and applied in play at once.
-status: open
-attempts: 0
-
 ## MN3 · Opponents and Teammates on the Match screen
 tier: ui
 perf: optional

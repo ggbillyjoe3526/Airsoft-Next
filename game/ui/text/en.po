@@ -1528,7 +1528,7 @@ msgid "SETTINGS_WHAT_GOT_YOU"
 msgstr "What got you"
 
 msgid "SETTINGS_AUTO"
-msgstr "Auto (Pro bots)"
+msgstr "Auto"
 
 msgid "WGY_TITLE"
 msgstr "What got you"
@@ -1664,3 +1664,117 @@ msgstr ", both times holding the angle"
 
 msgid "WGY_ALL_HELD"
 msgstr ", every time holding the angle"
+
+msgid "SETTINGS_HUD"
+msgstr "HUD"
+
+msgid "SETTINGS_CROSSHAIR"
+msgstr "Crosshair"
+
+msgid "SETTINGS_SHAPE"
+msgstr "Shape"
+
+msgid "SETTINGS_SHAPE_CROSS"
+msgstr "Cross"
+
+msgid "SETTINGS_SHAPE_CROSS_DOT"
+msgstr "Cross and dot"
+
+msgid "SETTINGS_SHAPE_CIRCLE"
+msgstr "Circle"
+
+msgid "SETTINGS_SHAPE_DOT"
+msgstr "Dot"
+
+msgid "SETTINGS_COLOUR"
+msgstr "Colour"
+
+msgid "SETTINGS_COLOUR_NOTE"
+msgstr "No blue or orange: they are the teams'."
+
+msgid "SETTINGS_SIZE"
+msgstr "Size"
+
+msgid "SETTINGS_THICKNESS"
+msgstr "Thickness"
+
+msgid "SETTINGS_GAP"
+msgstr "Gap"
+
+msgid "SETTINGS_OPACITY"
+msgstr "Opacity"
+
+msgid "SETTINGS_SPREAD"
+msgstr "Spread"
+
+msgid "SETTINGS_DYNAMIC"
+msgstr "Dynamic"
+
+msgid "SETTINGS_STATIC"
+msgstr "Static"
+
+msgid "SETTINGS_SPREAD_NOTE"
+msgstr "Dynamic opens as you move and fire."
+
+msgid "SETTINGS_OUTLINE"
+msgstr "Outline"
+
+msgid "SETTINGS_HIT_MARKER"
+msgstr "Hit marker"
+
+msgid "SETTINGS_HIT_MARKER_NOTE"
+msgstr "Four strokes round the crosshair when your BB hits. The tick sounds either way."
+
+msgid "SETTINGS_AMMO_AND_FEED"
+msgstr "Ammo and feed"
+
+msgid "SETTINGS_AMMO_COUNTER"
+msgstr "Ammo counter"
+
+msgid "SETTINGS_AMMO_COUNTER_NOTE"
+msgstr "Off: keep count yourself. Spare magazines show only whether they hold any BBs."
+
+msgid "SETTINGS_FEED_CORNER"
+msgstr "Hit feed position"
+
+msgid "SETTINGS_TOP_RIGHT"
+msgstr "Top right"
+
+msgid "SETTINGS_BOTTOM_LEFT"
+msgstr "Bottom left"
+
+msgid "SETTINGS_FEED_LINES"
+msgstr "Hit feed lines"
+
+msgid "SETTINGS_FADE"
+msgstr "Fade"
+
+msgid "SETTINGS_KEEP"
+msgstr "Keep"
+
+msgid "SETTINGS_FEED_LINES_NOTE"
+msgstr "Fade: each hit shows %d s. Keep: the last %d stay all match."
+
+msgid "SETTINGS_PANELS"
+msgstr "Panels"
+
+msgid "SETTINGS_HUD_OPACITY"
+msgstr "HUD opacity"
+
+msgid "SETTINGS_HUD_OPACITY_NOTE"
+msgstr "The navy panels only; text stays solid."
+
+msgid "SETTINGS_WHAT_GOT_YOU_NOTE"
+msgstr "Auto: against Pro bots only."
+
+msgid "SETTINGS_PREVIEW"
+msgstr "Preview"
+
+msgid "SETTINGS_PREVIEW_HIT"
+msgstr "Hit"
+
+msgid "SETTINGS_PREVIEW_MOVING"
+msgstr "Moving"
+
+msgid "SETTINGS_PREVIEW_NAME"
+msgstr "Dash"

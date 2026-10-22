@@ -1,10 +1,9 @@
 class_name SettingsScreen
 extends Control
-## The settings, in three tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
-## (a volume for each bus) and Display (window mode, V-Sync, field of view, show FPS); and a fourth, Dev, shown while the
-## Dev settings box under the tabs is ticked (its switches apply only then; docs/DECISIONS.md › Content tags and dev
-## content). Opened from the title screen and
-## the pause menu; works while the tree is paused. Every change is applied at once through SettingsApply and saved:
+## The settings, in four tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
+## (a volume for each bus), Display (window mode, V-Sync, field of view, show FPS) and HUD (SettingsHudPage); and a
+## fifth, Dev, shown while the Dev settings box under the tabs is ticked (its switches apply only then;
+## docs/DECISIONS.md › Content tags and dev content). Opened from the title screen and the pause menu; works while the tree is paused. Every change is applied at once through SettingsApply and saved:
 ## a slider a moment after it stops moving, anything else straight away, and the last change always on close. Esc or
 ## Back closes it. While it is open, keys the controls don't use stop here, so none reaches play.
 
@@ -58,7 +57,7 @@ var _window: OptionButton = null
 var _vsync: CheckButton = null
 var _fov: HSlider = null
 var _fps: CheckButton = null
-var _what_got_you: OptionButton = null
+var _hud_page: SettingsHudPage = null
 var _dev_box: CheckButton = null
 var _dev_page: Control = null
 var _dev_checks: Dictionary[StringName, CheckButton] = {}
@@ -102,6 +101,7 @@ func _ready() -> void:
 	_build_controls()
 	_build_audio()
 	_build_display()
+	_build_hud()
 	_build_dev()
 	_dev_box = CheckButton.new()
 	_dev_box.text = tr("DEV_SETTINGS_BOX")
@@ -181,30 +181,30 @@ func _changed(immediate: bool = false) -> void:
 
 func _build_controls() -> void:
 	var page := _page(tr("SETTINGS_CONTROLS"))
-	_section(page, tr("SETTINGS_MOUSE"))
-	_sensitivity = _slider_row(page, "SETTINGS_SENSITIVITY", Sensitivity.MIN, Sensitivity.MAX, Sensitivity.STEP, "%.2f")
+	add_section(page, tr("SETTINGS_MOUSE"))
+	_sensitivity = add_slider_row(page, "SETTINGS_SENSITIVITY", Sensitivity.MIN, Sensitivity.MAX, Sensitivity.STEP, "%.2f")
 	_sensitivity.value_changed.connect(_on_sensitivity)
-	_aim_sensitivity = _slider_row(page, "SETTINGS_AIM_SENSITIVITY", Sensitivity.AIM_MIN, Sensitivity.AIM_MAX,
+	_aim_sensitivity = add_slider_row(page, "SETTINGS_AIM_SENSITIVITY", Sensitivity.AIM_MIN, Sensitivity.AIM_MAX,
 			Sensitivity.AIM_STEP, "%.2f")
 	_aim_sensitivity.value_changed.connect(_on_aim_sensitivity)
 	_dpi = _spin_row(page, "SETTINGS_DPI", Sensitivity.DPI_MIN, Sensitivity.DPI_MAX, DPI_STEP)
 	_dpi.value_changed.connect(_on_dpi)
 	_cm = _spin_row(page, "SETTINGS_CM360", CM_MIN, CM_MAX, CM_STEP)
 	_cm.value_changed.connect(_on_cm)
-	_invert = _check_row(page, "SETTINGS_INVERT", "SETTINGS_ON", "SETTINGS_OFF")
+	_invert = add_check_row(page, "SETTINGS_INVERT", "SETTINGS_ON", "SETTINGS_OFF")
 	_invert.toggled.connect(func(on: bool) -> void:
 		settings.invert_y = on
 		_applied(SettingsApply.apply_controls, true))
-	_section(page, tr("SETTINGS_STANCE"))
-	_crouch = _check_row(page, "SETTINGS_CROUCH", "SETTINGS_TOGGLE", "SETTINGS_HOLD")
+	add_section(page, tr("SETTINGS_STANCE"))
+	_crouch = add_check_row(page, "SETTINGS_CROUCH", "SETTINGS_TOGGLE", "SETTINGS_HOLD")
 	_crouch.toggled.connect(func(on: bool) -> void:
 		settings.crouch_toggle = on
 		_applied(SettingsApply.apply_controls, true))
-	_aim = _check_row(page, "SETTINGS_AIM", "SETTINGS_TOGGLE", "SETTINGS_HOLD")
+	_aim = add_check_row(page, "SETTINGS_AIM", "SETTINGS_TOGGLE", "SETTINGS_HOLD")
 	_aim.toggled.connect(func(on: bool) -> void:
 		settings.aim_toggle = on
 		_applied(SettingsApply.apply_controls, true))
-	_section(page, tr("SETTINGS_KEYS"))
+	add_section(page, tr("SETTINGS_KEYS"))
 	var hint := Label.new()
 	hint.text = tr("SETTINGS_KEYS_HINT")
 	hint.add_theme_font_size_override("font_size", GameTheme.SMALL_SIZE)
@@ -244,7 +244,7 @@ func _on_cm(v: float) -> void:
 		_show_cm()
 		return
 	settings.sensitivity = s
-	_set_slider(_sensitivity, s)
+	set_slider(_sensitivity, s)
 	_applied(SettingsApply.apply_controls)
 	_show_cm()
 
@@ -258,9 +258,9 @@ func _show_cm() -> void:
 
 func _build_audio() -> void:
 	var page := _page(tr("SETTINGS_AUDIO"))
-	_section(page, tr("SETTINGS_VOLUME"))
+	add_section(page, tr("SETTINGS_VOLUME"))
 	for bus: StringName in Settings.VOLUME_BUSES:
-		var slider := _slider_row(page, "SETTINGS_VOL_" + String(bus).to_upper(), 0.0, 100.0, PERCENT_STEP, "%d %%")
+		var slider := add_slider_row(page, "SETTINGS_VOL_" + String(bus).to_upper(), 0.0, 100.0, PERCENT_STEP, "%d %%")
 		slider.value_changed.connect(_on_volume.bind(bus))
 		_volume[bus] = slider
 
@@ -274,8 +274,8 @@ func _on_volume(v: float, bus: StringName) -> void:
 
 func _build_display() -> void:
 	var page := _page(tr("SETTINGS_DISPLAY"))
-	_section(page, tr("SETTINGS_WINDOW"))
-	var row := _row(page, "SETTINGS_WINDOW_MODE")
+	add_section(page, tr("SETTINGS_WINDOW"))
+	var row := add_row(page, "SETTINGS_WINDOW_MODE")
 	_window = OptionButton.new()
 	for key: String in ["SETTINGS_WINDOWED", "SETTINGS_BORDERLESS", "SETTINGS_EXCLUSIVE"]:
 		_window.add_item(tr(key))
@@ -284,28 +284,29 @@ func _build_display() -> void:
 		settings.window_mode = i as Settings.WindowMode
 		_applied(SettingsApply.apply_display, true))
 	row.add_child(_window)
-	_vsync = _check_row(page, "SETTINGS_VSYNC", "SETTINGS_ON", "SETTINGS_OFF")
+	_vsync = add_check_row(page, "SETTINGS_VSYNC", "SETTINGS_ON", "SETTINGS_OFF")
 	_vsync.toggled.connect(func(on: bool) -> void:
 		settings.vsync = on
 		_applied(SettingsApply.apply_display, true))
-	_section(page, tr("SETTINGS_VIEW"))
-	_fov = _slider_row(page, "SETTINGS_FOV", Settings.FOV_MIN, Settings.FOV_MAX, FOV_STEP, "%d°")
+	add_section(page, tr("SETTINGS_VIEW"))
+	_fov = add_slider_row(page, "SETTINGS_FOV", Settings.FOV_MIN, Settings.FOV_MAX, FOV_STEP, "%d°")
 	_fov.value_changed.connect(func(v: float) -> void:
 		settings.fov = v
 		_applied(SettingsApply.apply_controls))
-	_fps = _check_row(page, "SETTINGS_SHOW_FPS", "SETTINGS_ON", "SETTINGS_OFF")
+	_fps = add_check_row(page, "SETTINGS_SHOW_FPS", "SETTINGS_ON", "SETTINGS_OFF")
 	_fps.toggled.connect(func(on: bool) -> void:
 		settings.show_fps = on
 		_changed(true))
-	var card_row := _row(page, "SETTINGS_WHAT_GOT_YOU")
-	_what_got_you = OptionButton.new()
-	for key: String in ["SETTINGS_AUTO", "SETTINGS_ON", "SETTINGS_OFF"]:
-		_what_got_you.add_item(tr(key))
-	_what_got_you.custom_minimum_size = Vector2(SLIDER_WIDTH, 0.0)
-	_what_got_you.item_selected.connect(func(i: int) -> void:
-		settings.what_got_you = i as Settings.WhatGotYou
-		_changed(true))
-	card_row.add_child(_what_got_you)
+
+
+# --- HUD ---
+
+func _build_hud() -> void:
+	var page := _page(tr("SETTINGS_HUD"))
+	_hud_page = SettingsHudPage.new()
+	page.add_child(_hud_page)
+	_hud_page.build(self)
+	_hud_page.changed.connect(_changed)
 
 
 # --- Dev ---
@@ -313,32 +314,32 @@ func _build_display() -> void:
 func _build_dev() -> void:
 	_dev_page = _page(tr("SETTINGS_DEV"))
 	var page := _dev_page as VBoxContainer
-	_help(page, "DEV_INTRO")
-	_section(page, tr("DEV_SWITCHES"))
-	_speed = _slider_row(page, "DEV_GAME_SPEED", DevCheats.SPEED_MIN * 100.0, DevCheats.SPEED_MAX * 100.0,
+	add_help(page, "DEV_INTRO")
+	add_section(page, tr("DEV_SWITCHES"))
+	_speed = add_slider_row(page, "DEV_GAME_SPEED", DevCheats.SPEED_MIN * 100.0, DevCheats.SPEED_MAX * 100.0,
 			DevSettings.SPEED_STEP * 100.0, "%d %%")
 	_speed.value_changed.connect(func(v: float) -> void:
 		settings.dev.game_speed = v / 100.0
 		_changed())
-	_help(page, "DEV_GAME_SPEED_HELP")
+	add_help(page, "DEV_GAME_SPEED_HELP")
 	for field: StringName in DEV_SWITCHES:
 		var key := "DEV_" + String(field).to_upper()
-		var check := _check_row(page, key, "SETTINGS_ON", "SETTINGS_OFF")
+		var check := add_check_row(page, key, "SETTINGS_ON", "SETTINGS_OFF")
 		check.toggled.connect(_on_dev_switch.bind(field))
 		_dev_checks[field] = check
-		_help(page, key + "_HELP")
-	_section(page, tr("DEV_ACTIONS"))
-	var end_row := _row(page, "DEV_END_ROUND")
+		add_help(page, key + "_HELP")
+	add_section(page, tr("DEV_ACTIONS"))
+	var end_row := add_row(page, "DEV_END_ROUND")
 	_end_round = Button.new()
 	_end_round.text = tr("DEV_END_ROUND_BUTTON")
 	_end_round.pressed.connect(_on_end_round)
 	end_row.add_child(_end_round)
-	_help(page, "DEV_END_ROUND_HELP")
-	var level_row := _row(page, "DEV_RESET_LEVEL")
+	add_help(page, "DEV_END_ROUND_HELP")
+	var level_row := add_row(page, "DEV_RESET_LEVEL")
 	var reset_level := Button.new()
 	reset_level.text = tr("DEV_RESET_LEVEL_BUTTON")
 	level_row.add_child(reset_level)
-	_help(page, "DEV_RESET_LEVEL_HELP")
+	add_help(page, "DEV_RESET_LEVEL_HELP")
 	_confirm_level = ConfirmationDialog.new()
 	_confirm_level.title = tr("DEV_RESET_LEVEL_TITLE")
 	_confirm_level.dialog_text = tr("DEV_RESET_LEVEL_QUESTION")
@@ -346,11 +347,11 @@ func _build_dev() -> void:
 	_confirm_level.confirmed.connect(_on_reset_level)
 	add_child(_confirm_level)
 	reset_level.pressed.connect(_confirm_level.popup_centered)
-	var reset_row := _row(page, "DEV_RESET_SAVE")
+	var reset_row := add_row(page, "DEV_RESET_SAVE")
 	var reset := Button.new()
 	reset.text = tr("DEV_RESET_SAVE_BUTTON")
 	reset_row.add_child(reset)
-	_help(page, "DEV_RESET_SAVE_HELP")
+	add_help(page, "DEV_RESET_SAVE_HELP")
 	_confirm_reset = ConfirmationDialog.new()
 	_confirm_reset.title = tr("DEV_RESET_SAVE_TITLE")
 	_confirm_reset.dialog_text = tr("DEV_RESET_SAVE_QUESTION")
@@ -409,26 +410,26 @@ func _applied(apply: Callable, immediate: bool = false) -> void:
 func _refresh() -> void:
 	_load_message.text = settings.load_message
 	_load_message.visible = not settings.load_message.is_empty()
-	_set_slider(_sensitivity, settings.sensitivity)
-	_set_slider(_aim_sensitivity, settings.aim_sensitivity)
+	set_slider(_sensitivity, settings.sensitivity)
+	set_slider(_aim_sensitivity, settings.aim_sensitivity)
 	_dpi.set_value_no_signal(settings.mouse_dpi)
 	_show_cm()
-	_set_check(_invert, settings.invert_y)
-	_set_check(_crouch, settings.crouch_toggle)
-	_set_check(_aim, settings.aim_toggle)
+	set_check(_invert, settings.invert_y)
+	set_check(_crouch, settings.crouch_toggle)
+	set_check(_aim, settings.aim_toggle)
 	_keys.refresh()
 	for bus: StringName in Settings.VOLUME_BUSES:
-		_set_slider(_volume[bus], settings.volumes[bus] * 100.0)
+		set_slider(_volume[bus], settings.volumes[bus] * 100.0)
 	_window.select(settings.window_mode)
-	_set_check(_vsync, settings.vsync)
-	_set_slider(_fov, settings.fov)
-	_set_check(_fps, settings.show_fps)
-	_what_got_you.select(settings.what_got_you)
+	set_check(_vsync, settings.vsync)
+	set_slider(_fov, settings.fov)
+	set_check(_fps, settings.show_fps)
+	_hud_page.refresh()
 	_dev_box.set_pressed_no_signal(settings.dev_enabled)
 	_show_dev_tab()
-	_set_slider(_speed, settings.dev.game_speed * 100.0)
+	set_slider(_speed, settings.dev.game_speed * 100.0)
 	for field: StringName in DEV_SWITCHES:
-		_set_check(_dev_checks[field], settings.dev.get(field) as bool)
+		set_check(_dev_checks[field], settings.dev.get(field) as bool)
 	_end_round.disabled = not end_round.is_valid()
 
 
@@ -447,7 +448,7 @@ func _page(title: String) -> VBoxContainer:
 	return page
 
 
-func _section(page: Control, text: String) -> void:
+func add_section(page: Control, text: String) -> void:
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0.0, SECTION_GAP)
 	page.add_child(gap)
@@ -459,19 +460,21 @@ func _section(page: Control, text: String) -> void:
 	page.add_child(label)
 
 
-func _row(page: Control, label_key: String) -> HBoxContainer:
+## A row under `page` with its label (`label_key` translated, `width` px wide) first.
+func add_row(page: Control, label_key: String, width: float = ROW_LABEL_WIDTH) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	var label := Label.new()
 	label.text = tr(label_key)
-	label.custom_minimum_size = Vector2(ROW_LABEL_WIDTH, 0.0)
+	label.custom_minimum_size = Vector2(width, 0.0)
 	row.add_child(label)
 	page.add_child(row)
 	return row
 
 
 ## A label, a slider and its figure; `fmt` shows the value.
-func _slider_row(page: Control, label_key: String, lo: float, hi: float, step: float, fmt: String) -> HSlider:
-	var row := _row(page, label_key)
+func add_slider_row(page: Control, label_key: String, lo: float, hi: float, step: float, fmt: String,
+		width: float = ROW_LABEL_WIDTH) -> HSlider:
+	var row := add_row(page, label_key, width)
 	var slider := HSlider.new()
 	slider.min_value = lo
 	slider.max_value = hi
@@ -493,13 +496,13 @@ func _show_readout(v: float, slider: HSlider) -> void:
 
 
 ## Moves a slider without sending a change, and its figure with it.
-func _set_slider(slider: HSlider, v: float) -> void:
+func set_slider(slider: HSlider, v: float) -> void:
 	slider.set_value_no_signal(v)
 	_show_readout(slider.value, slider)
 
 
 func _spin_row(page: Control, label_key: String, lo: float, hi: float, step: float) -> SpinBox:
-	var row := _row(page, label_key)
+	var row := add_row(page, label_key)
 	var spin := SpinBox.new()
 	spin.min_value = lo
 	spin.max_value = hi
@@ -510,7 +513,7 @@ func _spin_row(page: Control, label_key: String, lo: float, hi: float, step: flo
 
 
 ## A help line under a row, wrapped and in a quieter colour.
-func _help(page: Control, key: String) -> void:
+func add_help(page: Control, key: String) -> void:
 	var help := Label.new()
 	help.text = tr(key)
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -520,8 +523,9 @@ func _help(page: Control, key: String) -> void:
 
 
 ## A label and a switch whose text says its state (`on_key` or `off_key`).
-func _check_row(page: Control, label_key: String, on_key: String, off_key: String) -> CheckButton:
-	var row := _row(page, label_key)
+func add_check_row(page: Control, label_key: String, on_key: String, off_key: String,
+		width: float = ROW_LABEL_WIDTH) -> CheckButton:
+	var row := add_row(page, label_key, width)
 	var check := CheckButton.new()
 	check.set_meta(&"on", tr(on_key))
 	check.set_meta(&"off", tr(off_key))
@@ -536,6 +540,6 @@ func _show_check(on: bool, check: CheckButton) -> void:
 
 
 ## Moves a switch without sending a change, and its text with it.
-func _set_check(check: CheckButton, on: bool) -> void:
+func set_check(check: CheckButton, on: bool) -> void:
 	check.set_pressed_no_signal(on)
 	_show_check(on, check)

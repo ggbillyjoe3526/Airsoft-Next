@@ -89,7 +89,6 @@ var _team_font: Font = null
 var _heading_font: Font = null
 var _sub_font: Font = null
 var _chip_font: Font = null
-var _backing := Color.BLACK
 var _chip_word := ""
 var _player_word := ""
 
@@ -119,7 +118,6 @@ func setup(player_width: float, columns: PackedStringArray, widths: PackedFloat3
 	_heading_font = GameTheme.spaced_font(800, HudStyle.SPACING_SUB, HEADING_SIZE)
 	_sub_font = GameTheme.spaced_font(700, HudStyle.SPACING_ROUND, HEADING_SUB_SIZE)
 	_chip_font = GameTheme.spaced_font(800, HudStyle.SPACING_AIM, CHIP_SIZE)
-	_backing = HudStyle.backing(HudStyle.BACKING_CLOCK)
 	_chip_word = HudStyle.caps("HUD_OUT_TAG")
 	_player_word = HudStyle.caps("HUD_COL_PLAYER")
 	custom_minimum_size.x = _width
@@ -232,7 +230,7 @@ func _lay_row(row: Row, y: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), _backing)
+	draw_rect(Rect2(Vector2.ZERO, size), HudStyle.backing_on(self, HudStyle.BACKING_CLOCK))
 	draw_rect(Rect2(0.0, 0.0, size.x, HudStyle.BANNER_RULE), GameTheme.YELLOW)
 	if _heading != "":
 		_draw_heading()
