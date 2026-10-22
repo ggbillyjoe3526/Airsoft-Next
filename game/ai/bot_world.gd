@@ -20,6 +20,11 @@ var time: float = 0.0
 var live: bool = true
 ## Seconds left in the live round (team play's late push).
 var round_clock: float = INF
+## The match's mode, and in Attack / Defend the team attacking this round (-1 in Elimination) and the pole (RoundState's,
+## read each tick).
+var mode: RoundState.Mode = RoundState.Mode.ELIMINATION
+var attackers: int = -1
+var flag: FlagState = FlagState.new()
 
 ## The field split into square sectors (BotConfig.hunt_sector_size) from (min_x, min_z): when each team last checked
 ## each one (-INF never).
@@ -66,10 +71,10 @@ func visited_at(team: int, p: Vector3) -> float:
 	return _visited[team][sector_of(p)]
 
 
-## Team play: true if `b` plays as a team, the round is live with late_push_time or less left, and fewer of its team
-## are in play than of the other.
+## Team play, in Elimination: true if `b` plays as a team, the round is live with late_push_time or less left, and
+## fewer of its team are in play than of the other.
 func pushing_late(b: Bot) -> bool:
-	if not b.skill.team_play or not live or round_clock > cfg.late_push_time:
+	if mode != RoundState.Mode.ELIMINATION or not b.skill.team_play or not live or round_clock > cfg.late_push_time:
 		return false
 	var balance := 0
 	for c in characters:

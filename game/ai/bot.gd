@@ -1,12 +1,12 @@
 class_name Bot
 extends RefCounted
-## One bot's mind as plain data (the browser game's ai/bot.ts, Elimination's part): what it has seen and heard, its aim,
-## its route, its lane and its cover. The bot's body is an ordinary Character it drives through a PlayerCommand like the
+## One bot's mind as plain data (the browser game's ai/bot.ts): what it has seen and heard, its aim, its route, its lane,
+## its cover and its part at the pole. The bot's body is an ordinary Character it drives through a PlayerCommand like the
 ## player's (docs/ARCHITECTURE.md › Contracts 2); BotBrain decides that command each tick from this.
 
-## What it is doing: walking its lane (then hunting), fighting someone in sight, in cover, or going to where someone was
-## seen or heard.
-enum Mode { ADVANCE, FIGHT, COVER, SEARCH }
+## What it is doing: walking its lane (then hunting), fighting someone in sight, in cover, going to where someone was
+## seen or heard, or in Attack / Defend at the pole (raising, pulling down or guarding it: BotFlag).
+enum Mode { ADVANCE, FIGHT, COVER, SEARCH, FLAG }
 ## In cover: down behind it, or up (over crouch cover, or leaning out round a corner) looking.
 enum CoverPhase { DOWN, PEEK }
 ## Its route: none, asked for (the controller plans one a tick), walking one, or none to be had.
@@ -153,6 +153,13 @@ var at_post: bool = false
 ## Pushing in: whether a step forward keeps the target in sight, looked at once a sidestep or for a new target.
 var push_in_sight: bool = false
 var push_look_for: int = -1
+## Attack / Defend (BotFlag): its lane swept (an attacker goes for the pole), picked to pull the flag down (a defender)
+## or to raise it (an attacker; the others guard), and in flag mode the spot it makes for and whether it guards there.
+var lane_done: bool = false
+var retake: bool = false
+var raiser: bool = false
+var flag_goal: Vector3 = Vector3.ZERO
+var flag_guard: bool = false
 
 
 func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: int) -> void:
@@ -231,6 +238,10 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	trade_tried = false
 	at_post = false
 	push_look_for = -1
+	lane_done = false
+	retake = false
+	raiser = false
+	flag_guard = false
 
 
 func forget_target() -> void:

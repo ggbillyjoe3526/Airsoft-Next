@@ -118,3 +118,25 @@ func test_markdown_formats_open_bands_and_ties_keep_figure_order() -> void:
 	assert_string_contains(text, "only maps matching `dep`")
 	assert_eq(BalanceReport.format_band(BalanceReport.share("t", 1, 10, -INF, 0.1, "")), "≤ 10 %")
 	assert_eq(BalanceReport.format_band(BalanceReport.share("t", 1, 10, 0.2, INF, "")), "≥ 20 %")
+
+
+func test_flag_figures_count_the_attackers_rounds_the_clock_and_captures_with_each_band() -> void:
+	var m := MatchRunner.MatchTally.new()
+	for spec: Array in [[0, 0, GameEvent.RoundEnd.CAPTURED], [0, 1, GameEvent.RoundEnd.ELIMINATED],
+			[1, 1, GameEvent.RoundEnd.ELIMINATED], [0, 1, GameEvent.RoundEnd.TIME], [-1, 0, GameEvent.RoundEnd.ELIMINATED]]:
+		var r := _round(spec[0] as int, 0, spec[2] as int, -1.0, -1.0)
+		r.attackers = spec[1]
+		m.rounds.append(r)
+	var matches: Array[MatchRunner.MatchTally] = [m]
+	var f := BalanceReport.flag_figures("depot", "Depot", matches)
+	assert_eq(f.size(), 3)
+	assert_almost_eq(f[0].value, 2.0 / 5.0, 1e-6, "the attackers won two of five (a draw is nobody's)")
+	assert_eq(Vector2(f[0].band_min, f[0].band_max), BalanceReport.ATTACK_NORMAL_BANDS["depot"])
+	assert_almost_eq(f[1].value, 1.0 / 5.0, 1e-6, "one ran out the clock")
+	assert_almost_eq(f[2].value, 1.0 / 5.0, 1e-6, "one won by raising the flag")
+	assert_eq(BalanceReport.judge(f[2]), BalanceReport.Verdict.MEASURED)
+	var neon := BalanceReport.flag_figures("neonHeights", "Neon Heights", matches)
+	assert_eq(Vector2(neon[0].band_min, neon[0].band_max), BalanceReport.ATTACK_NORMAL_BAND)
+	var pro := BalanceReport.flag_figures("depot", "Depot", matches, &"pro")
+	assert_eq(Vector2(pro[0].band_min, pro[0].band_max), BalanceReport.ATTACK_BANDS[&"pro"])
+	assert_string_contains(pro[0].label, "Attack / Defend, Pro")

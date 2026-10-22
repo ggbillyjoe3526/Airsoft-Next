@@ -1,8 +1,10 @@
 class_name RoundPlanner
-## Each round's plan per team (the browser game's ai/roundPlanner.ts and teamPlan.ts, Elimination's part): where each
-## team starts and which way its enemy is, the team plan (split over the lanes, a pair on one, or all stacked on one) and
-## the lane each bot walks, bots on a shared lane setting off a moment apart. Between plans it answers where a bot stands
-## (ahead of its team?) and picks hunt spots from the team's memory. Its own seeded stream, apart from each bot's.
+## Each round's plan per team (the browser game's ai/roundPlanner.ts and teamPlan.ts): where each team starts and which
+## way its enemy is, the team plan (split over the lanes, a pair on one, or all stacked on one) and the lane each bot
+## walks, bots on a shared lane setting off a moment apart; in Attack / Defend the attackers walk theirs to the middle
+## (then make for the pole) and the defenders only to their first or second point, where they hold. Between plans it
+## answers where a bot stands (ahead of its team?) and picks hunt spots from the team's memory. Its own seeded stream,
+## apart from each bot's.
 
 enum Plan { SPLIT, PAIR, STACK }
 
@@ -33,12 +35,18 @@ func plan(w: BotWorld) -> void:
 	_measure_ends(w.characters)
 	var cfg := w.cfg
 	var lane_count := w.lanes.size()
+	var flag := w.mode == RoundState.Mode.ATTACK_DEFEND and w.attackers >= 0
 	for team in 2:
 		_members.clear()
 		for b in w.bots:
 			if b.character.team == team:
 				_members.append(b)
+		var defending := flag and team != w.attackers
+		var attacking := flag and team == w.attackers
 		var p := _pick_plan(cfg)
+		# Three bots holding one lane point would stand in a heap.
+		if defending and p == Plan.STACK:
+			p = Plan.PAIR
 		# With fewer than three bots (the player makes up the team) a pair would be a stack: split instead.
 		if p == Plan.PAIR and _members.size() < 3:
 			p = Plan.SPLIT
@@ -51,7 +59,9 @@ func plan(w: BotWorld) -> void:
 				var slot := 0 if p == Plan.STACK else ((0 if i < 2 else i - 1) if p == Plan.PAIR else i)
 				lane = _order[slot % lane_count]
 			_dealt[i] = lane
-		_take_own_lanes(w.lanes)
+		# Not on defence: defenders hold the points they were dealt.
+		if not defending:
+			_take_own_lanes(w.lanes)
 		for i in _members.size():
 			var b := _members[i]
 			var lane := _dealt[i]
@@ -63,9 +73,17 @@ func plan(w: BotWorld) -> void:
 			for k in ahead:
 				hold += b.pick(cfg.lane_follow_delay)
 			var points := w.lanes[lane].size() if lane >= 0 else 0
-			# An anchor (bots.md › Holds until) walks its lane only to the last point short of the middle, and holds
-			# there (BotPersonality.anchor_holding).
-			if b.style.holds and points > 0:
+			if points > 0 and defending:
+				# The first on a lane, or anyone sharing one with team play, holds its second point (a defender alone on
+				# its lane only sometimes, defend_forward_chance); the others hold the first.
+				var shared := _dealt.count(lane) > 1
+				var forward := ahead == 0 and (shared or _rng.randf() < cfg.defend_forward_chance)
+				points = mini(points, 2 if forward or (shared and b.skill.team_play) else 1)
+			elif points > 0 and attacking:
+				points = _points_to_middle(w.lanes[lane], team, b.character.end)
+			elif points > 0 and b.style.holds and w.mode == RoundState.Mode.ELIMINATION:
+				# An anchor (bots.md › Holds until) walks its lane only to the last point short of the middle, and holds
+				# there (BotPersonality.anchor_holding).
 				points = maxi(1, _points_to_middle(w.lanes[lane], team, b.character.end) - 1)
 			b.reset(lane, points, hold, cfg)
 
@@ -76,8 +94,8 @@ func ahead_of_team(b: Bot, w: BotWorld) -> bool:
 	var rear := INF
 	for o in w.bots:
 		var c := o.character
-		# An anchor holds short of the middle: nobody waits for it.
-		if c == me or c.team != me.team or not Elimination.is_in_play(c) or BotPersonality.anchor_holding(o, w):
+		# An anchor holds short of the middle, a defender at its post: nobody waits for them.
+		if c == me or c.team != me.team or not Elimination.is_in_play(c) or BotFlag.holds_post(o, w):
 			continue
 		rear = minf(rear, _progress(c))
 	return _progress(me) - rear > w.cfg.team_spread

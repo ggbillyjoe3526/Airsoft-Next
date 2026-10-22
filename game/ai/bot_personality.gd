@@ -34,11 +34,12 @@ static func pushes_in(b: Bot) -> bool:
 	return b.style.pushes_in
 
 
-## An anchor holding (bots.md › Holds until): on its lane, not hunting, while the round clock is above the personality's
-## mark and a teammate is still in play. It stops at the last lane point short of the middle (RoundPlanner.plan) and
-## holds there; once it hunts (the late push, or its mark passed) it goes on from where it stands.
+## An anchor holding (bots.md › Holds until), in Elimination: on its lane, not hunting, while the round clock is above
+## the personality's mark and a teammate is still in play. It stops at the last lane point short of the middle
+## (RoundPlanner.plan) and holds there; once it hunts (the late push, or its mark passed) it goes on from where it
+## stands.
 static func anchor_holding(b: Bot, w: BotWorld) -> bool:
-	if not b.style.holds or b.hunting or w.round_clock <= b.style.hold_until:
+	if w.mode != RoundState.Mode.ELIMINATION or not b.style.holds or b.hunting or w.round_clock <= b.style.hold_until:
 		return false
 	var me := b.character
 	for c in w.characters:

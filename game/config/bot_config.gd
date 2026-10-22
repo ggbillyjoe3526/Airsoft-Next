@@ -1,9 +1,9 @@
 class_name BotConfig
 extends Resource
 ## How the bots play, shared by every difficulty (the browser game's config/botsSenses.ts, botsMovement.ts and
-## botsSquad.ts, Elimination's part): what they see and hear and how soon, how they aim and fire, lanes, cover, searching
-## and hunting. How well a bot plays is its `skill`. bot_tuning.tres is the instance the game loads. Ranges are
-## Vector2(min, max), drawn from each bot's own seeded stream.
+## botsSquad.ts, Elimination and Attack / Defend): what they see and hear and how soon, how they aim and fire, lanes,
+## cover, searching, hunting and the pole. How well a bot plays is its `skill`. bot_tuning.tres is the instance the game
+## loads. Ranges are Vector2(min, max), drawn from each bot's own seeded stream.
 
 const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 
@@ -114,8 +114,8 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var sprint_when_calm_for: float = 3.0
 @export var sprint_forward: float = 0.9
 ## The holster (the browser game's botHolster.ts): a bot puts its replica away after sprinting holster_after seconds
-## without a break in its own half, nobody seen or heard for holster_calm_for seconds; it draws again at once on a threat,
-## in the enemy's half or for a reload, or holster_draw_after seconds after the sprint stops.
+## without a break in its own half, nobody seen or heard for holster_calm_for seconds; it draws again at once on a
+## threat, in the enemy's half or for a reload, or holster_draw_after seconds after the sprint stops.
 @export var holster_calm_for: float = 5.0
 @export var holster_after: float = 1.5
 @export var holster_draw_after: float = 0.5
@@ -252,6 +252,25 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## A kit whose Suits names a bot's personality weighs this many times its weight against the other kits with Suits
 ## (BotKits.weights), so the level decides how often a bot carries gear and its personality which.
 @export var kit_suit_lean: float = 3.0
+
+@export_group("Attack / Defend")
+## Defending, a bot holds the first point of its lane (nearest home), or with this chance the second; the first of
+## two on a shared lane always holds the second.
+@export var defend_forward_chance: float = 0.3
+## A defender goes after someone seen or heard within this far of the pole (m, and on the pole's floor:
+## anchor_search_rise); further off, it watches that way from its post.
+@export var defend_search_radius: float = 12.0
+## Once the flag is off the bottom, this many defending bots in play nearest the pole go to pull it down; the rest hold.
+@export var retakers: int = 2
+## The attacker raising the flag keeps the rope unless another in flag mode is this much nearer the pole (m).
+@export var raiser_switch_margin: float = 3.0
+## The raiser stands within this of the pole (m, inside the flag's reach), and counts as there within flag_arrive.
+@export var flag_stand: float = 0.8
+@export var flag_arrive: float = 0.5
+## Attackers not raising guard the pole: crouch cover within flag_guard_radius (m) of it, hidden from a point
+## flag_guard_threat_distance (m) from it towards the defenders (or where someone was last seen or heard).
+@export var flag_guard_radius: float = 6.0
+@export var flag_guard_threat_distance: float = 10.0
 
 @export_group("Hunting")
 ## Once its lane is swept a bot hunts: the field in square sectors (m), the stalest of this many random spots (each

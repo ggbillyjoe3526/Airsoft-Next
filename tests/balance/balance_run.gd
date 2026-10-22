@@ -1,9 +1,10 @@
 extends SceneTree
 ## Plays the balance report's matches and writes it (BR1): tools/balance.sh runs this headless. Every map in MAPS whose
 ## id contains the filter plays each level in the levels list against itself through MatchRunner: Normal on seeds 1 to
-## the seed count, the others on 1 to their own count; the figures and verdicts are BalanceReport's. Arguments after
-## `--`: the report's path, the commit, the seed count, then optionally a filter, the levels (comma-separated, Normal's
-## by default) and the other levels' seed count (Normal's by default).
+## the seed count, the others on 1 to their own count, in Elimination and, on a map with a pole, Attack / Defend; the
+## figures and verdicts are BalanceReport's. Arguments after `--`: the report's path, the commit, the seed count, then
+## optionally a filter, the levels (comma-separated, Normal's by default), the other levels' seed count (Normal's by
+## default) and the modes ("elimination", "flag" or both comma-separated, both by default).
 
 ## Depot, and Neon Heights while it is dev (Woodland waits for its own step; the range is not a match map).
 const MAPS: Array[String] = ["depot", "neonHeights"]
@@ -39,6 +40,9 @@ func _run() -> void:
 			return
 	var other_seeds := args[5].to_int() if args.size() > 5 and args[5].is_valid_int() else seeds
 	other_seeds = maxi(other_seeds, 1)
+	var modes := PackedStringArray(["elimination", "flag"])
+	if args.size() > 6 and args[6] != "":
+		modes = args[6].split(",", false)
 	var rows: Array[BalanceReport.Figure] = []
 	for map_id in MAPS:
 		if filter != "" and not map_id.containsn(filter):
@@ -53,17 +57,17 @@ func _run() -> void:
 		var name := runner.map.display_name if runner.map.display_name != "" else map_id
 		var by_level: Dictionary[StringName, Array] = {}
 		for level in levels:
-			var matches: Array[MatchRunner.MatchTally] = []
-			var started := Time.get_ticks_msec()
 			runner.difficulty = StringName(level)
-			for seed_value in range(1, (seeds if level == "normal" else other_seeds) + 1):
-				matches.append(runner.play(seed_value, MAX_MATCH_SECONDS))
-			by_level[StringName(level)] = matches
-			rows.append_array(BalanceReport.figures(name, BalanceReport.end_names(runner.map), matches,
-					StringName(level)))
-			rows.append_array(BalanceReport.personality_shares(name, matches, StringName(level)))
-			print("%s, %s: %d matches in %.0f s" % [name, BalanceReport.level_name(StringName(level)), matches.size(),
-					(Time.get_ticks_msec() - started) / 1000.0])
+			var count := seeds if level == "normal" else other_seeds
+			if modes.has("elimination"):
+				var matches := _play(runner, RoundState.Mode.ELIMINATION, count, name, level)
+				by_level[StringName(level)] = matches
+				rows.append_array(BalanceReport.figures(name, BalanceReport.end_names(runner.map), matches,
+						StringName(level)))
+				rows.append_array(BalanceReport.personality_shares(name, matches, StringName(level)))
+			if modes.has("flag") and runner.map.has_pole:
+				rows.append_array(BalanceReport.flag_figures(map_id, name,
+						_play(runner, RoundState.Mode.ATTACK_DEFEND, count, name, level), StringName(level)))
 		if by_level.has(&"easy") and by_level.has(&"normal"):
 			var easy: Array[MatchRunner.MatchTally] = []
 			easy.assign(by_level[&"easy"])
@@ -88,3 +92,17 @@ func _run() -> void:
 	file.store_string(BalanceReport.markdown(rows, commit, when, seeds, filter, others))
 	file.close()
 	quit()
+
+
+## Seeds 1 to `count` in `mode` on the runner's map at its level, timed in the log.
+func _play(runner: MatchRunner, mode: RoundState.Mode, count: int, name: String, level: String) \
+		-> Array[MatchRunner.MatchTally]:
+	var matches: Array[MatchRunner.MatchTally] = []
+	var started := Time.get_ticks_msec()
+	runner.mode = mode
+	for seed_value in range(1, count + 1):
+		matches.append(runner.play(seed_value, MAX_MATCH_SECONDS))
+	print("%s, %s, %s: %d matches in %.0f s" % [name, "Elimination" if mode == RoundState.Mode.ELIMINATION
+			else "Attack / Defend", BalanceReport.level_name(StringName(level)), matches.size(),
+			(Time.get_ticks_msec() - started) / 1000.0])
+	return matches

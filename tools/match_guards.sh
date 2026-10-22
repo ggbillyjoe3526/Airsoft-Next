@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# The match guards (tests/guards, MG1): whole bot matches over 16 seeds on each field, headless. A few minutes, so they
-# run as a CI job of their own and not in tools/check.sh's unit tests. Prints failures and totals.
-# Usage: tools/match_guards.sh            (GODOT=/path/to/godot to override)
+# The match guards (tests/guards, MG1 and FG2): whole bot matches over 16 seeds on each field, headless, in Elimination
+# and in Attack / Defend. Many minutes, so they run as CI jobs of their own (one a file) and not in tools/check.sh's unit
+# tests. Prints failures and totals.
+# Usage: tools/match_guards.sh [file]     (a file in tests/guards, e.g. test_flag_guards; all of them without one;
+#                                          GODOT=/path/to/godot to override)
 set -uo pipefail
 GODOT="${GODOT:-godot}"
 cd "$(dirname "$0")/.."
@@ -9,8 +11,12 @@ LOG="${GUARDS_LOG:-guards.log}"
 
 "$GODOT" --headless --path . --import > import.log 2>&1
 
-timeout 1500 "$GODOT" --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/guards -gprefix=test_ \
-  -gsuffix=.gd -gexit > "$LOG" 2>&1
+# One file stops inside its CI job's 30 minutes, so the summary below still prints; both run longer.
+select=()
+limit=2700
+if [ -n "${1:-}" ]; then select=("-gselect=$1"); limit=1500; fi
+timeout "$limit" "$GODOT" --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/guards -gprefix=test_ \
+  -gsuffix=.gd ${select[@]+"${select[@]}"} -gexit > "$LOG" 2>&1
 status=$?
 grep -E "\[Failed\]|rounds over|Passing Tests|Failing Tests" "$LOG" | head -40
 if grep -qE "SCRIPT ERROR|Parse Error" "$LOG"; then

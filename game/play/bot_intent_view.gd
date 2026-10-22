@@ -10,7 +10,7 @@ const ABOVE_EYES := 0.55
 const FONT_SIZE := 32
 const PIXEL := 0.001
 const MODE_KEYS: Array[StringName] = [&"DEV_INTENT_ADVANCE", &"DEV_INTENT_FIGHT", &"DEV_INTENT_COVER",
-		&"DEV_INTENT_SEARCH"]
+		&"DEV_INTENT_SEARCH", &"DEV_INTENT_FLAG"]
 
 var _bots: BotController = null
 var _body: BodyConfig = null

@@ -80,7 +80,7 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
     Teammates on the Match screen; concepts first, `concepts/step12-bots/`), BN1 (names and personalities).
     Adaptive difficulty moved to the end, step 31.
 13. **Attack / Defend** (browser OT1's mode; the overtime flag moved to the end, step 27). FG1 (the flag's rules),
-    FG2 (bots), FG3 (the pole, HUD and Match card; concepts first).
+    FG2 (bots), FG2b (Pro crossfires on defence), FG3 (the pole, HUD and Match card; concepts first).
 14. **Match info.** The hit feed (one feed, placeable) with teammate markers, WON, LOST or DRAW, the scoreboard on
     Tab and round stats, the end-of-match summary with records, "What got you" and Pro tips, crosshair, hit marker,
     ammo counter and HUD opacity options, and skipping the round while you are out.

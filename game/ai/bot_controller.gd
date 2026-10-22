@@ -51,10 +51,16 @@ func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	w.time = state.time
 	w.live = state.round_state.is_live()
 	w.round_clock = state.round_state.clock
+	_sync_round(state)
 	for c in state.characters:
 		if Elimination.is_in_play(c):
 			w.mark_visited(c.team, c.position)
 	_plan_one_route(state)
+	if w.mode == RoundState.Mode.ATTACK_DEFEND:
+		# Retakers matter only once the flag is off the bottom (BotFlag.wants_flag).
+		if w.flag.progress > 0.0:
+			BotFlag.pick_retakers(w)
+		BotFlag.pick_raiser(w)
 	var hold_fire := state.cheats.bots_hold_fire
 	for b in w.bots:
 		var cmd := commands[b.character.id]
@@ -89,8 +95,17 @@ func observe(state: GameState) -> void:
 
 func _new_round(state: GameState) -> void:
 	world.time = state.time
+	_sync_round(state)
 	world.clear_sectors()
 	world.planner.plan(world)
+
+
+## The round's mode, attacking team and flag, from the sim's round state (the flag is the round state's own, read only).
+func _sync_round(state: GameState) -> void:
+	var rs := state.round_state
+	world.mode = rs.mode
+	world.attackers = rs.attackers
+	world.flag = rs.flag
 
 
 ## Plans the route of the next bot that wants one (round-robin), unless a walk-off route is waiting: the walk-off shares

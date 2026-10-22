@@ -5,20 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## FG2 · Bots play Attack / Defend
-tier: core
-perf: required
-touches: game/ai/, game/config/bot_config.gd, tests/support/match_runner.gd, tests/guards/, tests/balance/, tests/unit/
-contract: Data, not literals (6)
-acceptance:
-  1. Attackers' lanes end at the pole and they work the rope, covering whoever is on it; defenders hold round the pole
-     and go to pull it down when it moves (the browser game's roundPlanner.ts and bot.ts flag cases).
-  2. Personalities play the mode as in the browser game (an anchor holds by the pole on defence).
-  3. The match guards and the balance report run Attack / Defend on Depot and Neon Heights too: every match won, few
-     rounds on time, no held-up bots, and the share of rounds won by attackers reported per field and level.
-status: open
-attempts: 0
-
 ## FG3 · Attack / Defend in play
 tier: ui
 perf: optional
@@ -32,6 +18,19 @@ acceptance:
   3. Attack / Defend is picked on the Match screen like Elimination, only on a map with a pole (MapData.has_pole),
      follows the team pick for who attacks first, and counts for XP and the records as Elimination does. The HUD
      clamps overtime (End the round now leaves RoundState.overtime at INF; FG1 record).
+status: open
+attempts: 0
+
+## FG2b · Pro crossfires on defence
+tier: core
+perf: required
+touches: game/ai/bot_movement.gd, game/ai/round_planner.gd, game/config/bot_config.gd, tests/unit/
+contract: Data, not literals (6)
+acceptance:
+  1. Defenders that play as a team (Pro) sharing a lane hold its point in a crossfire: the second turns off to a spot
+     that sees the same way in from another angle, or else stands a little behind the first; neither steps into hold
+     cover (the browser game's botMovement.ts crossfireSpot, lane_hold_offset).
+  2. The Attack / Defend guards and the balance report's Pro figures stay where FG2 left them, or better.
 status: open
 attempts: 0
 
