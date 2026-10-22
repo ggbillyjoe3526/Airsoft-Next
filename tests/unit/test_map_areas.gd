@@ -154,6 +154,7 @@ func test_neon_heights_names_one_spot_by_its_storey() -> void:
 func test_every_walkable_cell_of_depot_lies_in_an_area_and_every_area_holds_one() -> void:
 	var m := maps["depot"]
 	var unnamed: Array[String] = []
+	var unnamed_count := 0
 	var used: Dictionary[String, bool] = {}
 	var walkable := 0
 	for k in depot_nav.node_count():
@@ -163,13 +164,17 @@ func test_every_walkable_cell_of_depot_lies_in_an_area_and_every_area_holds_one(
 		var p := depot_nav.node_position(k)
 		var area := MapAreas.area_at(m.areas, p)
 		if area.is_empty():
+			unnamed_count += 1
 			if unnamed.size() < LISTED:
 				unnamed.append("(%.1f, %.1f, %.1f)" % [p.x, p.y, p.z])
 		else:
 			used[area] = true
 	assert_gt(walkable, 0, "Depot has walkable cells")
-	assert_eq(unnamed, [] as Array[String], "walkable cells in no area")
-	assert_eq(used.size(), m.areas.size(), "areas nobody can stand in: %s" % str(_unused(m.areas, used)))
+	assert_eq(unnamed, [] as Array[String], "%d walkable cells in no area" % unnamed_count)
+	var names: Dictionary[String, bool] = {}
+	for a in m.areas:
+		names[a.name] = true # two boxes may share a name (Neon Heights' Walkway)
+	assert_eq(used.size(), names.size(), "areas nobody can stand in: %s" % str(_unused(m.areas, used)))
 
 
 static func _unused(areas: Array[MapAreas.Area], used: Dictionary[String, bool]) -> Array[String]:

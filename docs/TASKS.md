@@ -74,29 +74,6 @@ acceptance:
 status: open
 attempts: 0
 
-## MM1 · Named areas and the minimap's numbers
-tier: core
-perf: required
-touches: game/map/map_data.gd, game/map/map_areas.gd, game/map/README.md, game/config/minimap_config.gd,
-  game/config/play_tuning.gd, game/config/play_tuning.tres, game/config/README.md, tests/unit/
-contract: Data, not literals (6); Headless (9)
-acceptance:
-  1. MapData reads `areas` (name, box [x0, x1, z0, z1], optional floor band [from, to)) and `storeys`; a malformed
-     area (empty name, over 14 characters, a box or band the wrong way round) is left out with a warning naming it,
-     never a refusal of the map. Depot, Woodland and Neon Heights load 15, 14 and 25 areas; the range none.
-  2. MapAreas.area_at(areas, position) as the browser's areaAt: the first area holding the point wins, a box holds from
-     its low edge to just short of its high edge, a band is [from, to), '' outside every area and with none; it
-     allocates nothing. The browser's areas tests pass in GUT, plus spots on Depot (the Dock, the Crate yard) and on
-     Neon Heights by storey.
-  3. Every walkable cell of Depot's nav grid lies in an area (the browser's map.areas rule; the other fields at
-     step 24); a test names any cell that doesn't.
-  4. MinimapConfig (in play_tuning.tres) holds the browser's MINIMAP numbers: size, caption room, pin steps, view
-     radius, layer scale, hearing reaches (steps 22 m, shots 60 m), patch life and fade, blur shares, minimum and
-     maximum, pad, rim patch, low cover top, floor contact, raised floor, storey pick and cut, and the drawing's
-     colours; each documented.
-status: open
-attempts: 0
-
 ## MM2 · What your side heard: the enemy patches
 tier: core
 perf: required
