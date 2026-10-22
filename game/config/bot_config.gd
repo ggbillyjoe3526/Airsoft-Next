@@ -2,8 +2,8 @@ class_name BotConfig
 extends Resource
 ## How the bots play, shared by every difficulty (the browser game's config/botsSenses.ts, botsMovement.ts and
 ## botsSquad.ts, Elimination and Attack / Defend): what they see and hear and how soon, how they aim and fire, lanes,
-## cover, searching, hunting and the pole. How well a bot plays is its `skill`. bot_tuning.tres is the instance the game loads. Ranges are
-## Vector2(min, max), drawn from each bot's own seeded stream.
+## cover, searching, hunting and the pole. How well a bot plays is its `skill`. bot_tuning.tres is the instance the game
+## loads. Ranges are Vector2(min, max), drawn from each bot's own seeded stream.
 
 const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 
@@ -114,8 +114,8 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var sprint_when_calm_for: float = 3.0
 @export var sprint_forward: float = 0.9
 ## The holster (the browser game's botHolster.ts): a bot puts its replica away after sprinting holster_after seconds
-## without a break in its own half, nobody seen or heard for holster_calm_for seconds; it draws again at once on a threat,
-## in the enemy's half or for a reload, or holster_draw_after seconds after the sprint stops.
+## without a break in its own half, nobody seen or heard for holster_calm_for seconds; it draws again at once on a
+## threat, in the enemy's half or for a reload, or holster_draw_after seconds after the sprint stops.
 @export var holster_calm_for: float = 5.0
 @export var holster_after: float = 1.5
 @export var holster_draw_after: float = 0.5

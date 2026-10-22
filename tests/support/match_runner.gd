@@ -1,15 +1,16 @@
 class_name MatchRunner
 extends RefCounted
-## Whole matches of bots against bots (Elimination, or Attack / Defend on a map with a pole), headless and as fast as the machine allows: the map's level built
-## once (its Jolt colliders, so it must be in the tree), then each match stepped tick by tick with no rendering and no
-## waiting for frames. Each match comes back as a MatchTally of what the guards (tests/guards/) and the balance report
-## (BR1) read. Test-only (tests/ never ships).
+## Whole matches of bots against bots (Elimination, or Attack / Defend on a map with a pole), headless and as fast as
+## the machine allows: the map's level built once (its Jolt colliders, so it must be in the tree), then each match
+## stepped tick by tick with no rendering and no waiting for frames. Each match comes back as a MatchTally of what the
+## guards (tests/guards/) and the balance report (BR1) read. Test-only (tests/ never ships).
 
 const DT := 1.0 / 60.0
 const TICKS_PER_SECOND := 60
 ## Held up: a bot that has been walking its lane, hunting or making for the pole (Bot.Mode ADVANCE, SEARCH or FLAG) at
 ## every sample of the last HELD_UP_SECONDS (once a second) and is back within HELD_UP_DISTANCE (m) of where it was
-## then, frozen or going round in a loop, counts one episode until it moves on. A fight or a hold on purpose in between is not held up.
+## then, frozen or going round in a loop, counts one episode until it moves on. A fight or a hold on purpose in between
+## is not held up.
 const HELD_UP_SECONDS := 10
 const HELD_UP_DISTANCE := 0.5
 ## A character that ends a round in play without ever getting this far from its spawn (m) stayed home that round.
@@ -96,8 +97,8 @@ class MatchTally:
 
 
 var tuning: SimTuning = null
-## Every bot, on both teams, picks a kit from data/bot-kits.md at its team's difficulty (the same weights for both at one
-## level, so the map's ends stay comparable); off, they all carry their replicas as they come.
+## Every bot, on both teams, picks a kit from data/bot-kits.md at its team's difficulty (the same weights for both at
+## one level, so the map's ends stay comparable); off, they all carry their replicas as they come.
 var kitted: bool = true
 ## Both teams' level (MatchOptions.BOT_LEVELS), or team 0's when `beta_difficulty` is set: a ladder match, one level
 ## against another.

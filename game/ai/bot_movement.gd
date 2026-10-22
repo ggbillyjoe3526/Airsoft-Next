@@ -2,10 +2,10 @@ class_name BotMovement
 ## Where a bot walks (the browser game's ai/botMovement.ts): its lane point by point with a pause at each (crouched
 ## where that still sees ahead, or from crouch cover close by), waiting for a team that falls behind, then hunting the
 ## stalest spot its team hasn't checked (in Attack / Defend, a defender holds its last point and an attacker makes for
-## the pole); at the pole, raising or pulling down the flag, or guarding it from cover; to where someone was seen or heard
-## (round by a flank first, sometimes) and a look round there; into cover and onto a lean spot; sidestepping in a fight
-## without stepping off a floor, into a wall or out of sight of its target; and keeping apart from everyone else. Writes
-## the way to walk into Bot.move_dir. Allocates nothing.
+## the pole); at the pole, raising or pulling down the flag, or guarding it from cover; to where someone was seen or
+## heard (round by a flank first, sometimes) and a look round there; into cover and onto a lean spot; sidestepping in a
+## fight without stepping off a floor, into a wall or out of sight of its target; and keeping apart from everyone else.
+## Writes the way to walk into Bot.move_dir. Allocates nothing.
 
 ## The two steps of an R2 sequence: a bot's glances spread evenly over its view, with no dice.
 const GLANCE_ACROSS := 0.7548776662466927
@@ -52,8 +52,8 @@ static func _guards_flag(b: Bot, w: BotWorld) -> bool:
 	return BotFlag.role(b, w) == BotFlag.Role.ATTACK and not b.raiser
 
 
-## The raiser (and a defender pulling the flag down) stands at a random spot within flag_stand of the pole; a guard takes
-## crouch cover within flag_guard_radius of it, hidden from where an enemy was last known (or from a point
+## The raiser (and a defender pulling the flag down) stands at a random spot within flag_stand of the pole; a guard
+## takes crouch cover within flag_guard_radius of it, hidden from where an enemy was last known (or from a point
 ## flag_guard_threat_distance towards the defenders' side), or failing that a random spot that far out.
 static func _pick_flag_spot(b: Bot, w: BotWorld) -> void:
 	var cfg := w.cfg
@@ -343,9 +343,9 @@ static func _on_same_floor(w: BotWorld, point: Vector3, x: float, z: float) -> b
 	return w.nav.is_walkable_at(at) and absf(w.nav.floor_at(at) - point.y) <= w.tuning.body.max_step
 
 
-## A defender or an anchor at its last lane point: just come to it, it may step into crouch cover by it (as at any lane point) and
-## hold from there; else it holds where it stands, crouched if crouched eyes still see the enemy side (chosen once, on
-## arrival: `at_post`, it was here last tick too).
+## A defender or an anchor at its last lane point: just come to it, it may step into crouch cover by it (as at any lane
+## point) and hold from there; else it holds where it stands, crouched if crouched eyes still see the enemy side (chosen
+## once, on arrival: `at_post`, it was here last tick too).
 static func _hold_post(b: Bot, w: BotWorld, dt: float, arrived: bool, at_post: bool) -> void:
 	if arrived:
 		# The route walked is done with, so it isn't "arrived" again next tick: one look per arrival.

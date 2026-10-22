@@ -101,7 +101,8 @@ static func step_onto(b: Bot, w: BotWorld, spot: Vector3, cmd: PlayerCommand, dt
 
 
 ## Where `b`'s teammates stand or are heading for cover, for a cover search to keep off: every teammate in play (the
-## player too), and the cover, hold or flag spot each teammate bot is making for. Returns the count; the spots are taken().
+## player too), and the cover, hold or flag spot each teammate bot is making for. Returns the count; the spots are
+## taken().
 static func teammate_spots(b: Bot, w: BotWorld) -> int:
 	var me := b.character
 	var n := 0
