@@ -4,7 +4,7 @@ extends Control
 ## line, then each team's block (its score in a team-coloured square, its name, a note on the right) over a header row
 ## and one row per player. The first column is the player: their name ("You" for you), the teammate chevron, and an OUT
 ## chip with a raised hand once they are out this round (the row dimmed). Your row is tinted with a yellow bar. Laid
-## out once each time it is filled (fill_* calls between begin and finish); _draw allocates nothing.
+## out once each time it is filled (add_* calls between begin and finish); _draw allocates nothing.
 
 const PAD := Vector2(16.0, 14.0)
 const TITLE_SIZE := 14

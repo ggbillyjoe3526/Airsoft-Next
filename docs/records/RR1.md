@@ -1,12 +1,12 @@
 # RR1 · Round result and the round's table
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-22 | 1 | Opus (build thread) | pass | | |
+| 2026-10-22 | 1 | Opus (build thread) | pass | 8/8 accept | QA failed first on three stale banner tests and the table running on real time (Dev game speed); fixed before the critic |
 
 ## Decisions
 
@@ -23,3 +23,7 @@
   more, or until a click. "Click for the results" opens the match summary once SM1 builds it; until then it shows the
   XP card.
 - `MatchStats.Stats.hit_by` keeps who hit each player last (round and match).
+- **QA (Fail, then Pass; 11 scratch tests)** and **performance (Pass: +3 nodes, nothing per frame once the table has
+  slid in).** The table and its hold run on simulation time like the wait between rounds, so Dev game speed and a pause
+  move both alike. The critic accepted the match banner on the last round (the bigger news, in the winners' colour) and
+  asks the owner to look at it.

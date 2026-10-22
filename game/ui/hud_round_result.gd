@@ -11,8 +11,6 @@ const COLUMNS: Array[StringName] = [&"HUD_COL_HITS", &"HUD_COL_BBS", &"HUD_COL_T
 const WIDTHS: Array[float] = [70.0, 110.0, 130.0, 120.0]
 const HINT_GAP := 10
 const HINT_SIZE := 13
-## Colour for "Still in" (the concepts' good green).
-const STILL_IN := Color("5fd08a")
 const NAME_LIGHTEN := 0.3
 
 var _cfg: HudConfig = null
@@ -140,7 +138,7 @@ func _fill(state: GameState, stats: MatchStats, you: Character) -> void:
 func _add_row(c: Character, stats: MatchStats, you: Character, state: GameState) -> void:
 	var s := stats.round_of(c.id)
 	var cells := PackedStringArray([str(s.hits), str(s.bbs_fired), HudStyle.clock_text(roundi(s.time_in_play)), ""])
-	var colours: Array[Color] = [Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT, STILL_IN]
+	var colours: Array[Color] = [Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT, GameTheme.GOOD]
 	if s.hit_by < 0:
 		cells[3] = tr("HUD_STILL_IN")
 	else:
