@@ -17,10 +17,9 @@ const STILL := 0.5
 ## The spot tests' small field (m across): room enough round the origin, and quick to build.
 const SMALL := 30.0
 
-## The field's nav grids, plain and with the thin wall, built once for the file (a 100 m grid takes seconds; nothing
-## writes into one).
-static var _open_nav: NavGrid = null
-static var _walled_nav: NavGrid = null
+## The field's nav grids by whether the thin wall stands, built once for the file (a 100 m grid takes seconds; nothing
+## here changes one).
+var _navs: Dictionary[bool, NavGrid] = {}
 
 var tuning: SimTuning = SimTuning.load_default()
 var config: BotConfig = BotConfig.load_default()
@@ -69,13 +68,12 @@ static func _thin_wall() -> Array[MapData.Block]:
 
 ## The field's nav grid (with the thin wall if `thin_wall`), built once.
 func _field_nav(thin_wall: bool) -> NavGrid:
-	if thin_wall:
-		if _walled_nav == null:
-			_walled_nav = NavGrid.build(_field_map(_thin_wall()), tuning.nav, tuning.body)
-		return _walled_nav
-	if _open_nav == null:
-		_open_nav = NavGrid.build(_field_map(), tuning.nav, tuning.body)
-	return _open_nav
+	if not _navs.has(thin_wall):
+		var extra: Array[MapData.Block] = []
+		if thin_wall:
+			extra = _thin_wall()
+		_navs[thin_wall] = NavGrid.build(_field_map(extra), tuning.nav, tuning.body)
+	return _navs[thin_wall]
 
 
 ## You and two bot teammates at SPOTS on the field (with the thin wall if `thin_wall`), the opponent far off and driven
