@@ -5,6 +5,24 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
+## MI1 · Match numbers and what got you
+tier: core
+perf: required
+touches: game/progress/, game/sim/hit_facts.gd, game/ai/bot.gd, game/ai/bot_senses.gd, game/ai/bot_controller.gd,
+  game/config/bot_config.gd, game/play/play_session.gd, tests/unit/
+contract: none
+acceptance:
+  1. `MatchStats` keeps every player's hits on opponents, times hit, friendly hits, BBs fired and time in play while a
+     round is live, for the round and the match, and the rounds each player's team won with them taking part, from
+     each tick's events (the browser game's stats/matchStats.ts, its tests ported). Round 1's start begins a match.
+  2. `HitFacts`, kept by `BotController` for each hit on the player: where the BB came from and how far, whether you
+     were moving, friendly fire, and for a bot's hit whether it was holding the angle when it first saw you and how long
+     it had you in view (the browser's sim/hitFacts.ts and its tests). Nothing is allocated per tick or per hit.
+  3. `PlaySession` feeds both every tick and hands them out for step 14's screens (built after the owner approves the
+     concepts in `/mnt/project-files/concepts/step14-match-info/`). Nothing on screen changes yet.
+status: open
+attempts: 0
+
 ## FG3 · Attack / Defend in play
 tier: ui
 perf: optional

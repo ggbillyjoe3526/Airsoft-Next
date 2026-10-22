@@ -19,6 +19,8 @@ class Contact:
 	## Last seen (s), first seen in this contact, when its aim began settling, and when it may open fire.
 	var seen_at: float = -INF
 	var first_seen_at: float = -INF
+	## It was holding an angle (still at a post, its view already there) when it first saw them: "What got you".
+	var held: bool = false
 	var acquired_at: float = 0.0
 	var react_at: float = 0.0
 

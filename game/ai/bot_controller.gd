@@ -6,6 +6,10 @@ extends RefCounted
 ## just another controller: they act only through their commands (ARCHITECTURE contract 2). Pure: no nodes.
 
 var world: BotWorld = BotWorld.new()
+## The last hit on the player, for the "What got you" card (one record, reused; time -INF until the first).
+var last_hit: HitFacts = HitFacts.new()
+## The player's character id (-1: every character is a bot).
+var _player_id: int = -1
 ## Round-robin start for the route queue, so no bot waits behind another twice.
 var _next_route: int = 0
 
@@ -17,6 +21,7 @@ var _next_route: int = 0
 func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: WorldQuery, tuning: SimTuning,
 		config: BotConfig, team_levels: Dictionary[int, StringName] = {},
 		identities: Dictionary[int, BotRoster.Identity] = {}) -> void:
+	_player_id = player_id
 	var w := world
 	w.tuning = tuning
 	w.cfg = config
@@ -86,11 +91,45 @@ func name_of(character_id: int) -> String:
 	return ""
 
 
-## What the bots heard in the step just taken (or the match's start), and a fresh plan when a round has started.
+## What the bots heard in the step just taken (or the match's start), a hit on the player kept for "What got you", and
+## a fresh plan when a round has started.
 func observe(state: GameState) -> void:
 	BotHearing.observe(state, world)
+	if _player_id >= 0:
+		var events := state.events
+		for i in events.count:
+			var e := events.items[i]
+			if e.kind == GameEvent.Kind.CHARACTER_HIT and e.target == _player_id:
+				_record_hit(state, e.actor)
 	if state.events.count_of(GameEvent.Kind.ROUND_START) > 0:
 		_new_round(state)
+
+
+## Writes the hit on the player by `shooter_id` into last_hit, with what the shooting bot knew: whether it was holding
+## the angle and how long it had the player in view (from its contact). A teammate's BB or a shooter no bot drives
+## leaves both unknown.
+func _record_hit(state: GameState, shooter_id: int) -> void:
+	var victim := state.character(_player_id)
+	var shooter := state.character(shooter_id)
+	if victim == null or shooter == null:
+		return
+	var known := false
+	var held := false
+	var seen_for := -1.0
+	if shooter.team != victim.team:
+		for b in world.bots:
+			if b.character != shooter:
+				continue
+			known = true
+			var c: Bot.Contact = b.contacts[_player_id] if _player_id < b.contacts.size() else null
+			if c != null:
+				held = c.held
+				if is_finite(c.first_seen_at) and is_finite(c.seen_at):
+					# Still in view, or until the moment the bot lost sight (a BB already in flight).
+					var end := c.seen_at if state.time - c.seen_at > world.cfg.contact_grace else state.time
+					seen_for = maxf(0.0, end - c.first_seen_at)
+			break
+	last_hit.record(state.time, victim, shooter, known, held, seen_for, world.cfg.hit_moving_speed)
 
 
 func _new_round(state: GameState) -> void:

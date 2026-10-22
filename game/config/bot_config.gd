@@ -46,6 +46,9 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## An enemy BB landing this close (m) puts a bot under fire for suppression_time (s): it wants cover.
 @export var suppression_radius: float = 1.6
 @export var suppression_time: float = 0.4
+## The "What got you" card counts you as moving at a hit from this speed along the floor (m/s): a crouched creep is
+## about 1, standing still 0 (the browser game's WHAT_GOT_YOU.movingSpeed).
+@export var hit_moving_speed: float = 0.5
 
 @export_group("Aim")
 ## Seconds someone can be out of sight and still be the same contact (no new reaction delay).

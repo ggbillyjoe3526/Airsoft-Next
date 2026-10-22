@@ -27,6 +27,7 @@ character follows the hit-calling routine instead of its command. Nothing is all
 | `vault.gd`, `vault_state.gd` | Jump at a low obstacle: finding one with level rays, the path through the mover, fire held after, presses kept |
 | `armament.gd` | Magazines, the fire selector, the hop-up dial, the holster, trigger, reloads, draws, recoil and seeded spread |
 | `bb.gd`, `bb_pool.gd`, `air_model.gd`, `ballistics.gd` | BBs in flight: drag by Reynolds number through the moving air, hop-up's Magnus lift, one midpoint step a tick |
+| `hit_facts.gd` | `HitFacts`: what the "What got you" card says about a hit on you (where from, how far, moving, held angle, time in view), one record kept by `BotController` |
 | `wind.gd` | The match's breeze, drawn from its seed each match, with gusts and a slow veer |
 | `ricochet.gd` | A BB bouncing off concrete and steel; whether a bounced BB knocks anyone out is the match's rule |
 | `hitbox.gd`, `bb_step.gd` | The hit volume (head, chest, hips leaning; swinging legs) and each tick's BB flight against the level and bodies |
