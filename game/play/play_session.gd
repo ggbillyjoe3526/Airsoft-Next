@@ -847,17 +847,17 @@ func counts_for_records() -> bool:
 ## Gives the finished match's XP and adds it to the records, then saves both (once a match: a few small writes).
 func _settle() -> void:
 	var progress := Progress.shared()
-	var records := Records.shared()
+	var kept := Records.shared()
 	var mates := teammates_level() if _tuning.rounds.team_size > 1 else &""
-	var s := _tally.settle(progress, records if counts_for_records() else null, state.off_record or _kit_unlocked_all,
+	var s := _tally.settle(progress, kept if counts_for_records() else null, state.off_record or _kit_unlocked_all,
 			player_team, _tuning.rounds.wins_needed, mode, difficulty, mates, custom_rules != null)
 	if s == null:
 		return
 	progress.save_if_dirty()
-	records.save_if_dirty()
+	kept.save_if_dirty()
 	settled = s
 	_hud.show_xp(s, difficulty, progress)
-	_hud.summary().set_records(records, records.win_loss(difficulty, mode), s.news,
+	_hud.summary().set_records(kept, kept.win_loss(difficulty, mode), s.news,
 			tr("SUM_RECORDS") % [tr("BOT_" + String(difficulty).to_upper()), tr(MatchOptions.MODE_NAME[mode])])
 	match_settled.emit()
 
