@@ -16,6 +16,7 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `wind_config.gd` | The match's breeze: its speed range, gusts and veer |
 | `ricochet_config.gd` | BBs bouncing off hard surfaces: restitution by material, slide, scatter, the most bounces |
 | `round_config.gd` | Rounds: clock, score, half time, reset |
+| `range_config.gd` | The practice range's targets: plate and post sizes, a figure's time down and rise, pop-ups', movers' and swingers' timing, the range's marked distances and size (the targets' layout is `data/maps/range.json`) |
 | `flag_config.gd` | Attack / Defend's flag: reach, raise and lower times, overtime, rope steps |
 | `footstep_config.gd` | Strides and landings |
 | `nav_config.gd` | The nav grid: cell size, clearance margin, snapping, the search's greed, line sampling |

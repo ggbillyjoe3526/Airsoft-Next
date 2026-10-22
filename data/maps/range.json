@@ -204,6 +204,281 @@
   ]
  ],
  "lanes": [],
+ "targets": [
+  {
+   "kind": "steel",
+   "x": -9.25,
+   "y": 1.25,
+   "z": -10,
+   "radius": 0.2,
+   "label": "Steel",
+   "distance": 10
+  },
+  {
+   "kind": "steel",
+   "x": -8.35,
+   "y": 1.25,
+   "z": -20,
+   "radius": 0.2,
+   "label": "Steel",
+   "distance": 20
+  },
+  {
+   "kind": "steel",
+   "x": -7.45,
+   "y": 1.25,
+   "z": -30,
+   "radius": 0.2,
+   "label": "Steel",
+   "distance": 30
+  },
+  {
+   "kind": "steel",
+   "x": -6.55,
+   "y": 1.25,
+   "z": -40,
+   "radius": 0.2,
+   "label": "Steel",
+   "distance": 40
+  },
+  {
+   "kind": "steel",
+   "x": -5.65,
+   "y": 1.25,
+   "z": -50,
+   "radius": 0.2,
+   "label": "Steel",
+   "distance": 50
+  },
+  {
+   "kind": "steel",
+   "x": -4.75,
+   "y": 1.25,
+   "z": -60,
+   "radius": 0.2,
+   "label": "Steel",
+   "distance": 60
+  },
+  {
+   "kind": "figure",
+   "x": -2.25,
+   "y": 0,
+   "z": -10,
+   "label": "Figure",
+   "distance": 10
+  },
+  {
+   "kind": "figure",
+   "x": -1.35,
+   "y": 0,
+   "z": -20,
+   "label": "Figure",
+   "distance": 20
+  },
+  {
+   "kind": "figure",
+   "x": -0.45,
+   "y": 0,
+   "z": -30,
+   "label": "Figure",
+   "distance": 30
+  },
+  {
+   "kind": "figure",
+   "x": 0.45,
+   "y": 0,
+   "z": -40,
+   "label": "Figure",
+   "distance": 40
+  },
+  {
+   "kind": "figure",
+   "x": 1.35,
+   "y": 0,
+   "z": -50,
+   "label": "Figure",
+   "distance": 50
+  },
+  {
+   "kind": "figure",
+   "x": 2.25,
+   "y": 0,
+   "z": -60,
+   "label": "Figure",
+   "distance": 60
+  },
+  {
+   "kind": "figure",
+   "x": 4.75,
+   "y": 0,
+   "z": -10,
+   "crouched": true,
+   "label": "Crouched figure",
+   "distance": 10
+  },
+  {
+   "kind": "figure",
+   "x": 5.65,
+   "y": 0,
+   "z": -20,
+   "crouched": true,
+   "label": "Crouched figure",
+   "distance": 20
+  },
+  {
+   "kind": "figure",
+   "x": 6.55,
+   "y": 0,
+   "z": -30,
+   "crouched": true,
+   "label": "Crouched figure",
+   "distance": 30
+  },
+  {
+   "kind": "figure",
+   "x": 7.45,
+   "y": 0,
+   "z": -40,
+   "crouched": true,
+   "label": "Crouched figure",
+   "distance": 40
+  },
+  {
+   "kind": "figure",
+   "x": 8.35,
+   "y": 0,
+   "z": -50,
+   "crouched": true,
+   "label": "Crouched figure",
+   "distance": 50
+  },
+  {
+   "kind": "figure",
+   "x": 9.25,
+   "y": 0,
+   "z": -60,
+   "crouched": true,
+   "label": "Crouched figure",
+   "distance": 60
+  },
+  {
+   "kind": "figure",
+   "motion": "mover",
+   "x": -7.8,
+   "y": 0.12,
+   "z": -12,
+   "track": 1.6,
+   "speed": 1.4,
+   "phase": 0,
+   "label": "Mover",
+   "distance": 12
+  },
+  {
+   "kind": "figure",
+   "motion": "mover",
+   "x": 3.9,
+   "y": 0.12,
+   "z": -40,
+   "track": 1.6,
+   "speed": 1.8,
+   "phase": 1.3,
+   "label": "Mover",
+   "distance": 40
+  },
+  {
+   "kind": "steel",
+   "motion": "swinger",
+   "x": -6.75,
+   "y": 1.25,
+   "z": -20,
+   "radius": 0.2,
+   "label": "Swinger",
+   "distance": 20
+  },
+  {
+   "kind": "steel",
+   "x": 7.4,
+   "y": 1.25,
+   "z": -15,
+   "radius": 0.1,
+   "label": "Small steel",
+   "distance": 15
+  },
+  {
+   "kind": "steel",
+   "x": 8.2,
+   "y": 1.25,
+   "z": -15,
+   "radius": 0.1,
+   "label": "Small steel",
+   "distance": 15
+  },
+  {
+   "kind": "steel",
+   "x": 9,
+   "y": 1.25,
+   "z": -15,
+   "radius": 0.1,
+   "label": "Small steel",
+   "distance": 15
+  },
+  {
+   "kind": "steel",
+   "x": 9.8,
+   "y": 1.25,
+   "z": -15,
+   "radius": 0.1,
+   "label": "Small steel",
+   "distance": 15
+  },
+  {
+   "kind": "figure",
+   "motion": "popup",
+   "x": -7.6,
+   "y": 0,
+   "z": -6,
+   "label": "Pop-up",
+   "distance": 6
+  },
+  {
+   "kind": "figure",
+   "motion": "popup",
+   "x": 7,
+   "y": 0,
+   "z": -6,
+   "label": "Pop-up",
+   "distance": 6
+  },
+  {
+   "kind": "figure",
+   "motion": "popup",
+   "x": 4.94,
+   "y": 0,
+   "z": -15,
+   "label": "Pop-up",
+   "distance": 15
+  },
+  {
+   "kind": "figure",
+   "motion": "popup",
+   "x": 9.56,
+   "y": 0,
+   "z": -25,
+   "crouched": true,
+   "label": "Crouched pop-up",
+   "distance": 25
+  },
+  {
+   "kind": "steel",
+   "x": 0,
+   "y": 0.7,
+   "z": -5,
+   "radius": 0.2,
+   "label": "START",
+   "distance": 5,
+   "start": true
+  }
+ ],
  "bakedLight": {
   "file": "range"
  },

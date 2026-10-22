@@ -3,9 +3,9 @@ class_name Hitbox
 ## volume, M85): a head sphere, a chest capsule, two hip capsules side by side, and each leg's thigh, shin and boot,
 ## swinging about the hip on the walk cycle and squashed towards it when crouching. The head, chest and hips tilt with a
 ## lean about the hip pivot (Lean), as the drawn upper body does, so only what pokes out past cover can be hit; the legs
-## stay put. Arms and replicas aren't part of it (owner, DECISIONS 2026-10-01). No rigged figures' joints yet.
-## Every ray test returns the distance along a unit ray to where it first touches, or INF for a miss; a ray that starts
-## inside touches at 0.
+## stay put. Arms and replicas aren't part of it (owner, DECISIONS 2026-10-01). No rigged figures' joints yet. A
+## practice range figure is the same volume, upright and still (build_figure). Every ray test returns the distance along
+## a unit ray to where it first touches, or INF for a miss; a ray that starts inside touches at 0.
 
 ## Where each part sits in Volume.parts.
 const CHEST := 0
@@ -161,14 +161,26 @@ static func step_walk_cycle(c: Character, hits: HitConfig) -> void:
 ## Writes the character's hit volume now into `v`: standing on its feet, turned by its yaw, crouched, the upper body
 ## leaned, legs on the walk cycle.
 static func build_volume(c: Character, hits: HitConfig, v: Volume) -> void:
-	var drop := hits.crouch_drop * c.crouch_amount
-	var cos_yaw := cos(c.yaw)
-	var sin_yaw := sin(c.yaw)
-	var feet := c.position
+	_build(c.position, c.yaw, c.crouch_amount, c.lean, leg_swing(c.walk_cycle, c, hits), hits, v)
+
+
+## Writes a still figure's hit volume into `v`: a character's standing on `feet`, turned by `yaw`, crouched by `crouch`
+## (0..1), upright, legs at rest (a practice range figure, RangeTargets: a hit there is a hit in a match).
+static func build_figure(feet: Vector3, yaw: float, crouch: float, hits: HitConfig, v: Volume) -> void:
+	_build(feet, yaw, crouch, 0.0, 0.0, hits, v)
+
+
+## The hit volume of a figure on `feet` turned by `yaw`, crouched by `crouch`, leaned by `lean` (-1..1), its legs swung
+## by `swing` (rad), into `v`.
+static func _build(feet: Vector3, yaw: float, crouch: float, lean: float, swing: float, hits: HitConfig,
+		v: Volume) -> void:
+	var drop := hits.crouch_drop * crouch
+	var cos_yaw := cos(yaw)
+	var sin_yaw := sin(yaw)
 	# The upper body rolls about the hip pivot by the lean (Lean.offset's geometry: right is +x, so a lean right moves
 	# the head along the character's right).
 	var hip_y := hits.pivot_height - drop
-	var roll := c.lean * hits.lean_max_angle
+	var roll := lean * hits.lean_max_angle
 	var cr := cos(roll)
 	var sr := sin(roll)
 	var head_at := _upper(feet, cos_yaw, sin_yaw, 0.0, hits.head_height - drop, cr, sr, hip_y)
@@ -184,7 +196,6 @@ static func build_volume(c: Character, hits: HitConfig, v: Volume) -> void:
 
 	# The legs hang from the hip pivot, squashed towards it by a crouch as the drawn legs are, and swing about it.
 	var squash := hip_y / hits.pivot_height
-	var swing := leg_swing(c.walk_cycle, c, hits)
 	for i in 2:
 		var side := 2 * i - 1
 		var hx := side * hits.leg_hip_spread

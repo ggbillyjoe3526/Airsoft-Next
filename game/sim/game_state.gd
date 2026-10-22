@@ -15,6 +15,8 @@ var events: SimEvents = SimEvents.new()
 ## The match's own random stream: shot spread and anything else random in the rules.
 var rng: RandomNumberGenerator = null
 var round_state: RoundState = null
+## The practice range's targets (RangeTargets.create from the map's specs); empty in a match.
+var targets: Array[RangeTarget] = []
 ## Matches started on this state (a rematch is the next), and the breeze of the one being played: still air until the
 ## first starts.
 var match_number: int = 0

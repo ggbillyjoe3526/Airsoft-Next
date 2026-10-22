@@ -6,7 +6,7 @@ extends RefCounted
 
 ## Magazines carried for one replica: the one loaded and the spares in the pouch, each with the BBs it has left. A
 ## reload swaps the loaded one for the fullest spare and puts the old one back as it is (no topping up); empties stay
-## empty. Nothing refills during a round.
+## empty. Nothing refills during a round (in practice the spares stay full: RangeTargets.refill_spares).
 class Ammo:
 	extends RefCounted
 	## BBs in the loaded magazine.
