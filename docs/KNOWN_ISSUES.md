@@ -12,7 +12,8 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 | Area | Issue | Class | Found |
 |---|---|---|---|
 | Models | The figures carry hand-made `_LOD1`/`_LOD2` meshes and four heads as separate nodes, so a plain instance draws every level and head (34,833 triangles for the human). The figure code must pick one head and set visibility ranges (or drop the hand-made LODs) | can wait | 2026-10-18 |
-| Bots | Bots have no callouts, pings or squad orders, no magazine sharing, and no crossfires (Pro sets them on defence: FG2b). Each is its own later task (`docs/DECISIONS.md` › Bots and balance) | can wait | 2026-10-18 |
+| Bots | A bot can come off a vault standing on top of a low wall and walk across it (0.85 m wall in `test_bot_vaults.gd`: seen for 6 ticks once lane points moved; staggering every bot's lane points, as the browser game did, was left out for this) | playtest | 2026-10-22 |
+| Bots | Bots have no callouts, pings or squad orders, and no magazine sharing. Each is its own later task (`docs/DECISIONS.md` › Bots and balance) | can wait | 2026-10-18 |
 | Bots | `data/bots.md`'s Watches the flag first column and Card notes are read and checked but play no part yet: the overtime flag comes with step 27, the "What got you" card with step 14. Names show on the Dev tab's bot intentions and the spectating line only, never over heads (owner, 2026-10-20) | can wait | 2026-10-20 |
 | Bots | A cross-map route on Depot costs 1.2–1.5 ms on average and up to 6.4 ms (`NavGrid.find_route`, measured headless), over the 1 ms aim: about half the native search, half the string-pulling in GDScript. Plan at most one route a tick | can wait | 2026-10-18 |
 | Play | A reload started within 0.05 s of the GBB Pistol's last shot (`ViewModelConfig.slide_lock_after`) runs with the slide forward instead of locked back (MZ1) | can wait | 2026-10-18 |
