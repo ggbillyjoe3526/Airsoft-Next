@@ -1,7 +1,8 @@
 extends GutTest
 ## Playing Depot (game/play/play_session.gd), headless: the session builds the level, puts you on Alpha with two bots
 ## against three, steps the simulation with every command on the physics tick, and draws from it; a BB from your replica
-## knocks a bot out on the Jolt level and they call the hit; Esc pauses and resumes; leaving frees everything.
+## knocks a bot out on the Jolt level and they call the hit; Esc pauses and resumes; leaving frees everything; the
+## minimap hears the other team through the ears the view is through.
 
 var session: PlaySession = null
 
@@ -135,3 +136,33 @@ func test_out_in_the_dead_zone_you_watch_a_teammate_still_in_play() -> void:
 	var figure := session.find_child("Figure_%d" % session.spectated().id, true, false) as FigureView
 	assert_false(figure.visible, "the watched figure isn't drawn over the view")
 	session.player.status = Character.Status.ALIVE
+
+
+func test_the_minimap_hears_the_other_team_through_the_eyes_you_see_through() -> void:
+	session.bots_active = false
+	var heard := session.minimap_hearing()
+	await wait_physics_frames(1)
+	var you := session.player
+	assert_eq(heard.listener_id, you.id)
+	assert_eq(heard.side, you.team)
+	assert_eq(heard.patches.size(), session.state.characters.size(), "a record for each player")
+	var enemy: Character = null
+	for c in session.state.characters:
+		if c.team != you.team:
+			enemy = c
+			break
+	enemy.position = you.position + Vector3(5.0, 0.0, 0.0)
+	var events := session.state.events
+	events.clear()
+	var e := events.add(GameEvent.Kind.FOOTSTEP)
+	e.actor = enemy.id
+	e.position = enemy.position
+	session._after_tick()
+	assert_true(heard.patch_of(enemy.id).live, "a footstep 5 m off is heard")
+	you.status = Character.Status.OUT
+	events.clear()
+	session._after_tick()
+	assert_ne(heard.listener_id, you.id, "out: heard through the teammate you watch")
+	assert_eq(heard.listener_id, session.spectated().id)
+	assert_true(heard.patch_of(enemy.id).live, "what your side heard stays")
+	you.status = Character.Status.ALIVE

@@ -14,6 +14,8 @@ const BOT_PER_CHARACTER := 104729
 const WIND_PER_MATCH := 7368787
 const KIT_MULTIPLIER := 2654435761
 const KIT_PER_CHARACTER := 40503
+const MINIMAP_MULTIPLIER := 2246822519
+const MINIMAP_PER_MATCH := 374761393
 ## The bots' names' stream (BotRoster) is the seed with these bits flipped ("name"), as the browser game's rosterSeed.
 const ROSTER_XOR := 0x6e616d65
 
@@ -44,6 +46,13 @@ static func wind_seed(seed_value: int, match_number: int) -> int:
 ## own.
 static func kit_seed(seed_value: int, character_id: int) -> int:
 	return derive(seed_value, KIT_MULTIPLIER, ((character_id + 1) * KIT_PER_CHARACTER) & MASK_32)
+
+
+## The minimap's heard patches' stream's seed (MinimapHearing's blur) for match `match_number` (1 for the first) played
+## on a state seeded with `seed_value`: apart from the rules' and the bots' streams, so a patch's place moves no other
+## roll.
+static func minimap_seed(seed_value: int, match_number: int) -> int:
+	return derive(seed_value, MINIMAP_MULTIPLIER, (match_number * MINIMAP_PER_MATCH) & MASK_32)
 
 
 ## The bots' names' stream's seed (BotRoster.draw) for a match seeded with `seed_value`: apart from every other, so a
