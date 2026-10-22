@@ -1,9 +1,10 @@
 class_name MapData
 extends RefCounted
 ## A map's layout as plain data, read from data/maps/<id>.json (the browser game's map/mapTypes.ts, exported by the
-## salvage): its blocks, its two ends and its kill height. MapLevel builds the greybox and the Jolt colliders from it;
-## the simulation reads its ends. A file that can't be played (no floor, a missing end, too few spawns for a team) is
-## refused with the reasons in `problems`.
+## salvage): its blocks, its two ends, its kill height and, on the range, its targets. MapLevel builds the greybox and
+## the Jolt colliders from it; the simulation reads its ends and targets. A file that can't be played (no floor, a
+## missing end, too few spawns for a team) is refused with the reasons in `problems`; a target that can't stand is left
+## out with a warning (`warnings`).
 
 const DIR := "res://data/maps/"
 
@@ -38,8 +39,14 @@ var pole: Vector3 = Vector3.ZERO
 var has_pole: bool = false
 ## The lanes bots walk (walkable points from end 0's side to end 1's), in the file's order.
 var lanes: Array[PackedVector3Array] = []
+## The practice range's targets (`targets` in the file: config/range.ts rangeLayout()'s specs), in the file's order;
+## empty on a field.
+var targets: Array[RangeTarget.Spec] = []
 ## Why the file was refused; empty when it loaded.
 var problems: Array[String] = []
+## What in the file was left out or kept at its default (a target that can't stand, a number that won't read), each
+## also pushed as a warning; the map still loads.
+var warnings: Array[String] = []
 
 
 ## The map `map_id` from data/maps/, every team of `team_size` given a spawn of its own; check `problems`.
@@ -73,6 +80,7 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m._read_blocks(d.get("blocks"), style)
 	m._read_ends(d.get("spawns"), d.get("deadZones"), team_size)
 	m._read_lanes(d.get("lanes"))
+	m._read_targets(d.get("targets"))
 	var pole: Variant = d.get("flag")
 	m.has_pole = pole is Dictionary and (pole as Dictionary).has("x") and (pole as Dictionary).has("z")
 	m.pole = _vec(d.get("flag"))
@@ -176,6 +184,21 @@ func _read_lanes(list: Variant) -> void:
 			lanes.append(lane)
 		else:
 			problems.append("a lane has fewer than two points")
+
+
+## Targets are optional: a field has none.
+func _read_targets(list: Variant) -> void:
+	if list == null:
+		return
+	if not list is Array:
+		warnings.append("targets is not a list")
+	else:
+		for i in (list as Array).size():
+			var spec := RangeTarget.Spec.from_dict((list as Array)[i], i, warnings)
+			if spec != null:
+				targets.append(spec)
+	for w in warnings:
+		push_warning("MapData: " + w)
 
 
 static func _spots(list: Variant) -> Array[SpawnPoint]:

@@ -14,6 +14,9 @@ enum Mode { ELIMINATION, ATTACK_DEFEND }
 var mode: Mode = Mode.ELIMINATION
 var pole: Vector3 = Vector3.ZERO
 var first_attackers: int = 0
+## Practice (the range, M21): no rounds, so no clock and no wipe-out; the round stays live from start_match on, the
+## targets are stepped and spare magazines stay full (Simulation.step). Off in every match.
+var practice: bool = false
 
 var phase: Phase = Phase.LIVE
 ## The round being played, from 1. A drawn round is played again under the same number (browser audit SIM-19).

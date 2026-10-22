@@ -8,9 +8,9 @@ tests ported to `tests/unit/`. Tuning comes from `game/config/` (`SimTuning`).
 
 `Simulation.step(state, commands, dt)` advances a `GameState` by one 60 Hz tick. Per character: move (a Jump press at a
 low obstacle vaults it instead; a vault under way follows its path), swing the legs, lean, settle the aim, then use the
-replica (BBs leave from this tick's leaned eyes); then every BB flies; then the round flow. A hit
-character follows the hit-calling routine instead of its command. Nothing is allocated per tick once warm (checked by
-`test_simulation.gd`).
+replica (BBs leave from this tick's leaned eyes); then every BB flies; then the round flow, or in practice the range's
+targets. A hit character follows the hit-calling routine instead of its command. Nothing is allocated per tick once
+warm (checked by `test_simulation.gd` and, on the range, `test_range_map.gd`).
 
 | File | What |
 |---|---|
@@ -32,7 +32,8 @@ character follows the hit-calling routine instead of its command. Nothing is all
 | `ricochet.gd` | A BB bouncing off concrete and steel; whether a bounced BB knocks anyone out is the match's rule |
 | `hitbox.gd`, `bb_step.gd` | The hit volume (head, chest, hips leaning; swinging legs) and each tick's BB flight against the level and bodies |
 | `elimination.gd` | Hit calling: alive, calling, walking off, leaving, out |
-| `round.gd`, `round_state.gd` | Rounds in Elimination and Attack / Defend: clock, score, half time, reset, match over; the flag's time-out and overtime |
+| `round.gd`, `round_state.gd` | Rounds in Elimination and Attack / Defend: clock, score, half time, reset, match over; the flag's time-out and overtime; the practice switch (no rounds, no clock) |
+| `range_target.gd`, `range_targets.gd` | Practice range targets: steel plates (front only, on posts), figures with a player's hit volume that fall and rise, pop-ups, movers and swingers on seeded times; BBs stop on them as `TARGET_HIT`; full spares in practice |
 | `flag.gd`, `flag_state.gd` | Attack / Defend's flag: attackers at the pole raise it, defenders pull it down, both hold it still |
 
 ## Not yet

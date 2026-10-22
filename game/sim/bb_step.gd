@@ -1,11 +1,11 @@
 class_name BBStep
 ## Moves every BB in flight one tick, drifting in the wind, and stops it at whatever its path crosses first (the browser
-## game's sim/bbs.ts stepBBs, without bushes, range targets and prop noise, which come with their tasks): a body or the
-## level, where a hard surface bounces it off instead (a ricochet, M20). Every body on the field stops a BB (M85: it
-## never goes on through someone to whoever is behind); only a body in play is knocked out, and not a teammate when
-## friendly fire is off, and nobody once the round is decided. A ricochet knocks someone out only when the match counts
-## ricochets (HitConfig.ricochets_count); otherwise it ticks them and stops, and they play on. A BB never hits whoever
-## fired it until it has bounced (its first segment starts at their eye, inside them).
+## game's sim/bbs.ts stepBBs, without bushes and prop noise, which come with their tasks): a body, a practice range
+## target or the level, where a hard surface bounces it off instead (a ricochet, M20). Every body on the field stops a
+## BB (M85: it never goes on through someone to whoever is behind); only a body in play is knocked out, and not a
+## teammate when friendly fire is off, and nobody once the round is decided. A ricochet knocks someone out only when the
+## match counts ricochets (HitConfig.ricochets_count); otherwise it ticks them and stops, and they play on. A BB never
+## hits whoever fired it until it has bounced (its first segment starts at their eye, inside them).
 
 ## A tick's path shorter than this (m) is no path: nothing to test.
 const MIN_SEGMENT := 1e-9
@@ -17,6 +17,8 @@ static var _ray_hit: RayHit = RayHit.new()
 ## The body a BB reached this tick (_first_body): its index in the roster (-1: none), and how far along the segment.
 static var _reached: int = -1
 static var _reached_at: float = 0.0
+## The range target a BB reached this tick (RangeTargets.first_hit).
+static var _target_hit: RangeTargets.Hit = RangeTargets.Hit.new()
 
 
 ## One tick of every BB in `pool`: fly, then stop on the nearest of the level (`query`) and the bodies of
@@ -24,10 +26,13 @@ static var _reached_at: float = 0.0
 ## and reported as CHARACTER_HIT (value 1 for a ricochet); a ricochet that doesn't count is a RICOCHET_TICK; a BB
 ## stopped on a body that isn't knocked out (already hit, a teammate with friendly fire off, anyone in a `cease_fire`)
 ## or on the level is a BB_IMPACT, and a bounce off the level is one too; one that falls below `kill_y` or outlives its
-## lifetime is BB_LOST. `rng` (the match's stream) scatters bounces.
+## lifetime is BB_LOST. On the practice range a BB also stops on the first of `targets` it reaches, nearer than any
+## body or the level, unless in a cease-fire: a TARGET_HIT (a figure goes down, RangeTargets.hit_target), or a
+## BB_IMPACT on metal at a plate's post or a swinger's frame (a miss). `rng` (the match's stream) scatters bounces and
+## times a pop-up's spell down.
 static func step(pool: BBPool, characters: Array[Character], query: WorldQuery, tuning: SimTuning, kill_y: float,
 		cease_fire: bool, ends: Array[MapEnd], events: SimEvents, dt: float, wind: Vector3 = Vector3.ZERO,
-		rng: RandomNumberGenerator = null) -> void:
+		rng: RandomNumberGenerator = null, targets: Array[RangeTarget] = []) -> void:
 	var cfg := tuning.ballistics
 	var air := AirModel.of(cfg)
 	var prepared := false
@@ -47,6 +52,8 @@ static func step(pool: BBPool, characters: Array[Character], query: WorldQuery, 
 				_prepare(characters, tuning.hits)
 				prepared = true
 			_first_body(bb, dir, minf(wall, length), characters)
+			if not targets.is_empty() and not cease_fire and _stop_on_target(bb, dir, targets, tuning, events, rng):
+				continue
 			if _reached >= 0:
 				# The BB stops on the body, whatever happens to its owner.
 				var body := characters[_reached]
@@ -90,6 +97,34 @@ static func step(pool: BBPool, characters: Array[Character], query: WorldQuery, 
 			var lost := events.add(GameEvent.Kind.BB_LOST)
 			lost.actor = bb.owner_id
 			lost.position = bb.position
+
+
+## Whether the BB's segment this tick (from prev_position along `dir`) reaches one of `targets` before _reached_at (the
+## nearest body, or else the level or the segment's end): it stops there, as a TARGET_HIT, or a BB_IMPACT at a post.
+static func _stop_on_target(bb: BB, dir: Vector3, targets: Array[RangeTarget], tuning: SimTuning, events: SimEvents,
+		rng: RandomNumberGenerator) -> bool:
+	RangeTargets.first_hit(bb.prev_position, dir, _reached_at, targets, tuning.targets, _target_hit)
+	if _target_hit.index < 0:
+		return false
+	bb.position = bb.prev_position + dir * _target_hit.at
+	bb.active = false
+	if _target_hit.post:
+		# A plate's post or a swinger's frame: the BB stops on the steel, as on a wall (a miss where it stopped).
+		var impact := events.add(GameEvent.Kind.BB_IMPACT)
+		impact.actor = bb.owner_id
+		impact.position = bb.position
+		impact.value2 = RayHit.Surface.METAL
+		return true
+	var target := targets[_target_hit.index]
+	RangeTargets.hit_target(target, tuning.targets, rng)
+	var hit := events.add(GameEvent.Kind.TARGET_HIT)
+	hit.actor = bb.owner_id
+	hit.target = target.id
+	hit.position = bb.position
+	hit.direction = dir
+	hit.value = target.kind
+	hit.value2 = 1 if bb.bounces > 0 else 0
+	return true
 
 
 ## Builds this tick's hit volume of every character (see _volumes).

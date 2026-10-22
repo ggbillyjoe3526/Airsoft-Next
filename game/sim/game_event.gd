@@ -24,6 +24,7 @@ enum Kind {
 	HOP_UP, ## actor turned the hop-up dial on slot to value (hundredths of its range); value2 0 if it was already at an end.
 	HOLSTER, ## actor put the replica in slot away.
 	FLAG_ROPE, ## Attack / Defend's flag passed a rope step at position (the pole), value 1 going up, 0 coming down.
+	TARGET_HIT, ## actor's BB hit range target at position along direction; value: its RangeTarget.Kind; value2 1: bounced.
 }
 
 ## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.
@@ -34,11 +35,11 @@ enum RoundEnd { ELIMINATED, TIME, CAPTURED }
 var kind: Kind = Kind.SHOT
 ## Who did it: the shooter, the BB's owner, the stepper. -1 for none (round events).
 var actor: int = -1
-## Who it happened to: the character hit, the body a BB stopped on. -1 for none.
+## Who it happened to: the character hit, the body a BB stopped on, the range target hit. -1 for none.
 var target: int = -1
 ## The loadout slot of the replica involved, or -1.
 var slot: int = -1
-## The event's number: a fire mode, a winner, a round, a footstep kind.
+## The event's number: a fire mode, a winner, a round, a footstep kind, a range target's kind.
 var value: int = 0
 ## A second number: a footstep's or an impact's surface, a round's end reason.
 var value2: int = 0

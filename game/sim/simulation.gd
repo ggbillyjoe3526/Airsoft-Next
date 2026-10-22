@@ -7,9 +7,10 @@ extends RefCounted
 ##
 ## Order within a tick: each character moves (stance, pace, jump, collision; a Jump press at a low obstacle vaults it
 ## instead, and a vault under way follows its path), its legs swing, it leans and its aim settles, then it uses its
-## replica (BBs leave from the new, leaned eye position); then every BB flies (hitting the level or bodies); then the
-## round flow. Characters without a command keep their view and stand still; hit characters follow the hit-calling
-## routine instead of their command, and once out and standing in the dead zone they are only timed.
+## replica (BBs leave from the new, leaned eye position); then every BB flies (hitting the level, bodies or range
+## targets); then the round flow, or in practice (RoundState.practice) the range's targets and full spares instead.
+## Characters without a command keep their view and stand still; hit characters follow the hit-calling routine instead
+## of their command, and once out and standing in the dead zone they are only timed.
 
 var tuning: SimTuning = null
 var query: WorldQuery = null
@@ -110,7 +111,13 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		Armament.step(c, cmd, Lean.eye(c, tuning.body, tuning.hits), kick, live and c.fire_lockout <= 0.0, state.bbs,
 				state.rng, state.events, tuning, dt, 0.0 if c.vault.active else c.fire_lockout)
 	BBStep.step(state.bbs, state.characters, query, tuning, kill_y, not live, ends, state.events, dt,
-			state.wind.at(state.time), state.rng)
-	Round.step(state.round_state, state.characters, ends, state.bbs, tuning, state.events, dt)
+			state.wind.at(state.time), state.rng, state.targets)
+	if state.round_state.practice:
+		# Practice has no rounds: it's always live, with no clock.
+		RangeTargets.step(state.targets, tuning, dt, state.rng)
+		for c in state.characters:
+			RangeTargets.refill_spares(c.armament)
+	else:
+		Round.step(state.round_state, state.characters, ends, state.bbs, tuning, state.events, dt)
 	state.tick += 1
 	state.time += dt
