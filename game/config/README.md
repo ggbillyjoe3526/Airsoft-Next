@@ -40,4 +40,5 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `range_view_config.gd` | The practice range drawn: plate, post, figure and gear paint and sizes, a hit plate's swing, a figure's fall, the challenge's lit glow and START plate, the floor lines and wall boards |
 | `team_config.gd` | Team names (translation keys) and colours |
 | `bot_config.gd`, `bot_tuning.tres` | How bots play (`BotConfig.load_default()`): senses, aim, firing, lanes and holds, routes, cover, searching, hunting, the holster |
+| `squad_config.gd` | Squad orders (part of `bot_tuning.tres`): Hold here's reach, wall gap, spacing, arrival and move distance |
 | `bot_skill.gd` | How well a bot plays: reaction, turn rate, aim error and settling, lead, bursts, holds (Normal only for now) |

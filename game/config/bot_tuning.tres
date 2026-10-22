@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://game/config/bot_config.gd" id="1_bcfg1"]
 [ext_resource type="Script" path="res://game/config/bot_skill.gd" id="2_bskl1"]
+[ext_resource type="Script" path="res://game/config/squad_config.gd" id="3_sqcf1"]
 
 [sub_resource type="Resource" id="Resource_nrm01"]
 script = ExtResource("2_bskl1")
@@ -74,9 +75,18 @@ slices_corners = true
 peek_watch_time = Vector2(1.5, 3)
 team_play = true
 
+[sub_resource type="Resource" id="Resource_sqd01"]
+script = ExtResource("3_sqcf1")
+hold_range = 40.0
+hold_wall_gap = 0.6
+hold_spacing = 1.4
+hold_arrive = 0.7
+hold_move = 3.0
+
 [resource]
 script = ExtResource("1_bcfg1")
 skill = SubResource("Resource_nrm01")
 easy_skill = SubResource("Resource_easy1")
 hard_skill = SubResource("Resource_hard1")
 pro_skill = SubResource("Resource_pro01")
+squad = SubResource("Resource_sqd01")

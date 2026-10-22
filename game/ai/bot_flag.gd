@@ -32,18 +32,18 @@ static func wants_flag(b: Bot, w: BotWorld) -> bool:
 
 ## Each tick: the `retakers` defending bots in play nearest the pole are the ones who go to pull the flag down; the rest
 ## hold their posts, so tagging the pole doesn't empty every lane. Re-picked every tick, so if one is hit the next
-## nearest takes over.
+## nearest takes over. A bot under a squad order isn't picked: it does what it was asked, and the next nearest goes.
 static func pick_retakers(w: BotWorld) -> void:
 	for b in w.bots:
 		b.retake = false
 		var c := b.character
-		if role(b, w) != Role.DEFEND or not Elimination.is_in_play(c):
+		if role(b, w) != Role.DEFEND or not Elimination.is_in_play(c) or b.order != SquadOrder.Kind.NONE:
 			continue
 		var d := _to_pole(c, w)
 		var closer := 0
 		for o in w.bots:
 			var oc := o.character
-			if o == b or oc.team != c.team or not Elimination.is_in_play(oc):
+			if o == b or oc.team != c.team or not Elimination.is_in_play(oc) or o.order != SquadOrder.Kind.NONE:
 				continue
 			var od := _to_pole(oc, w)
 			if od < d or (od == d and oc.id < c.id):
@@ -53,8 +53,8 @@ static func pick_retakers(w: BotWorld) -> void:
 
 ## Each tick: of the attacking bots in play that have swept their lane, one raises the flag and the others guard the pole
 ## (a second raiser adds nothing: the rope goes up no faster). Bots in flag mode first, then the nearest the pole, the
-## current raiser counted raiser_switch_margin nearer. Nobody raises while an attacker who isn't a bot (the player) is
-## at the pole already.
+## current raiser counted raiser_switch_margin nearer; never a bot under a squad order. Nobody raises while an attacker
+## who isn't a bot (the player) is at the pole already.
 static func pick_raiser(w: BotWorld) -> void:
 	var raiser: Bot = null
 	var best_rank := 2
@@ -62,7 +62,8 @@ static func pick_raiser(w: BotWorld) -> void:
 	for b in w.bots:
 		var keep := b.raiser
 		b.raiser = false
-		if role(b, w) != Role.ATTACK or not Elimination.is_in_play(b.character) or not b.lane_done:
+		if role(b, w) != Role.ATTACK or not Elimination.is_in_play(b.character) or not b.lane_done \
+				or b.order != SquadOrder.Kind.NONE:
 			continue
 		var rank := 0 if b.mode == Bot.Mode.FLAG else 1
 		var d := _to_pole(b.character, w) - (w.cfg.raiser_switch_margin if keep else 0.0)

@@ -1,8 +1,8 @@
 class_name BotConfig
 extends Resource
-## How the bots play, shared by every difficulty (the browser game's config/botsSenses.ts, botsMovement.ts and
-## botsSquad.ts, Elimination and Attack / Defend): what they see and hear and how soon, how they aim and fire, lanes,
-## cover, searching, hunting and the pole. How well a bot plays is its `skill`. bot_tuning.tres is the instance the game
+## How the bots play, shared by every difficulty (the browser game's config/botsSenses.ts, botsMovement.ts,
+## botsSquad.ts and squad.ts, Elimination and Attack / Defend): what they see and hear and how soon, how they aim and
+## fire, lanes, cover, searching, hunting, the pole and squad orders. How well a bot plays is its `skill`. bot_tuning.tres is the instance the game
 ## loads. Ranges are Vector2(min, max), drawn from each bot's own seeded stream.
 
 const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
@@ -13,6 +13,8 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var easy_skill: BotSkill = BotSkill.new()
 @export var hard_skill: BotSkill = BotSkill.new()
 @export var pro_skill: BotSkill = BotSkill.new()
+## Squad orders: where bot teammates go when a teammate orders them (SquadOrders).
+@export var squad: SquadConfig = SquadConfig.new()
 
 @export_group("Senses")
 ## Seconds between sight checks per bot (staggered across bots): ten a second (DECISIONS 2026-09-30).

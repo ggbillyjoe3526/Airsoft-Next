@@ -5,8 +5,9 @@ extends RefCounted
 ## player's (docs/ARCHITECTURE.md › Contracts 2); BotBrain decides that command each tick from this.
 
 ## What it is doing: walking its lane (then hunting), fighting someone in sight, in cover, going to where someone was
-## seen or heard, or in Attack / Defend at the pole (raising, pulling down or guarding it: BotFlag).
-enum Mode { ADVANCE, FIGHT, COVER, SEARCH, FLAG }
+## seen or heard, in Attack / Defend at the pole (raising, pulling down or guarding it: BotFlag), or carrying out a squad
+## order from a teammate (SquadOrders).
+enum Mode { ADVANCE, FIGHT, COVER, SEARCH, FLAG, ORDER }
 ## In cover: down behind it, or up (over crouch cover, or leaning out round a corner) looking.
 enum CoverPhase { DOWN, PEEK }
 ## Its route: none, asked for (the controller plans one a tick), walking one, or none to be had.
@@ -162,6 +163,13 @@ var retake: bool = false
 var raiser: bool = false
 var flag_goal: Vector3 = Vector3.ZERO
 var flag_guard: bool = false
+## A squad order from a teammate in play (SquadOrders; NONE: it plays the team plan): which, from whom, its place among
+## the teammates given it (which spot is its own), the spot it makes for and the way it looks once there.
+var order: SquadOrder.Kind = SquadOrder.Kind.NONE
+var order_giver: Character = null
+var order_slot: int = 0
+var order_goal: Vector3 = Vector3.ZERO
+var order_yaw: float = 0.0
 
 
 func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: int) -> void:
@@ -175,8 +183,8 @@ func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: i
 	aim_yaw = body.yaw
 
 
-## A fresh round: everything it knew forgotten, on `lane_id` (walked from its end) for `points` points, setting off after
-## `start_hold` seconds.
+## A fresh round: everything it knew and any squad order forgotten, on `lane_id` (walked from its end) for `points`
+## points, setting off after `start_hold` seconds.
 func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void:
 	aim_yaw = character.yaw
 	aim_pitch = 0.0
@@ -244,6 +252,8 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	retake = false
 	raiser = false
 	flag_guard = false
+	order = SquadOrder.Kind.NONE
+	order_giver = null
 
 
 func forget_target() -> void:

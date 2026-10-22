@@ -33,6 +33,8 @@ static func move(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float, target: Cha
 			return b.route_state == Bot.RouteState.NONE and BotRoutes.step_onto(b, w, b.cover.position, cmd, dt)
 		Bot.Mode.FLAG:
 			return _flag(b, w, cmd, dt)
+		Bot.Mode.ORDER:
+			return SquadOrders.move(b, w, cmd, dt)
 		Bot.Mode.FIGHT:
 			# Fighting from cover, or at the pole raising the flag: it stays put.
 			if b.from_cover or (b.raiser and Flag.at_pole(b.character, w.flag, w.tuning.flag)):

@@ -55,6 +55,9 @@ static func aim(b: Bot, w: BotWorld, target: Character, eye: Vector3, walking: b
 		var spot := Vector3(b.last_known.x, y, b.last_known.z)
 		_look_yaw = BotAim.look_yaw(eye, spot)
 		_look_pitch = BotAim.look_pitch(eye, spot)
+	elif b.mode == Bot.Mode.ORDER and not walking:
+		# A squad order: at its spot, look the way the order says.
+		_look_yaw = b.order_yaw
 	elif walking and b.careful and b.mode == Bot.Mode.ADVANCE \
 			and _slice(b, w, _held_angle_look(b, w, eye, walk_yaw, false, INF), cmd):
 		# Slicing: walking near the enemy, aim at the corner ahead someone could step out of, not where it walks, and

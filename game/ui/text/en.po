@@ -576,6 +576,9 @@ msgstr "Searching"
 msgid "DEV_INTENT_FLAG"
 msgstr "At the flag"
 
+msgid "DEV_INTENT_ORDER"
+msgstr "Under orders"
+
 msgid "DEV_INTENT_NAMED"
 msgstr "%s · %s"
 
