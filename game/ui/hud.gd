@@ -62,7 +62,9 @@ var _feed: HudFeed = null
 var _team_markers: HudTeamMarkers = null
 var _round_result: HudRoundResult = null
 var _summary: MatchSummary = null
-## The bottom line (whom you watch, the skip hint), hidden with the replica panel under the summary.
+## The score bar's column and the bottom line (whom you watch, the skip hint), hidden with the replica panel and the
+## feed under the summary.
+var _top: VBoxContainer = null
 var _bottom: VBoxContainer = null
 ## "DEPOT · PRO BOTS": the end of the match stamp's line.
 var _match_tail := ""
@@ -111,6 +113,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	add_child(_replica)
 	# The score bar and "First to N", top centre.
 	var top := VBoxContainer.new()
+	_top = top
 	_place(top, Vector4(0.5, 0.0, 0.5, 0.0), Rect2(-TOP_WIDTH * 0.5, HudStyle.SCORE_TOP, TOP_WIDTH, 0.0))
 	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top.add_theme_constant_override("separation", roundi(HudStyle.AIM_GAP))
@@ -440,6 +443,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	_summary.visible = _summary.is_open() and not _round_result.holds_results()
 	_replica.visible = not _summary.visible
 	_bottom.visible = not _summary.visible
+	_top.visible = not _summary.visible
+	_feed.visible = not _summary.visible
 	if _summary.visible and _what_got_you != null:
 		hide_what_got_you()
 	if _banner_left > 0.0 and _xp == null and not _summary.is_open() and not _round_result.is_open():

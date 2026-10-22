@@ -1621,7 +1621,7 @@ msgid "SUM_NEW_RECORD"
 msgstr "New record"
 
 msgid "SUM_NOT_COUNTED"
-msgstr "This match stays out of your records."
+msgstr "Not counted this match"
 
 msgid "SUM_ROUND"
 msgstr "Round %d"

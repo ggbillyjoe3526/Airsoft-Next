@@ -16,7 +16,7 @@ class Entry:
 
 
 ## The most hits listed (the latest); the rest are counted on one line.
-const SHOWN := 6
+const SHOWN := 5
 const ROUND_WIDTH := 84.0
 const NAME_WIDTH := 92.0
 const ROUND_SIZE := 12

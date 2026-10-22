@@ -93,7 +93,7 @@ func test_a_match_out_of_the_records_says_so_and_no_best_yet_says_from_how_many_
 	var words: Array[String] = []
 	for l in panel.find_children("*", "Label", true, false):
 		words.append((l as Label).text)
-	assert_has(words, "This match stays out of your records.")
+	assert_has(words, "Not counted this match")
 
 
 # --- what got you ---
