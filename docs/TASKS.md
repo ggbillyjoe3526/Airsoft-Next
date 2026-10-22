@@ -102,39 +102,6 @@ acceptance:
 status: open
 attempts: 0
 
-## SP1 · The mix: voice pools with spread, the buses, out and ducking
-tier: core
-perf: required
-touches: game/play/voice_pool.gd, game/play/sound_mix.gd, game/play/sim_audio.gd, game/play/play_session.gd,
-  game/play/README.md, game/config/sound_config.gd, game/config/play_tuning.tres, game/config/README.md,
-  default_bus_layout.tres, tests/unit/test_voice_pool.gd, tests/unit/test_sound_mix.gd
-contract: Simulation and presentation (1); Events (3); Data, not literals (6); Headless (9)
-acceptance:
-  1. VoicePool (plain RefCounted, katanashotgun's voice_pool.gd) over the voices made at setup: a play takes a free
-     voice, else its cue's oldest once that cue is at its max voices, else the oldest of the lowest priority no higher
-     than its own, else it is dropped and counted. Priorities: interface cues and your own sounds above others' shots
-     and hits, above steps, mechanisms and impacts, above ambience calls. katanashotgun's four pool tests pass in GUT.
-  2. Spread: a cue never plays the same variant twice running; pitch ± its kind's spread (as today) and level ± its
-     kind's volume spread (dB; 0 on interface cues), on SimAudio's presentation stream.
-  3. Limits and reaches, the browser's: others' steps start at most 4 per 0.1 s and only within 22 m, impacts 8 per
-     0.1 s; other field sounds within 60 m, the range's targets 80 m. Each a SoundConfig number, documented.
-  4. Buses: Effects and Ambience feed a new Field bus under Master that carries the out low-pass and the dips;
-     Interface goes straight to Master. A low-pass bus for half and for full muffling under Effects and under Power
-     (for SP2), their corners and levels from SoundConfig's occlusion numbers (the browser's: rays 0.45 and 1.5 m,
-     18 kHz to 700 Hz, level to 0.55, surface gap 0.2 m, reach 60 m, far ramp) plus a refresh and a ray budget.
-     Settings' five sliders and an old settings file are unchanged.
-  5. SoundMix (Node, presentation): while the character you play is out of play the Field bus is low-passed to
-     out_hz and turned to out_gain, easing over out_ease, until it is back in play. Your own CHARACTER_HIT dips Field
-     to the hit shape; ROUND_OVER, MATCH_OVER and the challenge's Time to the whistle shape; overlapping dips keep the
-     deeper depth and the later end. The envelope is a plain DuckEnvelope with GUT tests (shape, overlap, out × dip).
-  6. Leaving play (quit, match over, a scene change mid-dip) leaves Field at 0 dB with its filter open, so menus are
-     never muffled. Pausing is checked for a click; a pause_fade is added only if it clicks (recorded either way).
-  7. SimAudio.setup takes the WorldQuery and MapData, and on_tick the listener (the character the view is through),
-     for SP2 and SP4. Voices are made once; a tick and a frame allocate nothing. The smoke test plays its match with
-     no script errors.
-status: open
-attempts: 0
-
 ## SP2 · Muffling through walls
 tier: core
 perf: required
