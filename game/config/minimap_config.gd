@@ -63,3 +63,8 @@ extends Resource
 @export var below_storey_colour: Color = Color(Color("080a0e"), 0.55)
 @export var you_colour: Color = Color("ffffff")
 @export var out_colour: Color = Color(Color("aaaaaa"), 0.8)
+## The rim drawn just outside a raised floor wherever the floor beyond it is lower (none where a ramp meets it), and how
+## wide (m): the browser drew Depot's dock only a shade lighter than the yard, so under a heard patch the two read alike
+## (its KNOWN_ISSUES); the dark rim keeps the dock's outline plain through a patch.
+@export var drop_colour: Color = Color(Color("16191e"), 0.95)
+@export var drop_edge: float = 0.3
