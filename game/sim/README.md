@@ -34,6 +34,7 @@ warm (checked by `test_simulation.gd` and, on the range, `test_range_map.gd`).
 | `elimination.gd` | Hit calling: alive, calling, walking off, leaving, out |
 | `round.gd`, `round_state.gd` | Rounds in Elimination and Attack / Defend: clock, score, half time, reset, match over; the flag's time-out and overtime; the practice switch (no rounds, no clock) |
 | `range_target.gd`, `range_targets.gd` | Practice range targets: steel plates (front only, on posts), figures with a player's hit volume that fall and rise, pop-ups, movers and swingers on seeded times; BBs stop on them as `TARGET_HIT`; full spares in practice |
+| `range_challenge.gd` | The range's timed challenge: ready on the START plate, a counted-down start, lit targets picked from the match's stream for a timed run, cues as `CHALLENGE` events, and the run's best (none with a Dev cheat on since START) |
 | `flag.gd`, `flag_state.gd` | Attack / Defend's flag: attackers at the pole raise it, defenders pull it down, both hold it still |
 
 ## Not yet

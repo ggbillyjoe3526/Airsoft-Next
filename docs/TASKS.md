@@ -47,7 +47,9 @@ acceptance:
   2. Targets and their gear drawn in greybox from the specs and RANGE_VISUALS (swing, fall, rise, lit glow, START);
      floor lines and wall boards at 10 to 60 m.
   3. Steel rings (80 m), figures knock, your hit plays the hit marker; countdown and Go beep, Time a stand-in.
-  4. The smoke test opens the range, hits a plate and leaves with no script errors; frame time within Depot's.
+  4. On the challenge's TIME cue, `Records.add_challenge_run(course, challenge.last)` with the course the map's id, and
+     the records saved.
+  5. The smoke test opens the range, hits a plate and leaves with no script errors; frame time within Depot's.
 status: open
 attempts: 0
 
