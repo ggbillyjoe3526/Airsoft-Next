@@ -8,7 +8,8 @@ extends Node
 ## drawn its first frame; leaving it builds them again and comes back to the title. The picks live in a MatchPicks kept
 ## here. The menus grow with a tall window (MenuScale).
 ## `--smoke` (tools/smoke_test.sh) opens and closes the settings, the credits, the Loadout page (with Customise) and the Armory,
-## plays a whole match on Depot with a bot in your place (faster than real time), leaves, then quits with a report line.
+## plays a whole match on Depot with a bot in your place (faster than real time), leaves, opens practice on the range
+## where a pilot shoots till it rings a plate, leaves, then quits with a report line.
 
 const SMOKE_SETTINGS_OPEN := 10
 const SMOKE_SETTINGS_CLOSE := 20
@@ -29,6 +30,10 @@ const SMOKE_SETTLE := 30
 ## The smoke match's seed and map, so every run plays the same match.
 const SMOKE_SEED := 1
 const SMOKE_MAP := "depot"
+## The most ticks the smoke test's practice may take to ring a plate (a minute).
+const SMOKE_RANGE_MAX_TICKS := 3600
+## Practice is played on the range (M21).
+const PRACTICE_MAP := "range"
 
 var _credits: Credits
 var _settings_screen: SettingsScreen
@@ -48,6 +53,8 @@ var _smoke_impacts := -1
 var _smoke_rounds := -1
 var _smoke_matches := -1
 var _smoke_left_at := -1
+var _smoke_plates := -1
+var _smoke_range_left_at := -1
 
 
 func _ready() -> void:
@@ -178,7 +185,8 @@ func _credits_closed() -> void:
 		_title.focus_start()
 
 
-func _start_play() -> void:
+## Opens the match picked, or practice on the range (`practice`: so far only the smoke test's way in).
+func _start_play(practice: bool = false) -> void:
 	if _play != null:
 		return
 	# No menu nodes live during a match: the title and the menus are freed now and built again when it ends. The loadouts
@@ -189,11 +197,12 @@ func _start_play() -> void:
 	SavedLoadouts.shared().save_if_dirty()
 	_free_screens()
 	var team := PlaySession.TEAM_ALPHA if _smoke else _picks.team
-	var map_id := SMOKE_MAP if _smoke else _picks.map_id
+	var map_id := PRACTICE_MAP if practice else SMOKE_MAP if _smoke else _picks.map_id
 	_play = PlaySession.new()
 	_play.autopilot = _smoke
 	_play.counts = not _smoke
-	_play.mode = _picks.mode
+	_play.practice = practice
+	_play.mode = MatchOptions.MODE_PRACTICE if practice else _picks.mode
 	_play.difficulty = StringName(_picks.bots)
 	_play.teammate_difficulty = StringName(_picks.teammates)
 	var custom: CustomRules = null if _smoke else _picks.custom_rules(Settings.shared())
@@ -224,7 +233,7 @@ func _show_loading(map_id: String, team: int) -> void:
 	_loading = LoadingScreen.new()
 	add_child(_loading)
 	_loading.setup(map_id, entry.display_name if entry != null else map_id, entry.blurb if entry != null else "",
-			MatchOptions.kicker(_picks.mode, _team_size(), team))
+			MatchOptions.kicker(_play.mode, _team_size(), team))
 
 
 ## Players per team in the match starting: its Custom switch, else the round tuning's.
@@ -242,7 +251,10 @@ func _free_loading() -> void:
 func _end_play() -> void:
 	if _play == null:
 		return
-	if _smoke:
+	if _smoke and _play.practice:
+		_smoke_plates = _play.plate_hits
+		_smoke_range_left_at = _frame
+	elif _smoke:
 		_smoke_shots = _play.all_shots
 		_smoke_impacts = _play.impacts
 		_smoke_rounds = _play.rounds_played
@@ -284,9 +296,13 @@ func _process(_delta: float) -> void:
 		_on_tab(TopBar.Tab.MATCH)
 	elif _frame == SMOKE_PLAY:
 		_start_play()
-	elif _play != null and (_play.matches_played > 0 or _play.ticks() >= SMOKE_MAX_TICKS):
+	elif _play != null and not _play.practice and (_play.matches_played > 0 or _play.ticks() >= SMOKE_MAX_TICKS):
 		_end_play()
-	elif _smoke_left_at >= 0 and _frame >= _smoke_left_at + SMOKE_SETTLE:
+	elif _play != null and _play.practice and (_play.plate_hits > 0 or _play.ticks() >= SMOKE_RANGE_MAX_TICKS):
+		_end_play()
+	elif _play == null and _smoke_range_left_at < 0 and _smoke_left_at >= 0 and _frame >= _smoke_left_at + SMOKE_SETTLE:
+		_start_play(true)
+	elif _smoke_range_left_at >= 0 and _frame >= _smoke_range_left_at + SMOKE_SETTLE:
 		_smoke_report()
 
 
@@ -301,6 +317,10 @@ func _smoke_report() -> void:
 				_smoke_impacts, _smoke_rounds, _smoke_matches])
 		get_tree().quit(1)
 		return
-	print("[smoke] ok frames=%d credits_chars=%d shots=%d impacts=%d rounds=%d" % [_frame, _credits.text_length(),
-			_smoke_shots, _smoke_impacts, _smoke_rounds])
+	if _smoke_plates <= 0:
+		push_error("smoke: practice on the range rang no plate")
+		get_tree().quit(1)
+		return
+	print("[smoke] ok frames=%d credits_chars=%d shots=%d impacts=%d rounds=%d plates=%d" % [_frame,
+			_credits.text_length(), _smoke_shots, _smoke_impacts, _smoke_rounds, _smoke_plates])
 	get_tree().quit(0)

@@ -1892,3 +1892,6 @@ msgstr "Moving"
 
 msgid "SETTINGS_PREVIEW_NAME"
 msgstr "Dash"
+
+msgid "RANGE_START_PLATE"
+msgstr "START"

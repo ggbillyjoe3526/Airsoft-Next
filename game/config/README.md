@@ -31,12 +31,13 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `view_config.gd` | Field of view, the sight's zoom, near and far, the view's roll in a lean, a cut lean's easing, a vault's dip and tip |
 | `viewmodel_config.gd` | The replica in hand: hip and sight positions, sway, kick, sprint carry, draw, the holster, reload cant, wall pull-back, each optic's glass and eye distance |
 | `effects_config.gd` | BB size and colour, the muzzle blend, puffs by surface, the wind dust |
-| `sound_config.gd` | Cue and loop folders, gains, distances, voice pools, the ambience, a silenced shot's muffling, the flag rope's ratchet |
+| `sound_config.gd` | Cue and loop folders, gains, distances, voice pools, the ambience, a silenced shot's muffling, the flag rope's ratchet, the range's steel and how far targets are heard, the challenge's beeps |
 | `debug_view_config.gd` | The F4/F5 debug draw: a BB trail's length and colours, the hit volumes' colours and roundness |
 | `hud_config.gd` | the low-magazine share, the magazine boxes' sizes, the crosshair, the hit marker, banner times, the hop-up readout, the vault prompt, the flag marker and warning |
 | `map_style.gd` | A map's greybox: colours and surface by block kind, the ground, the world grid |
 | `lighting_config.gd` | The sun, the sky, ambient light, SSAO and exposure |
 | `flag_view_config.gd` | Attack / Defend's pole in the world: pole, base, rope, cleat, the flag cloth's size, travel and wave, the reach ring's colours |
+| `range_view_config.gd` | The practice range drawn: plate, post, figure and gear paint and sizes, a hit plate's swing, a figure's fall, the challenge's lit glow and START plate, the floor lines and wall boards |
 | `team_config.gd` | Team names (translation keys) and colours |
 | `bot_config.gd`, `bot_tuning.tres` | How bots play (`BotConfig.load_default()`): senses, aim, firing, lanes and holds, routes, cover, searching, hunting, the holster |
 | `bot_skill.gd` | How well a bot plays: reaction, turn rate, aim error and settling, lead, bursts, holds (Normal only for now) |

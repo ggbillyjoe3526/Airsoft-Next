@@ -4,8 +4,11 @@ extends Node
 ## one's shot duller and quieter; its power part and clicks as they are), dry clicks, magazines, the selector, the
 ## hop-up dial and draws, BB impacts by surface, footsteps by surface and pace, vaults, the flag's rope ratcheting up
 ## or down, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
-## yours, the thump when it's you. Your own sounds play plain; everyone else's from where they happen. Every variant
-## is loaded up front, so the first shot never hitches; the voices are pools reused oldest first. Variant and pitch choice is presentation only, on its own random stream.
+## yours, the thump when it's you. On the practice range steel rings and a figure knocks, heard down its whole length,
+## your own target hit plays the confirmation, and the timed challenge's countdown, Go and Time beep. Your own sounds
+## play plain; everyone else's from where they happen. Every variant is loaded up front, so the first shot never
+## hitches; the voices are pools reused oldest first. Variant and pitch choice is presentation only, on its own random
+## stream.
 
 const BUS_EFFECTS := &"Effects"
 const BUS_FOOTSTEPS := &"Footsteps"
@@ -57,7 +60,8 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig) -> v
 		_impact.append(_load("impact_%s" % s))
 		for k in STEP_NAMES:
 			_step.append(_load("step_%s_%s" % [s, k]))
-	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault", "foley_holster", "magRattle", "rope_up", "rope_down"]:
+	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault",
+			"foley_holster", "magRattle", "rope_up", "rope_down", "steelRing"]:
 		_load(cue)
 	_set_muffle(cfg.muffled_cutoff_hz)
 	for i in cfg.field_voices:
@@ -132,7 +136,25 @@ func on_tick(state: GameState, player_id: int) -> void:
 			GameEvent.Kind.FLAG_ROPE:
 				_play(&"rope_up" if e.value == 1 else &"rope_down", e.position, false, _cfg.rope_gain, _cfg.rope_pitch,
 						BUS_EFFECTS)
-			GameEvent.Kind.ROUND_START:
+			GameEvent.Kind.TARGET_HIT:
+				if e.value == RangeTarget.Kind.STEEL:
+					_play(&"steelRing", e.position, false, _cfg.steel_ring_gain, _cfg.steel_ring_pitch, BUS_EFFECTS, 1.0,
+							_cfg.target_reach)
+				else:
+					_play(_impact[RayHit.Surface.WOOD], e.position, false, _cfg.impact_gain, _cfg.impact_pitch,
+							BUS_EFFECTS, 1.0, _cfg.target_reach)
+				if own:
+					_play(&"hitMarker", e.position, true, _cfg.hit_marker_gain, 0.0, BUS_INTERFACE)
+			GameEvent.Kind.CHALLENGE when own:
+				var pitch := 1.0
+				match e.value:
+					RangeChallenge.Cue.GO:
+						pitch = _cfg.go_pitch
+					RangeChallenge.Cue.TIME:
+						pitch = _cfg.time_pitch
+				_play(&"count_beep", Vector3.ZERO, true, _cfg.beep_gain, 0.0, BUS_INTERFACE, pitch)
+			# Practice has no rounds to start: no start beep on the range.
+			GameEvent.Kind.ROUND_START when not state.round_state.practice:
 				_play(&"count_beep", Vector3.ZERO, true, _cfg.beep_gain, 0.0, BUS_INTERFACE)
 
 
@@ -177,20 +199,23 @@ static func _set_muffle(cutoff_hz: float) -> void:
 		filter.cutoff_hz = cutoff_hz
 
 
-func _play(cue: StringName, at: Vector3, own: bool, gain: float, pitch_spread: float, bus: StringName) -> void:
+## Plays a variant of `cue` at `pitch` give or take `pitch_spread`: plain if `own`, else from `at`, heard as far as
+## `reach` (m; SoundConfig.max_distance when not positive).
+func _play(cue: StringName, at: Vector3, own: bool, gain: float, pitch_spread: float, bus: StringName,
+		pitch: float = 1.0, reach: float = 0.0) -> void:
 	if not _streams.has(cue):
 		return
 	var variants: Array = _streams[cue]
 	if variants.is_empty():
 		return
 	var stream: AudioStream = variants[_rng.randi_range(0, variants.size() - 1)]
-	var pitch := 1.0 + _rng.randf_range(-pitch_spread, pitch_spread)
+	var scale := pitch + _rng.randf_range(-pitch_spread, pitch_spread)
 	if own:
 		var v := _own[_next_own]
 		_next_own = (_next_own + 1) % _own.size()
 		v.stream = stream
 		v.volume_db = linear_to_db(gain)
-		v.pitch_scale = pitch
+		v.pitch_scale = scale
 		v.bus = bus
 		v.play()
 	else:
@@ -198,7 +223,8 @@ func _play(cue: StringName, at: Vector3, own: bool, gain: float, pitch_spread: f
 		_next_field = (_next_field + 1) % _field.size()
 		v.stream = stream
 		v.volume_db = linear_to_db(gain)
-		v.pitch_scale = pitch
+		v.pitch_scale = scale
+		v.max_distance = reach if reach > 0.0 else _cfg.max_distance
 		v.bus = bus
 		v.global_position = at
 		v.play()

@@ -31,6 +31,15 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var hit_tick_gain: float = 1.0
 @export var hit_marker_gain: float = 0.55
 @export var beep_gain: float = 1.9
+## The practice range (M21): steel rings, a plywood figure knocks (an impact on wood), each heard target_reach (m) away,
+## all the way down the range (its far corner is 74 m from the back).
+@export var target_reach: float = 80.0
+@export var steel_ring_gain: float = 1.4
+@export var steel_ring_pitch: float = 0.03
+## The timed challenge's shot timer (M93), on the countdown beep: one each second of the countdown, Go a little lower,
+## and Time lower still (a stand-in for the referee's long blast until one is rendered).
+@export var go_pitch: float = 0.8
+@export var time_pitch: float = 0.55
 ## A silenced replica's shot (ReplicaConfig.muffled): duller and quieter, low-passed at this cutoff (Hz) on the Muffled
 ## bus and played at this share of its level (the browser game's AUDIO.suppressed). Its power part sounds as it is.
 @export var muffled_cutoff_hz: float = 1400.0

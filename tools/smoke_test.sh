@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Headless smoke test: imports the project, then runs the game with --smoke and fails if Godot logged any script
-# error or the game never reported. Once bots exist, --smoke plays a headless match instead.
+# error or the game never reported. --smoke plays a headless match on Depot, then practice on the range until a plate
+# rings.
 # Usage: tools/smoke_test.sh            (GODOT=/path/to/godot to override)
 set -uo pipefail
 GODOT="${GODOT:-godot}"
