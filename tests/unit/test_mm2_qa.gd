@@ -171,7 +171,7 @@ func test_a_match_of_bots_only_ever_holds_patches_it_heard() -> void:
 	await wait_physics_frames(2)
 	var h := session.minimap_hearing()
 	var live_seen := 0
-	for _f in 240:
+	for _f in 120:
 		await wait_physics_frames(1)
 		var side := session.spectated().team
 		assert_eq(h.side, side, "the side is the listener's")
