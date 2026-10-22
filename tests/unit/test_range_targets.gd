@@ -308,3 +308,52 @@ func test_stands_the_range_just_as_before_every_target_facing_the_firing_line_fr
 		assert_almost_eq(t.face_x, 0.0, 1e-12, t.label)
 		assert_eq(t.face_z, 1.0, t.label)
 		assert_almost_eq(t.floor_y, 0.0, 1e-6, t.label) # Vector3 is single precision
+
+
+func test_skipping_targets_a_bb_cant_reach_never_changes_what_it_meets() -> void:
+	# The reach spheres are first_hit's broadphase: with them off (every reach endless) every ray meets the same target
+	# at the same distance, moving targets anywhere on their track or swing included.
+	var targets := _targets()
+	var open := _targets()
+	for t in open:
+		t.reach = INF
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 11
+	var other := RangeTargets.Hit.new()
+	var met := 0
+	for tick in 900:
+		RangeTargets.step(targets, tuning, DT * 3.0)
+		RangeTargets.step(open, tuning, DT * 3.0)
+		for n in 8:
+			var aim := targets[rng.randi_range(0, targets.size() - 1)]
+			var o := Vector3(rng.randf_range(-6.0, 6.0), rng.randf_range(0.5, 2.0), rng.randf_range(-4.0, 2.0))
+			var to := aim.position + Vector3(rng.randf_range(-0.8, 0.8), rng.randf_range(-0.2, 1.9),
+					rng.randf_range(-0.8, 0.8))
+			var d := (to - o).normalized()
+			var max_t := rng.randf_range(0.5, 80.0)
+			RangeTargets.first_hit(o, d, max_t, targets, cfg, hit)
+			RangeTargets.first_hit(o, d, max_t, open, cfg, other)
+			assert_eq([hit.index, hit.post], [other.index, other.post])
+			assert_almost_eq(hit.at, other.at, 1e-5)
+			if hit.index >= 0:
+				met += 1
+	assert_gt(met, 500, "plenty of rays meet something, so the test reaches the narrow phase")
+
+
+func test_a_mover_waiting_at_a_track_end_keeps_its_hit_volume() -> void:
+	var targets := _targets()
+	var mover: RangeTarget = null
+	for t in targets:
+		if t.motion == RangeTarget.Motion.MOVER and t.kind == RangeTarget.Kind.FIGURE:
+			mover = t
+	mover.clock = 0.0
+	RangeTargets.step(targets, tuning, DT)
+	var built := mover.volume.head.a
+	var at := mover.position
+	RangeTargets.step(targets, tuning, DT)
+	assert_eq(mover.position, at, "still waiting out its dwell")
+	assert_eq(mover.volume.head.a, built)
+	mover.clock = cfg.mover_dwell + 0.5
+	RangeTargets.step(targets, tuning, DT)
+	assert_ne(mover.position, at)
+	assert_almost_eq(mover.volume.head.a.x - built.x, mover.position.x - at.x, 1e-4, "its volume went with it")

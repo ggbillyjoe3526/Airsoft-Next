@@ -242,6 +242,7 @@ func test_a_practice_tick_of_bbs_at_the_targets_allocates_no_objects_once_warm()
 	var state: GameState = m[1]
 	var c := state.characters[0]
 	var cmds: Array[PlayerCommand] = [PlayerCommand.new()]
+	var hits: Array[int] = [0]
 	var steps := func(ticks: int, from: int) -> void:
 		for i in ticks:
 			var t := state.targets[(from + i) / 20 % state.targets.size()]
@@ -250,12 +251,15 @@ func test_a_practice_tick_of_bbs_at_the_targets_allocates_no_objects_once_warm()
 			cmds[0].fire = i % 6 < 3
 			cmds[0].reload = c.armament.mag() == 0
 			sim.step(state, cmds, DT)
+			hits[0] += state.events.count_of(GameEvent.Kind.TARGET_HIT)
 	steps.call(600, 0)
 	# The event pool grows to the busiest tick seen (SimEvents): warm it past any tick here, so only a tick's own
 	# allocations would show.
 	for i in 16:
 		state.events.add(GameEvent.Kind.SHOT)
 	state.events.clear()
+	hits[0] = 0
 	var before := Performance.get_monitor(Performance.OBJECT_COUNT)
 	steps.call(600, 0)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), before)
+	assert_gt(hits[0], 0, "the measured ticks hit targets, so the hit path is in them")

@@ -161,3 +161,7 @@ var posts: PackedVector3Array = PackedVector3Array()
 ## Figures: the hit volume where it stands now (a character's, upright, legs at rest), rebuilt as it moves; null for
 ## steel.
 var volume: Hitbox.Volume = null
+## A sphere round all of it a BB could meet wherever its motion takes it (RangeTargets.first_hit skips a target whose
+## sphere a BB's path misses): its centre and radius, worked out once.
+var reach_centre: Vector3 = Vector3.ZERO
+var reach: float = 0.0

@@ -56,7 +56,10 @@ static func create(specs: Array[RangeTarget.Spec], tuning: SimTuning, rng: Rando
 		t.posts = target_posts(t, cfg)
 		if not steel:
 			t.volume = Hitbox.Volume.new()
+		_bound(t, tuning)
 		_place(t, tuning)
+		if t.volume != null:
+			_build_volume(t, tuning)
 		t.prev_position = t.position
 		if t.motion == RangeTarget.Motion.POPUP:
 			# Lying from the start, as if it went down a full spell ago (drawn flat, not falling), for a random time.
@@ -142,6 +145,8 @@ static func first_hit(o: Vector3, d: Vector3, max_t: float, targets: Array[Range
 	out.post = false
 	for i in targets.size():
 		var target := targets[i]
+		if Hitbox.ray_sphere(o, d, target.reach_centre, target.reach) > out.at:
+			continue
 		var t := ray_target(o, d, out.at, target)
 		if t <= out.at:
 			out.index = i
@@ -229,7 +234,7 @@ static func refill_spares(a: Armament) -> void:
 
 
 ## Moves a mover or swinger to where its clock puts it (others stay at home), and a figure's hit volume with it (laid
-## out once; a mover's every tick).
+## out once by create; a mover's again only when it has moved, not while it waits at a track's end).
 static func _place(t: RangeTarget, tuning: SimTuning) -> void:
 	var cfg := tuning.targets
 	var lx := 0.0
@@ -240,17 +245,65 @@ static func _place(t: RangeTarget, tuning: SimTuning) -> void:
 		var a := swing_angle(t.clock, cfg)
 		lx = cfg.swinger_arm * sin(a)
 		ly = cfg.swinger_arm * (1.0 - cos(a))
-	# Its own x turned to the world by its yaw.
-	t.position = Vector3(t.home.x + t.face_z * lx, t.home.y + ly, t.home.z - t.face_x * lx)
+	var at := _along(t, lx, ly)
+	if at == t.position:
+		return
+	t.position = at
 	if t.volume != null:
 		_build_volume(t, tuning)
+
+
+## Where `t` stands moved `lx` along its own x and `ly` up from its home (its own x turned to the world by its yaw).
+static func _along(t: RangeTarget, lx: float, ly: float) -> Vector3:
+	return Vector3(t.home.x + t.face_z * lx, t.home.y + ly, t.home.z - t.face_x * lx)
 
 
 ## A figure's hit volume where it stands: a character's resting BodyConfig.rest_gap above its floor point, facing as it
 ## faces (a character's yaw 0 faces -z, a target's +z), crouched or not, upright and still.
 static func _build_volume(t: RangeTarget, tuning: SimTuning) -> void:
-	var feet := Vector3(t.position.x, t.position.y + tuning.body.rest_gap, t.position.z)
+	_build_volume_at(t, t.position, tuning)
+
+
+static func _build_volume_at(t: RangeTarget, at: Vector3, tuning: SimTuning) -> void:
+	var feet := Vector3(at.x, at.y + tuning.body.rest_gap, at.z)
 	Hitbox.build_figure(feet, t.yaw + PI, 1.0 if t.crouched else 0.0, tuning.hits, t.volume)
+
+
+## Works out `t`'s reach sphere (RangeTarget.reach) from spheres round all it can be: a figure's hit volume bound, or a
+## plate, at both ends of a mover's track; a swinger's plate anywhere on its arm round the pivot; and each post. Once,
+## at create: it allocates.
+static func _bound(t: RangeTarget, tuning: SimTuning) -> void:
+	var cfg := tuning.targets
+	var spheres: Array[Vector4] = []
+	var ends := PackedFloat32Array([0.0])
+	if t.motion == RangeTarget.Motion.MOVER:
+		ends = PackedFloat32Array([-t.track, t.track])
+	for lx in ends:
+		var at := _along(t, lx, 0.0)
+		if t.volume != null:
+			_build_volume_at(t, at, tuning)
+			var b := t.volume.bound
+			spheres.append(Vector4(b.a.x, b.a.y, b.a.z, b.r))
+			spheres.append(Vector4(b.b.x, b.b.y, b.b.z, b.r))
+		elif t.motion == RangeTarget.Motion.SWINGER:
+			spheres.append(Vector4(at.x, at.y + cfg.swinger_arm, at.z, cfg.swinger_arm + t.radius))
+		else:
+			spheres.append(Vector4(at.x, at.y, at.z, t.radius))
+	var r := _post_radius(t, cfg)
+	for p in t.posts:
+		_post_at(t, p, r)
+		spheres.append(Vector4(_post.a.x, _post.a.y, _post.a.z, r))
+		spheres.append(Vector4(_post.b.x, _post.b.y, _post.b.z, r))
+	var lo := Vector3(INF, INF, INF)
+	var hi := -lo
+	for s in spheres:
+		var c := Vector3(s.x, s.y, s.z)
+		lo = lo.min(c - Vector3.ONE * s.w)
+		hi = hi.max(c + Vector3.ONE * s.w)
+	t.reach_centre = (lo + hi) / 2.0
+	t.reach = 0.0
+	for s in spheres:
+		t.reach = maxf(t.reach, t.reach_centre.distance_to(Vector3(s.x, s.y, s.z)) + s.w)
 
 
 ## Distance along the unit ray to the nearest of a target's stoppers (target_posts, from its floor up), or INF.
@@ -259,17 +312,27 @@ static func _ray_posts(o: Vector3, d: Vector3, max_t: float, target: RangeTarget
 		return INF
 	var best := INF
 	var reach := max_t
-	var r := (cfg.swinger_frame_width if target.motion == RangeTarget.Motion.SWINGER else cfg.post_width) / 2.0
+	var r := _post_radius(target, cfg)
 	for p in target.posts:
-		_post.a = Vector3(target.home.x + target.face_z * p.x + target.face_x * p.z, target.floor_y + r,
-				target.home.z - target.face_x * p.x + target.face_z * p.z)
-		_post.b = Vector3(_post.a.x, p.y - r, _post.a.z)
-		_post.r = r
+		_post_at(target, p, r)
 		var t := Hitbox.ray_vertical_capsule(o, d, reach, _post)
 		if t <= reach:
 			best = t
 			reach = t
 	return best
+
+
+## A post's (or a swinger frame leg's) half width.
+static func _post_radius(target: RangeTarget, cfg: RangeConfig) -> float:
+	return (cfg.swinger_frame_width if target.motion == RangeTarget.Motion.SWINGER else cfg.post_width) / 2.0
+
+
+## Fills _post with the stopper `p` (target_posts) of `target`, `r` thick, in the world, from its floor up.
+static func _post_at(target: RangeTarget, p: Vector3, r: float) -> void:
+	_post.a = Vector3(target.home.x + target.face_z * p.x + target.face_x * p.z, target.floor_y + r,
+			target.home.z - target.face_x * p.x + target.face_z * p.z)
+	_post.b = Vector3(_post.a.x, p.y - r, _post.a.z)
+	_post.r = r
 
 
 ## A pop-up that stands only when lit (the timed challenge) and isn't: it lies down, ready to rise.
