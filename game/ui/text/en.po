@@ -75,6 +75,48 @@ msgstr "The round is played again"
 msgid "HUD_HALF_TIME"
 msgstr "Half time · ends swapped"
 
+msgid "HUD_ROUND_SIDE"
+msgstr "Round %d · %s"
+
+msgid "HUD_ATTACK"
+msgstr "Attack"
+
+msgid "HUD_DEFEND"
+msgstr "Defend"
+
+msgid "HUD_TAKE_FLAG"
+msgstr "Take the flag"
+
+msgid "HUD_HOLD_POLE"
+msgstr "Hold the pole"
+
+msgid "HUD_FLAG_RAISED"
+msgstr "Flag raised"
+
+msgid "HUD_DEFENDED"
+msgstr "Defended"
+
+msgid "HUD_HELD_POLE"
+msgstr "Time's up · %s held the pole"
+
+msgid "HUD_ATK"
+msgstr "ATK"
+
+msgid "HUD_DEF"
+msgstr "DEF"
+
+msgid "HUD_OT"
+msgstr "OT"
+
+msgid "HUD_FLAG"
+msgstr "Flag"
+
+msgid "HUD_FLAG_DISTANCE"
+msgstr "· %d m"
+
+msgid "HUD_FLAG_GOING_UP"
+msgstr "Their flag is going up!"
+
 msgid "HUD_CHIP_SEMI"
 msgstr "S"
 
@@ -131,6 +173,18 @@ msgstr "SETTINGS"
 
 msgid "MENU_LATER"
 msgstr "LATER"
+
+msgid "MENU_ATK"
+msgstr "ATK"
+
+msgid "MENU_ATTACKS_FIRST"
+msgstr "attacks first, sides swap at half time"
+
+msgid "MENU_ATTACKS_FIRST_SHORT"
+msgstr "%s attacks first"
+
+msgid "MENU_NEEDS_POLE"
+msgstr "Needs a map with a flagpole"
 
 msgid "MENU_LEVEL"
 msgstr "LVL"

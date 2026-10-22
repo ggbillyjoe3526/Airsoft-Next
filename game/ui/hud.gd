@@ -5,8 +5,11 @@ extends Control
 ## fire modes, a box per magazine, reloading, the hop-up dial while you turn it), the score bar and "First to N"
 ## (HudScore), the round's banners (HudBanner), a ricochet that only ticks you, the big "HIT!" when you're hit, and under
 ## the win banner the XP the match gave (XpCard, up until the next match starts), and whose eyes you watch through once
-## you are out (or with the Dev settings' Spectate any bot) at the bottom. Text
-## is only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
+## you are out (or with the Dev settings' Spectate any bot) at the bottom. In Attack / Defend (concepts `hud-attack.png`,
+## `hud-defend.png`, `round-end.png`): the ATK / DEF tags and the overtime clock on the score bar, the flag gauge under
+## it (HudFlagGauge), the warning while the other team's flag goes up, the marker over the pole with its distance, and
+## the rounds' own banners. Text is only rebuilt when what it shows changes. No hints teaching the controls (owner,
+## 2026-10-16).
 
 const MARGIN := 32.0
 ## The replica panel's lane, bottom right: as wide as its hop-up note, as tall as its notes and panel.
@@ -17,6 +20,9 @@ const MIDDLE_SIZE := Vector2(1500.0, 260.0)
 const MIDDLE_RAISE := 200.0
 ## The finished match's XP (XpCard) hangs this far under the banner.
 const XP_GAP := 28.0
+## The flag warning's plate margins and the gap between its flag and its words.
+const WARNING_PAD := Vector2i(36, 10)
+const WARNING_GAP := 18
 ## The hit marker's four strokes, out from the centre.
 const MARKER_DIRECTIONS: Array[Vector2] = [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]
 
@@ -37,6 +43,11 @@ var _vault_left: float = 0.0
 var _xp: XpCard = null
 var _watching: Label = null
 var _watching_name: String = ""
+var _gauge: HudFlagGauge = null
+var _warning: PanelContainer = null
+var _warning_flag: HudFlagGlyph = null
+var _flag_marker: HudFlagMarker = null
+var _pulse: float = 0.0
 
 var _marker_left: float = 0.0
 var _banner_left: float = 0.0
@@ -74,11 +85,40 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_score.setup(teams, _rounds.wins_needed)
 	_score.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	top.add_child(_score)
+	_gauge = HudFlagGauge.new()
+	_gauge.setup(roundi(1.0 / sim.flag.rope_step), _score.custom_minimum_size.x)
+	_gauge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_gauge.visible = false
+	top.add_child(_gauge)
 	var aim := HudStyle.label(top, HudStyle.AIM_SIZE, 700, Color(GameTheme.TEXT, 0.8), HORIZONTAL_ALIGNMENT_CENTER,
 			HudStyle.SPACING_AIM)
 	aim.text = HudStyle.first_to(_rounds.wins_needed)
 	aim.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	aim.add_theme_stylebox_override("normal", HudStyle.panel_box(HudStyle.BACKING_AIM, 12, 4))
+	# The warning: the attackers' flag and "THEIR FLAG IS GOING UP!" on a plate with a yellow top rule.
+	_warning = PanelContainer.new()
+	_warning.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_warning.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var warn_box := HudStyle.panel_box(HudStyle.BACKING_BANNER, WARNING_PAD.x, WARNING_PAD.y)
+	warn_box.border_color = GameTheme.YELLOW
+	warn_box.border_width_top = roundi(HudStyle.BANNER_RULE)
+	_warning.add_theme_stylebox_override("panel", warn_box)
+	_warning.visible = false
+	top.add_child(_warning)
+	var warn_row := HBoxContainer.new()
+	warn_row.add_theme_constant_override("separation", WARNING_GAP)
+	warn_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_warning.add_child(warn_row)
+	_warning_flag = HudFlagGlyph.new(HudStyle.WARNING_GLYPH, GameTheme.YELLOW)
+	_warning_flag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	warn_row.add_child(_warning_flag)
+	var warn_text := HudStyle.label(warn_row, HudStyle.WARNING_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER,
+			HudStyle.SPACING_BANNER)
+	warn_text.text = HudStyle.caps("HUD_FLAG_GOING_UP")
+	# The marker over the pole, placed each frame (place_flag_marker).
+	_flag_marker = HudFlagMarker.new()
+	add_child(_flag_marker)
+	_flag_marker.setup(_cfg)
 	# Banners and the hit call, centre.
 	var middle := VBoxContainer.new()
 	_place(middle, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-MIDDLE_SIZE.x * 0.5, -MIDDLE_RAISE - MIDDLE_SIZE.y,
@@ -159,10 +199,22 @@ func on_tick(state: GameState) -> void:
 			GameEvent.Kind.ROUND_START:
 				if e.value == 1:
 					hide_xp()
-				_show_banner(HudStyle.round_title(e.value), HudStyle.round_sub(e.value, _rounds.half_time_after))
+				var rs := state.round_state
+				if rs.mode == RoundState.Mode.ATTACK_DEFEND:
+					var attacking := _player.team == rs.attackers
+					_show_banner(HudStyle.side_round_title(e.value, attacking),
+							HudStyle.side_round_sub(e.value, _rounds.half_time_after, attacking))
+				else:
+					_show_banner(HudStyle.round_title(e.value), HudStyle.round_sub(e.value, _rounds.half_time_after))
 			GameEvent.Kind.ROUND_OVER:
+				var reason := e.value2 as GameEvent.RoundEnd
+				var by_flag := state.round_state.mode == RoundState.Mode.ATTACK_DEFEND \
+						and reason != GameEvent.RoundEnd.ELIMINATED
 				if e.value < 0:
 					_show_banner(HudStyle.caps("HUD_ROUND_DRAW"), HudStyle.caps("HUD_ROUND_DRAW_SUB"))
+				elif by_flag:
+					_show_banner(HudStyle.flag_round_won(reason), HudStyle.flag_round_sub(reason, _teams.names[e.value]),
+							_teams.colours[e.value])
 				else:
 					_show_banner(HudStyle.round_won(_teams.names[e.value]), "", _teams.colours[e.value])
 			GameEvent.Kind.MATCH_OVER:
@@ -220,10 +272,65 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 			_hop_left = 0.0
 			_replica.hide_hop()
 	var rs := state.round_state
-	_score.set_clock(ceili(rs.clock))
+	var flag_mode := rs.mode == RoundState.Mode.ATTACK_DEFEND
+	var in_overtime := flag_mode and rs.clock <= 0.0 and rs.overtime > 0.0 and rs.is_live()
+	if in_overtime:
+		_score.set_clock(HudStyle.overtime_left(rs.overtime, _sim.flag.max_overtime), true)
+	else:
+		_score.set_clock(ceili(rs.clock))
 	_score.set_score(rs.score[0], rs.score[1])
 	_score.set_round(rs.number)
+	_score.set_sides(rs.attackers if flag_mode else -1)
+	_gauge.visible = flag_mode
+	if flag_mode and rs.attackers >= 0:
+		_gauge.set_flag(rs.flag.progress, _teams.colours[rs.attackers])
+	_update_warning(rs, delta)
 	queue_redraw()
+
+
+## Places the marker over the pole at `pole` as seen by `camera` (HudFlagMarker); hidden outside Attack / Defend
+## (`show` false).
+func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool) -> void:
+	_flag_marker.place(camera, pole, show, size)
+
+
+## The marker's words ("FLAG · 24 m"), or "" while it is hidden: for tests.
+func flag_marker_text() -> String:
+	return _flag_marker.text()
+
+
+## Whether the "Their flag is going up!" warning shows: for tests.
+func flag_warning_shown() -> bool:
+	return _warning.visible
+
+
+## The round banner's words ("" while it is hidden): for tests.
+func banner_text() -> String:
+	return "%s / %s" % [_banner.big_text(), _banner.sub_text()] if _banner.visible else ""
+
+
+func flag_gauge() -> HudFlagGauge:
+	return _gauge
+
+
+func score() -> HudScore:
+	return _score
+
+
+## The warning pulses while the other team raises its flag and you aren't at the rope pulling it down.
+func _update_warning(rs: RoundState, delta: float) -> void:
+	var c := _player
+	var at_rope := Flag.at_pole(c, rs.flag, _sim.flag)
+	var show := rs.mode == RoundState.Mode.ATTACK_DEFEND and rs.is_live() and rs.attackers >= 0 \
+			and c.team != rs.attackers and rs.flag.status == FlagState.Status.RAISING and not at_rope
+	_warning.visible = show
+	if show:
+		_warning_flag.colour = _teams.colours[rs.attackers]
+		_pulse += delta
+		var swing := 1.0 - HudStyle.WARNING_PULSE_LOW
+		_warning.modulate.a = HudStyle.WARNING_PULSE_LOW + swing * (0.5 + 0.5 * cos(_pulse * TAU * _cfg.flag_warning_pulse))
+	else:
+		_pulse = 0.0
 
 
 func _draw() -> void:

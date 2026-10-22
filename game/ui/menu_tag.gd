@@ -1,7 +1,8 @@
 class_name MenuTag
 extends PanelContainer
 ## A small capitals tag in a thin outline: LATER (grey) on what isn't built yet, DEV (violet) on dev content, LEVEL n
-## (muted) on an item not unlocked yet. The concepts' `.later`, `.dev` and `.lvl2`.
+## (muted) on an item not unlocked yet, and ATK (filled yellow) on the side attacking first. The concepts' `.later`,
+## `.dev`, `.lvl2` and `.atk`.
 
 const SIZE := 13
 const SPACING := 0.08
@@ -14,13 +15,13 @@ const DEV_EDGE := Color("8d6fd0")
 var _label: Label = null
 
 
-## A tag reading `text` in `colour`, outlined in `edge`.
-static func make(text: String, colour: Color, edge: Color) -> MenuTag:
+## A tag reading `text` in `colour`, outlined in `edge`, on `fill` (clear by default).
+static func make(text: String, colour: Color, edge: Color, fill: Color = Color(0.0, 0.0, 0.0, 0.0)) -> MenuTag:
 	var tag := MenuTag.new()
 	tag.name = "Tag"
 	tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var face := GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), edge, PAD_X, PAD_Y)
+	var face := GameTheme.box(fill, edge, PAD_X, PAD_Y)
 	face.set_corner_radius_all(RADIUS)
 	tag.add_theme_stylebox_override("panel", face)
 	tag._label = Label.new()
@@ -39,6 +40,11 @@ static func later() -> MenuTag:
 
 static func dev() -> MenuTag:
 	return make(TranslationServer.translate("MENU_DEV"), DEV_TEXT, DEV_EDGE)
+
+
+## "ATK": the side attacking first in Attack / Defend, dark on yellow.
+static func attack() -> MenuTag:
+	return make(TranslationServer.translate("MENU_ATK"), GameTheme.YELLOW_INK, GameTheme.YELLOW, GameTheme.YELLOW)
 
 
 ## "LEVEL 7": the level that unlocks a locked item.

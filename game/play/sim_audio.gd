@@ -2,10 +2,10 @@ class_name SimAudio
 extends Node
 ## The match's sound, from the tick's events (docs/ARCHITECTURE.md › Contracts 3): shots with their power part (a silenced
 ## one's shot duller and quieter; its power part and clicks as they are), dry clicks, magazines, the selector, the
-## hop-up dial and draws, BB impacts by surface, footsteps by surface and pace,
-## vaults, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
-## yours, the thump when it's you. Your own sounds play plain; everyone else's from where they happen. Every variant is loaded up front, so the first shot never hitches; the voices are
-## pools reused oldest first. Variant and pitch choice is presentation only, on its own random stream.
+## hop-up dial and draws, BB impacts by surface, footsteps by surface and pace, vaults, the flag's rope ratcheting up
+## or down, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
+## yours, the thump when it's you. Your own sounds play plain; everyone else's from where they happen. Every variant
+## is loaded up front, so the first shot never hitches; the voices are pools reused oldest first. Variant and pitch choice is presentation only, on its own random stream.
 
 const BUS_EFFECTS := &"Effects"
 const BUS_FOOTSTEPS := &"Footsteps"
@@ -57,7 +57,7 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig) -> v
 		_impact.append(_load("impact_%s" % s))
 		for k in STEP_NAMES:
 			_step.append(_load("step_%s_%s" % [s, k]))
-	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault", "foley_holster", "magRattle"]:
+	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault", "foley_holster", "magRattle", "rope_up", "rope_down"]:
 		_load(cue)
 	_set_muffle(cfg.muffled_cutoff_hz)
 	for i in cfg.field_voices:
@@ -129,6 +129,9 @@ func on_tick(state: GameState, player_id: int) -> void:
 			GameEvent.Kind.VAULT:
 				var gain := _cfg.own_vault_gain if own else _cfg.vault_gain
 				_play(&"vault", e.position, own, gain, _cfg.vault_pitch, BUS_FOOTSTEPS)
+			GameEvent.Kind.FLAG_ROPE:
+				_play(&"rope_up" if e.value == 1 else &"rope_down", e.position, false, _cfg.rope_gain, _cfg.rope_pitch,
+						BUS_EFFECTS)
 			GameEvent.Kind.ROUND_START:
 				_play(&"count_beep", Vector3.ZERO, true, _cfg.beep_gain, 0.0, BUS_INTERFACE)
 

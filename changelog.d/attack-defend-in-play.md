@@ -1,0 +1,12 @@
+### Attack / Defend in play
+- Attack / Defend can be picked on the Match screen on Depot or Neon Heights; a map without a flagpole says it needs one.
+- The team you pick attacks first, and sides swap at half time. The Match card says who attacks first.
+- A flagpole stands at the defenders' flag spot, with a ring on the ground showing its reach.
+- The ring is white with nobody on the rope, the attackers' colour as they raise, the defenders' as they pull down, and yellow when both are there.
+- The flag climbs the pole in the attackers' colour, and the rope ratchets as it goes up or down.
+- The HUD shows ATK and DEF tags over the scores, and a FLAG gauge with 12 notches that fill as the flag rises.
+- "OT" on the clock shows the overtime left once time runs out while attackers are on the rope.
+- "Their flag is going up!" pulses when you defend and are away from the rope. A "FLAG · 24 m" marker sits over the pole and hides within 5 m.
+- Rounds open with "ROUND 1 · ATTACK / TAKE THE FLAG" or "ROUND 1 · DEFEND / HOLD THE POLE".
+- Rounds end with "FLAG RAISED / ALPHA TAKE THE ROUND" or "DEFENDED / TIME'S UP · BETA HELD THE POLE".
+- Attack / Defend matches give XP and count for your records, as Elimination does.

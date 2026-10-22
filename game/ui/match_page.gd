@@ -42,6 +42,11 @@ const TEAM_HEIGHT := 66.0
 const TEAM_NAME_SIZE := 22
 ## How much of a team's colour tints a picked team card.
 const TEAM_TINT := 0.06
+## Attack / Defend's line under the team cards: its size, and the team's name lightened to read on the page.
+const ATTACK_LINE_SIZE := 16
+const TEAM_NAME_LIGHTEN := 0.25
+## A mode card's "Needs a map with a flagpole" in a dimmed yellow.
+const NEEDS_DARKEN := 0.3
 const BOT_GAP := 8
 const BOT_SIZE := 16
 const BOT_PAD := 10
@@ -66,6 +71,13 @@ var _bot_buttons: Dictionary[String, MenuCard] = {}
 var _offered: PackedStringArray = PackedStringArray()
 var _listed: PackedStringArray = PackedStringArray()
 var _unloadable: Dictionary[String, bool] = {}
+## Which listed maps have a flagpole (Attack / Defend).
+var _poles: Dictionary[String, bool] = {}
+## Under a pole mode's card, why it can't be picked on a map without a pole.
+var _needs_pole: Dictionary[String, Control] = {}
+## Under the team cards in Attack / Defend: ATK, the team attacking first, and the rest of the line.
+var _attack_row: HBoxContainer = null
+var _attack_team: Label = null
 var _chips_box: HFlowContainer = null
 var _summary_map: Label = null
 var _summary_rest: Label = null
@@ -140,6 +152,18 @@ func summary_text() -> String:
 ## Whether a listed map can't be played (its file is refused).
 func is_unloadable(map_id: String) -> bool:
 	return _unloadable.get(map_id, false)
+
+
+## Whether a pole mode's card says it needs a map with a flagpole.
+func says_needs_pole(mode: String) -> bool:
+	return _needs_pole.has(mode) and _needs_pole[mode].visible
+
+
+## The line under the team cards in Attack / Defend ("Alpha attacks first, ..."), or "" while it is hidden.
+func attack_line() -> String:
+	if not _attack_row.visible:
+		return ""
+	return "%s %s" % [_attack_team.text, tr("MENU_ATTACKS_FIRST")]
 
 
 func _build() -> void:
@@ -220,6 +244,12 @@ func _build_modes() -> Control:
 		var blurb := _text(blurb_text, MODE_BLURB_SIZE, 600, GameTheme.MUTED)
 		blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		rows.add_child(blurb)
+		if MatchOptions.POLE_MODES.has(mode):
+			var needs := _text(tr("MENU_NEEDS_POLE"), MODE_BLURB_SIZE, 700, GameTheme.YELLOW.darkened(NEEDS_DARKEN))
+			needs.name = "NeedsPole"
+			needs.visible = false
+			rows.add_child(needs)
+			_needs_pole[mode] = needs
 		card.add_content(pad)
 		card.pressed.connect(_pick_mode.bind(mode))
 		_modes_box.add_child(card)
@@ -253,6 +283,15 @@ func _build_side() -> Control:
 		card.pressed.connect(_pick_team.bind(t))
 		team_row.add_child(card)
 		_team_cards.append(card)
+	_attack_row = HBoxContainer.new()
+	_attack_row.name = "AttacksFirst"
+	_attack_row.add_theme_constant_override("separation", TAG_GAP + 2)
+	_attack_row.add_child(MenuTag.attack())
+	_attack_team = _text("", ATTACK_LINE_SIZE, 700, GameTheme.TEXT)
+	_attack_row.add_child(_attack_team)
+	_attack_row.add_child(_text(tr("MENU_ATTACKS_FIRST"), ATTACK_LINE_SIZE, 600, GameTheme.MUTED))
+	_attack_row.visible = false
+	team.add_child(_attack_row)
 	side.add_child(team)
 	# The bots' level.
 	var bots := _section(_heading(tr("MENU_BOTS")))
@@ -351,8 +390,10 @@ func _list_maps() -> void:
 	var playable: Array[MapCatalog.Entry] = []
 	var later: Array[MapCatalog.Entry] = []
 	for e in fields:
-		var refused := not MatchOptions.map_problems(e.id, _play_tuning.map_style, _tuning.rounds.team_size).is_empty()
+		var m := MatchOptions.map_check(e.id, _play_tuning.map_style, _tuning.rounds.team_size)
+		var refused := not m.problems.is_empty()
 		problems[e.id] = refused
+		_poles[e.id] = m.has_pole
 		(later if refused else playable).append(e)
 	var ordered := playable + later
 	var ids := PackedStringArray()
@@ -462,17 +503,24 @@ func _refresh() -> void:
 	for id: String in _map_cards:
 		_map_cards[id].set_picked(id == picks.map_id)
 	var entry := _catalog.find(picks.map_id)
-	if not MatchOptions.mode_pickable(picks.mode, entry):
+	var pole: bool = _poles.get(picks.map_id, false)
+	if not MatchOptions.mode_pickable(picks.mode, entry, pole):
 		for mode in MatchOptions.MODES:
-			if MatchOptions.mode_pickable(mode, entry):
+			if MatchOptions.mode_pickable(mode, entry, pole):
 				picks.mode = mode
 				break
 	for mode: String in _mode_cards:
 		var card := _mode_cards[mode]
-		card.set_greyed(not MatchOptions.mode_pickable(mode, entry))
+		card.set_greyed(not MatchOptions.mode_pickable(mode, entry, pole))
 		card.set_picked(mode == picks.mode)
+	for mode: String in _needs_pole:
+		_needs_pole[mode].visible = MatchOptions.needs_pole(mode, entry, pole)
 	for t in _team_cards.size():
 		_team_cards[t].set_picked(t == picks.team)
+	_attack_row.visible = MatchOptions.POLE_MODES.has(picks.mode)
+	_attack_team.text = tr(MatchOptions.TEAM_KEYS[picks.team])
+	var colour := _play_tuning.teams.colours[picks.team].lightened(TEAM_NAME_LIGHTEN)
+	_attack_team.add_theme_color_override("font_color", colour)
 	for level: String in _bot_buttons:
 		_bot_buttons[level].set_picked(level == picks.bots)
 	_summary_map.text = entry.display_name if entry != null else picks.map_id
