@@ -138,8 +138,10 @@ func test_each_share_is_heard_at_the_browsers_level() -> void:
 	SoundMix.set_occlusion_buses(cfg)
 	for share: float in [0.0, 0.2, 0.5, 0.75, 1.0]:
 		var bus := SoundOcclusion.bus_for(SimAudio.BUS_EFFECTS, share, cfg)
-		var heard := db_to_linear(AudioServer.get_bus_volume_db(AudioServer.get_bus_index(bus))) \
-				* SoundOcclusion.level_for(SimAudio.BUS_EFFECTS, share, cfg)
+		# The plain bus's volume is the player's (Settings), so only an occlusion bus's own level counts.
+		var bus_gain := 1.0 if bus == SimAudio.BUS_EFFECTS \
+				else db_to_linear(AudioServer.get_bus_volume_db(AudioServer.get_bus_index(bus)))
+		var heard := bus_gain * SoundOcclusion.level_for(SimAudio.BUS_EFFECTS, share, cfg)
 		assert_almost_eq(heard, 1.0 - share * (1.0 - cfg.occlusion_muffled_gain), 1e-4, "share %s" % share)
 	assert_eq(SoundOcclusion.bus_for(SimAudio.BUS_EFFECTS, 0.2, cfg), SimAudio.BUS_EFFECTS)
 	assert_eq(SoundOcclusion.bus_for(SimAudio.BUS_EFFECTS, 0.75, cfg), SoundMix.BUS_EFFECTS_FULL)
