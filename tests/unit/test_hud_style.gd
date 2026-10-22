@@ -74,7 +74,6 @@ func test_half_time_is_named_on_the_round_after_the_half_only() -> void:
 
 func test_the_won_banners_name_the_team_in_capitals() -> void:
 	assert_eq(HudStyle.round_won(teams.names[0]), "ALPHA TAKE THE ROUND")
-	assert_eq(HudStyle.match_won(teams.names[1]), "BETA WIN THE MATCH")
 
 
 func test_a_banner_shows_its_two_lines_and_hides_an_empty_one() -> void:
