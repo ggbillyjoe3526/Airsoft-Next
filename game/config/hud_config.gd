@@ -40,3 +40,15 @@ extends Resource
 @export var flag_marker_hide_within: float = 5.0
 @export var flag_marker_edge: float = 36.0
 @export var flag_warning_pulse: float = 1.6
+## The hit feed (concept `hud-feed.png`; the browser game's HIT_FEED): at most feed_lines lines, each up feed_line_time
+## (s, simulation time, so a pause holds it), fading over its last feed_fade_time; kept feed_margin (px) from the
+## screen's corner, feed_gap (px) between lines.
+@export var feed_lines: int = 6
+@export var feed_line_time: float = 6.0
+@export var feed_fade_time: float = 1.0
+@export var feed_margin: Vector2 = Vector2(32.0, 26.0)
+@export var feed_gap: float = 6.0
+## Teammate markers: a chevron this far over a teammate's eye (m), hollow while cover hides them; checked against the
+## level every team_marker_check frames for each teammate.
+@export var team_marker_lift: float = 0.55
+@export var team_marker_check: int = 4

@@ -47,6 +47,9 @@ var _gauge: HudFlagGauge = null
 var _warning: PanelContainer = null
 var _warning_flag: HudFlagGlyph = null
 var _flag_marker: HudFlagMarker = null
+var _hits := HitFeed.new()
+var _feed: HudFeed = null
+var _team_markers: HudTeamMarkers = null
 var _pulse: float = 0.0
 
 var _marker_left: float = 0.0
@@ -69,6 +72,14 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	theme = GameTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Teammate markers under everything else (setup_field fills them), the hit feed in its corner.
+	_team_markers = HudTeamMarkers.new()
+	add_child(_team_markers)
+	_hits.setup(cfg.feed_lines, cfg.feed_line_time, cfg.feed_fade_time)
+	_feed = HudFeed.new()
+	_feed.setup(cfg.feed_lines, cfg.feed_gap, teams)
+	add_child(_feed)
+	set_feed_corner(HudFeed.Place.TOP_RIGHT)
 	# The replica panel, bottom right.
 	_replica = ReplicaPanel.new()
 	_place(_replica, Vector4(1.0, 1.0, 1.0, 1.0), Rect2(-MARGIN - PANEL_LANE.x, -MARGIN - PANEL_LANE.y, PANEL_LANE.x,
@@ -161,6 +172,40 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 
 
 ## Whether a Jump press would vault this tick: the prompt shows, and stays up vault_prompt_hold after.
+## The field the teammate markers check their line of sight against (`query`), the bodies' heights, the names by
+## character id for the feed ("" for you) and how many characters play.
+func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, count: int) -> void:
+	_team_markers.setup(_cfg, body, query, count)
+	_feed.set_names(names)
+
+
+## The hit feed's corner: top right (newest on top) or bottom left (newest at the bottom).
+func set_feed_corner(where: HudFeed.Place) -> void:
+	_feed.set_corner(where)
+	var m := _cfg.feed_margin
+	if where == HudFeed.Place.TOP_RIGHT:
+		_place(_feed, Vector4(1.0, 0.0, 1.0, 0.0), Rect2(-m.x, m.y, 0.0, 0.0))
+		_feed.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+		_feed.grow_vertical = Control.GROW_DIRECTION_END
+	else:
+		_place(_feed, Vector4(0.0, 1.0, 0.0, 1.0), Rect2(m.x, -m.x, 0.0, 0.0))
+		_feed.grow_horizontal = Control.GROW_DIRECTION_END
+		_feed.grow_vertical = Control.GROW_DIRECTION_BEGIN
+
+
+## Places the teammate markers as `camera` sees them (HudTeamMarkers), `watched` being whose eyes it is.
+func place_team_markers(camera: Camera3D, characters: Array[Character], watched: Character, fraction: float) -> void:
+	_team_markers.place(camera, characters, _player, watched, _teams.colours[_player.team], fraction, true)
+
+
+func feed() -> HudFeed:
+	return _feed
+
+
+func team_markers() -> HudTeamMarkers:
+	return _team_markers
+
+
 func set_vault_ready(ready: bool) -> void:
 	if ready:
 		if _vault_left <= 0.0:
@@ -188,6 +233,8 @@ func on_tick(state: GameState) -> void:
 			GameEvent.Kind.CHARACTER_HIT:
 				if e.actor == _player.id and e.target != _player.id:
 					_marker_left = _cfg.marker_time
+				if e.actor >= 0:
+					_hits.add(e.actor, e.target, state.time)
 			GameEvent.Kind.RICOCHET_TICK:
 				# Never over a round's own banner.
 				if e.target == _player.id and not _banner.visible:
@@ -199,6 +246,8 @@ func on_tick(state: GameState) -> void:
 			GameEvent.Kind.ROUND_START:
 				if e.value == 1:
 					hide_xp()
+					if state.round_state.draws == 0:
+						_hits.clear()
 				var rs := state.round_state
 				if rs.mode == RoundState.Mode.ATTACK_DEFEND:
 					var attacking := _player.team == rs.attackers
@@ -285,6 +334,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	if flag_mode and rs.attackers >= 0:
 		_gauge.set_flag(rs.flag.progress, _teams.colours[rs.attackers])
 	_update_warning(rs, delta)
+	_hits.prune(state.time)
+	_feed.refresh(_hits, state.time, state.characters, _player)
 	queue_redraw()
 
 
