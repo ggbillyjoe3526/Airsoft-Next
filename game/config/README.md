@@ -6,6 +6,10 @@ does and why it is what it is. `sim_tuning.tres` is the instance the game loads 
 changed in the inspector is saved there. The play screen's own tuning (how the game looks, sounds and handles, never its
 rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 
+A config added to `SimTuning`, `PlayTuning` or `BotConfig` must also be written into its .tres (open and save it in the
+editor): an export converts the .tres where the scripts' `= Config.new()` defaults don't run, so a config the file
+leaves out ships as null and the exported game crashes. `tests/unit/test_saved_configs.gd` fails until it is.
+
 | Script | Area |
 |---|---|
 | `sim_tuning.gd` | Bundles the simulation's configs below |

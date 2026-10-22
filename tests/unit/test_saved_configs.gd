@@ -3,13 +3,14 @@ extends GutTest
 ## script's `= SomeConfig.new()` default doesn't run, so a config left out of the file ships as null and the exported
 ## game crashes (flag and vault, 2026-10-22). Runs in the editor as well as the tests do, so it reads the file's text.
 
-const FILES: Array[String] = ["res://game/config/sim_tuning.tres", "res://game/config/play_tuning.tres",
-	"res://game/config/bot_tuning.tres", "res://game/config/replicas/aeg.tres",
-	"res://game/config/replicas/cyber.tres", "res://game/config/replicas/pistol.tres"]
+const ROOT := "res://game/config"
 
 
 func test_every_config_in_a_saved_file_is_written_into_it() -> void:
-	for path in FILES:
+	var files: Array[String] = []
+	_find_tres(ROOT, files)
+	assert_true(files.has(ROOT + "/sim_tuning.tres"), "finds the saved files")
+	for path in files:
 		var text := FileAccess.get_file_as_string(path)
 		var res := ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
 		assert_not_null(res, path)
@@ -28,10 +29,19 @@ func _check(res: Resource, text: String, path: String, header: String) -> void:
 		var sub := value as Resource
 		if not sub.resource_path.is_empty() and not sub.resource_path.contains("::"):
 			continue # a file of its own
-		var name: String = p.name
-		assert_true(block.contains("\n%s = " % name), "%s writes %s out (%s)" % [path, name, header])
+		var prop: String = p.name
+		assert_true(block.contains("\n%s = " % prop), "%s writes %s out (%s)" % [path, prop, header])
 		if not sub.resource_scene_unique_id.is_empty():
 			_check(sub, text, path, '[sub_resource type="Resource" id="%s"]' % sub.resource_scene_unique_id)
+
+
+## Every .tres under `dir`, recursively.
+static func _find_tres(dir: String, out: Array[String]) -> void:
+	for file in DirAccess.get_files_at(dir):
+		if file.ends_with(".tres"):
+			out.append(dir.path_join(file))
+	for sub in DirAccess.get_directories_at(dir):
+		_find_tres(dir.path_join(sub), out)
 
 
 ## The lines of `text` from `header` up to the next block.
