@@ -5,22 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## HF1 · Hit feed and teammate markers
-tier: ui
-perf: required
-touches: game/ui/, game/play/, game/config/hud_config.gd, game/ui/text/en.po, tests/unit/
-contract: none
-acceptance:
-  1. As the approved concept `hud-feed.png` (`/mnt/project-files/concepts/step14-match-info/`): one feed, top right
-     by default, newest on top; each line is who fired, the BB, who was hit, and their HIT tag, names in team colours
-     with the shooter's team bar; your lines say You and are framed in yellow; a line shows 6 s, its last second fading
-     (simulation time, so a pause holds it); at most 6 lines (the browser game's HIT_FEED).
-  2. Teammate markers: a chevron in the team colour over each teammate in play, seen through cover (hollow when
-     hidden), grey with a raised hand once out; never over an enemy, never a name; the same chevron sits by a
-     teammate's name in the feed. Hidden while the scoreboard is held (SB1).
-status: open
-attempts: 0
-
 ## RR1 · Round result and the round's table
 tier: ui
 perf: optional

@@ -121,7 +121,7 @@ func _lay_out() -> void:
 	_shooter_x = x
 	x += _text_width(_shooter, _shooter_you) + GAP
 	_trail_x = x
-	x += DOT * DOT_ALPHAS.size() + DOT_GAP * DOT_ALPHAS.size() + BB + BB_RING + GAP
+	x += DOT * DOT_ALPHAS.size() + DOT_GAP * DOT_ALPHAS.size() + BB + BB_RING * 2.0 + GAP
 	x = _place_name(x, _victim_mate, _victim_chevron)
 	_victim_x = x
 	x += _text_width(_victim, _victim_you) + GAP
