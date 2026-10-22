@@ -50,6 +50,8 @@ var _flag_marker: HudFlagMarker = null
 var _hits := HitFeed.new()
 var _feed: HudFeed = null
 var _team_markers: HudTeamMarkers = null
+var _round_result: HudRoundResult = null
+var _stats: MatchStats = null
 var _pulse: float = 0.0
 
 var _marker_left: float = 0.0
@@ -156,6 +158,12 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_banner = HudBanner.new()
 	_banner.setup()
 	middle.add_child(_banner)
+	# The round's table, under the stamp where the match's XP goes.
+	_round_result = HudRoundResult.new()
+	_place(_round_result, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(0.0, XP_GAP - MIDDLE_RAISE, 0.0, 0.0))
+	_round_result.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	add_child(_round_result)
+	_round_result.setup(cfg, teams, sim.rounds, teams.colours[player.team])
 	# Whose eyes you watch through, bottom centre.
 	var bottom := VBoxContainer.new()
 	_place(bottom, Vector4(0.5, 1.0, 0.5, 1.0), Rect2(-TOP_WIDTH * 0.5, -MARGIN, TOP_WIDTH, 0.0))
@@ -172,10 +180,13 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 
 
 ## The field the teammate markers check their line of sight against (`query`), the bodies' heights, the names by
-## character id for the feed ("" for you), and everyone playing.
-func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, characters: Array[Character]) -> void:
+## character id for the feed and the round's table ("" for you), everyone playing, and the match's numbers.
+func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, characters: Array[Character],
+		stats: MatchStats) -> void:
 	_team_markers.setup(_cfg, body, query, characters, _player)
 	_feed.set_names(names)
+	_round_result.set_names(names)
+	_stats = stats
 
 
 ## The hit feed's corner: top right (newest on top) or bottom left (newest at the bottom).
@@ -203,6 +214,15 @@ func feed() -> HudFeed:
 
 func team_markers() -> HudTeamMarkers:
 	return _team_markers
+
+
+func round_result() -> HudRoundResult:
+	return _round_result
+
+
+## Whether the match's last round table still holds back the results (the XP card and the next match wait for it).
+func holds_results() -> bool:
+	return _round_result.holds_results()
 
 
 ## Whether a Jump press would vault this tick: the prompt shows, and stays up vault_prompt_hold after.
@@ -244,6 +264,7 @@ func on_tick(state: GameState) -> void:
 				if e.actor == _player.id:
 					_show_hop_up(e.value / 100.0)
 			GameEvent.Kind.ROUND_START:
+				_round_result.close()
 				if e.value == 1:
 					hide_xp()
 					if state.round_state.draws == 0:
@@ -256,17 +277,9 @@ func on_tick(state: GameState) -> void:
 				else:
 					_show_banner(HudStyle.round_title(e.value), HudStyle.round_sub(e.value, _rounds.half_time_after))
 			GameEvent.Kind.ROUND_OVER:
-				var reason := e.value2 as GameEvent.RoundEnd
-				var by_flag := state.round_state.mode == RoundState.Mode.ATTACK_DEFEND \
-						and reason != GameEvent.RoundEnd.ELIMINATED
-				if e.value < 0:
-					_show_banner(HudStyle.caps("HUD_ROUND_DRAW"), HudStyle.caps("HUD_ROUND_DRAW_SUB"))
-				elif by_flag:
-					_show_banner(HudStyle.flag_round_won(reason), HudStyle.flag_round_sub(reason, _teams.names[e.value]),
-							_teams.colours[e.value])
-				else:
-					_show_banner(HudStyle.round_won(_teams.names[e.value]), "", _teams.colours[e.value])
+				_round_over(state.round_state, e)
 			GameEvent.Kind.MATCH_OVER:
+				_round_result.match_over()
 				_show_banner(HudStyle.match_won(_teams.names[e.value]), HudStyle.caps("HUD_NEW_MATCH"),
 						_teams.colours[e.value])
 
@@ -278,6 +291,7 @@ func show_xp(settled: PlayerTally.Settled, difficulty: StringName, progress: Pro
 	_xp = XpCard.new(settled, difficulty, progress, Pool.shared())
 	_place(_xp, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-XpCard.WIDTH * 0.5, XP_GAP - MIDDLE_RAISE, XpCard.WIDTH, 0.0))
 	add_child(_xp)
+	_xp.visible = not _round_result.holds_results()
 
 
 func hide_xp() -> void:
@@ -302,8 +316,12 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 			_replica.hide_hop()
 	_vault_left = maxf(0.0, _vault_left - delta)
 	_vault_prompt.visible = _vault_left > 0.0 and in_play
-	# The win banner stays up as long as the XP under it.
-	if _banner_left > 0.0 and _xp == null:
+	# The round's stamp stays up as long as the table under it, the match's banner as long as the XP.
+	if _stats != null:
+		_round_result.update(state, _stats, _player, delta)
+	if _xp != null:
+		_xp.visible = not _round_result.holds_results()
+	if _banner_left > 0.0 and _xp == null and not _round_result.is_open():
 		_banner_left -= delta
 		if _banner_left <= 0.0:
 			_banner.visible = false
@@ -415,6 +433,19 @@ func _show_hop_up(dial: float) -> void:
 	_replica.show_hop(tr(key) % [roundi(dial * 100.0), flat])
 	_hop_left = _cfg.hop_show_time
 	_hop_slot = a.active
+
+
+## A round ended (`e`, ROUND_OVER): the stamp from your side (WON, LOST or DRAW, in the winners' colour) over the round
+## and how it was won, and the round's table under it soon after.
+func _round_over(rs: RoundState, e: GameEvent) -> void:
+	var reason := e.value2 as GameEvent.RoundEnd
+	var by_flag := rs.mode == RoundState.Mode.ATTACK_DEFEND and reason != GameEvent.RoundEnd.ELIMINATED
+	var key := _teams.names[e.value] if e.value >= 0 else ""
+	_show_banner(HudStyle.round_stamp(e.value, _player.team),
+			HudStyle.round_stamp_sub(rs.number, e.value, key, by_flag, reason),
+			_teams.colours[e.value] if e.value >= 0 else Color.TRANSPARENT)
+	var played := _rounds.round_time - rs.clock + (rs.overtime if is_finite(rs.overtime) else 0.0)
+	_round_result.round_over(rs.number, roundi(played))
 
 
 func _show_banner(text: String, sub: String, colour: Color = Color.TRANSPARENT) -> void:

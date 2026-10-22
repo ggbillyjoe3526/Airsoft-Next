@@ -126,6 +126,29 @@ static func overtime_left(overtime: float, max_overtime: float) -> int:
 	return maxi(0, ceili(maxf(0.0, max_overtime - overtime)) if is_finite(overtime) else 0)
 
 
+## The round's stamp from your side: WON, LOST or DRAW (`winner` -1), and the line under it: "ROUND 4 · ALPHA TAKE
+## THE ROUND", "ROUND 3 · FLAG RAISED · ALPHA TAKE THE ROUND", or a draw's "ROUND 5 · THE ROUND IS PLAYED AGAIN".
+static func round_stamp(winner: int, your_team: int) -> String:
+	if winner < 0:
+		return caps("HUD_ROUND_DRAW")
+	return caps("HUD_WON" if winner == your_team else "HUD_LOST")
+
+
+static func round_stamp_sub(number: int, winner: int, team_name_key: String, by_flag: bool,
+		reason: GameEvent.RoundEnd) -> String:
+	var head := round_title(number)
+	if winner < 0:
+		return "%s · %s" % [head, caps("HUD_ROUND_DRAW_SUB")]
+	if by_flag:
+		return "%s · %s · %s" % [head, flag_round_won(reason), flag_round_sub(reason, team_name_key)]
+	return "%s · %s" % [head, round_won(team_name_key)]
+
+
+## "ROUND 4 · 1:30 PLAYED": the round's table title.
+static func round_played(number: int, seconds: int) -> String:
+	return "%s · %s" % [round_title(number), (TranslationServer.translate(&"HUD_PLAYED") % clock_text(seconds)).to_upper()]
+
+
 static func round_won(team_name_key: String) -> String:
 	return (TranslationServer.translate(&"HUD_ROUND_WON") % TranslationServer.translate(team_name_key)).to_upper()
 

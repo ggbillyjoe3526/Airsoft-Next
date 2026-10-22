@@ -5,20 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## RR1 · Round result and the round's table
-tier: ui
-perf: optional
-touches: game/ui/, game/play/, game/ui/text/en.po, tests/unit/
-contract: none
-acceptance:
-  1. As `round-result.png`: the round's end banner says WON, LOST or DRAW from your side in the winners' colour
-     (white for a draw), with "Round 4 · Alpha take the round" (or the A/D line) under it.
-  2. After 2 s the round's table slides in under it (MatchStats.round_of): each team's players with hits, BBs fired,
-     time in play and who hit them ("Still in" when not hit); held about 4 s, a click moves on sooner; the last round
-     says CLICK FOR THE RESULTS.
-status: open
-attempts: 0
-
 ## SB1 · Scoreboard on Tab and Pro tips
 tier: ui
 perf: required
