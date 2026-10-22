@@ -1,9 +1,9 @@
 class_name MatchPicks
 extends RefCounted
-## What the Match page has picked: the map, the mode, your team, the opponents' and teammates' levels and the rule set. A plain object the
-## entry scene keeps, so the picks survive the menus being freed for a match and built again. Kept for the session
-## only: Settings holds options, and has no place for a match's picks (docs/records/MN2.md); the Custom rule set's
-## switches are options, kept in Settings.custom_rules.
+## What the Match page has picked: the map, the mode, your team, the opponents' and teammates' levels and the rule
+## set. A plain object the entry scene keeps, so the picks survive the menus being freed for a match and built again.
+## Kept for the session only: Settings holds options, and has no place for a match's picks (docs/records/MN2.md); the
+## Custom rule set's switches are options, kept in Settings.custom_rules.
 
 var map_id: String = "depot"
 var mode: String = MatchOptions.MODE_ELIMINATION
