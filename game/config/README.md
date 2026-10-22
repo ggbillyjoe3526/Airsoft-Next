@@ -35,7 +35,7 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `view_config.gd` | Field of view, the sight's zoom, near and far, the view's roll in a lean, a cut lean's easing, a vault's dip and tip |
 | `viewmodel_config.gd` | The replica in hand: hip and sight positions, sway, kick, sprint carry, draw, the holster, reload cant, wall pull-back, each optic's glass and eye distance |
 | `effects_config.gd` | BB size and colour, the muzzle blend, puffs by surface, the wind dust |
-| `sound_config.gd` | Cue and loop folders, gains, distances, voice pools, the ambience, a silenced shot's muffling, the flag rope's ratchet, the range's steel and how far targets are heard, the challenge's beeps, the squad order radio click |
+| `sound_config.gd` | Cue and loop folders, gains, pitch and level spreads, distances and reaches, others' steps' and impacts' start limits, voice pools and voices per cue, the field's mix (out of play and the dips), the occlusion numbers (rays, corners, levels, surface gap, reach, far ramp, refresh, ray budget), the ambience, a silenced shot's muffling, the flag rope's ratchet, the range's steel and how far targets are heard, the challenge's beeps, the squad order radio click |
 | `debug_view_config.gd` | The F4/F5 debug draw: a BB trail's length and colours, the hit volumes' colours and roundness |
 | `hud_config.gd` | the low-magazine share, the magazine boxes' sizes, the crosshair, the hit marker, banner times, the hop-up readout, the vault prompt, the flag marker and warning |
 | `map_style.gd` | A map's greybox: colours and surface by block kind, the ground, the world grid |

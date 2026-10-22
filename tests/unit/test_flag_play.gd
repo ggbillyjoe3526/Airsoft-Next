@@ -173,14 +173,14 @@ func test_the_marker_names_how_far_the_pole_is_and_hides_close_by() -> void:
 func test_the_rope_ratchets_at_the_pole_as_the_flag_moves() -> void:
 	var audio := SimAudio.new()
 	add_child_autofree(audio)
-	audio.setup(SoundConfig.new(), [] as Array[StringName], BodyConfig.new())
+	audio.setup(SoundConfig.new(), [] as Array[StringName], BodyConfig.new(), null, null)
 	var state := GameState.new(1)
 	for up: int in [1, 0]:
 		state.events.clear()
 		var e := state.events.add(GameEvent.Kind.FLAG_ROPE)
 		e.position = Vector3(11.5, 0.0, 1.0) + Vector3.UP * up
 		e.value = up
-		audio.on_tick(state, 0)
+		audio.on_tick(state, 0, null)
 		var heard: Array[String] = []
 		for c: Node in audio.find_children("*", "AudioStreamPlayer3D", true, false):
 			var p := c as AudioStreamPlayer3D

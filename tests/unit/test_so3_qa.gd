@@ -179,7 +179,7 @@ func test_a_huge_sensitivity_flick_stays_within_reach() -> void:
 func test_the_radio_click_plays_once_in_your_ear_for_a_taken_order_only() -> void:
 	var audio := SimAudio.new()
 	add_child_autofree(audio)
-	audio.setup(SoundConfig.new(), [] as Array[StringName], BodyConfig.new())
+	audio.setup(SoundConfig.new(), [] as Array[StringName], BodyConfig.new(), null, null)
 	var o := SquadOrders.Outcome.new()
 	var heard := func() -> int:
 		var n := 0

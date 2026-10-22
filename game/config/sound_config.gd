@@ -1,9 +1,11 @@
 class_name SoundConfig
 extends Resource
 ## How the rendered sounds (assets/audio/) play: each kind's level (linear gain, the browser game's config/audio.ts
-## levels) and pitch spread, how far sounds carry and the ambience bed. Read by SimAudio. The buses are
-## default_bus_layout.tres: Effects (replicas, impacts, hits), Footsteps, Ambience and Interface under Master; Power and
-## Muffled (a silenced shot, through its low-pass filter) send to Effects.
+## levels), pitch and level spread, how far sounds carry, the voice pools, the field's mix (out of play and the dips) and
+## the occlusion numbers, and the ambience bed. Read by SimAudio and SoundMix. The buses are default_bus_layout.tres:
+## Field (the world, which SoundMix muffles and dips) and Interface under Master; Effects (replicas, impacts, hits) and
+## Ambience under Field; Footsteps, Power, Muffled (a silenced shot, through its low-pass filter) and EffectsHalf and
+## EffectsFull (heard through low cover or a wall) under Effects; PowerHalf and PowerFull under Power.
 
 const CUE_DIR := "res://assets/audio/cues/"
 const LOOP_DIR := "res://assets/audio/loops/"
@@ -18,6 +20,15 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var step_gain: float = 0.54
 @export var own_step_gain: float = 0.25
 @export var step_pitch: float = 0.06
+## Level spread (± dB) on each play by kind, on top of the rendered variants' own; interface cues have none.
+@export var shot_spread_db: float = 1.0
+@export var mechanism_spread_db: float = 1.5
+@export var step_spread_db: float = 2.0
+@export var vault_spread_db: float = 1.5
+@export var rope_spread_db: float = 1.0
+@export var impact_spread_db: float = 2.0
+@export var hit_spread_db: float = 0.5
+@export var steel_ring_spread_db: float = 1.0
 ## A vault's hands and kit on the obstacle: louder than a step, as it carries further.
 @export var vault_gain: float = 0.7
 @export var own_vault_gain: float = 0.4
@@ -47,12 +58,56 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 ## bus and played at this share of its level (the browser game's AUDIO.suppressed). Its power part sounds as it is.
 @export var muffled_cutoff_hz: float = 1400.0
 @export var muffled_gain: float = 0.45
-## Others' sounds are at full level within unit_size (m) and fall away out to max_distance (m).
+## Others' sounds are at full level within unit_size (m) and fall away out to max_distance (m), beyond which they are
+## not played at all (the browser game's AUDIO.spatial.maxDistance); the range's targets carry target_reach.
 @export var unit_size: float = 4.0
-@export var max_distance: float = 80.0
-## Positional voices for the field's sounds, and plain ones for your own, each reused oldest first.
+@export var max_distance: float = 60.0
+## Others' footsteps (and magazine rattle) only within step_reach (m) of your ears, about as far as bots hear a sprint,
+## and at most step_limit of them start within step_window (s): six sprinters stay readable (AUDIO.footsteps).
+@export var step_reach: float = 22.0
+@export var step_limit: int = 4
+@export var step_window: float = 0.1
+## At most impact_limit BB impacts on the field start within impact_window (s): a hose of BBs stays readable.
+@export var impact_limit: int = 8
+@export var impact_window: float = 0.1
+## Voices made once at setup (VoicePool): positional ones for the field's sounds, plain ones for your own and the
+## interface. One cue sounds on at most cue_voices at once (a shot on shot_cue_voices) before its oldest is reused.
 @export var field_voices: int = 24
 @export var own_voices: int = 8
+@export var cue_voices: int = 4
+@export var shot_cue_voices: int = 6
+## While the character you play is out of play the field (Effects and Ambience, never the interface) is heard as from
+## the side line: low-passed to out_hz and turned to out_gain (linear), easing over out_ease (s, a time constant).
+@export var out_hz: float = 900.0
+@export var out_gain: float = 0.5
+@export var out_ease: float = 0.15
+## Dips: a cue that must be read lowers the field to the depth (linear) within about the attack (s, a time constant),
+## holds it for the hold (s), then lets it back over the release (s). Your own hit dips deepest; the referee's whistle
+## (a round's end, the match's end, the range's Time) gentler. Overlapping dips keep the deeper depth and the later end.
+@export var hit_dip_depth: float = 0.4
+@export var hit_dip_attack: float = 0.008
+@export var hit_dip_hold: float = 0.25
+@export var hit_dip_release: float = 0.1
+@export var whistle_dip_depth: float = 0.6
+@export var whistle_dip_attack: float = 0.03
+@export var whistle_dip_hold: float = 0.6
+@export var whistle_dip_release: float = 0.15
+## Muffling through walls (SP2; the browser game's AUDIO.occlusion): rays from your ears to a character's feet raised by
+## each of the ray heights (m: knees and head); the blocked share glides a low-pass from occlusion_open_hz to
+## occlusion_muffled_hz on a log scale and the level from 1 to occlusion_muffled_gain. The half and full buses sit at
+## shares 0.5 and 1. A BB impact casts one ray stopping occlusion_surface_gap (m) short of its surface. No ray beyond
+## occlusion_reach (m): the last share closes to full over occlusion_far_ramp (m) more, in occlusion_far_step (m)
+## steps. A character's share is reused for occlusion_refresh_ticks; a tick casts at most occlusion_ray_budget rays.
+@export var occlusion_ray_heights: PackedFloat32Array = PackedFloat32Array([0.45, 1.5])
+@export var occlusion_open_hz: float = 18000.0
+@export var occlusion_muffled_hz: float = 700.0
+@export var occlusion_muffled_gain: float = 0.55
+@export var occlusion_surface_gap: float = 0.2
+@export var occlusion_reach: float = 60.0
+@export var occlusion_far_ramp: float = 60.0
+@export var occlusion_far_step: float = 5.0
+@export var occlusion_refresh_ticks: int = 6
+@export var occlusion_ray_budget: int = 24
 ## The map's ambience bed at the browser game's gain, times the loop's stored peak (assets/audio/README.md).
 @export var ambience: StringName = &"yard"
 @export var ambience_gain: float = 0.035
