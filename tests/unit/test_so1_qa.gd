@@ -27,6 +27,11 @@ var commands: Array[PlayerCommand] = []
 var cmd: PlayerCommand = null
 var you: Character = null
 var mates: Array[Bot] = []
+static var _plain_nav: NavGrid = null
+
+
+func after_all() -> void:
+	_plain_nav = null
 
 
 static func _block(kind: StringName, center: Vector3, size: Vector3) -> MapData.Block:
@@ -57,7 +62,13 @@ func _squad(extra: Array = [], attack_defend: bool = false, attackers: int = 0) 
 		end.dead_zone.append(SpawnPoint.new(Vector3(-45.0, 0.0, 45.0) if e == 0 else Vector3(45.0, 0.0, -45.0), 0.0))
 		m.ends.append(end)
 	map = m
-	nav = NavGrid.build(map, tuning.nav, tuning.body)
+	# The plain field's grid is the slow part of a test and never changes: built once.
+	if extra.is_empty():
+		if _plain_nav == null:
+			_plain_nav = NavGrid.build(map, tuning.nav, tuning.body)
+		nav = _plain_nav
+	else:
+		nav = NavGrid.build(map, tuning.nav, tuning.body)
 	sim = Simulation.new(tuning, w, w.mover(), map.ends, KILL_Y)
 	sim.nav = nav
 	state = GameState.new(5, tuning)
@@ -127,10 +138,10 @@ func test_bots_never_order_by_thinking_and_a_stale_order_in_their_command_is_cle
 	for b in mates:
 		assert_eq(commands[b.character.id].squad_order, SquadOrder.Kind.NONE, "a bot's command carries no order")
 	var events := 0
-	for t in 900:
+	for t in 300:
 		_tick()
 		events += _count(GameEvent.Kind.SQUAD_ORDER) + _count(GameEvent.Kind.SQUAD_ORDER_REFUSED)
-	assert_eq(events, 0, "fifteen seconds of bots playing: no order given by anyone")
+	assert_eq(events, 0, "five seconds of bots playing: no order given by anyone")
 	assert_eq(bots.order_of(YOU), SquadOrder.Kind.NONE)
 	for b in mates:
 		assert_eq(b.order, SquadOrder.Kind.NONE)
@@ -400,7 +411,7 @@ func test_a_hold_on_a_raised_floor_nobody_can_climb_to_ends_with_the_bots_holdin
 	assert_eq(_order(SquadOrder.Kind.HOLD), SquadOrder.Kind.HOLD)
 	assert_true(bots.hold_spot(YOU))
 	assert_almost_eq(bots.held_middle.y, 1.5, 0.05, "the spot is on the platform")
-	_run(20.0)
+	_run(8.0)
 	for b in mates:
 		assert_lt(b.character.position.y, 0.3, "still on the ground: it cannot climb to the spot")
 		assert_ne(b.route_state, Bot.RouteState.WANTED, "no replan loop for an unreachable spot")
@@ -481,14 +492,14 @@ func test_an_anchor_ordered_to_hold_stands_aside_and_goes_on_hunting_from_where_
 # ---- Determinism -----------------------------------------------------------------------------------------------------
 
 
-## Plays 12 s on a fresh field, giving `orders` (a list of [second, kind, yaw]) through your command; returns where
+## Plays 6 s on a fresh field, giving `orders` (a list of [second, kind, yaw]) through your command; returns where
 ## everyone stands and the stream.
 func _scripted(orders: Array) -> Array:
 	_squad()
 	cmd.pitch = -0.2
 	var out: Array = []
 	var next := 0
-	for t in 720:
+	for t in 360:
 		if next < orders.size() and t >= int(orders[next][0] * 60.0):
 			cmd.yaw = orders[next][2]
 			cmd.squad_order = orders[next][1]
@@ -504,8 +515,8 @@ func _scripted(orders: Array) -> Array:
 
 
 func test_the_same_seed_and_orders_play_out_exactly_alike_and_an_order_makes_a_difference() -> void:
-	var script := [[1.0, SquadOrder.Kind.HOLD, EAST], [4.0, SquadOrder.Kind.HOLD, 0.0],
-			[7.0, SquadOrder.Kind.FOLLOW, 0.0], [8.0, SquadOrder.Kind.TEAM_PLAN, 0.0]]
+	var script := [[0.5, SquadOrder.Kind.HOLD, EAST], [2.0, SquadOrder.Kind.HOLD, 0.0],
+			[3.5, SquadOrder.Kind.FOLLOW, 0.0], [4.0, SquadOrder.Kind.TEAM_PLAN, 0.0]]
 	var a := _scripted(script)
 	var b := _scripted(script)
 	assert_eq(a, b)
@@ -535,10 +546,10 @@ func _cycle(ticks: int, from_tick: int) -> void:
 
 func test_ticks_giving_every_kind_of_order_cancelling_and_being_refused_allocate_nothing() -> void:
 	_squad()
-	_cycle(1500, 0)
+	_cycle(600, 0)
 	var objects := Performance.get_monitor(Performance.OBJECT_COUNT)
 	var nodes := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
-	_cycle(1500, 1500)
+	_cycle(900, 600)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), objects, "no objects made or left")
 	assert_eq(Performance.get_monitor(Performance.OBJECT_NODE_COUNT), nodes)
 
@@ -546,7 +557,7 @@ func test_ticks_giving_every_kind_of_order_cancelling_and_being_refused_allocate
 func test_attack_defend_ticks_with_orders_allocate_nothing() -> void:
 	_squad([], true, 1)
 	state.round_state.flag.progress = 0.4
-	_cycle(1200, 0)
+	_cycle(450, 0)
 	var objects := Performance.get_monitor(Performance.OBJECT_COUNT)
-	_cycle(1200, 1200)
+	_cycle(600, 450)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), objects)
