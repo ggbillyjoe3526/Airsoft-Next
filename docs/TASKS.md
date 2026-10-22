@@ -5,6 +5,36 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
+## FG2 · Bots play Attack / Defend
+tier: core
+perf: required
+touches: game/ai/, game/config/bot_config.gd, tests/support/match_runner.gd, tests/guards/, tests/balance/, tests/unit/
+contract: Data, not literals (6)
+acceptance:
+  1. Attackers' lanes end at the pole and they work the rope, covering whoever is on it; defenders hold round the pole
+     and go to pull it down when it moves (the browser game's roundPlanner.ts and bot.ts flag cases).
+  2. Personalities play the mode as in the browser game (an anchor holds by the pole on defence).
+  3. The match guards and the balance report run Attack / Defend on Depot and Neon Heights too: every match won, few
+     rounds on time, no held-up bots, and the share of rounds won by attackers reported per field and level.
+status: open
+attempts: 0
+
+## FG3 · Attack / Defend in play
+tier: ui
+perf: optional
+touches: game/play/, game/ui/, game/ui/text/en.po, game/map/, tests/unit/
+contract: none
+acceptance:
+  1. Concepts first (`/mnt/project-files/concepts/step13-flag/`): the pole and flag in the world, the HUD's flag
+     gauge and who attacks, the round-end lines (FLAG RAISED, DEFENDED), and the Match screen's Attack / Defend card.
+  2. Once approved: the pole stands at the map's `flag` spot (visual only: no collider, BBs pass through), the flag
+     climbs it with the progress, and the rope's ratchet plays on FLAG_ROPE; the HUD shows the gauge and overtime.
+  3. Attack / Defend is picked on the Match screen like Elimination, only on a map with a pole (MapData.has_pole),
+     follows the team pick for who attacks first, and counts for XP and the records as Elimination does. The HUD
+     clamps overtime (End the round now leaves RoundState.overtime at INF; FG1 record).
+status: open
+attempts: 0
+
 ## MN3 · Opponents and Teammates on the Match screen
 tier: ui
 perf: optional

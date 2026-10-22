@@ -1,10 +1,19 @@
 class_name RoundState
 extends RefCounted
-## The match's round flow as plain data (the browser game's sim/round.ts RoundState, Elimination only). Round writes it;
-## the HUD reads it.
+## The match's round flow as plain data (the browser game's sim/round.ts RoundState: Elimination and Attack / Defend).
+## Round writes it; the HUD reads it.
 
 ## LIVE: playing; OVER: the pause between rounds; MATCH_OVER: a team has won the match (until a new match starts).
 enum Phase { LIVE, OVER, MATCH_OVER }
+## ELIMINATION: a round is won by putting the other team out. ATTACK_DEFEND: also by raising the flag on the defenders'
+## pole, and the time-out goes to the defenders.
+enum Mode { ELIMINATION, ATTACK_DEFEND }
+
+## The match's mode and, for Attack / Defend, the foot of its pole (map data) and the team attacking in the first half
+## (it follows your team pick). Set before Round.start_match.
+var mode: Mode = Mode.ELIMINATION
+var pole: Vector3 = Vector3.ZERO
+var first_attackers: int = 0
 
 var phase: Phase = Phase.LIVE
 ## The round being played, from 1. A drawn round is played again under the same number (browser audit SIM-19).
@@ -22,6 +31,11 @@ var reason: GameEvent.RoundEnd = GameEvent.RoundEnd.ELIMINATED
 var score: PackedInt32Array = PackedInt32Array([0, 0])
 ## The team that won the match, or -1.
 var match_winner: int = -1
+## Attack / Defend: the team attacking this round (-1 in Elimination), the pole, and the overtime played so far (s; time
+## ran out while the attackers worked the rope).
+var attackers: int = -1
+var flag: FlagState = FlagState.new()
+var overtime: float = 0.0
 
 
 func is_live() -> bool:

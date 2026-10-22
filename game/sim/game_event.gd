@@ -23,11 +23,13 @@ enum Kind {
 	RICOCHET_TICK, ## actor's bounced BB reached target at position along direction, but ricochets don't count: a tick.
 	HOP_UP, ## actor turned the hop-up dial on slot to value (hundredths of its range); value2 0 if it was already at an end.
 	HOLSTER, ## actor put the replica in slot away.
+	FLAG_ROPE, ## Attack / Defend's flag passed a rope step at position (the pole), value 1 going up, 0 coming down.
 }
 
 ## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.
 enum Footstep { RUN, SPRINT, LAND, RATTLE }
-enum RoundEnd { ELIMINATED, TIME }
+## CAPTURED: Attack / Defend's flag raised (the attackers win).
+enum RoundEnd { ELIMINATED, TIME, CAPTURED }
 
 var kind: Kind = Kind.SHOT
 ## Who did it: the shooter, the BB's owner, the stepper. -1 for none (round events).

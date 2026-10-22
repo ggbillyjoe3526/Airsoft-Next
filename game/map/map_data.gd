@@ -33,6 +33,9 @@ var blocks: Array[Block] = []
 ## The map's two ends (spawns and dead zones), end 0 first.
 var ends: Array[MapEnd] = []
 var kill_y: float = -10.0
+## Attack / Defend's flagpole, by end 1 (`flag` in the file); has_pole false on a map without one.
+var pole: Vector3 = Vector3.ZERO
+var has_pole: bool = false
 ## The lanes bots walk (walkable points from end 0's side to end 1's), in the file's order.
 var lanes: Array[PackedVector3Array] = []
 ## Why the file was refused; empty when it loaded.
@@ -70,6 +73,9 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m._read_blocks(d.get("blocks"), style)
 	m._read_ends(d.get("spawns"), d.get("deadZones"), team_size)
 	m._read_lanes(d.get("lanes"))
+	var pole: Variant = d.get("flag")
+	m.has_pole = pole is Dictionary and (pole as Dictionary).has("x") and (pole as Dictionary).has("z")
+	m.pole = _vec(d.get("flag"))
 	return m
 
 
