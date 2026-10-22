@@ -14,6 +14,10 @@
 [ext_resource type="Script" path="res://game/config/team_config.gd" id="8_s0wu6"]
 [ext_resource type="Script" path="res://game/config/view_config.gd" id="9_3isbp"]
 [ext_resource type="Script" path="res://game/config/viewmodel_config.gd" id="10_bqp2c"]
+[ext_resource type="Script" path="res://game/config/ambience_set.gd" id="1_jm3g4"]
+[ext_resource type="Script" path="res://game/config/ambience_bed.gd" id="2_5olvw"]
+[ext_resource type="Script" path="res://game/config/ambience_call.gd" id="3_lbigc"]
+[ext_resource type="Script" path="res://game/config/ambience_config.gd" id="4_q5v06"]
 
 [sub_resource type="Resource" id="Resource_01h5l"]
 script = ExtResource("1_ermsw")
@@ -42,8 +46,203 @@ script = ExtResource("5_b3fuu")
 [sub_resource type="Resource" id="Resource_3isbp"]
 script = ExtResource("8_q2qxh")
 
+[sub_resource type="Resource" id="Resource_kmp0v"]
+script = ExtResource("2_5olvw")
+loop = &"yard"
+gain = 0.035
+width = 0.7
+
+[sub_resource type="Resource" id="Resource_7ki38"]
+script = ExtResource("3_lbigc")
+cue = &"ambience_bird"
+level = 0.35
+pitch = 0.08
+gap_min = 7.0
+gap_max = 19.0
+distance_min = 22.0
+distance_max = 45.0
+height = 7.0
+rng_seed = 1303
+
+[sub_resource type="Resource" id="Resource_akg4p"]
+script = ExtResource("3_lbigc")
+cue = &"ambience_crow"
+level = 0.24
+pitch = 0.06
+gap_min = 22.0
+gap_max = 50.0
+distance_min = 30.0
+distance_max = 55.0
+height = 10.0
+rng_seed = 3601
+
+[sub_resource type="Resource" id="Resource_d6etx"]
+script = ExtResource("3_lbigc")
+cue = &"ambience_dog"
+level = 0.2
+pitch = 0.08
+gap_min = 24.0
+gap_max = 55.0
+distance_min = 40.0
+distance_max = 60.0
+height = 0.6
+rng_seed = 3602
+
+[sub_resource type="Resource" id="Resource_yt6mn"]
+script = ExtResource("1_jm3g4")
+beds = Array[ExtResource("2_5olvw")]([SubResource("Resource_kmp0v")])
+calls = Array[ExtResource("3_lbigc")]([SubResource("Resource_7ki38"), SubResource("Resource_akg4p"), SubResource("Resource_d6etx")])
+
+[sub_resource type="Resource" id="Resource_i80lf"]
+script = ExtResource("2_5olvw")
+loop = &"pines"
+gain = 0.018
+width = 0.75
+
+[sub_resource type="Resource" id="Resource_kxkck"]
+script = ExtResource("3_lbigc")
+cue = &"ambience_creak"
+level = 0.22
+pitch = 0.1
+gap_min = 14.0
+gap_max = 34.0
+distance_min = 15.0
+distance_max = 35.0
+height = 6.0
+rng_seed = 3603
+
+[sub_resource type="Resource" id="Resource_a0he4"]
+script = ExtResource("1_jm3g4")
+beds = Array[ExtResource("2_5olvw")]([SubResource("Resource_i80lf")])
+calls = Array[ExtResource("3_lbigc")]([SubResource("Resource_7ki38"), SubResource("Resource_kxkck")])
+
+[sub_resource type="Resource" id="Resource_7jdfc"]
+script = ExtResource("2_5olvw")
+loop = &"traffic"
+gain = 0.026
+width = 0.8
+
+[sub_resource type="Resource" id="Resource_1nx8k"]
+script = ExtResource("2_5olvw")
+loop = &"drones"
+gain = 0.006
+width = 0.9
+
+[sub_resource type="Resource" id="Resource_80frf"]
+script = ExtResource("3_lbigc")
+cue = &"ambience_chime"
+level = 0.28
+pitch = 0.03
+gap_min = 12.0
+gap_max = 28.0
+distance_min = 12.0
+distance_max = 30.0
+height = 2.5
+rng_seed = 3484
+
+[sub_resource type="Resource" id="Resource_mhb58"]
+script = ExtResource("3_lbigc")
+cue = &"ambience_pigeon"
+level = 0.24
+pitch = 0.05
+gap_min = 15.0
+gap_max = 34.0
+distance_min = 10.0
+distance_max = 26.0
+height = 6.0
+rng_seed = 3604
+
+[sub_resource type="Resource" id="Resource_t6dlq"]
+script = ExtResource("3_lbigc")
+cue = &"ambience_horn"
+level = 0.16
+pitch = 0.04
+gap_min = 28.0
+gap_max = 60.0
+distance_min = 35.0
+distance_max = 60.0
+height = 1.0
+rng_seed = 3605
+
+[sub_resource type="Resource" id="Resource_xuw4y"]
+script = ExtResource("1_jm3g4")
+beds = Array[ExtResource("2_5olvw")]([SubResource("Resource_7jdfc"), SubResource("Resource_1nx8k")])
+calls = Array[ExtResource("3_lbigc")]([SubResource("Resource_80frf"), SubResource("Resource_mhb58"), SubResource("Resource_t6dlq")])
+
+[sub_resource type="Resource" id="Resource_4hk2b"]
+script = ExtResource("1_jm3g4")
+beds = Array[ExtResource("2_5olvw")]([SubResource("Resource_kmp0v")])
+calls = Array[ExtResource("3_lbigc")]([SubResource("Resource_d6etx")])
+
+[sub_resource type="Resource" id="Resource_02nuc"]
+script = ExtResource("2_5olvw")
+loop = &"insects"
+gain = 0.009
+width = 0.9
+
+[sub_resource type="Resource" id="Resource_ws40d"]
+script = ExtResource("3_lbigc")
+cue = &"ambience_owl"
+level = 0.3
+pitch = 0.04
+gap_min = 25.0
+gap_max = 60.0
+distance_min = 30.0
+distance_max = 50.0
+height = 8.0
+rng_seed = 3374
+
+[sub_resource type="Resource" id="Resource_gs03g"]
+script = ExtResource("1_jm3g4")
+beds = Array[ExtResource("2_5olvw")]([SubResource("Resource_i80lf"), SubResource("Resource_02nuc")])
+calls = Array[ExtResource("3_lbigc")]([SubResource("Resource_ws40d"), SubResource("Resource_kxkck")])
+
+[sub_resource type="Resource" id="Resource_5xyff"]
+script = ExtResource("2_5olvw")
+loop = &"traffic"
+gain = 0.016
+width = 0.8
+
+[sub_resource type="Resource" id="Resource_4x11b"]
+script = ExtResource("2_5olvw")
+loop = &"neon"
+gain = 0.012
+width = 0.5
+copy_offset = 0.0011899999999999999
+
+[sub_resource type="Resource" id="Resource_ogpsl"]
+script = ExtResource("3_lbigc")
+cue = &"ambience_arcade"
+level = 0.22
+pitch = 0.05
+gap_min = 9.0
+gap_max = 22.0
+distance_min = 10.0
+distance_max = 25.0
+height = 1.2
+rng_seed = 3485
+
+[sub_resource type="Resource" id="Resource_fcbwi"]
+script = ExtResource("1_jm3g4")
+beds = Array[ExtResource("2_5olvw")]([SubResource("Resource_5xyff"), SubResource("Resource_4x11b")])
+calls = Array[ExtResource("3_lbigc")]([SubResource("Resource_ogpsl"), SubResource("Resource_t6dlq")])
+
+[sub_resource type="Resource" id="Resource_amb3c"]
+script = ExtResource("4_q5v06")
+day = Dictionary[StringName, ExtResource("1_jm3g4")]({
+&"city": SubResource("Resource_xuw4y"),
+&"woods": SubResource("Resource_a0he4"),
+&"yard": SubResource("Resource_yt6mn")
+})
+night = Dictionary[StringName, ExtResource("1_jm3g4")]({
+&"city": SubResource("Resource_fcbwi"),
+&"woods": SubResource("Resource_gs03g"),
+&"yard": SubResource("Resource_4hk2b")
+})
+
 [sub_resource type="Resource" id="Resource_4l7r4"]
 script = ExtResource("7_2hh1h")
+ambiences = SubResource("Resource_amb3c")
 
 [sub_resource type="Resource" id="Resource_rbn8w"]
 script = ExtResource("8_s0wu6")

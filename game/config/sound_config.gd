@@ -1,11 +1,12 @@
 class_name SoundConfig
 extends Resource
 ## How the rendered sounds (assets/audio/) play: each kind's level (linear gain, the browser game's config/audio.ts
-## levels), pitch and level spread, how far sounds carry, the voice pools, the field's mix (out of play and the dips) and
-## the occlusion numbers, and the ambience bed. Read by SimAudio and SoundMix. The buses are default_bus_layout.tres:
-## Field (the world, which SoundMix muffles and dips) and Interface under Master; Effects (replicas, impacts, hits) and
-## Ambience under Field; Footsteps, Power, Muffled (a silenced shot, through its low-pass filter) and EffectsHalf and
-## EffectsFull (heard through low cover or a wall) under Effects; PowerHalf and PowerFull under Power.
+## levels), pitch and level spread, how far sounds carry, the voice pools, the field's mix (out of play and the dips),
+## the occlusion numbers, the ambience and the referee's whistle. Read by SimAudio and SoundMix. The buses are
+## default_bus_layout.tres: Field (the world, which SoundMix muffles and dips) and Interface under Master; Effects
+## (replicas, impacts, hits) and Ambience under Field; Footsteps, Power, Muffled (a silenced shot, through its low-pass
+## filter) and EffectsHalf and EffectsFull (heard through low cover or a wall) under Effects; PowerHalf and PowerFull
+## under Power.
 
 const CUE_DIR := "res://assets/audio/cues/"
 const LOOP_DIR := "res://assets/audio/loops/"
@@ -111,3 +112,38 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 ## The map's ambience bed at the browser game's gain, times the loop's stored peak (assets/audio/README.md).
 @export var ambience: StringName = &"yard"
 @export var ambience_gain: float = 0.035
+## Every field's beds and calls by day and by night (the browser game's AMBIENCES), picked by the map's `ambience`.
+@export var ambiences: AmbienceConfig = AmbienceConfig.new()
+## The referee's pea whistle (the browser game's whistle.ts), rendered by tools/render_whistle.gd as whistle_short and
+## whistle_long, whistle_variants of each with the warble's phase moved round its cycle, and played at whistle_gain on
+## the Interface bus. A sine at whistle_hz whose pitch warbles at whistle_warble_hz by whistle_warble_depth (a share of
+## the pitch: the pea rattling), fading in over whistle_attack (s) and out over the last whistle_release (s).
+@export var whistle_gain: float = 0.25
+@export var whistle_hz: float = 2900.0
+@export var whistle_warble_hz: float = 28.0
+@export var whistle_warble_depth: float = 0.04
+@export var whistle_attack: float = 0.02
+@export var whistle_release: float = 0.05
+@export var whistle_variants: int = 3
+## A short blast (s; a round's start) and a long one (s; a round's end, the match's end, the range's Time).
+@export var whistle_short: float = 0.14
+@export var whistle_long: float = 0.8
+## The blasts: a round starts on round_start_blasts short ones, each starting round_start_gap blast-lengths after the
+## one before; a round ends on one long; the match ends on match_over_blasts more long ones after it, each
+## match_over_gap blast-lengths on from the one before.
+@export var round_start_blasts: int = 2
+@export var round_start_gap: float = 1.6
+@export var match_over_blasts: int = 3
+@export var match_over_gap: float = 1.3
+
+
+## When round start blast `i` (0-based, of round_start_blasts; each whistle_short long) starts, in seconds after the
+## first.
+func round_start_blast(i: int) -> float:
+	return whistle_short * round_start_gap * i
+
+
+## When extra match-over blast `i` (0-based, of match_over_blasts; each whistle_long long) starts, in seconds after the
+## round's end blast (the browser game's matchOverBlastStart).
+func match_over_blast(i: int) -> float:
+	return whistle_long * match_over_gap * (i + 1)
