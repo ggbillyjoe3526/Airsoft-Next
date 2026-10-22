@@ -31,7 +31,8 @@ character follows the hit-calling routine instead of its command. Nothing is all
 | `ricochet.gd` | A BB bouncing off concrete and steel; whether a bounced BB knocks anyone out is the match's rule |
 | `hitbox.gd`, `bb_step.gd` | The hit volume (head, chest, hips leaning; swinging legs) and each tick's BB flight against the level and bodies |
 | `elimination.gd` | Hit calling: alive, calling, walking off, leaving, out |
-| `round.gd`, `round_state.gd` | Elimination rounds: clock, score, half time, reset, match over |
+| `round.gd`, `round_state.gd` | Rounds in Elimination and Attack / Defend: clock, score, half time, reset, match over; the flag's time-out and overtime |
+| `flag.gd`, `flag_state.gd` | Attack / Defend's flag: attackers at the pole raise it, defenders pull it down, both hold it still |
 
 ## Not yet
 

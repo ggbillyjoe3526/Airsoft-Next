@@ -1,10 +1,12 @@
 class_name Round
-## Elimination match flow (the browser game's sim/round.ts, Elimination only: no flag, overtime flag or Extraction).
-## Rounds against the clock: a team with members but nobody in play loses the round; both out at once, or the clock
-## running out with both sides standing, is a draw, played again under the same number. After RoundConfig.reset_delay
-## everyone respawns for the next round, until a team has wins_needed wins and a lead of win_by: the match is over
-## until start_match. Ends swap after half_time_after decided rounds, so an uneven map is fair over a match.
-## start_match sets a match up before the first tick; step runs once a tick and allocates nothing.
+## Match flow in rounds (the browser game's sim/round.ts: Elimination and Attack / Defend; no overtime flag or
+## Extraction yet). Rounds against the clock: a team with members but nobody in play loses the round; both out at once
+## is a draw, played again under the same number. Elimination: the clock running out with both sides standing is a draw
+## too. Attack / Defend (RoundState.mode): the attackers also win by raising their flag on the pole (Flag), and the
+## time-out goes to the defenders, after up to FlagConfig.max_overtime while the attackers still work the rope. After
+## RoundConfig.reset_delay everyone respawns for the next round, until a team has wins_needed wins and a lead of win_by:
+## the match is over until start_match. Ends swap after half_time_after decided rounds, so an uneven map is fair over a
+## match. start_match sets a match up before the first tick; step runs once a tick and allocates nothing.
 
 
 ## A new match from round 1: scores cleared, fire selectors back to their defaults, every character placed at its team's end and respawned, no BBs in flight,
@@ -55,24 +57,53 @@ static func step(rs: RoundState, characters: Array[Character], ends: Array[MapEn
 	if alpha_out or beta_out:
 		var winner := -1 if alpha_out and beta_out else (1 if alpha_out else 0)
 		_end_round(rs, winner, GameEvent.RoundEnd.ELIMINATED, tuning.rounds, events)
+	elif rs.mode == RoundState.Mode.ATTACK_DEFEND:
+		_step_flag_clock(rs, characters, tuning, events, dt)
 	elif rs.clock <= 0.0:
 		_end_round(rs, -1, GameEvent.RoundEnd.TIME, tuning.rounds, events)
 
 
-## Runs a live round's clock out, so the next tick ends it as on time (the Dev tab's End the round now). False when no
-## round is live.
+## Attack / Defend once nobody is wiped out: the flag raised wins it for the attackers; at the buzzer the defenders win,
+## unless the attackers are working the rope (raising it, or contesting it at the pole): then it plays on until they
+## stop or max_overtime has run.
+static func _step_flag_clock(rs: RoundState, characters: Array[Character], tuning: SimTuning, events: SimEvents,
+		dt: float) -> void:
+	if Flag.step(rs.flag, characters, rs.attackers, tuning.flag, events, dt):
+		_end_round(rs, rs.attackers, GameEvent.RoundEnd.CAPTURED, tuning.rounds, events)
+		return
+	if rs.clock > 0.0:
+		return
+	var rope_worked := rs.flag.status == FlagState.Status.RAISING or rs.flag.status == FlagState.Status.CONTESTED
+	if rope_worked and rs.overtime < tuning.flag.max_overtime:
+		rs.overtime += dt
+	else:
+		_end_round(rs, 1 - rs.attackers, GameEvent.RoundEnd.TIME, tuning.rounds, events)
+
+
+## Runs a live round's clock and any overtime out, so the next tick ends it as on time by the mode's own rule (the Dev
+## tab's End the round now). False when no round is live.
 static func run_clock_out(rs: RoundState) -> bool:
 	if not rs.is_live():
 		return false
 	rs.clock = 0.0
+	rs.overtime = INF
 	return true
 
 
-## The end of the map (0 or 1) `team` starts from in round `number`: Alpha at RoundConfig.first_end, Beta at the other,
-## swapped after half_time_after rounds.
-static func team_end(team: int, number: int, rounds: RoundConfig) -> int:
+## The end of the map (0 or 1) `team` starts from in round `number`. Elimination: Alpha at RoundConfig.first_end,
+## Beta at the other. Attack / Defend: the attackers at end 0, the defenders at end 1 by the pole. Either way swapped
+## after half_time_after rounds.
+static func team_end(team: int, number: int, rounds: RoundConfig, mode: RoundState.Mode = RoundState.Mode.ELIMINATION,
+		first_attackers: int = 0) -> int:
+	if mode == RoundState.Mode.ATTACK_DEFEND:
+		return 0 if team == attackers_in_round(number, rounds, first_attackers) else 1
 	var alpha_end := rounds.first_end if number <= rounds.half_time_after else 1 - rounds.first_end
 	return alpha_end if team == 0 else 1 - alpha_end
+
+
+## Attack / Defend: the team attacking in round `number`, `first_attackers` until half time, then the other.
+static func attackers_in_round(number: int, rounds: RoundConfig, first_attackers: int) -> int:
+	return first_attackers if number <= rounds.half_time_after else 1 - first_attackers
 
 
 ## Whether `winner`, with `score`, has taken the match: wins_needed round wins and a lead of at least win_by.
@@ -95,7 +126,7 @@ static func place_teams(rs: RoundState, characters: Array[Character], ends: Arra
 	var alpha_slot := 0
 	var beta_slot := 0
 	for c in characters:
-		c.end = team_end(c.team, rs.number, tuning.rounds)
+		c.end = team_end(c.team, rs.number, tuning.rounds, rs.mode, rs.first_attackers)
 		var size := alpha_size if c.team == 0 else beta_size
 		var place := alpha_slot if c.team == 0 else beta_slot
 		if c.team == 0:
@@ -141,6 +172,10 @@ static func _start_round(rs: RoundState, characters: Array[Character], ends: Arr
 	rs.phase = RoundState.Phase.LIVE
 	rs.clock = tuning.rounds.round_time
 	rs.timer = 0.0
+	rs.overtime = 0.0
+	rs.attackers = attackers_in_round(number, tuning.rounds, rs.first_attackers) \
+			if rs.mode == RoundState.Mode.ATTACK_DEFEND else -1
+	rs.flag.reset(rs.pole)
 	place_teams(rs, characters, ends, tuning)
 	for c in characters:
 		c.respawn()

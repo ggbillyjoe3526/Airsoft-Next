@@ -5,24 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## FG1 · Attack / Defend's flag rules
-tier: core
-perf: required
-touches: game/sim/, game/config/flag_config.gd, game/config/sim_tuning.gd, game/map/map_data.gd, tests/unit/
-contract: Events (3): a FLAG_ROPE kind and a CAPTURED round end are added; Data, not literals (6)
-acceptance:
-  1. RoundState has a mode (Elimination or Attack / Defend), the pole (map data `flag`, read by MapData) and the first
-     half's attackers; in Attack / Defend the attackers start at end 0 and the defenders at end 1 by the pole, swapped
-     at half time (DECISIONS 2026-10-03).
-  2. Attackers in play within 1.6 m (flat) of the pole raise the flag in 5 s, defenders pull it down in 3 s, both at
-     once hold it still (the browser game's sim/flag.ts; FlagConfig); a FLAG_ROPE event each twelfth of the pole.
-  3. The flag raised wins the round for the attackers (CAPTURED); a wipe-out still decides it first; the time-out goes
-     to the defenders, after up to 15 s of overtime while the attackers still raise or contest the flag. End the round
-     now ends it, overtime included. Elimination plays exactly as before.
-  4. Tests port the browser game's flag and flag-round cases; the step allocates nothing.
-status: open
-attempts: 0
-
 ## FG2 · Bots play Attack / Defend
 tier: core
 perf: required
@@ -47,8 +29,9 @@ acceptance:
      gauge and who attacks, the round-end lines (FLAG RAISED, DEFENDED), and the Match screen's Attack / Defend card.
   2. Once approved: the pole stands at the map's `flag` spot (visual only: no collider, BBs pass through), the flag
      climbs it with the progress, and the rope's ratchet plays on FLAG_ROPE; the HUD shows the gauge and overtime.
-  3. Attack / Defend is picked on the Match screen like Elimination, follows the team pick for who attacks first, and
-     counts for XP and the records as Elimination does.
+  3. Attack / Defend is picked on the Match screen like Elimination, only on a map with a pole (MapData.has_pole),
+     follows the team pick for who attacks first, and counts for XP and the records as Elimination does. The HUD
+     clamps overtime (End the round now leaves RoundState.overtime at INF; FG1 record).
 status: open
 attempts: 0
 

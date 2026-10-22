@@ -15,7 +15,8 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `hit_config.gd` | Hit calling, friendly fire and whether ricochets count, the walk-off, the hit volume (head, chest, hips, legs) and the lean's pivot and tilt |
 | `wind_config.gd` | The match's breeze: its speed range, gusts and veer |
 | `ricochet_config.gd` | BBs bouncing off hard surfaces: restitution by material, slide, scatter, the most bounces |
-| `round_config.gd` | Elimination rounds: clock, score, half time, reset |
+| `round_config.gd` | Rounds: clock, score, half time, reset |
+| `flag_config.gd` | Attack / Defend's flag: reach, raise and lower times, overtime, rope steps |
 | `footstep_config.gd` | Strides and landings |
 | `nav_config.gd` | The nav grid: cell size, clearance margin, snapping, the search's greed, line sampling |
 | `replica_rules_config.gd` | Recoil recovery, the trigger, BB weight, the hop-up dial's range and notch, the draw from the holster |
