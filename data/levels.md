@@ -68,7 +68,7 @@ content or Dev settings that change how it plays.
 - **An Extraction run** (dev content for now) gives the XP in the cases you get out with, plus Hit on an opponent for
   each hit, with no Match played, Match won or Round won. A run you don't get out of gives your hits only.
 - **The difficulty** multiplies the total: the lower of the opponents' and your teammates' (the opponents' alone when
-  you have none). Custom rules give at most ×1.5. A multiplier can't be set below 0.1.
+  you have none). A Custom match gives at most the Custom row's. A multiplier can't be set below 0.1.
 
 | Difficulty | Multiplier |
 |---|---|
@@ -76,3 +76,4 @@ content or Dev settings that change how it plays.
 | Normal | 1 |
 | Hard | 1.5 |
 | Pro | 2 |
+| Custom | 1.5 |

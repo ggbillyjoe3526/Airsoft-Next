@@ -195,6 +195,7 @@ func _start_play() -> void:
 	_play.counts = not _smoke
 	_play.mode = _picks.mode
 	_play.difficulty = StringName(_picks.bots)
+	_play.custom_rules = null if _smoke else _picks.custom_rules(Settings.shared())
 	_play.map_id = map_id
 	_play.player_team = team
 	# --seed replays a match; else a fresh seed each Play (the smoke test keeps one fixed seed, so it plays the same match).
@@ -221,7 +222,13 @@ func _show_loading(map_id: String, team: int) -> void:
 	_loading = LoadingScreen.new()
 	add_child(_loading)
 	_loading.setup(map_id, entry.display_name if entry != null else map_id, entry.blurb if entry != null else "",
-			MatchOptions.kicker(_picks.mode, SimTuning.load_default().rounds.team_size, team))
+			MatchOptions.kicker(_picks.mode, _team_size(), team))
+
+
+## Players per team in the match starting: its Custom switch, else the round tuning's.
+func _team_size() -> int:
+	var custom := _play.custom_rules
+	return custom.team_size if custom != null else SimTuning.load_default().rounds.team_size
 
 
 func _free_loading() -> void:

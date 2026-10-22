@@ -17,11 +17,14 @@ const MIN_MULTIPLIER := 0.1
 const MAX_MULTIPLIER := 100.0
 ## Level 0's XP cell may be left empty or hold a dash.
 const NO_XP: PackedStringArray = ["", "0", "-", "–"]
+## The Difficulty table's Custom row: the most a Custom match's multiplier may be (MatchXp).
+const CUSTOM := &"custom"
 ## levels.md's XP numbers as shipped: used for any the file is missing.
 const DEFAULT_EARN: Dictionary[StringName, int] = {
 	&"match_played": 100, &"match_won": 100, &"round_won": 20, &"hit": 10,
 }
-const DEFAULT_MULTIPLIERS: Dictionary[StringName, float] = {&"easy": 0.5, &"normal": 1.0, &"hard": 1.5, &"pro": 2.0}
+const DEFAULT_MULTIPLIERS: Dictionary[StringName, float] = {&"easy": 0.5, &"normal": 1.0, &"hard": 1.5, &"pro": 2.0,
+		CUSTOM: 1.5}
 ## The XP table's Event labels (lower case) and the earn key each one sets.
 const EVENT_LABELS: Dictionary[String, StringName] = {
 	"match played": &"match_played", "match won": &"match_won", "round won": &"round_won",
@@ -242,7 +245,7 @@ func _read_multipliers(t: DataTable) -> void:
 	for row in t.rows:
 		var key := StringName(row.cell(DIFFICULTY_COLUMN).to_lower())
 		if not DEFAULT_MULTIPLIERS.has(key):
-			problems.append("%s: \"%s\" isn't a difficulty (Easy, Normal, Hard or Pro)" % [t.where(row.line),
+			problems.append("%s: \"%s\" isn't a difficulty (Easy, Normal, Hard, Pro or Custom)" % [t.where(row.line),
 					row.cell(DIFFICULTY_COLUMN)])
 			continue
 		if seen.has(key):
