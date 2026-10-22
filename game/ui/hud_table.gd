@@ -1,8 +1,8 @@
 class_name HudTable
 extends Control
 ## A players' table drawn as one node (concepts `round-result.png`, `scoreboard.png`, `summary.png`): an optional title
-## line (or a heading: a big name, a muted line after it and a note on the right), then each team's block (its score in a team-coloured square, its name, a note on the right) over a header row
-## and one row per player. The first column is the player: their name ("You" for you), the teammate chevron, and an OUT
+## line (or a heading: a big name, a muted line after it and a note on the right), then each team's block (its score
+## in a team-coloured square, its name, a note on the right) over a header row and one row per player. The first column is the player: their name ("You" for you), the teammate chevron, and an OUT
 ## chip with a raised hand once they are out this round (the row dimmed). Your row is tinted with a yellow bar. Laid
 ## out once each time it is filled (add_* calls between begin and finish); _draw allocates nothing. One column can be
 ## shaded from its header down (the scoreboard's "This round").

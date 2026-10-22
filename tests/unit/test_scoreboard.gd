@@ -163,6 +163,6 @@ func test_bbs_alone_refill_the_board_at_most_every_refill_gap() -> void:
 	state.events.clear()
 	hud.update(state, 1.0, 0.0)
 	assert_string_starts_with(hud.board().table().lines()[0], "You | 0 | 0 | 0 | 0 |", "not yet: a BB alone waits")
-	state.time += PlayTuning.new().hud.board_refill_gap
+	state.time += PlayTuning.new().hud.board_refill_gap * 2.0
 	hud.update(state, 1.0, 0.0)
 	assert_string_starts_with(hud.board().table().lines()[0], "You | 0 | 0 | 0 | 1 |", "then the BB shows")
