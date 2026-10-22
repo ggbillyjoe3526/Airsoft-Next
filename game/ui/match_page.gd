@@ -1,11 +1,12 @@
 class_name MatchPage
 extends Control
 ## The Match page's body (concept `match.png`, docs/records/MN2.md): map picture cards, mode cards with the rules under
-## them (MatchRulesBox: Skirmish's chips or Custom's rows, docs/records/CR2.md), your team and the bots' level; a
-## one-line summary bottom left and the slanted PLAY bottom right. A map that can't load (MapData's problems) is
-## greyed with LATER, as a mode or a level that isn't built. Picks go into the MatchPicks it is given (kept by the entry
-## scene across the menus' being freed). What reads the round tuning (the Elimination card, the maps a team size can't
-## load) reads the Custom switches while Custom is picked. `play_pressed` starts the match.
+## them (MatchRulesBox: Skirmish's chips or Custom's rows, docs/records/CR2.md), your team and the bots' levels
+## (MatchBotsBox: Opponents and Teammates, docs/records/MN3.md); a one-line summary bottom left and the slanted PLAY
+## bottom right. A map that can't load (MapData's problems) is greyed with LATER, as a mode that isn't built. Picks go
+## into the MatchPicks it is given (kept by the entry scene across the menus' being freed). What reads the round tuning
+## (the Elimination card, the maps a team size can't load) reads the Custom switches while Custom is picked.
+## `play_pressed` starts the match.
 ## Everything is drawn for 1920x1080 and the window's stretch scales it.
 
 signal play_pressed
@@ -49,9 +50,6 @@ const ATTACK_LINE_SIZE := 16
 const TEAM_NAME_LIGHTEN := 0.25
 ## A mode card's "Needs a map with a flagpole" in a dimmed yellow.
 const NEEDS_DARKEN := 0.3
-const BOT_GAP := 8
-const BOT_SIZE := 16
-const BOT_PAD := 10
 
 var picks: MatchPicks = null
 
@@ -64,7 +62,6 @@ var _modes_box: VBoxContainer = null
 var _map_cards: Dictionary[String, MenuCard] = {}
 var _mode_cards: Dictionary[String, MenuCard] = {}
 var _team_cards: Array[MenuCard] = []
-var _bot_buttons: Dictionary[String, MenuCard] = {}
 ## The ids on offer in the catalogue's order (to tell a change), and as the cards are laid out.
 var _offered: PackedStringArray = PackedStringArray()
 var _listed: PackedStringArray = PackedStringArray()
@@ -77,6 +74,7 @@ var _needs_pole: Dictionary[String, Control] = {}
 var _attack_row: HBoxContainer = null
 var _attack_team: Label = null
 var _rules: MatchRulesBox = null
+var _bots: MatchBotsBox = null
 ## The mode cards' blurbs (Elimination's reads the rounds to win).
 var _mode_blurbs: Dictionary[String, Label] = {}
 ## The team size the maps were last checked for.
@@ -134,8 +132,18 @@ func team_card(team: int) -> MenuCard:
 	return _team_cards[team]
 
 
+## The Opponents row's button for `level`.
 func bot_button(level: String) -> MenuCard:
-	return _bot_buttons[level]
+	return _bots.opponents_button(level)
+
+
+## The Teammates row's button for `level`.
+func teammate_button(level: String) -> MenuCard:
+	return _bots.teammates_button(level)
+
+
+func bots_box() -> MatchBotsBox:
+	return _bots
 
 
 func rules_box() -> MatchRulesBox:
@@ -157,7 +165,8 @@ func mode_blurb(mode: String) -> String:
 	return _mode_blurbs[mode].text
 
 
-## The summary line as shown: "Depot · Elimination · Alpha · Normal bots", with " · Custom 2v2" under Custom.
+## The summary line as shown: "Depot · Elimination · Alpha · Normal bots", with " · Easy teammates" when they play
+## another level than the opponents and " · Custom 2v2" under Custom.
 func summary_text() -> String:
 	return _summary_map.text + _summary_rest.text
 
@@ -316,27 +325,10 @@ func _build_side() -> Control:
 	_attack_row.visible = false
 	team.add_child(_attack_row)
 	side.add_child(team)
-	# The bots' level.
-	var bots := _section(_heading(tr("MENU_BOTS")))
-	var bot_row := HBoxContainer.new()
-	bot_row.add_theme_constant_override("separation", BOT_GAP)
-	bots.add_child(bot_row)
-	for level in MatchOptions.BOT_LEVELS:
-		var b := MenuCard.new()
-		b.name = "Bots_" + level
-		b.text = tr("BOT_" + level.to_upper()).to_upper()
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.add_theme_font_override("font", GameTheme.font(700))
-		b.add_theme_font_size_override("font_size", BOT_SIZE)
-		b.add_theme_constant_override("outline_size", 0)
-		for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-			b.add_theme_color_override(colour, GameTheme.TEXT)
-		b.add_theme_color_override("font_disabled_color", GameTheme.DIM)
-		b.custom_minimum_size = Vector2(0.0, BOT_SIZE + BOT_PAD * 2 + GameTheme.BORDER * 2)
-		b.pressed.connect(_pick_bots.bind(level))
-		bot_row.add_child(b)
-		_bot_buttons[level] = b
-	side.add_child(bots)
+	# The bots' levels.
+	_bots = MatchBotsBox.new(picks)
+	_bots.changed.connect(_refresh)
+	side.add_child(_bots)
 	return side
 
 
@@ -509,11 +501,6 @@ func _pick_team(team: int) -> void:
 	_refresh()
 
 
-func _pick_bots(level: String) -> void:
-	picks.bots = level
-	_refresh()
-
-
 ## Lights the picks and greys what the picked map doesn't host or isn't built; rewrites the summary.
 func _refresh() -> void:
 	if _summary_map == null or _play == null:
@@ -539,11 +526,11 @@ func _refresh() -> void:
 	_attack_team.text = tr(MatchOptions.TEAM_KEYS[picks.team])
 	var colour := _play_tuning.teams.colours[picks.team].lightened(TEAM_NAME_LIGHTEN)
 	_attack_team.add_theme_color_override("font_color", colour)
-	for level: String in _bot_buttons:
-		_bot_buttons[level].set_picked(level == picks.bots)
+	_bots.show_picks(_tuning.rounds.team_size, picks.rules == MatchOptions.RULES_CUSTOM)
 	_summary_map.text = entry.display_name if entry != null else picks.map_id
 	for mode: String in _mode_blurbs:
 		var blurb_text := tr(MatchOptions.MODE_BLURB[mode])
 		_mode_blurbs[mode].text = blurb_text % _tuning.rounds.wins_needed if blurb_text.contains("%d") else blurb_text
+	var mates := MatchOptions.teammates_level(picks.bots, picks.teammates) if _tuning.rounds.team_size > 1 else ""
 	_summary_rest.text = " · " + MatchOptions.summary_rest(picks.mode, picks.team, picks.bots,
-			picks.custom_rules(_settings))
+			picks.custom_rules(_settings), mates)

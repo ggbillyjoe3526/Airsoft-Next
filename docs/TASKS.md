@@ -5,22 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## MN3 · Opponents and Teammates on the Match screen
-tier: ui
-perf: optional
-touches: game/ui/match_page.gd, game/ui/match_options.gd, game/ui/match_picks.gd, game/ui/text/en.po, game/main.gd,
-  tests/unit/
-contract: none
-acceptance:
-  1. The BOTS section has an Opponents row and a Teammates row as concepts `bots-follow.png` and `bots-picked-dev.png`
-     show (`/mnt/project-files/concepts/step12-bots/`, approved by the owner 2026-10-22 11:49), each level with its
-     blurb (the browser game's DIFFICULTIES and TEAMMATE_DIFFICULTIES) and the opponents' XP multiplier.
-  2. Teammates read FOLLOWS OPPONENTS and follow the opponents' pick until you pick one (Normal against Easy,
-     BotConfig.teammates_following); the summary line names both when they differ.
-  3. The picks reach PlaySession.difficulty and teammate_difficulty.
-status: open
-attempts: 0
-
 ## AD1 · Adaptive difficulty (Dev)
 when: build order step 31, after the late features (owner, 2026-10-22)
 tier: core

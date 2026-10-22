@@ -54,12 +54,7 @@ static func earned(table: LevelTable, o: Outcome) -> Earned:
 		e.lines.append(_line(&"round_won", o.rounds_won, roundi(table.earn[&"round_won"] * o.rounds_won * scale)))
 	if o.hits > 0:
 		e.lines.append(_line(&"hit", o.hits, table.earn[&"hit"] * o.hits))
-	# The lower of the two teams': Hard teammates against Easy opponents never count as Hard.
-	e.multiplier = table.multiplier(o.difficulty)
-	if o.teammate_difficulty != &"":
-		e.multiplier = minf(e.multiplier, table.multiplier(o.teammate_difficulty))
-	if o.custom:
-		e.multiplier = minf(e.multiplier, table.multiplier(LevelTable.CUSTOM))
+	e.multiplier = multiplier(table, o.difficulty, o.teammate_difficulty, o.custom)
 	var sum := 0
 	for l in e.lines:
 		sum += l.xp
@@ -73,3 +68,15 @@ static func _line(key: StringName, count: int, xp: int) -> Line:
 	l.count = count
 	l.xp = xp
 	return l
+
+
+## The XP multiplier of a match: the lower of the two teams', so Hard teammates against Easy opponents never count as
+## Hard (`mates` is &"" with none: the opponents' alone counts), held to the Custom row's when `custom`. The Match page
+## shows the same number before the match.
+static func multiplier(table: LevelTable, opponents: StringName, mates: StringName, custom: bool) -> float:
+	var m := table.multiplier(opponents)
+	if mates != &"":
+		m = minf(m, table.multiplier(mates))
+	if custom:
+		m = minf(m, table.multiplier(LevelTable.CUSTOM))
+	return m
