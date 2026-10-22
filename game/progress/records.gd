@@ -16,7 +16,7 @@ const ACCURACY_MIN_BBS := 30
 ## "normal.elimination": a difficulty and a mode id.
 const RESULT_KEY_PATTERN := "^[a-z][a-zA-Z0-9]*\\.[a-z][a-zA-Z0-9]*$"
 ## "range": a timed challenge course (RangeChallenge.course, a map's id).
-const COURSE_PATTERN := "^[a-z][a-zA-Z0-9]*$"
+const COURSE_PATTERN := "^[a-z][a-zA-Z0-9]*\\z"
 
 
 ## A finished match, as the records see it.

@@ -435,9 +435,7 @@ func test_a_course_with_a_trailing_newline_is_refused() -> void:
 	var r := Records.new()
 	var run := RangeChallenge.Run.new()
 	run.hits = 5
-	if r.add_challenge_run("range\n", run):
-		pending("ADVISORY: COURSE_PATTERN accepts a trailing newline (use \\z)")
-		return
+	assert_false(r.add_challenge_run("range\n", run))
 	assert_eq(r.best_challenge.size(), 0)
 
 
