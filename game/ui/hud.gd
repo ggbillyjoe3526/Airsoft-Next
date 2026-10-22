@@ -20,6 +20,13 @@ const MIDDLE_SIZE := Vector2(1500.0, 260.0)
 const MIDDLE_RAISE := 200.0
 ## The finished match's XP (XpCard) hangs this far under the banner.
 const XP_GAP := 28.0
+## "What got you" on the left, its top-left corner (px).
+const CARD_LEFT := 32.0
+const CARD_TOP := 250.0
+const SKIP_KEY_PAD := Vector2i(10, 4)
+const SKIP_GAP := 14
+const SKIP_SIZE := 18
+const SKIP_KEY_SIZE := 14
 ## The scoreboard's top edge, under the score.
 const BOARD_TOP := 160.0
 ## The flag warning's plate margins and the gap between its flag and its words.
@@ -55,6 +62,9 @@ var _team_markers: HudTeamMarkers = null
 var _round_result: HudRoundResult = null
 var _board: HudScoreboard = null
 var _board_wanted: bool = false
+var _what_got_you: WhatGotYouCard = null
+var _skip_hint: PanelContainer = null
+var _skip_key: Label = null
 var _names := PackedStringArray()
 var _stats: MatchStats = null
 var _pulse: float = 0.0
@@ -188,6 +198,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_watching.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_watching.add_theme_stylebox_override("normal", HudStyle.panel_box(HudStyle.BACKING_AIM, 12, 4))
 	_watching.visible = false
+	_build_skip_hint(bottom)
 
 
 ## The field the teammate markers check their line of sight against (`query`), the bodies' heights, the names by
@@ -263,6 +274,38 @@ func set_vault_ready(ready: bool) -> void:
 		_vault_left = _cfg.vault_prompt_hold
 
 
+## Shows "What got you" for `facts` (the hit on you just called): the shooter's name in their team's colour and the
+## bot's personality `note` ("" for none). It stays until the next round starts.
+func show_what_got_you(facts: HitFacts, shooter_name: String, colour: Color, note: String) -> void:
+	hide_what_got_you()
+	_what_got_you = WhatGotYouCard.new(facts, shooter_name, colour, note)
+	_place(_what_got_you, Vector4(0.0, 0.0, 0.0, 0.0), Rect2(CARD_LEFT, CARD_TOP, WhatGotYouCard.WIDTH, 0.0))
+	add_child(_what_got_you)
+
+
+func hide_what_got_you() -> void:
+	if _what_got_you != null:
+		_what_got_you.queue_free()
+		_what_got_you = null
+
+
+func what_got_you() -> WhatGotYouCard:
+	return _what_got_you
+
+
+## Whether "SPACE Hold to skip the round" shows (you are out and the round plays on); the key is Jump's as bound now.
+func set_skip_hint(show: bool) -> void:
+	if show == _skip_hint.visible:
+		return
+	_skip_hint.visible = show
+	if show:
+		_skip_key.text = KeyNames.of_action(&"jump").to_upper()
+
+
+func skip_hint_shown() -> bool:
+	return _skip_hint.visible
+
+
 ## Whose eyes the view is from: a bot's name, or "" for your own (or a bot with no name). The line shows only then.
 func set_watching(bot_name: String) -> void:
 	if bot_name == _watching_name:
@@ -283,7 +326,8 @@ func on_tick(state: GameState) -> void:
 				if e.actor == _player.id and e.target != _player.id:
 					_marker_left = _cfg.marker_time
 				if e.actor >= 0:
-					_hits.add(e.actor, e.target, state.time)
+					# The line you were hit in stays up until the round ends.
+					_hits.add(e.actor, e.target, state.time, e.target == _player.id)
 			GameEvent.Kind.RICOCHET_TICK:
 				# Never over a round's own banner.
 				if e.target == _player.id and not _banner.visible:
@@ -294,6 +338,8 @@ func on_tick(state: GameState) -> void:
 					_show_hop_up(e.value / 100.0)
 			GameEvent.Kind.ROUND_START:
 				_round_result.close()
+				hide_what_got_you()
+				_hits.release_kept()
 				if e.value == 1:
 					hide_xp()
 					if state.round_state.draws == 0:
@@ -481,6 +527,29 @@ func _round_over(rs: RoundState, e: GameEvent, state_time: float) -> void:
 func _show_banner(text: String, sub: String, colour: Color = Color.TRANSPARENT) -> void:
 	_banner.show_text(text, sub, colour)
 	_banner_left = _cfg.banner_time
+
+
+## "SPACE Hold to skip the round" under the watching line: the key in a chip, the words beside it, a yellow edge.
+func _build_skip_hint(parent: Control) -> void:
+	_skip_hint = PanelContainer.new()
+	_skip_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skip_hint.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var box := HudStyle.panel_box(HudStyle.BACKING_CLOCK, 12, 8)
+	box.border_color = GameTheme.YELLOW
+	box.border_width_left = roundi(HudStyle.BANNER_RULE)
+	_skip_hint.add_theme_stylebox_override("panel", box)
+	_skip_hint.visible = false
+	parent.add_child(_skip_hint)
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", SKIP_GAP)
+	_skip_hint.add_child(row)
+	_skip_key = HudStyle.label(row, SKIP_KEY_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER, HudStyle.SPACING_AIM)
+	var chip := GameTheme.box(GameTheme.CARD_HI, GameTheme.LINE, SKIP_KEY_PAD.x, SKIP_KEY_PAD.y)
+	_skip_key.add_theme_stylebox_override("normal", chip)
+	var words := HudStyle.label(row, SKIP_SIZE, 700, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_LEFT)
+	words.text = tr("HUD_SKIP_HOLD")
+	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 
 ## Anchors `c` at `anchors` (left, top, right, bottom shares of the screen) with `rect` as offsets from them.

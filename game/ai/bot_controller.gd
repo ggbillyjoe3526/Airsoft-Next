@@ -91,6 +91,17 @@ func name_of(character_id: int) -> String:
 	return ""
 
 
+## The "What got you" card's line about the bot driving `character_id` (its personality's, with its name in), or ""
+## (no bot drives it, or it has no name or no line).
+func card_note_of(character_id: int) -> String:
+	for b in world.bots:
+		if b.character.id == character_id:
+			if b.bot_name == "" or b.style.card_note == "":
+				return ""
+			return b.style.card_note.format({"name": b.bot_name})
+	return ""
+
+
 ## What the bots heard in the step just taken (or the match's start), a hit on the player kept for "What got you", and
 ## a fresh plan when a round has started.
 func observe(state: GameState) -> void:

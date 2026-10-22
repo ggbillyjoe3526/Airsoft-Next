@@ -25,7 +25,9 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - Ricochets: BBs bounce off concrete and steel containers; by default a bounced hit doesn't count ("Ricochet: play on"), and a match rule can make it count, not yet in a menu (BB1)
 - Movement: walk, run, sprint, crouch, a limited jump (FP1), lean with Q or E (slows to a walk; eases back when a wall cuts it short) and vault over low walls with Jump, with "Space to vault" under the crosshair (BE1, MO1)
 - HUD: navy and yellow look matching the menus; top bar with each team's score as pips toward the win, round clock, round number and FIRST TO 5; slanted banners for round start, half time with ends swapped, and who took the round or match; bottom right replica panel with BB count, fire-mode chips (S, B, A) with the current one lit, a box per magazine (loaded first, then fullest spare), HOLSTERED, RELOADING, LAST MAG or OUT OF BBS, and a low magazine turns yellow; a crosshair that opens with your spread (FP1, MZ1, HD1)
-- Hit feed and teammate markers: a hit feed in the top right shows who fired, the BB trail and who was hit with its HIT call; teammates wear a chevron that shows through walls and greys out when hit (HF1)
+- Hit feed and teammate markers: a hit feed in the top right shows who fired, the BB trail and who was hit with its HIT call, and your own hit stays framed in it until the next round; teammates wear a chevron that shows through walls and greys out when hit (HF1, WG1)
+- What got you card: when your hit is called, a card on the left shows the shooter's side, distance, held angle, time in view and whether you were moving, when known; the Display tab's What got you setting is Auto (Pro bots only), On or Off (WG1)
+- Skipping the round: once out, hold Jump for half a second to play the rest at six times speed with the HUD hidden; the hint names Jump's bound key, and the pause menu's Skip to next round shows while you can skip (WG1)
 - Round result and table: a banner says WON, LOST or DRAW from your side at each round's end, then the round's table slides in with each team's score, every player's hits, BBs fired, time in play and who hit them; click for the next round (RR1)
 - Scoreboard on Tab: hold Tab for the match table over the field, with each team's score, each player's stats and Pro tips against Pro bots (SB1)
 - Depot: a greybox field with sun, sky, shadows, positional sound and an ambience loop; BBs puff on metal, wood, concrete or ground in its colour (FP1)
@@ -33,7 +35,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - Bot names and personalities: every bot has a name and one of four personalities (rusher, anchor, flanker, careful) that changes how it plays, never how well; names show in the Dev tab and while spectating (BN1)
 - Bots play Attack / Defend: attackers walk to the middle then raise the flag, one on the rope and the others guarding it from cover; defenders hold near the pole, chase only what is near it, and the two nearest pull a raised flag down; two defenders on a lane stand side by side, and Pro pairs set a crossfire (FG2b, FG2)
 - Levels and XP: matches give XP for playing, winning, each round you won and took part in, and each hit, less for a shorter match and multiplied by difficulty; levels 1 to 10 unlock replicas, power sources and parts; records keep wins and losses per difficulty and mode, best accuracy and the longest win streak (LV1)
-- Match numbers: every player's hits, times hit, friendly hits, BBs fired and time in play for the round and the match, and what got you on each hit (where from, how far, held angle, time in view); not on screen until step 14's screens (MI1)
+- Match numbers: every player's hits, times hit, friendly hits, BBs fired and time in play for the round and the match, and what got you on each hit (where from, how far, held angle, time in view), which the What got you card shows when your hit is called (MI1, WG1)
 
 ## Menus and settings
 
@@ -41,7 +43,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - Dev tab: cheats and tools shown while the Dev settings box is ticked: game speed, ghost, bottomless magazines, spectate bots, retro pixels, reset save (DV2), disable levelling and reset level (LV1)
 - Match screen: pick a map from picture cards (Depot, or Neon Heights while Dev content is on; Woodland greyed, LATER), the mode (Elimination), your team (ALPHA or BETA) and the bots' level (Normal), with the rules as chips; picks stay while the game is open (MN2)
 - Loading screen: PLAY shows the map's picture, name and a progress bar until the match draws (MN2)
-- Pause menu: PAUSED, the map, mode and round, RESUME, SETTINGS, QUIT MATCH and the match's seed (MN2)
+- Pause menu: PAUSED, the map, mode and round, RESUME, SETTINGS, Skip to next round while you can skip, QUIT MATCH and the match's seed (MN2, WG1)
 - Title screen and menus: a title with START, which opens a top bar of Match, Loadout, Armory, Settings and your level chip (MN1)
 - Loadout and Customise screens: the LOADOUT tab with five saved loadouts, your carried replicas and a Performance sheet; CUSTOMISE sets each replica's colour, BB weight, hop-up and power source (LO2)
 - Locked items: a replica, power source or part above your level is listed greyed with "LEVEL n" and can't be picked; the top bar's chip shows your level (LV1)

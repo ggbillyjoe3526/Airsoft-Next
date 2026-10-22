@@ -19,6 +19,9 @@ const DEFAULT_PATH := "res://game/config/play_tuning.tres"
 @export var flag: FlagViewConfig = FlagViewConfig.new()
 ## Seconds from a match's end to the next match starting.
 @export var rematch_delay: float = 8.0
+## Out, hold Jump (Space) this long (s) to skip the round: the rest plays skip_speed times as fast, the HUD hidden.
+@export var skip_hold: float = 0.5
+@export var skip_speed: float = 6.0
 
 
 ## The game's play tuning, or the built-in values with a warning if it can't be loaded.

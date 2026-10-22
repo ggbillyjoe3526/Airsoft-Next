@@ -444,8 +444,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **A menu page is pinned to the window; only its long part scrolls (UX1, 2026-10-17).** The top bar, the heading and the
   main button always show; long lists scroll inside, fading at the foot while more lies below.
 - **The order wheel is on Z (owner, 2026-10-04); Hold here X, Regroup V, Follow me F.** Orders end when their giver is
-  hit and at each round start. A window that loses focus pauses the match. Esc while you are out skips the round at
-  once (owner, 2026-10-13).
+  hit and at each round start. A window that loses focus pauses the match. Out, you skip the rest of the round by
+  holding Space (Jump) or from the pause menu's Skip to next round (the approved step 14 concept, owner 2026-10-22;
+  it replaces "Esc while you are out skips the round at once", 2026-10-13, as Esc opens the pause menu here).
 - **The menu and UI redesign is approved (owner, 2026-10-05); the HUD is restyled in place, with the same positions.**
 - **The menus use Inter (owner, 2026-10-07).** He finds Barlow hard to read, numbers above all.
 - **The teams are Alpha (blue) and Beta (orange), although Beta is also the name of the Beta builds (owner,

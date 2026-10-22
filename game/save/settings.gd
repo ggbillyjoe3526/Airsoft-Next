@@ -14,6 +14,8 @@ const VERSION := 1
 ## Windowed leaves the window as it is (the project starts maximised); the other two are the DisplayServer's
 ## borderless and exclusive fullscreen.
 enum WindowMode { WINDOWED, BORDERLESS, EXCLUSIVE }
+## When the "What got you" card shows: against Pro bots, always, or never.
+enum WhatGotYou { AUTO, ON, OFF }
 
 ## Volumes are linear shares, 0 to 1, by audio bus (docs/DECISIONS.md › Menus, HUD, settings and accessibility).
 const VOLUME_BUSES: Array[StringName] = [&"Master", &"Effects", &"Power", &"Ambience", &"Interface"]
@@ -45,6 +47,8 @@ var fov: float = FOV_DEFAULT
 var show_fps: bool = false
 ## Replica colours: every bold scheme shows as its plain family colour (LO3).
 var realistic_colours: bool = false
+## The "What got you" card once you are hit: Auto shows it against Pro bots only.
+var what_got_you: WhatGotYou = WhatGotYou.AUTO
 ## The Dev settings box, and the Dev tab's switches (kept while the box is off; they apply only while it is ticked).
 var dev_enabled: bool = false
 var dev: DevSettings = DevSettings.new()
@@ -118,7 +122,7 @@ func to_dict() -> Dictionary:
 		"sensitivity": sensitivity, "aim_sensitivity": aim_sensitivity, "invert_y": invert_y,
 		"crouch_toggle": crouch_toggle, "aim_toggle": aim_toggle, "mouse_dpi": mouse_dpi,
 		"bindings": bindings.to_dict(), "volumes": vol, "window_mode": int(window_mode), "vsync": vsync,
-		"fov": fov, "show_fps": show_fps, "realistic_colours": realistic_colours,
+		"fov": fov, "show_fps": show_fps, "realistic_colours": realistic_colours, "what_got_you": int(what_got_you),
 		"dev_enabled": dev_enabled, "dev": dev.to_dict(),
 	}
 
@@ -142,6 +146,7 @@ func from_dict(data: Dictionary) -> void:
 	fov = _number(data, "fov", FOV_DEFAULT, FOV_MIN, FOV_MAX)
 	show_fps = _flag(data, "show_fps", false)
 	realistic_colours = _flag(data, "realistic_colours", false)
+	what_got_you = roundi(_number(data, "what_got_you", WhatGotYou.AUTO, 0.0, WhatGotYou.size() - 1.0)) as WhatGotYou
 	dev_enabled = _flag(data, "dev_enabled", false)
 	var saved_dev: Variant = data.get("dev")
 	dev.from_dict(saved_dev if saved_dev is Dictionary else {})

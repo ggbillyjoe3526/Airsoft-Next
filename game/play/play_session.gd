@@ -20,6 +20,9 @@ signal started
 signal match_settled
 
 const PLAYER_ID := 0
+## "Skipping the round": its size and how far over the bottom edge (px).
+const SKIP_NOTE_SIZE := 18
+const SKIP_NOTE_MARGIN := 64
 ## The build steps, in order, as the keys of the words the loading screen shows.
 const STEP_KEYS: Array[String] = ["LOAD_MAP", "LOAD_LEVEL", "LOAD_TEAMS", "LOAD_VIEWS"]
 ## The teams' numbers in the simulation: Alpha 0, Beta 1.
@@ -92,6 +95,13 @@ var _watch_input: PlayerCommand = PlayerCommand.new()
 var _intents: BotIntentView = null
 var _retro: RetroPixels = null
 var _rematch_left: float = -1.0
+## Skipping the round you are out of: the rest plays at PlayTuning.skip_speed with the HUD hidden; how long Jump has
+## been held towards it, and whether it was up once you could skip (a press made before does not count); the line that
+## says so.
+var _skipping: bool = false
+var _skip_held_for: float = 0.0
+var _skip_armed: bool = false
+var _skip_note: Label = null
 var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
 var _stats: MatchStats = MatchStats.new()
 ## Attack / Defend's pole; null in Elimination.
@@ -330,17 +340,31 @@ func _build_views(ui: CanvasLayer) -> void:
 	_hud = Hud.new()
 	ui.add_child(_hud)
 	_hud.setup(_play.hud, _play.teams, _play.view, _tuning, player)
+	# Over the field while the HUD is hidden, under the pause menu.
+	var skip_layer := Control.new()
+	skip_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	skip_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui.add_child(skip_layer)
+	_skip_note = HudStyle.label(skip_layer, SKIP_NOTE_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER,
+			HudStyle.SPACING_AIM)
+	_skip_note.text = HudStyle.caps("HUD_SKIPPING")
+	_skip_note.add_theme_stylebox_override("normal", HudStyle.panel_box(HudStyle.BACKING_CLOCK, 16, 8))
+	_skip_note.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE,
+			SKIP_NOTE_MARGIN)
+	_skip_note.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_skip_note.visible = false
 	_pause = PauseMenu.new()
 	ui.add_child(_pause)
 	_pause.resumed.connect(_resume)
 	_pause.left.connect(_leave)
 	_pause.end_round = _end_round_now
+	_pause.skipped.connect(_skip_from_pause)
 
 
 func _physics_process(_delta: float) -> void:
 	if not _running:
 		return
-	_pacer.rate = speed * state.cheats.game_speed
+	_pacer.rate = speed * state.cheats.game_speed * (_play.skip_speed if _skipping else 1.0)
 	for i in _pacer.ticks():
 		if _rematch_left == 0.0:
 			_rematch_left = -1.0
@@ -422,10 +446,15 @@ func _after_tick() -> void:
 					_puffs.impact(e.position, e.value2)
 				else:
 					_puffs.body_hit(e.position)
-			GameEvent.Kind.CHARACTER_HIT, GameEvent.Kind.RICOCHET_TICK:
+			GameEvent.Kind.CHARACTER_HIT:
+				_puffs.body_hit(e.position)
+				if e.target == PLAYER_ID:
+					_hit_called(e.actor)
+			GameEvent.Kind.RICOCHET_TICK:
 				_puffs.body_hit(e.position)
 			GameEvent.Kind.ROUND_OVER:
 				rounds_played += 1
+				_stop_skip()
 			GameEvent.Kind.ROUND_START:
 				_input.face(player.spawn_yaw)
 				_puffs.clear()
@@ -441,6 +470,7 @@ func _process(delta: float) -> void:
 		if staged:
 			_advance_build()
 		return
+	_follow_skip(delta)
 	# The next match waits while the last round's table holds the results back.
 	if _rematch_left > 0.0 and not _hud.holds_results():
 		_rematch_left = maxf(0.0, _rematch_left - delta)
@@ -543,12 +573,85 @@ func _capture() -> void:
 func _open_pause() -> void:
 	_input.release()
 	_hud.show_board(false)
+	# The hint comes back on resume naming Jump's key as bound then (Settings can rebind it); a hold starts over.
+	_hud.set_skip_hint(false)
+	_skip_armed = false
+	_pause.set_can_skip(can_skip() and not _skipping)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().paused = true
 	var listed := MapCatalog.shared().find(map_id)
 	_pause.set_match(listed.display_name if listed != null else _map.display_name, tr(MatchOptions.MODE_NAME[mode]),
 			state.round_state.number, state.match_seed)
 	_pause.open()
+
+
+## Whether you can skip the round: you are out of it (hit, walking off or in the dead zone) and it plays on.
+func can_skip() -> bool:
+	return not autopilot and state.round_state.is_live() and not Elimination.is_in_play(player)
+
+
+## Whether the round is being skipped.
+func skipping() -> bool:
+	return _skipping
+
+
+## The hint while you can skip, and Jump held skip_hold starts skipping.
+func _follow_skip(delta: float) -> void:
+	var can := can_skip() and not _skipping
+	_hud.set_skip_hint(can)
+	var held := _input.skip_held()
+	if can and held and _skip_armed:
+		_skip_held_for += delta
+		if _skip_held_for >= _play.skip_hold:
+			start_skip()
+	else:
+		_skip_held_for = 0.0
+		# Only a press made once you can skip counts: Jump held through the hit, or through a pause, does not.
+		_skip_armed = can and not held
+
+
+## Skips the rest of the round: it plays at skip_speed with the HUD hidden and "Skipping the round" showing, until it
+## ends (the round's table shows as usual).
+func start_skip() -> void:
+	if _skipping or not can_skip():
+		return
+	_skipping = true
+	_skip_held_for = 0.0
+	_hud.set_skip_hint(false)
+	_hud.visible = false
+	_skip_note.visible = true
+
+
+func _stop_skip() -> void:
+	if not _skipping:
+		return
+	_skipping = false
+	_hud.visible = true
+	_skip_note.visible = false
+
+
+func _skip_from_pause() -> void:
+	_resume()
+	start_skip()
+
+
+## Your hit was called (`shooter_id`'s BB): "What got you", when the setting wants it (Auto: against Pro bots).
+func _hit_called(shooter_id: int) -> void:
+	var facts := last_hit()
+	var shooter := state.character(shooter_id)
+	if facts == null or shooter == null or shooter_id == PLAYER_ID or facts.time != state.time \
+			or facts.shooter_id != shooter_id:
+		return
+	match settings.what_got_you:
+		Settings.WhatGotYou.OFF:
+			return
+		Settings.WhatGotYou.AUTO:
+			if difficulty != &"pro":
+				return
+	var who := _bots.name_of(shooter_id)
+	if who == "":
+		who = tr(_play.teams.names[shooter.team])
+	_hud.show_what_got_you(facts, who, _play.teams.colours[shooter.team], _bots.card_note_of(shooter_id))
 
 
 func _resume() -> void:

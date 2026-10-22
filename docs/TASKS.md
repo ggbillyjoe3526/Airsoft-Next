@@ -5,21 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## WG1 · What got you and skipping the round
-tier: ui
-perf: optional
-touches: game/ui/, game/play/, game/ui/text/en.po, game/config/, tests/unit/
-contract: none
-acceptance:
-  1. As `out.png`, once your hit is called: the What got you card from HitFacts (a dial with you in the middle facing
-     up and where the shot came from, the shooter and distance, whether they held the angle, how long you were in
-     their view, whether you were moving), then that bot's personality note. Auto shows it against Pro bots; a setting
-     (WG1 adds it to Settings, HO1 places it on the HUD tab) turns it On or Off.
-  2. Out, hold Space to skip the round: the rest plays at speed with the HUD hidden ("Skipping the round"), and the
-     pause menu gets a Skip to next round button too. The line you were hit in stays framed in the feed.
-status: open
-attempts: 0
-
 ## SM1 · The match summary
 tier: ui
 perf: optional
