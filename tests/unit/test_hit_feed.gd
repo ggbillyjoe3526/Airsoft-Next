@@ -76,9 +76,11 @@ func test_a_line_names_both_sides_and_yours_are_framed() -> void:
 	assert_true(view.row_of(0).is_framed())
 	assert_eq(view.row_of(1).words(), "Magpie · Owl")
 	assert_false(view.row_of(1).is_framed())
+	assert_eq(view.row_of(1).has_chevrons(), Vector2i(0, 1), "your teammate Owl carries the chevron")
+	assert_eq(view.row_of(0).has_chevrons(), Vector2i(0, 0), "never on You")
 
 
-func test_the_feed_fades_its_old_lines_and_holds_while_time_stands_still() -> void:
+func test_the_feed_fades_its_old_lines() -> void:
 	var feed := HitFeed.new()
 	feed.setup(6, 6.0, 1.0)
 	var view := _feed_view(feed)
@@ -86,8 +88,6 @@ func test_the_feed_fades_its_old_lines_and_holds_while_time_stands_still() -> vo
 	feed.add(0, 3, 0.0)
 	view.refresh(feed, 5.5, people, people[0])
 	assert_almost_eq(view.row_of(0).modulate.a, 0.5, 0.001)
-	view.refresh(feed, 5.5, people, people[0])
-	assert_almost_eq(view.row_of(0).modulate.a, 0.5, 0.001, "simulation time: a pause holds it")
 
 
 func test_bottom_left_puts_the_newest_line_at_the_bottom() -> void:
@@ -134,6 +134,34 @@ func test_a_called_hit_puts_a_line_in_the_feed_and_a_new_match_clears_it() -> vo
 	state.events.clear()
 
 
+func test_a_pause_holds_the_lines_on_screen() -> void:
+	session = _session()
+	await wait_physics_frames(2)
+	var state := session.state
+	var hud := session.hud()
+	state.events.clear()
+	var hit := state.events.add(GameEvent.Kind.CHARACTER_HIT)
+	hit.actor = 4
+	hit.target = 1
+	hit.position = Vector3.ZERO
+	hud.on_tick(state)
+	state.events.clear()
+	var stood := state.time
+	get_tree().paused = true
+	await wait_process_frames(3)
+	hud.update(state, 1.0, 10.0)
+	assert_eq(state.time, stood, "the simulation stands still while paused")
+	assert_eq(hud.feed().shown(), 1, "ten real seconds later the line is still up")
+	assert_eq(hud.feed().row_of(0).modulate.a, 1.0)
+	get_tree().paused = false
+
+
+func test_there_is_one_marker_for_each_teammate_only() -> void:
+	session = _session()
+	await wait_physics_frames(2)
+	assert_eq(session.hud().team_markers().count(), SimTuning.new().rounds.team_size - 1)
+
+
 func test_teammates_get_a_marker_and_enemies_never_do() -> void:
 	session = _session()
 	await wait_physics_frames(2)
@@ -166,7 +194,7 @@ func test_teammates_get_a_marker_and_enemies_never_do() -> void:
 	assert_false(markers.is_shown(mate.id), "none over the teammate whose eyes you watch through")
 
 
-func test_a_teammate_behind_cover_gets_a_hollow_marker() -> void:
+func test_a_teammate_crouched_behind_low_cover_gets_a_hollow_marker() -> void:
 	session = _session()
 	await wait_physics_frames(2)
 	var state := session.state
@@ -175,20 +203,21 @@ func test_a_teammate_behind_cover_gets_a_hollow_marker() -> void:
 	add_child_autofree(camera)
 	var hud := session.hud()
 	var markers := hud.team_markers()
-	var query := session._level.query()
-	var hit := RayHit.new()
-	var open := Vector3(20.0, 0.0, -8.0)
-	camera.global_position = Vector3(20.0, 1.6, 0.0)
-	camera.look_at(open + Vector3.UP * 1.6)
-	mate.position = open
-	mate.prev_position = open
+	# Depot's sandbags (1.2 m high, z -9 to -7.8 at x -8.8), seen from a few metres off at a low aim.
+	var behind := Vector3(-8.8, 0.0, -9.6)
+	camera.global_position = Vector3(-8.8, 1.3, -4.0)
+	camera.look_at(behind + Vector3.UP)
+	mate.position = behind
+	mate.prev_position = behind
+	mate.crouch_amount = 1.0
+	_place_all(hud, camera, state)
+	assert_true(markers.is_shown(mate.id), "seen through cover too")
+	assert_true(markers.is_hollow(mate.id), "crouched behind the sandbags: hidden, though the marker clears them")
+	mate.crouch_amount = 0.0
+	_place_all(hud, camera, state)
+	assert_false(markers.is_hollow(mate.id), "standing, the head shows over them")
+
+
+func _place_all(hud: Hud, camera: Camera3D, state: GameState) -> void:
 	for i in PlayTuning.new().hud.team_marker_check:
 		hud.place_team_markers(camera, state.characters, session.player, 1.0)
-	var blocked := query.ray(camera.global_position, open + Vector3.UP * 2.2, hit)
-	assert_eq(markers.is_hollow(mate.id), blocked, "hollow exactly when the level is in the way")
-	# Through the floor: always blocked.
-	mate.position = Vector3(20.0, -6.0, -8.0)
-	mate.prev_position = mate.position
-	for i in PlayTuning.new().hud.team_marker_check:
-		hud.place_team_markers(camera, state.characters, session.player, 1.0)
-	assert_true(markers.is_hollow(mate.id))

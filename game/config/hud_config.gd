@@ -41,8 +41,8 @@ extends Resource
 @export var flag_marker_edge: float = 36.0
 @export var flag_warning_pulse: float = 1.6
 ## The hit feed (concept `hud-feed.png`; the browser game's HIT_FEED): at most feed_lines lines, each up feed_line_time
-## (s, simulation time, so a pause holds it), fading over its last feed_fade_time; kept feed_margin (px) from the
-## screen's corner, feed_gap (px) between lines.
+## (s, simulation time, so a pause holds it), fading over its last feed_fade_time; kept feed_margin from the screen's
+## corner (px: x from the side, y from the top or the bottom), feed_gap (px) between lines.
 @export var feed_lines: int = 6
 @export var feed_line_time: float = 6.0
 @export var feed_fade_time: float = 1.0

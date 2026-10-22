@@ -185,7 +185,7 @@ func _build_views_and_start() -> void:
 	var names := PackedStringArray()
 	for c in state.characters:
 		names.append("" if c.id == PLAYER_ID else _bots.name_of(c.id))
-	_hud.setup_field(_level.query(), _tuning.body, names, state.characters.size())
+	_hud.setup_field(_level.query(), _tuning.body, names, state.characters)
 	_capture()
 
 

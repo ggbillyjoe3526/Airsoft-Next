@@ -14,14 +14,17 @@ var _rows: Array[HudFeedRow] = []
 var _version: int = -1
 var _teams: TeamConfig = null
 var _names := PackedStringArray()
+var _shooter := HudFeedRow.Who.new()
+var _victim := HudFeedRow.Who.new()
 
 
+## `lines` rows (at least one), `gap` px apart, names and bars in `teams`' colours.
 func setup(lines: int, gap: float, teams: TeamConfig) -> void:
 	name = "HudFeed"
 	_teams = teams
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_constant_override("separation", roundi(gap))
-	for i in lines:
+	for i in maxi(1, lines):
 		var row := HudFeedRow.new()
 		row.visible = false
 		add_child(row)
@@ -78,10 +81,13 @@ func _fill(feed: HitFeed, characters: Array[Character], you: Character) -> void:
 		var line := feed.line(i)
 		var shooter := characters[line.shooter]
 		var victim := characters[line.victim]
-		row.set_mate_colour(mate_colour)
-		row.show_line(_name(shooter, you), _colour(shooter, you), _is_mate(shooter, you), _name(victim, you),
-				_colour(victim, you), _is_mate(victim, you), _teams.colours[shooter.team],
-				shooter.id == you.id or victim.id == you.id)
+		_side(_shooter, shooter, you)
+		_side(_victim, victim, you)
+		row.show_line(_shooter, _victim, _teams.colours[shooter.team], mate_colour, _shooter.you or _victim.you)
+
+
+func _side(side: HudFeedRow.Who, c: Character, you: Character) -> void:
+	side.set_to(_name(c, you), _colour(c, you), _is_mate(c, you), c.id == you.id)
 
 
 func _row_for(i: int) -> HudFeedRow:

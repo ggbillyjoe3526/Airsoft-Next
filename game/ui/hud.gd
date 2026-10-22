@@ -171,11 +171,10 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_watching.visible = false
 
 
-## Whether a Jump press would vault this tick: the prompt shows, and stays up vault_prompt_hold after.
 ## The field the teammate markers check their line of sight against (`query`), the bodies' heights, the names by
-## character id for the feed ("" for you) and how many characters play.
-func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, count: int) -> void:
-	_team_markers.setup(_cfg, body, query, count)
+## character id for the feed ("" for you), and everyone playing.
+func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, characters: Array[Character]) -> void:
+	_team_markers.setup(_cfg, body, query, characters, _player)
 	_feed.set_names(names)
 
 
@@ -188,14 +187,14 @@ func set_feed_corner(where: HudFeed.Place) -> void:
 		_feed.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 		_feed.grow_vertical = Control.GROW_DIRECTION_END
 	else:
-		_place(_feed, Vector4(0.0, 1.0, 0.0, 1.0), Rect2(m.x, -m.x, 0.0, 0.0))
+		_place(_feed, Vector4(0.0, 1.0, 0.0, 1.0), Rect2(m.x, -m.y, 0.0, 0.0))
 		_feed.grow_horizontal = Control.GROW_DIRECTION_END
 		_feed.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
 
 ## Places the teammate markers as `camera` sees them (HudTeamMarkers), `watched` being whose eyes it is.
 func place_team_markers(camera: Camera3D, characters: Array[Character], watched: Character, fraction: float) -> void:
-	_team_markers.place(camera, characters, _player, watched, _teams.colours[_player.team], fraction, true)
+	_team_markers.place(camera, characters, watched, _teams.colours[_player.team], fraction, true)
 
 
 func feed() -> HudFeed:
@@ -206,6 +205,7 @@ func team_markers() -> HudTeamMarkers:
 	return _team_markers
 
 
+## Whether a Jump press would vault this tick: the prompt shows, and stays up vault_prompt_hold after.
 func set_vault_ready(ready: bool) -> void:
 	if ready:
 		if _vault_left <= 0.0:
