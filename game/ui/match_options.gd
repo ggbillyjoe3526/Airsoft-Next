@@ -27,8 +27,8 @@ const KIND_MODES: Dictionary[StringName, PackedStringArray] = {
 	&"field": ["elimination", "attack_defend"],
 	&"range": ["practice"],
 }
-## The rule sets (concepts `rules-skirmish.png`, `rules-custom.png`): Skirmish plays the round tuning as it is, Custom the
-## settings' CustomRules.
+## The rule sets (concepts `rules-skirmish.png`, `rules-custom.png`): Skirmish plays the round tuning as it is, Custom
+## the settings' CustomRules.
 const RULES_SKIRMISH := "skirmish"
 const RULES_CUSTOM := "custom"
 const RULE_SETS: PackedStringArray = ["skirmish", "custom"]
