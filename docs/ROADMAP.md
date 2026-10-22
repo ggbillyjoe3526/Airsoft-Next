@@ -75,20 +75,19 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
     and each class's energy limit. AT1, AT2, AT3. Built.
 11. **The Cyber Pistol, levels and the Armory,** with the bots' kits per level, locked items greyed, Disable
     levelling, and the collection and records saved apart from settings. LV1, CP1, BK1, AR1. Built.
-12. **Bot difficulty.** Easy and Hard per team, then Pro (dev); bot names and personalities (`data/bots.md`);
-    adaptive difficulty as a Dev setting. DF1 (Easy and Hard, a level per team), DF2a and DF2b (Pro's own habits,
-    then its team play), MN3 (Opponents and Teammates on the Match screen; concepts first, `concepts/step12-bots/`),
-    BN1 (names and personalities), AD1 (adaptive).
-13. **Attack / Defend and the overtime flag** (browser OT1).
+12. **Bot difficulty.** Easy and Hard per team, then Pro; bot names and personalities (`data/bots.md`);
+    DF1 (Easy and Hard, a level per team), DF2a and DF2b (Pro's own habits, then its team play), MN3 (Opponents and
+    Teammates on the Match screen; concepts first, `concepts/step12-bots/`), BN1 (names and personalities).
+    Adaptive difficulty moved to the end, step 31.
+13. **Attack / Defend** (browser OT1's mode; the overtime flag moved to the end, step 27).
 14. **Match info.** The hit feed (one feed, placeable) with teammate markers, WON, LOST or DRAW, the scoreboard on
     Tab and round stats, the end-of-match summary with records, "What got you" and Pro tips, crosshair, hit marker,
     ammo counter and HUD opacity options, and skipping the round while you are out.
 15. **Custom matches and rule sets.** Rounds, round time, team size, friendly fire, ricochets; Skirmish and Custom.
-16. **The practice range and the tutorial.** Plates, figures, moving targets and the Timed challenge, the Loadout
-    from practice, and the sixteen-step tutorial.
-17. **Squad orders, pings and the magazine hand-off.** Three orders and the wheel, pings on the middle mouse button,
-    asking for and tossing a magazine.
-18. **The minimap and bot callouts.**
+16. **The practice range.** Plates, figures, moving targets and the Timed challenge, and the Loadout from practice
+    (the tutorial moved to the end, step 28).
+17. **Squad orders.** Three orders and the wheel (pings and the magazine hand-off moved to the end, step 29).
+18. **The minimap** (bot callouts moved to the end, step 30).
 19. **Sound pass.** Muffling through walls and while out, ducking on hits and whistles, voice pools with spread
     (katanashotgun), kit rustle, landing thuds, rare ambience calls.
 20. **Graphics presets and desktop basics.** Low to Ultra with Custom rows, a frame-rate limit, the first-run pick,
@@ -97,18 +96,29 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
     reduced motion, screen reader messages.
 22. **Save file screen, the crash screen and bug reports.** Restore points, Undo, Delete and start over, the save
     folder; a crash screen with the seed and Report a Bug.
-23. **The figures and first-person arms.** The Blender humans and robots with fitted hit areas, the hit flinch,
-    full-body animation, Looks › Robots, your arms (bare or gloved, by figure and skin), and Inspect on Y.
+23. **Figures in code.** The hit flinch, full-body animation and Looks › Robots, built against today's placeholder
+    models and the shared rig standard (the Blender models and arms are step 32).
 24. **Field checks.** Each field's layout rules as tests (browser `mapChecks.ts`), before fields are reworked.
-25. **Depot reworked to the field checklist.** Set dressing, baked light, the skyline, noisy props, gas puffs and
-    dust.
-26. **The owner's art pass** (owner, 2026-10-18). He redesigns players, replicas, attachments and other assets in
-    Blender at higher quality; today's models, built small for the browser, are placeholders until then. Here because
-    the rig standard and arms (23), every replica and part (9 to 11) and the field checklist with Depot's final layout
-    (24, 25) have settled, so he models against final requirements once, and Woodland's assets start at the new
-    quality. The coordinator reminds him when step 25 is near.
-27. **Woodland.** The field, sloping ground and bushes, night play, the weapon torch, glowing BBs, the Day / Night
-    switch, practice on any map, 5v5 and 6v6.
+25. **Depot's layout reworked to the field checklist.** The layout, baked light, the skyline, noisy props, gas puffs and
+    dust, in greybox and today's props (its set dressing models are step 32).
+26. **Woodland.** The field, sloping ground and bushes, night play, the weapon torch, glowing BBs, the Day / Night
+    switch, practice on any map, 5v5 and 6v6, on greybox and placeholder models where a new model would need Blender.
+
+Last, at the owner's word (2026-10-22): the features he named, then everything that needs Blender, which he must be
+at his PC to connect.
+
+27. **The overtime flag** (browser OT1).
+28. **The tutorial,** sixteen steps.
+29. **Pings and the magazine hand-off.** Pings on the middle mouse button; asking for and tossing a magazine.
+30. **Bot callouts.**
+31. **Adaptive difficulty** as a Dev setting (AD1).
+32. **Blender work, at the owner's PC.** The figures (humans and robots with fitted hit areas), your first-person arms
+    (bare or gloved, by figure and skin) and Inspect on Y; Depot's set dressing; then the owner's art pass (owner,
+    2026-10-18): he redesigns players, replicas, attachments and other assets at higher quality, today's models
+    being placeholders built small for the browser, and Woodland's models follow at the new quality. Here because
+    the rig standard, every replica and part (9 to 11) and the field checklist with Depot's final layout (24, 25)
+    have settled by then, so he models against final requirements once. The coordinator reminds him when step 31 is
+    near.
 
 ## Builds
 

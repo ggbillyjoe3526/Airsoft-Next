@@ -56,6 +56,12 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
 - **Cut features (owner, 2026-10-05).** Supply weekends and dated events; the Tone mapping choice; tracer BBs as an
   option (glowing BBs do it); Bomb and Intel grab; Free-for-all and the overshooting rule; cosmetic gear as its own
   system; a separate progression plan.
+- **Late features go last (owner, 2026-10-22).** The overtime flag, the tutorial, pings, asking for a magazine, bot
+  callouts and adaptive difficulty are built after Woodland (`docs/ROADMAP.md` › Build order, steps 27 to 31), so the
+  core systems (match info, minimap, sound, bots) come first.
+- **Blender work comes last (owner, 2026-10-22).** Anything that needs Blender (figures, first-person arms, Inspect,
+  replica and part remodels, Depot's set dressing, the art pass) is step 32, because the owner must be at his PC to
+  connect Blender. Code-only parts, built against today's placeholder models, may still go earlier.
 - **Kept features (owner, 2026-10-05).** Grenades (Replica Update) and skins (Progression Update), with greyed Loadout
   placeholders; suppressor sounds (Replica Update); Capture the Flag as a possible Modes Update mode.
 - **The Dev 6 playtest's additions and removals stand (owner, 2026-10-16).** Added: an in-match hop-up control, a
@@ -192,7 +198,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   to drop a glTF model into the assets folder (M25a) doesn't carry.
 - **Today's models are temporary placeholders; the owner redesigns them all in Blender at higher quality (owner,
   2026-10-18).** They were built small for a web browser. His art pass covers players, replicas, attachments and
-  other assets, at step 26 of `docs/ROADMAP.md` › Build order; until then every task uses the current models.
+  other assets, at step 32 of `docs/ROADMAP.md` › Build order (Blender work comes last, owner 2026-10-22); until then every task uses the current models.
 - **Every figure keeps its team-colour plate carrier (owner, 2026-10-17, AX1).** The carrier reads like a site's team
   bib and is the strongest team cue at range. A civilian outfit is in `docs/IDEAS.md`.
 
