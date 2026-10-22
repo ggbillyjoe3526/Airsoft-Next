@@ -58,6 +58,7 @@ var _window: OptionButton = null
 var _vsync: CheckButton = null
 var _fov: HSlider = null
 var _fps: CheckButton = null
+var _what_got_you: OptionButton = null
 var _dev_box: CheckButton = null
 var _dev_page: Control = null
 var _dev_checks: Dictionary[StringName, CheckButton] = {}
@@ -296,6 +297,15 @@ func _build_display() -> void:
 	_fps.toggled.connect(func(on: bool) -> void:
 		settings.show_fps = on
 		_changed(true))
+	var card_row := _row(page, "SETTINGS_WHAT_GOT_YOU")
+	_what_got_you = OptionButton.new()
+	for key: String in ["SETTINGS_AUTO", "SETTINGS_ON", "SETTINGS_OFF"]:
+		_what_got_you.add_item(tr(key))
+	_what_got_you.custom_minimum_size = Vector2(SLIDER_WIDTH, 0.0)
+	_what_got_you.item_selected.connect(func(i: int) -> void:
+		settings.what_got_you = i as Settings.WhatGotYou
+		_changed(true))
+	card_row.add_child(_what_got_you)
 
 
 # --- Dev ---
@@ -413,6 +423,7 @@ func _refresh() -> void:
 	_set_check(_vsync, settings.vsync)
 	_set_slider(_fov, settings.fov)
 	_set_check(_fps, settings.show_fps)
+	_what_got_you.select(settings.what_got_you)
 	_dev_box.set_pressed_no_signal(settings.dev_enabled)
 	_show_dev_tab()
 	_set_slider(_speed, settings.dev.game_speed * 100.0)

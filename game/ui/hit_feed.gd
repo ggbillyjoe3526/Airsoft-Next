@@ -1,13 +1,15 @@
 class_name HitFeed
 extends RefCounted
 ## The hit feed's lines (the browser game's HIT_FEED): who fired, who was hit and called it, and when (simulation
-## time), newest first. At most `max_lines`; a line lasts `line_time`, fading over its last `fade_time`. Plain data: the
-## HUD draws it (HudFeed). The lines are made once and reused.
+## time), newest first. At most `max_lines`; a line lasts `line_time`, fading over its last `fade_time`, unless it is
+## kept (the line you were hit in stays up until the round ends: `release_kept`). Plain data: the HUD draws it
+## (HudFeed). The lines are made once and reused.
 
 class Line:
 	var shooter: int = -1
 	var victim: int = -1
 	var time: float = 0.0
+	var keep: bool = false
 
 
 var max_lines: int = 6
@@ -31,25 +33,46 @@ func setup(lines: int, show_for: float, fade_for: float) -> void:
 	version += 1
 
 
-## A hit: `shooter`'s BB hit `victim`, who called it, at simulation time `at`. The oldest line goes when full.
-func add(shooter: int, victim: int, at: float) -> void:
-	# Reuse the last slot, then shift it to the front.
-	var line := _lines[max_lines - 1]
-	for i in range(max_lines - 1, 0, -1):
+## A hit: `shooter`'s BB hit `victim`, who called it, at simulation time `at`; `kept` lines stay up until
+## release_kept. When full the oldest line not kept goes.
+func add(shooter: int, victim: int, at: float, kept: bool = false) -> void:
+	# Reuse a free slot (or the oldest line not kept), then shift it to the front.
+	var slot := max_lines - 1
+	if _count == max_lines:
+		while slot > 0 and _lines[slot].keep:
+			slot -= 1
+	var line := _lines[slot]
+	for i in range(slot, 0, -1):
 		_lines[i] = _lines[i - 1]
 	_lines[0] = line
 	line.shooter = shooter
 	line.victim = victim
 	line.time = at
+	line.keep = kept
 	_count = mini(_count + 1, max_lines)
 	version += 1
 
 
-## Drops the lines older than line_time at `now`.
+## Drops the lines older than line_time at `now`, but not the kept ones; the rest keep their order.
 func prune(now: float) -> void:
-	while _count > 0 and now - _lines[_count - 1].time >= line_time:
-		_count -= 1
+	var left := 0
+	for i in _count:
+		var line := _lines[i]
+		if line.keep or now - line.time < line_time:
+			_lines[i] = _lines[left]
+			_lines[left] = line
+			left += 1
+	if left != _count:
+		_count = left
 		version += 1
+
+
+## Lets the kept lines go (the round ended): they age out as any other.
+func release_kept() -> void:
+	for i in _count:
+		if _lines[i].keep:
+			_lines[i].keep = false
+			version += 1
 
 
 func clear() -> void:
@@ -69,6 +92,8 @@ func line(i: int) -> Line:
 
 ## How opaque the `i`th line is at `now`: 1 until its last fade_time, then down to 0.
 func alpha(i: int, now: float) -> float:
+	if _lines[i].keep:
+		return 1.0
 	var left := line_time - (now - _lines[i].time)
 	if fade_time <= 0.0 or left >= fade_time:
 		return 1.0

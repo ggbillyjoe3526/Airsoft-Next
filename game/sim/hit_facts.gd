@@ -11,6 +11,8 @@ var victim_id: int = -1
 var shooter_id: int = -1
 ## Along the floor from the shooter to the victim, unit length (the way the BB came).
 var from_shooter: Vector2 = Vector2.ZERO
+## Which way the victim faced at the hit (Character.yaw), so the card can say which side the shot came from.
+var victim_yaw: float = 0.0
 ## Metres between the two along the floor.
 var distance: float = 0.0
 ## The victim was moving (at least the moving speed along the floor) as the BB hit.
@@ -36,6 +38,7 @@ func record(at_time: float, victim: Character, shooter: Character, bounced: bool
 	time = at_time
 	victim_id = victim.id
 	shooter_id = shooter.id
+	victim_yaw = victim.yaw
 	distance = d.length()
 	from_shooter = d / distance if distance > 0.0 else Vector2.ZERO
 	moving = Vector2(victim.velocity.x, victim.velocity.z).length() >= moving_speed

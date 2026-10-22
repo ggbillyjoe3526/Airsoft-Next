@@ -125,6 +125,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				_holster_latch = false
 
 
+## Whether Jump (Space) is held, which skips the round while you are out (only while the mouse is captured).
+func skip_held() -> bool:
+	return active and Input.is_action_pressed(JUMP)
+
+
 ## Whether the scoreboard's key is held (only while the mouse is captured, so a menu's Tab never shows it).
 func scoreboard_held() -> bool:
 	return active and Input.is_action_pressed(SCOREBOARD)

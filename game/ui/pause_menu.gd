@@ -6,6 +6,8 @@ extends Control
 
 signal resumed
 signal left
+## Skip to next round was pressed (shown only while you are out and the round plays on).
+signal skipped
 
 ## The shade over the match, the panel's width and margins, and the sizes of its words (px at 1080p; concept `pause.png`).
 const BACKDROP := Color(0.031, 0.051, 0.094, 0.72)
@@ -31,6 +33,7 @@ var end_round: Callable = Callable()
 
 var _resume: Button = null
 var _settings_button: Button = null
+var _skip: Button = null
 var _subtitle: Label = null
 var _seed: Label = null
 ## The settings screen, built the first time it is asked for.
@@ -78,6 +81,9 @@ func _ready() -> void:
 	box.add_child(buttons)
 	_resume = _button(buttons, tr("PAUSE_RESUME"), true)
 	_resume.pressed.connect(func() -> void: resumed.emit())
+	_skip = _button(buttons, tr("PAUSE_SKIP_ROUND"), false)
+	_skip.pressed.connect(func() -> void: skipped.emit())
+	_skip.visible = false
 	_settings_button = _button(buttons, tr("PAUSE_SETTINGS"), false)
 	_settings_button.pressed.connect(open_settings)
 	var leave := _button(buttons, tr("PAUSE_QUIT"), false)
@@ -93,6 +99,15 @@ func _ready() -> void:
 func set_match(map_name: String, mode_name: String, round_number: int, match_seed: int) -> void:
 	_subtitle.text = subtitle(map_name, mode_name, round_number)
 	_seed.text = str(match_seed)
+
+
+## Whether Skip to next round shows: only while you are out and the round plays on.
+func set_can_skip(can: bool) -> void:
+	_skip.visible = can
+
+
+func can_skip() -> bool:
+	return _skip.visible
 
 
 func subtitle_text() -> String:

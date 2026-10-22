@@ -270,8 +270,9 @@ func test_the_pause_menu_has_resume_settings_and_leave() -> void:
 	add_child_autofree(menu)
 	var texts: Array[String] = []
 	for b in menu.find_children("*", "Button", true, false):
-		texts.append((b as Button).text)
-	assert_eq(texts, ["RESUME", "SETTINGS", "QUIT MATCH"])
+		if (b as Button).visible:
+			texts.append((b as Button).text)
+	assert_eq(texts, ["RESUME", "SETTINGS", "QUIT MATCH"], "Skip to next round only while you are out (WG1)")
 	assert_ne(tr("PAUSE_SETTINGS"), "PAUSE_SETTINGS")
 
 

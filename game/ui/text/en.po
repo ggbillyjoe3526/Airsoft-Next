@@ -1529,3 +1529,60 @@ msgstr "SCOREBOARD"
 
 msgid "HUD_BOARD_ROUND_OT"
 msgstr "Round %d · overtime %s"
+
+msgid "SETTINGS_WHAT_GOT_YOU"
+msgstr "What got you"
+
+msgid "SETTINGS_AUTO"
+msgstr "Auto (Pro bots)"
+
+msgid "WGY_TITLE"
+msgstr "What got you"
+
+msgid "WGY_FROM_FRONT"
+msgstr "From in front, %d m away"
+
+msgid "WGY_FROM_LEFT"
+msgstr "From your left, %d m away"
+
+msgid "WGY_FROM_RIGHT"
+msgstr "From your right, %d m away"
+
+msgid "WGY_FROM_BEHIND"
+msgstr "From behind, %d m away"
+
+msgid "WGY_BOUNCED"
+msgstr "It was a bounced BB"
+
+msgid "WGY_HELD"
+msgstr "%s was holding the angle"
+
+msgid "WGY_IN_VIEW"
+msgstr "You were in %s's view for"
+
+msgid "WGY_SECONDS"
+msgstr "%.1f s"
+
+msgid "WGY_YOU_WERE"
+msgstr "You were"
+
+msgid "WGY_MOVING"
+msgstr "On the move"
+
+msgid "WGY_STILL"
+msgstr "Standing still"
+
+msgid "WGY_YES"
+msgstr "Yes"
+
+msgid "WGY_NO"
+msgstr "No"
+
+msgid "HUD_SKIP_HOLD"
+msgstr "Hold to skip the round"
+
+msgid "HUD_SKIPPING"
+msgstr "Skipping the round"
+
+msgid "PAUSE_SKIP_ROUND"
+msgstr "Skip to next round"
