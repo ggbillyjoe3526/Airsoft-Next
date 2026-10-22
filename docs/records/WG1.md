@@ -1,12 +1,13 @@
 # WG1 · What got you and skipping the round
 
-**Review:** pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-22 | 1 | Opus (build thread) | pass | | |
+| 2026-10-22 | 1 | Opus (build thread) | pass | | QA: the skip note drew over the pause menu; the hint kept the old key after a rebind made while paused |
+| 2026-10-22 | 2 | Opus (build thread) | pass | 7/8 accept | (stale DECISIONS and KNOWN_ISSUES lines fixed before merge) |
 
 ## Decisions
 
@@ -24,3 +25,7 @@
   and "Skipping the round" at the bottom; it stops when the round ends and the round's table shows as usual. The hint
   ("SPACE Hold to skip the round") names Jump's key as bound. The pause menu's Skip to next round shows only while you
   can skip. Hold time and speed are in PlayTuning (`skip_hold`, `skip_speed`).
+- **Only a press made once you can skip counts** (QA): Jump held through the hit, or through a pause, does not skip.
+  Pausing hides the hint, so it comes back on resume naming Jump's key as bound then.
+- **While skipping, up to skip_speed − 1 ticks can run after ROUND_OVER in that frame** (the pacer's ticks for the
+  frame are already counted); the round is over by then and the table shows as usual, so this stays.

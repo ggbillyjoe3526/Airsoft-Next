@@ -166,6 +166,26 @@ func test_out_hold_jump_to_skip_the_round_at_speed_with_the_hud_hidden() -> void
 	session.player.status = Character.Status.ALIVE
 
 
+func test_jump_held_through_the_hit_does_not_skip_until_pressed_again() -> void:
+	session = _session(Settings.WhatGotYou.OFF)
+	await wait_physics_frames(2)
+	session._input.active = true
+	Input.action_press(&"jump")
+	session.player.status = Character.Status.OUT
+	session._follow_skip(PlayTuning.new().skip_hold * 2.0)
+	session._follow_skip(PlayTuning.new().skip_hold * 2.0)
+	assert_false(session.skipping(), "held from before you were out")
+	Input.action_release(&"jump")
+	session._follow_skip(0.0)
+	Input.action_press(&"jump")
+	session._follow_skip(0.0)
+	session._follow_skip(PlayTuning.new().skip_hold)
+	assert_true(session.skipping(), "a fresh press skips")
+	session._stop_skip()
+	session._input.active = false
+	session.player.status = Character.Status.ALIVE
+
+
 func test_the_pause_menu_offers_skip_only_while_you_are_out() -> void:
 	session = _session(Settings.WhatGotYou.OFF)
 	await wait_physics_frames(2)
