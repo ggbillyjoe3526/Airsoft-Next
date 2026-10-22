@@ -170,6 +170,13 @@ var order_giver: Character = null
 var order_slot: int = 0
 var order_goal: Vector3 = Vector3.ZERO
 var order_yaw: float = 0.0
+## Follow me: its idea of the giver's heading (eased, so the spots swing round), whether it hurries (sprints: catching
+## up or regrouping), whether it is settled at its spot, and whether it is catching up on it or dropping back to it.
+var order_heading: float = 0.0
+var order_rush: bool = false
+var order_settled: bool = false
+var order_catching_up: bool = false
+var order_dropping_back: bool = false
 
 
 func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: int) -> void:
@@ -254,6 +261,7 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	flag_guard = false
 	order = SquadOrder.Kind.NONE
 	order_giver = null
+	order_rush = false
 
 
 func forget_target() -> void:

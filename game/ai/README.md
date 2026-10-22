@@ -36,12 +36,15 @@ tells its teammates where it heard someone, moves along a lane in pairs (one wai
 late when its team is behind.
 
 A teammate in play can order its bot teammates (`SquadOrders`, M22): the order travels as the giver's command, the
-simulation turns it into an event, and the controller hands it out. An ordered bot still fights whoever it sees; the
-order replaces only where it goes between fights (before the pole, noises and the lane), it is never picked for the
-pole, nobody waits for it and its personality stands aside. Hold here sends them to the spot the giver looks at, side
-by side across their view, looking their way. The order in force given again cancels it (from the order wheel it
-stays), Team plan ends it, and it ends when its giver is out and at each round start. Back on the plan, in Elimination
-the bot hunts from where it stands; in Attack / Defend it takes up its post.
+simulation turns it into an event, and the controller's `SquadOrderBook` hands it out. An ordered bot still fights
+whoever it sees; the order replaces only where it goes between fights (before the pole, noises and the lane), it is
+never picked for the pole, nobody waits for it and its personality stands aside. Follow me keeps each a spot behind the
+giver's heading (pairs either side, rows back, on the giver's side of walls and level), at the giver's pace, a pace
+faster or slower to close on it and sprinting when far behind, covering the giver's back once there. Hold here sends
+them to the spot the giver looks at, side by side across their view, looking their way. Regroup sprints them back, each
+turning to Follow me once close. The order in force given again cancels it (from the order wheel it stays), Team plan
+ends it, and it ends when its giver is out and at each round start. Back on the plan, in Elimination the bot hunts from
+where it stands; in Attack / Defend it takes up its post.
 
 Every bot has a name and personality from `data/bots.md` (`BotsFile`), drawn on the match's seed (`BotRoster`): a
 rusher pushes in and never waits, an anchor holds its lane short of the middle until late and aims from cover, a flanker
@@ -62,7 +65,7 @@ at its level, never how well (`BotPersonality`).
 | `bot_movement.gd`, `bot_routes.gd` | Lanes, holds, hunting, searching, strafing, keeping apart; following nav routes |
 | `round_planner.gd` | Each round's team plans and lanes (a flanker's own, an anchor's short one, attackers to the middle, defenders their first points), and hunt spots from the team's memory |
 | `bot_flag.gd` | Attack / Defend: each bot's side, which attacker raises the flag and which defenders pull it down, when a bot wants the pole |
-| `squad_orders.gd` | Squad orders: handing one out and ending it, Hold here's spot and each holder's place, walking there |
+| `squad_orders.gd`, `squad_order_book.gd` | Squad orders: carrying each out (Follow me's spots and pace, Hold here's spot and each holder's place, Regroup); the orders in force, handed out and ended |
 | `bot_roster.gd`, `bot_personality.gd` | Each bot's name and personality for a match; a personality laid over the level's skill, and its habits |
 
 Nothing allocates per tick once warm. Route searches (`NavGrid.find_route`) are queued, one a tick, shared with walk-off
@@ -70,5 +73,4 @@ routes.
 
 ## Not yet
 
-No callouts and no magazine sharing; Follow me and Regroup are handed out but walk nothing yet
-(docs/KNOWN_ISSUES.md).
+No callouts and no magazine sharing (docs/KNOWN_ISSUES.md).

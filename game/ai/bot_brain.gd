@@ -65,7 +65,12 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 		var calm := w.time - b.last_threat_at > cfg.sprint_when_calm_for
 		# A bot that pushes in runs at where someone was, footsteps and all.
 		var going := b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.FLAG or (pusher and b.mode == Bot.Mode.SEARCH)
-		cmd.sprint = going and (calm or pusher) and cmd.forward > cfg.sprint_forward
+		# Hurrying to a squad order (regrouping, catching up) sprints even with a fight just over, and through the small
+		# turns of following someone (a looser forward gate), so it doesn't flick between run and sprint at each one.
+		if b.mode == Bot.Mode.ORDER and b.order_rush:
+			cmd.sprint = cmd.forward > cfg.squad.sprint_forward
+		else:
+			cmd.sprint = going and (calm or pusher) and cmd.forward > cfg.sprint_forward
 		# Closing in on where someone was: walk, so its feet don't give it away (not while trading or pushing in).
 		if b.mode == Bot.Mode.SEARCH and not trading and not pusher \
 				and Vector2(b.last_known.x - me.position.x, b.last_known.z - me.position.z).length() \

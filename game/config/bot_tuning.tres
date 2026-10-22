@@ -77,11 +77,29 @@ team_play = true
 
 [sub_resource type="Resource" id="Resource_sqd01"]
 script = ExtResource("3_sqcf1")
+follow_distance = 3.2
+follow_spread_deg = 40.0
+follow_row_gap = 1.6
+follow_fallback_step = 1.5
+follow_line_snap = 0.8
+follow_arrive = 1.2
+follow_settle = 0.8
+follow_run_from = 2.4
+catch_up_gap = 1.5
+follow_pull = 1.5
+catch_up = 8.0
+rush_ease = 3.0
+sprint_forward = 0.6
+heading_speed = 1.0
+heading_turn_rate = 1.5
+crouched_pace = 0.5
+follow_watch_deg = PackedFloat32Array(180, 90, -90)
 hold_range = 40.0
 hold_wall_gap = 0.6
 hold_spacing = 1.4
 hold_arrive = 0.7
 hold_move = 3.0
+regroup_arrive = 4.0
 
 [resource]
 script = ExtResource("1_bcfg1")

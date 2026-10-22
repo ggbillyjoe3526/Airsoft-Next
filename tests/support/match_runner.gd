@@ -15,6 +15,12 @@ const HELD_UP_SECONDS := 10
 const HELD_UP_DISTANCE := 0.5
 ## A character that ends a round in play without ever getting this far from its spawn (m) stayed home that round.
 const LEAVES_SPAWN := 8.0
+## Follow me (follow_leader): a follower is judged once it has carried out the order FOLLOW_REJOIN seconds in a row
+## (back from a fight or cover, it gets that long to rejoin); near within the follow distance, catch_up_gap and
+## FOLLOW_NEAR_SLACK (m) of the leader; standing still slower than STILL_SPEED (m/s) while the leader moves.
+const FOLLOW_REJOIN := 3.0
+const FOLLOW_NEAR_SLACK := 2.0
+const STILL_SPEED := 0.5
 
 
 ## One round, as it ended.
@@ -72,6 +78,12 @@ class MatchTally:
 	## Ticks a character in or out of play spent within a metre above the kill height (falling out of the level; the
 	## simulation puts it back below it).
 	var rescued: int = 0
+	## With a follow_leader: follower ticks judged, those near the leader and those standing still while it moved, and
+	## the farthest a judged follower was from it (m).
+	var follow_counted: int = 0
+	var follow_near: int = 0
+	var follow_standing: int = 0
+	var follow_worst: float = 0.0
 
 	## Rounds that ran out the clock.
 	func on_time() -> int:
@@ -106,6 +118,9 @@ var difficulty: StringName = &"normal"
 var beta_difficulty: StringName = &""
 ## Every bot gets a name and personality from data/bots.md as in a match (their kits lean by it); off, none has one.
 var personalities: bool = true
+## A bot (character id on team 0) that gives its teammates Follow me through its command at each round start, as the
+## player would, while the match tallies how well they keep up (MatchTally.follow_*); -1, nobody: no order is given.
+var follow_leader: int = -1
 ## The match's mode: Attack / Defend needs a map with a pole (MapData.has_pole); team 0 attacks first, as in the browser
 ## game's guards.
 var mode: RoundState.Mode = RoundState.Mode.ELIMINATION
@@ -212,12 +227,21 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 		ring.resize(HELD_UP_SECONDS)
 		ring.fill(Vector3.INF)
 		trail.append(ring)
+	var order_due := follow_leader >= 0
+	# Per character, seconds in a row spent carrying out Follow me (a fight or cover resets it).
+	var following := PackedFloat32Array()
+	following.resize(n)
 	while t.ticks < limit and not t.finished:
 		bots.think(state, commands, DT)
+		if order_due:
+			commands[follow_leader].squad_order = SquadOrder.Kind.FOLLOW
+			order_due = false
 		sim.step(state, commands, DT)
 		bots.observe(state)
 		t.ticks += 1
 		_watch(state, t, round_now)
+		if follow_leader >= 0:
+			_watch_follow(state, bots, t, following)
 		if t.ticks % TICKS_PER_SECOND == 0:
 			_watch_held_up(state, bots, t, trail, held, (t.ticks / TICKS_PER_SECOND) % HELD_UP_SECONDS)
 		for i in state.events.count:
@@ -244,6 +268,7 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 					t.rounds.append(round_now)
 				GameEvent.Kind.ROUND_START:
 					round_now = _new_round(state)
+					order_due = follow_leader >= 0
 					round_start = state.time
 					for ring in trail:
 						ring.fill(Vector3.INF)
@@ -334,6 +359,30 @@ func _watch(state: GameState, t: MatchTally, r: RoundTally) -> void:
 		var away := Vector2(c.position.x - c.spawn_position.x, c.position.z - c.spawn_position.z).length()
 		t.farthest[c.id] = maxf(t.farthest[c.id], away)
 		r.farthest[c.id] = maxf(r.farthest[c.id], away)
+
+
+## Follow me's tally for the tick (see FOLLOW_REJOIN), while the round is live and the leader in play.
+func _watch_follow(state: GameState, bots: BotController, t: MatchTally, following: PackedFloat32Array) -> void:
+	var leader := state.character(follow_leader)
+	if not state.round_state.is_live() or leader == null or not Elimination.is_in_play(leader):
+		return
+	var squad := config.squad
+	var leader_moving := Vector2(leader.velocity.x, leader.velocity.z).length() > squad.heading_speed
+	for b in bots.world.bots:
+		var c := b.character
+		if c.team != leader.team or c == leader:
+			continue
+		var carried := b.order == SquadOrder.Kind.FOLLOW and b.mode == Bot.Mode.ORDER
+		following[c.id] = following[c.id] + DT if carried else 0.0
+		if following[c.id] < FOLLOW_REJOIN:
+			continue
+		var d := Vector2(c.position.x - leader.position.x, c.position.z - leader.position.z).length()
+		t.follow_counted += 1
+		if d < squad.follow_distance + squad.catch_up_gap + FOLLOW_NEAR_SLACK:
+			t.follow_near += 1
+		if leader_moving and Vector2(c.velocity.x, c.velocity.z).length() < STILL_SPEED:
+			t.follow_standing += 1
+		t.follow_worst = maxf(t.follow_worst, d)
 
 
 ## Standing still on purpose, not held up: an anchor settled at its post (bots.md › Holds until), a bot watching where
