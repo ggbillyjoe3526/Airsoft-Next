@@ -251,6 +251,8 @@ func test_a_scope_zooms_only_in_its_glass_and_a_red_dot_the_whole_view() -> void
 
 func test_a_silenced_shot_plays_duller_and_quieter() -> void:
 	var cfg := SoundConfig.new()
+	# No level spread, so the level read is the muffled share exactly.
+	cfg.shot_spread_db = 0.0
 	var kit := _kit(AEG, {&"muzzle": SILENCER})
 	var state := GameState.new(1)
 	state.characters.append(Character.new(0, 0, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights))
