@@ -26,6 +26,8 @@ var commands: Array[PlayerCommand] = []
 var cmd: PlayerCommand = null
 var you: Character = null
 var mates: Array[Bot] = []
+## The fields built so far and their nav grids, by whether the thin wall stands: [MapData, NavGrid].
+var _built: Dictionary[bool, Array] = {}
 
 
 ## A 100 m square field (with a thin wall along X at z 18.6 to 19.0 if `thin_wall`), as map data and its BoxWorld.
@@ -59,9 +61,13 @@ static func _block(kind: StringName, center: Vector3, size: Vector3) -> MapData.
 ## You and two bot teammates at SPOTS, the opponent far off and driven by nobody, round 1 live and half a second gone.
 func _squad(thin_wall: bool = false) -> void:
 	var f := _field(thin_wall)
-	map = f[0]
 	var w: BoxWorld = f[1]
-	nav = NavGrid.build(map, tuning.nav, tuning.body)
+	# The field's nav grid takes seconds to build: once a layout, for the whole file (nothing here changes it).
+	if not _built.has(thin_wall):
+		var m: MapData = f[0]
+		_built[thin_wall] = [m, NavGrid.build(m, tuning.nav, tuning.body)]
+	map = _built[thin_wall][0]
+	nav = _built[thin_wall][1]
 	sim = Simulation.new(tuning, w, w.mover(), map.ends, KILL_Y)
 	sim.nav = nav
 	state = GameState.new(5, tuning)
