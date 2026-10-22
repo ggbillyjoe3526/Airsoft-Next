@@ -578,3 +578,31 @@ func _weaving_walk(ticks: int) -> void:
 		if t % 120 == 0:
 			cmd.yaw = EAST + (0.5 * PI if t % 240 == 0 else 0.0)
 		_tick()
+
+
+func test_an_order_from_a_giver_out_of_play_gives_nothing_and_waits_for_the_next_round() -> void:
+	_squad()
+	assert_eq(_order(SquadOrder.Kind.FOLLOW), SquadOrder.Kind.FOLLOW)
+	# Hit in the tick it gave the order: the simulation took it, but the giver is out by the time it is handed out.
+	you.status = Character.Status.CALLING
+	assert_eq(bots.give_order(you, SquadOrder.Kind.HOLD), SquadOrder.Kind.NONE)
+	assert_eq(bots.order_outcome.notice, SquadOrders.Notice.NOT_NOW, "not NOBODY: the teammates are there")
+	assert_eq(bots.order_of(YOU), SquadOrder.Kind.NONE)
+	for b in mates:
+		assert_eq(b.order, SquadOrder.Kind.NONE, "the order in force ended with the giver")
+
+
+func test_a_bot_handed_an_order_is_no_moving_partner_on_its_lane() -> void:
+	_squad()
+	var b := mates[0]
+	var o := mates[1]
+	o.lane = b.lane
+	o.mode = Bot.Mode.ADVANCE
+	o.hunting = false
+	o.holding = false
+	o.route_state = Bot.RouteState.OK
+	o.character.position = b.character.position + Vector3(1.0, 0.0, 0.0)
+	assert_true(BotMovement._partner_moving(b, bots.world), "on the plan, it is the partner on the move")
+	# Handed an order this tick, before its brain turns it to ORDER mode.
+	SquadOrders.start(o, you, SquadOrder.Kind.FOLLOW, 0)
+	assert_false(BotMovement._partner_moving(b, bots.world))

@@ -496,7 +496,8 @@ static func _partner_moving(b: Bot, w: BotWorld) -> bool:
 		if o == b or o.character.team != b.character.team or o.lane != b.lane or not Elimination.is_in_play(o.character):
 			continue
 		# Set off this tick (its route still wanted) counts: bots think in turn, and two at their points must not both go.
-		if o.mode != Bot.Mode.ADVANCE or o.hunting or o.holding \
+		# One handed a squad order is no partner, even before it turns to the order.
+		if o.mode != Bot.Mode.ADVANCE or o.hunting or o.holding or o.order != SquadOrder.Kind.NONE \
 				or (o.route_state != Bot.RouteState.OK and o.route_state != Bot.RouteState.WANTED):
 			continue
 		if Vector2(o.character.position.x - p.x, o.character.position.z - p.z).length() <= w.cfg.bound_distance:

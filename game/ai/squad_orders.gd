@@ -20,7 +20,7 @@ const SPRINT := 2
 static var _hit: RayHit = RayHit.new()
 
 
-## The last order given (BotController.order_outcome, one record reused): by whom, the order in force afterwards (NONE:
+## The last order given (SquadOrderBook.order_outcome, one record reused): by whom, the order in force afterwards (NONE:
 ## the team plan), and its notice (NONE when an order was taken). `serial` counts every outcome, so a reader sees a new
 ## one even when it reads the same.
 class Outcome:
@@ -133,7 +133,7 @@ static func held_centre(bots: Array[Bot], giver: Character) -> Vector3:
 	return sum / n if n > 0 else NO_SPOT
 
 
-## Regroup: true once `b` is back within regroup_arrive of its giver, when it turns to Follow me (the controller's,
+## Regroup: true once `b` is back within regroup_arrive of its giver, when it turns to Follow me (SquadOrderBook's,
 ## before the bots think), its spots behind the way the giver faces.
 static func regrouped(b: Bot, w: BotWorld) -> bool:
 	var giver := b.order_giver
