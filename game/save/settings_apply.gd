@@ -15,7 +15,8 @@ static func apply_all(s: Settings) -> void:
 	s.changed.emit()
 
 
-## The mouse (hip and aimed sensitivity, invert, the crouch and aim toggles) and the field of view.
+## The mouse (hip and aimed sensitivity, invert, the crouch and aim toggles, the order wheel's Hover or Click) and the
+## field of view.
 static func apply_controls(s: Settings) -> void:
 	var c := s.tuning.controls
 	c.sensitivity = s.sensitivity
@@ -23,6 +24,7 @@ static func apply_controls(s: Settings) -> void:
 	c.invert_y = s.invert_y
 	c.crouch_toggle = s.crouch_toggle
 	c.aim_toggle = s.aim_toggle
+	c.wheel_pick = s.wheel_pick
 	s.tuning.view.horizontal_fov_16x9 = s.fov
 
 

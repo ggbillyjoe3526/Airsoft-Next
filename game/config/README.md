@@ -6,6 +6,10 @@ does and why it is what it is. `sim_tuning.tres` is the instance the game loads 
 changed in the inspector is saved there. The play screen's own tuning (how the game looks, sounds and handles, never its
 rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 
+A config added to `SimTuning`, `PlayTuning` or `BotConfig` must also be written into its .tres (open and save it in the
+editor): an export converts the .tres where the scripts' `= Config.new()` defaults don't run, so a config the file
+leaves out ships as null and the exported game crashes. `tests/unit/test_saved_configs.gd` fails until it is.
+
 | Script | Area |
 |---|---|
 | `sim_tuning.gd` | Bundles the simulation's configs below |
@@ -27,11 +31,11 @@ rules) is `play_tuning.tres` (`PlayTuning.load_default()`), the same way.
 | `part_stats.gd` | Read `data/stats.md`'s part tables: optics, grips, lasers, magazines, barrels and muzzle parts (a part with no row changes nothing) |
 | `replica_schemes.gd` | Replica colours: the eight bold schemes and four plain colours, each class's default, the bots' team colours, Realistic colours |
 | `play_tuning.gd`, `play_tuning.tres` | Bundles the play screen's configs below, and the rematch delay |
-| `controls_config.gd` | Mouse turn, sensitivity (hip, and a multiplier aimed), invert, slower while zoomed, crouch and aim toggle or hold; the settings screen writes its values over these |
+| `controls_config.gd` | Mouse turn, sensitivity (hip, and a multiplier aimed), invert, slower while zoomed, crouch and aim toggle or hold; the order wheel's orders, keys, names, pointer and Hover or Click; the settings screen writes its values over these |
 | `view_config.gd` | Field of view, the sight's zoom, near and far, the view's roll in a lean, a cut lean's easing, a vault's dip and tip |
 | `viewmodel_config.gd` | The replica in hand: hip and sight positions, sway, kick, sprint carry, draw, the holster, reload cant, wall pull-back, each optic's glass and eye distance |
 | `effects_config.gd` | BB size and colour, the muzzle blend, puffs by surface, the wind dust |
-| `sound_config.gd` | Cue and loop folders, gains, distances, voice pools, the ambience, a silenced shot's muffling, the flag rope's ratchet, the range's steel and how far targets are heard, the challenge's beeps |
+| `sound_config.gd` | Cue and loop folders, gains, distances, voice pools, the ambience, a silenced shot's muffling, the flag rope's ratchet, the range's steel and how far targets are heard, the challenge's beeps, the squad order radio click |
 | `debug_view_config.gd` | The F4/F5 debug draw: a BB trail's length and colours, the hit volumes' colours and roundness |
 | `hud_config.gd` | the low-magazine share, the magazine boxes' sizes, the crosshair, the hit marker, banner times, the hop-up readout, the vault prompt, the flag marker and warning |
 | `map_style.gd` | A map's greybox: colours and surface by block kind, the ground, the world grid |

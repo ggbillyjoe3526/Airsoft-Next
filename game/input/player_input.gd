@@ -5,6 +5,11 @@ extends Node
 ## simulation takes (docs/ARCHITECTURE.md › Contracts 2). Presses between two ticks are latched, so a tap shorter than a
 ## tick (a semi click, a jump, a reload) is never dropped. It reads nothing while the mouse isn't captured, so a menu
 ## click never fires a shot.
+## Squad orders (M22, M23): an order key fills the next tick's squad order once. Held, the order wheel's key opens the
+## wheel: the mouse moves its own pointer (OrderWheelPointer) instead of the view, the mouse wheel switches nothing, feet
+## still move, and fire and aim need a fresh press once it closes. The order pointed at is given on letting go of the key
+## (Hover) or on a click (either way); the wheel closes giving nothing on pause or focus loss (`release`) and once
+## orders can't be given (`allow_orders`).
 
 ## The actions in project.godot's input map.
 const FORWARD := &"move_forward"
@@ -28,6 +33,8 @@ const HOP_UP_LESS := &"hop_up_less"
 const HOP_UP_MORE := &"hop_up_more"
 const HOLSTER := &"holster"
 const SCOREBOARD := &"scoreboard"
+## Held, the order wheel is open (the order keys are data: ControlsConfig.wheel_keys).
+const ORDER_WHEEL := &"order_wheel"
 
 ## The view, absolute (rad): yaw 0 looks down -Z and turns left positive; pitch up positive.
 var view_yaw: float = 0.0
@@ -51,13 +58,38 @@ var _slot_steps: int = 0
 var _crouched: bool = false
 ## Aiming, while aim toggles (ControlsConfig.aim_toggle).
 var _aimed: bool = false
-## Fire is ignored until it is let go (hold_fire).
+## Fire is ignored until it is let go (hold_fire), and so is aim pressed while the wheel was open.
 var _fire_held_back: bool = false
+var _aim_held_back: bool = false
+## The squad order keyed or picked on the wheel since the last tick, and whether it came from the wheel.
+var _order_latch: SquadOrder.Kind = SquadOrder.Kind.NONE
+var _order_from_wheel: bool = false
+## Orders can be given (allow_orders): the keys, and the wheel only while `_wheel_allowed` too.
+var _orders_allowed: bool = true
+var _wheel_allowed: bool = true
+var _wheel: OrderWheelPointer = OrderWheelPointer.new()
 
 
 func setup(controls: ControlsConfig, max_pitch: float) -> void:
 	_controls = controls
 	_max_pitch = max_pitch
+	_wheel = OrderWheelPointer.new(controls.wheel_reach, controls.wheel_dead_zone, controls.wheel_orders.size())
+
+
+## The order wheel's pointer (read-only for the HUD): open, where, and the order pointed at.
+func wheel() -> OrderWheelPointer:
+	return _wheel
+
+
+## Whether orders can be given: `keys` (false on the range: no teammates to order) lets the order keys and the wheel
+## work, `wheel` (you are in play) the wheel too. The wheel closes giving nothing once it can't stay open.
+func allow_orders(keys: bool, wheel_ok: bool) -> void:
+	_orders_allowed = keys
+	_wheel_allowed = keys and wheel_ok
+	if not keys:
+		_order_latch = SquadOrder.Kind.NONE
+	if not _wheel_allowed and _wheel.open:
+		_close_wheel()
 
 
 ## Looks along (yaw, pitch), standing, as at a spawn.
@@ -70,6 +102,8 @@ func face(yaw: float, pitch: float = 0.0) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not active:
+		return
+	if _wheel.open and _wheel_input(event):
 		return
 	var motion := event as InputEventMouseMotion
 	if motion != null:
@@ -84,7 +118,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_echo() or not event.is_pressed():
 		return
-	if event.is_action(FIRE):
+	if _orders_allowed and _order_key(event):
+		return
+	if event.is_action(ORDER_WHEEL):
+		if not _wheel.open: # a second key bound to the wheel doesn't recentre it
+			_open_wheel()
+	elif event.is_action(FIRE):
 		_fire_latch = true
 	elif event.is_action(AIM) and _controls.aim_toggle:
 		_aimed = not _aimed
@@ -137,7 +176,66 @@ func scoreboard_held() -> bool:
 
 ## Whether the sight is up, held or toggled, as the aimed sensitivity reads it.
 func _aiming() -> bool:
-	return _aimed if _controls.aim_toggle else Input.is_action_pressed(AIM)
+	return _aimed if _controls.aim_toggle else Input.is_action_pressed(AIM) and not _aim_held_back
+
+
+## An order key pressed: its order is latched for the next tick (true), else false.
+func _order_key(event: InputEvent) -> bool:
+	for i in _controls.wheel_keys.size():
+		var key := _controls.wheel_keys[i]
+		if key != &"" and i < _controls.wheel_orders.size() and event.is_action(key):
+			_latch_order(_controls.wheel_orders[i], false)
+			return true
+	return false
+
+
+func _latch_order(kind: SquadOrder.Kind, from_wheel: bool) -> void:
+	_order_latch = kind
+	_order_from_wheel = from_wheel
+
+
+## Opens the wheel, if orders can be given: the trigger is the wheel's until it closes and is let go.
+func _open_wheel() -> void:
+	if not _wheel_allowed:
+		return
+	_wheel.start()
+	hold_fire()
+
+
+## An event while the wheel is open: true if the wheel took it. The mouse moves its pointer; a click on an order gives
+## it; letting go of the key gives the order pointed at (Hover) and closes the wheel; aim waits for a fresh press; the
+## mouse wheel switches nothing. Everything else (the keys that move you) goes on as usual.
+func _wheel_input(event: InputEvent) -> bool:
+	var motion := event as InputEventMouseMotion
+	if motion != null:
+		_wheel.move(motion.screen_relative * _controls.wheel_gain * _controls.sensitivity)
+		return true
+	if event.is_echo():
+		return false
+	if event.is_action_released(ORDER_WHEEL):
+		var pick := _wheel.pick()
+		if pick != OrderWheelPointer.NONE and _controls.wheel_pick == ControlsConfig.WheelPick.HOVER:
+			_latch_order(_controls.wheel_orders[pick], true)
+		_close_wheel()
+		return true
+	if not event.is_pressed():
+		return false
+	if event.is_action(FIRE):
+		var pick := _wheel.pick()
+		if pick != OrderWheelPointer.NONE:
+			_latch_order(_controls.wheel_orders[pick], true)
+			_close_wheel()
+		return true
+	if event.is_action(AIM):
+		_aim_held_back = true
+		return true
+	return event.is_action(NEXT_SLOT) or event.is_action(PREVIOUS_SLOT)
+
+
+## Closes the wheel; fire stays held back until it is let go (a click that picked an order is not a shot).
+func _close_wheel() -> void:
+	_wheel.close()
+	hold_fire()
 
 
 ## This tick's command: held keys as they are now, presses since the last tick, the view as the mouse left it.
@@ -157,8 +255,14 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.aim = _aiming()
 	# Lean is held, whatever crouch and aim do (owner, 2026-10-03).
 	cmd.lean = Input.get_action_strength(LEAN_RIGHT) - Input.get_action_strength(LEAN_LEFT)
-	if _fire_held_back and not Input.is_action_pressed(FIRE):
-		_fire_held_back = false
+	if not _wheel.open:
+		if _fire_held_back and not Input.is_action_pressed(FIRE):
+			_fire_held_back = false
+		if _aim_held_back and not Input.is_action_pressed(AIM):
+			_aim_held_back = false
+	elif not Input.is_action_pressed(ORDER_WHEEL):
+		# its key let go unseen (a rebind, the window losing it): closed, giving nothing
+		_close_wheel()
 	cmd.fire = not _fire_held_back and (Input.is_action_pressed(FIRE) or _fire_latch)
 	cmd.jump = _jump_latch # a press, not a hold: holding Space doesn't hop on every landing
 	cmd.reload = _reload_latch
@@ -168,7 +272,17 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.holster = _holster_latch
 	if _slot_steps != 0:
 		cmd.switch_to = posmod(held_slot + _slot_steps, SLOTS.size())
+	fill_order(cmd)
 	_clear_latches()
+
+
+## Writes the squad order keyed or picked since the last tick into `cmd`, once. `fill` does; while a bot plays for you
+## (the smoke test) the play scene calls it alone.
+func fill_order(cmd: PlayerCommand) -> void:
+	cmd.squad_order = _order_latch
+	cmd.order_from_wheel = _order_from_wheel
+	_order_latch = SquadOrder.Kind.NONE
+	_order_from_wheel = false
 
 
 ## Ignores the fire button until it is let go: a click that moved the round on is not the next round's first shot.
@@ -177,10 +291,12 @@ func hold_fire() -> void:
 	_fire_latch = false
 
 
-## Lets go of everything (focus lost, the menu opened), so no key stays held.
+## Lets go of everything (focus lost, the menu opened), so no key stays held, and closes the wheel giving nothing.
 func release() -> void:
 	active = false
 	_clear_latches()
+	if _wheel.open:
+		_close_wheel()
 
 
 func _clear_latches() -> void:
@@ -192,3 +308,5 @@ func _clear_latches() -> void:
 	_slot_latch = -1
 	_slot_steps = 0
 	_hop_steps = 0
+	_order_latch = SquadOrder.Kind.NONE
+	_order_from_wheel = false

@@ -55,28 +55,6 @@ acceptance:
 status: open
 attempts: 0
 
-## SO3 · Order keys, the wheel's input and the radio click
-tier: core
-perf: optional
-touches: project.godot, game/input/key_bindings.gd, game/input/player_input.gd, game/input/order_wheel_pointer.gd,
-  game/input/README.md, game/config/controls_config.gd, game/config/play_tuning.tres, game/config/sound_config.gd,
-  game/play/sim_audio.gd, game/play/play_session.gd, game/save/settings.gd, game/main.gd, game/ui/text/en.po,
-  tests/unit/
-contract: Commands (2); Data, not literals (6); Saves (8); Headless (9)
-acceptance:
-  1. order_follow F, order_hold X, order_regroup V and order_wheel Z (hold) in the input map and KeyBindings,
-     rebindable, named in Settings › Controls; the defaults test still agrees with project.godot.
-  2. A key press fills the next tick's squad order once (a key again toggles); held Z moves the wheel's own pointer
-     (orderWheel.ts: gain × sensitivity, reach, dead zone, slices clockwise from the top) instead of the view; feet
-     still move; fire and aim need a fresh press after. Hover gives the pointed item on release, Click on a click;
-     the wheel closes on pause, focus loss, being out and in practice (no teammates), giving nothing.
-  3. The wheel's items, keys and Hover / Click are data (Team plan included); the choice is saved in Settings
-     (Hover by default; an old settings file loads).
-  4. An order taken plays a radio_ack double-click in your ear only; a refusal or cancel plays nothing.
-  5. The smoke test presses F twice and opens and closes the wheel with no script errors.
-status: open
-attempts: 0
-
 ## SO4 · The order wheel and hold marker on screen
 tier: ui
 perf: optional

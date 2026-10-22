@@ -138,6 +138,8 @@ var all_shots: int = 0
 var impacts: int = 0
 var rounds_played: int = 0
 var matches_played: int = 0
+## Squad orders of yours the simulation took (SQUAD_ORDER events): the smoke test gives some.
+var orders_given: int = 0
 ## Practice: targets your BBs hit, and how many of those were steel plates (never the START plate).
 var target_hits: int = 0
 var plate_hits: int = 0
@@ -470,12 +472,17 @@ func _physics_process(_delta: float) -> void:
 		else:
 			for c in state.characters:
 				_commands[c.id].reset(c.yaw, c.pitch)
+		# On the range nobody is there to order; out, the wheel closes (the keys still ask, and wait for the next round).
+		_input.allow_orders(not practice, Elimination.is_in_play(player))
 		if _pilot != null:
 			_pilot.fill(_commands[PLAYER_ID], player, state.targets, _tuning.body)
 		elif _spectate_any and not autopilot:
 			_follow_next_on_pull()
 		elif not autopilot:
 			_input.fill(_commands[PLAYER_ID], player.armament.active)
+		else:
+			# a bot plays you (the smoke test): your squad order keys still reach your teammates
+			_input.fill_order(_commands[PLAYER_ID])
 		_sim.step(state, _commands, TICK)
 		_ticks += 1
 		_after_tick()
@@ -524,6 +531,7 @@ func _after_tick() -> void:
 	_bots.observe(state)
 	_debug.on_tick()
 	_audio.on_tick(state, PLAYER_ID)
+	_audio.on_order(_bots.order_outcome, PLAYER_ID)
 	_hud.on_tick(state)
 	_hud.set_vault_ready(_vault_ready())
 	_tally.on_tick(state)
@@ -563,6 +571,8 @@ func _after_tick() -> void:
 			GameEvent.Kind.ROUND_OVER:
 				rounds_played += 1
 				_stop_skip()
+			GameEvent.Kind.SQUAD_ORDER when e.actor == PLAYER_ID:
+				orders_given += 1
 			GameEvent.Kind.ROUND_START:
 				_input.face(player.spawn_yaw)
 				_puffs.clear()

@@ -24,6 +24,7 @@ on:
       - "THIRD_PARTY_NOTICES.txt"
       - "export_presets.cfg"
       - "project.godot"
+      - "game/config/**/*.tres"
       - "tools/version.sh"
       - "tools/changelog_section.sh"
       - "tools/changelog.sh"
