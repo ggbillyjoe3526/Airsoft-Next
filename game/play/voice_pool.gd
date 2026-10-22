@@ -47,6 +47,9 @@ func acquire(cue: StringName, priority: int, max_voices: int) -> int:
 				own = i
 	var pick := -1
 	if own_count >= max_voices:
+		if own < 0: # a cue allowed no voices at all
+			dropped += 1
+			return -1
 		pick = own
 	elif free >= 0:
 		pick = free

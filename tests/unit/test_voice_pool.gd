@@ -72,6 +72,14 @@ func test_pool_cue_at_its_limit_reuses_its_own_oldest() -> void:
 	assert_eq(pool.acquire(&"impact", VoicePool.Priority.FIELD, 2), 0, "the third impact replaces the oldest one")
 
 
+func test_a_cue_allowed_no_voices_is_dropped_and_touches_no_voice() -> void:
+	var pool := _pool(2)
+	_fill(pool, &"shot", VoicePool.Priority.SHOT, 2)
+	assert_eq(pool.acquire(&"impact", VoicePool.Priority.OWN, 0), -1)
+	assert_eq(pool.dropped, 1, "counted as dropped")
+	assert_eq(pool.acquire(&"shot", VoicePool.Priority.SHOT, 2), 0, "the last voice's record is intact")
+
+
 func test_a_start_limit_lets_so_many_start_in_a_window() -> void:
 	var limit := VoicePool.StartLimit.new(4, 0.1)
 	var taken := 0
