@@ -205,3 +205,15 @@ func test_the_radio_click_plays_once_in_your_ear_for_a_taken_order_only() -> voi
 	assert_eq(voice.bus, SimAudio.BUS_INTERFACE, "on the Interface bus")
 	audio.on_order(o, 0)
 	assert_eq(heard.call(), 1, "the same outcome read again plays nothing more")
+
+
+func test_a_second_wheel_key_pressed_while_open_keeps_the_pointer() -> void:
+	_event(&"order_wheel", true)
+	_move(0.0, -200.0)
+	var at := input.wheel().at
+	var again := InputEventAction.new()
+	again.action = &"order_wheel"
+	again.pressed = true
+	input._unhandled_input(again)
+	assert_true(input.wheel().open)
+	assert_eq(input.wheel().at, at, "a second key bound to the wheel doesn't recentre it")
