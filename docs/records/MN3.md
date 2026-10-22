@@ -1,12 +1,12 @@
 # MN3 · Opponents and Teammates on the Match screen
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-22 | 1 | Sonnet | pass | | |
+| 2026-10-22 | 1 | Sonnet (QA's focus advisory fixed by the build thread) | pass | 8/8 accept | |
 
 ## Decisions
 
