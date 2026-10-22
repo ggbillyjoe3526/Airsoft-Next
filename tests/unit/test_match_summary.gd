@@ -165,6 +165,8 @@ func test_the_summary_follows_the_last_rounds_table_with_everyones_match_numbers
 	assert_eq(summary.tip_text(), tr(HudScoreboard.tip_for(session.state.round_state.number + 1)))
 	assert_eq(summary.foot_text(), "A NEW MATCH STARTS SHORTLY · CLICK TO START NOW")
 	assert_false(hud._replica.visible, "the replica panel makes way")
+	assert_false(hud.score().is_visible_in_tree(), "the score bar makes way")
+	assert_false(hud.feed().visible, "the hit feed makes way")
 	assert_null(hud.what_got_you(), "the last card makes way")
 
 
@@ -194,6 +196,8 @@ func test_a_click_starts_the_next_match_and_it_starts_on_its_own_too() -> void:
 	session.hud().update(session.state, 1.0, 0.0)
 	assert_false(session.hud().summary_up(), "gone when the next match starts")
 	assert_true(session.hud()._replica.visible)
+	assert_true(session.hud().score().is_visible_in_tree(), "the score bar is back")
+	assert_true(session.hud().feed().visible)
 	assert_eq(session.hud().summary().hits().entries().size(), 0, "a new match forgets the hits")
 	_end_match(1)
 	session._process(session._play.rematch_delay + 0.1)
