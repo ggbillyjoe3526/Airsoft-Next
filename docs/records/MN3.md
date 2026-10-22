@@ -37,3 +37,5 @@
   place, so the page doesn't jump when the team size changes. A pick made before is kept and comes back at 2v2.
 - **The summary names the teammates only when they play another level than the opponents** ("Hard bots · Normal
   teammates", also Easy bots with the default Normal teammates), and never in a 1v1; Custom stays last.
+- **Following again keeps the keyboard's place** (QA advisory): the FOLLOW OPPONENTS button hides once pressed, so
+  the focus moves to the Teammates button for the level they now play.

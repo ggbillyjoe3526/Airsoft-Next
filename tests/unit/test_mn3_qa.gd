@@ -205,8 +205,7 @@ func test_the_follow_button_is_reachable_by_focus_and_keeps_focus_somewhere_afte
 	await wait_process_frames(2)
 	assert_false(follow.visible)
 	var owner := follow.get_viewport().gui_get_focus_owner()
-	# Pressing it hides it. Where the keyboard is left is reported, not asserted.
-	gut.p("focus owner after Follow pressed: %s" % [owner])
+	assert_eq(owner, page.teammate_button("normal"), "pressing it hides it: focus moves to the level now played")
 	for key: Key in [KEY_DOWN, KEY_TAB]:
 		var ev := InputEventKey.new()
 		ev.keycode = key

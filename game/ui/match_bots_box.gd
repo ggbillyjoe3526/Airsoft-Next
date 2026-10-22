@@ -201,5 +201,9 @@ func _pick_teammates(level: String) -> void:
 
 
 func _follow_opponents() -> void:
+	var had_focus := _follow_again.has_focus()
 	_picks.teammates = ""
 	changed.emit()
+	# The button hides once teammates follow: the focus moves to the level they now play, so keys keep a place.
+	if had_focus and is_inside_tree():
+		_teammates[MatchOptions.teammates_level(_picks.bots, _picks.teammates)].grab_focus()
