@@ -58,7 +58,7 @@ static func drawn(map: MapData) -> bool:
 	if not map.targets.is_empty():
 		return false
 	for b in map.blocks:
-		if _is_floor(b):
+		if b.kind == &"floor": # ramps alone (Woodland's terrain until step 26) draw nothing
 			return true
 	return false
 
