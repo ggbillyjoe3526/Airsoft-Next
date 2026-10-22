@@ -1,13 +1,13 @@
 # CR2 · The Rules section on the Match screen
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-22 | 1 | Sonnet | pass | | QA: a reset save (Dev tab) left the Custom rows and the page's tuning stale |
-| 2026-10-22 | 2 | Opus (build thread) | pass | pending | |
+| 2026-10-22 | 2 | Opus (build thread) | pass | 8/8 accept | |
 
 ## Decisions
 
