@@ -23,6 +23,8 @@ class Area:
 
 ## The name of the first of `areas` that holds `position` (feet height in y), or '' when none does.
 static func area_at(areas: Array[Area], position: Vector3) -> String:
+	if not position.is_finite():
+		return "" # NaN passes every box test below
 	for a in areas:
 		if position.x < a.x0 or position.x >= a.x1 or position.z < a.z0 or position.z >= a.z1:
 			continue
@@ -58,7 +60,10 @@ static func read(list: Variant, warnings: Array[String]) -> Array[Area]:
 
 ## Fills `a` from its entry; what is wrong with the entry, or '' if nothing is.
 static func _fill(a: Area, d: Dictionary) -> String:
-	a.name = str(d.get("name", ""))
+	var raw_name: Variant = d.get("name")
+	if not raw_name is String:
+		return "has no name"
+	a.name = raw_name
 	if a.name.strip_edges().is_empty():
 		return "has no name"
 	if a.name.length() > NAME_MAX_LENGTH:

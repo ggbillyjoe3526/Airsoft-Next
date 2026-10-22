@@ -88,3 +88,17 @@ func test_a_depot_without_areas_would_fail_the_cell_rule() -> void:
 	for k in nav.node_count():
 		walkable += 1 if nav.walkable[k] == 1 else 0
 	assert_gt(walkable, 100)
+
+
+func test_a_nan_position_is_in_no_area() -> void:
+	for p: Vector3 in [Vector3(10, NAN, 0), Vector3(NAN, 0, 0), Vector3(0, 0, NAN)]:
+		assert_eq(MapAreas.area_at(neon.areas, p), "", str(p))
+
+
+func test_an_area_named_null_or_a_number_is_left_out() -> void:
+	var warnings: Array[String] = []
+	var areas := MapAreas.read([{"name": null, "box": [0, 1, 0, 1]}, {"name": 12, "box": [0, 1, 0, 1]},
+			{"name": "Yard", "box": [0, 1, 0, 1]}], warnings)
+	assert_eq(areas.size(), 1)
+	assert_eq(areas[0].name, "Yard")
+	assert_eq(warnings.size(), 2)
