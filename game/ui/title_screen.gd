@@ -1,12 +1,13 @@
 class_name TitleScreen
 extends Control
 ## The title (docs/records/MN1.md): the wordmark and the tagline over a still, blurred picture of Depot, START, and the
-## foot (bottom right): the version, Licences (the credits) and Quit, and a notice above the foot when there is one
-## (GraphicsNotice). Everything is drawn for 1920x1080 and placed from the left and bottom edges; the window's stretch
-## scales it.
+## foot (bottom right): the version, Report a Bug (SV5), Licences (the credits) and Quit, and a notice above the foot
+## when there is one (GraphicsNotice). Everything is drawn for 1920x1080 and placed from the left and bottom edges; the
+## window's stretch scales it.
 
 signal start_pressed
 signal credits_pressed
+signal report_pressed
 signal quit_pressed
 
 const BACKDROP := "res://assets/ui/title-backdrop.jpg"
@@ -33,6 +34,7 @@ const NOTICE_BOTTOM := 96.0
 
 var _start: Button = null
 var _credits: Button = null
+var _report: Button = null
 var _quit: Button = null
 var _notice: GraphicsNotice = null
 
@@ -46,13 +48,17 @@ func _init() -> void:
 	_build_foot()
 
 
-## The START, Licences and Quit buttons (a test presses them).
+## The START, Report a Bug, Licences and Quit buttons (a test presses them).
 func start_button() -> Button:
 	return _start
 
 
 func credits_button() -> Button:
 	return _credits
+
+
+func report_button() -> Button:
+	return _report
 
 
 func quit_button() -> Button:
@@ -157,7 +163,7 @@ func _build_block() -> void:
 	row.add_child(_start)
 
 
-## The foot: version, Licences and Quit, bottom right, left to right.
+## The foot: version, Report a Bug, Licences and Quit, bottom right, left to right.
 func _build_foot() -> void:
 	var foot := HBoxContainer.new()
 	foot.name = "Foot"
@@ -175,6 +181,8 @@ func _build_foot() -> void:
 	version.add_theme_font_size_override("font_size", GameTheme.SMALL_SIZE)
 	version.add_theme_color_override("font_color", GameTheme.MUTED)
 	foot.add_child(version)
+	_report = _link(foot, tr("REPORT_BUG"), true)
+	_report.pressed.connect(func() -> void: report_pressed.emit())
 	_credits = _link(foot, tr("MENU_LICENCES"), true)
 	_credits.pressed.connect(func() -> void: credits_pressed.emit())
 	_quit = _link(foot, tr("MENU_QUIT"), false)
