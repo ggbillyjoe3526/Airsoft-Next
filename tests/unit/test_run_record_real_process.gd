@@ -29,7 +29,8 @@ func test_processes_running_and_gone() -> void:
 	assert_false(ProcessCheck.is_running(1), "init runs, but it isn't the game: a crashed run's id taken since")
 	var other := OS.create_process("sleep", ["30"])
 	assert_gt(other, 0)
-	await wait_until(func() -> bool: return FileAccess.file_exists("/proc/%d/cmdline" % other), 5.0)
+	# Until the child execs, its exe link is still the game's: wait for it to become sleep.
+	await wait_until(func() -> bool: return FileAccess.get_file_as_string("/proc/%d/comm" % other).strip_edges() == "sleep", 5.0)
 	assert_false(ProcessCheck.is_running(other), "a live program that isn't the game")
 	OS.kill(other)
 	assert_false(ProcessCheck.is_running(4194304 + 7), "past Linux's highest pid")

@@ -82,7 +82,7 @@ var graphics: GraphicsStartUp = GraphicsStartUp.new()
 var error_log: ErrorLog = ErrorLog.new()
 ## The run record, or null where no run is recorded (the smoke run, a headless one, one the editor started) and for a
 ## second copy beside a running one. Tests set `run_path` to record a headless run and replace `run_process_running`
-## (whether a process id is running: ProcessCheck.is_running).
+## (whether a process id is another running copy of this game: ProcessCheck.is_running).
 var run: RunRecord = null
 var run_path: String = ""
 var run_process_running: Callable = Callable()

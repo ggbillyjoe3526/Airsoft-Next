@@ -1,14 +1,14 @@
 # SV3 · The run record, the error log and the last log
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | | |
+| 2026-10-23 | 1 | Opus | pass | not run | |
 | 2026-10-23 | 2 | Opus | pass | QA Pass; Retry 7/8 (a crashed run's pid reused by any live program read as a second copy) | QA attempt 1 Fail: on 4.7.2 `OS.is_process_running` knows only this process's children, so the second-copy check never fired (in GR4's guard as well) |
-| 2026-10-23 | 3 | Opus | pass | | critic attempt 2 Retry: ProcessCheck must ask whether the process is this game |
+| 2026-10-23 | 3 | Opus | pass | QA Pass; Accept 7/8 (check 8: three lines still said "whether a process id is running", reworded in the records commit) | critic attempt 2 Retry: ProcessCheck must ask whether the process is this game |
 
 ## Decisions
 
@@ -98,3 +98,16 @@ Attempt 3: all five gates pass, unit tests 2335 of 2335, `[smoke] ok frames=4390
 ## Outside `touches`
 
 `docs/KNOWN_ISSUES.md` (four rows), `game/core/process_check.gd` and `game/ui/graphics_start_up.gd` (QA's fix), `docs/TASKS.md` (the block out), `docs/records/SV3.md`.
+
+## Advisories left
+
+- The cmdline fallback in `ProcessCheck` (an unreadable exe link, another user's process) has no test (QA).
+- Two copies of the game installed as different files (another path or, on Windows, another file name) don't count
+  as a second copy: accepted (QA).
+- Windows: `tasklist`'s real output and whether CSV mode cuts long image names need the owner's Windows check; the
+  row parsing is pinned by `parse_tasklist`'s tests (QA).
+- A round-start write is several file operations inside the sim tick; watch for a hitch on a slow disk with
+  antivirus (performance). `OS.add_logger` runs before the safe start's early return; a Main freed outside the tree
+  leaves the Logger registered (performance).
+- The real-process test now waits for the child's exec (`/proc/<pid>/comm` reads `sleep`): before exec its exe link
+  is still the game's (critic, QA).

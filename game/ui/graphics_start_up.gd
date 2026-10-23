@@ -12,7 +12,7 @@ signal graphics_settings_requested
 
 ## The safe start's record, or null where nothing is guarded. Tests point the paths at their own files and replace
 ## `restart` (the entry scene's own quits and starts the game again with the same options) and `process_running`
-## (whether a process id is running: ProcessCheck.is_running).
+## (whether a process id is another running copy of this game: ProcessCheck.is_running).
 var guard: GraphicsGuard = null
 var guard_path: String = ""
 var renderer_path: String = RendererOverride.PATH
