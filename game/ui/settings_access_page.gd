@@ -13,9 +13,8 @@ signal changed(immediate: bool)
 ## The tab's sections, as the concept lays them out.
 enum Section { TEAM_COLOURS, GAUGE_PATTERNS, SCREEN_READER, SOUND_CUES, REDUCED_MOTION }
 
-## The sections still to build, greyed with LATER and not clickable: reduced motion (AC5) and screen reader messages
-## (AC6).
-const LATER: Array[Section] = [Section.SCREEN_READER, Section.REDUCED_MOTION]
+## The sections still to build, greyed with LATER and not clickable: screen reader messages (AC6).
+const LATER: Array[Section] = [Section.SCREEN_READER]
 ## The columns' widths (the right one takes the rest), the labels' widths and the slider's (px).
 const LEFT_WIDTH := 860.0
 const COLUMN_GAP := 48
