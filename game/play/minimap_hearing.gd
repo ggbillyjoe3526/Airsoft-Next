@@ -64,7 +64,7 @@ func on_tick(state: GameState, listener: Character) -> void:
 			GameEvent.Kind.SHOT:
 				var shooter := state.character(e.actor)
 				if shooter != null:
-					_hear(shooter, e.position, _cfg.shot_reach * _heard_scale(shooter, e.slot), Sound.SHOT, listener)
+					_hear(shooter, e.position, _cfg.shot_reach * heard_scale(shooter, e.slot), Sound.SHOT, listener)
 			GameEvent.Kind.FOOTSTEP, GameEvent.Kind.VAULT:
 				var walker := state.character(e.actor)
 				if walker != null:
@@ -167,7 +167,8 @@ static func _drop(p: Patch) -> void:
 
 
 ## How far the shot from `slot` carries as a share (a silencer halves it): the active replica's if the slot is unknown.
-static func _heard_scale(shooter: Character, slot: int) -> float:
+## SoundCues reads it too.
+static func heard_scale(shooter: Character, slot: int) -> float:
 	var replicas := shooter.armament.replicas
 	var r: ReplicaConfig = replicas[slot] if slot >= 0 and slot < replicas.size() else shooter.armament.replica()
 	return r.heard_scale if r != null else 1.0
