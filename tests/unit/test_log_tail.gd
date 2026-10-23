@@ -92,7 +92,7 @@ func test_the_safe_start_s_restart_log_is_passed_over_for_the_crashed_run_s() ->
 	_write("godot2026-10-22T18.40.11.log", 70, "crashed")
 	var f := FileAccess.open(ROOT.path_join("godot2026-10-22T18.41.02.log"), FileAccess.WRITE)
 	f.store_line("[boot] Airsoft 0.1 Dev 3 on Godot 4.7.2")
-	f.store_line(GraphicsStartUp.RESTART_LINE)
+	f.store_line(LogTail.RESTART_LINE)
 	f.close()
 	var t := _tail()
 	assert_eq(t.path(), ROOT.path_join("godot2026-10-22T18.40.11.log"))
@@ -105,7 +105,7 @@ func test_the_safe_start_s_restart_log_is_passed_over_for_the_crashed_run_s() ->
 
 func test_only_restart_logs_is_no_previous_log() -> void:
 	var f := FileAccess.open(ROOT.path_join("godot2026-10-22T18.41.02.log"), FileAccess.WRITE)
-	f.store_line(GraphicsStartUp.RESTART_LINE)
+	f.store_line(LogTail.RESTART_LINE)
 	f.close()
 	var t := _tail()
 	assert_eq(t.path(), "")
@@ -114,7 +114,7 @@ func test_only_restart_logs_is_no_previous_log() -> void:
 
 func test_the_restart_line_counts_only_as_a_whole_line() -> void:
 	var f := FileAccess.open(ROOT.path_join("godot2026-10-22T18.41.02.log"), FileAccess.WRITE)
-	f.store_line("[play] someone quoted: %s here" % GraphicsStartUp.RESTART_LINE)
+	f.store_line("[play] someone quoted: %s here" % LogTail.RESTART_LINE)
 	f.store_line("  %s\r" % "not it")
 	f.close()
 	assert_eq(_tail().path(), ROOT.path_join("godot2026-10-22T18.41.02.log"), "inside another line it is no restart")
@@ -136,3 +136,27 @@ func test_a_long_log_is_counted_whole_and_read_from_its_end() -> void:
 	assert_lt(recent.size(), lines, "only the end decoded")
 	assert_true(recent[0].begins_with("long line "), "whole lines only")
 	assert_eq(int(recent[1].get_slice(" ", 2)), int(recent[0].get_slice(" ", 2)) + 1)
+
+
+## A cut inside a multi-byte character decodes nothing in part: no Unicode error reaches the log, and the first line kept
+## is whole. Each line is seven "›" (three bytes each) and its newline, 22 bytes, so the cut lands 8 bytes into a line:
+## inside its third "›".
+func test_a_cut_inside_a_character_decodes_only_whole_lines() -> void:
+	var line := "›".repeat(7)
+	var width := line.to_utf8_buffer().size() + 1
+	var lines := LogTail.TAIL_BYTES / width + 2
+	var f := FileAccess.open(ROOT.path_join("godot2026-10-22T18.40.11.log"), FileAccess.WRITE)
+	for i in lines:
+		f.store_line(line)
+	f.close()
+	var cut := lines * width - LogTail.TAIL_BYTES
+	assert_ne(cut % width % 3, 0, "the cut is inside a character")
+	var errors := ErrorLog.new()
+	OS.add_logger(errors)
+	var t := _tail()
+	var recent := t.recent_lines()
+	OS.remove_logger(errors)
+	assert_eq(errors.entries().size(), 0, "no Unicode parsing error")
+	assert_eq(t.line_count(), lines)
+	assert_eq(recent[0], line, "the first line kept is whole")
+	assert_eq(recent.size(), lines - cut / width - 1, "every whole line after the cut")

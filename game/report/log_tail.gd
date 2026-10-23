@@ -3,7 +3,7 @@ extends RefCounted
 ## The last log (SV3): the end of the previous run's log, for the crash screen and the bug report. Godot writes each
 ## run's output to user://logs/godot.log (debug/file_logging, desktop) and at each start renames the last one to
 ## godot<date>T<time>.log, keeping a few; so godot.log is this run's and the newest renamed one the run before, unless
-## that one is the safe start's own restart (it holds GraphicsStartUp.RESTART_LINE): the run that crashed is then one
+## that one is the safe start's own restart (it holds RESTART_LINE): the run that crashed is then one
 ## further back (SV6). Read once, and only when asked: its lines are counted over the whole file (natively, as bytes)
 ## and only its last TAIL_BYTES are decoded, for its last LINES lines and the errors a crash report names.
 
@@ -12,6 +12,9 @@ const DIR := "user://logs"
 const CURRENT := "godot.log"
 const PREFIX := "godot"
 const SUFFIX := ".log"
+## The line the safe start (GraphicsStartUp) prints in the log of the start it restarts: that short log is passed over
+## for the crashed run's.
+const RESTART_LINE := "[boot] the last start closed while drawing: restarting on the simpler renderer and Low"
 ## How many lines from the end are kept.
 const LINES := 40
 ## How much of the log's end is decoded into lines (bytes): the last lines and the errors a crash report names.
@@ -21,7 +24,7 @@ const NEWLINE := 10
 ## The folder to look in (tests point it at their own).
 var dir: String = DIR
 ## A log holding this line, as a whole line, is passed over for the one before it ("" passes over none).
-var skip_line: String = GraphicsStartUp.RESTART_LINE
+var skip_line: String = RESTART_LINE
 var _read: bool = false
 var _path: String = ""
 var _tail := PackedStringArray()
@@ -62,10 +65,12 @@ func _read_once() -> void:
 		var p := dir.path_join(f)
 		var bytes := FileAccess.get_file_as_bytes(p)
 		var start := maxi(0, bytes.size() - TAIL_BYTES)
-		var recent := bytes.slice(start).get_string_from_utf8().split("\n")
-		# a cut first line (perhaps mid-character) is no line; a last line ended with a newline leaves an empty piece
+		# a cut lands past the next newline, so no line (nor a character) is decoded in part
 		if start > 0:
-			recent.remove_at(0)
+			var after := bytes.find(NEWLINE, start)
+			start = after + 1 if after >= 0 else bytes.size()
+		var recent := bytes.slice(start).get_string_from_utf8().split("\n")
+		# a last line ended with a newline leaves an empty piece behind it
 		if not recent.is_empty() and recent[recent.size() - 1] == "":
 			recent.resize(recent.size() - 1)
 		if _holds_skip(recent):

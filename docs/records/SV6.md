@@ -1,13 +1,13 @@
 # SV6 · The crash screen
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus | pass | QA Fail | |
-| 2026-10-23 | 2 | Opus | pass | | QA attempt 1 Fail: two Continues in one frame raised a script error in `main.gd`; a Report a Bug whose browser didn't open still said GitHub opened and cleared `previous` |
+| 2026-10-23 | 2 | Opus | pass | QA Pass; Accept 8/8 | QA attempt 1 Fail: two Continues in one frame raised a script error in `main.gd`; a Report a Bug whose browser didn't open still said GitHub opened and cleared `previous` |
 
 ## Decisions
 
@@ -38,7 +38,7 @@
   BugReport's text.
 - **The orange tape:** HazardTape gains `stripe_colour` (yellow by default), set to GraphicsNotice's warning orange.
 - **KNOWN_ISSUES row fixed (SV3's):** after the safe start's restart LogTail took the restart's short log. The restart
-  prints `GraphicsStartUp.RESTART_LINE`; LogTail now passes over a log holding it for the one before (`skip_line`,
+  prints `LogTail.RESTART_LINE`; LogTail now passes over a log holding it for the one before (`skip_line`,
   newest first, each read only when the newer one was passed over).
 - **Dev › Actions:** Log a test error (push_error, a fixed English line: the log is the developer's), then Crash the game
   now behind a confirm (`OS.crash`). Both are injectable on SettingsScreen (`log_test_error`, `crash_now`), so no test
@@ -54,6 +54,11 @@
   from those lines instead of reading the file again (a crash report's Recent errors now come from the log's end);
   the report without its note is scrubbed once when the screen opens, and a keystroke only scrubs the note's own line
   (`BugReport.note_line`, shared with `write_lines`).
+- **The critic's and QA's last advisories (after Accept):** a 256 kB cut that lands inside a multi-byte character now
+  moves past the next newline before decoding, so no "Unicode parsing error" reaches the log or ErrorLog (tested with
+  "›" lines); `RESTART_LINE` lives in `LogTail` (GraphicsStartUp prints it), so `game/report/` no longer depends on
+  `game/ui/`; the report box keeps its scroll as the note changes; ARCHITECTURE's entry scene row names the crash
+  screen.
 - **Advisory left (QA):** the When's local time uses `Time.get_time_zone_from_system().bias` as minutes east of UTC;
   on Windows its sign is unchecked here (an owner's check: When reads the local clock).
 
@@ -61,6 +66,7 @@
 
 `tools/check.sh`: gdlint, changelog notes, unit tests (2465 of 2465, no script error), smoke test and licence notices all pass.
 Attempt 2: all five gates pass, unit tests 2474 of 2474, no script error.
+After the last advisories: all five gates pass, unit tests 2475 of 2475, no script error.
 
 ## Screenshot
 
@@ -74,6 +80,12 @@ crash-screen.png's layout, text and colours; the report shows this machine's fac
   opens `%APPDATA%\Airsoft\logs`; starting again after Continue shows the title. When reads the local clock (the
   time zone bias's sign on Windows).
 - Ending the game from the Task Manager, in the menus and on the range, shows the screen once each.
+
+## Advisories left
+
+- LogTail holds the whole old log in memory once at start, as bytes, for its line count (decoded only its last 256 kB).
+- The When line's local time on Windows around daylight saving (the system's bias now, not at the crash) is unchecked.
+- The left column's facts panel sits about 70 px lower than the concept's (the heading's and blurb's line heights).
 
 ## Known issues left
 

@@ -477,7 +477,10 @@ func _rewrite() -> void:
 	var note := BugReport.note_line(_info)
 	if note != "":
 		lines.insert(1, _info.scrub.line(note))
+	# the reader keeps their place in the report as the note changes
+	var scroll := _report.scroll_vertical
 	_report.text = "\n".join(lines)
+	_report.scroll_vertical = scroll
 
 
 func _on_report() -> void:

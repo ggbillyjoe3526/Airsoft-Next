@@ -11,7 +11,7 @@ number is a `ReportConfig` value (`game/config/report_config.tres`).
   at once and nothing in it prints. `entries()` (oldest first) and `errors_this_run()` (errors only, repeats counted).
 - `LogTail`: the previous run's log, for a crash. Godot writes each run to `user://logs/godot.log` and renames the
   last to `godot<date>T<time>.log` at each start (5 kept), so the newest renamed one is the run before; one holding the
-  safe start's restart line (`GraphicsStartUp.RESTART_LINE`) is passed over for the one before it, the run that crashed
+  safe start's restart line (`LogTail.RESTART_LINE`, which `GraphicsStartUp` prints) is passed over for the one before it, the run that crashed
   (SV6), as a whole line. Read once, only when asked: its lines counted over the whole file, only its last 256 kB
   decoded (`recent_lines`, the errors a crash report names), its last 40 lines kept. The crash handler's own line under its backtrace is
   `debug/settings/crash_handler/message` in project.godot (export builds; the editor binary prints Godot's).

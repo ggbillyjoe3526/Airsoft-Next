@@ -10,9 +10,6 @@ extends RefCounted
 ## Graphics settings on the first start's notice: the entry scene opens Settings › Graphics.
 signal graphics_settings_requested
 
-## The safe start's line in the log of the start it restarts (LogTail passes over that short log to the crashed run's).
-const RESTART_LINE := "[boot] the last start closed while drawing: restarting on the simpler renderer and Low"
-
 ## The safe start's record, or null where nothing is guarded. Tests point the paths at their own files and replace
 ## `restart` (the entry scene's own quits and starts the game again with the same options) and `process_running`
 ## (whether a process id is another running copy of this game: ProcessCheck.is_running).
@@ -55,7 +52,7 @@ func start(smoke: bool) -> GraphicsGuard.Action:
 		guard.trip(s, machine.preset)
 		s.save(settings_path)
 		RendererOverride.put(s.renderer, renderer_path)
-		print(RESTART_LINE)
+		print(LogTail.RESTART_LINE)
 	guard.save(guard_path)
 	if action == GraphicsGuard.Action.RESTART_SAFE and restart.is_valid():
 		restart.call()
