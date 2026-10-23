@@ -166,7 +166,7 @@ func test_redrawn_only_on_a_change_and_a_frame_allocates_nothing() -> void:
 		await wait_process_frames(1)
 	assert_eq(draws[0], 0, "no change, no redraw")
 	assert_eq(s._block_stripes.builds + g.notch_stripes(0).builds, builds, "the cached stripes kept")
-	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), objects, "no objects made in those frames")
+	assert_lte(Performance.get_monitor(Performance.OBJECT_COUNT), objects, "no objects made in those frames (others may be freed)")
 	s.set_score(3, 3)
 	await wait_process_frames(1)
 	assert_eq(draws[0], 1, "a change redraws")
