@@ -1,12 +1,12 @@
 # FI1 · The rigged figures load: one head, LODs, team paint and the mix
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus 5.5 (worker) | pass | pending | – |
+| 2026-10-23 | 1 | Opus 5.5 (worker) | pass | Accept 8/8 | – |
 
 QA attempt 1: Pass (advisories fixed); performance Pass. The fixes, with QA's probes folded into the tests
 (`tests/unit/test_figure_view.gd`, new, and `test_figure_models.gd`, `test_figure_body.gd`, `test_figure_mix.gd`):
@@ -75,6 +75,13 @@ plate carrier, HighCut head), each in Idle with its replica at the capsules' hol
 - ShaderPrewarm doesn't warm the figures' materials (FI7).
 - The first toggle loads the models synchronously, about 48 ms (FI7 loads them at session build).
 - Idle keeps running on hidden figures (FI2 replaces the AnimationPlayer).
+- From the critic: a Team* source that already glows (the robot's TeamGlow) keeps its ×3 emission when TeamColours'
+  glow is 0, so at night (step 26) the robot's caps would glow while other team paint goes dark; the shadow twin takes
+  the last LOD2 part's Skin and assumes all parts share the 65 binds (untested); `figure_kinds` is indexed by
+  character id, which holds while ids are contiguous from the player's 0; `_level` and `_base` each parse the LOD
+  suffix. Acceptance 7's "a team's Team* surfaces share one material" reads "one per Team* source" (the robot's two).
+- After the critic: a model with no skeleton now leaves the capsules (`FigureBody.setup` returns false and FigureView
+  frees the body) instead of drawing every head and level; the figure tests pass (43).
 
 ## Known issues left
 

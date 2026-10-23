@@ -118,8 +118,11 @@ func set_body(models: FigureModels, kind: int, lines: Vector2) -> void:
 		_body = null
 	if models != null and models.has_kind(kind):
 		_body = FigureBody.new()
-		_body.setup(models, kind, character_id, _team, _team_colour, _glow, lines)
-		add_child(_body)
+		if _body.setup(models, kind, character_id, _team, _team_colour, _glow, lines):
+			add_child(_body)
+		else:
+			_body.free()
+			_body = null
 	for m in _capsules:
 		m.visible = _body == null
 

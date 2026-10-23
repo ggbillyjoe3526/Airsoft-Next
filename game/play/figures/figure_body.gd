@@ -37,7 +37,7 @@ func setup(models: FigureModels, kind: int, figure_id: int, team: int, colour: C
 	player = players[0] as AnimationPlayer if not players.is_empty() else null
 	if skeleton == null:
 		push_warning("FigureBody: %s has no skeleton" % _config.kinds[kind])
-		return true
+		return false
 	var side := models.sidecar(kind)
 	head = _head_for(side.parts, figure_id)
 	var coarsest: Array[Mesh] = []
