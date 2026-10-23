@@ -144,6 +144,22 @@ func refresh() -> void:
 	_show_system()
 
 
+## Closed or hidden mid-drag (Esc, or another tab) a slider's drag_ended never comes: apply what each held slider
+## holds and stop waiting for the release, or the value is lost and later key steps ignored (QA). The screen calls it
+## on close.
+func let_go() -> void:
+	for id: StringName in _rows:
+		var held: Line = _rows[id]
+		if held.dragging:
+			held.dragging = false
+			_on_level(id, roundi(held.slider.value))
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_VISIBILITY_CHANGED and not is_visible_in_tree():
+		let_go()
+
+
 ## The row `id`'s line (tests read its controls).
 func line(id: StringName) -> Line:
 	return _rows[id]

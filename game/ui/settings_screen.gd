@@ -146,6 +146,7 @@ func close() -> void:
 	if not visible:
 		return
 	_keys.cancel()
+	_graphics_page.let_go()
 	visible = false
 	_timer.stop()
 	settings.save_if_dirty(save_path)
