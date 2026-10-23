@@ -89,7 +89,7 @@
 - GR4's guard and notice tests (`test_graphics_guard.gd`, `test_gr4_qa.gd`) pass through `GraphicsStartUp`.
 - Xvfb screenshots at 1080p (Compatibility): the first start's card matches `first-run.png`; the HUD line under the
   score bar at a round's end matches `graphics-step-down.png`.
-- `tools/check.sh`: gdlint, changelog notes, unit tests (2122 passing), the smoke test and the licence notices pass.
+- `tools/check.sh`: gdlint, changelog notes, unit tests (2134 passing), the smoke test and the licence notices pass.
   The suite now takes 605 s here, over `tools/unit_tests.sh`'s 600 s hang limit (it timed out with every test
   passed), so the limit is 900 s, inside CI's 20-minute job.
 
