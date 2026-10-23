@@ -51,7 +51,7 @@ func _left_running(step: Callable, pid: int = GONE) -> void:
 	assert_true(r.save(_run_path))
 
 
-## The next start, as the entry scene makes it (RunRecord's own steps, `running` for OS.is_process_running).
+## The next start, as the entry scene makes it (RunRecord's own steps, `running` for ProcessCheck.is_running).
 func _next_start(running: Callable = _no) -> RunRecord:
 	var r := RunRecord.load_file(_run_path)
 	if r.held_by_other(OS.get_process_id(), running):

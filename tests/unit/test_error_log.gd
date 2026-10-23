@@ -27,12 +27,42 @@ func _bad() -> void:
 var _log: ErrorLog
 
 
+## Counts what reaches a Logger: whether ErrorLog's own work printed or logged anything.
+class Listener:
+	extends Logger
+	var messages: int = 0
+	var errors: int = 0
+
+	func _log_message(_message: String, _error: bool) -> void:
+		messages += 1
+
+	func _log_error(_function: String, _file: String, _line: int, _code: String, _rationale: String,
+			_editor_notify: bool, _error_type: int, _script_backtraces: Array[ScriptBacktrace]) -> void:
+		errors += 1
+
+
+var _added: Array[Logger] = []
+
+
 func before_each() -> void:
 	_log = ErrorLog.new()
 
 
+## Only the loggers a test added are taken off (removing one never added logs an engine error).
 func after_each() -> void:
-	OS.remove_logger(_log)
+	for logger in _added:
+		OS.remove_logger(logger)
+	_added.clear()
+
+
+func _add(logger: Logger) -> void:
+	OS.add_logger(logger)
+	_added.append(logger)
+
+
+func _remove(logger: Logger) -> void:
+	OS.remove_logger(logger)
+	_added.erase(logger)
 
 
 func _error(message: String, file: String = "res://x.gd", line: int = 1, type: int = Logger.ERROR_TYPE_ERROR) -> void:
@@ -40,10 +70,10 @@ func _error(message: String, file: String = "res://x.gd", line: int = 1, type: i
 
 
 func test_push_error_and_push_warning_land_with_the_script_s_place() -> void:
-	OS.add_logger(_log)
+	_add(_log)
 	push_error("sv3 test error")
 	push_warning("sv3 test warning")
-	OS.remove_logger(_log)
+	_remove(_log)
 	assert_push_error("sv3 test error")
 	assert_push_warning("sv3 test warning")
 	var lines := _log.entries()
@@ -141,7 +171,7 @@ func test_prints_pass_through_and_cost_nothing_kept() -> void:
 
 ## DebugPerf's counts (nodes, orphans); a frame's objects are the print test's.
 func test_frames_without_errors_add_no_nodes() -> void:
-	OS.add_logger(_log)
+	_add(_log)
 	await wait_process_frames(5)
 	var nodes := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
 	var orphans := Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)
@@ -151,11 +181,19 @@ func test_frames_without_errors_add_no_nodes() -> void:
 	assert_eq(_log.entries().size(), 0)
 
 
-func test_nothing_in_it_prints() -> void:
-	var source := FileAccess.get_file_as_string("res://game/report/error_log.gd")
-	for writer: String in ["print(", "print_rich(", "printerr(", "prints(", "printt(", "print_verbose(", "push_error(",
-			"push_warning("]:
-		assert_false(source.contains(writer), writer)
+func test_nothing_in_it_prints_or_logs() -> void:
+	var heard := Listener.new()
+	_add(heard)
+	_add(_log)
+	_log._log_error("f", "res://x.gd", 1, "kept", "", false, Logger.ERROR_TYPE_ERROR, NO_TRACE)
+	_log._log_error("f", "res://x.gd", 1, "kept", "", false, Logger.ERROR_TYPE_ERROR, NO_TRACE)
+	_log._log_error("f", "res://x.gd", 2, "warned", "", false, Logger.ERROR_TYPE_WARNING, NO_TRACE)
+	_log._log_message("a line\n", false)
+	_log.entries()
+	_log.errors_this_run()
+	assert_eq(heard.messages, 0, "no print")
+	assert_eq(heard.errors, 0, "no error or warning of its own")
+	assert_eq(_log.entries().size(), 2)
 
 
 func test_the_entry_scene_adds_it_at_boot_and_removes_it_at_exit() -> void:

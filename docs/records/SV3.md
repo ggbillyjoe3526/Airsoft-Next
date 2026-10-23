@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus | pass | | |
+| 2026-10-23 | 2 | Opus | pass | | QA attempt 1 Fail: on 4.7.2 `OS.is_process_running` knows only this process's children, so the second-copy check never fired (in GR4's guard as well) |
 
 ## Decisions
 
@@ -38,6 +39,15 @@
   when given, else the code. A repeat of the newest (same type, place and message) counts up on it, told by its
   parts, so no line is built; `entries()` adds " ×3". `errors_this_run()` counts errors (not warnings), repeats and
   dropped entries included. `_log_message` returns at once; nothing in the file prints or pushes (a test reads it).
+- **QA attempt 1 Fail, the fix:** on Godot 4.7.2 `OS.is_process_running` answers only for this process's own
+  children; any other id logs "The process N does not exist or is not a child of the calling process" and reads as
+  gone, so a second copy took the first one's live run for a crash (overwriting it, then closing it on its quit), and
+  the error landed in the new ErrorLog. `ProcessCheck.is_running` (`game/core/process_check.gd`) replaces it as the
+  default in `main.gd` and in `GraphicsStartUp` (the GR4 guard had the same flaw): this process, `/proc/<pid>` on
+  Linux, `tasklist` on Windows (a process spawn, only when a start finds a record under way), false elsewhere. Both
+  stay injectable. QA's proof test (`test_run_record_real_process.gd`) checks real processes: this one, init (not a
+  child), a child before and after it is killed. test_error_log takes off only the loggers it added, and its
+  source-grep test became a behavioural one (a listening Logger hears nothing from ErrorLog's own work).
 - **The script error test runs a Godot of its own** (`OS.execute`, printing what its ErrorLog kept): a SCRIPT ERROR
   in the unit tests' log fails `tools/unit_tests.sh`, and `Engine.print_error_messages = false` mutes a Logger too
   (checked). push_error and push_warning are tested in place.
@@ -64,6 +74,8 @@ Cloud box, headless, `tests/unit/test_run_record.gd` and `test_error_log.gd`:
 `tools/check.sh`: gdlint, changelog notes, unit tests (2330 of 2330), smoke test (`[smoke] ok frames=2184 … rounds=5
 plates=5 orders=3`) and licence notices all pass. The first run failed only on the unit tests' log carrying the
 deliberate SCRIPT ERROR (every test passed); the script error test now runs in a Godot of its own.
+After QA's fix (attempt 2): all five gates pass again, unit tests 2333 of 2333, `[smoke] ok frames=4850 … rounds=7
+plates=5 orders=3`.
 
 ## Owner's checks
 
@@ -74,4 +86,4 @@ deliberate SCRIPT ERROR (every test passed); the script error test now runs in a
 
 ## Outside `touches`
 
-`docs/KNOWN_ISSUES.md` (two rows), `docs/TASKS.md` (the block out), `docs/records/SV3.md`.
+`docs/KNOWN_ISSUES.md` (four rows), `game/core/process_check.gd` and `game/ui/graphics_start_up.gd` (QA's fix), `docs/TASKS.md` (the block out), `docs/records/SV3.md`.
