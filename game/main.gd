@@ -24,6 +24,8 @@ extends Node
 ## Report a Bug (SV5): the title's link opens the ReportPanel on this run's facts (built when asked for, freed once
 ## closed); a match hands the ErrorLog to its pause menu, which has its own. The smoke test opens and closes it from the
 ## title, never pressing Report.
+## The crash screen (SV6, CrashScreen): a start whose record kept a `previous` (the last run closed unexpectedly) shows it
+## before the title and its notices; Continue, Report a Bug or quitting from it clears `previous`, so it shows once.
 
 const SMOKE_SETTINGS_OPEN := 10
 const SMOKE_SETTINGS_CLOSE := 20
@@ -96,6 +98,12 @@ var error_log: ErrorLog = ErrorLog.new()
 var run: RunRecord = null
 var run_path: String = ""
 var run_process_running: Callable = Callable()
+## The crash screen while it shows, else null. Tests give what it opens (OS.shell_open) and copies to (the clipboard),
+## and the folder its log is read from.
+var crash_screen: CrashScreen = null
+var crash_open: Callable = Callable()
+var crash_copy: Callable = Callable()
+var crash_log_dir: String = LogTail.DIR
 
 
 func _ready() -> void:
@@ -128,13 +136,16 @@ func _ready() -> void:
 	_scale_menus()
 	get_window().size_changed.connect(_scale_menus)
 	set_process(_smoke)
-	graphics.show_boot_notices(_title)
+	if not _show_crash_screen():
+		graphics.show_boot_notices(_title)
 
 
 func _exit_tree() -> void:
 	# a clean quit: the graphics started (the trip's own restart is not one)
 	graphics.settle()
 	if run != null:
+		if crash_screen != null:
+			run.previous = {}
 		run.close()
 		run.save(run_path)
 	OS.remove_logger(error_log)
@@ -453,6 +464,45 @@ func _record_menus() -> void:
 		return
 	run.to_menus()
 	run.save(run_path)
+
+
+# --- The crash screen ---
+
+## The crash screen over the hidden title when the last run closed unexpectedly: true if it shows.
+func _show_crash_screen() -> bool:
+	if run == null or not run.crashed_before():
+		return false
+	var config := ReportConfig.load_default()
+	var tail := LogTail.new()
+	tail.dir = crash_log_dir
+	crash_screen = CrashScreen.new(run.previous, tail, Settings.shared(), config, ReportScrub.for_this_machine(config))
+	if crash_open.is_valid():
+		crash_screen.open_url = crash_open
+	if crash_copy.is_valid():
+		crash_screen.copy_text = crash_copy
+	crash_screen.log_dir = crash_log_dir
+	crash_screen.reported.connect(_crash_shown)
+	crash_screen.continued.connect(_crash_continued)
+	_title.visible = false
+	add_child(crash_screen)
+	move_child(crash_screen, _title.get_index() + 1)
+	return true
+
+
+## The crash has been seen: the record forgets it.
+func _crash_shown() -> void:
+	run.previous = {}
+	run.save(run_path)
+
+
+## Continue: the title, and its notices as on any start.
+func _crash_continued() -> void:
+	_crash_shown()
+	crash_screen.queue_free()
+	crash_screen = null
+	_title.visible = true
+	_title.focus_start()
+	graphics.show_boot_notices(_title)
 
 
 # --- Graphics at start-up ---

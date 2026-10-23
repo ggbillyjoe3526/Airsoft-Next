@@ -83,3 +83,30 @@ func test_read_once_and_only_when_asked() -> void:
 	_write("godot2026-10-23T10.00.00.log", 9, "newer")
 	assert_eq(t.line_count(), 3, "read once")
 	assert_eq(t.lines()[0], "first line 1")
+
+
+## SV6: after the safe start's restart the newest renamed log is the restart's short one; the crashed run's is the one
+## before it.
+func test_the_safe_start_s_restart_log_is_passed_over_for_the_crashed_run_s() -> void:
+	_write("godot.log", 5, "now")
+	_write("godot2026-10-22T18.40.11.log", 70, "crashed")
+	var f := FileAccess.open(ROOT.path_join("godot2026-10-22T18.41.02.log"), FileAccess.WRITE)
+	f.store_line("[boot] Airsoft 0.1 Dev 3 on Godot 4.7.2")
+	f.store_line(GraphicsStartUp.RESTART_LINE)
+	f.close()
+	var t := _tail()
+	assert_eq(t.path(), ROOT.path_join("godot2026-10-22T18.40.11.log"))
+	assert_eq(t.line_count(), 70)
+	assert_eq(t.lines()[LogTail.LINES - 1], "crashed line 70")
+	var plain := _tail()
+	plain.skip_line = ""
+	assert_eq(plain.path(), ROOT.path_join("godot2026-10-22T18.41.02.log"), "with no line to pass over, the newest")
+
+
+func test_only_restart_logs_is_no_previous_log() -> void:
+	var f := FileAccess.open(ROOT.path_join("godot2026-10-22T18.41.02.log"), FileAccess.WRITE)
+	f.store_line(GraphicsStartUp.RESTART_LINE)
+	f.close()
+	var t := _tail()
+	assert_eq(t.path(), "")
+	assert_eq(t.line_count(), 0)

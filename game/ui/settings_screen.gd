@@ -31,6 +31,9 @@ const PERCENT_STEP := 1.0
 ## The Dev tab's switches, each a DevSettings field with a label DEV_<FIELD> and a help line DEV_<FIELD>_HELP.
 const DEV_SWITCHES: Array[StringName] = [&"dev_content", &"disable_levelling", &"bottomless", &"ghost",
 		&"bots_hold_fire", &"spectate_bots", &"bot_intent", &"retro_pixels", &"pretend_slow_frames"]
+## Dev › Actions' error and crash, in the log (English: the log is read by the developer).
+const DEV_TEST_ERROR := "Dev: a test error (Settings › Dev › Log a test error)"
+const DEV_CRASH := "Dev: Settings › Dev › Crash the game now"
 ## What the screen edits; the game's own by default.
 var settings: Settings = null
 ## Where it saves (a test points this at a temporary file).
@@ -45,6 +48,10 @@ var progress: Progress = null
 var restart: Callable = Callable()
 ## The Save file tab's restore points and Undo: the real save's when unset (a test gives its own).
 var save_keeper: SaveKeeper = null
+## Dev › Crash the game now (OS.crash) and Log a test error (push_error) when unset; tests give their own, so no test
+## crashes the test run.
+var crash_now: Callable = Callable()
+var log_test_error: Callable = Callable()
 
 var _back: Button = null
 var _tabs: TabContainer = null
@@ -74,6 +81,7 @@ var _dev_checks: Dictionary[StringName, CheckButton] = {}
 var _speed: HSlider = null
 var _end_round: Button = null
 var _confirm_level: ConfirmationDialog = null
+var _confirm_crash: ConfirmationDialog = null
 
 
 func _ready() -> void:
@@ -413,6 +421,31 @@ func _build_dev() -> void:
 	_confirm_level.confirmed.connect(_on_reset_level)
 	add_child(_confirm_level)
 	reset_level.pressed.connect(_confirm_level.popup_centered)
+	_build_dev_checks(page)
+
+
+## Dev › Actions' checks of the crash screen and the pause menu's error line (SV6).
+func _build_dev_checks(page: VBoxContainer) -> void:
+	var error_row := add_row(page, "DEV_TEST_ERROR")
+	var error := Button.new()
+	error.name = "LogTestError"
+	error.text = tr("DEV_TEST_ERROR_BUTTON")
+	error.pressed.connect(_on_test_error)
+	error_row.add_child(error)
+	add_help(page, "DEV_TEST_ERROR_HELP")
+	var crash_row := add_row(page, "DEV_CRASH")
+	var crash := Button.new()
+	crash.name = "CrashNow"
+	crash.text = tr("DEV_CRASH_BUTTON")
+	crash_row.add_child(crash)
+	add_help(page, "DEV_CRASH_HELP")
+	_confirm_crash = ConfirmationDialog.new()
+	_confirm_crash.title = tr("DEV_CRASH_TITLE")
+	_confirm_crash.dialog_text = tr("DEV_CRASH_QUESTION")
+	_confirm_crash.ok_button_text = tr("DEV_CRASH_BUTTON")
+	_confirm_crash.confirmed.connect(_on_crash)
+	add_child(_confirm_crash)
+	crash.pressed.connect(_confirm_crash.popup_centered)
 
 
 func _on_dev_box(on: bool) -> void:
@@ -437,6 +470,22 @@ func _on_reset_level() -> void:
 	p.reset()
 	p.save_if_dirty()
 	_note.text = tr("DEV_DONE")
+
+
+func _on_test_error() -> void:
+	if log_test_error.is_valid():
+		log_test_error.call()
+	else:
+		push_error(DEV_TEST_ERROR)
+	_note.text = tr("DEV_DONE")
+
+
+## The run ends here as a crash: the next start shows the crash screen.
+func _on_crash() -> void:
+	if crash_now.is_valid():
+		crash_now.call()
+	else:
+		OS.crash(DEV_CRASH)
 
 
 ## The Dev tab shows only while its box is ticked; hiding it while it is open goes back to the first tab.

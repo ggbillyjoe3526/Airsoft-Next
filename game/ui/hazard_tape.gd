@@ -8,6 +8,9 @@ const DARK := Color("1a1a1a")
 ## The stripe's width across (px); the gap between stripes is the same.
 const STRIPE := 14.0
 
+## The stripes' colour: safety yellow, or the crash screen's warning orange.
+var stripe_colour: Color = GameTheme.YELLOW
+
 
 func _init() -> void:
 	custom_minimum_size = SIZE
@@ -23,5 +26,5 @@ func _draw() -> void:
 	var x := -size.y
 	while x < size.x + size.y:
 		draw_colored_polygon(PackedVector2Array([Vector2(x, size.y), Vector2(x + along, size.y),
-				Vector2(x + along + size.y, 0.0), Vector2(x + size.y, 0.0)]), GameTheme.YELLOW)
+				Vector2(x + along + size.y, 0.0), Vector2(x + size.y, 0.0)]), stripe_colour)
 		x += along * 2.0

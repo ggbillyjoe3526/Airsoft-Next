@@ -627,6 +627,30 @@ msgstr "Reset your level?"
 msgid "DEV_RESET_LEVEL_QUESTION"
 msgstr "Your XP and everything you unlocked go, back to the starting kit. This can't be undone."
 
+msgid "DEV_CRASH"
+msgstr "CRASH THE GAME NOW"
+
+msgid "DEV_CRASH_BUTTON"
+msgstr "Crash"
+
+msgid "DEV_CRASH_HELP"
+msgstr "Closes the game at once, as a crash does, to check the crash screen at the next start."
+
+msgid "DEV_CRASH_TITLE"
+msgstr "Crash the game now?"
+
+msgid "DEV_CRASH_QUESTION"
+msgstr "The game stops at once, as if it had crashed. Start it again to see the crash screen."
+
+msgid "DEV_TEST_ERROR"
+msgstr "LOG A TEST ERROR"
+
+msgid "DEV_TEST_ERROR_BUTTON"
+msgstr "Log error"
+
+msgid "DEV_TEST_ERROR_HELP"
+msgstr "Writes one error to the log, as a fault in the game's code would, to check the pause menu's error line and a report's Recent errors."
+
 msgid "DEV_DONE"
 msgstr "Done"
 
@@ -2568,6 +2592,96 @@ msgstr "%d × %d · %s"
 
 msgid "NOTICE_GRAPHICS_SETTINGS"
 msgstr "Graphics settings"
+
+msgid "CRASH_KICKER"
+msgstr "Crash report"
+
+msgid "CRASH_HEADING"
+msgstr "The game closed unexpectedly"
+
+msgid "CRASH_BLURB"
+msgstr "Last time, Airsoft stopped without closing properly: it crashed, or froze and was closed. Sorry about that. Your save is fine. Telling us what you were doing, with the report beside, helps fix it."
+
+msgid "CRASH_WHEN"
+msgstr "When"
+
+msgid "CRASH_VERSION"
+msgstr "Version"
+
+msgid "CRASH_MATCH"
+msgstr "Match"
+
+msgid "CRASH_SEED"
+msgstr "Seed"
+
+msgid "CRASH_WHEN_TODAY"
+msgstr "Today about %s"
+
+msgid "CRASH_WHEN_YESTERDAY"
+msgstr "Yesterday about %s"
+
+msgid "CRASH_WHEN_ON"
+msgstr "%s about %s"
+
+msgid "CRASH_WHEN_AFTER"
+msgstr "%s, %s after it started"
+
+msgid "CRASH_WHEN_UNKNOWN"
+msgstr "Not known: that run's log wasn't found"
+
+msgid "CRASH_IN_MENUS"
+msgstr "In the menus"
+
+msgid "CRASH_MATCH_ROUND"
+msgstr "round %d, %s"
+
+msgid "CRASH_COPY"
+msgstr "Copy"
+
+msgid "CRASH_NOTE_LABEL"
+msgstr "What were you doing?"
+
+msgid "CRASH_NOTE_OPTIONAL"
+msgstr "Optional, goes in the report"
+
+msgid "CRASH_COUNT"
+msgstr "%d / %d"
+
+msgid "CRASH_REPORT_LABEL"
+msgstr "The report"
+
+msgid "CRASH_REPORT_SENT"
+msgstr "Exactly what gets sent: no names, no file paths"
+
+msgid "CRASH_REPORT_BUG"
+msgstr "Report a Bug"
+
+msgid "CRASH_COPY_REPORT"
+msgstr "Copy report"
+
+msgid "CRASH_OPEN_LOGS"
+msgstr "Open log folder"
+
+msgid "CRASH_CONTINUE"
+msgstr "Continue"
+
+msgid "CRASH_FINE"
+msgstr "[b]Report a Bug[/b] opens a new issue on the game's GitHub page in your browser with this report filled in (a free GitHub account is needed); nothing is sent until you press Submit there, and the issue is public. Or Copy the report and paste it wherever you talk to us."
+
+msgid "CRASH_REPORTED"
+msgstr "Opened GitHub in your browser. The whole report is copied too."
+
+msgid "CRASH_REPORTED_CUT"
+msgstr "Opened GitHub in your browser. The report was too long for the link, so part of it is left out there: the whole report is copied, paste it into the issue."
+
+msgid "CRASH_COPIED"
+msgstr "The report is copied."
+
+msgid "CRASH_SEED_COPIED"
+msgstr "The seed is copied."
+
+msgid "CRASH_LOGS_FAILED"
+msgstr "The log folder couldn't be opened."
 
 msgid "SETTINGS_ACCESSIBILITY"
 msgstr "Accessibility"
