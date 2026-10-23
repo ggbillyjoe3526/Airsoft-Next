@@ -476,9 +476,11 @@ XP ×2.
   see on every map?
 - [ ] **Replay tutorial** (Settings › Gameplay, M97). Starts the tutorial at its first step, even after you finished
   it; from a match's pause menu it asks first, then leaves the match (not recorded).
-- [ ] **HUD size and opacity** (Settings › Gameplay › HUD). 150 % scales the replica panel, score bar, minimap, feed,
-  banners, wheel and markers with nothing overlapping at 1280×720 (the minimap grows a little less there, so an
-  Attack / Defend score bar stays clear of it, UX1); the crosshair keeps its size.
+- [ ] **HUD size and opacity** (Settings › HUD). 150 % scales the replica panel, score bar, minimap, feed,
+  banners, wheel and markers, each from its own corner or edge, nothing leaving the screen at 1280×720 or 4K; 80 %
+  shrinks them the same way. The crosshair, hit marker and sound cue ring keep their size; the flag and teammate
+  markers stay over what they mark. The preview grows with the slider and shows the 100 % size dashed. Is anything
+  overlapping at 150 % at 1280×720, or too small to read at 80 %?
 - [ ] **The layout.** A score bar top middle (team blocks, the clock, "First to N"); the replica panel bottom right
   (UI2: S / B / A chips over a small box per spare magazine, the count and "/ N" at the right; no picture, no name, no
   reload hint); no squad cards or key hints; "ROUND 1" shows large; corners keep their margin at 1920×1080 and on 21:9.
@@ -596,8 +598,10 @@ Settings › Graphics › Quality: Low, Medium, High, Ultra or Custom.
 - [ ] **On-screen sound cues** (Off by default). A marker round the crosshair points to enemy footsteps, shots and hit
   calls, fainter further away; your own and teammates' sounds show nothing. Size 200 % and colour Yellow make them big
   and yellow.
-- [ ] **Reduced motion.** The replica stops bobbing and swaying, shots kick half as much, leaning tips the view only
-  slightly and the dust goes.
+- [ ] **Reduced motion** (Settings › Accessibility; Follow system follows the system's own setting). On: the replica
+  stops swaying behind your turns, shots kick and reloads tilt it half as much, leaning rolls the view and a vault dips
+  it a quarter as much, the dust goes and the flag warning holds steady; the view still climbs with recoil. Changed
+  from the pause menu, it applies at once.
 - [ ] **A screen reader** (NVDA on Windows, Orca on Linux) reads out being hit, the round result once and each squad
   order.
 
