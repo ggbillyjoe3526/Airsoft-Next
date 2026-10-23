@@ -161,6 +161,10 @@ never players.
   says "From the next match." and this match is unchanged; start the next one: everyone is human. Pick Mixed again
   and a third match brings the robots back. Tab to a card and press Enter, and with a screen reader on, hear Mixed
   and Humans only read with which is in use.
+- [ ] **Hit flinch.** Hit a bot side-on, then one from behind (capsules, and Dev › Rigged figures): its upper body
+  snaps the way the BB flew (sideways, then forward) and eases back upright in under half a second while the hand
+  goes up; a far bot's flinch is as quick. Get hit yourself: the replica jolts and drops out of view in a quarter of a
+  second, the camera still; with Reduced motion on, the same.
 - [ ] **Replicas.** The rifle and pistol look like toys: blocky, two-tone, stippled grips; others' replicas are in
   their team's colours.
 - [ ] **Replica detail on High.** Fine speckle, rounded lit edges, rail slots and sights. In Loadout try every optic,

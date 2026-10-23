@@ -1,7 +1,8 @@
 extends GutTest
 ## Reduced motion (AC5): MotionScale gives data/accessibility.md's shares; On, or Follow system while the display asks
 ## for it, draws no sway, half the kick and the reload's cant, a quarter of the lean's roll and the vault's dip and tip,
-## no wind dust and a steady flag warning, never less of the recoil climb; a change reaches a match at once.
+## no wind dust and a steady flag warning, never less of the recoil climb, and all of your hit's jolt and drop (FI5); a
+## change reaches a match at once.
 
 const DT := 1.0 / 60.0
 ## Frames enough for the view's easing to settle.
@@ -179,6 +180,25 @@ func test_a_reload_cants_the_replica_half_as_much() -> void:
 	assert_almost_eq(tilts[0], Vector3(cfg.reload_tilt, cfg.reload_turn, cfg.reload_roll), Vector3.ONE * 1e-4,
 			"the full cant half way through")
 	assert_almost_eq(tilts[1], tilts[0] * 0.5, Vector3.ONE * 1e-5, "half of it")
+
+
+func test_your_hit_jolts_and_drops_the_replica_the_same_with_motion_reduced() -> void:
+	var paths: Array[PackedVector3Array] = []
+	for reduced: bool in [false, true]:
+		var c := Character.new(0, 0, Vector3.ZERO, 0.0, ReplicaStats.default_loadout())
+		var hands := _hands(c, MotionScale.of(reduced))
+		_pose(hands, c)
+		c.status = Character.Status.CALLING
+		hands.on_hit()
+		var path := PackedVector3Array()
+		for i in 15:
+			_pose(hands, c)
+			path.append(hands._held[c.armament.active].root.position)
+		paths.append(path)
+	assert_gt(paths[0][0].z - paths[0][14].z, 0.01, "control: it jolts back, then comes in")
+	assert_gt(paths[0][0].y - paths[0][14].y, 0.4, "control: it drops")
+	for i in 15:
+		assert_almost_eq(paths[1][i], paths[0][i], Vector3.ONE * 1e-6, "frame %d: the same, the camera never moves" % i)
 
 
 # --- the dust ---

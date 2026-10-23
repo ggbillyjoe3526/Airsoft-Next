@@ -7,8 +7,8 @@ extends Node3D
 ## near a wall so it never pokes through one. A gas pistol's slide locks back on its last BB and closes near the end of
 ## the reload; the fire selector shows the mode it is set to (SelectorPose). Its parts are fitted from their models
 ## (ReplicaParts), as the menus show them; aimed with an optic, the eye looks along the optic's sight line through its
-## glass (OpticGlass). Reduced motion (set_motion) draws less of the sway, the kick and the reload's cant. A child of the
-## camera.
+## glass (OpticGlass). Reduced motion (set_motion) draws less of the sway, the kick and the reload's cant. Hit
+## (`on_hit`), it jolts and drops out of view before it hides, the same with motion reduced. A child of the camera.
 
 const MODEL_DIR := "res://assets/models/replicas/"
 ## The models' animation clips (docs/CC0_ASSETS.md › Replica models).
@@ -47,6 +47,9 @@ var arms_kind: int = FigureMix.HUMAN
 var _held: Array[Held] = []
 var _active: int = -1
 var _kick: float = 0.0
+## Your hit (FI5): the jolt left, in shots' kicks, and the time since the hit while it drops (s; -1: none).
+var _jolt: float = 0.0
+var _hit_age: float = -1.0
 var _sway: Vector2 = Vector2.ZERO
 var _carry: float = 0.0
 ## How far into the holster it is (0 in hand, 1 put away); kept through a draw from the holster, which rises from it.
@@ -111,11 +114,26 @@ func on_shot() -> void:
 		_held[_active].anim.play(FIRE_CLIP)
 
 
+## You were hit: the replica jolts ViewModelConfig.hit_jolt kicks and drops hit_drop out of view over hit_drop_time,
+## then hides (whatever Reduced motion says: the camera doesn't move).
+func on_hit() -> void:
+	_jolt = _cfg.hit_jolt
+	_hit_age = 0.0
+
+
 ## Poses the replica in hand for `c`, `delta` seconds since the last frame; `eye` and `look` find walls in front.
 func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look: Vector3, delta: float) -> void:
 	var a := c.armament
-	visible = Elimination.is_in_play(c) and not a.replicas.is_empty()
+	var in_play := Elimination.is_in_play(c)
+	if in_play:
+		_hit_age = -1.0
+	elif _hit_age >= 0.0:
+		_hit_age += maxf(delta, 0.0)
+	var dropping := not in_play and _hit_age >= 0.0 and _hit_age <= _cfg.hit_drop_time
+	visible = (in_play or dropping) and not a.replicas.is_empty()
 	if not visible:
+		_hit_age = -1.0
+		_jolt = 0.0
 		if _glass != null:
 			_glass.update(null, 0.0)
 		return
@@ -143,6 +161,11 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 	# Each shot kicks it back and up, recovering.
 	_kick = lerpf(_kick, 0.0, follow)
 	pos += Vector3(0.0, _cfg.kick_lift, _cfg.kick_back) * (_kick * steady * _motion.kick)
+	# Hit: a jolt of whole kicks, then down out of view (neither scaled by Reduced motion).
+	_jolt = lerpf(_jolt, 0.0, follow)
+	pos += Vector3(0.0, _cfg.kick_lift, _cfg.kick_back) * _jolt
+	if dropping:
+		pos.y -= _cfg.hit_drop * smoothstep(0.0, _cfg.hit_drop_time, _hit_age)
 
 	# Carried low on a sprint.
 	_carry = move_toward(_carry, 1.0 if c.sprinting else 0.0, delta / _cfg.carry_time)
