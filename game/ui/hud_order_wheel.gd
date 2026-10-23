@@ -77,6 +77,11 @@ var _force: int = -2
 var _showing_notice: bool = false
 var _notice_left: float = 0.0
 var _serial: int = 0
+## The wheel was open last frame; how long (s) a pick that shut it still waits for its answer; and the wheel is up with
+## only a notice (an order picked on it, which shut it as it was picked).
+var _was_open: bool = false
+var _wait_left: float = 0.0
+var _notice_only: bool = false
 
 
 ## A wheel for `controls`' orders in `colour` (your team's), sized by `cfg`. Builds nothing until it first opens.
@@ -87,22 +92,24 @@ func setup(cfg: HudConfig, controls: ControlsConfig, colour: Color) -> void:
 	name = "HudOrderWheel"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
+	# While it is up it hides itself under the pause menu, which stops the HUD's own updates.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	set_process(false)
 
 
 ## Each frame: `wheel` (the pointer PlayerInput moves), `in_force` (the order your teammates carry out, NONE for the team
 ## plan), `outcome` (the last order given, for its notice) and `you` (your character's id), `delta` seconds on.
 func update(wheel: OrderWheelPointer, in_force: SquadOrder.Kind, outcome: SquadOrders.Outcome, you: int,
 		delta: float) -> void:
-	var fresh := outcome.serial != _serial
+	var told := outcome.serial != _serial and outcome.giver == you and outcome.notice != SquadOrders.Notice.NONE
 	_serial = outcome.serial
 	if not wheel.open:
-		if visible:
-			visible = false
-			_clear_notice()
+		_closed(told, outcome.notice, delta)
 		return
-	if not visible:
+	_was_open = true
+	if not visible or _notice_only:
 		_open()
-	if fresh and outcome.giver == you and outcome.notice != SquadOrders.Notice.NONE:
+	if told:
 		_show_notice(outcome.notice)
 	elif _showing_notice:
 		_notice_left -= delta
@@ -117,6 +124,43 @@ func update(wheel: OrderWheelPointer, in_force: SquadOrder.Kind, outcome: SquadO
 	_pointer.visible = not _showing_notice
 	_pointer.position = pointer_at(wheel.at, _controls.wheel_dead_zone, _controls.wheel_reach, _hub,
 			_cfg.wheel_pointer_reach) - Vector2.ONE * POINTER_HALO
+
+
+## Puts the wheel away at once (the pause menu opening): nothing stays up, no notice is owed.
+func dismiss() -> void:
+	_was_open = false
+	_wait_left = 0.0
+	_notice_only = false
+	_clear_notice()
+	visible = false
+	set_process(false)
+
+
+func _process(_delta: float) -> void:
+	if get_tree().paused:
+		dismiss()
+
+
+## A frame with the wheel shut. Just shut, it waits order_notice_wait for the notice of the order it was shut by: one
+## that comes shows alone in the wheel for order_notice_time, then the wheel goes; none, and it goes at once.
+func _closed(told: bool, notice: SquadOrders.Notice, delta: float) -> void:
+	if _was_open:
+		dismiss()
+		_wait_left = _cfg.order_notice_wait
+	elif _wait_left > 0.0:
+		_wait_left -= delta
+	if told and _wait_left > 0.0:
+		_wait_left = 0.0
+		_open()
+		_notice_only = true
+		_lit = OrderWheelPointer.NONE
+		_force = -1
+		_show_notice(notice)
+		_pointer.visible = false
+	elif _notice_only:
+		_notice_left -= delta
+		if _notice_left <= 0.0:
+			dismiss()
 
 
 ## Where the pointer is drawn (px from the middle) for the mouse's `at` (px from the middle): in step with the hub while
@@ -241,7 +285,9 @@ func _open() -> void:
 	_lit = -2
 	_force = -2
 	_clear_notice()
+	_notice_only = false
 	visible = true
+	set_process(true)
 	queue_redraw()
 
 

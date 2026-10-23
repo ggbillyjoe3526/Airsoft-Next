@@ -169,6 +169,42 @@ func test_a_notice_ends_with_the_wheel() -> void:
 	assert_eq(w.notice_text(), "", "reopened: a clean wheel")
 
 
+func test_an_order_picked_on_the_wheel_is_told_its_notice_with_the_wheel_up_alone() -> void:
+	var w := hud.order_wheel()
+	var cfg := HudConfig.new()
+	_open(Vector2(60.0, 0.0))
+	wheel.close() # the pick shut it
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	assert_false(w.visible, "shut without an answer yet: not drawn")
+	outcome.record(you.id, SquadOrder.Kind.NONE, SquadOrders.Notice.NOBODY)
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	assert_true(w.visible)
+	assert_eq(w.notice_text(), "No teammates\nin play\nto order")
+	assert_eq(w.lit_slice(), -1, "no slice lit, nothing to point at")
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, cfg.order_notice_time + 0.1)
+	assert_false(w.visible, "gone after its time")
+
+
+func test_a_pick_with_no_notice_or_a_late_answer_shows_nothing() -> void:
+	var w := hud.order_wheel()
+	var cfg := HudConfig.new()
+	_open(Vector2(60.0, 0.0))
+	wheel.close()
+	outcome.record(you.id, SquadOrder.Kind.HOLD, SquadOrders.Notice.NONE)
+	hud.update_orders(wheel, SquadOrder.Kind.HOLD, outcome, 0.016)
+	assert_false(w.visible, "an order taken: the radio click, nothing on screen")
+	hud.update_orders(wheel, SquadOrder.Kind.HOLD, outcome, cfg.order_notice_wait + 0.1)
+	outcome.record(you.id, SquadOrder.Kind.NONE, SquadOrders.Notice.CANCELLED)
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	assert_false(w.visible, "an answer long after the wheel shut is not shown")
+
+
+func test_dismissing_puts_the_wheel_away() -> void:
+	_open(Vector2(60.0, 0.0))
+	hud.close_order_wheel()
+	assert_false(hud.order_wheel().visible)
+
+
 # --- the hold marker ---
 
 func test_the_marker_names_how_far_the_held_spot_is() -> void:

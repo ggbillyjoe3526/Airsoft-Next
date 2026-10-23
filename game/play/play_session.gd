@@ -734,6 +734,7 @@ func _capture() -> void:
 func _open_pause() -> void:
 	_input.release()
 	_hud.show_board(false)
+	_hud.close_order_wheel()
 	# The hint comes back on resume naming Jump's key as bound then (Settings can rebind it); a hold starts over.
 	_hud.set_skip_hint(false)
 	_skip_armed = false

@@ -557,6 +557,11 @@ func place_hold_marker(camera: Camera3D, spot: Vector3, show: bool) -> void:
 	_hold_marker.place(camera, spot, show, size, avoid)
 
 
+## Puts the wheel away (the pause menu opening).
+func close_order_wheel() -> void:
+	_order_wheel.dismiss()
+
+
 func order_wheel() -> HudOrderWheel:
 	return _order_wheel
 

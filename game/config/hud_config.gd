@@ -60,13 +60,15 @@ extends Resource
 @export var board_refill_gap: float = 0.25
 ## Squad orders (concepts `step17-orders/`). The order wheel round the crosshair: its ring runs from wheel_inner to
 ## wheel_outer (px from the middle) with wheel_gap between slices, each slice's words wheel_label_radius out, and the
-## pointer drawn no further than wheel_pointer_reach; a notice in its middle shows order_notice_time (s).
+## pointer drawn no further than wheel_pointer_reach; a notice in its middle shows order_notice_time (s), and an order
+## picked on the wheel (which shuts as it is picked) waits up to order_notice_wait (s) for its answer's notice.
 @export var wheel_inner: float = 120.0
 @export var wheel_outer: float = 340.0
 @export var wheel_gap: float = 3.0
 @export var wheel_label_radius: float = 232.0
 @export var wheel_pointer_reach: float = 300.0
 @export var order_notice_time: float = 2.0
+@export var order_notice_wait: float = 0.5
 ## Hold here's marker: this high over the held spots' middle (m), kept this far inside the screen's edge (px) and this
 ## far (px) clear of the flag marker when both are pinned; and the ring on the floor round the spot, this far out (m).
 @export var hold_marker_height: float = 1.2
