@@ -146,6 +146,36 @@ func test_the_range_and_back_to_a_field_keeps_team_bots_rules_and_mode() -> void
 	assert_false(page.bots_box().is_unused())
 
 
+func test_the_field_mode_comes_back_in_every_order_of_picks() -> void:
+	var picks := MatchPicks.new()
+	var page := MatchPage.new(picks, Settings.new())
+	add_child_autofree(page)
+	# The Range picked first on a fresh page, then a field: the field's first mode.
+	page.map_card("range").pressed.emit()
+	page.map_card("depot").pressed.emit()
+	assert_eq(picks.mode, "elimination")
+	# A mode changed on the field after coming back is the one that returns next.
+	page.mode_card("attack_defend").pressed.emit()
+	page.map_card("range").pressed.emit()
+	page.map_card("depot").pressed.emit()
+	assert_eq(picks.mode, "attack_defend")
+	page.mode_card("elimination").pressed.emit()
+	page.map_card("range").pressed.emit()
+	page.map_card("depot").pressed.emit()
+	assert_eq(picks.mode, "elimination", "the newer pick wins over the older")
+	# A field with no pole cannot host Attack / Defend: Elimination, and the remembered mode is not forced.
+	page.mode_card("attack_defend").pressed.emit()
+	page.map_card("range").pressed.emit()
+	page._poles["depot"] = false
+	page.map_card("depot").pressed.emit()
+	assert_eq(picks.mode, "elimination", "no pole: Attack / Defend is not offered")
+	assert_false(page.mode_card("practice").is_picked())
+	page.map_card("range").pressed.emit()
+	page._poles["depot"] = true
+	page.map_card("depot").pressed.emit()
+	assert_eq(picks.mode, "elimination", "the pole-less field's mode is what was last picked there")
+
+
 func test_the_range_card_and_summary_name_the_range_and_no_bots_no_score() -> void:
 	var page := MatchPage.new(MatchPicks.new(), Settings.new())
 	add_child_autofree(page)
