@@ -29,19 +29,19 @@ extends Resource
 	&"ramp": Color(0.56, 0.57, 0.58),
 	&"wall": Color(0.82, 0.78, 0.70),
 	&"barrier": Color(0.74, 0.72, 0.67),
-	&"crate": Color(0.74, 0.59, 0.40),
+	&"crate": Color(0.72, 0.65, 0.47),
 	&"toilet": Color(0.32, 0.55, 0.40),
-	&"rack": Color(0.56, 0.43, 0.29),
+	&"rack": Color(0.54, 0.49, 0.36),
 	&"gabion": Color(0.56, 0.55, 0.51),
 	&"wrapped": Color(0.86, 0.86, 0.83),
 	&"ibc": Color(0.89, 0.89, 0.85),
 	&"sandbags": Color(0.71, 0.64, 0.47),
-	&"generator": Color(0.81, 0.63, 0.20),
-	&"skip": Color(0.81, 0.63, 0.20),
+	&"generator": Color(0.81, 0.70, 0.20),
+	&"skip": Color(0.81, 0.70, 0.20),
 }
 ## Containers take the site colours in turn (bottle green, mustard, slate, teal), so a row of them never reads as one.
 @export var container_colours: Array[Color] = [
-	Color(0.22, 0.40, 0.29), Color(0.80, 0.62, 0.19), Color(0.37, 0.43, 0.49), Color(0.18, 0.48, 0.48),
+	Color(0.22, 0.40, 0.29), Color(0.79, 0.68, 0.19), Color(0.37, 0.43, 0.49), Color(0.18, 0.48, 0.48),
 ]
 @export var default_colour: Color = Color(0.7, 0.7, 0.7)
 ## The ground beyond the field's walls, out to `ground_extent` metres each way from the middle, just below the floor.

@@ -37,7 +37,8 @@ from its map data and the field checklist (step 24).
 The props that make a site read as an airsoft site. Each is one of the four material families below.
 
 - **Plywood and OSB barricades.** The main cover: tall sheet walls on timber frames with visible screws and edge
-  battens, and plywood crates. Warm honey-tan, with darker knots and OSB flecks.
+  battens, and plywood crates. A pale tan, with darker knots and OSB flecks, kept off Beta's orange hue (owner,
+  2026-10-23).
 - **Zone letters and arrows.** Big stencilled letters and numbers ("A", "B", "A1", "2") with an arrow on the walls that
   face a route. They name a field's zones, so they match the minimap's names and the bots' callouts; they are never
   decoration. Charcoal stencil paint with soft overspray.
@@ -59,7 +60,7 @@ The props that make a site read as an airsoft site. Each is one of the four mate
 
 ## Colour and readability
 
-- **The field** is warm concrete greys, sand, cream and off-white for the ground and walls, honey plywood for cover,
+- **The field** is warm concrete greys, sand, cream and off-white for the ground and walls, tan plywood for cover,
   and olive for cases and tarps.
 - **Site colours** (container red, olive, mustard yellow, slate, teal) go on containers, skips, drums and paint. The
   container red is an oxide or brick red, darker and duller than Beta orange, so it never reads as a team; its exact

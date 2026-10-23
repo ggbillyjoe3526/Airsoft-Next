@@ -193,7 +193,9 @@ func test_no_prop_reads_as_a_team_but_the_listed_exceptions() -> void:
 
 
 func test_every_exception_is_a_prop_with_that_colour_that_still_needs_it() -> void:
-	assert_false(table.exceptions.is_empty(), "the shipped exceptions read")
+	if table.exceptions.is_empty():
+		pass_test("none listed (the owner had the plywood and mustard recoloured, 2026-10-23)")
+		return
 	var style := _style_colours()
 	for prop in table.exceptions:
 		assert_true(style.has(prop), "%s is no longer a MapStyle prop: delete its row" % prop)

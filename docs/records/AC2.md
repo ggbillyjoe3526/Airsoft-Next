@@ -10,6 +10,10 @@
 
 ## Decisions
 
+- **Props recoloured (owner, 2026-10-23, the props card: "Recolour them"):** crate and rack plywood a duller tan
+  (#b8a678, #8a7d5c), generator, skip and the second container's mustard toward yellow (#cfb233, #c9ad30), each over
+  20° of hue from every team colour; AC1's five exceptions are gone and the exceptions table is empty.
+
 - **Review fixes:** a greyed LATER section locks its sliders as well as its buttons (`MenuParts.set_unused`; QA: the
   Sound cues size slider still dragged and saved); with High contrast by day the prewarm also draws the opaque glowing
   figure material, the one the first bot seen is drawn with (performance).
