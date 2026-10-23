@@ -8,7 +8,8 @@
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus | pass | QA Fail; performance Pass | |
 | 2026-10-23 | 2 | Opus | pass | 8/8 (held for QA); QA Fail | QA attempt 1 Fail: an IPv4 address ending a sentence and compressed IPv6 reached a report |
-| 2026-10-23 | 3 | Opus | pass | | QA attempt 2 Fail: an IPv6 address after "label:" or before a colon reached a report |
+| 2026-10-23 | 3 | Opus | pass | QA Fail | QA attempt 2 Fail: an IPv6 address after "label:" or before a colon reached a report |
+| 2026-10-23 | 4 | Opus | pass | | QA attempt 3 Fail: the cut left half a name or address; IPv6 was quadratic; a MAC after a label reached a report |
 
 ## Decisions
 
@@ -78,6 +79,20 @@
   KNOWN_ISSUES rows (can wait): a digitless IPv6 (`dead::beef`), a four-part version read as an address (`v1.2.3.4`),
   credentials in a web address. IssueLink's "too long for any cut" test now uses five long fields, since one long line
   is cut to 2,000.
+- **QA attempt 3 Fail, the fixes (attempt 4).** The pre-cuts (a line's to twice `max_line_chars`, the note's to twice
+  `note_chars`, in `ReportScrub.line`, `BugReport` and `IssueLink`) now go through `ReportScrub.cut_whole`: when it
+  cuts, it goes back to the last whitespace, quote, bracket, comma, semicolon or "=" (never "/", ".", ":", "@", "-" or
+  `\`, which sit inside paths and addresses), drops the unfinished word and ends with "…"; one word with no such end is
+  just "…". Tested with "bob.smith@", "192.168.1.", "2001:db8:85a3:", "zedb", "zedbox.corp.ex" and "aa:bb:cc:dd:ee"
+  straddling the cut, in a line and in the note. IPv6 is linear: its digit look-ahead and its "::" or IPv4-tail
+  look-ahead are bounded and never give back, so a start in "1:1:1:…" fails in a few steps (60,000 characters of "1:"
+  uncapped took 70 ms at attempt 3, 47 ms with the first bound, now 18.6 ms for the IPv6 pattern alone). Every pattern
+  is tested on 60,000 characters of "a:", "ff:", "aa:bb:", "1:", "1::", "12:34:", `\`, "/", "a.", "1.", "a-" and
+  "/home/", capped and uncapped, under 100 ms each (the slowest whole line, all patterns: 21 to 32 ms); the path and
+  user-folder patterns start only where a run of separators starts and never give back. A MAC address may follow a
+  label's single colon as IPv6 does ("mac:aa:bb:cc:dd:ee:ff", "hw:aa-bb-cc-dd-ee-ff", "ab:" and "fade:" before one);
+  "12:40:05" stays. `test_report_scrub_qa3.gd` is folded into `test_report_scrub.gd` and deleted. A C++-style name
+  holding a digit (`Fade::1`) read as an address is a KNOWN_ISSUES row (can wait; it over-scrubs).
 - **Rebased** onto `origin/main` after SV1 (#83) and SV3 (#84) merged; ARCHITECTURE's `game/save/` row is main's.
 
 ## Performance (perf: required)
@@ -85,13 +100,15 @@
 Cloud box, headless, no GPU:
 
 - A warm tick: `RecentEvents.record` with a busy tick's 15 events (four shots, four steps, four impacts, a hit, a
-  reload, a round start) costs 24.6 µs (25.6 µs at attempt 2; 10,000 timed); a frame's `FrameWindow.add` 0.2 µs (100,000 timed). Neither
+  reload, a round start) costs 24.6 µs (25.6 µs at attempt 2; 27.2 µs at attempt 4; 10,000 timed); a frame's `FrameWindow.add` 0.2 µs (100,000 timed). Neither
   adds an object or a byte of static memory after warm-up (DebugPerf's counts, `OBJECT_COUNT` and `MEMORY_STATIC`,
   read before any assert; `assert_lte`).
 - Summing a full window (1,000 frames) for a report: 0.15 ms.
 - A whole report from a real match (ReportFacts, BugReport and IssueLink with 30 events, 20 errors, scrubbed): 3.7 ms
-  (70 lines, a 3,117-character address), made only when the player asks (4.7 ms at attempt 2, after the rebase; the scrub's patterns are longer; 4.8 ms at attempt 3). A 60,000-character
-note through IssueLink: 2 ms.
+  (70 lines, a 3,117-character address), made only when the player asks (4.7 ms at attempt 2, after the rebase; the scrub's patterns are longer; 4.8 ms at attempt 3; 4.3 ms at attempt 4). A
+60,000-character note through IssueLink: 2 ms (15 ms at attempt 4, a spaced note: a single word is now cut whole).
+A 60,000-character line through the scrub, capped and uncapped: 13 ms; the slowest pattern run (60,000 characters,
+uncapped, every pattern): 21 to 32 ms.
 
 Performance attempt 1: Pass.
 
@@ -103,6 +120,7 @@ Attempt 2 (rebased on main): all five gates pass, unit tests 2446 of 2446, no sc
 rounds=6 plates=5 orders=3`.
 Attempt 3: all five gates pass, unit tests 2451 of 2451, no script error, `[smoke] ok frames=2508 … rounds=6 plates=5
 orders=3`.
+Attempt 4 (on main after SV2): all five gates pass, unit tests 2492 of 2492, no script error, smoke test ok.
 
 ## Owner's checks
 
@@ -116,9 +134,10 @@ orders=3`.
 - ReportScrub's address shapes can take a four-part version number for an address, and a spaced user folder name runs
   to the next slash (a KNOWN_ISSUES row, can wait).
 - A common-word account or machine name over-scrubs; a digitless IPv6 stays; a four-part version reads as an address;
-  credentials in a web address keep their user name (KNOWN_ISSUES rows, can wait).
+  a C++-style name holding a digit (`Fade::1`) reads as an address; credentials in a web address keep their user name
+  (KNOWN_ISSUES rows, can wait).
 
 ## Outside `touches`
 
-`docs/KNOWN_ISSUES.md` (six rows), `docs/ARCHITECTURE.md` (the `game/report/` row), `game/config/README.md` (a row),
+`docs/KNOWN_ISSUES.md` (seven rows), `docs/ARCHITECTURE.md` (the `game/report/` row), `game/config/README.md` (a row),
 `docs/TASKS.md` (the block out), `docs/records/SV4.md`, `tests/unit/test_report_facts.gd` (ReportFacts' tests).

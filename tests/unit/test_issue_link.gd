@@ -174,10 +174,15 @@ func test_fails_closed_and_scrubs_the_note_before_the_cut() -> void:
 func test_a_huge_note_is_quick() -> void:
 	var info := BugReportTest.picture_info()
 	info.scrub = ReportScrub.new("", "", "William", "")
-	info.note = "b".repeat(60000)
+	info.note = "b ".repeat(30000)
 	var t := Time.get_ticks_msec()
 	var link := IssueLink.make(info, _config)
 	var took := Time.get_ticks_msec() - t
 	gut.p("IssueLink with a 60,000-character note: %d ms" % took)
 	assert_lt(took, 500)
-	assert_string_starts_with(_query(link.url, "body"), "b".repeat(_config.note_chars) + "\n\n")
+	var body := _query(link.url, "body")
+	assert_string_starts_with(body, "b ".repeat(_config.note_chars).left(_config.note_chars).strip_edges())
+	assert_lte(body.find("\n\n"), _config.note_chars, "the note is cut to note_chars")
+	# One 60,000-character word has no end to cut at: it goes, "…" in its place.
+	info.note = "b".repeat(60000)
+	assert_string_starts_with(_query(IssueLink.make(info, _config).url, "body"), ReportScrub.CUT_MARK + "\n\n")

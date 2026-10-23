@@ -25,8 +25,10 @@ What a bug report is made of and the report itself (step 22). The Report a Bug p
 - `ReportScrub`: takes the save folder ("<save folder>"), the home folder ("~"), the account name ("<you>", a whole word
   of 3 characters or more, and any user folder's name), the machine's name and its first part ("<machine>"), a OneDrive
   for Business folder's organisation ("<organisation>") and IPv4, IPv6 (every form, its zone too), MAC and e-mail
-  addresses ("<address>") out of a line, cut to 2,000 characters (before scrubbing too, so a pasted note can't stall
-  it); either slash, any case. `for_this_machine` reads the names; tests inject them.
+  addresses ("<address>", after a label too: "ip:", "mac:") out of a line, cut to 2,000 characters; either slash, any
+  case. A huge line is cut to twice that before scrubbing, so a pasted note can't stall it, at a word's end
+  (`cut_whole`, never inside a path or address, "…" in the unfinished word's place), so no part of a name slips past;
+  every pattern is linear. `for_this_machine` reads the names; tests inject them.
   ReportFacts and IssueLink fail closed: given no scrub, they scrub for this machine.
 - `BugReport`: the report's text, pure over a `BugReport.ReportInfo`: the title, a "Label: value" line a field ("-" when
   not known), then Recent errors, Recent events (a live report) or Last log lines (a crash), every line through the

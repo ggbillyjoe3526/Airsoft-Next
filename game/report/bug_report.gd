@@ -13,8 +13,8 @@ const NONE := "none"
 const LEFT_OUT := "(left out to fit)"
 const INDENT := "  "
 const MORE := "…"
-## A note is cut to this many times its length before it is scrubbed (a huge pasted note costs no more than a short
-## one), and to its length after.
+## A note is cut to this many times its length before it is scrubbed, at a word's end (a huge pasted note costs no
+## more than a short one, and no part of a name is left to slip past the scrub), and to its length after.
 const SCRUB_MARGIN := 2
 ## The field labels, in the report's order (Cut.drop and ReportConfig.drop_fields name them).
 const NOTE := "Note"
@@ -100,7 +100,7 @@ static func write_lines(info: ReportInfo, cut: Cut = null, scrub: ReportScrub = 
 	var out := PackedStringArray()
 	out.append(CRASH_TITLE if info.crash else TITLE)
 	# Scrubbed before it is cut, so a cut can't leave part of a name ("Willia") that no longer matches.
-	var note := one_line(info.note.left(info.note_chars * SCRUB_MARGIN) if info.note_chars > 0 else info.note)
+	var note := one_line(ReportScrub.cut_whole(info.note, info.note_chars * SCRUB_MARGIN) if info.note_chars > 0 else info.note)
 	if by != null:
 		note = by.line(note)
 	if info.note_chars > 0:

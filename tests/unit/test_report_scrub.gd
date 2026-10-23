@@ -205,7 +205,96 @@ func test_a_huge_line_is_quick_and_cut() -> void:
 	var took := Time.get_ticks_msec() - t
 	gut.p("a 60,000-character line, cut and whole: %d ms" % took)
 	assert_lt(took, 500)
-	assert_eq(out.length(), config.max_line_chars)
+	assert_eq(out, ReportScrub.CUT_MARK, "one word with no place to cut: only the mark")
 	assert_true(all.ends_with(" <address>"), "linear even uncut")
 	var name_at_cut := "x".repeat(config.max_line_chars - 4) + " William"
 	assert_false(s.line(name_at_cut).contains("Will"), "scrubbed before it is cut")
+
+
+const ZED_SAVE := "/home/zed/.local/share/godot/app_userdata/Airsoft"
+
+
+func _zed() -> ReportScrub:
+	return ReportScrub.new(ZED_SAVE, "/home/zed", "zedbo", "zedbox.corp.example")
+
+
+## `token` placed so the cut at `at` falls `inside` characters into it, after filler that shrinks as it is scrubbed (the
+## save folder becomes "<save folder>"), so a fragment would otherwise land well inside the kept text.
+static func _straddling(token: String, inside: int, at: int) -> String:
+	var filler := (ZED_SAVE + "/x ").repeat(at / ZED_SAVE.length() + 2).left(at - inside - 1) + " "
+	return filler + token + " and more after it"
+
+
+## QA attempt 3: a cut before the scrub left part of a name or address that no pattern matched any more.
+func test_no_part_of_a_name_or_address_survives_the_cut() -> void:
+	var config := ReportConfig.new()
+	var at := config.max_line_chars * 2
+	var cases: Array[PackedStringArray] = [
+		PackedStringArray(["bob.smith@example.com", "bob.smith@"]),
+		PackedStringArray(["192.168.1.55", "192.168.1."]),
+		PackedStringArray(["2001:db8:85a3::8a2e:370:7334", "2001:db8:85a3:"]),
+		PackedStringArray(["zedbo", "zedb"]),
+		PackedStringArray(["zedbox.corp.example", "zedbox.corp.ex"]),
+		PackedStringArray(["aa:bb:cc:dd:ee:ff", "aa:bb:cc:dd:ee"]),
+	]
+	for c in cases:
+		var text := _straddling(c[0], c[1].length(), at)
+		assert_eq(text.substr(at - c[1].length(), c[1].length()), c[1], "the cut falls inside %s" % c[0])
+		var out := _zed().line(text)
+		assert_false(out.contains(c[1]), "%s left: …%s" % [c[1], out.right(30)])
+		assert_false(out.contains(c[1].left(c[1].length() - 1)), "nor less of it")
+		assert_lte(out.length(), config.max_line_chars)
+
+
+func test_the_note_cut_leaves_no_part_either() -> void:
+	var info := BugReport.ReportInfo.new()
+	info.note_chars = 500
+	info.scrub = _zed()
+	for token: String in ["bob.smith@example.com", "192.168.1.55", "zedbo"]:
+		info.note = "y ".repeat(600).left(info.note_chars * BugReport.SCRUB_MARGIN - 4) + " " + token
+		var text := BugReport.write(info)
+		assert_false(text.contains(token.left(4)), "report: " + token)
+		var link := IssueLink.make(info, ReportConfig.new())
+		assert_false(link.url.uri_decode().contains(token.left(4)), "issue: " + token)
+
+
+func test_cut_whole() -> void:
+	assert_eq(ReportScrub.cut_whole("short", 10), "short")
+	assert_eq(ReportScrub.cut_whole("one two three", 10), "one two…")
+	assert_eq(ReportScrub.cut_whole("see (a.b@c.d) x", 10), "see …")
+	assert_eq(ReportScrub.cut_whole("k=v;path=/home/zed/x", 15), "k=v;path…", "never back to a slash")
+	assert_eq(ReportScrub.cut_whole("10.0.0.1:80/x/y", 8), "…", "one word: just the mark")
+	assert_lte(ReportScrub.cut_whole("a b c d e f g", 6).length(), 6)
+
+
+## QA attempt 3: a MAC address after a label came through.
+func test_a_mac_address_after_a_label() -> void:
+	var s := _zed()
+	assert_eq(s.line("mac:aa:bb:cc:dd:ee:ff"), "mac:<address>")
+	assert_eq(s.line("hw:aa-bb-cc-dd-ee-ff"), "hw:<address>")
+	assert_eq(s.line("ab:aa:bb:cc:dd:ee:ff"), "ab:<address>", "a hex label")
+	assert_eq(s.line("fade:aa:bb:cc:dd:ee:ff"), "fade:<address>")
+	assert_eq(s.line("aa:bb:cc:dd:ee:ff: link up"), "<address>: link up")
+	assert_eq(s.line("12:40:05"), "12:40:05")
+
+
+## QA attempt 3: the IPv6 pattern was quadratic on a long run of hex and colons. Every pattern runs in one pass: 60,000
+## characters of each run, capped and uncapped, well under the bound (generous for CI).
+func test_every_pattern_is_linear() -> void:
+	var whole := ReportConfig.new()
+	whole.max_line_chars = 0
+	var scrubs: Array[ReportScrub] = [_zed(), ReportScrub.new(ZED_SAVE, "/home/zed", "zedbo", "zedbox.corp.example", whole)]
+	var runs := PackedStringArray(["a:", "ff:", "aa:bb:", "1:", "1::", "12:34:", "\\", "/", "a.", "1.", "a-", "/home/"])
+	var worst := 0.0
+	var worst_run := ""
+	for run in runs:
+		var text := run.repeat(60000 / run.length())
+		for i in scrubs.size():
+			var t := Time.get_ticks_usec()
+			scrubs[i].line(text)
+			var ms := (Time.get_ticks_usec() - t) / 1000.0
+			assert_lt(ms, 100.0, "%s × %d, %s: %.1f ms" % [run, text.length() / run.length(), ["capped", "whole"][i], ms])
+			if ms > worst:
+				worst = ms
+				worst_run = "%s (%s)" % [run, ["capped", "whole"][i]]
+	gut.p("60,000 characters, the slowest run: %s %.1f ms" % [worst_run, worst])

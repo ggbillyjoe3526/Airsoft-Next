@@ -23,7 +23,7 @@ const PATH_END := r"(?![^\\/\s\"'()\[\],:;.]|\.\w)"
 ## A user folder on Windows (C:\Users\name) or Linux and macOS (/home/name, /Users/name): its name is someone's account.
 ## The name may hold spaces ("Jo Bloggs") when a separator follows it; else it ends at a space, a bracket or a comma,
 ## and never on a full stop.
-const USER_FOLDER := r"(*UCP)(?i)(?<![\w.\-])((?:\b[a-z]:)?[\\/]+(?:users|home|documents and settings)[\\/]+)" \
+const USER_FOLDER := r"(*UCP)(?i)(?<![\w.\-\\/])((?:\b[a-z]:)?[\\/]++(?:users|home|documents and settings)[\\/]++)" \
 		+ r"(?:[^\\/:*?\"<>|\[\]()\r\n]+(?=[\\/])|[^\\/\s:*?\"<>|\[\](),;]*[^\\/\s:*?\"<>|\[\](),;.])"
 ## A OneDrive for Business folder is named after the employer: "OneDrive - Contoso Ltd".
 const ONEDRIVE := r"(?i)(OneDrive - )[^\\/:*?\"<>|\r\n]+"
@@ -34,8 +34,12 @@ const IPV4 := r"(?<![\d.])(?:" + OCTET + r"\.){3}" + OCTET + r"(?!\d|\.\d)"
 ## Every IPv6 form: full, compressed ("2001:db8::1", "fe80::1ff:fe23:4567:890a", "::ffff:c0a8:105") and with an IPv4
 ## tail ("::ffff:1.2.3.4"), with its zone ("%eth0", "%Ethernet 2", "%12"). It holds a digit, so a C++ name ("Face::bad")
 ## isn't one; clocks have no "::" and too few groups. A label may run into it ("ip:fe80::1", "host:::1": one colon
-## before it, never two) and a colon may follow it ("2001:db8::1: refused"), not a word or another colon.
-const IPV6 := r"(?i)(?<![\w.])(?<!::)(?=[0-9a-f:.]*\d)(?:" \
+## before it, never two) and a colon may follow it ("2001:db8::1: refused"), not a word or another colon. Linear on any
+## line: the digit is looked for within the longest address (45 characters), and a start is tried only with a "::" or an
+## IPv4 tail's "." within its first eight groups, or as exactly eight groups, each look-ahead never giving back; so a
+## long run of numbers and colons ("1:1:1:…") fails at each start in a few steps rather than through every form.
+const IPV6 := r"(?i)(?<![\w.])(?<!::)(?=[a-f:.]{0,45}+\d)" \
+		+ r"(?=(?:[0-9a-f]{1,4}+:){0,7}+(?::|\d{1,3}\.)|(?:" + HEX + r":){7}" + HEX + r"(?!\w|:[\w:]))(?:" \
 		+ r"(?:[0-9a-f]{0,4}:){2,6}" + OCTET + r"(?:\." + OCTET + r"){3}(?!\d|\.\d)" \
 		+ r"|(?:" + HEX + r":){7}" + HEX \
 		+ r"|(?:" + HEX + r":){1,6}:" + HEX \
@@ -47,10 +51,16 @@ const IPV6 := r"(?i)(?<![\w.])(?<!::)(?=[0-9a-f:.]*\d)(?:" \
 		+ r"|:(?::" + HEX + r"){1,7}" \
 		+ r"|(?:" + HEX + r":){1,7}:" \
 		+ r")(?:%[\w.\-]+(?: \d+\b)?)?(?!\w|:[\w:])"
-const MAC := r"(?i)(?<![0-9a-f:-])(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}(?![0-9a-f:-])"
+## A label may run into it as into IPv6 ("mac:aa:bb:cc:dd:ee:ff", "hw:aa-bb-cc-dd-ee-ff": one colon before it, never
+## two separators); a colon may follow it, not a word or another group.
+const MAC := r"(?i)(?<![\w.\-])(?<![:\-][:\-])(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}(?!\w|[:\-]\w)"
 ## Starts only where a run of its characters starts, and never gives back, so a long run with no "@" costs one pass,
 ## not one a character (a pasted note of 60,000 took 4.7 s).
 const EMAIL := r"(*UCP)(?<![\w.+-])[\w.+-]++@[\w-]+(?:\.[\w-]+)+"
+## Where a cut may end a line: the characters between words and fields. Never "/", ".", ":", "@", "-" or "\", which sit
+## inside paths, addresses and e-mail addresses.
+const CUT_AT := " \t\r\n\"'`()[]{}<>,;="
+const CUT_MARK := "…"
 ## The characters a regular expression gives a meaning to, escaped in a name or path.
 const SPECIAL := "\\^$.|?*+()[]{}"
 
@@ -103,9 +113,10 @@ static func for_this_machine(config: ReportConfig = null) -> ReportScrub:
 
 ## `text` with the folders, names and addresses taken out, cut to max_line_chars. E-mail addresses go before the names,
 ## so "<you>@domain" never stays behind. A huge line is cut to twice that before it is scrubbed (a pasted note can't
-## stall the game), and to it after, so the first cut can't leave part of a name in what is kept.
+## stall the game) at a word's end (`cut_whole`), so no part of a name or address is left to slip past the patterns;
+## and to max_line_chars after, which cuts only scrubbed text.
 func line(text: String) -> String:
-	var out := text.left(_max_chars * 2) if _max_chars > 0 else text
+	var out := cut_whole(text, _max_chars * 2) if _max_chars > 0 else text
 	for i in _paths.size():
 		out = _paths[i].sub(out, _path_words[i], true)
 	out = _user_folder.sub(out, "$1" + YOU, true)
@@ -116,6 +127,17 @@ func line(text: String) -> String:
 	for r in _addresses:
 		out = r.sub(out, ADDRESS, true)
 	return out.left(_max_chars) if _max_chars > 0 else out
+
+
+## `text` cut to at most `chars` characters without splitting a word: back to the last of CUT_AT before the cut, the
+## unfinished word dropped and "…" put in its place; all of it one word, just "…". Uncut when it fits.
+static func cut_whole(text: String, chars: int) -> String:
+	if text.length() <= chars:
+		return text
+	var at := chars - CUT_MARK.length()
+	while at > 0 and not CUT_AT.contains(text[at]):
+		at -= 1
+	return text.left(maxi(at, 0)) + CUT_MARK
 
 
 ## Every line of `texts`, scrubbed.
@@ -135,7 +157,7 @@ func _add_path(path: String, word: String) -> void:
 		parts.append(_escaped(part))
 	if parts.is_empty():
 		return
-	var lead := r"[\\/]+" if path.begins_with("/") or path.begins_with("\\") else ""
+	var lead := r"(?<![\\/])[\\/]++" if path.begins_with("/") or path.begins_with("\\") else ""
 	_paths.append(RegEx.create_from_string(UNICODE + PATH_START + lead + r"[\\/]+".join(parts) + PATH_END))
 	_path_words.append(word)
 
