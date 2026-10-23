@@ -4,38 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## FI2 · The legs: moving, crouching, jumping, vaulting, the hit call and the walk-off, and the one lean
-tier: core
-perf: required
-touches: game/play/figures/, game/config/figure_config.gd, game/config/play_tuning.tres, game/play/figure_view.gd,
-  game/play/play_session.gd, tests/unit/test_figure_pose.gd, tests/unit/test_figure_animator.gd
-contract: Simulation and presentation (1); Events (3); Data, not literals (6)
-acceptance:
-  1. FigurePose (pure, no Node, no allocation per call) turns a Character between two ticks into the lower body's
-     targets: gait (local velocity against the walk 2.3, run 4.2 and sprint 6.3 paces), crouch (crouch_amount),
-     backward (past FigureConfig.back_share 0.1 of the speed, 0.5 crouched), jump (air_time over Jump's 0.25-0.55 s),
-     vault (progress; the first 0.4 of Vault on the rise), call (HitCall over CALLING), walk-off (WalkOff at
-     walk_off_speed / 1.5 of its pace) and still below walking_speed 0.2; each eased at the browser's settle times
-     (move 0.12, direction 0.1, mode 0.12, jump 0.06, vault 0.03).
-  2. One AnimationTree per figure, its graph (FigureModels, one per kind, shared) a gait BlendSpace2D (Idle, Walk_F,
-     Run_F/B/L/R, Sprint), a crouch BlendSpace1D (CrouchIdle, CrouchWalk), Blend2s for crouch, jump, vault, call and
-     walk-off; driven manually (callback_mode_process manual, `advance(delta)` from FigureView.update) after the
-     parameters are set; parameter paths are StringName constants.
-  3. The legs keep step with the hit volume: each gait clip's timeline is stretched to one stride cycle
-     (use_custom_timeline, stretch_time_scale) with its start offset measured once at load (the frame where Thigh_L
-     swings furthest forward), and a TimeSeek sets the cycle from walk_cycle each frame, so drawn and hit legs swing
-     together (feet may slide a little at a full run: "what you see is what stops you" wins).
-  4. FigureBend (SkeletonModifier3D after the tree) tilts Hips' upper chain about the pivot by lean × lean_max_angle
-     (the one lean geometry, as Hitbox and the eye), and lowers the figure so the crouched head top stays at or below
-     1.15 m (DECISIONS 2026-09-30).
-  5. Your watched figure stays hidden; a figure facing +Z is turned π; the capsule path is unchanged.
-  6. GUT: FigurePose's targets for standing, walking each way, running, sprinting, crouch-walking backwards, mid-jump,
-     mid-vault, calling and walking off; easing reaches 63 % at each settle time; the tree's bone pose at walk_cycle
-     0, π/2 and π has Thigh_L forward, level and back as Hitbox's swing has it; a 120-frame update loop allocates no
-     new objects (Performance.OBJECT_COUNT steady).
-status: open
-attempts: 0
-
 ## FI3 · The upper body: aim, the replica in the hands, firing, switching, the holster and the hanging rifle
 tier: core
 perf: required

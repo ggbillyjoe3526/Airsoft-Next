@@ -1,13 +1,16 @@
 # FI2 · The legs: moving, crouching, jumping, vaulting, the hit call and the walk-off, and the one lean
 
-**Review:** critic pending · qa Fail then fixed (attempt 1) · performance Pass
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
+
+QA attempt 1 failed (one blocking bug, fixed in the fix round); QA attempt 2 passed.
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus 5.5 (worker) | pass | pending | – |
-| 2026-10-23 | 1, QA | Opus 5.5 (worker) | QA Fail: a figure first seen beyond the far line kept the rest pose; fixed | pending | QA's one blocking bug |
+| 2026-10-23 | 1 | Opus 5.5 (worker) | pass | Accept 8/8 | – |
+| 2026-10-23 | 1, QA | Opus 5.5 (worker) | QA Fail: a figure first seen beyond the far line kept the rest pose; fixed | – | QA's one blocking bug |
+| 2026-10-23 | 1, QA 2 | – | QA Pass; gate 2,630 passing | Accept 8/8 | – |
 
 ## Decisions
 
@@ -72,6 +75,11 @@
   screen.
 - Skeleton3D restores the animated pose after its modifiers, so FigureBend's lean and drop show only through
   `skeleton_updated`, not `get_bone_global_pose` after a frame (the tests call `bend()` by hand): FI3 keeps it in mind.
+- From QA attempt 2: `FigureBody.animate` passes the delta to `tree.advance` unclamped (only `settle_share` clamps);
+  `_process` never passes a negative delta.
+- From the critic: the gait seek moves the whole BlendSpace2D, so the Idle share (and CrouchIdle under the crouch
+  seek) plays at the walk cycle's rate while easing between standing and the walk pace (FI3 should know);
+  `maxf(_pace(...), 1.0)` in figure_graph.gd is an unnamed fallback.
 
 ## Screenshot
 
