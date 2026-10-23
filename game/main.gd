@@ -18,6 +18,9 @@ extends Node
 ## restarts once on safe graphics and the title asks; the title says once why the game is on the simpler renderer, and
 ## on the first start which preset the card picked (its Graphics settings opens Settings › Graphics). Then today's
 ## restore point (SaveKeeper.keep_today), not in the smoke run, a headless one or one the editor started.
+## The run record and the error log (SV3): the ErrorLog keeps this run's last errors from boot to exit; after the safe
+## start, a RunRecord notes the run (a crashed one kept as `previous`), each match or practice, round start and return
+## to the menus, and the clean quit. Neither prints.
 
 const SMOKE_SETTINGS_OPEN := 10
 const SMOKE_SETTINGS_CLOSE := 20
@@ -75,9 +78,18 @@ var _smoke_order_step := 0
 var _smoke_orders := -1
 ## The graphics at start-up: the safe start's record and the title's notices (tests set its paths and hooks first).
 var graphics: GraphicsStartUp = GraphicsStartUp.new()
+## This run's last errors and warnings, added as a Logger at boot and removed at exit.
+var error_log: ErrorLog = ErrorLog.new()
+## The run record, or null where no run is recorded (the smoke run, a headless one, one the editor started) and for a
+## second copy beside a running one. Tests set `run_path` to record a headless run and replace `run_process_running`
+## (whether a process id is another running copy of this game: ProcessCheck.is_running).
+var run: RunRecord = null
+var run_path: String = ""
+var run_process_running: Callable = Callable()
 
 
 func _ready() -> void:
+	OS.add_logger(error_log)
 	_smoke = OS.get_cmdline_user_args().has("--smoke")
 	_launch_seed = LaunchSeed.parse(OS.get_cmdline_user_args())
 	print("[boot] Airsoft %s on Godot %s" % [Version.current(), Engine.get_version_info()["string"]])
@@ -89,6 +101,8 @@ func _ready() -> void:
 	# today's restore point, the save as it was at start; never from the smoke run, a headless one or the editor's
 	if not (_smoke or DisplayServer.get_name() == "headless" or EngineDebugger.is_active()):
 		SaveKeeper.new().keep_today()
+	# after the safe start, so its own restart never reads as a crash
+	_start_run()
 	graphics.graphics_settings_requested.connect(_open_graphics_settings)
 	# before the settings screens and the match, so a key list waiting for a key has F11 first
 	add_child(WindowWatch.new())
@@ -110,6 +124,10 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	# a clean quit: the graphics started (the trip's own restart is not one)
 	graphics.settle()
+	if run != null:
+		run.close()
+		run.save(run_path)
+	OS.remove_logger(error_log)
 	var window := get_window()
 	if window.size_changed.is_connected(_scale_menus):
 		window.size_changed.disconnect(_scale_menus)
@@ -267,7 +285,9 @@ func _start_play(smoke_practice: bool = false) -> void:
 	_play.left.connect(_end_play)
 	_play.shaders_warmed.connect(graphics.settle)
 	_play.loadout_requested.connect(_open_practice_loadout)
+	_play.round_started.connect(_on_round_started)
 	_spot = null
+	_record_play(custom)
 	add_child(_play)
 	_scale_menus()
 	_perf.watch(_play)
@@ -301,6 +321,7 @@ func _open_practice_loadout() -> void:
 	if _play == null or not _play.practice or _smoke:
 		return
 	_spot = _play.practice_spot()
+	_record_menus()
 	_perf.watch(null)
 	_free_loading()
 	_play.queue_free()
@@ -331,6 +352,7 @@ func _end_play() -> void:
 		_smoke_matches = _play.matches_played
 		_smoke_orders = _play.orders_given
 		_smoke_left_at = _frame
+	_record_menus()
 	_perf.watch(null)
 	_free_loading()
 	var from_practice := _play.practice and not _smoke
@@ -342,6 +364,52 @@ func _end_play() -> void:
 		# Leaving practice lands on the Match page, Practice still picked, a click from the range again.
 		_show_menus()
 	_scale_menus()
+
+
+# --- The run record ---
+
+## The run's start, written before anything is built: a run that never closed is kept as `previous`; a second copy
+## beside a running one records nothing.
+func _start_run() -> void:
+	if run_path == "":
+		if _smoke or DisplayServer.get_name() == "headless" or EngineDebugger.is_active():
+			return
+		run_path = RunRecord.PATH
+	if not run_process_running.is_valid():
+		run_process_running = ProcessCheck.is_running
+	var r := RunRecord.load_file(run_path)
+	if r.held_by_other(OS.get_process_id(), run_process_running):
+		return
+	r.start(Version.current(), int(Time.get_unix_time_from_system()), OS.get_process_id())
+	run = r
+	run.save(run_path)
+
+
+## The match (or the range) about to open, `custom` its Custom rules (null for the mode's own).
+func _record_play(custom: CustomRules) -> void:
+	if run == null:
+		return
+	if _play.practice:
+		run.practise(_play.map_id)
+	else:
+		var size := _team_size()
+		run.play(_play.match_seed, _play.map_id, _play.mode, custom.to_dict() if custom != null else {},
+				_play.player_team, String(_play.difficulty), String(_play.teammate_difficulty), [size, size])
+	run.save(run_path)
+
+
+func _on_round_started(number: int, score: PackedInt32Array) -> void:
+	if run == null:
+		return
+	run.round_started(number, score)
+	run.save(run_path)
+
+
+func _record_menus() -> void:
+	if run == null:
+		return
+	run.to_menus()
+	run.save(run_path)
 
 
 # --- Graphics at start-up ---

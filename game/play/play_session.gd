@@ -30,6 +30,8 @@ signal started
 signal match_settled
 ## The field's shaders are warm (ShaderPrewarm done): the graphics started (GraphicsGuard settles on it).
 signal shaders_warmed
+## A match's round started (not practice's): its number and the score it starts on (Alpha, Beta), for the run record.
+signal round_started(number: int, score: PackedInt32Array)
 
 const PLAYER_ID := 0
 ## "Skipping the round": its size and how far over the bottom edge (px).
@@ -670,6 +672,8 @@ func _after_tick() -> void:
 			GameEvent.Kind.ROUND_START:
 				_input.face(player.spawn_yaw)
 				_puffs.clear()
+				if not practice:
+					round_started.emit(e.value, state.round_state.score)
 			GameEvent.Kind.MATCH_OVER:
 				matches_played += 1
 				_rematch_left = _play.rematch_delay

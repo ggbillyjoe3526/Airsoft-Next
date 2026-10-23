@@ -12,7 +12,7 @@ signal graphics_settings_requested
 
 ## The safe start's record, or null where nothing is guarded. Tests point the paths at their own files and replace
 ## `restart` (the entry scene's own quits and starts the game again with the same options) and `process_running`
-## (whether a process id is running: OS.is_process_running).
+## (whether a process id is another running copy of this game: ProcessCheck.is_running).
 var guard: GraphicsGuard = null
 var guard_path: String = ""
 var renderer_path: String = RendererOverride.PATH
@@ -34,7 +34,7 @@ func start(smoke: bool) -> GraphicsGuard.Action:
 	if guard_path == "":
 		guard_path = GraphicsGuard.PATH
 	if not process_running.is_valid():
-		process_running = Callable(OS, &"is_process_running")
+		process_running = ProcessCheck.is_running
 	var s := Settings.shared()
 	var machine := GraphicsApply.machine()
 	RendererOverride.sync(s.renderer, renderer_path)
