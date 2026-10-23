@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | | |
+| 2026-10-23 | 1 | Opus | pass | QA Fail | |
+| 2026-10-23 | 2 | Opus | pass | | QA attempt 1 Fail: two Continues in one frame raised a script error in `main.gd`; a Report a Bug whose browser didn't open still said GitHub opened and cleared `previous` |
 
 ## Decisions
 
@@ -30,7 +31,8 @@
 - **When** is local time (the system's time zone bias): "Today about 14:32", "Yesterday about …", else the ISO date,
   then ", 12:40 after it started"; "Not known: that run's log wasn't found" without the old log.
 - **The note box:** 500 characters (`ReportConfig.note_chars`), cut in script on every change (a TextEdit has no limit),
-  its count inside; focused when the screen opens (the picture's caret). Esc is Continue.
+  its count inside; focused when the screen opens (the picture's caret). Esc is Continue only while the note is empty,
+  so a key never throws a typed note away (QA advisory; the simplest safe rule: Continue still leaves at once).
 - **The report** is a read-only TextEdit (selectable, scrolls, wraps) in Inter 500: no monospace font ships, and the
   picture's renders in Inter too. ReportFacts reads the log once when the screen opens; a note change only rewrites
   BugReport's text.
@@ -42,9 +44,23 @@
   now behind a confirm (`OS.crash`). Both are injectable on SettingsScreen (`log_test_error`, `crash_now`), so no test
   crashes the test run.
 
+- **QA attempt 1 Fail, the fixes (attempt 2).** `_crash_continued` returns when the screen is already gone, so a second
+  Continue in the same frame does nothing. Report a Bug checks the opener's answer as Open log folder does: on a
+  failure it copies the report, says "Your browser couldn't be opened, so nothing went to GitHub…" and neither emits
+  `reported` nor clears `previous`. QA's proof tests (and its two Esc probes through real input) are folded into
+  `test_crash_screen.gd`. Advisories taken: Crash the game now's confirm focuses Cancel; Match leaves out an empty mode
+  (no trailing " · "); LogTail matches the restart line as a whole line; the log is read once (`get_file_as_bytes`,
+  its lines counted natively, only its last 256 kB, `LogTail.TAIL_BYTES`, decoded) and ReportFacts takes the errors
+  from those lines instead of reading the file again (a crash report's Recent errors now come from the log's end);
+  the report without its note is scrubbed once when the screen opens, and a keystroke only scrubs the note's own line
+  (`BugReport.note_line`, shared with `write_lines`).
+- **Advisory left (QA):** the When's local time uses `Time.get_time_zone_from_system().bias` as minutes east of UTC;
+  on Windows its sign is unchecked here (an owner's check: When reads the local clock).
+
 ## Checks
 
 `tools/check.sh`: gdlint, changelog notes, unit tests (2465 of 2465, no script error), smoke test and licence notices all pass.
+Attempt 2: all five gates pass, unit tests 2474 of 2474, no script error.
 
 ## Screenshot
 
@@ -55,7 +71,8 @@ crash-screen.png's layout, text and colours; the report shows this machine's fac
 
 - On a Windows export: Dev › Crash the game now mid-match, then start again: the screen with the match, the round, the
   seed and the crash handler's line at the end of the report; Report a Bug opens GitHub filled in; Open log folder
-  opens `%APPDATA%\Airsoft\logs`; starting again after Continue shows the title.
+  opens `%APPDATA%\Airsoft\logs`; starting again after Continue shows the title. When reads the local clock (the
+  time zone bias's sign on Windows).
 - Ending the game from the Task Manager, in the menus and on the range, shows the screen once each.
 
 ## Known issues left
@@ -64,6 +81,7 @@ crash-screen.png's layout, text and colours; the report shows this machine's fac
 
 ## Outside `touches`
 
-`game/report/log_tail.gd` and `game/ui/graphics_start_up.gd` (the restart log passed over), `game/ui/hazard_tape.gd`
+`game/report/log_tail.gd` and `game/ui/graphics_start_up.gd` (the restart log passed over, the log read once),
+`game/report/report_facts.gd` (errors from LogTail's lines), `game/report/bug_report.gd` (`note_line`), `game/ui/hazard_tape.gd`
 (the orange tape), `game/report/README.md` (LogTail's line), `docs/ARCHITECTURE.md` (`CrashScreen` in the `game/ui/`
 row), `tests/unit/test_log_tail.gd` (two tests), `docs/records/SV6.md`.

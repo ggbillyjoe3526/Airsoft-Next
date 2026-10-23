@@ -2674,6 +2674,9 @@ msgstr "Opened GitHub in your browser. The whole report is copied too."
 msgid "CRASH_REPORTED_CUT"
 msgstr "Opened GitHub in your browser. The report was too long for the link, so part of it is left out there: the whole report is copied, paste it into the issue."
 
+msgid "CRASH_REPORT_FAILED"
+msgstr "Your browser couldn't be opened, so nothing went to GitHub. The whole report is copied: paste it wherever you talk to us."
+
 msgid "CRASH_COPIED"
 msgstr "The report is copied."
 

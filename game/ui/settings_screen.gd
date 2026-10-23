@@ -445,7 +445,7 @@ func _build_dev_checks(page: VBoxContainer) -> void:
 	_confirm_crash.ok_button_text = tr("DEV_CRASH_BUTTON")
 	_confirm_crash.confirmed.connect(_on_crash)
 	add_child(_confirm_crash)
-	crash.pressed.connect(_confirm_crash.popup_centered)
+	crash.pressed.connect(_ask_crash)
 
 
 func _on_dev_box(on: bool) -> void:
@@ -478,6 +478,12 @@ func _on_test_error() -> void:
 	else:
 		push_error(DEV_TEST_ERROR)
 	_note.text = tr("DEV_DONE")
+
+
+## The crash's confirm, Cancel focused: Enter or a stray press keeps the game running.
+func _ask_crash() -> void:
+	_confirm_crash.popup_centered()
+	_confirm_crash.get_cancel_button().grab_focus.call_deferred()
 
 
 ## The run ends here as a crash: the next start shows the crash screen.

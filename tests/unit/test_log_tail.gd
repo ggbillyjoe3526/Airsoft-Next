@@ -110,3 +110,29 @@ func test_only_restart_logs_is_no_previous_log() -> void:
 	var t := _tail()
 	assert_eq(t.path(), "")
 	assert_eq(t.line_count(), 0)
+
+
+func test_the_restart_line_counts_only_as_a_whole_line() -> void:
+	var f := FileAccess.open(ROOT.path_join("godot2026-10-22T18.41.02.log"), FileAccess.WRITE)
+	f.store_line("[play] someone quoted: %s here" % GraphicsStartUp.RESTART_LINE)
+	f.store_line("  %s\r" % "not it")
+	f.close()
+	assert_eq(_tail().path(), ROOT.path_join("godot2026-10-22T18.41.02.log"), "inside another line it is no restart")
+
+
+## A long log: every line counted, only its end decoded, a cut first line left out.
+func test_a_long_log_is_counted_whole_and_read_from_its_end() -> void:
+	var f := FileAccess.open(ROOT.path_join("godot2026-10-22T18.40.11.log"), FileAccess.WRITE)
+	var lines := 0
+	while f.get_length() < LogTail.TAIL_BYTES * 2:
+		lines += 1
+		f.store_line("long line %d" % lines)
+	f.store_string("the last, no newline")
+	f.close()
+	var t := _tail()
+	assert_eq(t.line_count(), lines + 1)
+	assert_eq(t.lines()[LogTail.LINES - 1], "the last, no newline")
+	var recent := t.recent_lines()
+	assert_lt(recent.size(), lines, "only the end decoded")
+	assert_true(recent[0].begins_with("long line "), "whole lines only")
+	assert_eq(int(recent[1].get_slice(" ", 2)), int(recent[0].get_slice(" ", 2)) + 1)

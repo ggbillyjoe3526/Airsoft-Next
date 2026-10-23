@@ -127,6 +127,9 @@ func test_match_is_worded_for_a_match_practice_and_the_menus() -> void:
 	assert_eq(CrashScreen.match_words(r.to_dict(), catalog), "In the menus")
 	assert_eq(CrashScreen.seed_text(r.to_dict()), "")
 	assert_eq(CrashScreen.match_words({}, catalog), "In the menus", "an empty record")
+	var no_mode := _in_match()
+	(no_mode["match"] as Dictionary)["mode"] = ""
+	assert_eq(CrashScreen.match_words(no_mode, catalog), "Depot · round 4, 2–1", "no mode, no empty part")
 	assert_eq(CrashScreen.seed_text(_in_match()), "48213")
 
 
@@ -241,6 +244,73 @@ func test_continue_and_esc_continue() -> void:
 	assert_eq(_opened.size() + _copied.size(), 0, "Continue opens and copies nothing")
 
 
+func _key(code: Key) -> InputEventKey:
+	var k := InputEventKey.new()
+	k.keycode = code
+	k.physical_keycode = code
+	k.pressed = true
+	return k
+
+
+## QA attempt 1's probes: Esc through real input, from the note box and from a button.
+func test_esc_with_the_note_focused_reaches_continue_through_real_input() -> void:
+	var screen := _screen(_in_match())
+	await wait_process_frames(2)
+	watch_signals(screen)
+	assert_true(screen.note_box().has_focus(), "the note focused")
+	get_viewport().push_input(_key(KEY_ESCAPE), false)
+	await wait_process_frames(1)
+	assert_signal_emit_count(screen, "continued", 1)
+
+
+func test_esc_with_a_button_focused_reaches_continue() -> void:
+	var screen := _screen(_in_match())
+	await wait_process_frames(2)
+	screen.continue_button().grab_focus()
+	watch_signals(screen)
+	get_viewport().push_input(_key(KEY_ESCAPE), false)
+	await wait_process_frames(1)
+	assert_signal_emit_count(screen, "continued", 1)
+
+
+func test_esc_never_throws_a_typed_note_away() -> void:
+	var screen := _screen(_in_match())
+	await wait_process_frames(2)
+	screen.note_box().text = "Threw myself over the low wall"
+	screen.note_box().text_changed.emit()
+	watch_signals(screen)
+	get_viewport().push_input(_key(KEY_ESCAPE), false)
+	await wait_process_frames(1)
+	assert_signal_not_emitted(screen, "continued")
+	assert_eq(screen.note_box().text, "Threw myself over the low wall")
+	screen.continue_button().pressed.emit()
+	assert_signal_emit_count(screen, "continued", 1, "Continue still leaves")
+
+
+func test_a_report_that_could_not_open_the_browser_says_so_and_keeps_the_crash() -> void:
+	var screen := _screen(_in_match())
+	_open_answer = ERR_CANT_OPEN
+	watch_signals(screen)
+	screen.report_button().pressed.emit()
+	assert_eq(_opened.size(), 1)
+	assert_eq(_copied, [screen.report_text()] as Array[String], "copied, to paste elsewhere")
+	assert_false(screen.status_text().begins_with("Opened GitHub"), "the browser did not open")
+	assert_eq(screen.status_text(), tr("CRASH_REPORT_FAILED"))
+	assert_signal_not_emitted(screen, "reported")
+
+
+func test_the_note_s_line_goes_into_the_report_as_bug_report_writes_it() -> void:
+	_write_log()
+	var screen := _screen(_in_match())
+	var note := "  Crashed  as /home/tester left\tthe range  "
+	screen.note_box().text = note
+	screen.note_box().text_changed.emit()
+	var info := ReportFacts.crash(_in_match(), _tail(), Settings.new(), note.strip_edges(), ReportConfig.new(),
+			_scrub())
+	assert_eq(screen.report_text(), BugReport.write(info))
+	assert_false(screen.report_text().contains("tester"), "the note scrubbed")
+
+
 func test_a_screen_freed_leaves_nothing_behind() -> void:
 	_write_log()
 	var before := int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
@@ -340,6 +410,29 @@ func test_report_clears_the_crash_and_the_screen_stays() -> void:
 	assert_not_null(main.crash_screen, "Continue still to press")
 
 
+func test_two_continues_in_one_frame_do_nothing_twice() -> void:
+	_left_crashed()
+	var main: Node = _main()
+	add_child_autofree(main)
+	await wait_process_frames(1)
+	var screen: CrashScreen = main.crash_screen
+	screen.continue_button().pressed.emit()
+	screen.continue_button().pressed.emit()
+	await wait_process_frames(1)
+	assert_null(main.crash_screen)
+	assert_true(main._title.visible)
+
+
+func test_a_failed_report_keeps_the_crash_for_the_next_start() -> void:
+	_left_crashed()
+	_open_answer = ERR_CANT_OPEN
+	var main: Node = _main()
+	add_child_autofree(main)
+	await wait_process_frames(1)
+	main.crash_screen.report_button().pressed.emit()
+	assert_true(RunRecord.load_file(_run_path).crashed_before(), "nothing was reported")
+
+
 func test_quitting_from_the_screen_clears_the_crash() -> void:
 	_left_crashed()
 	var main: Node = _main()
@@ -371,6 +464,8 @@ func test_crash_the_game_now_crashes_only_once_confirmed() -> void:
 	button.pressed.emit()
 	assert_eq(crashes[0], 0, "the confirm first")
 	assert_true(screen._confirm_crash.visible)
+	await wait_process_frames(1)
+	assert_true(screen._confirm_crash.get_cancel_button().has_focus(), "Cancel focused, not Crash")
 	screen._confirm_crash.canceled.emit()
 	assert_eq(crashes[0], 0, "cancelled")
 	screen._confirm_crash.confirmed.emit()

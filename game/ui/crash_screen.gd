@@ -6,7 +6,8 @@ extends Control
 ## COPY in a match), the note box (ReportConfig.note_chars, trimmed in script, with its count), REPORT A BUG, COPY
 ## REPORT, OPEN LOG FOLDER, CONTINUE and the fine print. Right: the crash report as it is sent (ReportFacts.crash and
 ## BugReport, scrubbed), rebuilt as the note changes. Report a Bug opens IssueLink's address and copies the whole report;
-## nothing is sent before the player presses Submit on GitHub. Esc is Continue. Drawn for 1920x1080 like the title; the
+## nothing is sent before the player presses Submit on GitHub. Esc is Continue while the note is empty (a typed note is
+## never thrown away by a key). Drawn for 1920x1080 like the title; the
 ## window's stretch scales it. The entry scene (game/main.gd) clears `previous` on Continue, on Report and on a quit.
 
 ## Continue: the title next.
@@ -85,6 +86,8 @@ var log_dir: String = LogTail.DIR
 
 var _config: ReportConfig = null
 var _info: BugReport.ReportInfo = null
+## The report without its note, scrubbed once: a note's keystroke only puts its own line in.
+var _body := PackedStringArray()
 var _seed: String = ""
 var _facts := PackedStringArray()
 var _note: TextEdit = null
@@ -105,6 +108,7 @@ func _init(previous: Dictionary, tail: LogTail, settings: Settings, config: Repo
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_config = config
 	_info = ReportFacts.crash(previous, tail, settings, "", config, scrub)
+	_body = BugReport.write_lines(_info)
 	var log_path := tail.path()
 	var closed := FileAccess.get_modified_time(log_path) if log_path != "" else 0
 	var when := when_text(closed, _whole(previous.get("started")), int(Time.get_unix_time_from_system()),
@@ -129,7 +133,7 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(&"ui_cancel") and not event.is_echo():
+	if event.is_action_pressed(&"ui_cancel") and not event.is_echo() and _note.text.strip_edges() == "":
 		get_viewport().set_input_as_handled()
 		_on_continue()
 
@@ -211,8 +215,10 @@ static func match_words(previous: Dictionary, catalog: MapCatalog) -> String:
 		return TranslationServer.translate("CRASH_IN_MENUS")
 	var parts := PackedStringArray([map_name if map_name != "" else BugReport.UNKNOWN])
 	var mode := str(facts.get("mode", ""))
-	parts.append(TranslationServer.translate(MatchOptions.MODE_NAME[mode]) if MatchOptions.MODE_NAME.has(mode)
-			else mode.capitalize())
+	if MatchOptions.MODE_NAME.has(mode):
+		parts.append(TranslationServer.translate(MatchOptions.MODE_NAME[mode]))
+	elif mode != "":
+		parts.append(mode.capitalize())
 	var number := _whole(previous.get("round"))
 	if number > 0:
 		var score := PackedInt32Array()
@@ -464,16 +470,25 @@ func _show_count() -> void:
 	_count.text = tr("CRASH_COUNT") % [_note.text.length(), _config.note_chars]
 
 
+## The report with the note's line put in after the title, as BugReport writes it.
 func _rewrite() -> void:
 	_info.note = _note.text.strip_edges()
-	_report.text = BugReport.write(_info)
+	var lines := _body.duplicate()
+	var note := BugReport.note_line(_info)
+	if note != "":
+		lines.insert(1, _info.scrub.line(note))
+	_report.text = "\n".join(lines)
 
 
 func _on_report() -> void:
 	_rewrite()
 	var link := IssueLink.make(_info, _config)
-	open_url.call(link.url)
+	var answer: Variant = open_url.call(link.url)
 	copy_text.call(_report.text)
+	if answer is int and answer != OK:
+		# nothing opened: the crash stays to report, the copied report to paste elsewhere
+		_say(tr("CRASH_REPORT_FAILED"))
+		return
 	_say(tr("CRASH_REPORTED_CUT") if link.cut else tr("CRASH_REPORTED"))
 	reported.emit()
 

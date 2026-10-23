@@ -497,6 +497,9 @@ func _crash_shown() -> void:
 
 ## Continue: the title, and its notices as on any start.
 func _crash_continued() -> void:
+	# a second Continue in the same frame finds the screen gone
+	if crash_screen == null:
+		return
 	_crash_shown()
 	crash_screen.queue_free()
 	crash_screen = null
