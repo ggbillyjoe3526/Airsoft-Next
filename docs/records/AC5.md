@@ -90,7 +90,7 @@
   at 80, 100 and 150 %: the parts grown from their corners, the crosshair the same, the flag marker over the pole.
 - Performance: no new per-frame work but a draw transform and a division per field marker; the scale, anchors and
   motion shares are set only on a settings change (task `perf: skip`).
-- `tools/check.sh`: gdlint, changelog notes, unit tests (2256 passing), the smoke test and the licence notices pass.
+- `tools/check.sh`: gdlint, changelog notes, unit tests (2271 passing), the smoke test and the licence notices pass.
 
 ## Files outside touches
 
