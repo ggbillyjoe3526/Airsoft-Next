@@ -608,19 +608,27 @@ Settings › Graphics › Quality: Low, Medium, High, Ultra or Custom.
 
 ## Save
 
-Settings › Save file. Everything saves as it changes; nothing to press.
+Settings › Save file, after Accessibility. Everything saves as it changes; nothing to press. The save folder holds the
+save, the restore points and the logs (Windows: `%APPDATA%\Airsoft`).
 
-- [ ] **Saved automatically.** Change the field of view: "Last saved just now"; quit, start again and your settings,
-  Loadout, level and records are as you left them. Closing the window mid-match loses nothing saved before it.
-- [ ] **Save to file and load.** Save to file writes `airsoft-save-<today>.json`, readable JSON. After Delete (or on
-  another computer) Load file, or dropping the file on the window, shows both saves side by side; Replace loads yours;
-  Undo brings back what was there.
-- [ ] **An edited file.** Change `xp` in a saved file and load it: the pop-up warns and the button reads Load anyway; any
-  other file says "That file isn't an Airsoft save".
-- [ ] **Mid-match.** Save to file works; Load, Restore, Undo and Delete are greyed with "Leave the match to load a
-  save."
-- [ ] **Restore points and Delete.** One restore point per day you play (three at most), with the same pop-up and an
-  Undo.
+- [ ] **Saved automatically.** Change the field of view, then open Save file: "Last saved just now", and the tiles show
+  your level, XP, items unlocked, matches, saved loadouts and the version. Quit, start again: your settings, loadouts,
+  level and records are as you left them. Closing the window mid-match loses nothing saved before it.
+- [ ] **Open folder** opens the save folder in Explorer (Windows) or your file manager (Linux), from the title's
+  settings and from the pause menu. Copy the folder, delete the save, put the copy back with the game closed: your save
+  is back.
+- [ ] **Restore points.** The first start of each day keeps the save as it was (none for a new player, none when nothing
+  changed), three days at most, newest first, today's tagged TODAY. RESTORE asks "Restore this save?" with Now against
+  the point (lower figures in red); RESTORE AND RESTART restarts the game on that save, settings and key bindings
+  included, on the renderer those settings ask for. CANCEL or Esc changes nothing.
+- [ ] **Undo.** After a restore or a delete, Undo says what it takes back; it asks "Undo?" with the same table and
+  restarts on the save you had. With nothing to undo it is greyed: "Nothing to undo."
+- [ ] **Delete and start over.** DELETE SAVE… lists what goes; DELETE AND RESTART starts as a new player (level 0,
+  default settings and keys); the restore points stay, and Undo brings everything back.
+- [ ] **Mid-match.** From the pause menu the tab shows the same, with Restore, Undo and Delete greyed: "Leave the match
+  to restore, undo or delete." Open folder still works.
+- [ ] **A read-only folder** (make the save folder read-only, then restore): "Couldn't write your save: the disk may
+  be full or the folder read-only. Nothing was changed.", and no restart.
 
 ## Builds and the desktop
 

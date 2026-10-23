@@ -579,21 +579,6 @@ msgstr "Reset your level?"
 msgid "DEV_RESET_LEVEL_QUESTION"
 msgstr "Your XP and everything you unlocked go, back to the starting kit. This can't be undone."
 
-msgid "DEV_RESET_SAVE"
-msgstr "RESET THE SAVE"
-
-msgid "DEV_RESET_SAVE_BUTTON"
-msgstr "Reset save"
-
-msgid "DEV_RESET_SAVE_HELP"
-msgstr "Deletes the saved settings and key bindings and starts again as a new player."
-
-msgid "DEV_RESET_SAVE_TITLE"
-msgstr "Reset the save?"
-
-msgid "DEV_RESET_SAVE_QUESTION"
-msgstr "Your settings and key bindings go back to how a new player finds them. This can't be undone."
-
 msgid "DEV_DONE"
 msgstr "Done"
 
@@ -2655,3 +2640,272 @@ msgstr "No"
 
 msgid "SETTINGS_SYSTEM_UNKNOWN"
 msgstr "It doesn't say"
+
+# Settings › Save file (SettingsSavePage) and its questions (SettingsSaveConfirm).
+
+msgid "SETTINGS_SAVE_FILE"
+msgstr "Save file"
+
+msgid "SAVE_YOUR_SAVE"
+msgstr "Your save"
+
+msgid "SAVE_AUTOMATIC"
+msgstr "Saved automatically"
+
+msgid "SAVE_AUTOMATIC_HELP"
+msgstr "Settings, key bindings, loadouts, level and records save as they change. Nothing to press."
+
+msgid "SAVE_LAST_SAVED"
+msgstr "Last saved %s"
+
+msgid "SAVE_NOTHING_YET"
+msgstr "Nothing saved yet"
+
+msgid "SAVE_JUST_NOW"
+msgstr "just now"
+
+msgid "SAVE_MINUTE_AGO"
+msgstr "%d minute ago"
+
+msgid "SAVE_MINUTES_AGO"
+msgstr "%d minutes ago"
+
+msgid "SAVE_TODAY_AT"
+msgstr "today at %s"
+
+msgid "SAVE_ON_DAY_AT"
+msgstr "on %s at %s"
+
+msgid "SAVE_NEWER"
+msgstr "Your save is from a newer version (%s): nothing you change now is saved. Restore, Undo and Delete wait for that version; to start over here, close the game and move the files out of the save folder."
+
+msgid "SAVE_WRITE_FAILED"
+msgstr "Your %s didn't save at %s: the disk may be full or the folder read-only."
+
+msgid "SAVE_PART_SETTINGS"
+msgstr "settings"
+
+msgid "SAVE_PART_LOADOUTS"
+msgstr "loadouts"
+
+msgid "SAVE_PART_PROGRESS"
+msgstr "level and XP"
+
+msgid "SAVE_PART_RECORDS"
+msgstr "records"
+
+msgid "SAVE_ROW_SAVED"
+msgstr "Saved"
+
+msgid "SAVE_ROW_VERSION"
+msgstr "Version"
+
+msgid "SAVE_ROW_LEVEL"
+msgstr "Level"
+
+msgid "SAVE_ROW_XP"
+msgstr "XP"
+
+msgid "SAVE_ROW_UNLOCKED"
+msgstr "Items unlocked"
+
+msgid "SAVE_ROW_MATCHES"
+msgstr "Matches played"
+
+msgid "SAVE_ROW_LOADOUTS"
+msgstr "Saved loadouts"
+
+msgid "SAVE_GONE_UNLOCKED"
+msgstr "Unlocked"
+
+msgid "SAVE_GONE_MATCHES"
+msgstr "Matches"
+
+msgid "SAVE_GONE_LOADOUTS"
+msgstr "Loadouts"
+
+msgid "SAVE_FOLDER"
+msgstr "Save folder"
+
+msgid "SAVE_OPEN_FOLDER"
+msgstr "Open folder"
+
+msgid "SAVE_FOLDER_HELP"
+msgstr "Your save files, restore points and logs. Copy the whole folder to keep a backup or to move your save to another computer; put it back with the game closed."
+
+msgid "SAVE_FOLDER_UNOPENED"
+msgstr "The folder couldn't be opened from here: its path is above."
+
+msgid "SAVE_RESTORE_POINTS"
+msgstr "Restore points"
+
+msgid "SAVE_RESTORE_HELP"
+msgstr "The game keeps your save as it was when you opened it, on each of the last %d days you played."
+
+msgid "SAVE_IN_MATCH"
+msgstr "Leave the match to restore, undo or delete."
+
+msgid "SAVE_NOT_WRITTEN"
+msgstr "Couldn't write your save: the disk may be full or the folder read-only. Nothing was changed."
+
+msgid "SAVE_NONE_YET"
+msgstr "None yet: the first is kept the next time you open the game."
+
+msgid "SAVE_TODAY"
+msgstr "Today"
+
+msgid "SAVE_OPENED_AT"
+msgstr "Opened at %s"
+
+msgid "SAVE_POINT_LEVEL"
+msgstr "Level %s"
+
+msgid "SAVE_POINT_XP"
+msgstr "%s XP"
+
+msgid "SAVE_POINT_MATCHES"
+msgstr "%s matches"
+
+msgid "SAVE_RESTORE"
+msgstr "Restore"
+
+msgid "SAVE_RESTORE_POINT"
+msgstr "Restore point"
+
+msgid "SAVE_RESTORE_TITLE"
+msgstr "Restore this save?"
+
+msgid "SAVE_RESTORE_LEAD"
+msgstr "Your save is replaced by the one from %s, and the game restarts to load it. %s on the Save file tab brings back what you have now."
+
+msgid "SAVE_RESTORE_AFTER"
+msgstr "Settings and key bindings come back as they were then too."
+
+msgid "SAVE_RESTORE_YES"
+msgstr "Restore and restart"
+
+msgid "SAVE_NOW"
+msgstr "Now"
+
+msgid "SAVE_NEVER"
+msgstr "Never"
+
+msgid "SAVE_UNDO"
+msgstr "Undo"
+
+msgid "SAVE_NOTHING_TO_UNDO"
+msgstr "Nothing to undo. Takes back a restore or a delete made by mistake."
+
+msgid "SAVE_UNDO_TAKES_BACK"
+msgstr "Brings back your save from before %s (%s). Takes back a restore or a delete made by mistake."
+
+msgid "SAVE_UNDO_TITLE"
+msgstr "Undo?"
+
+msgid "SAVE_UNDO_HEAD"
+msgstr "Brought back"
+
+msgid "SAVE_UNDO_LEAD"
+msgstr "Your save goes back to how it was before %s (%s), and the game restarts to load it. What you have now isn't kept."
+
+msgid "SAVE_UNDO_YES"
+msgstr "Undo and restart"
+
+msgid "SAVE_WHAT_RESTORE"
+msgstr "the restore"
+
+msgid "SAVE_WHAT_UNDO"
+msgstr "the Undo"
+
+msgid "SAVE_WHAT_DELETE"
+msgstr "the delete"
+
+msgid "SAVE_DELETE_HEAD"
+msgstr "Delete and start over"
+
+msgid "SAVE_DELETE"
+msgstr "Delete save…"
+
+msgid "SAVE_DELETE_HELP"
+msgstr "Removes your settings, key bindings, loadouts, level and records; the game starts again as for a new player, at level 0. Undo brings them back."
+
+msgid "SAVE_DELETE_TITLE"
+msgstr "Delete your save?"
+
+msgid "SAVE_DELETE_LEAD"
+msgstr "All of this goes, and the game restarts as for a new player, at level 0 with the starting kit:"
+
+msgid "SAVE_DELETE_AFTER"
+msgstr "Your settings and key bindings go back to how a new player finds them. %s on the Save file tab brings everything back, until your next restore or delete."
+
+msgid "SAVE_DELETE_KEEPS"
+msgstr "Kept: the restore points and the logs."
+
+msgid "SAVE_DELETE_YES"
+msgstr "Delete and restart"
+
+msgid "SAVE_CANCEL"
+msgstr "Cancel"
+
+msgid "SAVE_DATE"
+msgstr "%s %d %s"
+
+msgid "SAVE_STAMP"
+msgstr "%s %s"
+
+msgid "SAVE_SUN"
+msgstr "Sun"
+
+msgid "SAVE_MON"
+msgstr "Mon"
+
+msgid "SAVE_TUE"
+msgstr "Tue"
+
+msgid "SAVE_WED"
+msgstr "Wed"
+
+msgid "SAVE_THU"
+msgstr "Thu"
+
+msgid "SAVE_FRI"
+msgstr "Fri"
+
+msgid "SAVE_SAT"
+msgstr "Sat"
+
+msgid "SAVE_JAN"
+msgstr "Jan"
+
+msgid "SAVE_FEB"
+msgstr "Feb"
+
+msgid "SAVE_MAR"
+msgstr "Mar"
+
+msgid "SAVE_APR"
+msgstr "Apr"
+
+msgid "SAVE_MAY"
+msgstr "May"
+
+msgid "SAVE_JUN"
+msgstr "Jun"
+
+msgid "SAVE_JUL"
+msgstr "Jul"
+
+msgid "SAVE_AUG"
+msgstr "Aug"
+
+msgid "SAVE_SEP"
+msgstr "Sep"
+
+msgid "SAVE_OCT"
+msgstr "Oct"
+
+msgid "SAVE_NOV"
+msgstr "Nov"
+
+msgid "SAVE_DEC"
+msgstr "Dec"

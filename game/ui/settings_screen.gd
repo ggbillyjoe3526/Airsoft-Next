@@ -1,10 +1,11 @@
 class_name SettingsScreen
 extends Control
-## The settings, in six tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
+## The settings, in seven tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
 ## (a volume for each bus), Display (SettingsDisplayPage: the window, the frame rate, the view), Graphics
-## (SettingsGraphicsPage), HUD (SettingsHudPage) and Accessibility (SettingsAccessPage); and a seventh, Dev, shown while
-## the Dev settings box under the tabs is ticked (its switches apply only then; docs/DECISIONS.md › Content tags and dev
-## content). Opened from the title screen and the pause menu; works while the tree is paused. Every change is applied
+## (SettingsGraphicsPage), HUD (SettingsHudPage), Accessibility (SettingsAccessPage) and Save file (SettingsSavePage:
+## restore points, Undo and delete, which restart the game, so only from the title's settings); and an eighth, Dev,
+## shown while the Dev settings box under the tabs is ticked (its switches apply only then; docs/DECISIONS.md › Content
+## tags and dev content). Opened from the title screen and the pause menu; works while the tree is paused. Every change is applied
 ## at once through SettingsApply and saved: a slider a moment after it stops moving, anything else straight away, and
 ## the last change always on close. Esc or Back closes it. While it is open, keys the controls don't use stop here, so
 ## none reaches play.
@@ -39,6 +40,9 @@ var save_path: String = Settings.PATH
 var end_round: Callable = Callable()
 ## Whose level the Dev tab's Reset level resets: the game's own when unset (a test gives its own).
 var progress: Progress = null
+## Starts the game again (main's), after the Save file tab replaces the save; empty from the pause menu, where the save
+## can't be replaced.
+var restart: Callable = Callable()
 
 var _back: Button = null
 var _tabs: TabContainer = null
@@ -59,12 +63,12 @@ var _display_page: SettingsDisplayPage = null
 var _graphics_page: SettingsGraphicsPage = null
 var _hud_page: SettingsHudPage = null
 var _access_page: SettingsAccessPage = null
+var _save_page: SettingsSavePage = null
 var _dev_box: CheckButton = null
 var _dev_page: Control = null
 var _dev_checks: Dictionary[StringName, CheckButton] = {}
 var _speed: HSlider = null
 var _end_round: Button = null
-var _confirm_reset: ConfirmationDialog = null
 var _confirm_level: ConfirmationDialog = null
 
 
@@ -105,6 +109,7 @@ func _ready() -> void:
 	_build_graphics()
 	_build_hud()
 	_build_access()
+	_build_save()
 	_build_dev()
 	_dev_box = CheckButton.new()
 	_dev_box.text = tr("DEV_SETTINGS_BOX")
@@ -331,6 +336,20 @@ func _build_access() -> void:
 	_access_page.changed.connect(_changed)
 
 
+# --- Save file ---
+
+func _build_save() -> void:
+	var page := _page(tr("SETTINGS_SAVE_FILE"))
+	_save_page = SettingsSavePage.new()
+	page.add_child(_save_page)
+	_save_page.build(self)
+
+
+## Whether the save may be replaced from here: the title's settings (which can restart the game), not a match's.
+func can_replace() -> bool:
+	return restart.is_valid() and not end_round.is_valid()
+
+
 # --- Dev ---
 
 func _build_dev() -> void:
@@ -369,18 +388,6 @@ func _build_dev() -> void:
 	_confirm_level.confirmed.connect(_on_reset_level)
 	add_child(_confirm_level)
 	reset_level.pressed.connect(_confirm_level.popup_centered)
-	var reset_row := add_row(page, "DEV_RESET_SAVE")
-	var reset := Button.new()
-	reset.text = tr("DEV_RESET_SAVE_BUTTON")
-	reset_row.add_child(reset)
-	add_help(page, "DEV_RESET_SAVE_HELP")
-	_confirm_reset = ConfirmationDialog.new()
-	_confirm_reset.title = tr("DEV_RESET_SAVE_TITLE")
-	_confirm_reset.dialog_text = tr("DEV_RESET_SAVE_QUESTION")
-	_confirm_reset.ok_button_text = tr("DEV_RESET_SAVE_BUTTON")
-	_confirm_reset.confirmed.connect(_on_reset_save)
-	add_child(_confirm_reset)
-	reset.pressed.connect(_confirm_reset.popup_centered)
 
 
 func _on_dev_box(on: bool) -> void:
@@ -404,12 +411,6 @@ func _on_reset_level() -> void:
 	var p := progress if progress != null else Progress.shared()
 	p.reset()
 	p.save_if_dirty()
-	_note.text = tr("DEV_DONE")
-
-
-func _on_reset_save() -> void:
-	settings.reset_save(save_path)
-	_refresh()
 	_note.text = tr("DEV_DONE")
 
 

@@ -210,6 +210,7 @@ func _open_settings() -> void:
 	if _settings_screen == null:
 		_settings_screen = SettingsScreen.new()
 		_settings_screen.settings = Settings.shared()
+		_settings_screen.restart = _restart
 		_settings_screen.closed.connect(_settings_closed)
 		add_child(_settings_screen)
 		# under the top bar, which stays on show
@@ -415,7 +416,7 @@ func _record_menus() -> void:
 # --- Graphics at start-up ---
 
 ## Starts the game again with the same options (less a renderer option, GraphicsStartUp.restart_args), once this one
-## has quit.
+## has quit: the safe start's trip, and Settings › Save file after a restore, an Undo or a delete.
 func _restart() -> void:
 	OS.set_restart_on_exit(true, GraphicsStartUp.restart_args(OS.get_cmdline_args()))
 	get_tree().quit()
