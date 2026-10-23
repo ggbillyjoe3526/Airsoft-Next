@@ -656,6 +656,24 @@ Play a release build (installer or zip) for these; running from the Godot editor
   the window to another and back keeps the picture right.
 - [ ] **Graphics problems.** A graphics card or driver the game can't use gets a message, never a black window.
 
+## Bug reports
+
+Report a Bug is on the title's foot, before Licences, and at the pause menu's foot beside the seed. Play a release
+build for these.
+
+- [ ] **The issue opens filled in.** From the title and from a paused match, type a note and press Report on GitHub:
+  your browser opens a new issue on the game's GitHub titled "Bug: " and your note's first line, the note and the
+  whole report below it, and the panel says "Opened GitHub in your browser. The whole report is copied too." Nothing
+  is posted until you press Submit there. The match stays paused behind the panel; Back and Esc close only the panel.
+- [ ] **A long report is cut and pasted.** After a long match with errors (Dev › Log a test error a few times, after
+  SV6), Report on GitHub says part of the report didn't fit; the issue says so too, and pasting (Ctrl+V) into it gives
+  the whole report. Copy report alone copies the same text.
+- [ ] **No folder path or account name anywhere.** Read the report beside the note, the opened issue and the pasted
+  text: no `C:\Users\…` or home folder, no Windows account or computer name, no address; they read `<you>`,
+  `<machine>`, `~` or `<save folder>`.
+- [ ] **The error line.** After a script error (Dev › Log a test error, after SV6), the pause menu says "Something went
+  wrong in this match (1 error)…" under Report a Bug; without one there is no line.
+
 ## Old bugs to recheck
 
 Bugs the browser game had and fixed; a bug pass checks the rebuild doesn't bring them back.

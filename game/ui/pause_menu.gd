@@ -4,6 +4,9 @@ extends Control
 ## the map, mode and round, then Resume, Settings and Quit match, and the match's seed at the foot. In practice (concept
 ## `pause-practice.png`, `set_practice`): "Practice · Range", Resume, the Timed challenge's On / Off switch, Loadout (with
 ## its key, L as bound; the key works here too), Settings and Leave practice, with no seed. Works while the tree is paused.
+## The foot (SV5, concept step22 `pause-report.png`): the seed and REPORT A BUG (Report a Bug alone in practice), which
+## opens the ReportPanel over the menu, the match still paused; and, once an error has been logged since the match
+## started (`errors`), a line saying so under it.
 
 signal resumed
 signal left
@@ -16,7 +19,7 @@ signal loadout_requested
 
 ## The shade over the match, the panel's width and margins, and the sizes of its words (px at 1080p; concept `pause.png`).
 const BACKDROP := Color(0.031, 0.051, 0.094, 0.72)
-const PANEL_WIDTH := 520.0
+const PANEL_WIDTH := 560.0
 const PANEL_SIDE := 48
 const PANEL_TOP := 44
 const PANEL_BOTTOM := 30
@@ -32,11 +35,22 @@ const BUTTON_SIZE := 22
 const SEED_TOP := 28
 const SEED_PAD := 18
 const SEED_SIZE := 16
-## In practice (concept `pause-practice.png`): a wider panel, the gap above Leave practice, the foot's padding and the
-## Timed challenge switch's chips (type size, padding, gap; px at 1080p).
+## The seed's gap after its word; Report a Bug's chip (type size, padding); the error line (its gap above, type size,
+## colours, and its dot's size, gap and drop; concept step22 `pause-report.png`).
+const SEED_NUMBER_GAP := 10
+const REPORT_SIZE := 14
+const REPORT_PAD := Vector2i(12, 6)
+const ERROR_TOP := 12
+const ERROR_SIZE := 14
+const ERROR_INK := Color("ffb366")
+const ERROR_DOT := GraphicsNotice.WARN
+const ERROR_DOT_SIZE := 8.0
+const ERROR_DOT_GAP := 8
+const ERROR_DOT_TOP := 5.0
+## In practice (concept `pause-practice.png`): a wider panel, the gap above Leave practice and the Timed challenge
+## switch's chips (type size, padding, gap; px at 1080p).
 const PRACTICE_WIDTH := 560.0
 const PRACTICE_LEAVE_GAP := 10
-const PRACTICE_BOTTOM := 37
 ## ... and the gaps above the title, the subtitle and the buttons there (the concept's text sits a little lower).
 const PRACTICE_TOP := 46
 const PRACTICE_SUBTITLE_TOP := 7
@@ -50,6 +64,15 @@ const KEY_PAD := Vector2i(7, 2)
 
 ## The match's End the round now (returns false when no round is live), handed to the settings' Dev tab.
 var end_round: Callable = Callable()
+## This run's ErrorLog: the foot says when it has logged an error since it was handed over, as the match started
+## (null: none kept).
+var errors: ErrorLog = null:
+	set(value):
+		errors = value
+		_errors_before = value.errors_this_run() if value != null else 0
+## The bug report's facts as the match stands (PlaySession.report_info): () -> BugReport.ReportInfo. Unset, the report
+## has the machine's facts alone.
+var report_info: Callable = Callable()
 
 var _resume: Button = null
 var _settings_button: Button = null
@@ -58,11 +81,16 @@ var _panel: PanelContainer = null
 var _subtitle_lead: Label = null
 var _subtitle: Label = null
 var _seed: Label = null
-var _seed_gap: Control = null
-var _seed_row: Control = null
+var _seed_word: Label = null
+var _report_button: Button = null
+var _error_line: HBoxContainer = null
+var _error_text: Label = null
+## Report a Bug's panel, built when asked for and freed once closed.
+var _report: ReportPanel = null
+## The run's errors before this match.
+var _errors_before: int = 0
 var _leave: Button = null
 var _leave_gap: Control = null
-var _bottom_gap: Control = null
 var _top_gap: Control = null
 var _subtitle_gap: Control = null
 var _buttons_gap: Control = null
@@ -147,12 +175,9 @@ func _ready() -> void:
 	buttons.add_child(_leave_gap)
 	_leave = _button(buttons, tr("PAUSE_QUIT"), false)
 	_leave.pressed.connect(func() -> void: left.emit())
-	_seed_gap = _gap(SEED_TOP)
-	box.add_child(_seed_gap)
-	_seed_row = _seed_row_box()
-	box.add_child(_seed_row)
-	_bottom_gap = _gap(PANEL_BOTTOM)
-	box.add_child(_bottom_gap)
+	box.add_child(_gap(SEED_TOP))
+	box.add_child(_seed_row_box())
+	box.add_child(_gap(PANEL_BOTTOM))
 	panel.add_child(box)
 	visible = false
 
@@ -219,9 +244,8 @@ func _set_practice(on: bool) -> void:
 	_loadout.visible = on
 	_leave_gap.visible = on
 	_leave.text = tr("PAUSE_LEAVE_PRACTICE" if on else "PAUSE_QUIT").to_upper()
-	_seed_gap.visible = not on
-	_seed_row.visible = not on
-	_bottom_gap.custom_minimum_size.y = PRACTICE_BOTTOM if on else PANEL_BOTTOM
+	_seed_word.visible = not on
+	_seed.visible = not on
 	_top_gap.custom_minimum_size.y = PRACTICE_TOP if on else PANEL_TOP
 	_subtitle_gap.custom_minimum_size.y = PRACTICE_SUBTITLE_TOP if on else SUBTITLE_TOP
 	_buttons_gap.custom_minimum_size.y = PRACTICE_BUTTONS_TOP if on else BUTTONS_TOP
@@ -249,11 +273,39 @@ func seed_text() -> String:
 	return _seed.text
 
 
+## "Something went wrong in this match (2 errors). …", for `count` errors.
+static func error_line(count: int) -> String:
+	if count == 1:
+		return TranslationServer.translate("PAUSE_ERRORS_ONE")
+	return TranslationServer.translate("PAUSE_ERRORS") % count
+
+
+## The foot's error line as shown, or "" while it is hidden.
+func error_text() -> String:
+	return _error_text.text if _error_line.visible else ""
+
+
+func report_button() -> Button:
+	return _report_button
+
+
+## Report a Bug's panel while it is open, else null.
+func report_panel() -> ReportPanel:
+	return _report
+
+
+## Whether Report a Bug's panel is showing.
+func report_open() -> bool:
+	return _report != null and _report.visible
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if visible and not settings_open() and event.is_action_pressed(&"pause") and not event.is_echo():
+	if not visible or settings_open() or report_open():
+		return
+	if event.is_action_pressed(&"pause") and not event.is_echo():
 		get_viewport().set_input_as_handled()
 		resumed.emit()
-	elif visible and _practice and not settings_open() and event.is_action_pressed(&"loadout") and not event.is_echo():
+	elif _practice and event.is_action_pressed(&"loadout") and not event.is_echo():
 		get_viewport().set_input_as_handled()
 		loadout_requested.emit()
 
@@ -262,13 +314,49 @@ func open() -> void:
 	visible = true
 	# the settings may have rebound it since the menu last showed
 	_loadout_key.text = KeyNames.of_action(&"loadout")
+	_show_errors()
 	_resume.grab_focus()
 
 
 func close() -> void:
 	if _screen != null:
 		_screen.close()
+	if _report != null:
+		_report.close()
 	visible = false
+
+
+## Report a Bug over the menu: the panel on the match's facts as they stand now; Back or Esc closes it alone and gives
+## the focus back to Report a Bug.
+func open_report() -> void:
+	if report_open():
+		return
+	if _report == null:
+		_report = ReportPanel.new()
+		_report.closed.connect(_report_closed)
+		add_child(_report)
+	var info: BugReport.ReportInfo = null
+	if report_info.is_valid():
+		info = report_info.call()
+	else:
+		var place := ReportFacts.PLACES[RunRecord.PRACTICE if _practice else RunRecord.MATCH]
+		info = ReportFacts.live(null, Settings.shared(), errors, place, "", _report.config,
+				ReportScrub.for_this_machine(_report.config))
+	_report.open(info)
+
+
+func _report_closed() -> void:
+	_report.queue_free()
+	_report = null
+	if visible:
+		_report_button.grab_focus()
+
+
+## The error line, shown once an error has been logged since the match started.
+func _show_errors() -> void:
+	var count := errors.errors_this_run() - _errors_before if errors != null else 0
+	_error_line.visible = count > 0
+	_error_text.text = error_line(count) if count > 0 else ""
 
 
 ## Shows the settings over the menu, built when asked for and freed once closed; closing them gives the focus back to
@@ -293,7 +381,7 @@ func settings_open() -> bool:
 	return _screen != null and _screen.visible
 
 
-## The foot: a rule, then "Match seed" and the seed.
+## The foot: a rule, then "Match seed", the seed and Report a Bug at the right; the error line under them.
 func _seed_row_box() -> Control:
 	var rule := GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0, 0.0), 0, 0)
 	rule.border_width_top = GameTheme.BORDER
@@ -301,20 +389,63 @@ func _seed_row_box() -> Control:
 	rule.content_margin_top = SEED_PAD
 	var holder := PanelContainer.new()
 	holder.add_theme_stylebox_override("panel", rule)
+	var foot := VBoxContainer.new()
+	foot.add_theme_constant_override("separation", ERROR_TOP)
+	holder.add_child(foot)
 	var row := HBoxContainer.new()
-	holder.add_child(row)
-	var word := Label.new()
-	word.text = tr("PAUSE_SEED")
-	word.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", SEED_NUMBER_GAP)
+	foot.add_child(row)
+	_seed_word = Label.new()
+	_seed_word.text = tr("PAUSE_SEED")
 	_seed = Label.new()
-	for l: Label in [word, _seed]:
+	_seed.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for l: Label in [_seed_word, _seed]:
 		l.add_theme_font_size_override("font_size", SEED_SIZE)
 		l.add_theme_color_override("font_color", GameTheme.MUTED)
 	_seed.add_theme_font_override("font", GameTheme.font(700))
 	_seed.add_theme_color_override("font_color", GameTheme.TEXT)
-	row.add_child(word)
+	row.add_child(_seed_word)
 	row.add_child(_seed)
+	_report_button = Button.new()
+	_report_button.name = "ReportBug"
+	_report_button.text = tr("REPORT_BUG").to_upper()
+	_report_button.size_flags_horizontal = Control.SIZE_SHRINK_END | Control.SIZE_EXPAND
+	_report_button.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_HEADING, REPORT_SIZE))
+	_report_button.add_theme_font_size_override("font_size", REPORT_SIZE)
+	for state: String in ["normal", "pressed", "disabled"]:
+		_report_button.add_theme_stylebox_override(state, GameTheme.box(GameTheme.CARD, GameTheme.LINE, REPORT_PAD.x,
+				REPORT_PAD.y))
+	_report_button.add_theme_stylebox_override("hover", GameTheme.box(GameTheme.CARD_HI, GameTheme.LINE, REPORT_PAD.x,
+			REPORT_PAD.y))
+	_report_button.pressed.connect(open_report)
+	row.add_child(_report_button)
+	foot.add_child(_error_row())
 	return holder
+
+
+## The error line: an orange dot and the words beside it, hidden until this run has logged an error.
+func _error_row() -> HBoxContainer:
+	_error_line = HBoxContainer.new()
+	_error_line.name = "Errors"
+	_error_line.add_theme_constant_override("separation", ERROR_DOT_GAP)
+	var dot_box := Control.new()
+	dot_box.custom_minimum_size = Vector2(ERROR_DOT_SIZE, 0.0)
+	dot_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var dot := Panel.new()
+	var face := GameTheme.box(ERROR_DOT, Color(0.0, 0.0, 0.0, 0.0), 0, 0)
+	face.set_corner_radius_all(int(ERROR_DOT_SIZE / 2.0))
+	dot.add_theme_stylebox_override("panel", face)
+	dot.position = Vector2(0.0, ERROR_DOT_TOP)
+	dot.size = Vector2(ERROR_DOT_SIZE, ERROR_DOT_SIZE)
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dot_box.add_child(dot)
+	_error_line.add_child(dot_box)
+	_error_text = MenuParts.text("", ERROR_SIZE, 600, ERROR_INK)
+	_error_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_error_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_error_line.add_child(_error_text)
+	_error_line.visible = false
+	return _error_line
 
 
 ## The Timed challenge row: its words, and the ON and OFF chips at the right, the lit one in the text colour.

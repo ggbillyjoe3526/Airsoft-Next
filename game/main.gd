@@ -21,6 +21,9 @@ extends Node
 ## The run record and the error log (SV3): the ErrorLog keeps this run's last errors from boot to exit; after the safe
 ## start, a RunRecord notes the run (a crashed one kept as `previous`), each match or practice, round start and return
 ## to the menus, and the clean quit. Neither prints.
+## Report a Bug (SV5): the title's link opens the ReportPanel on this run's facts (built when asked for, freed once
+## closed); a match hands the ErrorLog to its pause menu, which has its own. The smoke test opens and closes it from the
+## title, never pressing Report.
 
 const SMOKE_SETTINGS_OPEN := 10
 const SMOKE_SETTINGS_CLOSE := 20
@@ -51,8 +54,15 @@ const PRACTICE_MAP := "range"
 const SMOKE_ORDER_STEPS: PackedStringArray = ["+order_follow", "-order_follow", "+order_follow", "-order_follow",
 		"+order_wheel", "", "-order_wheel"]
 const SMOKE_WHEEL_FLICK := Vector2(0.0, -400.0)
+## The smoke test's Report a Bug, from the title before the menus open: the frames it opens and closes on.
+const SMOKE_REPORT_OPEN := 3
+const SMOKE_REPORT_CLOSE := 6
+## Where a report from the title says the player was (English: reports are read by the developer).
+const REPORT_SCREEN_TITLE := "title"
 
 var _credits: Credits
+## Report a Bug over the title, while it is open.
+var _report_panel: ReportPanel = null
 var _settings_screen: SettingsScreen
 var _title: TitleScreen
 var _menus: MenuScreen
@@ -160,6 +170,7 @@ func _build_title() -> void:
 	_title = TitleScreen.new()
 	_title.start_pressed.connect(_show_menus)
 	_title.credits_pressed.connect(_show_credits)
+	_title.report_pressed.connect(_show_report)
 	_title.quit_pressed.connect(get_tree().quit)
 	add_child(_title)
 	graphics.show_safe_notice(_title)
@@ -240,6 +251,36 @@ func _credits_closed() -> void:
 		_title.focus_start()
 
 
+## Report a Bug from the title: the panel over it on this run's facts as they stand now.
+func _show_report() -> void:
+	if _report_panel == null:
+		_report_panel = ReportPanel.new()
+		_report_panel.closed.connect(_report_closed)
+		add_child(_report_panel)
+	var config := _report_panel.config
+	_report_panel.open(ReportFacts.live(null, Settings.shared(), error_log, REPORT_SCREEN_TITLE, "", config,
+			ReportScrub.for_this_machine(config)))
+
+
+func _report_closed() -> void:
+	_report_panel.queue_free()
+	_report_panel = null
+	if _title != null and _title.visible:
+		_title.report_button().grab_focus()
+
+
+## The smoke test's Report a Bug: opened from the title's link and closed with Back; Report is never pressed.
+func _smoke_bug_report() -> void:
+	if _frame == SMOKE_REPORT_OPEN:
+		_title.report_button().pressed.emit()
+		if _report_panel == null or not _report_panel.report_text().begins_with(BugReport.TITLE):
+			push_error("smoke: Report a Bug showed no report from the title")
+			set_process(false)
+			get_tree().quit(1)
+	elif _frame == SMOKE_REPORT_CLOSE and _report_panel != null:
+		_report_panel.back_button().pressed.emit()
+
+
 ## Opens the match picked: practice when the Match page has Practice picked (START PRACTICE) or `smoke_practice` is given
 ## (the smoke test's way in).
 func _start_play(smoke_practice: bool = false) -> void:
@@ -287,6 +328,7 @@ func _start_play(smoke_practice: bool = false) -> void:
 	_play.shaders_warmed.connect(graphics.settle)
 	_play.loadout_requested.connect(_open_practice_loadout)
 	_play.round_started.connect(_on_round_started)
+	_play.error_log = error_log
 	_spot = null
 	_record_play(custom)
 	add_child(_play)
@@ -435,6 +477,7 @@ func _process(_delta: float) -> void:
 	if not _smoke:
 		return
 	_frame += 1
+	_smoke_bug_report()
 	if _frame == SMOKE_SETTINGS_OPEN:
 		_show_menus()
 		_open_settings()

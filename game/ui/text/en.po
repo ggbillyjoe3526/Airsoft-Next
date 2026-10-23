@@ -165,6 +165,9 @@ msgstr "Call your hit. Go again."
 msgid "MENU_START"
 msgstr "START"
 
+msgid "REPORT_BUG"
+msgstr "Report a Bug"
+
 msgid "MENU_LICENCES"
 msgstr "Licences"
 
@@ -218,6 +221,51 @@ msgstr "Airsoft, made by ggbillyjoe3526 with Claude Code."
 
 msgid "CREDITS_UNREADABLE"
 msgstr "The licence notices could not be read. They ship beside the game as THIRD_PARTY_NOTICES.txt."
+
+msgid "REPORT_TITLE"
+msgstr "What went wrong?"
+
+msgid "REPORT_LEAD"
+msgstr "Say what happened and what you were doing just before. The report beside goes with it: the match's seed replays the match, so we can see it too."
+
+msgid "REPORT_NOTE_LABEL"
+msgstr "Your note"
+
+msgid "REPORT_NOTE_HINT"
+msgstr "Optional · its first line is the issue's title"
+
+msgid "REPORT_NOTE_COUNT"
+msgstr "%d / %d"
+
+msgid "REPORT_ON_GITHUB"
+msgstr "Report on GitHub"
+
+msgid "REPORT_COPY"
+msgstr "Copy report"
+
+msgid "REPORT_BACK"
+msgstr "Back"
+
+msgid "REPORT_OPENED"
+msgstr "Opened GitHub in your browser. The whole report is copied too."
+
+msgid "REPORT_OPENED_CUT"
+msgstr "Opened GitHub in your browser. Part of the report didn't fit the link: paste the copied report into the issue."
+
+msgid "REPORT_NOT_OPENED"
+msgstr "Your browser didn't open. The whole report is copied: paste it into a new issue on the game's GitHub page."
+
+msgid "REPORT_COPIED"
+msgstr "The whole report is copied."
+
+msgid "REPORT_FINE"
+msgstr "The issue opens with your note and this report filled in; nothing is sent until you press [b]Submit[/b] there, and the issue is public (a free GitHub account is needed). If part of the report doesn't fit the link, paste the copied report into the issue."
+
+msgid "REPORT_REPORT_LABEL"
+msgstr "The report"
+
+msgid "REPORT_REPORT_HINT"
+msgstr "Exactly what gets sent: no names, no file paths"
 
 msgid "MAP_REFUSED"
 msgstr "This map could not be loaded: %s"
@@ -821,6 +869,12 @@ msgstr "%s · %s · Round %d"
 
 msgid "PAUSE_SEED"
 msgstr "Match seed"
+
+msgid "PAUSE_ERRORS_ONE"
+msgstr "Something went wrong in this match (1 error). The game carried on; Report a Bug sends what happened."
+
+msgid "PAUSE_ERRORS"
+msgstr "Something went wrong in this match (%d errors). The game carried on; Report a Bug sends what happened."
 
 msgid "LOADOUT_CARRIED"
 msgstr "CARRIED"

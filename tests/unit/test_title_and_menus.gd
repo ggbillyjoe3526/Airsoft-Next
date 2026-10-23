@@ -12,13 +12,14 @@ func _texts(root: Node) -> PackedStringArray:
 	return out
 
 
-func test_the_title_has_start_licences_quit_and_no_fullscreen_button() -> void:
+func test_the_title_has_start_report_licences_quit_and_no_fullscreen_button() -> void:
 	var title := TitleScreen.new()
 	add_child_autofree(title)
 	assert_eq(title.start_button().text, "START")
+	assert_eq(title.report_button().text, "Report a Bug")
 	assert_eq(title.credits_button().text, "Licences")
 	assert_eq(title.quit_button().text, "QUIT")
-	assert_eq(_texts(title).size(), 3, "START, Licences and QUIT only")
+	assert_eq(_texts(title).size(), 4, "START, Report a Bug, Licences and QUIT only")
 
 
 func test_the_title_shows_the_tagline_and_the_version_in_the_foot_beside_licences() -> void:
@@ -31,11 +32,12 @@ func test_the_title_shows_the_tagline_and_the_version_in_the_foot_beside_licence
 	assert_true(labels.has("AIRSOFT"))
 	var foot: Node = title.find_child("Foot", true, false)
 	assert_not_null(foot)
-	assert_eq(foot.get_child(0).name, "Version", "the version, then Licences, then Quit")
+	assert_eq(foot.get_child(0).name, "Version", "the version, then Report a Bug (SV5), Licences and Quit")
 	assert_eq((foot.get_child(0) as Label).text, Version.current())
-	assert_eq(foot.get_child(1), title.credits_button())
-	assert_eq(foot.get_child(2), title.quit_button())
-	assert_eq(foot.get_child_count(), 3, "nothing else in the foot")
+	assert_eq(foot.get_child(1), title.report_button())
+	assert_eq(foot.get_child(2), title.credits_button())
+	assert_eq(foot.get_child(3), title.quit_button())
+	assert_eq(foot.get_child_count(), 4, "nothing else in the foot")
 
 
 func test_the_title_backdrop_is_the_shipped_picture() -> void:

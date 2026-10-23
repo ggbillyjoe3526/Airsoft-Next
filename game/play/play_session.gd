@@ -88,6 +88,8 @@ var records: Records = null
 var records_path: String = Records.PATH
 ## Practice, when `counts`: where the pause menu's Timed challenge switch is saved (Settings.practice_challenge).
 var settings_path: String = Settings.PATH
+## This run's ErrorLog (the entry scene's), for the pause menu's error line and Report a Bug (null: none kept).
+var error_log: ErrorLog = null
 
 var state: GameState = null
 var player: Character = null
@@ -528,6 +530,8 @@ func _build_views(ui: CanvasLayer) -> void:
 	_pause.skipped.connect(_skip_from_pause)
 	_pause.challenge_toggled.connect(_on_challenge_toggled)
 	_pause.loadout_requested.connect(_request_loadout)
+	_pause.errors = error_log
+	_pause.report_info = report_info
 
 
 func _physics_process(_delta: float) -> void:
@@ -541,6 +545,7 @@ func _physics_process(_delta: float) -> void:
 			# A rematch's report tells this match only.
 			_recent.clear()
 			_frames.clear()
+			_pause.errors = error_log
 			_sim.start_match(state)
 			_after_tick()
 		if bots_active:
@@ -1120,6 +1125,13 @@ func recent_events() -> RecentEvents:
 
 func frame_window() -> FrameWindow:
 	return _frames
+
+
+## A bug report's facts as the match stands now (the pause menu's Report a Bug), scrubbed for this machine.
+func report_info() -> BugReport.ReportInfo:
+	var place := ReportFacts.PLACES[RunRecord.PRACTICE if practice else RunRecord.MATCH]
+	return ReportFacts.live(self, settings if settings != null else Settings.shared(), error_log, place, "", _report,
+			ReportScrub.for_this_machine(_report))
 
 
 ## Whether the graphics are the automatic pick: nothing chosen in Settings › Graphics and no `--graphics=` preset.
