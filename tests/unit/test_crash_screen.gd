@@ -78,7 +78,7 @@ func _tail() -> LogTail:
 
 
 func _scrub() -> ReportScrub:
-	return ReportScrub.new("/save/folder", "/home/tester", "tester", "testbox", 3)
+	return ReportScrub.new("/save/folder", "/home/tester", "tester", "testbox", ReportConfig.new())
 
 
 ## A run that crashed in a match on Depot, round 4 started at 2-1.

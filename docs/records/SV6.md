@@ -59,6 +59,9 @@
   "›" lines); `RESTART_LINE` lives in `LogTail` (GraphicsStartUp prints it), so `game/report/` no longer depends on
   `game/ui/`; the report box keeps its scroll as the note changes; ARCHITECTURE's entry scene row names the crash
   screen.
+- **Rebased** onto SV5 (`c5f90b1`, on main after SV4 merged): `BugReport.note_line` takes SV4's final note cut
+  (`ReportScrub.cut_whole` before the scrub); the tests' ReportScrub takes a ReportConfig; Dev › Reset the save (gone in
+  SV2) stays gone; PLAYTEST's crash screen checks follow SV5's Bug reports, whose "after SV6" marks went.
 - **Advisory left (QA):** the When's local time uses `Time.get_time_zone_from_system().bias` as minutes east of UTC;
   on Windows its sign is unchecked here (an owner's check: When reads the local clock).
 
@@ -67,6 +70,7 @@
 `tools/check.sh`: gdlint, changelog notes, unit tests (2465 of 2465, no script error), smoke test and licence notices all pass.
 Attempt 2: all five gates pass, unit tests 2474 of 2474, no script error.
 After the last advisories: all five gates pass, unit tests 2475 of 2475, no script error.
+After the rebase onto SV5: all five gates pass, unit tests 2553 of 2553, no script error.
 
 ## Screenshot
 
@@ -96,4 +100,4 @@ crash-screen.png's layout, text and colours; the report shows this machine's fac
 `game/report/log_tail.gd` and `game/ui/graphics_start_up.gd` (the restart log passed over, the log read once),
 `game/report/report_facts.gd` (errors from LogTail's lines), `game/report/bug_report.gd` (`note_line`), `game/ui/hazard_tape.gd`
 (the orange tape), `game/report/README.md` (LogTail's line), `docs/ARCHITECTURE.md` (`CrashScreen` in the `game/ui/`
-row), `tests/unit/test_log_tail.gd` (two tests), `docs/records/SV6.md`.
+row and the entry scene's), `docs/TASKS.md` (the block out), `tests/unit/test_log_tail.gd`, `docs/records/SV6.md`.
