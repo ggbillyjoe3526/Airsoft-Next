@@ -145,6 +145,11 @@ var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
 ## The automatic step-down's watch, whether the window has the focus and whether the shaders are warm (the warm-up's
 ## frames say nothing about the graphics); the Dev settings' Pretend slow frames.
 var _watch: FrameWatch = FrameWatch.new()
+## What a bug report keeps of the moments before it (SV4): the last game events and frame times, fed each tick and
+## frame with no allocation, formatted only when a report is made (ReportFacts).
+var _report: ReportConfig = ReportConfig.load_default()
+var _recent: RecentEvents = RecentEvents.new(_report)
+var _frames: FrameWindow = FrameWindow.new(_report)
 var _focused: bool = true
 ## The screen's rate (DisplayServer, 0 or less when unknown), a limit on the frames while V-Sync is on; read at the
 ## start and when the window gets the focus back (it may have moved to another screen).
@@ -631,6 +636,7 @@ func _after_tick() -> void:
 	_hud.set_vault_ready(_vault_ready())
 	_tally.on_tick(state)
 	_stats.after_tick(state, TICK)
+	_recent.record(state.tick, state.events, PLAYER_ID)
 	if _targets_view != null:
 		_targets_view.on_tick(state)
 	var events := state.events
@@ -690,6 +696,7 @@ func _process(delta: float) -> void:
 		return
 	_follow_skip(delta)
 	_watch_frame(delta)
+	_frames.add(delta)
 	# The next match waits while the last round's table holds the results back.
 	if _rematch_left > 0.0 and not _hud.holds_results():
 		_rematch_left = maxf(0.0, _rematch_left - delta)
@@ -1099,6 +1106,15 @@ func _apply_graphics(values: GraphicsQuality) -> void:
 ## The automatic step-down's watch.
 func frame_watch() -> FrameWatch:
 	return _watch
+
+
+## The match's last events and frame times, for a bug report (ReportFacts).
+func recent_events() -> RecentEvents:
+	return _recent
+
+
+func frame_window() -> FrameWindow:
+	return _frames
 
 
 ## Whether the graphics are the automatic pick: nothing chosen in Settings › Graphics and no `--graphics=` preset.
