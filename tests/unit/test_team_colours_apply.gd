@@ -129,3 +129,26 @@ func test_the_match_page_s_team_picks_follow_the_saved_set_at_once() -> void:
 		_assert_colour(page.team_card(side).picked_fill, GameTheme.CARD.lerp(today[side], MatchPage.TEAM_TINT),
 				"its tint")
 	await wait_process_frames(1) # the rules' chips the change rebuilt go
+
+
+## The glowing figure materials the prewarm draws for `colour_set`, as [faded, opaque] counts.
+func _glowing_warmed(colour_set: TeamColours.Set) -> Array[int]:
+	var s := Settings.new(PlayTuning.new())
+	s.team_colours = colour_set
+	var fresh := PlaySession.new()
+	fresh.settings = s
+	fresh.bots_active = false
+	add_child_autofree(fresh)
+	var warm := fresh.find_child("ShaderPrewarm", true, false) as ShaderPrewarm
+	var counts: Array[int] = [0, 0]
+	for speck in warm.find_children("*", "MeshInstance3D", true, false):
+		var m := (speck as MeshInstance3D).material_override as StandardMaterial3D
+		if m != null and m.emission_enabled:
+			counts[0 if m.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA else 1] += 1
+	return counts
+
+
+func test_the_prewarm_draws_a_glowing_figure_both_ways_and_standard_none() -> void:
+	assert_eq(_glowing_warmed(TeamColours.Set.HIGH_CONTRAST), [1, 1] as Array[int],
+			"faded and opaque: the first bot seen is drawn opaque (performance)")
+	assert_eq(_glowing_warmed(TeamColours.Set.STANDARD), [0, 0] as Array[int])

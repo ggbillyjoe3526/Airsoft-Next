@@ -459,6 +459,9 @@ func _build_views(ui: CanvasLayer) -> void:
 	var first_use: Array[Material] = [
 		_bbs.drawn_material(), _puffs.drawn_material(), FigureView.material(Color.WHITE, true, _colours.figures.glow)
 	]
+	if _colours.figures.glow > 0.0:
+		# a glowing figure is drawn opaque first: its own shader, not the plain one the field's props warm (performance)
+		first_use.append(FigureView.material(Color.WHITE, false, _colours.figures.glow))
 	if state.round_state.mode == RoundState.Mode.ATTACK_DEFEND:
 		_flag = FlagView.new()
 		_flag.setup(_play.flag, _colours.figures, state.round_state.pole, _tuning.flag.radius)

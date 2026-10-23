@@ -10,6 +10,10 @@
 
 ## Decisions
 
+- **Review fixes:** a greyed LATER section locks its sliders as well as its buttons (`MenuParts.set_unused`; QA: the
+  Sound cues size slider still dragged and saved); with High contrast by day the prewarm also draws the opaque glowing
+  figure material, the one the first bot seen is drawn with (performance).
+
 - **The plan's defaults; the owner hasn't approved the step 21 pictures yet** (`settings-accessibility.png`,
   `hud-high-contrast.png`, plan questions 1 and 2). A new set shows from the next match (the session resolves it once
   at Play); the menus, the HUD tab's preview and its minimap samples change at once. High contrast's figures glow
@@ -71,3 +75,10 @@
 ## Known issues left
 
 - None new. KNOWN_ISSUES' SE1 row no longer lists Accessibility.
+
+## Advisories left (QA)
+
+- Bots' replicas keep their paints (Alpha's Cobalt rifle, Beta's Signal; `ReplicaSchemes.BOT_PAINTS`), so High
+  contrast's light blue and dark orange figures hold a dark blue or bright orange replica. Replica paint isn't part of
+  the team colour set; a ruling if the owner wants it to be.
+- The Match page rebuilds its rules and map list on every settings change, now also on each Accessibility click.
