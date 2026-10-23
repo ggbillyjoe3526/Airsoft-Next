@@ -493,3 +493,29 @@ func test_a_rematch_of_rigged_sessions_leaves_no_orphans() -> void:
 		p.free()
 	await wait_process_frames(3)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT), before, "no orphans left by the figures")
+
+
+func test_a_shot_beyond_the_far_line_with_far_stride_0_does_not_play_when_the_figure_comes_near() -> void:
+	var held_still := FigureConfig.new()
+	held_still.far_stride = 0
+	var own := FigureModels.new(held_still)
+	own.load_kinds()
+	var c := _character()
+	var v := FigureView.new()
+	add_child_autofree(v)
+	v.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	v.set_body(own, FigureMix.HUMAN, held_still.lod_high)
+	for i in 5:
+		v.update(c, 1.0)
+		v.animate(c, 1.0, FRAME, NEAR)
+	var tree := v.body().tree
+	for i in 30:
+		v.update(c, 1.0)
+		v.animate(c, 1.0, FRAME, FAR)
+	v.on_shot()
+	v.update(c, 1.0)
+	v.animate(c, 1.0, FRAME, FAR)
+	assert_false(v._fired, "dropped while held still out there")
+	v.update(c, 1.0)
+	v.animate(c, 1.0, FRAME, NEAR)
+	assert_false(tree.get(FigureGraph.P_FIRE_ACTIVE), "no stale press when it comes near")

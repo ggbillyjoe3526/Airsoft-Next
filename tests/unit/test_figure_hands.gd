@@ -371,3 +371,39 @@ func test_in_a_match_a_bots_shot_reaches_its_figure_by_id() -> void:
 	for f: FigureView in p._figures.slice(1):
 		assert_false(f._fired, "no one else's")
 	get_tree().paused = false
+
+
+func test_a_branch_with_no_weight_is_gated_off_and_comes_back() -> void:
+	var c := _character()
+	var v := _view(FigureMix.HUMAN, c)
+	var tree := v.body().tree
+	await _pose(v, c, 5)
+	assert_eq(tree.get(&"parameters/upper_gate/current_state"), FigureGraph.GATE_ON, "aiming: the upper body plays")
+	assert_eq(tree.get(&"parameters/hold_gate/current_state"), FigureGraph.GATE_ON, "the aim plays")
+	assert_eq(tree.get(&"parameters/holster_gate/current_state"), FigureGraph.GATE_REST, "the holster's arms don't")
+	c.armament.holstered = true
+	await _pose(v, c, 40)
+	assert_eq(tree.get(&"parameters/hold_gate/current_state"), FigureGraph.GATE_REST, "fully holstered: the aim doesn't")
+	assert_eq(tree.get(&"parameters/holster_gate/current_state"), FigureGraph.GATE_ON)
+	assert_eq(tree.get(FigureGraph.P_HOLSTER), 1.0, "drawn as the holster alone")
+	c.armament.holstered = false
+	c.status = Character.Status.CALLING
+	c.status_time = 2.0
+	await _pose(v, c, 60)
+	assert_eq(tree.get(&"parameters/upper_gate/current_state"), FigureGraph.GATE_REST, "calling: the upper body doesn't")
+	assert_eq(tree.get(FigureGraph.P_UPPER), 0.0)
+	# A switch begun behind the shut gate isn't asked for (it would play late, once the gate opens).
+	c.armament.active = 1
+	c.armament.draw_total = 0.3
+	c.armament.draw_left = 0.3
+	await _pose(v, c)
+	assert_false(tree.get(FigureGraph.P_SWITCH_ACTIVE))
+	c.armament.draw_left = 0.0
+	c.status = Character.Status.ALIVE
+	c.status_time = 0.0
+	var d: Dictionary = await _pose(v, c, 60)
+	assert_eq(tree.get(&"parameters/upper_gate/current_state"), FigureGraph.GATE_ON, "back on")
+	assert_false(tree.get(FigureGraph.P_SWITCH_ACTIVE), "no late switch")
+	var held: Transform3D = d[&"in_hand"]
+	var hand: Transform3D = d["Hand_R"]
+	assert_lt((held * v.body().hands.grip_point(1)).distance_to(hand.origin), 0.15, "the pistol back in the fist")

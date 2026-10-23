@@ -111,6 +111,9 @@ extends Resource
 ## out of the holster (hold); the switch and the trigger press faded in (overlay).
 @export var settle_hold: float = 0.06
 @export var settle_overlay: float = 0.08
+## An upper-body branch eased under this weight (the whole upper body calling the hit, the holster's arms, the aim under
+## a full holster) isn't evaluated: a one-frame clip stands in and its weight is drawn as 0.
+@export var gate_below: float = 0.001
 ## Holstered, the rifle rides slung on the Chest bone (the browser's FIGURE_RIG.sling): its butt sling_butt.x to the
 ## figure's right of the spine and sling_butt.y above the feet, sling_back_human behind the spine line (sling_back_pack
 ## over a human's pack, sling_pack_part; sling_back_robot on a robot), its long axis sling_tilt (rad) from upright, the

@@ -41,6 +41,15 @@ const HOLSTER_SPRINT_CLIP := &"holster_sprint_clip"
 const HOLSTER_SPRINT_SEEK := &"holster_sprint_seek"
 const HOLSTER_MIX := &"holster_mix"
 const HOLSTER := &"holster"
+const HOLD_GATE := &"hold_gate"
+const HOLD_REST := &"hold_rest"
+const HOLSTER_GATE := &"holster_gate"
+const HOLSTER_REST := &"holster_rest"
+const UPPER_GATE := &"upper_gate"
+const UPPER_REST := &"upper_rest"
+## A gate's two inputs: the branch itself, or a one-frame clip standing in while the branch has no weight.
+const GATE_ON := "on"
+const GATE_REST := "rest"
 const SWITCH_FORWARD := &"switch_forward"
 const SWITCH_BACK := &"switch_back"
 const SWITCH_WAY := &"switch_way"
@@ -72,6 +81,9 @@ const P_HOLD := &"parameters/hold/blend_amount"
 const P_HOLSTER_SPRINT_SEEK := &"parameters/holster_sprint_seek/seek_request"
 const P_HOLSTER_MIX := &"parameters/holster_mix/blend_amount"
 const P_HOLSTER := &"parameters/holster/blend_amount"
+const P_HOLD_GATE := &"parameters/hold_gate/transition_request"
+const P_HOLSTER_GATE := &"parameters/holster_gate/transition_request"
+const P_UPPER_GATE := &"parameters/upper_gate/transition_request"
 const P_SWITCH_WAY := &"parameters/switch_way/blend_amount"
 const P_SWITCH_PACE := &"parameters/switch_pace/scale"
 const P_SWITCH := &"parameters/switch/request"
@@ -156,7 +168,12 @@ static func _upper_body(graph: AnimationNodeBlendTree, library: AnimationLibrary
 	pumping.start_offset = sprint_start
 	_seeked(graph, HOLSTER_SPRINT_CLIP, HOLSTER_SPRINT_SEEK, pumping)
 	_layer(graph, HOLSTER_MIX, HOLSTER_CLIP, HOLSTER_SPRINT_SEEK)
-	_layer(graph, HOLSTER, HOLD, HOLSTER_MIX)
+	# Godot's Blend2 evaluates an input at weight 0 all the same: each branch that can sit unweighted (the aim under a
+	# full holster, the holster's arms, the whole upper body calling the hit, walking off or vaulting) stands behind a
+	# gate that swaps in a one-frame clip meanwhile.
+	_gate(graph, HOLD_GATE, HOLD, HOLD_REST, _clip(library, cfg.holster_clip))
+	_gate(graph, HOLSTER_GATE, HOLSTER_MIX, HOLSTER_REST, _clip(library, cfg.holster_clip))
+	_layer(graph, HOLSTER, HOLD_GATE, HOLSTER_GATE)
 	graph.add_node(SWITCH_FORWARD, _clip(library, cfg.switch_clip))
 	var back := _clip(library, cfg.switch_clip)
 	back.play_mode = AnimationNodeAnimation.PLAY_MODE_BACKWARD
@@ -178,7 +195,8 @@ static func _upper_body(graph: AnimationNodeBlendTree, library: AnimationLibrary
 			upper.set_filter_path(NodePath(prefix + ":" + bone), true)
 	graph.add_node(UPPER, upper)
 	graph.connect_node(UPPER, 0, WALK_OFF)
-	graph.connect_node(UPPER, 1, SWITCH)
+	_gate(graph, UPPER_GATE, SWITCH, UPPER_REST, _clip(library, cfg.holster_clip))
+	graph.connect_node(UPPER, 1, UPPER_GATE)
 	graph.add_node(RIFLE_FIRE, _clip(library, StringName(cfg.rifle_fire_clip + cfg.additive_suffix)))
 	graph.add_node(PISTOL_FIRE, _clip(library, StringName(cfg.pistol_fire_clip + cfg.additive_suffix)))
 	_layer(graph, FIRE_HOLD, RIFLE_FIRE, PISTOL_FIRE)
@@ -189,6 +207,23 @@ static func _upper_body(graph: AnimationNodeBlendTree, library: AnimationLibrary
 	graph.add_node(FIRE, fire)
 	graph.connect_node(FIRE, 0, UPPER)
 	graph.connect_node(FIRE, 1, FIRE_HOLD)
+
+
+## A Transition `name` between `branch` (GATE_ON, the first and the start) and `rest` (GATE_REST, the node
+## `rest_name`), switched at once and never restarting either: only the input chosen is evaluated.
+static func _gate(graph: AnimationNodeBlendTree, name: StringName, branch: StringName, rest_name: StringName,
+		rest: AnimationNode) -> void:
+	var gate := AnimationNodeTransition.new()
+	gate.xfade_time = 0.0
+	gate.input_count = 2
+	gate.set_input_name(0, GATE_ON)
+	gate.set_input_name(1, GATE_REST)
+	gate.set_input_reset(0, false)
+	gate.set_input_reset(1, false)
+	graph.add_node(rest_name, rest)
+	graph.add_node(name, gate)
+	graph.connect_node(name, 0, branch)
+	graph.connect_node(name, 1, rest_name)
 
 
 ## An aim BlendSpace1D: `clips` (down, level, up) at -1, 0 and 1, blended by the pitch's share of FigureConfig.aim_pitch.

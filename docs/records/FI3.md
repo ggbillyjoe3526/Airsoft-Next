@@ -1,12 +1,14 @@
 # FI3 · The upper body: aim, the replica in the hands, firing, switching, the holster and the hanging rifle
 
-**Review:** pending (critic, QA, performance)
+**Review:** qa Pass · performance Pass · critic pending
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus 5.5 (worker) | pass | – | – |
+| 2026-10-23 | 1, QA | – | QA Pass (`tests/unit/test_figure_hands_qa.gd`, 18); performance Pass | – | – |
+| 2026-10-23 | 1, fix round | Opus 5.5 (worker) | pass | – | rebase onto FI5; QA's stale press; the weightless branches |
 
 ## Decisions
 
@@ -49,10 +51,24 @@
 - **test_figure_legs_qa's hit-call check now asks for the hand over 1.75 m** (and 0.3 m over the standing pose): the
   standing left hand is on the aimed rifle (1.46 m), no longer at the side.
 
+## Fixes after QA and performance
+
+- Rebased onto main (FI2 as merged, FI6, FI5): FI5's flinch and FI3's aim both in FigureBend (`bend()` then `aim()`);
+  the SHOT event goes through FI5's `PlaySession._figure_of`, the one id-indexed array (FI3's own is gone).
+- `figure_view.gd` `animate`: with `far_stride` 0 a figure held still beyond the far line drops a shot's press, so it
+  doesn't play stale when the figure comes near (QA); `test_figure_hands_qa.gd` pins it (fails with the line removed).
+- **Weightless branches gated off** (performance): Godot's Blend2 evaluates an input at weight 0 all the same (measured:
+  the upper branch swapped for one clip cut 12 calling figures from about 0.47 to 0.25 ms). The aim under a full
+  holster, the holster's arms when not holstered and the whole upper body under `gate_below` (0.001: calling, walking
+  off, vaulting) each stand behind a Transition that plays a one-frame clip meanwhile, asked only when it changes; with
+  the upper body shut, its parameters aren't set and a switch isn't begun. Re-measured, `animate` for 12 figures on this
+  machine (2,400 frames, three rounds, noisy): calling 0.43-0.53 ms gated open, 0.36-0.41 shut; holstered 0.46-0.52 and
+  0.44-0.49 (within the noise: Holster and Holster_Sprint still play); aiming unchanged, 0.52-0.60.
+
 ## Checks
 
-- `tools/check.sh`: gdlint, changelog notes, unit tests (2,649 passing, 0 failing), the smoke test and the licence
-  notices pass.
+- `tools/check.sh`: gdlint, changelog notes, unit tests (2,649 passing, 0 failing), the smoke test and the licence notices pass. After the fix
+  round (on main with FI5): unit tests 2,718 passing, 0 failing; the rest pass.
 - Mutation: the fire clips copied as they are, not made additive, fails the press-over-the-aim test (0.26 rad off).
 - `tests/unit/test_figure_hands.gd` (13): the grip and the muzzle at 0 and ±45° (both kinds), the Switch's pistol only
   past 0.35 and its pace, the switch back, one press a shot for the clip's length, the press over the aim, the sling
@@ -73,6 +89,16 @@ robot holstered side on, a human calling the hit (left hand up, the rifle hangin
 - Tick Dev › Rigged figures and watch bots aim up and down stairs, fire on auto and semi, switch to the pistol and back,
   holster and draw, sprint holstered, call a hit: the replica stays in the fist and points where the BBs go.
 - Say whether the spine's lean past ±60° (looking straight down from a height) reads badly.
+
+## Advisories left
+
+- The performance ruling (coordinator): the +41 % `animate` cost (0.64 to 0.90 ms for 12 figures, 1.10 ms under fire, the
+  performance review's machine) is the new upper-body layers, not a regression.
+- The upper tree could take the legs' far stride (posed every 4th frame beyond the far line) on its own.
+- `tree.set` could skip a value unchanged since the last frame (about 15 sets a figure a frame).
+- The worker's limits: a switch between two replicas of one class plays the rifle-to-pistol clip; a figure shown again
+  mid-switch starts the Switch from its beginning; a holstered figure that vaults keeps the Vault clip's arms.
+- The spine's lean past ±60° (the clips' reach) carries the rest of the pitch alone: say if it reads badly.
 
 ## Known issues left
 
