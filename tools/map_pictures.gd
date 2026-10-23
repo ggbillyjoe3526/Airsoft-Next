@@ -1,6 +1,7 @@
 extends SceneTree
-## Renders each match field from a high three-quarter camera to assets/maps/<id>.jpg (the Match page's map cards and
-## the loading screen's backdrop, MN2). Needs a display and OpenGL, so under xvfb:
+## Renders each match field from a high three-quarter camera, and the practice range from its firing line with its
+## targets and markings standing, to assets/maps/<id>.jpg (the Match page's map cards and the loading screen's
+## backdrop, MN2 and RG4). Needs a display and OpenGL, so under xvfb:
 ##   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 -s res://tools/map_pictures.gd
 ## Arguments after `--`: an output folder (default assets/maps/) and an optional map id to render alone. A map that
 ## can't load is skipped with its reasons.
@@ -15,6 +16,11 @@ const ELEVATION := 58.0
 const AZIMUTH := 205.0
 const FOV := 32.0
 const FILL := 0.97
+## The range's picture: the camera stands at the firing line's spawn at eye height looking downrange, this wide
+## (degrees, vertical) and tipped down this far (degrees), so the card's crop (a 420x400 window of the 700x400 picture)
+## keeps the lanes' middle with the floor under it.
+const RANGE_FOV := 40.0
+const RANGE_PITCH := 8.0
 ## The camera then moves in to this share of the distance that fits the field, so it fills the frame and the card's
 ## crop (the Match page shows a 420x400 window of it) takes only the far corners.
 const CLOSER := 0.88
@@ -35,14 +41,18 @@ func _run() -> void:
 	var play := PlayTuning.load_default()
 	var tuning := SimTuning.load_default()
 	var failed := 0
-	for entry in MapCatalog.shared().fields(true):
+	for entry in MapCatalog.shared().listed(true):
 		if not only.is_empty() and entry.id != only:
 			continue
-		var map := MapData.load_map(entry.id, play.map_style, tuning.rounds.team_size)
+		var map := MapData.load_map(entry.id, play.map_style, MatchOptions.check_size(entry, tuning.rounds.team_size))
 		if not map.ok():
 			print("[map_pictures] %s skipped: %s" % [entry.id, "; ".join(map.problems)])
 			continue
-		var image := await _render(map, play)
+		var image: Image = null
+		if entry.kind == &"range":
+			image = await _render_range(map, play, tuning)
+		else:
+			image = await _render(map, play)
 		var path := "%s/%s.jpg" % [dir.trim_suffix("/"), entry.id]
 		if image == null or image.save_jpg(path, QUALITY) != OK:
 			push_error("map_pictures: %s could not be written" % path)
@@ -67,6 +77,40 @@ func _render(map: MapData, play: PlayTuning) -> Image:
 	camera.fov = FOV
 	port.add_child(camera)
 	_frame(camera, map)
+	for i in SETTLE_FRAMES:
+		await RenderingServer.frame_post_draw
+	var image := port.get_texture().get_image()
+	port.queue_free()
+	return image
+
+
+## The range seen from where you start: its level, lighting, markings and targets, nothing else; null when nothing was
+## drawn.
+func _render_range(map: MapData, play: PlayTuning, tuning: SimTuning) -> Image:
+	var port := SubViewport.new()
+	port.size = SIZE
+	port.msaa_3d = MSAA
+	port.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	root.add_child(port)
+	var level := MapLevel.new()
+	port.add_child(level)
+	level.build(map, play.map_style, tuning.body)
+	port.add_child(FieldLighting.build(play.lighting))
+	var font := GameTheme.font(800)
+	var marks := RangeView.new()
+	port.add_child(marks)
+	marks.setup(play.range_view, tuning.targets, font)
+	var targets := RangeTargets.create(map.targets, tuning)
+	var view := RangeTargetsView.new()
+	port.add_child(view)
+	view.setup(targets, play.range_view, tuning, font)
+	view.update(targets, 1.0, 0.0)
+	var camera := Camera3D.new()
+	camera.fov = RANGE_FOV
+	port.add_child(camera)
+	var spawn := map.ends[0].spawns[0]
+	camera.global_position = spawn.position + Vector3.UP * tuning.body.stand_eye_height
+	camera.global_rotation = Vector3(-deg_to_rad(RANGE_PITCH), spawn.yaw, 0.0)
 	for i in SETTLE_FRAMES:
 		await RenderingServer.frame_post_draw
 	var image := port.get_texture().get_image()

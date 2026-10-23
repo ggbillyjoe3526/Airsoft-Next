@@ -700,10 +700,10 @@ msgid "MODE_ATTACK_DEFEND_BLURB"
 msgstr "Take the flag, or hold it until the clock runs out."
 
 msgid "MODE_PRACTICE"
-msgstr "Practice Range"
+msgstr "Practice"
 
 msgid "MODE_PRACTICE_BLURB"
-msgstr "Targets, drills and the timed challenge."
+msgstr "Shoot the targets, try the timed challenge, tune your replica."
 
 msgid "RULE_SIZE"
 msgstr "%d v %d"
@@ -1955,3 +1955,117 @@ msgstr "Dash"
 
 msgid "RANGE_START_PLATE"
 msgstr "START"
+
+msgid "MENU_FIELDS_ONLY"
+msgstr "FIELDS ONLY"
+
+msgid "MENU_RANGE_ONLY"
+msgstr "RANGE ONLY"
+
+msgid "MENU_NOT_USED"
+msgstr "NOT USED"
+
+msgid "MENU_START_PRACTICE"
+msgstr "START PRACTICE"
+
+msgid "MENU_SUMMARY_PRACTICE"
+msgstr "%s · No bots, no score"
+
+msgid "LOAD_KICKER_PRACTICE"
+msgstr "%s · No bots, no score"
+
+msgid "PAUSE_CHALLENGE"
+msgstr "Timed challenge"
+
+msgid "PAUSE_LEAVE_PRACTICE"
+msgstr "Leave practice"
+
+msgid "PAUSE_PRACTICE_CHALLENGE"
+msgstr " · timed challenge"
+
+msgid "PAUSE_PRACTICE_BEST"
+msgstr " · best %d"
+
+msgid "RANGE_LAST_BB"
+msgstr "Last BB"
+
+msgid "RANGE_FIRST_KICKER"
+msgstr "The range"
+
+msgid "RANGE_FIRST_TITLE"
+msgstr "Shoot anything."
+
+msgid "RANGE_FIRST_BODY"
+msgstr "Each BB names what it hit, or says where it landed. Distances are marked on the walls."
+
+msgid "RANGE_MISSED"
+msgstr "Missed"
+
+msgid "RANGE_LANDED"
+msgstr "landed %d m downrange"
+
+msgid "RANGE_OUT"
+msgstr "Flew out of bounds"
+
+msgid "RANGE_OUT_HINT"
+msgstr "Aim lower, or turn the hop-up down."
+
+msgid "RANGE_TARGET_STEEL"
+msgstr "Steel"
+
+msgid "RANGE_TARGET_SMALL_STEEL"
+msgstr "Small steel"
+
+msgid "RANGE_TARGET_FIGURE"
+msgstr "Figure"
+
+msgid "RANGE_TARGET_CROUCHED_FIGURE"
+msgstr "Crouched figure"
+
+msgid "RANGE_TARGET_MOVER"
+msgstr "Mover"
+
+msgid "RANGE_TARGET_SWINGER"
+msgstr "Swinger"
+
+msgid "RANGE_TARGET_POP_UP"
+msgstr "Pop-up"
+
+msgid "RANGE_TARGET_CROUCHED_POP_UP"
+msgstr "Crouched pop-up"
+
+msgid "RANGE_TARGET_START"
+msgstr "START"
+
+msgid "CHALLENGE_KICKER"
+msgstr "Timed challenge"
+
+msgid "CHALLENGE_READY"
+msgstr "Shoot START to begin"
+
+msgid "CHALLENGE_BEST_LINE"
+msgstr "best"
+
+msgid "CHALLENGE_HITS"
+msgstr "Hits"
+
+msgid "CHALLENGE_BEST"
+msgstr "Best"
+
+msgid "CHALLENGE_GO"
+msgstr "Go!"
+
+msgid "CHALLENGE_TIME"
+msgstr "Time!"
+
+msgid "CHALLENGE_SHOTS"
+msgstr "Shots"
+
+msgid "CHALLENGE_MISSED"
+msgstr "Missed"
+
+msgid "CHALLENGE_NEW_BEST"
+msgstr "New best"
+
+msgid "CHALLENGE_NOT_KEPT"
+msgstr "Not kept (Dev settings)"

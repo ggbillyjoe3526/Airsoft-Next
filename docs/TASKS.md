@@ -22,23 +22,6 @@ acceptance:
 status: open
 attempts: 0
 
-## RG4 · Practice on the Match screen, its HUD and pause menu
-tier: ui
-perf: optional
-touches: game/ui/match_options.gd, game/ui/match_page.gd, game/ui/hud.gd, game/ui/hud_range_readout.gd,
-  game/ui/pause_menu.gd, game/save/settings.gd, game/map/map_catalog.gd, game/main.gd, game/play/play_session.gd,
-  tools/map_pictures.gd, assets/maps/, game/ui/text/en.po, tests/unit/
-contract: Saves (8)
-acceptance:
-  1. Match screen, readout, banners and pause menu as the concepts in `/mnt/project-files/concepts/step16-range/`
-     show (awaiting the owner's approval).
-  2. Practice is built: picking it and Start practice opens the range; quitting returns to the menus.
-  3. The readout names the last BB's target and distance, where it landed or that it flew out; no target hit marker.
-  4. The challenge shows ready, countdown, Go!, time, hits, best, Time! and the run's result (new best, not kept);
-     its pause-menu switch is saved in Settings.
-status: open
-attempts: 0
-
 ## RG5 · The Loadout from practice
 tier: ui
 perf: optional

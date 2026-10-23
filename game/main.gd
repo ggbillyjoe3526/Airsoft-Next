@@ -33,7 +33,7 @@ const SMOKE_SEED := 1
 const SMOKE_MAP := "depot"
 ## The most ticks the smoke test's practice may take to ring a plate (a minute).
 const SMOKE_RANGE_MAX_TICKS := 3600
-## Practice is played on the range (M21).
+## The smoke test's practice is played on the range (M21); a player's is on the map picked, the Range's card.
 const PRACTICE_MAP := "range"
 ## The smoke match's squad orders, one step a frame once the first round is live: Follow me's key pressed (+) and let
 ## go (-) twice (given, then cancelled), then the order wheel's key held, the mouse flicked up onto its top order (an
@@ -194,8 +194,9 @@ func _credits_closed() -> void:
 		_title.focus_start()
 
 
-## Opens the match picked, or practice on the range (`practice`: so far only the smoke test's way in).
-func _start_play(practice: bool = false) -> void:
+## Opens the match picked: practice when the Match page has Practice picked (START PRACTICE) or `smoke_practice` is given
+## (the smoke test's way in).
+func _start_play(smoke_practice: bool = false) -> void:
 	if _play != null:
 		return
 	# No menu nodes live during a match: the title and the menus are freed now and built again when it ends. The loadouts
@@ -205,12 +206,14 @@ func _start_play(practice: bool = false) -> void:
 	_menus.leave_loadout()
 	SavedLoadouts.shared().save_if_dirty()
 	_free_screens()
+	var practice := smoke_practice or (not _smoke and _picks.mode == MatchOptions.MODE_PRACTICE)
 	var team := PlaySession.TEAM_ALPHA if _smoke else _picks.team
-	var map_id := PRACTICE_MAP if practice else SMOKE_MAP if _smoke else _picks.map_id
+	var map_id := PRACTICE_MAP if smoke_practice else SMOKE_MAP if _smoke else _picks.map_id
 	_play = PlaySession.new()
 	_play.autopilot = _smoke
 	_play.counts = not _smoke
 	_play.practice = practice
+	_play.challenge_on = practice and not _smoke and Settings.shared().practice_challenge
 	_play.mode = MatchOptions.MODE_PRACTICE if practice else _picks.mode
 	_play.difficulty = StringName(_picks.bots)
 	_play.teammate_difficulty = StringName(_picks.teammates)
@@ -272,10 +275,14 @@ func _end_play() -> void:
 		_smoke_left_at = _frame
 	_perf.watch(null)
 	_free_loading()
+	var from_practice := _play.practice and not _smoke
 	_play.queue_free()
 	_play = null
 	_build_screens()
 	_title.focus_start()
+	if from_practice:
+		# Leaving practice lands on the Match page, Practice still picked, a click from the range again.
+		_show_menus()
 	_scale_menus()
 
 

@@ -238,10 +238,10 @@ func test_the_match_pages_maps_follow_dev_content() -> void:
 	await wait_process_frames(2)
 	var page: MatchPage = main._menus.match_page()
 	var public_count := page.map_ids().size()
-	assert_eq(public_count, MapCatalog.shared().fields(false).size(), "box off: public maps only")
+	assert_eq(public_count, MapCatalog.shared().listed(false).size(), "box off: public maps only")
 	shared.dev_enabled = true
 	shared.mark_changed()
-	assert_eq(page.map_ids().size(), MapCatalog.shared().fields(true).size())
+	assert_eq(page.map_ids().size(), MapCatalog.shared().listed(true).size())
 	assert_gt(page.map_ids().size(), public_count)
 	main._picks.map_id = "neonHeights"
 	shared.dev.dev_content = false

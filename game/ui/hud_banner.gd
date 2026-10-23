@@ -5,18 +5,20 @@ extends MarginContainer
 
 var _big: Label = null
 var _sub: Label = null
+var _column: VBoxContainer = null
 
 
-func setup() -> void:
+## `pad` is the padding round the words (left, top, right, bottom; the round banners' by default).
+func setup(pad: Vector4 = HudStyle.BANNER_PAD) -> void:
 	name = "HudBanner"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var pad := HudStyle.BANNER_PAD
 	add_theme_constant_override("margin_left", roundi(pad.x))
 	add_theme_constant_override("margin_top", roundi(pad.y))
 	add_theme_constant_override("margin_right", roundi(pad.z))
 	add_theme_constant_override("margin_bottom", roundi(pad.w))
 	var column := VBoxContainer.new()
+	_column = column
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_theme_constant_override("separation", HudStyle.BANNER_SUB_GAP)
 	add_child(column)
@@ -25,6 +27,11 @@ func setup() -> void:
 	_sub = HudStyle.label(column, HudStyle.BANNER_SUB_SIZE, 700, GameTheme.MUTED, HORIZONTAL_ALIGNMENT_CENTER,
 			HudStyle.SPACING_SUB)
 	visible = false
+
+
+## Puts `row` under the words (the timed challenge's result); the banner shows it while it is visible.
+func add_row(row: Control) -> void:
+	_column.add_child(row)
 
 
 ## Shows `big` (in `colour`, the text colour when transparent) over `sub`; either may be empty.

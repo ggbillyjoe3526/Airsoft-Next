@@ -3,6 +3,10 @@ class_name MenuParts
 ## its labels one way: Inter at a weight, a size and a colour from GameTheme.
 
 const HEADING_GAP := 16
+## A section the picked mode doesn't use: how much of it shows, and its tag's size and gap after the heading (px).
+const UNUSED_ALPHA := 0.4
+const UNUSED_TAG_SIZE := 12
+const UNUSED_TAG_GAP := 14
 ## The glow behind a replica's picture (the concept's radial gradient from #27406b to the card colour).
 const GLOW := Color("27406b")
 const GLOW_CENTRE := Vector2(0.5, 0.6)
@@ -31,6 +35,37 @@ static func spaced(words: String, size: int, weight: int, colour: Color, em: flo
 ## The section heading (22 px, muted, spaced).
 static func heading(words: String) -> Label:
 	return spaced(words, GameTheme.HEADING_SIZE, 800, GameTheme.MUTED, GameTheme.SPACING_HEADING)
+
+
+## A section heading with its NOT USED tag after it (child 1, hidden until `set_unused`): the concept's `h2 .later`.
+static func heading_row(words: String) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", UNUSED_TAG_GAP)
+	row.add_child(heading(words))
+	var tag := MenuTag.grey("MENU_NOT_USED", UNUSED_TAG_SIZE)
+	tag.name = "NotUsed"
+	tag.visible = false
+	row.add_child(tag)
+	return row
+
+
+## Marks a section the picked mode doesn't use (the Match page's Practice): its `tag` shows, `parts` (its body, not its
+## heading) fade to UNUSED_ALPHA and no button in them takes a click or the focus; or the reverse.
+static func set_unused(parts: Array[Control], tag: Control, on: bool) -> void:
+	tag.visible = on
+	for part in parts:
+		part.modulate.a = UNUSED_ALPHA if on else 1.0
+		_lock(part, on)
+
+
+static func _lock(node: Node, on: bool) -> void:
+	if node is BaseButton:
+		var b := node as BaseButton
+		b.mouse_filter = Control.MOUSE_FILTER_IGNORE if on else Control.MOUSE_FILTER_STOP
+		b.focus_mode = Control.FOCUS_NONE if on else Control.FOCUS_ALL
+	for child in node.get_children():
+		_lock(child, on)
 
 
 ## A margin container with the margins left, top, right, bottom.

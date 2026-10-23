@@ -9,7 +9,9 @@ extends Control
 ## you are out (or with the Dev settings' Spectate any bot) at the bottom. In Attack / Defend (concepts `hud-attack.png`,
 ## `hud-defend.png`, `round-end.png`): the ATK / DEF tags and the overtime clock on the score bar, the flag gauge under
 ## it (HudFlagGauge), the warning while the other team's flag goes up, the marker over the pole with its distance, and
-## the rounds' own banners. Text is only rebuilt when what it shows changes. No hints teaching the controls (owner,
+## the rounds' own banners. On the practice range (`setup_range`, concepts `step16-range/`): no score bar, rounds or hit
+## feed; the last BB's readout bottom left (HudRangeReadout) and the timed challenge's bar, ready line and banners
+## (HudRangeChallenge). Text is only rebuilt when what it shows changes. No hints teaching the controls (owner,
 ## 2026-10-16).
 
 const MARGIN := 32.0
@@ -62,6 +64,9 @@ var _feed: HudFeed = null
 var _team_markers: HudTeamMarkers = null
 var _round_result: HudRoundResult = null
 var _summary: MatchSummary = null
+## Practice: the last BB's readout and the timed challenge's display (null in a match).
+var _readout: HudRangeReadout = null
+var _challenge: HudRangeChallenge = null
 ## The score bar's column and the bottom line (whom you watch, the skip hint), hidden with the replica panel and the
 ## feed under the summary.
 var _top: VBoxContainer = null
@@ -217,6 +222,35 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_watching.add_theme_stylebox_override("normal", HudStyle.panel_box(HudStyle.BACKING_AIM, 12, 4))
 	_watching.visible = false
 	_build_skip_hint(bottom)
+
+
+## Makes this the practice range's HUD: no score bar, rounds or hit feed, and the readout and the timed challenge in
+## their place, for `range_cfg`'s walls and run and the player's BBs.
+func setup_range(range_cfg: RangeConfig) -> void:
+	# The readout sits at the bottom of a lane, MARGIN in from the corner, so it grows up and keeps its foot as it changes.
+	var lane := VBoxContainer.new()
+	lane.name = "RangeLane"
+	lane.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lane.alignment = BoxContainer.ALIGNMENT_END
+	_place(lane, Vector4(0.0, 1.0, 0.0, 1.0), Rect2(MARGIN, -MARGIN, 0.0, 0.0))
+	lane.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	add_child(lane)
+	_readout = HudRangeReadout.new()
+	lane.add_child(_readout)
+	_readout.setup(range_cfg, _player.id)
+	_challenge = HudRangeChallenge.new()
+	add_child(_challenge)
+	_challenge.setup(range_cfg, _player.id)
+	_top.visible = false
+	_feed.visible = false
+
+
+func range_readout() -> HudRangeReadout:
+	return _readout
+
+
+func range_challenge() -> HudRangeChallenge:
+	return _challenge
 
 
 ## The field the teammate markers check their line of sight against (`query`), the bodies' heights, the names by
@@ -391,6 +425,9 @@ func set_watching(bot_name: String) -> void:
 
 ## The tick's events: your hits, the round's turns.
 func on_tick(state: GameState) -> void:
+	if _readout != null:
+		_readout.on_tick(state)
+		_challenge.on_tick(state)
 	var events := state.events
 	for i in events.count:
 		var e := events.items[i]
@@ -420,6 +457,8 @@ func on_tick(state: GameState) -> void:
 						_hits.clear()
 						_summary.clear_hits()
 				var rs := state.round_state
+				if rs.practice:
+					continue
 				if rs.mode == RoundState.Mode.ATTACK_DEFEND:
 					var attacking := _player.team == rs.attackers
 					_show_banner(HudStyle.side_round_title(e.value, attacking),
@@ -476,8 +515,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	_summary.visible = _summary.is_open() and not _round_result.holds_results()
 	_replica.visible = not _summary.visible
 	_bottom.visible = not _summary.visible
-	_top.visible = not _summary.visible
-	_feed.visible = not _summary.visible
+	_top.visible = not _summary.visible and _readout == null
+	_feed.visible = not _summary.visible and _readout == null
 	if _summary.visible and _what_got_you != null:
 		hide_what_got_you()
 	if _banner_left > 0.0 and _xp == null and not _summary.is_open() and not _round_result.is_open():
@@ -511,6 +550,9 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	if flag_mode and rs.attackers >= 0:
 		_gauge.set_flag(rs.flag.progress, _teams.colours[rs.attackers])
 	_update_warning(rs, delta)
+	if _readout != null:
+		_readout.visible = state.challenge.phase == RangeChallenge.Phase.OFF
+		_challenge.update(state, delta)
 	_hits.prune(state.time)
 	_feed.refresh(_hits, state.time, state.characters, _player)
 	queue_redraw()

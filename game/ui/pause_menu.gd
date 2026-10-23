@@ -1,13 +1,16 @@
 class_name PauseMenu
 extends Control
 ## The menu Esc opens in play (concept `pause.png`): the match stops (the tree is paused) and the mouse is freed. PAUSED,
-## the map, mode and round, then Resume, Settings and Quit match, and the match's seed at the foot. Works while the
-## tree is paused.
+## the map, mode and round, then Resume, Settings and Quit match, and the match's seed at the foot. In practice (concept
+## `pause-practice.png`, `set_practice`): "Practice · Range", Resume, the Timed challenge's On / Off switch, Settings and
+## Leave practice, with no seed. Works while the tree is paused.
 
 signal resumed
 signal left
 ## Skip to next round was pressed (shown only while you are out and the round plays on).
 signal skipped
+## Practice's Timed challenge was switched: on or off.
+signal challenge_toggled(on: bool)
 
 ## The shade over the match, the panel's width and margins, and the sizes of its words (px at 1080p; concept `pause.png`).
 const BACKDROP := Color(0.031, 0.051, 0.094, 0.72)
@@ -27,6 +30,14 @@ const BUTTON_SIZE := 22
 const SEED_TOP := 28
 const SEED_PAD := 18
 const SEED_SIZE := 16
+## In practice (concept `pause-practice.png`): a wider panel, the gap above Leave practice, the foot's padding and the
+## Timed challenge switch's chips (type size, padding, gap; px at 1080p).
+const PRACTICE_WIDTH := 560.0
+const PRACTICE_LEAVE_GAP := 10
+const PRACTICE_BOTTOM := 36
+const SWITCH_SIZE := 15
+const SWITCH_PAD := Vector2i(12, 3)
+const SWITCH_GAP := 6
 
 ## The match's End the round now (returns false when no round is live), handed to the settings' Dev tab.
 var end_round: Callable = Callable()
@@ -34,8 +45,21 @@ var end_round: Callable = Callable()
 var _resume: Button = null
 var _settings_button: Button = null
 var _skip: Button = null
+var _panel: PanelContainer = null
+var _subtitle_lead: Label = null
 var _subtitle: Label = null
 var _seed: Label = null
+var _seed_gap: Control = null
+var _seed_row: Control = null
+var _leave: Button = null
+var _leave_gap: Control = null
+var _bottom_gap: Control = null
+## Practice: the Timed challenge's row and its chips, and whether it is on.
+var _challenge: Button = null
+var _chip_on: PanelContainer = null
+var _chip_off: PanelContainer = null
+var _challenge_on: bool = false
+var _practice: bool = false
 ## The settings screen, built the first time it is asked for.
 var _screen: SettingsScreen = null
 
@@ -55,6 +79,7 @@ func _ready() -> void:
 	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(backdrop)
 	var panel := PanelContainer.new()
+	_panel = panel
 	panel.name = "Panel"
 	panel.add_theme_stylebox_override("panel", GameTheme.box(GameTheme.PANEL, GameTheme.LINE, PANEL_SIDE, 0))
 	panel.set_anchors_preset(Control.PRESET_CENTER)
@@ -71,34 +96,106 @@ func _ready() -> void:
 	title.add_theme_font_size_override("font_size", TITLE_SIZE)
 	box.add_child(title)
 	box.add_child(_gap(SUBTITLE_TOP))
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override("separation", 0)
+	_subtitle_lead = Label.new()
+	_subtitle_lead.add_theme_font_override("font", GameTheme.font(700))
+	_subtitle_lead.add_theme_font_size_override("font_size", SUBTITLE_SIZE)
+	_subtitle_lead.add_theme_color_override("font_color", GameTheme.TEXT)
+	_subtitle_lead.visible = false
+	line.add_child(_subtitle_lead)
 	_subtitle = Label.new()
 	_subtitle.add_theme_font_size_override("font_size", SUBTITLE_SIZE)
 	_subtitle.add_theme_color_override("font_color", GameTheme.MUTED)
-	box.add_child(_subtitle)
+	line.add_child(_subtitle)
+	box.add_child(line)
 	box.add_child(_gap(BUTTONS_TOP))
 	var buttons := VBoxContainer.new()
 	buttons.add_theme_constant_override("separation", BUTTON_GAP)
 	box.add_child(buttons)
 	_resume = _button(buttons, tr("PAUSE_RESUME"), true)
 	_resume.pressed.connect(func() -> void: resumed.emit())
+	_challenge = _challenge_row(buttons)
+	_challenge.visible = false
 	_skip = _button(buttons, tr("PAUSE_SKIP_ROUND"), false)
 	_skip.pressed.connect(func() -> void: skipped.emit())
 	_skip.visible = false
 	_settings_button = _button(buttons, tr("PAUSE_SETTINGS"), false)
 	_settings_button.pressed.connect(open_settings)
-	var leave := _button(buttons, tr("PAUSE_QUIT"), false)
-	leave.pressed.connect(func() -> void: left.emit())
-	box.add_child(_gap(SEED_TOP))
-	box.add_child(_seed_row())
-	box.add_child(_gap(PANEL_BOTTOM))
+	_leave_gap = _gap(PRACTICE_LEAVE_GAP)
+	_leave_gap.visible = false
+	buttons.add_child(_leave_gap)
+	_leave = _button(buttons, tr("PAUSE_QUIT"), false)
+	_leave.pressed.connect(func() -> void: left.emit())
+	_seed_gap = _gap(SEED_TOP)
+	box.add_child(_seed_gap)
+	_seed_row = _seed_row_box()
+	box.add_child(_seed_row)
+	_bottom_gap = _gap(PANEL_BOTTOM)
+	box.add_child(_bottom_gap)
 	panel.add_child(box)
 	visible = false
 
 
 ## The match this menu is over, shown on it: the map's and mode's names, the round under way and the match's seed.
 func set_match(map_name: String, mode_name: String, round_number: int, match_seed: int) -> void:
+	_set_practice(false)
 	_subtitle.text = subtitle(map_name, mode_name, round_number)
 	_seed.text = str(match_seed)
+
+
+## Practice, on the map `map_name`: "Practice · Range", with " · timed challenge" while the challenge is `on` and
+## " · best N" once it has a best (`best` above 0). Shows the Timed challenge switch and Leave practice, and no seed.
+func set_practice(map_name: String, on: bool, best: int) -> void:
+	_set_practice(true)
+	_challenge_on = on
+	_subtitle_lead.text = tr("MODE_PRACTICE")
+	_subtitle.text = practice_line(map_name, on, best)
+	_show_switch()
+
+
+## The practice line after its lead: " · Range · timed challenge · best 14".
+static func practice_line(map_name: String, on: bool, best: int) -> String:
+	var line := " · " + map_name
+	if on:
+		line += TranslationServer.translate("PAUSE_PRACTICE_CHALLENGE")
+		if best > 0:
+			line += TranslationServer.translate("PAUSE_PRACTICE_BEST") % best
+	return line
+
+
+## Whether the Timed challenge reads On.
+func challenge_on() -> bool:
+	return _challenge_on
+
+
+## The Timed challenge row, for tests.
+func challenge_button() -> Button:
+	return _challenge
+
+
+func leave_button() -> Button:
+	return _leave
+
+
+func is_practice() -> bool:
+	return _practice
+
+
+func _set_practice(on: bool) -> void:
+	_practice = on
+	_subtitle_lead.visible = on
+	_challenge.visible = on
+	_leave_gap.visible = on
+	_leave.text = tr("PAUSE_LEAVE_PRACTICE" if on else "PAUSE_QUIT").to_upper()
+	_seed_gap.visible = not on
+	_seed_row.visible = not on
+	_bottom_gap.custom_minimum_size.y = PRACTICE_BOTTOM if on else PANEL_BOTTOM
+	_panel.custom_minimum_size.x = PRACTICE_WIDTH if on else PANEL_WIDTH
+	_panel.reset_size()
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	if not on:
+		_subtitle_lead.text = ""
 
 
 ## Whether Skip to next round shows: only while you are out and the round plays on.
@@ -111,7 +208,7 @@ func can_skip() -> bool:
 
 
 func subtitle_text() -> String:
-	return _subtitle.text
+	return _subtitle_lead.text + _subtitle.text
 
 
 func seed_text() -> String:
@@ -158,7 +255,7 @@ func settings_open() -> bool:
 
 
 ## The foot: a rule, then "Match seed" and the seed.
-func _seed_row() -> Control:
+func _seed_row_box() -> Control:
 	var rule := GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0, 0.0), 0, 0)
 	rule.border_width_top = GameTheme.BORDER
 	rule.border_color = GameTheme.LINE
@@ -179,6 +276,50 @@ func _seed_row() -> Control:
 	row.add_child(word)
 	row.add_child(_seed)
 	return holder
+
+
+## The Timed challenge row: its words, and the ON and OFF chips at the right, the lit one in the text colour.
+func _challenge_row(parent: Control) -> Button:
+	var b := _button(parent, tr("PAUSE_CHALLENGE"), false)
+	b.name = "Challenge"
+	var chips := HBoxContainer.new()
+	chips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chips.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	chips.offset_right = -float(BUTTON_PAD_X)
+	chips.alignment = BoxContainer.ALIGNMENT_END
+	chips.add_theme_constant_override("separation", SWITCH_GAP)
+	b.add_child(chips)
+	_chip_on = _chip(chips, tr("RULE_ON").to_upper())
+	_chip_off = _chip(chips, tr("RULE_OFF").to_upper())
+	b.pressed.connect(_toggle_challenge)
+	return b
+
+
+func _chip(parent: Control, words: String) -> PanelContainer:
+	var chip := PanelContainer.new()
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var label := MenuParts.spaced(words, SWITCH_SIZE, 800, GameTheme.MUTED, GameTheme.SPACING_MAIN)
+	chip.add_child(label)
+	parent.add_child(chip)
+	return chip
+
+
+## Lights the chip of the switch's state.
+func _show_switch() -> void:
+	for pair: Array in [[_chip_on, _challenge_on], [_chip_off, not _challenge_on]]:
+		var chip: PanelContainer = pair[0]
+		var lit: bool = pair[1]
+		var face := GameTheme.box(GameTheme.TEXT if lit else Color(0.0, 0.0, 0.0, 0.0),
+				GameTheme.TEXT if lit else GameTheme.LINE, SWITCH_PAD.x, SWITCH_PAD.y)
+		chip.add_theme_stylebox_override("panel", face)
+		(chip.get_child(0) as Label).add_theme_color_override("font_color", GameTheme.BG if lit else GameTheme.MUTED)
+
+
+func _toggle_challenge() -> void:
+	_challenge_on = not _challenge_on
+	_show_switch()
+	challenge_toggled.emit(_challenge_on)
 
 
 ## A full-width menu button, its words left-aligned in capitals; `main` is the yellow one.

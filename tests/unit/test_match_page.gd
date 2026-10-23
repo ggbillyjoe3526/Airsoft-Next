@@ -83,15 +83,16 @@ func test_a_pole_mode_on_a_map_without_a_pole_says_so_rather_than_later() -> voi
 	assert_false(MatchOptions.needs_pole("practice", depot, false), "not built: it says later instead")
 
 
-func test_elimination_and_attack_defend_can_be_picked_and_practice_says_later() -> void:
+func test_elimination_and_attack_defend_can_be_picked_and_practice_says_range_only() -> void:
 	var page := _page(false)
 	assert_true(page.mode_card("elimination").is_picked())
 	for mode: String in ["elimination", "attack_defend"]:
 		assert_false(page.mode_card(mode).disabled, mode)
 		assert_false(_labels(page.mode_card(mode)).has("LATER"), mode)
 		assert_false(page.says_needs_pole(mode), "Depot has a pole")
-	assert_true(page.mode_card("practice").disabled)
-	assert_true(_labels(page.mode_card("practice")).has("LATER"))
+	assert_true(page.mode_card("practice").disabled, "a field doesn't host practice")
+	assert_true(_labels(page.mode_card("practice")).has("RANGE ONLY"))
+	assert_false(_labels(page.mode_card("practice")).has("LATER"))
 	for level: String in MatchOptions.BOT_LEVELS:
 		assert_false(page.bot_button(level).disabled, level)
 		assert_true(page.bot_button(level).visible, level)
@@ -124,7 +125,7 @@ func test_pro_is_offered_without_dev_content_and_named_in_the_summary() -> void:
 
 func test_dev_maps_are_tagged_and_a_map_that_cant_load_is_greyed_with_later() -> void:
 	var page := _page(true)
-	assert_eq(page.map_ids(), PackedStringArray(["depot", "neonHeights", "woodland"]))
+	assert_eq(page.map_ids(), PackedStringArray(["depot", "neonHeights", "range", "woodland"]))
 	assert_true(_labels(page.map_card("neonHeights")).has("DEV"))
 	assert_false(_labels(page.map_card("depot")).has("DEV"))
 	assert_false(page.is_unloadable("depot"))
@@ -141,7 +142,7 @@ func test_dev_maps_are_tagged_and_a_map_that_cant_load_is_greyed_with_later() ->
 
 func test_no_dev_maps_listed_with_dev_content_off() -> void:
 	var page := _page(false)
-	assert_eq(page.map_ids(), PackedStringArray(["depot"]))
+	assert_eq(page.map_ids(), PackedStringArray(["depot", "range"]))
 	assert_true(page.map_card("depot").is_picked())
 
 

@@ -96,6 +96,15 @@ func fields(dev_content: bool) -> Array[Entry]:
 	return out
 
 
+## What the Match page lists: the fields (`fields`) and then the range, in the file's order within each.
+func listed(dev_content: bool) -> Array[Entry]:
+	var out := fields(dev_content)
+	for e in entries:
+		if e.kind != &"field" and (dev_content or e.tag == &"public"):
+			out.append(e)
+	return out
+
+
 ## Whether a match on `map_id` uses dev content: tagged dev, or not in the catalogue at all.
 func is_dev(map_id: String) -> bool:
 	var e := find(map_id)
