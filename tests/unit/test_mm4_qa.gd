@@ -444,3 +444,56 @@ func test_placing_the_hold_marker_with_the_stacks_allocates_no_objects() -> void
 			hud.place_flag_marker(camera, pole, true)
 			hud.place_hold_marker(camera, spot, true)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), before, "no objects made over 180 placements")
+
+
+## The card's height on its first frame is the height it settles at, for a short, a long and an unbreakable note.
+func test_the_card_is_its_real_height_on_the_first_frame_whatever_the_note() -> void:
+	var r := await _markers_ready(Vector3(0.0, 1.7, 0.0))
+	var s: PlaySession = r["s"]
+	var hud: Hud = r["hud"]
+	var notes: Array[String] = ["", "holds the stairs.",
+			"holds one spot short of the middle, aiming over cover, until late in the round, and then falls back to the stairs "
+			+ "to watch the long lane for anyone who dares to cross it, and never once peeks the same corner twice. ".repeat(3),
+			"Verylongunbrokenwordwithoutanyspacesatalltotestthewrapofthenoteinthecardwhichmustnotwidenthecardbeyonditswidth",
+			"待ち伏せして長いレーンを見張り、誰かが横切るのを待っている。ラウンドの終わりまで同じ場所に留まる。".repeat(3)]
+	for note in notes:
+		var card := _card(s, note)
+		var first := card.get_combined_minimum_size()
+		var width := card.get_combined_minimum_size().x
+		await wait_process_frames(3)
+		assert_almost_eq(card.size.y, first.y, 1.0, "height on frame one for %s" % note.left(20))
+		assert_almost_eq(card.size.x, WhatGotYouCard.WIDTH, 1.0, "card width for %s (min %s)" % [note.left(20), width])
+
+
+## The hold marker pinned to a side and stepped clear of a flag marker over its pole stays off the minimap, the card and
+## the screen's edge.
+func test_a_side_pinned_hold_marker_stepped_clear_of_an_unpinned_flag_keeps_off_the_panel_and_the_card() -> void:
+	var r := await _markers_ready(Vector3(0.0, 1.7, 0.0))
+	var s: PlaySession = r["s"]
+	var hud: Hud = r["hud"]
+	var camera: Camera3D = r["camera"]
+	var screen := Rect2(Vector2.ZERO, HUD_SIZE)
+	for with_card: bool in [false, true]:
+		if with_card:
+			_card(s)
+			await wait_process_frames(3)
+		for side: float in [-1.0, 1.0]:
+			var tried := 0
+			for px in range(4, 28):
+				for i in 21:
+					camera.rotation = Vector3(-0.5 + 0.05 * i, 0.0, 0.0)
+					hud.update(s.state, 1.0, 0.0)
+					hud.place_flag_marker(camera, Vector3(side * px, 0.0, -20.0), true)
+					hud.place_hold_marker(camera, Vector3(side * 60.0, 0.0, -20.0), true)
+					var flag: Rect2 = hud._flag_marker.occupied()
+					if not flag.has_area() or hud._flag_marker.pinned_side() != 0:
+						continue
+					var hold := hud.hold_marker().get_rect()
+					if hud.hold_marker().pin == HudHoldMarker.Pin.NONE:
+						continue
+					tried += 1
+					var tag := "card %s side %s pole %d pitch %d hold %s flag %s" % [with_card, side, px, i, hold, flag]
+					assert_true(screen.encloses(hold), "on screen, " + tag)
+					assert_eq(hold.intersection(hud.minimap().panel_rect()).get_area(), 0.0, "off the panel, " + tag)
+					if with_card:
+						assert_eq(hold.intersection(hud.what_got_you().get_rect()).get_area(), 0.0, "off the card, " + tag)
