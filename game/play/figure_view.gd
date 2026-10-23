@@ -38,15 +38,16 @@ var _replicas: Array[MeshInstance3D] = []
 var _out: int = -1
 
 
-## Draws `c` in `team_colour`, holding its replicas in its team's paints (`realistic`: each bold scheme as its plain
-## colour) with `parts[i]` on replica `i` (Kit.parts; bots carry theirs as they come).
+## Draws `c` in `team_colour`, glowing with `glow` of it (High contrast by day, TeamColours), holding its replicas in
+## its team's paints (`realistic`: each bold scheme as its plain colour) with `parts[i]` on replica `i` (Kit.parts; bots
+## carry theirs as they come).
 func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConfig, font: Font,
-		realistic: bool = false, parts: Array[Dictionary] = []) -> void:
+		realistic: bool = false, parts: Array[Dictionary] = [], glow: float = 0.0) -> void:
 	character_id = c.id
 	_hits = hits
 	name = "Figure_%d" % c.id
 	top_level = true
-	_mat = material(team_colour)
+	_mat = material(team_colour, false, glow)
 	# Legs from the feet to the pivot; the torso from just under the pivot to the shoulders, under the head.
 	var legs_mesh := CapsuleMesh.new()
 	legs_mesh.radius = BODY_RADIUS
@@ -116,11 +117,16 @@ func _held_replica(r: ReplicaConfig, team: int, realistic: bool, parts: Dictiona
 	return held
 
 
-## The figure's material in `colour`; `faded` gives it the see-through variant a figure leaving the field fades with.
-static func material(colour: Color, faded: bool = false) -> StandardMaterial3D:
+## The figure's material in `colour`; `faded` gives it the see-through variant a figure leaving the field fades with,
+## and a `glow` over 0 lights it with that share of its own colour (emission), so it reads in shade.
+static func material(colour: Color, faded: bool = false, glow: float = 0.0) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = colour
 	m.roughness = ROUGHNESS
+	if glow > 0.0:
+		m.emission_enabled = true
+		m.emission = colour
+		m.emission_energy_multiplier = glow
 	if faded:
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	return m

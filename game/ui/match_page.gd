@@ -69,6 +69,9 @@ var _modes_box: VBoxContainer = null
 var _map_cards: Dictionary[String, MenuCard] = {}
 var _mode_cards: Dictionary[String, MenuCard] = {}
 var _team_cards: Array[MenuCard] = []
+## The team colours the menus show: the saved set's HUD part (Settings › Accessibility), and that set, to tell a change.
+var _teams: TeamConfig = null
+var _teams_set: int = -1
 ## Your team's cards and heading tag: NOT USED while Practice is picked.
 var _team_row: GridContainer = null
 var _team_tag: MenuTag = null
@@ -102,6 +105,7 @@ func _init(picked: MatchPicks = null, settings: Settings = null) -> void:
 	_settings = settings if settings != null else Settings.shared()
 	_tuning = _round_tuning()
 	_play_tuning = PlayTuning.load_default()
+	_follow_team_colours()
 	_catalog = MapCatalog.shared()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build()
@@ -320,15 +324,11 @@ func _build_side() -> Control:
 	team_row.add_theme_constant_override("h_separation", TEAM_GAP)
 	team.add_child(team_row)
 	for t in MatchOptions.TEAM_KEYS.size():
-		var colour := _play_tuning.teams.colours[t]
 		var card := MenuCard.new()
 		card.name = "Team_" + str(t)
 		card.custom_minimum_size = Vector2(0.0, TEAM_HEIGHT)
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		card.accent = colour
-		card.picked_fill = GameTheme.CARD.lerp(colour, TEAM_TINT)
-		card.bar = colour
-		card.refresh()
+		_colour_team_card(card, _teams.colours[t])
 		var pad := _padded(TEAM_PAD.x, TEAM_PAD.y, TEAM_PAD.x, TEAM_PAD.y)
 		pad.add_child(_text(tr(MatchOptions.TEAM_KEYS[t]).to_upper(), TEAM_NAME_SIZE, 800, GameTheme.TEXT))
 		card.add_content(pad)
@@ -497,6 +497,23 @@ func _round_tuning() -> SimTuning:
 	return base if custom == null else custom.applied_to(base)
 
 
+## Takes the saved team colour set's HUD part when the set changed (or on the first call): whether it did.
+func _follow_team_colours() -> bool:
+	if _teams != null and _settings.team_colours == _teams_set:
+		return false
+	_teams_set = _settings.team_colours
+	_teams = TeamColours.resolve(_settings.team_colours, false, null, _play_tuning.teams).hud
+	return true
+
+
+## A team's card in `colour`: its edge and bar when picked, and its fill tinted with it.
+static func _colour_team_card(card: MenuCard, colour: Color) -> void:
+	card.accent = colour
+	card.picked_fill = GameTheme.CARD.lerp(colour, TEAM_TINT)
+	card.bar = colour
+	card.refresh()
+
+
 ## The rule set, a Custom switch or any setting changed (Dev content, a reset save): the round tuning is read again,
 ## and what reads it redrawn, the Custom rows included.
 func _on_rules_changed() -> void:
@@ -557,6 +574,9 @@ func _refresh() -> void:
 			_only_tags[mode].set_text(tr(only_key))
 	for mode: String in _needs_pole:
 		_needs_pole[mode].visible = MatchOptions.needs_pole(mode, entry, pole)
+	if _follow_team_colours():
+		for t in _team_cards.size():
+			_colour_team_card(_team_cards[t], _teams.colours[t])
 	for t in _team_cards.size():
 		_team_cards[t].set_picked(t == picks.team)
 	var practice := picks.mode == MatchOptions.MODE_PRACTICE
@@ -567,7 +587,7 @@ func _refresh() -> void:
 	_bots.set_unused(practice)
 	_play.text = tr("MENU_START_PRACTICE" if practice else "MENU_PLAY")
 	_attack_team.text = tr(MatchOptions.TEAM_KEYS[picks.team])
-	var colour := _play_tuning.teams.colours[picks.team].lightened(TEAM_NAME_LIGHTEN)
+	var colour := _teams.colours[picks.team].lightened(TEAM_NAME_LIGHTEN)
 	_attack_team.add_theme_color_override("font_color", colour)
 	_bots.show_picks(_tuning.rounds.team_size, picks.rules == MatchOptions.RULES_CUSTOM)
 	_summary_map.text = entry.display_name if entry != null else picks.map_id

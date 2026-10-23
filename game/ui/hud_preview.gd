@@ -2,8 +2,8 @@ class_name HudPreview
 extends Control
 ## The HUD tab's preview (concept `hud-options.png`): a stretch of plywood wall and a container, the crosshair twice
 ## (once with the hit marker round it, once opened as if moving), a hit feed line in its corner and the replica panel,
-## all drawn from the tab's choices (HudPrefs) by the same parts the HUD uses, at the panels' opacity. show() follows a
-## change.
+## all drawn from the tab's choices (HudPrefs) by the same parts the HUD uses, at the panels' opacity, the feed line in
+## the saved team colours (show_teams). show_prefs() follows a change.
 
 const HEIGHT := 160.0
 ## The feed line and the replica panel are drawn this much smaller, so they fit the shorter preview and leave the
@@ -50,14 +50,8 @@ func _init() -> void:
 	add_child(tag)
 	_hit_chip = _chip("SETTINGS_PREVIEW_HIT")
 	_moving_chip = _chip("SETTINGS_PREVIEW_MOVING")
-	var teams := TeamConfig.new()
-	var you := HudFeedRow.Who.new()
-	you.set_to(tr("HUD_YOU"), GameTheme.TEXT, false, true)
-	var them := HudFeedRow.Who.new()
-	them.set_to(tr("SETTINGS_PREVIEW_NAME"), teams.colours[1].lightened(HudFeed.NAME_LIGHTEN), false, false)
 	_feed = HudFeedRow.new()
 	add_child(_feed)
-	_feed.show_line(you, them, teams.colours[0], teams.colours[0], true)
 	_armament = Armament.create(ReplicaStats.default_loadout())
 	if not _armament.replicas.is_empty():
 		var ammo := _armament.ammo[0]
@@ -75,6 +69,15 @@ func _init() -> void:
 	add_child(_panel)
 	if not _armament.replicas.is_empty():
 		_panel.refresh(_armament)
+
+
+## Draws the feed line in `teams`' colours (the saved colour set's HUD part): you on Alpha hitting a Beta player.
+func show_teams(teams: TeamConfig) -> void:
+	var you := HudFeedRow.Who.new()
+	you.set_to(tr("HUD_YOU"), GameTheme.TEXT, false, true)
+	var them := HudFeedRow.Who.new()
+	them.set_to(tr("SETTINGS_PREVIEW_NAME"), teams.colours[1].lightened(HudFeed.NAME_LIGHTEN), false, false)
+	_feed.show_line(you, them, teams.colours[0], teams.colours[0], true)
 
 
 ## Shows `prefs` as they are now.

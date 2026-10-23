@@ -42,7 +42,8 @@ func setup(teams: TeamConfig, wins_needed: int) -> void:
 	for side in 2:
 		for i in _count:
 			_add_pip(side_x[side] + HudStyle.SIDE_PAD + i * (HudStyle.PIP_SIZE.x + HudStyle.PIP_GAP))
-		var l := HudStyle.label(self, HudStyle.SCORE_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
+		var l := HudStyle.label(self, HudStyle.SCORE_SIZE, 800, HudStyle.ink_on(teams.colours[side]),
+				HORIZONTAL_ALIGNMENT_CENTER)
 		l.position = Vector2(block_x[side], 0.0)
 		l.size = Vector2(block, height)
 		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

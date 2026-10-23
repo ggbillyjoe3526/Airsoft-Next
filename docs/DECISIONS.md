@@ -458,6 +458,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   (tested) (2026-10-04).** Colour is never the only cue: names carry a bar, exits a glyph and a distance. Exits take
   their set's colour (owner, 2026-10-17, AX1): Standard keeps the green, High Contrast's are hi-vis yellow. On day fields
   High Contrast's team paint glows faintly (0.3 of its colour; owner, 2026-10-17, AX1: "HC only"); Standard's has none.
+  The plywood and mustard props that sat near Beta's hue were recoloured, not excepted (owner, 2026-10-23): plywood a
+  duller tan, mustard toward yellow, at least 20° of hue from every team colour (HSL on linear RGB).
 - **Menus are opaque (owner, 2026-10-03).** The controls list lives under Settings. The pause menu is Resume, Settings
   and Quit.
 - **No map is loaded until Play (owner, 2026-10-03).** A match is a session built on Play and disposed on leaving.

@@ -269,7 +269,7 @@ func _draw_bands() -> void:
 func _draw_team(team: Team) -> void:
 	var badge := Rect2(Vector2(PAD.x, team.y), TEAM_BADGE)
 	draw_rect(badge, team.colour)
-	_centred(_you_font, team.score, badge, TEAM_SCORE_SIZE, Color.WHITE)
+	_centred(_you_font, team.score, badge, TEAM_SCORE_SIZE, HudStyle.ink_on(team.colour, Color.WHITE))
 	var base := team.y + (TEAM_HEIGHT + _team_font.get_ascent(TEAM_NAME_SIZE) - _team_font.get_descent(TEAM_NAME_SIZE)) \
 			* 0.5
 	draw_string(_team_font, Vector2(badge.end.x + TEAM_GAP, base), team.name, HORIZONTAL_ALIGNMENT_LEFT, -1,

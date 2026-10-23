@@ -26,3 +26,6 @@ extends Resource
 @export var ssao_intensity: float = 1.4
 ## Exposure for the AgX tonemapper.
 @export var exposure: float = 1.0
+## A night preset (step 26's Day / Night): High contrast's team paint doesn't glow (TeamColours.resolve). Every field is
+## lit by day until then.
+@export var night: bool = false

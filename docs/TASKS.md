@@ -5,30 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## AC2 · Team colour sets in play and Settings › Accessibility
-tier: ui
-perf: skip
-touches: game/play/play_session.gd, game/play/figure_view.gd, game/play/flag_view.gd, game/ui/match_page.gd,
-  game/ui/hud_preview.gd, game/ui/settings_hud_page.gd, game/ui/settings_access_page.gd,
-  game/ui/settings_screen.gd, game/ui/text/en.po, docs/KNOWN_ISSUES.md, tests/unit/test_team_colours_apply.gd,
-  tests/unit/test_settings_screen.gd
-contract: Simulation and presentation (1); Data, not literals (6); Headless (9)
-acceptance:
-  1. At Play the session resolves the picked set once (night from the field's lighting preset): figures, their sign
-     outline and the flag cloth take the figures part, every HUD part the hud part; HC figures' team paint gets the
-     day glow as emission (0.3 of its colour). A change mid-match shows from the next match, as the blurb says.
-  2. The Match page's team picks, HudPreview and the HUD tab's thumbnails follow the saved set (no TeamConfig.new()
-     left in UI code).
-  3. The Accessibility tab after HUD, as settings-accessibility.png: Team colours (Standard, High contrast, each with
-     two swatches and its blurb); Gauge patterns; Sound cues with size and colour; Reduced motion (Follow system,
-     Off, On) with the browser's blurbs; Screen reader messages with what is read. Rows of AC3 to AC6 are greyed with
-     LATER until their tasks land; every live row saves at once.
-  4. GUT: Standard draws exactly as today (figure, flag, HUD colours); HC reaches every consumer; the glow is 0 on a
-     night preset; the tab's rows map to the settings fields.
-  5. KNOWN_ISSUES' SE1 row loses "Accessibility".
-status: open
-attempts: 0
-
 ## AC3 · Patterns on the gauges
 tier: ui
 perf: required

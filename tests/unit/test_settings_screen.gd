@@ -645,3 +645,123 @@ func test_the_title_screen_has_no_fullscreen_button() -> void:
 		words += " " + (b as Button).text.to_lower()
 	assert_false(words.contains("fullscreen"), words)
 
+
+
+# --- Accessibility (AC2) ---
+
+func _access() -> SettingsAccessPage:
+	return screen._access_page
+
+
+## Every label's and rich label's words under `node`, rich text without its tags.
+func _words(node: Node) -> String:
+	var out := PackedStringArray()
+	for n: Node in node.find_children("*", "", true, false):
+		if n is Label:
+			out.append((n as Label).text)
+		elif n is RichTextLabel:
+			out.append((n as RichTextLabel).get_parsed_text())
+	return " ".join(out)
+
+
+func test_the_accessibility_tab_comes_after_hud() -> void:
+	var names := PackedStringArray()
+	for i in screen._tabs.get_tab_count():
+		names.append(screen._tabs.get_tab_title(i))
+	var at := names.find(tr("SETTINGS_ACCESSIBILITY").to_upper())
+	assert_gt(at, 0)
+	assert_eq(names[at - 1], tr("SETTINGS_HUD").to_upper())
+
+
+func test_the_accessibility_tab_has_the_concept_s_rows() -> void:
+	var page := _access()
+	var words := _words(page)
+	for want: String in ["TEAM COLOURS", "STANDARD", "HIGH CONTRAST", "IN USE", "#8ccfff", "#b8460c",
+			"Blue and orange: they stay apart", "Light blue and dark orange, apart in lightness too",
+			"From the next match.", "the figures when the next match starts", "GAUGE PATTERNS", "Patterns",
+			"Stripes as well as colour", "SCREEN READER MESSAGES", "Read out", "Reads hit calls, your hit and round results",
+			"SOUND CUES", "Show cues", "Red is the default.", "Two dots a step (up to 22 m)",
+			"Arrowhead a shot (up to 60 m)", "HIT tag a hit call (up to 60 m)", "Shown through walls", "REDUCED MOTION",
+			"Follow system uses your computer's", "Off: the replica sways", "On: no weapon sway or drifting dust",
+			"The recoil climb stays", "Your system asks for reduced motion: It doesn't say"]:
+		assert_string_contains(words, want)
+	assert_eq(_texts(page.motion()), PackedStringArray(["FOLLOW SYSTEM", "OFF", "ON"]))
+	assert_eq(page.cue_colour().selected(), AccessibilityConfig.CUE_COLOUR_DEFAULT, "red by default")
+	assert_true(page.set_card(TeamColours.Set.STANDARD).is_picked(), "Standard by default")
+	assert_false(page.set_card(TeamColours.Set.HIGH_CONTRAST).is_picked())
+	page._show_system(1)
+	assert_string_contains(_words(page), "reduced motion: Yes")
+	page._show_system(0)
+	assert_string_contains(_words(page), "reduced motion: No")
+
+
+func test_the_rows_of_later_tasks_are_greyed_with_later() -> void:
+	var page := _access()
+	assert_false(page.greyed(SettingsAccessPage.Section.TEAM_COLOURS), "the team colours are live")
+	for section: SettingsAccessPage.Section in SettingsAccessPage.LATER:
+		assert_true(page.greyed(section), str(section))
+	assert_eq(page.patterns().mouse_filter, Control.MOUSE_FILTER_IGNORE, "a greyed row takes no click")
+	assert_eq(page.set_card(TeamColours.Set.HIGH_CONTRAST).mouse_filter, Control.MOUSE_FILTER_STOP)
+
+
+func test_the_tab_s_rows_map_to_the_settings_fields_and_save_at_once() -> void:
+	var page := _access()
+	page.set_card(TeamColours.Set.HIGH_CONTRAST).pressed.emit()
+	assert_eq(s.team_colours, TeamColours.Set.HIGH_CONTRAST)
+	assert_false(s.dirty, "a click saves at once")
+	assert_eq(_saved().team_colours, TeamColours.Set.HIGH_CONTRAST)
+	assert_true(page.set_card(TeamColours.Set.HIGH_CONTRAST).is_picked())
+	assert_false(page.set_card(TeamColours.Set.STANDARD).is_picked())
+	page.patterns().toggled.emit(false)
+	assert_false(s.gauge_patterns)
+	page.read_out().toggled.emit(false)
+	assert_false(s.read_out)
+	page.cues().toggled.emit(true)
+	assert_true(s.sound_cues)
+	page.cue_colour().button(2).pressed.emit()
+	assert_eq(s.sound_cue_colour, 2)
+	page.motion().button(Settings.ReducedMotion.ON).pressed.emit()
+	assert_eq(s.reduced_motion, Settings.ReducedMotion.ON)
+	assert_false(s.dirty)
+	page.cue_size().value = 150.0
+	assert_almost_eq(s.sound_cue_size, 1.5, 0.001)
+	screen.close()
+	var saved := _saved()
+	assert_false(saved.gauge_patterns)
+	assert_false(saved.read_out)
+	assert_true(saved.sound_cues)
+	assert_eq(saved.sound_cue_colour, 2)
+	assert_almost_eq(saved.sound_cue_size, 1.5, 0.001)
+	assert_eq(saved.reduced_motion, Settings.ReducedMotion.ON)
+
+
+func test_the_tab_shows_the_saved_choices_on_opening() -> void:
+	s.team_colours = TeamColours.Set.HIGH_CONTRAST
+	s.sound_cues = true
+	s.sound_cue_size = 0.6
+	s.reduced_motion = Settings.ReducedMotion.OFF
+	screen.open()
+	var page := _access()
+	assert_true(page.set_card(TeamColours.Set.HIGH_CONTRAST).is_picked())
+	assert_true(page.cues().button_pressed)
+	assert_almost_eq(page.cue_size().value, 60.0, 0.001)
+	assert_eq(page.motion().selected(), Settings.ReducedMotion.OFF)
+
+
+func test_the_hud_tab_s_preview_and_samples_follow_the_set_picked() -> void:
+	var hud_tab := screen._hud_page.get_parent().get_parent().get_index()
+	screen._tabs.current_tab = hud_tab
+	await wait_process_frames(1)
+	var page := screen._hud_page
+	var today := PlayTuning.new().teams.colours
+	assert_almost_eq(page.preview().feed_row()._bar.b, today[0].b, 1.0 / 255.0, "Standard's blue")
+	assert_true(page._thumbs[0].built())
+	screen._tabs.current_tab = _access().get_parent().get_parent().get_index()
+	_access().set_card(TeamColours.Set.HIGH_CONTRAST).pressed.emit()
+	screen._tabs.current_tab = hud_tab
+	await wait_process_frames(1)
+	var hc := TeamColours.resolve(TeamColours.Set.HIGH_CONTRAST, false).hud
+	assert_eq(page.preview().feed_row()._bar, hc.colours[0], "the feed line in High contrast")
+	for thumb in page._thumbs:
+		assert_eq(thumb._view._team, hc.colours[0], "the minimap sample's team")
+		assert_eq(thumb._view._enemy, hc.colours[1])

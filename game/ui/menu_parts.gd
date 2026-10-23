@@ -69,7 +69,7 @@ static func heading_row(words: String) -> HBoxContainer:
 
 
 ## Marks a section the picked mode doesn't use (the Match page's Practice): its `tag` shows, `parts` (its body, not its
-## heading) fade to UNUSED_ALPHA and no button in them takes a click or the focus; or the reverse.
+## heading) fade to UNUSED_ALPHA and no button or slider in them takes a click, a drag or the focus; or the reverse.
 static func set_unused(parts: Array[Control], tag: Control, on: bool) -> void:
 	tag.visible = on
 	for part in parts:
@@ -78,10 +78,10 @@ static func set_unused(parts: Array[Control], tag: Control, on: bool) -> void:
 
 
 static func _lock(node: Node, on: bool) -> void:
-	if node is BaseButton:
-		var b := node as BaseButton
-		b.mouse_filter = Control.MOUSE_FILTER_IGNORE if on else Control.MOUSE_FILTER_STOP
-		b.focus_mode = Control.FOCUS_NONE if on else Control.FOCUS_ALL
+	if node is BaseButton or node is Slider:
+		var c := node as Control
+		c.mouse_filter = Control.MOUSE_FILTER_IGNORE if on else Control.MOUSE_FILTER_STOP
+		c.focus_mode = Control.FOCUS_NONE if on else Control.FOCUS_ALL
 	for child in node.get_children():
 		_lock(child, on)
 

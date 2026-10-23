@@ -186,14 +186,16 @@ func test_the_rule_catches_near_team_colours_and_passes_greys_and_far_hues() -> 
 
 func test_no_prop_reads_as_a_team_but_the_listed_exceptions() -> void:
 	var style := _style_colours()
+	assert_false(style.is_empty())
 	for prop in style:
-		if _reads_as_team(style[prop]):
-			assert_true(table.exceptions.has(prop),
-					"%s #%s reads as a team colour and isn't a listed exception" % [prop, style[prop].to_html(false)])
+		assert_true(not _reads_as_team(style[prop]) or table.exceptions.has(prop),
+				"%s #%s reads as a team colour and isn't a listed exception" % [prop, style[prop].to_html(false)])
 
 
 func test_every_exception_is_a_prop_with_that_colour_that_still_needs_it() -> void:
-	assert_false(table.exceptions.is_empty(), "the shipped exceptions read")
+	if table.exceptions.is_empty():
+		pass_test("none listed (the owner had the plywood and mustard recoloured, 2026-10-23)")
+		return
 	var style := _style_colours()
 	for prop in table.exceptions:
 		assert_true(style.has(prop), "%s is no longer a MapStyle prop: delete its row" % prop)

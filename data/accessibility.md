@@ -59,13 +59,9 @@ starting.
 ## Prop colour exceptions
 
 Props whose colour sits near a team's hue on purpose, by their name in `game/config/map_style.gd` (`container 2` is
-the second of `container_colours`). The colour check fails if one of these changes colour or goes, so the list stays
+the second of `container_colours`); none today (the owner had the plywood and mustard recoloured off Beta's hue,
+2026-10-23). The colour check fails if one of these changes colour or goes, so the list stays
 true: recolour the prop and delete its row together.
 
 | Prop | Colour | Reason |
 |---|---|---|
-| crate | #bd9666 | ART.md's plywood and site colours (owner, 2026-10-18), owner asked 2026-10-23 |
-| rack | #8f6e4a | ART.md's plywood and site colours (owner, 2026-10-18), owner asked 2026-10-23 |
-| generator | #cfa133 | ART.md's plywood and site colours (owner, 2026-10-18), owner asked 2026-10-23 |
-| skip | #cfa133 | ART.md's plywood and site colours (owner, 2026-10-18), owner asked 2026-10-23 |
-| container 2 | #cc9e30 | ART.md's plywood and site colours (owner, 2026-10-18), owner asked 2026-10-23 |
