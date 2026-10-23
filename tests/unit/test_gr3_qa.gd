@@ -152,7 +152,7 @@ func test_a_monitor_beyond_the_screens_falls_back_and_is_kept_through_a_save() -
 	var t := _saved()
 	assert_eq(t.monitor, 7)
 	ds.primary_screen = 1
-	SettingsApply.apply_display(t)
+	SettingsApply.apply_display(t, true) # at start
 	assert_eq(ds.on, 1, "the primary")
 	assert_eq(SettingsApply.monitor_now(t), 1)
 	assert_eq(t.monitor, 7, "kept")

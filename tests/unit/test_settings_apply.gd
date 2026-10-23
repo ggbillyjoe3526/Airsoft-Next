@@ -167,13 +167,13 @@ func test_leaving_fullscreen_stays_on_the_same_monitor() -> void:
 func test_the_window_opens_on_the_saved_monitor() -> void:
 	_two_screens()
 	s.monitor = 1
-	SettingsApply.apply_display(s)
+	SettingsApply.apply_display(s, true) # at start
 	assert_eq(ds.on, 1)
 	assert_eq(ds.window_mode, DisplayServer.WINDOW_MODE_MAXIMIZED, "maximised on it")
 	assert_eq(Array(ds.calls), ["mode %d" % DisplayServer.WINDOW_MODE_WINDOWED, "screen 1",
 			"mode %d" % DisplayServer.WINDOW_MODE_MAXIMIZED], "let down, moved, maximised again")
 	ds.calls.clear()
-	SettingsApply.apply_display(s)
+	SettingsApply.apply_display(s, true)
 	assert_eq(ds.calls.size(), 0, "already there")
 
 
@@ -191,7 +191,7 @@ func test_a_saved_monitor_that_is_gone_falls_back_to_the_primary() -> void:
 	_two_screens()
 	ds.primary_screen = 1
 	s.monitor = 4
-	SettingsApply.apply_display(s)
+	SettingsApply.apply_display(s, true)
 	assert_eq(ds.on, 1, "the primary, never off-screen")
 	assert_eq(s.monitor, 4, "kept, for when it is plugged in again")
 

@@ -40,6 +40,9 @@
 - **Exclusive fullscreen keeps the desktop resolution** (Godot doesn't change display modes); the render scale is the
   resolution lever (plan Risks).
 
+- **The saved monitor places the window at start and on picking a Monitor only** (QA): F11, Alt+Enter and V-Sync
+  leave a window the player dragged to another screen where it is, and the Monitor row lights the window's screen.
+
 ## What the owner checks on his PC
 
 The cloud has no window manager: modes, monitors, V-Sync and focus were checked against a stand-in only.
@@ -57,6 +60,10 @@ The cloud has no window manager: modes, monitors, V-Sync and focus were checked 
 5. **Limits:** 30 with V-Sync off in a match: movement and BBs keep their real speed (60 ticks a second), only fewer
    frames; say how 30 feels. 144 and 240 on a fast screen: the Show FPS figure sits at the limit.
 6. **V-Sync** off on a 60 Hz screen: the figure goes above 60 with tearing; on, at most the screen's rate.
+
+7. **Mouse after F11** in a match, windowed and Exclusive: the mouse stays captured and looking still works.
+8. **Dragged window:** pick monitor 2, then drag the window back to monitor 1 and press F11: fullscreen opens on
+   monitor 1 (where the window is), and the Monitor row lights 1.
 
 ## Verified here
 

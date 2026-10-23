@@ -14,7 +14,7 @@ static var _screens: Screens = null
 static func apply_all(s: Settings) -> void:
 	apply_controls(s)
 	apply_audio(s)
-	apply_display(s)
+	apply_display(s, true)
 	apply_graphics(s)
 	apply_bindings(s)
 	s.changed.emit()
@@ -45,12 +45,14 @@ static func apply_audio(s: Settings) -> void:
 		AudioServer.set_bus_volume_db(i, linear_to_db(v) if v > 0.0 else MUTE_DB)
 
 
-## The window and the frame rate: the window onto the saved monitor (the primary when that one is gone, so never
-## off-screen), its mode, V-Sync and Engine.max_fps. Windowed leaves a windowed (or maximised) window alone, and leaving
-## fullscreen gives the maximised window the game starts in, on the monitor it was on.
-static func apply_display(s: Settings) -> void:
+## The window and the frame rate: with `place` (at start, and on picking a Monitor) the window onto the saved monitor
+## (the primary when that one is gone, so never off-screen); then its mode, V-Sync and Engine.max_fps. Without it the
+## window stays on the screen it was dragged to (QA). Windowed leaves a windowed (or maximised) window alone, and
+## leaving fullscreen gives the maximised window the game starts in, on the monitor it was on.
+static func apply_display(s: Settings, place: bool = false) -> void:
 	var ds := screens()
-	_place(s, ds)
+	if place:
+		_place(s, ds)
 	var now := ds.mode()
 	match s.window_mode:
 		Settings.WindowMode.BORDERLESS:
@@ -109,7 +111,7 @@ static func toggle_fullscreen(s: Settings) -> void:
 ## Settings › Display's Monitor: the window moves to screen `screen` and opens there from now on.
 static func pick_monitor(s: Settings, screen: int) -> void:
 	s.monitor = screen
-	apply_display(s)
+	apply_display(s, true)
 
 
 ## The screen the saved monitor names now: itself, the primary when it is gone, or -1 to leave the window where it is
