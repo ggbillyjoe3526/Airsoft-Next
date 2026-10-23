@@ -107,6 +107,7 @@ func _init() -> void:
 	pad.add_child(columns)
 	columns.add_child(_left_column())
 	columns.add_child(_right_column())
+	_trap_focus()
 	visible = false
 
 
@@ -209,15 +210,67 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 ## The note cut to its length (TextEdit has none of its own), its count, and the report written again with it.
+## Typing or a paste into a full box loses what went past the length, just before the caret, and the caret stays there;
+## the report keeps its scroll.
 func _note_changed() -> void:
 	var most := config.note_chars
-	if _note.text.length() > most:
-		_note.text = _note.text.left(most)
-		_caret_to_end()
+	var over := _note.text.length() - most
+	if over > 0:
+		var at := _caret_offset()
+		if at >= over:
+			_note.text = _note.text.left(at - over) + _note.text.substr(at)
+			_set_caret_offset(at - over)
+		else:
+			_note.text = _note.text.left(most)
+			_caret_to_end()
 	_count.text = tr("REPORT_NOTE_COUNT") % [_note.text.length(), most]
 	if _info != null:
 		_info.note = _note.text
+		var scroll := _report_view.scroll_vertical
 		_report_view.text = BugReport.write(_info)
+		_report_view.scroll_vertical = scroll
+
+
+## The caret's place in the note as a count of characters from its start.
+func _caret_offset() -> int:
+	var at := _note.get_caret_column()
+	for line in _note.get_caret_line():
+		at += _note.get_line(line).length() + 1
+	return at
+
+
+func _set_caret_offset(at: int) -> void:
+	var left := at
+	for line in _note.get_line_count():
+		var length := _note.get_line(line).length()
+		if left <= length:
+			_note.set_caret_line(line)
+			_note.set_caret_column(left)
+			return
+		left -= length + 1
+	_caret_to_end()
+
+
+## Keyboard focus stays in the panel: Tab and Shift+Tab go round its parts, and each arrow points at one of them, so
+## nothing under the shade (the pause menu's buttons) can take the focus.
+func _trap_focus() -> void:
+	var ring: Array[Control] = [_note, _report, _copy, _back, _report_view]
+	for i in ring.size():
+		var c := ring[i]
+		c.focus_next = c.get_path_to(ring[(i + 1) % ring.size()])
+		c.focus_previous = c.get_path_to(ring[(i - 1 + ring.size()) % ring.size()])
+	# left, top, right, bottom: each arrow from each part
+	var arrows: Dictionary[Control, Array] = {
+		_note: [_note, _note, _report_view, _report],
+		_report: [_report, _note, _copy, _report],
+		_copy: [_report, _note, _back, _copy],
+		_back: [_copy, _note, _report_view, _back],
+		_report_view: [_back, _report_view, _report_view, _report_view],
+	}
+	for c: Control in arrows:
+		var to: Array = arrows[c]
+		for side: Side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+			c.set_focus_neighbor(side, c.get_path_to(to[side] as Control))
 
 
 func _caret_to_end() -> void:

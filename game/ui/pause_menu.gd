@@ -5,8 +5,8 @@ extends Control
 ## `pause-practice.png`, `set_practice`): "Practice · Range", Resume, the Timed challenge's On / Off switch, Loadout (with
 ## its key, L as bound; the key works here too), Settings and Leave practice, with no seed. Works while the tree is paused.
 ## The foot (SV5, concept step22 `pause-report.png`): the seed and REPORT A BUG (Report a Bug alone in practice), which
-## opens the ReportPanel over the menu, the match still paused; and, once this run has logged an error (`errors`), a line
-## saying so under it.
+## opens the ReportPanel over the menu, the match still paused; and, once an error has been logged since the match
+## started (`errors`), a line saying so under it.
 
 signal resumed
 signal left
@@ -64,8 +64,12 @@ const KEY_PAD := Vector2i(7, 2)
 
 ## The match's End the round now (returns false when no round is live), handed to the settings' Dev tab.
 var end_round: Callable = Callable()
-## This run's ErrorLog: the foot says when it has logged an error (null: none kept).
-var errors: ErrorLog = null
+## This run's ErrorLog: the foot says when it has logged an error since it was handed over, as the match started
+## (null: none kept).
+var errors: ErrorLog = null:
+	set(value):
+		errors = value
+		_errors_before = value.errors_this_run() if value != null else 0
 ## The bug report's facts as the match stands (PlaySession.report_info): () -> BugReport.ReportInfo. Unset, the report
 ## has the machine's facts alone.
 var report_info: Callable = Callable()
@@ -83,6 +87,8 @@ var _error_line: HBoxContainer = null
 var _error_text: Label = null
 ## Report a Bug's panel, built when asked for and freed once closed.
 var _report: ReportPanel = null
+## The run's errors before this match.
+var _errors_before: int = 0
 var _leave: Button = null
 var _leave_gap: Control = null
 var _top_gap: Control = null
@@ -323,6 +329,8 @@ func close() -> void:
 ## Report a Bug over the menu: the panel on the match's facts as they stand now; Back or Esc closes it alone and gives
 ## the focus back to Report a Bug.
 func open_report() -> void:
+	if report_open():
+		return
 	if _report == null:
 		_report = ReportPanel.new()
 		_report.closed.connect(_report_closed)
@@ -331,7 +339,8 @@ func open_report() -> void:
 	if report_info.is_valid():
 		info = report_info.call()
 	else:
-		info = ReportFacts.live(null, Settings.shared(), errors, "", "", _report.config,
+		var place := ReportFacts.PLACES[RunRecord.PRACTICE if _practice else RunRecord.MATCH]
+		info = ReportFacts.live(null, Settings.shared(), errors, place, "", _report.config,
 				ReportScrub.for_this_machine(_report.config))
 	_report.open(info)
 
@@ -343,9 +352,9 @@ func _report_closed() -> void:
 		_report_button.grab_focus()
 
 
-## The error line, shown once this run has logged an error.
+## The error line, shown once an error has been logged since the match started.
 func _show_errors() -> void:
-	var count := errors.errors_this_run() if errors != null else 0
+	var count := errors.errors_this_run() - _errors_before if errors != null else 0
 	_error_line.visible = count > 0
 	_error_text.text = error_line(count) if count > 0 else ""
 

@@ -40,12 +40,16 @@ func _open_report() -> ReportPanel:
 ## An ErrorLog that has logged `errors` errors and `warnings` warnings (as Godot's logger would hand them on).
 func _log(errors: int, warnings: int) -> ErrorLog:
 	var log := ErrorLog.new()
+	_add(log, errors, warnings)
+	return log
+
+
+func _add(log: ErrorLog, errors: int, warnings: int) -> void:
 	var no_trace: Array[ScriptBacktrace] = []
 	for i in errors:
 		log._log_error("f", "res://a.gd", i, "boom %d" % i, "", false, Logger.ERROR_TYPE_SCRIPT, no_trace)
 	for i in warnings:
 		log._log_error("g", "res://b.gd", i, "hmm %d" % i, "", false, Logger.ERROR_TYPE_WARNING, no_trace)
-	return log
 
 
 func _esc() -> InputEventKey:
@@ -98,13 +102,15 @@ func test_no_error_line_without_an_error() -> void:
 	assert_eq(menu.error_text(), "", "warnings alone are not errors")
 
 
-func test_the_error_line_counts_this_runs_errors() -> void:
+func test_the_error_line_counts_this_matchs_errors() -> void:
 	menu.set_match("Depot", "Elimination", 1, 7)
-	menu.errors = _log(1, 2)
+	var log := _log(0, 0)
+	menu.errors = log
+	_add(log, 1, 2)
 	menu.open()
 	assert_eq(menu.error_text(),
 			"Something went wrong in this match (1 error). The game carried on; Report a Bug sends what happened.")
-	menu.errors = _log(3, 0)
+	_add(log, 2, 0)
 	menu.open()
 	assert_eq(menu.error_text(),
 			"Something went wrong in this match (3 errors). The game carried on; Report a Bug sends what happened.")
@@ -122,6 +128,17 @@ func test_the_error_line_is_read_again_each_time_the_menu_opens() -> void:
 	log._log_error("f", "res://a.gd", 9, "boom", "", false, Logger.ERROR_TYPE_ERROR, no_trace)
 	menu.open()
 	assert_string_contains(menu.error_text(), "(1 error)", "read again each time the menu opens")
+
+
+func test_errors_from_before_the_match_dont_count() -> void:
+	var log := _log(4, 0)
+	menu.errors = log
+	menu.set_match("Depot", "Elimination", 1, 7)
+	menu.open()
+	assert_eq(menu.error_text(), "", "4 errors in the menus before this match")
+	_add(log, 1, 0)
+	menu.open()
+	assert_string_contains(menu.error_text(), "(1 error)", "only the match's own")
 
 
 # --- Report a Bug over the paused match ---
@@ -143,6 +160,26 @@ func test_report_a_bug_opens_the_panel_on_the_matchs_facts() -> void:
 	assert_eq(opened.size(), 1)
 	assert_eq(opened[0], IssueLink.make(info, panel.config).url)
 	assert_eq(copied, PackedStringArray([BugReport.write(info)]))
+
+
+func test_without_the_match_its_own_place_names_the_screen() -> void:
+	menu.set_match("Depot", "Elimination", 4, 48213)
+	menu.open()
+	assert_string_contains(_open_report().report_text(), "Screen: in play")
+	menu.report_panel().close()
+	await wait_process_frames(1)
+	menu.set_practice("Range", false, 0)
+	assert_string_contains(_open_report().report_text(), "Screen: practice")
+
+
+func test_report_a_bug_again_while_it_is_open_keeps_the_note() -> void:
+	menu.set_match("Depot", "Elimination", 4, 48213)
+	menu.open()
+	var panel := _open_report()
+	panel.set_note("It froze")
+	menu.open_report()
+	assert_eq(menu.report_panel(), panel)
+	assert_eq(panel.note_text(), "It froze", "a second press while it is open does nothing")
 
 
 func test_back_returns_to_the_menu_with_the_match_still_paused() -> void:
@@ -207,9 +244,10 @@ func test_a_paused_match_reports_itself() -> void:
 	var session := PlaySession.new()
 	session.autopilot = true
 	session.match_seed = 777
-	session.error_log = _log(2, 0)
+	session.error_log = _log(1, 0)
 	add_child_autofree(session)
 	await wait_physics_frames(2)
+	_add(session.error_log, 2, 0)
 	session._open_pause()
 	var paused := session.find_child("PauseMenu", true, false) as PauseMenu
 	assert_eq(paused.error_text(),
@@ -222,7 +260,7 @@ func test_a_paused_match_reports_itself() -> void:
 	assert_string_contains(text, "Seed: 777")
 	assert_string_contains(text, "Screen: in play")
 	assert_string_contains(text, "Match: Depot · Elimination")
-	assert_string_contains(text, "Recent errors (2):")
+	assert_string_contains(text, "res://a.gd:1 (f): boom 1", "the report lists the run's errors")
 	assert_true(get_tree().paused, "the match stays paused under the panel")
 	panel.back_button().pressed.emit()
 	await wait_process_frames(1)

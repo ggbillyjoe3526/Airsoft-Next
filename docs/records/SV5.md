@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus | pass | | |
+| 2026-10-23 | 2 | Opus | pass | QA attempt 1: Pass (advisories fixed); performance Pass | QA's focus escape and three advisories |
 
 ## Decisions
 
@@ -36,10 +37,21 @@
   no report showed; it never presses Report.
 - **Same text for practice's error line** ("in this match"), as the acceptance words it.
 
+- **QA attempt 1: Pass (advisories fixed); performance Pass.** Keyboard focus could leave the panel over the pause
+  menu (Tab, Shift+Tab and the arrows reached REPORT A BUG, Resume and Settings under the shade): the panel now rings
+  its five parts (note, Report on GitHub, Copy report, Back, the report) for Tab and Shift+Tab and points every arrow
+  at one of them; QA's proof test is folded into `test_report_panel.gd`. `PauseMenu.open_report` does nothing while a
+  report is open. Typing or pasting into a full note loses only what went past 500, just before the caret, and the
+  caret stays (it dropped the last character and jumped to the end); the report box keeps its scroll as the note
+  changes. The error line counts errors since the match (or practice) started: the menu notes
+  `errors_this_run()` when PlaySession hands it the ErrorLog and shows the difference (the report still lists the
+  run's). The pause fallback's report names its place ("in play" or "practice"), not "".
+
 ## Checks
 
 `tools/check.sh`: gdlint, changelog notes, unit tests (2471 of 2471, no script error), smoke test and licence notices
 all pass.
+Attempt 2 (QA's fixes): all five gates pass, unit tests 2476 of 2476, no script error.
 
 ## Screenshots
 

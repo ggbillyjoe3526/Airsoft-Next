@@ -123,6 +123,44 @@ func test_the_note_is_cut_to_its_length_in_script() -> void:
 	assert_eq(panel.note_text(), "short", "a short note is left as typed")
 
 
+func test_typing_into_a_full_note_keeps_it_and_the_caret() -> void:
+	panel.open(_info())
+	var full := "a".repeat(config.note_chars)
+	panel.set_note(full)
+	panel.note_box().set_caret_line(0)
+	panel.note_box().set_caret_column(10)
+	panel.note_box().insert_text_at_caret("Z")
+	await wait_process_frames(2)
+	assert_eq(panel.note_text(), full, "the key past the length is lost, the last character kept")
+	assert_eq(panel.note_box().get_caret_column(), 10, "the caret stays where it was")
+	panel.set_note("b".repeat(config.note_chars - 2))
+	panel.note_box().set_caret_column(5)
+	panel.note_box().insert_text_at_caret("XYZW")
+	await wait_process_frames(2)
+	assert_eq(panel.note_text(), "b".repeat(5) + "XY" + "b".repeat(config.note_chars - 7),
+			"a paste keeps what fits, at the caret")
+	assert_eq(panel.note_box().get_caret_column(), 7)
+
+
+func test_focus_stays_inside_the_panel_over_the_pause_menu() -> void:
+	var menu := PauseMenu.new()
+	add_child_autofree(menu)
+	menu.open()
+	menu.report_button().pressed.emit()
+	var over := menu.report_panel()
+	var escaped: Array[String] = []
+	for b: Control in [over.back_button(), over.report_button(), over.copy_button(), over.note_box(),
+			over.find_child("Report", true, false) as Control]:
+		for n: Control in [b.find_next_valid_focus(), b.find_prev_valid_focus(), b.find_valid_focus_neighbor(SIDE_RIGHT),
+				b.find_valid_focus_neighbor(SIDE_BOTTOM), b.find_valid_focus_neighbor(SIDE_LEFT),
+				b.find_valid_focus_neighbor(SIDE_TOP)]:
+			if n != null and not over.is_ancestor_of(n):
+				escaped.append("%s -> %s" % [b.name, n.name])
+	assert_eq(escaped.size(), 0, "focus escapes: %s" % str(escaped))
+	assert_eq(over.back_button().find_next_valid_focus(), over.find_child("Report", true, false))
+	assert_eq(over.note_box().find_prev_valid_focus(), over.find_child("Report", true, false), "Shift+Tab goes round")
+
+
 # --- Report and Copy ---
 
 func test_report_opens_issue_links_address_once_and_copies_the_whole_report_once() -> void:
