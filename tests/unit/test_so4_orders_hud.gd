@@ -185,6 +185,27 @@ func test_an_order_picked_on_the_wheel_is_told_its_notice_with_the_wheel_up_alon
 	assert_false(w.visible, "gone after its time")
 
 
+func test_the_notice_after_a_pick_shows_in_the_hub_alone_with_no_dark_or_slices() -> void:
+	var w := hud.order_wheel()
+	_open(Vector2(60.0, 0.0))
+	assert_true(w.draws_wheel(), "open: the wheel is drawn")
+	wheel.close()
+	outcome.record(you.id, SquadOrder.Kind.NONE, SquadOrders.Notice.CANCELLED)
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	assert_true(w.visible, "the notice shows")
+	assert_false(w.draws_wheel(), "only the hub: no dark behind it and no slices over the crosshair")
+
+
+func test_a_wheel_shut_on_nothing_waits_for_no_notice() -> void:
+	var w := hud.order_wheel()
+	_open(Vector2.ZERO)
+	wheel.close()
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	outcome.record(you.id, SquadOrder.Kind.NONE, SquadOrders.Notice.NOBODY)
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	assert_false(w.visible, "shut in the middle: a key pressed just after it brings nothing back")
+
+
 func test_a_pick_with_no_notice_or_a_late_answer_shows_nothing() -> void:
 	var w := hud.order_wheel()
 	var cfg := HudConfig.new()

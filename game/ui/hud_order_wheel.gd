@@ -33,6 +33,8 @@ const NAME_SIZE := 24
 const NAME_SPACING := 0.05
 const KEY_SIZE := 17
 const KEY_PAD := Vector2(10.0, 3.0)
+## Room (px) a key chip keeps for its border, added to its padding.
+const KEY_EDGE := 3.0
 const KEY_MIN := 34.0
 const KEY_RADIUS := 4
 const TAG_SIZE := 12
@@ -77,9 +79,10 @@ var _force: int = -2
 var _showing_notice: bool = false
 var _notice_left: float = 0.0
 var _serial: int = 0
-## The wheel was open last frame; how long (s) a pick that shut it still waits for its answer; and the wheel is up with
-## only a notice (an order picked on it, which shut it as it was picked).
+## The wheel was open last frame, and pointed at a slice then; how long (s) a pick that shut it still waits for its
+## answer; and the wheel is up with only a notice (an order picked on it, which shut it as it was picked).
 var _was_open: bool = false
+var _on_slice: bool = false
 var _wait_left: float = 0.0
 var _notice_only: bool = false
 
@@ -107,6 +110,7 @@ func update(wheel: OrderWheelPointer, in_force: SquadOrder.Kind, outcome: SquadO
 		_closed(told, outcome.notice, delta)
 		return
 	_was_open = true
+	_on_slice = wheel.pick() != OrderWheelPointer.NONE
 	if not visible or _notice_only:
 		_open()
 	if told:
@@ -129,6 +133,7 @@ func update(wheel: OrderWheelPointer, in_force: SquadOrder.Kind, outcome: SquadO
 ## Puts the wheel away at once (the pause menu opening): nothing stays up, no notice is owed.
 func dismiss() -> void:
 	_was_open = false
+	_on_slice = false
 	_wait_left = 0.0
 	_notice_only = false
 	_clear_notice()
@@ -141,12 +146,14 @@ func _process(_delta: float) -> void:
 		dismiss()
 
 
-## A frame with the wheel shut. Just shut, it waits order_notice_wait for the notice of the order it was shut by: one
-## that comes shows alone in the wheel for order_notice_time, then the wheel goes; none, and it goes at once.
+## A frame with the wheel shut. Just shut on a slice, it waits order_notice_wait for the notice of the order it was
+## shut by: one that comes shows alone in the hub for order_notice_time, then goes; none, or shut on nothing, and it goes
+## at once.
 func _closed(told: bool, notice: SquadOrders.Notice, delta: float) -> void:
 	if _was_open:
+		var on_slice := _on_slice
 		dismiss()
-		_wait_left = _cfg.order_notice_wait
+		_wait_left = _cfg.order_notice_wait if on_slice else 0.0
 	elif _wait_left > 0.0:
 		_wait_left -= delta
 	if told and _wait_left > 0.0:
@@ -216,8 +223,17 @@ func built() -> bool:
 	return _built
 
 
+## The wheel itself (the dark behind it and its slices) is drawn: not while only a notice shows in its hub, so the
+## crosshair stays clear while you have control again.
+func draws_wheel() -> bool:
+	return _built and visible and not _notice_only
+
+
 func _draw() -> void:
 	if not _built:
+		return
+	if _notice_only:
+		_draw_hub()
 		return
 	var far := SCRIM_RADII.z
 	draw_texture_rect(_scrim, Rect2(-far, -far, far * 2.0, far * 2.0), false)
@@ -228,12 +244,18 @@ func _draw() -> void:
 		draw_polyline(_outlines[i], LIT_EDGE if lit else GameTheme.LINE, LIT_STROKE if lit else STROKE, true)
 	if _force >= 0:
 		draw_colored_polygon(_bands[_force], _colour)
-	draw_circle(Vector2.ZERO, _hub, HudStyle.backing_on(self, NOTICE_ALPHA if _showing_notice else HUB_ALPHA))
+	_draw_hub()
+	for i in _slices.size():
+		_draw_words(i)
+
+
+## The hub and its ring, ruled while it tells a notice; see-through when the wheel is shut and it only tells you.
+func _draw_hub() -> void:
+	var alpha := NOTICE_ALPHA if _showing_notice and not _notice_only else HUB_ALPHA
+	draw_circle(Vector2.ZERO, _hub, HudStyle.backing_on(self, alpha))
 	draw_arc(Vector2.ZERO, _hub, 0.0, TAU, 64, GameTheme.LINE, STROKE, true)
 	if _showing_notice:
 		draw_arc(Vector2.ZERO, _hub - NOTICE_RULE * 0.5, 0.0, TAU, 64, GameTheme.YELLOW, NOTICE_RULE, true)
-	for i in _slices.size():
-		_draw_words(i)
 
 
 ## Slice `i`'s name and key, and the ACTIVE tag when it is the order in force.
@@ -243,7 +265,7 @@ func _draw_words(i: int) -> void:
 	var ink := Color(GameTheme.YELLOW_INK if lit else GameTheme.TEXT, fade)
 	var key_ink := Color(GameTheme.YELLOW_INK if lit else GameTheme.MUTED, fade)
 	var has_key := not _keys[i].is_empty()
-	var key_h := _key_font.get_height(KEY_SIZE) + KEY_PAD.y * 2.0 + 3.0
+	var key_h := _key_font.get_height(KEY_SIZE) + KEY_PAD.y * 2.0 + KEY_EDGE
 	var column := float(NAME_SIZE) + WORDS_GAP + (key_h if has_key else NO_KEY_HEIGHT)
 	var box := _label_at[i] - SLICE_BOX * 0.5
 	var top := box.y + (SLICE_BOX.y - column) * 0.5
@@ -252,7 +274,7 @@ func _draw_words(i: int) -> void:
 	draw_string(_name_font, Vector2(box.x, base), _names[i], HORIZONTAL_ALIGNMENT_CENTER, SLICE_BOX.x, NAME_SIZE, ink)
 	if has_key:
 		var text_w := _key_font.get_string_size(_keys[i], HORIZONTAL_ALIGNMENT_LEFT, -1, KEY_SIZE).x
-		var w := maxf(KEY_MIN, text_w + KEY_PAD.x * 2.0 + 3.0)
+		var w := maxf(KEY_MIN, text_w + KEY_PAD.x * 2.0 + KEY_EDGE)
 		var chip := Rect2(mid - w * 0.5, top + NAME_SIZE + WORDS_GAP, w, key_h)
 		_chip.bg_color = Color(GameTheme.YELLOW_INK, 0.1 * fade) if lit else Color(0.0, 0.0, 0.0, 0.0)
 		_chip.border_color = key_ink
