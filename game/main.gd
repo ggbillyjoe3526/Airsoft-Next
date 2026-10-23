@@ -79,6 +79,8 @@ var guard_path: String = ""
 var renderer_path: String = RendererOverride.PATH
 var settings_path: String = Settings.PATH
 var restart: Callable = Callable()
+## Whether a process id is running (OS.is_process_running); tests replace it.
+var process_running: Callable = Callable()
 
 
 func _ready() -> void:
@@ -355,10 +357,17 @@ func _guard_start() -> GraphicsGuard.Action:
 		guard_path = GraphicsGuard.PATH
 	if not restart.is_valid():
 		restart = _restart
+	if not process_running.is_valid():
+		process_running = Callable(OS, &"is_process_running")
 	var s := Settings.shared()
 	var machine := GraphicsApply.machine()
 	RendererOverride.sync(s.renderer, renderer_path)
 	_guard = GraphicsGuard.load_file(guard_path)
+	if _guard.held_by_other(OS.get_process_id(), process_running):
+		# a second copy beside the first: the first one's record, untouched
+		_guard = null
+		return GraphicsGuard.Action.NONE
+	_guard.pid = OS.get_process_id()
 	var low := GraphicsTable.shared().preset(GraphicsGuard.SAFE_PRESET)
 	var safe_now := machine.rendering_method == GraphicsPick.COMPATIBILITY \
 			and s.graphics_in_force(machine.preset).equals(low)
@@ -374,10 +383,25 @@ func _guard_start() -> GraphicsGuard.Action:
 	return action
 
 
-## Starts the game again with the same options, once this one has quit.
+## Starts the game again with the same options, once this one has quit, less a renderer option (the safe-graphics
+## shortcut's), so the renderer the restart is for (user://renderer.cfg) is the one it gets.
 func _restart() -> void:
-	OS.set_restart_on_exit(true, OS.get_cmdline_args())
+	OS.set_restart_on_exit(true, restart_args(OS.get_cmdline_args()))
 	get_tree().quit()
+
+
+## `args` without `--rendering-method` and its value.
+static func restart_args(args: PackedStringArray) -> PackedStringArray:
+	var kept := PackedStringArray()
+	var i := 0
+	while i < args.size():
+		if args[i] == "--rendering-method":
+			i += 2
+			continue
+		if not args[i].begins_with("--rendering-method="):
+			kept.append(args[i])
+		i += 1
+	return kept
 
 
 ## The graphics started: the first match's shaders warmed, or a clean quit.

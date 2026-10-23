@@ -14,6 +14,10 @@
   while drawing makes the next start restart itself on the simpler renderer and Low, then ask on the title (Keep safe
   graphics, or Try my settings again, which restores both and restarts), rather than asking first on a screen that may
   not draw. The renderer file is the plan's question 7 default: one plain file Godot reads, the contract 8 exception.
+- **A second copy is not a crash (QA):** the record names the process that wrote it; a start that finds STARTING from a
+  process still running leaves the record and the settings alone and guards nothing. Only STARTING is checked, since
+  a trip's own parent may still be closing when the restart reads RESTARTING. Every restart drops a
+  `--rendering-method` option, so Try my settings again from the safe shortcut comes back on the renderer it restored.
 - **GraphicsGuard's states:** SETTLED, STARTING, RESTARTING, in `user://graphics_guard.save` through SaveFile. A start
   writes STARTING; the first match's shaders warmed (`PlaySession.shaders_warmed`, when ShaderPrewarm leaves the
   tree) or a clean quit (the entry scene leaving the tree) write SETTLED. A start that finds STARTING trips: the
@@ -94,3 +98,16 @@
 - A driver that crashes before any script runs can't be caught in-game (KNOWN_ISSUES, Graphics): Godot's fallback and
   the safe shortcut cover it.
 - The owner's checks above, on a Windows export.
+- A game killed from Task Manager on the title (never a match, no clean quit) also trips on the next start: it can't
+  tell that from a driver hang, and it asks before keeping anything.
+
+## Advisories left (QA, performance)
+
+- Try my settings again restores the graphics wholesale, so a Graphics tab change made while the question waits is
+  dropped; picking Auto meanwhile leaves the notice saying the settings are kept but not in use.
+- A failed write of renderer.cfg only warns (the next start's `sync` puts it right); a failed rename leaves the `.tmp`
+  until Auto. A hand-edited renderer.cfg asking for another renderer is left alone under Auto.
+- `_show_safe_notice` trusts the value types in `previous` (SaveFile's checksum guards the file).
+- Start-up does three small synchronous file operations before the first frame, and the settle write lands in the
+  first match's load; measure if a hitch shows. The title saves the record each time it rebuilds while the question
+  waits; it could skip an unchanged save.

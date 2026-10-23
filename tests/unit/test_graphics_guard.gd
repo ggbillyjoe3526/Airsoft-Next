@@ -462,3 +462,64 @@ func test_the_simpler_renderer_greys_with_its_own_words_and_shows_what_it_draws(
 	var fsr2 := forward.line(GraphicsQuality.UPSCALER).choice.button(2)
 	assert_false(fsr2.disabled)
 	assert_eq(forward.line(GraphicsQuality.UPSCALER).choice.selected(), 1, "FSR 1 on Forward+")
+
+
+# --- A second copy, and the restart's options (critic's pass over QA's advisories) ---
+
+func test_a_second_copy_beside_a_running_one_leaves_its_record_alone() -> void:
+	var g := _guard(GraphicsGuard.State.STARTING)
+	g.pid = OS.get_process_id() + 1
+	var main := _main_with(g)
+	main.set("process_running", func(_id: int) -> bool: return true)
+	add_child_autofree(main)
+	assert_false(main.has_meta(&"restarted"))
+	assert_null(main.get("_guard"))
+	var kept := GraphicsGuard.load_file(_guard_path)
+	assert_eq(kept.state, GraphicsGuard.State.STARTING)
+	assert_eq(kept.pid, OS.get_process_id() + 1)
+	var saved := Settings.new(PlayTuning.new())
+	saved.load_file(_settings_path)
+	assert_ne(saved.renderer, Settings.Renderer.COMPATIBILITY, "the player's settings untouched")
+
+
+func test_a_start_whose_writer_is_gone_still_trips() -> void:
+	var g := _guard(GraphicsGuard.State.STARTING)
+	g.pid = OS.get_process_id() + 1
+	var main := _main_with(g)
+	main.set("process_running", func(_id: int) -> bool: return false)
+	add_child(main)
+	assert_true(main.has_meta(&"restarted"))
+	main.free()
+	assert_eq(GraphicsGuard.load_file(_guard_path).pid, OS.get_process_id(), "the record names its writer")
+
+
+func test_only_a_start_under_way_can_belong_to_another_copy() -> void:
+	var yes := func(_id: int) -> bool: return true
+	for state: GraphicsGuard.State in [GraphicsGuard.State.SETTLED, GraphicsGuard.State.RESTARTING]:
+		var g := _guard(state)
+		g.pid = 42
+		assert_false(g.held_by_other(7, yes), "the restart's own parent may still be closing")
+	var mine := _guard(GraphicsGuard.State.STARTING)
+	mine.pid = 7
+	assert_false(mine.held_by_other(7, yes))
+	var unknown := _guard(GraphicsGuard.State.STARTING)
+	assert_false(unknown.held_by_other(7, yes))
+
+
+func test_the_pid_survives_the_file_and_a_bad_one_reads_as_unknown() -> void:
+	var g := _guard(GraphicsGuard.State.STARTING)
+	g.pid = 1234
+	var back := GraphicsGuard.new()
+	back.from_dict(g.to_dict())
+	assert_eq(back.pid, 1234)
+	back.from_dict({"state": "starting", "pid": "x"})
+	assert_eq(back.pid, 0)
+
+
+func test_the_restart_drops_a_renderer_option() -> void:
+	var script: GDScript = load("res://game/main.gd")
+	var args := PackedStringArray(["--rendering-method", "gl_compatibility", "--fullscreen"])
+	assert_eq(script.restart_args(args), PackedStringArray(["--fullscreen"]))
+	args = PackedStringArray(["--rendering-method=gl_compatibility", "--seed", "4"])
+	assert_eq(script.restart_args(args), PackedStringArray(["--seed", "4"]))
+	assert_eq(script.restart_args(PackedStringArray()), PackedStringArray())

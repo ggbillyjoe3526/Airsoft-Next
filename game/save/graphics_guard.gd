@@ -7,7 +7,8 @@ extends RefCounted
 ## SETTLED. A start that finds STARTING trips: the player's graphics are kept in `previous`, the settings go safe and
 ## the state RESTARTING, so the restarted start (or the next, if the restart never came) asks. While an answer waits,
 ## or when the graphics in force are already the safe ones, a start that never settled trips nothing: one automatic
-## restart per crash, never a loop. Also remembers the reason the title last gave for the simpler renderer, so it says
+## restart per crash, never a loop. A start that finds STARTING written by a copy still running (`pid`) is a second
+## copy, not a crash: it leaves the record alone. Also remembers the reason the title last gave for the simpler renderer, so it says
 ## so once per change.
 
 const PATH := "user://graphics_guard.save"
@@ -29,6 +30,8 @@ var state: State = State.SETTLED
 var previous: Dictionary = {}
 ## The reason the title last gave for the simpler renderer (RendererOverride.reason), "" when not on it.
 var renderer_notice: String = ""
+## The process that wrote the record (OS.get_process_id), 0 when not known.
+var pid: int = 0
 
 
 ## The record at `path`: a missing or damaged file is a settled one (nothing to recover from).
@@ -47,7 +50,8 @@ func save(path: String = PATH) -> bool:
 
 
 func to_dict() -> Dictionary:
-	return {"state": STATE_NAMES[state], "previous": previous.duplicate(true), "renderer_notice": renderer_notice}
+	return {"state": STATE_NAMES[state], "previous": previous.duplicate(true), "renderer_notice": renderer_notice,
+			"pid": pid}
 
 
 ## Each value checked on its own: an unknown state reads as settled, a `previous` without every key as none.
@@ -60,6 +64,14 @@ func from_dict(data: Dictionary) -> void:
 		previous = (kept as Dictionary).duplicate(true)
 	var notice: Variant = data.get("renderer_notice")
 	renderer_notice = notice if notice is String else ""
+	var by: Variant = data.get("pid")
+	pid = maxi(int(by), 0) if by is int or by is float else 0
+
+
+## Whether a start under way belongs to another copy of the game, still running (`running` says whether a process id
+## is): a second copy opened beside the first, not a crash.
+func held_by_other(me: int, running: Callable) -> bool:
+	return state == State.STARTING and pid > 0 and pid != me and bool(running.call(pid))
 
 
 ## Whether an answer waits (the notice shows on the title).
