@@ -401,3 +401,96 @@ func test_picking_a_preset_drops_customs_rows() -> void:
 	assert_false(s.graphics_custom.is_empty())
 	assert_true(s.choose_graphics(&"low", &"high"))
 	assert_true(s.graphics_custom.is_empty(), "no stale rows saved under a preset")
+
+
+func test_the_accessibility_fields_start_at_their_defaults() -> void:
+	assert_eq(s.team_colours, TeamColours.Set.STANDARD)
+	assert_true(s.gauge_patterns, "patterns on")
+	assert_false(s.sound_cues, "cues off: playing by ear stays the norm")
+	assert_eq(s.sound_cue_size, 1.0)
+	assert_eq(HudPrefs.COLOURS[s.sound_cue_colour], Color("ff3b30"), "red")
+	assert_eq(s.reduced_motion, Settings.ReducedMotion.SYSTEM)
+	assert_true(s.read_out)
+
+
+func test_the_accessibility_fields_round_trip_through_the_save_file() -> void:
+	s.team_colours = TeamColours.Set.HIGH_CONTRAST
+	s.gauge_patterns = false
+	s.sound_cues = true
+	s.sound_cue_size = 1.7
+	s.sound_cue_colour = 2
+	s.reduced_motion = Settings.ReducedMotion.OFF
+	s.read_out = false
+	s.hud.hud_size = 0.85
+	assert_true(s.save(path))
+	var t := _again()
+	assert_eq(t.team_colours, TeamColours.Set.HIGH_CONTRAST)
+	assert_false(t.gauge_patterns)
+	assert_true(t.sound_cues)
+	assert_almost_eq(t.sound_cue_size, 1.7, 1e-6)
+	assert_eq(t.sound_cue_colour, 2)
+	assert_eq(t.reduced_motion, Settings.ReducedMotion.OFF)
+	assert_false(t.read_out)
+	assert_almost_eq(t.hud.hud_size, 0.85, 1e-6)
+	s.reduced_motion = Settings.ReducedMotion.ON
+	s.save(path)
+	assert_eq(_again().reduced_motion, Settings.ReducedMotion.ON)
+
+
+func test_following_the_system_is_never_written() -> void:
+	assert_false(s.to_dict().has("reduced_motion"), "System: nothing in the file")
+	s.reduced_motion = Settings.ReducedMotion.ON
+	assert_eq(s.to_dict().get("reduced_motion"), true, "saved as on")
+	s.reduced_motion = Settings.ReducedMotion.OFF
+	assert_eq(s.to_dict().get("reduced_motion"), false, "saved as off")
+
+
+func test_reduced_motion_follows_the_system_until_the_player_picks() -> void:
+	assert_true(s.reduces_motion(1), "the system asks for it")
+	assert_false(s.reduces_motion(0), "the system doesn't")
+	assert_false(s.reduces_motion(-1), "the system can't say: full motion")
+	s.reduced_motion = Settings.ReducedMotion.OFF
+	assert_false(s.reduces_motion(1), "Off wins over the system")
+	s.reduced_motion = Settings.ReducedMotion.ON
+	assert_true(s.reduces_motion(0), "On wins over the system")
+	assert_true(s.reduces_motion_now())
+	s.reduced_motion = Settings.ReducedMotion.SYSTEM
+	assert_false(s.reduces_motion_now(), "a headless display never asks")
+
+
+func test_a_file_from_before_the_accessibility_fields_loads_unchanged() -> void:
+	SaveFile.write(path, Settings.KIND, Settings.VERSION, {
+		"sensitivity": 1.5, "fov": 95.0, "realistic_colours": true, "hud": {"colour": 2},
+	})
+	var t := _again()
+	assert_eq(Settings.VERSION, 1, "the version stays 1")
+	assert_eq(t.load_message, "")
+	assert_almost_eq(t.sensitivity, 1.5, 1e-6)
+	assert_almost_eq(t.fov, 95.0, 1e-6)
+	assert_true(t.realistic_colours)
+	assert_eq(t.hud.colour, 2)
+	var d := Settings.new(PlayTuning.new())
+	assert_eq([t.team_colours, t.gauge_patterns, t.sound_cues, t.sound_cue_size, t.sound_cue_colour, t.reduced_motion,
+			t.read_out, t.hud.hud_size], [d.team_colours, d.gauge_patterns, d.sound_cues, d.sound_cue_size,
+			d.sound_cue_colour, d.reduced_motion, d.read_out, d.hud.hud_size])
+
+
+func test_each_bad_accessibility_value_keeps_its_own_default() -> void:
+	SaveFile.write(path, Settings.KIND, Settings.VERSION, {
+		"team_colours": 2, "gauge_patterns": "no", "sound_cues": true, "sound_cue_size": 2.5, "sound_cue_colour": 6,
+		"reduced_motion": "on", "read_out": 0, "hud": {"hud_size": 0.79},
+	})
+	var t := _again()
+	assert_eq(t.load_message, "", "a good file with bad values is not a damaged file")
+	assert_eq(t.team_colours, TeamColours.Set.STANDARD, "no third set")
+	assert_true(t.gauge_patterns, "not a bool")
+	assert_true(t.sound_cues, "a good value beside them is kept")
+	assert_eq(t.sound_cue_size, 1.0, "over the slider's range")
+	assert_eq(t.sound_cue_colour, AccessibilityConfig.CUE_COLOUR_DEFAULT, "no seventh colour")
+	assert_eq(t.reduced_motion, Settings.ReducedMotion.SYSTEM, "a word is not on or off")
+	assert_true(t.read_out, "a number is not a flag")
+	assert_eq(t.hud.hud_size, 1.0, "under the slider's range")
+	t.from_dict({"team_colours": -1, "sound_cue_size": 0.62, "sound_cue_colour": "red"})
+	assert_eq(t.team_colours, TeamColours.Set.STANDARD)
+	assert_almost_eq(t.sound_cue_size, 0.6, 1e-6, "between steps reads as the nearest")
+	assert_eq(t.sound_cue_colour, AccessibilityConfig.CUE_COLOUR_DEFAULT)

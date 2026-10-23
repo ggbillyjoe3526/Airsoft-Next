@@ -5,6 +5,108 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
+## AC2 · Team colour sets in play and Settings › Accessibility
+tier: ui
+perf: skip
+touches: game/play/play_session.gd, game/play/figure_view.gd, game/play/flag_view.gd, game/ui/match_page.gd,
+  game/ui/hud_preview.gd, game/ui/settings_hud_page.gd, game/ui/settings_access_page.gd,
+  game/ui/settings_screen.gd, game/ui/text/en.po, docs/KNOWN_ISSUES.md, tests/unit/test_team_colours_apply.gd,
+  tests/unit/test_settings_screen.gd
+contract: Simulation and presentation (1); Data, not literals (6); Headless (9)
+acceptance:
+  1. At Play the session resolves the picked set once (night from the field's lighting preset): figures, their sign
+     outline and the flag cloth take the figures part, every HUD part the hud part; HC figures' team paint gets the
+     day glow as emission (0.3 of its colour). A change mid-match shows from the next match, as the blurb says.
+  2. The Match page's team picks, HudPreview and the HUD tab's thumbnails follow the saved set (no TeamConfig.new()
+     left in UI code).
+  3. The Accessibility tab after HUD, as settings-accessibility.png: Team colours (Standard, High contrast, each with
+     two swatches and its blurb); Gauge patterns; Sound cues with size and colour; Reduced motion (Follow system,
+     Off, On) with the browser's blurbs; Screen reader messages with what is read. Rows of AC3 to AC6 are greyed with
+     LATER until their tasks land; every live row saves at once.
+  4. GUT: Standard draws exactly as today (figure, flag, HUD colours); HC reaches every consumer; the glow is 0 on a
+     night preset; the tab's rows map to the settings fields.
+  5. KNOWN_ISSUES' SE1 row loses "Accessibility".
+status: open
+attempts: 0
+
+## AC3 · Patterns on the gauges
+tier: ui
+perf: required
+touches: game/ui/gauge_pattern.gd, game/ui/mag_gauges.gd, game/ui/hud_flag_gauge.gd, game/ui/hud_score.gd,
+  game/ui/hud_style.gd, game/ui/hud.gd, game/ui/settings_access_page.gd, tests/unit/test_gauge_pattern.gd,
+  tests/unit/test_mag_gauges.gd
+contract: Data, not literals (6)
+acceptance:
+  1. GaugePattern builds 45° stripes clipped to a rect as one cached PackedVector2Array (draw_multiline), rebuilt
+     only when the rect changes; stripe width and gap and the stripe colour's contrast are HudStyle constants.
+  2. With Gauge patterns on: a low magazine (share ≤ low_mag_share, counter on) is yellow and striped; Beta's score
+     pips, score block and Beta's flag-gauge fill are striped, Alpha's solid, in both colour sets. Off draws as today.
+  3. Still redrawn only on a change; a frame allocates nothing (GUT on the cached arrays; DebugPerf counts).
+  4. The tab's Gauge patterns row loses LATER.
+status: open
+attempts: 0
+
+## AC4 · Sound cues round the crosshair
+tier: ui
+perf: required
+touches: game/play/sound_cues.gd, game/play/play_session.gd, game/play/README.md, game/ui/hud_sound_cues.gd,
+  game/ui/hud.gd, game/ui/settings_access_page.gd, tests/unit/test_sound_cues.gd
+contract: Simulation and presentation (1); Events (3); Data, not literals (6)
+acceptance:
+  1. SoundCues (plain RefCounted, fed each tick's events after the step, through the watched character's ears like
+     MinimapHearing): FOOTSTEP and VAULT of the other team within step_reach, SHOT of anyone but you within
+     max_distance × the replica's heard_scale, CHARACTER_HIT (the hit call) within max_distance; none for your own
+     sounds or teammates' steps; one pooled marker per player and kind (AccessibilityConfig's 10), life 1.4 s, fade
+     0.6 s, opacity 1 beside you to 0.35 at the edge. Walls are not checked (a muffled sound is still heard).
+  2. HudSoundCues draws them on a ring (150 px at 1080p) at their bearing relative to the view, turning as you turn:
+     two dots, an arrowhead, a HIT tag (hud-sound-cues.png), in the picked colour and size; off hides it and stops
+     feeding. A new round clears them.
+  3. GUT: reach and heard_scale; own and teammates' steps ignored; a burst is one marker; fade times; the pool never
+     grows; bearing for a sound behind and to the left. A tick and a frame allocate nothing.
+  4. The tab's Sound cues rows lose LATER.
+status: open
+attempts: 0
+
+## AC5 · HUD size and reduced motion
+tier: ui
+perf: skip
+touches: game/ui/hud.gd, game/ui/hud_preview.gd, game/ui/settings_hud_page.gd, game/ui/settings_access_page.gd,
+  game/play/motion_scale.gd, game/play/first_person_view.gd, game/play/replica_view.gd, game/play/wind_dust.gd,
+  game/play/play_session.gd, game/ui/text/en.po, tests/unit/test_hud_size.gd, tests/unit/test_motion_scale.gd
+contract: Simulation and presentation (1); Data, not literals (6); Headless (9)
+acceptance:
+  1. Settings › HUD gains HUD size (80–150 %, step 5 %) as settings-hud-size.png; the preview follows it. In play
+     every HUD part but the crosshair, hit marker and sound cue ring scales by it about its anchor (the HUD root's
+     size is the viewport over the scale, so anchors and edges hold); applied at once, also from the pause menu.
+  2. MotionScale.of(reduced) gives the motion table's shares; Reduced motion On, or System with the display asking
+     for it: sway 0, kick and reload cant × 0.5, lean roll and vault dip and tip × 0.25, no wind dust, the flag
+     warning steady; the recoil climb unchanged. Applied at once.
+  3. GUT: the HUD's parts' rects at 0.8 and 1.5 stay on screen at 1280×720 and 1920×1080; the camera roll at a full
+     lean and the replica's offset after a shot under both settings; the climb equal in both.
+  4. The tab's Reduced motion row loses LATER.
+status: open
+attempts: 0
+
+## AC6 · Screen reader messages for hits and rounds
+tier: ui
+perf: skip
+touches: game/ui/announcer.gd, game/ui/hud_announce.gd, game/ui/hud.gd, game/ui/hud_feed.gd,
+  game/ui/settings_access_page.gd, game/ui/text/en.po, project.godot, docs/ARCHITECTURE.md,
+  tests/unit/test_announcer.gd
+contract: Events (3); Headless (9)
+acceptance:
+  1. Announcer (plain RefCounted) turns events into lines with the HUD's own words: each hit feed line ("Beta 2
+     called HIT · Alpha 3", "You" for the player), your own hit ("You're hit · Beta 2"), round start ("Round 3"),
+     round over (winner, reason and score), match over. Lines inside 0.3 s are joined into one message.
+  2. HudAnnounce is a Label kept in the accessibility tree but not drawn, accessibility_live POLITE (your hit and the
+     match result ASSERTIVE); with Screen reader messages off it is LIVE_OFF and gets no text.
+  3. project.godot states accessibility/general/accessibility_support = 0 (Auto: AccessKit runs only while a screen
+     reader does, so it costs nothing otherwise); ARCHITECTURE notes it.
+  4. GUT: each event's line; the join window; off sends nothing; the label's live mode.
+  5. The tab's Screen reader messages row loses LATER; the record lists the owner's NVDA and Orca checks.
+status: open
+attempts: 0
+
 ## AD1 · Adaptive difficulty (Dev)
 when: build order step 31, after the late features (owner, 2026-10-22)
 tier: core
