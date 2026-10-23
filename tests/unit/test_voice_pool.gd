@@ -126,9 +126,8 @@ func test_pitch_and_level_spread_by_kind_and_none_on_interface_cues() -> void:
 	assert_gt(pitches.size(), 30, "pitch spread")
 	assert_gt(levels.size(), 30, "level spread")
 	_stop_all()
-	state.round_state.practice = false
 	for i in 6:
-		_tick_with(GameEvent.Kind.ROUND_START, -1, Vector3.ZERO)
+		_tick_with(GameEvent.Kind.CHALLENGE, 0, Vector3.ZERO) # the challenge's countdown beep
 		var beep := audio._own[i % cfg.cue_voices]
 		assert_almost_eq(beep.volume_db, linear_to_db(cfg.beep_gain), 1e-4, "an interface cue's level is not spread")
 		assert_eq(beep.pitch_scale, 1.0)

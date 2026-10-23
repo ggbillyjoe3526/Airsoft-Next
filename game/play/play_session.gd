@@ -447,7 +447,7 @@ func _build_views(ui: CanvasLayer) -> void:
 				profiles.append(r.sound_profile())
 	_audio = SimAudio.new()
 	add_child(_audio)
-	_audio.setup(_play.sound, profiles, _tuning.body, _level.query(), _map)
+	_audio.setup(_play.sound, profiles, _tuning.body, _level.query(), _map, _tuning.footsteps)
 	_mix = SoundMix.new()
 	add_child(_mix)
 	_mix.setup(_play.sound)

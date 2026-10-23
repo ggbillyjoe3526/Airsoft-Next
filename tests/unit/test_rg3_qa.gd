@@ -285,10 +285,8 @@ func test_a_match_on_depot_is_as_it_was() -> void:
 	var st := GameState.new(1)
 	st.events.add(GameEvent.Kind.ROUND_START)
 	audio.on_tick(st, 0, null)
-	var beeped := false
-	for v in audio._own:
-		beeped = beeped or (audio._streams[&"count_beep"] as Array).has(v.stream)
-	assert_true(beeped, "rounds still start with their beep")
+	assert_true((audio._streams[&"whistle_short"] as Array).has(audio._whistle.stream),
+			"rounds start with the referee's whistle (SP4)")
 
 
 func test_a_ring_is_one_sound_not_two() -> void:

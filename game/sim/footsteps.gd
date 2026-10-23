@@ -2,7 +2,7 @@ class_name Footsteps
 ## Footsteps (the browser game's sim/footsteps.ts): after a character has moved, counts the ground it covered and sends
 ## a footstep event every stride while running or sprinting, and a landing when it comes down hard. Walking and moving
 ## crouched are silent, but for a rattling magazine (a rattle every stride). Each says what it came down on when the
-## world can tell, for its sound.
+## world can tell, for its sound; a landing says how hard it came down too.
 
 
 static func step(c: Character, cfg: FootstepConfig, events: SimEvents, query: WorldQuery) -> void:
@@ -12,10 +12,10 @@ static func step(c: Character, cfg: FootstepConfig, events: SimEvents, query: Wo
 		return
 	if c.airborne:
 		c.airborne = false
-		var landed := c.fall_speed >= cfg.land_min_speed
+		var speed := c.fall_speed
 		c.fall_speed = 0.0
-		if landed:
-			_send(c, GameEvent.Footstep.LAND, events, query)
+		if speed >= cfg.land_min_speed:
+			_send(c, GameEvent.Footstep.LAND, events, query).direction = Vector3.DOWN * speed
 			c.step_distance = 0.0
 			return
 	var quiet := c.walking or c.crouch_amount > cfg.silent_crouch
@@ -33,9 +33,10 @@ static func step(c: Character, cfg: FootstepConfig, events: SimEvents, query: Wo
 			_send(c, GameEvent.Footstep.SPRINT if c.sprinting else GameEvent.Footstep.RUN, events, query)
 
 
-static func _send(c: Character, kind: GameEvent.Footstep, events: SimEvents, query: WorldQuery) -> void:
+static func _send(c: Character, kind: GameEvent.Footstep, events: SimEvents, query: WorldQuery) -> GameEvent:
 	var e := events.add(GameEvent.Kind.FOOTSTEP)
 	e.actor = c.id
 	e.value = kind
 	e.value2 = query.surface_under(c.position)
 	e.position = c.position
+	return e
