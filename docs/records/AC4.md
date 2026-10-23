@@ -1,12 +1,12 @@
 # AC4 · Sound cues round the crosshair
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus | pass | 8/8 accept | |
 
 ## Decisions
 
@@ -50,6 +50,7 @@
   off, half as far with a silencer), hit calls a HIT tag; turn and the ring turns with you; nothing for your own
   sounds or your teammates' steps; a new round clears the ring. Switch it off from the pause menu: the ring goes at
   once. Whether 150 px reads well at 1080p and 4K, and the sizes at 60 % and 200 %.
+- The HIT tag's word is dark on light cue colours (yellow, white) where the concept drew it white: check it reads.
 
 ## Verified here
 
@@ -79,3 +80,14 @@
 ## Known issues left
 
 - None new.
+
+## Advisories left (critic, QA, performance)
+
+- `HudSoundCues._draw` works out each marker's bearing and opacity twice (once to place it, once to draw it); at ten
+  markers at most, only while one is up, it isn't worth the change now.
+- The HIT tag draws its word with `draw_string` each frame while a hit call shows; the font cache covers the shaping.
+- The HIT word takes `HudStyle.ink_on` (dark on a light cue colour) where the concept drew it white, for readability;
+  on the owner's list to confirm.
+- Markers hold while the game is paused, since their life runs on simulation time.
+- A sound at the listener's own spot has a bearing of ±π (drawn behind); only a hit call at your feet could land
+  there.
