@@ -232,7 +232,7 @@ func draws_wheel() -> bool:
 func _draw() -> void:
 	if not _built:
 		return
-	if _notice_only:
+	if not draws_wheel():
 		_draw_hub()
 		return
 	var far := SCRIM_RADII.z
