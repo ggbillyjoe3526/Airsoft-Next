@@ -228,6 +228,16 @@ class View:
 	const ARC_POINTS := 40
 	const DISC := 64
 	const DISC_EDGE := 0.985
+	## Where the shot disc's fill passes from its centre alpha to its edge alpha (0..1 of the radius).
+	const DISC_MID := 0.55
+	## The rim mark's centre sits this far (px) further in than half its size, so its outline stays on the panel.
+	const RIM_PAD := 1.0
+	## Points of an arc: a dash of the ring, the rim mark's outline, a teammate dot's outline, the pole's foot.
+	const DASH_ARC_POINTS := 4
+	const RIM_ARC_POINTS := 16
+	const DOT_ARC_POINTS := 20
+	const POLE_ARC_POINTS := 16
+	const RIM_OUTLINE := 1.0
 
 	var _cfg: MinimapConfig = null
 	var _textures: Array[Texture2D] = []
@@ -278,7 +288,7 @@ class View:
 		_patch_shots.resize(capacity)
 		var gradient := Gradient.new()
 		# Opaque to the disc's edge, then clear: the texture is a square round a circle.
-		gradient.offsets = PackedFloat32Array([0.0, 0.55, DISC_EDGE, 1.0])
+		gradient.offsets = PackedFloat32Array([0.0, DISC_MID, DISC_EDGE, 1.0])
 		gradient.colors = PackedColorArray([Color(1.0, 1.0, 1.0, cfg.shot_alpha.x), Color(1.0, 1.0, 1.0, cfg.shot_alpha.y),
 				Color(1.0, 1.0, 1.0, cfg.shot_alpha.z), Color(1.0, 1.0, 1.0, 0.0)])
 		_disc = GradientTexture2D.new()
@@ -358,7 +368,7 @@ class View:
 		for i in _patch_count:
 			var p := _to_panel(_patches[i])
 			if _off(p):
-				_draw_rim(mid + _pin(p, _cfg.rim_patch * 0.5 + 1.0), _patch_alphas[i])
+				_draw_rim(mid + _pin(p, _cfg.rim_patch * 0.5 + RIM_PAD), _patch_alphas[i])
 		if _hold_on:
 			_draw_hold(mid + _pin(_to_panel(_hold), _cfg.mark_pad))
 		if _pole_on:
@@ -400,7 +410,7 @@ class View:
 		var span := TAU / n * _cfg.dash / period
 		for k in n:
 			var from := TAU * k / n
-			draw_arc(c, r, from, from + span, 4, Color(_enemy, a), _cfg.ring_width, true)
+			draw_arc(c, r, from, from + span, DASH_ARC_POINTS, Color(_enemy, a), _cfg.ring_width, true)
 
 	## A shot: a disc fading to its edge, ringed.
 	func _draw_shot(i: int, mid: Vector2) -> void:
@@ -417,13 +427,13 @@ class View:
 	func _draw_rim(at: Vector2, alpha: float) -> void:
 		var r := _cfg.rim_patch * 0.5
 		draw_circle(at, r, Color(_enemy, alpha))
-		draw_arc(at, r, 0.0, TAU, 16, Color(_cfg.ink, _cfg.ink.a * alpha), 1.0, true)
+		draw_arc(at, r, 0.0, TAU, RIM_ARC_POINTS, Color(_cfg.ink, _cfg.ink.a * alpha), RIM_OUTLINE, true)
 
 	## A teammate: a dot (grey once hit), or an arrow where they are on another storey.
 	func _draw_dot(at: Vector2, colour: Color, arrow: int) -> void:
 		if arrow == 0:
 			draw_circle(at, _cfg.dot_radius, colour)
-			draw_arc(at, _cfg.dot_radius, 0.0, TAU, 20, _cfg.ink, _cfg.dot_outline, true)
+			draw_arc(at, _cfg.dot_radius, 0.0, TAU, DOT_ARC_POINTS, _cfg.ink, _cfg.dot_outline, true)
 			return
 		draw_set_transform(at, 0.0, Vector2.ONE)
 		var shape := _arrow_up if arrow > 0 else _arrow_down
@@ -448,5 +458,5 @@ class View:
 		draw_line(Vector2.ZERO, POLE_TOP, POLE_COLOUR, POLE_WIDTH, true)
 		draw_colored_polygon(_flag, GameTheme.YELLOW)
 		draw_circle(Vector2.ZERO, POLE_BASE, GameTheme.YELLOW)
-		draw_arc(Vector2.ZERO, POLE_BASE, 0.0, TAU, 16, _cfg.ink, POLE_BASE_INK, true)
+		draw_arc(Vector2.ZERO, POLE_BASE, 0.0, TAU, POLE_ARC_POINTS, _cfg.ink, POLE_BASE_INK, true)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

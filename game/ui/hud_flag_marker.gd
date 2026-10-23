@@ -85,8 +85,11 @@ func setup(cfg: HudConfig) -> void:
 ## Places the marker over the pole at `pole` as seen by `camera`, inside `area` (the HUD's size); hidden when `show` is
 ## false or you stand within reach of it. With the pole off the screen's side or behind you the marker pins to that side,
 ## its top at `pin.y` and its edge `pin.x` from the screen's; on the right its top is `right_top` instead (below the
-## hit feed when that is up there), since the left side's stack has nothing to do with what is on the right.
-func place(camera: Camera3D, pole: Vector3, show: bool, area: Vector2, pin: Vector2, right_top: float) -> void:
+## hit feed when that is up there), since the left side's stack has nothing to do with what is on the right. A plate for
+## the left whose bottom would pass `left_floor` (the bottom-left feed's top) goes to the right edge instead, its arrow
+## still pointing left.
+func place(camera: Camera3D, pole: Vector3, show: bool, area: Vector2, pin: Vector2, right_top: float,
+		left_floor: float) -> void:
 	var eye := camera.global_position
 	var metres := roundi(Vector2(pole.x - eye.x, pole.z - eye.z).length())
 	visible = show and metres >= _cfg.flag_marker_hide_within
@@ -103,9 +106,11 @@ func place(camera: Camera3D, pole: Vector3, show: bool, area: Vector2, pin: Vect
 	_set_pinned(behind or at.x < 0.0 or at.x > area.x)
 	if _pinned:
 		_edge_chevron.point(to_left)
-		var x := pin.x if to_left else area.x - pin.x - _edge.get_combined_minimum_size().x
+		var plate := _edge.get_combined_minimum_size()
+		var on_left := to_left and pin.y + plate.y <= left_floor
+		var x := pin.x if on_left else area.x - pin.x - plate.x
 		position = Vector2.ZERO
-		_edge.position = Vector2(x, pin.y if to_left else right_top)
+		_edge.position = Vector2(x, pin.y if on_left else right_top)
 		return
 	var half := size.x * 0.5
 	var edge := _cfg.flag_marker_edge

@@ -17,14 +17,14 @@ func _session(mode: String = MatchOptions.MODE_ATTACK_DEFEND, map_id: String = "
 
 
 ## The card up with a bot's note (its tallest case), laid out.
-func _card(s: PlaySession) -> WhatGotYouCard:
+func _card(s: PlaySession, note: String = "holds one spot short of the middle, aiming over cover.") -> WhatGotYouCard:
 	var facts := HitFacts.new()
 	facts.from_shooter = Vector2(0.95, 0.3)
 	facts.held_known = true
 	facts.held = true
 	facts.in_view = 0.4
 	s.hud().size = HUD_SIZE
-	s.hud().show_what_got_you(facts, "Rook", Color.ORANGE, "holds one spot short of the middle, aiming over cover.")
+	s.hud().show_what_got_you(facts, "Rook", Color.ORANGE, note)
 	return s.hud().what_got_you()
 
 
@@ -204,6 +204,7 @@ func test_the_marker_is_never_on_screen_over_a_card_the_frame_it_comes_up() -> v
 	var s := _session()
 	await wait_physics_frames(2)
 	var hud := s.hud()
+	hud.size = HUD_SIZE
 	var pole := s.state.round_state.pole
 	var camera := Camera3D.new()
 	add_child_autofree(camera)
@@ -227,3 +228,51 @@ func test_the_flag_marker_sits_under_the_minimap_in_the_hud() -> void:
 	assert_gt(hud._flag_marker.get_index(), hud.team_markers().get_index(), "and it over the names")
 	assert_lt(hud._flag_marker.get_index(), hud.feed().get_index(), "other panels as before")
 	assert_lt(hud._flag_marker.get_index(), hud.board().get_index())
+
+
+## The feed in the bottom left at its fullest (Keep, 10 lines) with the card up on its tallest note, the pole off each
+## side: the card, the plate and the feed keep apart and stay on the screen.
+func test_a_full_bottom_left_feed_keeps_clear_of_the_card_and_the_flag_plate() -> void:
+	var s := _session()
+	await wait_physics_frames(2)
+	var hud := s.hud()
+	hud.size = HUD_SIZE
+	var prefs := HudPrefs.new()
+	prefs.feed_corner = HudPrefs.FeedCorner.BOTTOM_LEFT
+	prefs.feed_lines = HudPrefs.FeedLines.KEEP
+	hud.apply_prefs(prefs)
+	hud.hit_lines().clear()
+	for i in HudPrefs.KEPT_LINES:
+		hud.hit_lines().add(3, 4, s.state.time, true)
+	var note := "holds one spot short of the middle, aiming over cover, until late in the round, and then falls back " \
+			+ "to the stairs to watch the long lane for anyone who dares to cross it."
+	var card := _card(s, note)
+	var pole := s.state.round_state.pole
+	var camera := Camera3D.new()
+	add_child_autofree(camera)
+	await wait_process_frames(3)
+	var screen := Rect2(Vector2.ZERO, HUD_SIZE)
+	var feed := hud.feed()
+	for side: float in [-6.0, 6.0]:
+		camera.global_position = pole + Vector3(side, 1.7, -24.0)
+		for i in 3:
+			hud.update(s.state, 1.0, 0.0)
+			hud.place_flag_marker(camera, pole, true)
+			await wait_process_frames(1)
+		hud.update(s.state, 1.0, 0.0)
+		hud.place_flag_marker(camera, pole, true)
+		var plate: Control = hud._flag_marker._edge
+		assert_true(plate.visible, "pinned")
+		var feed_rect := feed.get_global_rect()
+		var rows := Rect2(feed_rect.position.x, HUD_SIZE.y - hud._cfg.feed_margin.y - feed.lines_height(), feed_rect.size.x,
+				feed.lines_height())
+		assert_gt(feed.shown(), 0, "some of the feed shows")
+		assert_eq(card.get_global_rect().intersection(rows).get_area(), 0.0, "card %s feed %s" % [card.get_global_rect(), rows])
+		assert_eq(plate.get_global_rect().intersection(rows).get_area(), 0.0, "plate %s feed %s" % [plate.get_global_rect(), rows])
+		assert_eq(plate.get_global_rect().intersection(card.get_global_rect()).get_area(), 0.0, "plate over the card")
+		assert_true(screen.encloses(plate.get_global_rect()) and screen.encloses(card.get_global_rect())
+				and screen.encloses(rows), "all on the screen")
+	# the card goes and every line comes back
+	hud.hide_what_got_you()
+	hud.update(s.state, 1.0, 0.0)
+	assert_eq(feed.shown(), HudPrefs.KEPT_LINES, "all the lines are back")

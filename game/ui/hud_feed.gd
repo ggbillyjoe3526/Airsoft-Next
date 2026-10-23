@@ -12,6 +12,7 @@ const NAME_LIGHTEN := 0.3
 var corner: Place = Place.TOP_RIGHT
 var _rows: Array[HudFeedRow] = []
 var _version: int = -1
+var _cap: int = -1 # the most lines shown (the newest ones); -1 for no limit
 var _teams: TeamConfig = null
 var _names := PackedStringArray()
 var _shooter := HudFeedRow.Who.new()
@@ -40,6 +41,27 @@ func set_corner(where: Place) -> void:
 	for row in _rows:
 		row.size_flags_horizontal = Control.SIZE_SHRINK_END if right else Control.SIZE_SHRINK_BEGIN
 	_version = -1
+
+
+## Shows only the newest lines that fit in `room` px of height (all of them when `room` is negative): for the bottom-left
+## feed while a card hangs over it. The lines come back when the room does.
+func fit(room: float) -> void:
+	var cap := -1
+	if room >= 0.0:
+		var row := _rows[0].get_combined_minimum_size().y
+		var gap := float(get_theme_constant("separation"))
+		cap = maxi(0, floori((room + gap) / (row + gap)))
+	if cap != _cap:
+		_cap = cap
+		_version = -1
+
+
+## The height of the lines showing (px).
+func lines_height() -> float:
+	var n := shown()
+	if n == 0:
+		return 0.0
+	return n * _rows[0].get_combined_minimum_size().y + (n - 1) * get_theme_constant("separation")
 
 
 ## The names to show, by character id; "" for you (shown as "You").
@@ -75,7 +97,7 @@ func _fill(feed: HitFeed, characters: Array[Character], you: Character) -> void:
 	var mate_colour := _teams.colours[you.team]
 	for i in _rows.size():
 		var row := _row_for(i)
-		row.visible = i < feed.count()
+		row.visible = i < feed.count() and (_cap < 0 or i < _cap)
 		if not row.visible:
 			continue
 		var line := feed.line(i)
