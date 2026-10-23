@@ -3,8 +3,9 @@ extends Control
 ## The score bar at the top (the concept's `.score`): each team's pip block (one slanted pip per win needed, filled up
 ## to its wins), the team's colour block with its score, and the clock panel with the round under it. In Attack / Defend
 ## an ATK tag (yellow) and a DEF tag (dark) sit on the two blocks, and the clock reads "OT" and the overtime left once
-## time has run out while the attackers work the rope. Everything redraws or retypes only when a value changes; nothing
-## is allocated per frame.
+## time has run out while the attackers work the rope. With gauge patterns on (set_patterned), Beta's filled pips and
+## score block are striped (HudStyle.STRIPED_TEAM; GaugePattern, built once at setup) and the block's number gets a dark
+## edge. Everything redraws or retypes only when a value changes; nothing is allocated per frame.
 
 var _teams: TeamConfig = null
 var _count: int = 0
@@ -25,6 +26,10 @@ var _ot_label: Label = null
 var _attackers: int = -2
 var _overtime: bool = false
 var _tags: Array[Label] = []
+var _patterned: bool = false
+## The striped team's block and pips (one per pip, in order), built once at setup.
+var _block_stripes := GaugePattern.new()
+var _pip_stripes: Array[GaugePattern] = []
 
 
 func setup(teams: TeamConfig, wins_needed: int) -> void:
@@ -48,6 +53,12 @@ func setup(teams: TeamConfig, wins_needed: int) -> void:
 		l.size = Vector2(block, height)
 		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		_score_labels.append(l)
+		if side == HudStyle.STRIPED_TEAM:
+			_block_stripes.set_rect(Rect2(block_x[side], 0.0, block, height))
+			for i in _count:
+				var stripes := GaugePattern.new()
+				stripes.set_shape(_shapes[side * _count + i])
+				_pip_stripes.append(stripes)
 	var clock_row := HBoxContainer.new()
 	clock_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	clock_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -76,6 +87,20 @@ func setup(teams: TeamConfig, wins_needed: int) -> void:
 	_round_label.position = Vector2(_clock_x, 50.0)
 	_round_label.size = Vector2(HudStyle.CLOCK_WIDTH, 18.0)
 	_round_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+
+## Gauge patterns on or off: the striped team's block and pips.
+func set_patterned(on: bool) -> void:
+	if on == _patterned:
+		return
+	_patterned = on
+	HudStyle.edge_number(_score_labels[HudStyle.STRIPED_TEAM], on)
+	queue_redraw()
+
+
+## Whether `side`'s block and filled pips are drawn striped.
+func striped(side: int) -> bool:
+	return _patterned and side == HudStyle.STRIPED_TEAM
 
 
 ## How many pips there are on each side.
@@ -153,6 +178,8 @@ func _draw() -> void:
 	draw_rect(Rect2(_side_width, 0.0, block, h), _teams.colours[0])
 	draw_rect(Rect2(_clock_x, 0.0, HudStyle.CLOCK_WIDTH, h), HudStyle.backing_on(self, HudStyle.BACKING_CLOCK))
 	draw_rect(Rect2(right, 0.0, block, h), _teams.colours[1])
+	if _patterned:
+		_block_stripes.draw(self)
 	draw_rect(Rect2(right + block, 0.0, _side_width, h), side_back)
 	if _attackers >= 0:
 		for side in 2:
@@ -166,21 +193,16 @@ func _draw() -> void:
 			var k := side * _count + i
 			if i < filled:
 				draw_colored_polygon(_shapes[k], _teams.colours[side])
+				if striped(side):
+					_pip_stripes[i].draw(self)
 			else:
 				draw_polyline(_outlines[k], empty, HudStyle.PIP_BORDER)
 
 
-## One pip at `x`: a parallelogram leaning right, its top edge shifted right and its bottom edge left.
+## One pip at `x` (HudStyle.pip_shape), centred in the bar's height: the filled shape and the closed outline.
 func _add_pip(x: float) -> void:
-	var size := HudStyle.PIP_SIZE
-	var top := (HudStyle.SCORE_HEIGHT - size.y) * 0.5
-	var s := size.y * 0.5 * HudStyle.PIP_LEAN
-	var pts := PackedVector2Array([
-		Vector2(x + s, top), Vector2(x + size.x + s, top),
-		Vector2(x + size.x - s, top + size.y), Vector2(x - s, top + size.y),
-	])
+	var pts := HudStyle.pip_shape(Vector2(x, (HudStyle.SCORE_HEIGHT - HudStyle.PIP_SIZE.y) * 0.5))
 	_shapes.append(pts)
 	var line := pts.duplicate()
 	line.append(pts[0])
 	_outlines.append(line)
-

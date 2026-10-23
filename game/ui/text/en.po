@@ -2550,6 +2550,9 @@ msgstr "Stripes as well as colour, so the gauges read without it."
 msgid "SETTINGS_PATTERNS_HELP"
 msgstr "Beta's score and flag fill are striped, Alpha's solid, in both sets. A low magazine turns yellow and striped."
 
+msgid "SETTINGS_LOW_MAG"
+msgstr "Low mag"
+
 msgid "SETTINGS_SCREEN_READER"
 msgstr "Screen reader messages"
 

@@ -700,7 +700,8 @@ func test_the_rows_of_later_tasks_are_greyed_with_later() -> void:
 	assert_false(page.greyed(SettingsAccessPage.Section.TEAM_COLOURS), "the team colours are live")
 	for section: SettingsAccessPage.Section in SettingsAccessPage.LATER:
 		assert_true(page.greyed(section), str(section))
-	assert_eq(page.patterns().mouse_filter, Control.MOUSE_FILTER_IGNORE, "a greyed row takes no click")
+	assert_eq(page.read_out().mouse_filter, Control.MOUSE_FILTER_IGNORE, "a greyed row takes no click")
+	assert_eq(page.patterns().mouse_filter, Control.MOUSE_FILTER_STOP, "gauge patterns are live (AC3)")
 	assert_eq(page.set_card(TeamColours.Set.HIGH_CONTRAST).mouse_filter, Control.MOUSE_FILTER_STOP)
 
 

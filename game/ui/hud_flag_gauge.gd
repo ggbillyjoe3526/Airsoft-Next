@@ -2,7 +2,9 @@ class_name HudFlagGauge
 extends Control
 ## Attack / Defend's flag gauge under the score bar (concept `hud-attack.png`): "FLAG", one notch per ratchet step of the
 ## rope filled up to the flag's height in the attacking team's colour, a white line where the flag is, and a flag at
-## the top end. Redraws only when the filled notches, the line or the colour change.
+## the top end. With gauge patterns on (set_patterned), a striped team's fill (HudStyle.STRIPED_TEAM, Beta's) is striped
+## too: each notch's GaugePattern is built again only when the gauge's size changes. Redraws only when the filled
+## notches, the line, the colour or the stripes change.
 
 ## The track's and the line's heights, and the end flag's mast and pennant, as shares of the gauge's height (the
 ## pennant's length in px).
@@ -23,6 +25,10 @@ var _colour: Color = Color.WHITE
 var _label: Label = null
 var _pennant := PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 var _mast := Rect2()
+var _patterned: bool = false
+## Whether the team raising the flag is the striped one, and each notch's stripes.
+var _striped: bool = false
+var _notch_stripes: Array[GaugePattern] = []
 
 
 ## `notches` steps across `width` px (the score bar's).
@@ -30,6 +36,8 @@ func setup(notches: int, width: float) -> void:
 	name = "HudFlagGauge"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_notches = maxi(1, notches)
+	for i in _notches:
+		_notch_stripes.append(GaugePattern.new())
 	custom_minimum_size = Vector2(width, HudStyle.GAUGE_HEIGHT)
 	_label = HudStyle.label(self, HudStyle.GAUGE_LABEL_SIZE, 800, GameTheme.MUTED, HORIZONTAL_ALIGNMENT_LEFT,
 			HudStyle.SPACING_ROUND)
@@ -39,15 +47,42 @@ func setup(notches: int, width: float) -> void:
 	_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 
 
-## The flag `progress` (0..1) up the pole, raised by the team in `colour`.
-func set_flag(progress: float, colour: Color) -> void:
+## The flag `progress` (0..1) up the pole, raised by the team in `colour`; `striped` when that team's fill is the
+## striped one (drawn so only with gauge patterns on).
+func set_flag(progress: float, colour: Color, striped: bool = false) -> void:
 	var p := clampf(progress, 0.0, 1.0)
 	# The line moves in pixel steps, so a redraw only when it would move.
-	if absf(p - _progress) * _track_width() < 0.5 and colour == _colour:
+	if absf(p - _progress) * _track_width() < 0.5 and colour == _colour and striped == _striped:
 		return
 	_progress = p
 	_colour = colour
+	_striped = striped
 	queue_redraw()
+
+
+## Gauge patterns on or off.
+func set_patterned(on: bool) -> void:
+	if on != _patterned:
+		_patterned = on
+		queue_redraw()
+
+
+## Whether the fill is drawn striped now.
+func striped() -> bool:
+	return _patterned and _striped
+
+
+## Notch `i`'s rect on the track.
+func notch_rect(i: int) -> Rect2:
+	var gap := HudStyle.GAUGE_NOTCH_GAP
+	var w := (_track_width() - gap * (_notches - 1)) / _notches
+	var x0 := HudStyle.GAUGE_PAD + HudStyle.GAUGE_LABEL_WIDTH
+	return Rect2(x0 + i * (w + gap), size.y * TRACK_TOP, w, size.y * TRACK_HEIGHT)
+
+
+## Notch `i`'s stripes, for tests.
+func notch_stripes(i: int) -> GaugePattern:
+	return _notch_stripes[i]
 
 
 ## Notches filled now, for tests.
@@ -73,16 +108,17 @@ func _notification(what: int) -> void:
 func _draw() -> void:
 	var h := size.y
 	draw_rect(Rect2(Vector2.ZERO, size), HudStyle.backing_on(self, HudStyle.BACKING_SIDE))
-	var x0 := HudStyle.GAUGE_PAD + HudStyle.GAUGE_LABEL_WIDTH
-	var track := _track_width()
-	var gap := HudStyle.GAUGE_NOTCH_GAP
-	var w := (track - gap * (_notches - 1)) / _notches
 	var filled := notches_filled()
 	var empty := Color(GameTheme.TEXT, HudStyle.PIP_EMPTY_ALPHA * 0.5)
+	var stripes := striped()
 	for i in _notches:
-		draw_rect(Rect2(x0 + i * (w + gap), h * TRACK_TOP, w, h * TRACK_HEIGHT), _colour if i < filled else empty)
+		var notch := notch_rect(i)
+		draw_rect(notch, _colour if i < filled else empty)
+		if stripes and i < filled:
+			_notch_stripes[i].set_rect(notch)
+			_notch_stripes[i].draw(self)
 	# Where the flag is: a white line through the track.
-	var at := x0 + track * maxf(_progress, 0.0)
+	var at := HudStyle.GAUGE_PAD + HudStyle.GAUGE_LABEL_WIDTH + _track_width() * maxf(_progress, 0.0)
 	draw_rect(Rect2(at - LINE_WIDTH * 0.5, h * LINE_TOP, LINE_WIDTH, h * LINE_HEIGHT), GameTheme.TEXT)
 	draw_rect(_mast, GameTheme.TEXT)
 	draw_colored_polygon(_pennant, GameTheme.TEXT)

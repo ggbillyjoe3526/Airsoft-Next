@@ -104,6 +104,15 @@ func counted() -> bool:
 	return _counts.visible
 
 
+## Gauge patterns on or off: a low loaded magazine striped as well as yellow.
+func set_patterned(on: bool) -> void:
+	_gauges.set_patterned(on)
+
+
+func gauges() -> MagGauges:
+	return _gauges
+
+
 ## Shows the hop-up readout `text`.
 func show_hop(text: String) -> void:
 	_hop.text = text

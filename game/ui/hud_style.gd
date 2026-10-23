@@ -70,6 +70,17 @@ const SPACING_ROUND := 0.1
 const SPACING_AIM := 0.08
 const SPACING_BANNER := 0.06
 const SPACING_SUB := 0.08
+## Gauge patterns (Settings › Accessibility, GaugePattern; concept `gauge-patterns.png`): 45° stripes of STRIPE_WIDTH px
+## with STRIPE_GAP px between them across (at 1080p), in the page colour at STRIPE_ALPHA over the fill. STRIPED_TEAM's
+## fills are the striped ones (Beta's; Alpha's stay solid, in both colour sets). A number on a striped block gets a
+## dark edge of NUMBER_EDGE px in the page colour at NUMBER_EDGE_ALPHA, so it stays readable.
+const STRIPE_WIDTH := 3.0
+const STRIPE_GAP := 4.0
+const STRIPE_ALPHA := 0.58
+const STRIPE_INK := Color(GameTheme.BG, STRIPE_ALPHA)
+const STRIPED_TEAM := 1
+const NUMBER_EDGE := 5
+const NUMBER_EDGE_ALPHA := 0.9
 
 
 ## The page colour at `alpha`, scaled by the HUD tab's panel `opacity` (HudPrefs.panel_opacity): every HUD backing.
@@ -81,6 +92,12 @@ static func backing(alpha: float, opacity: float = 1.0) -> Color:
 ## `light`.
 static func ink_on(fill: Color, light: Color = GameTheme.TEXT) -> Color:
 	return GameTheme.BG if fill.get_luminance() > INK_DARK_ABOVE else light
+
+
+## Gives the number `l` on a team block its dark edge while the block is `striped`, and takes it off when not.
+static func edge_number(l: Label, striped: bool) -> void:
+	l.add_theme_constant_override("outline_size", NUMBER_EDGE if striped else 0)
+	l.add_theme_color_override("font_outline_color", Color(GameTheme.BG, NUMBER_EDGE_ALPHA))
 
 
 ## The backing a HUD `part` draws itself at `alpha`: at the panel opacity restyle() gave it (100% until then).
@@ -113,6 +130,16 @@ static func restyle(root: Control, opacity: float) -> void:
 ## How many of `count` pips a score of `wins` fills: one per win, never more than there are.
 static func pips_filled(wins: int, count: int) -> int:
 	return clampi(wins, 0, maxi(0, count))
+
+
+## A slanted pip with its box's top left at `at`: a parallelogram leaning right, its top edge shifted right and its
+## bottom edge left.
+static func pip_shape(at: Vector2) -> PackedVector2Array:
+	var s := PIP_SIZE.y * 0.5 * PIP_LEAN
+	return PackedVector2Array([
+		Vector2(at.x + s, at.y), Vector2(at.x + PIP_SIZE.x + s, at.y),
+		Vector2(at.x + PIP_SIZE.x - s, at.y + PIP_SIZE.y), Vector2(at.x - s, at.y + PIP_SIZE.y),
+	])
 
 
 ## The width of one team's pip block for `count` pips.
