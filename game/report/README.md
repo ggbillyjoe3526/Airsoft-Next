@@ -23,8 +23,10 @@ What a bug report is made of and the report itself (step 22). The Report a Bug p
   play; paused frames don't run). `line` sums them up only when asked: "last 10 s 141 fps average, worst 38 ms, 2
   hitches" (over 50 ms).
 - `ReportScrub`: takes the save folder ("<save folder>"), the home folder ("~"), the account name ("<you>", a whole word
-  of 3 characters or more, and any user folder's name), the machine's name ("<machine>") and network and e-mail
-  addresses ("<address>") out of a line; either slash, any case. `for_this_machine` reads the names; tests inject them.
+  of 3 characters or more, and any user folder's name), the machine's name and its first part ("<machine>"), a OneDrive
+  for Business folder's organisation ("<organisation>") and IPv4, IPv6 (every form), MAC and e-mail addresses
+  ("<address>") out of a line; either slash, any case. `for_this_machine` reads the names; tests inject them.
+  ReportFacts and IssueLink fail closed: given no scrub, they scrub for this machine.
 - `BugReport`: the report's text, pure over a `BugReport.ReportInfo`: the title, a "Label: value" line a field ("-" when
   not known), then Recent errors, Recent events (a live report) or Last log lines (a crash), every line through the
   info's scrub. A `BugReport.Cut` gives each list's newest entries only and leaves fields out.

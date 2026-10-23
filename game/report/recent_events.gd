@@ -26,6 +26,9 @@ const DRAW_WORD := "a draw"
 var config: ReportConfig = null
 var _ring := PackedInt32Array()
 var _capacity: int = 0
+## config's look_back and burst_ticks, read once.
+var _look_back: int = 0
+var _burst_ticks: int = 0
 ## The slot the next entry takes, and how many are filled.
 var _next: int = 0
 var _filled: int = 0
@@ -34,6 +37,8 @@ var _filled: int = 0
 func _init(report: ReportConfig = null) -> void:
 	config = report if report != null else ReportConfig.new()
 	_capacity = maxi(1, config.events)
+	_look_back = config.look_back
+	_burst_ticks = config.burst_ticks
 	_ring.resize(_capacity * STRIDE)
 
 
@@ -89,12 +94,12 @@ func entry(index: int) -> PackedInt32Array:
 ## looking back past other shots only (two players trading shots count up an entry each; a hit or a round ends it);
 ## -1 when there is none.
 func _burst_of(actor: int, slot: int, tick: int) -> int:
-	for back in mini(_filled, config.look_back):
+	for back in mini(_filled, _look_back):
 		var at := ((_next - 1 - back + _capacity) % _capacity) * STRIDE
 		if _ring[at + KIND] != GameEvent.Kind.SHOT:
 			return -1
 		if _ring[at + ACTOR] == actor:
-			var same := _ring[at + SLOT] == slot and tick - _ring[at + LAST] <= config.burst_ticks
+			var same := _ring[at + SLOT] == slot and tick - _ring[at + LAST] <= _burst_ticks
 			return at if same else -1
 	return -1
 

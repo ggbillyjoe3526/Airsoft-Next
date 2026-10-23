@@ -134,22 +134,34 @@ func test_clear_forgets_and_keeps_the_ring() -> void:
 	assert_eq(r.lines(null, PLAYER).size(), 0)
 
 
-## DebugPerf's counts: a warm tick (a busy one: shots from all four, a hit, a reload, a round) makes no object, and
-## the ring's memory stays put.
+## DebugPerf's counts: a warm tick makes no object and the ring's memory stays put, both on the busy tick (shots from
+## all four, a hit, a reload, a round) and on ticks of shots only whose replica changes each tick, so every shot takes
+## a new entry rather than counting up a burst.
 func test_a_warm_tick_allocates_nothing() -> void:
 	var r := RecentEvents.new(_config)
-	var events := SimEvents.new()
-	_busy_tick(events, 0)
+	var busy := SimEvents.new()
+	_busy_tick(busy, 0)
+	var shots: Array[SimEvents] = [SimEvents.new(), SimEvents.new()]
+	for slot in shots.size():
+		for id in 4:
+			_event(shots[slot], GameEvent.Kind.SHOT, id, slot)
 	for tick in WARM_TICKS:
-		r.record(tick, events, PLAYER)
+		r.record(tick, busy, PLAYER)
+		r.record(tick, shots[tick % 2], PLAYER)
 	var objects := Performance.get_monitor(Performance.OBJECT_COUNT)
 	var memory := Performance.get_monitor(Performance.MEMORY_STATIC)
 	for tick in range(WARM_TICKS, WARM_TICKS * 2):
-		r.record(tick, events, PLAYER)
+		r.record(tick, busy, PLAYER)
+	for tick in range(WARM_TICKS, WARM_TICKS * 2):
+		r.record(tick, shots[tick % 2], PLAYER)
 	var objects_after := Performance.get_monitor(Performance.OBJECT_COUNT)
 	var memory_after := Performance.get_monitor(Performance.MEMORY_STATIC)
 	assert_lte(objects_after, objects, "no objects")
 	assert_lte(memory_after, memory, "no memory")
+	assert_eq(r.size(), _config.events)
+	for i in r.size():
+		assert_eq(r.entry(i)[RecentEvents.KIND], GameEvent.Kind.SHOT, "shots took the ring")
+		assert_eq(r.entry(i)[RecentEvents.COUNT], 1, "each its own entry")
 
 
 ## The perf figure for the record: a warm tick with a busy tick's events.

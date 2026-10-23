@@ -8,6 +8,9 @@ extends RefCounted
 const MS := 1000.0
 ## Single-precision frame times summed drift a little: a window full to within this (s) is full.
 const SUM_SLACK := 0.0001
+## A hitch is a frame slower than hitch_ms by more than this (ms): exactly 50 ms is none, whether its time came as a
+## double or as this ring's single-precision float (0.05 stored reads 50.0000007 ms).
+const HITCH_SLACK_MS := 0.001
 
 var config: ReportConfig = null
 ## The last summary (`summarise`): the seconds and frames it covers, the average and worst frame (ms), and the frames
@@ -52,7 +55,7 @@ func summarise() -> void:
 	worst_ms = 0.0
 	hitches = 0
 	var size := _times.size()
-	var hitch := config.hitch_ms / MS
+	var hitch := (config.hitch_ms + HITCH_SLACK_MS) / MS
 	var worst := 0.0
 	while frames < _filled and seconds < config.frame_seconds - SUM_SLACK:
 		var t := _times[(_next - 1 - frames + size) % size]

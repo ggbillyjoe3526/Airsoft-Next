@@ -184,6 +184,18 @@ func test_a_crash_in_the_menus_and_with_no_log() -> void:
 	assert_true(text.ends_with("\nRecent errors: none\nLast log lines: -"))
 
 
+## QA: a null in the record reads "-", and a crash report with no scrub given is scrubbed for this machine.
+func test_a_null_seed_reads_a_dash_and_no_scrub_fails_closed() -> void:
+	var previous := {"version": null, "place": "match", "match": {"seed": null, "map": "depot", "mode": null},
+			"round": 2, "score": [1, 0]}
+	var info := ReportFacts.crash(previous, null, null, "", _config, null)
+	var text := BugReport.write(info)
+	assert_string_contains(text, "\nSeed: -\nMatch: Depot · - · Standard rules · -\n")
+	assert_false(text.contains("null"), text)
+	assert_not_null(info.scrub)
+	assert_eq(info.note_chars, _config.note_chars)
+
+
 ## A real match (a bot plays you): its events and frames reach the report, and building a whole report (facts, text and
 ## the issue's address) is timed for the record.
 func test_a_live_report_from_a_match() -> void:
@@ -228,3 +240,11 @@ func test_a_live_report_from_a_match() -> void:
 	assert_eq(info.events.size(), _config.events)
 	assert_lte(link.url.length(), _config.max_url_chars)
 	assert_lt(each, 100.0)
+	# A rematch starts the rings again: its report tells that match only.
+	session.frame_window().add(0.2)
+	session.set("_rematch_left", 0.0)
+	await wait_physics_frames(2)
+	var after := session.recent_events().lines(session.state, PlaySession.PLAYER_ID)
+	assert_false(" ".join(after).contains("t10000 "), "the last match's events went")
+	session.frame_window().summarise()
+	assert_eq(session.frame_window().hitches, 0, "and its frames")

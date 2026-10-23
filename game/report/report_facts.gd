@@ -50,13 +50,14 @@ const LOG_FRAME := "[0] "
 
 
 ## A report from the running game: `session` the match on (null on the title), `screen` where the player is,
-## `errors` this run's ErrorLog (null: none kept).
+## `errors` this run's ErrorLog (null: none kept). Fails closed: no `scrub` scrubs for this machine.
 static func live(session: PlaySession, settings: Settings, errors: ErrorLog, screen: String, note: String,
 		config: ReportConfig, scrub: ReportScrub) -> BugReport.ReportInfo:
 	var info := BugReport.ReportInfo.new()
 	_machine(info, settings)
 	info.version = version_text(Version.current(), OS.has_feature("template"), OS.is_debug_build())
 	info.note = note
+	info.note_chars = config.note_chars
 	info.time = "%s, %s after start" % [utc_text(int(Time.get_unix_time_from_system())),
 			clock_text(Time.get_ticks_msec() / MS_PER_SECOND)]
 	info.screen = screen
@@ -74,7 +75,7 @@ static func live(session: PlaySession, settings: Settings, errors: ErrorLog, scr
 		info.player = player_text(session.player, config)
 		info.frames = session.frame_window().line()
 		info.events = newest(session.recent_events().lines(state, PlaySession.PLAYER_ID), config.events)
-	info.scrub = scrub
+	info.scrub = scrub if scrub != null else ReportScrub.for_this_machine(config)
 	return info
 
 
@@ -84,33 +85,34 @@ static func crash(previous: Dictionary, tail: LogTail, settings: Settings, note:
 	var info := BugReport.ReportInfo.new()
 	info.crash = true
 	_machine(info, settings)
-	info.version = version_text(str(previous.get("version", "")), OS.has_feature("template"), OS.is_debug_build())
+	info.version = version_text(_text(previous.get("version")), OS.has_feature("template"), OS.is_debug_build())
 	info.note = note
+	info.note_chars = config.note_chars
 	var log_path := tail.path() if tail != null else ""
 	var closed := FileAccess.get_modified_time(log_path) if log_path != "" else 0
 	info.time = closed_text(closed, _whole(previous.get("started")))
-	var place := str(previous.get("place", ""))
+	var place := _text(previous.get("place"))
 	info.screen = PLACES.get(place, "")
 	var facts: Dictionary = previous.get("match", {}) if previous.get("match") is Dictionary else {}
 	if place == RunRecord.PRACTICE:
-		info.match_text = practice_text(str(facts.get("map", "")))
+		info.match_text = practice_text(_text(facts.get("map")))
 	elif place == RunRecord.MATCH:
-		info.seed_text = str(facts.get("seed", ""))
+		info.seed_text = _text(facts.get("seed"))
 		var sizes: Array[int] = []
 		var given: Variant = facts.get("team_sizes")
 		if given is Array:
 			for n: Variant in given:
 				sizes.append(_whole(n))
 		var rules: Variant = facts.get("rules")
-		info.match_text = match_text(str(facts.get("map", "")), str(facts.get("mode", "")),
-				rules is Dictionary and not (rules as Dictionary).is_empty(), sizes, str(facts.get("difficulty", "")),
-				str(facts.get("teammates", "")))
+		info.match_text = match_text(_text(facts.get("map")), _text(facts.get("mode")),
+				rules is Dictionary and not (rules as Dictionary).is_empty(), sizes, _text(facts.get("difficulty")),
+				_text(facts.get("teammates")))
 		info.round_text = started_round_text(_whole(previous.get("round")), previous.get("score", []))
 	if log_path != "":
 		info.errors = errors_in_log(FileAccess.get_file_as_string(log_path).split("\n"), config.errors)
 		info.log_lines = newest(tail.lines(), config.log_lines)
 		info.log_count = tail.line_count()
-	info.scrub = scrub
+	info.scrub = scrub if scrub != null else ReportScrub.for_this_machine(config)
 	return info
 
 
@@ -430,6 +432,11 @@ static func _place_words(place: String) -> String:
 	if open < 0 or not place.ends_with(")"):
 		return place if place != "" else BugReport.UNKNOWN
 	return "%s (%s)" % [place.substr(open + 2, place.length() - open - 3), place.left(open)]
+
+
+## A record's value as text; "" for a missing or null one (the report then reads "-").
+static func _text(v: Variant) -> String:
+	return "" if v == null else str(v)
 
 
 static func _whole(v: Variant) -> int:

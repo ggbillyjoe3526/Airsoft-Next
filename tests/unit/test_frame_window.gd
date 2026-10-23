@@ -100,3 +100,15 @@ func test_frame_and_summary_cost() -> void:
 	gut.p("FrameWindow.add: %.3f µs; a full window's line (%d frames): %d µs" % [add_us, w.frames, line_us])
 	assert_ne(text, "")
 	assert_lt(add_us, 20.0)
+
+
+## QA: exactly hitch_ms is no hitch, as single precision stores it (0.05 reads 50.0000007 ms) or as a double.
+func test_exactly_the_hitch_time_is_no_hitch() -> void:
+	var w := FrameWindow.new(_config)
+	w.add(_config.hitch_ms / 1000.0)
+	w.add(0.05)
+	w.summarise()
+	assert_eq(w.hitches, 0)
+	w.add(0.0501)
+	w.summarise()
+	assert_eq(w.hitches, 1)

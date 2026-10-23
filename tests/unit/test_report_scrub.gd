@@ -113,3 +113,58 @@ func test_this_machine_takes_out_its_own() -> void:
 	var home := OS.get_environment("HOME")
 	if home != "":
 		assert_eq(s.line(home + "/elsewhere"), "~/elsewhere")
+
+
+## QA attempt 1: an IPv4 address ending a sentence came through.
+func test_an_ipv4_address_ending_a_sentence() -> void:
+	var s := ReportScrub.new()
+	assert_eq(s.line("My IP is 192.168.1.5."), "My IP is <address>.")
+	assert_eq(s.line("server 10.0.0.1. then"), "server <address>. then")
+	assert_eq(s.line("ip:8.8.8.8."), "ip:<address>.")
+	assert_eq(s.line("version 1.2.3.4.5 stays"), "version 1.2.3.4.5 stays", "five numbers are no address")
+
+
+## QA attempt 1: compressed IPv6 came through; every form goes whole.
+func test_every_ipv6_form_goes_whole() -> void:
+	var s := ReportScrub.new()
+	assert_eq(s.line("my ip is 2001:db8::8a2e:370:7334"), "my ip is <address>")
+	assert_eq(s.line("fe80::1ff:fe23:4567:890a"), "<address>")
+	assert_eq(s.line("[2001:db8::1]:443"), "[<address>]:443")
+	assert_eq(s.line("peer ::ffff:c0a8:105"), "peer <address>")
+	assert_eq(s.line("peer ::ffff:1.2.3.4."), "peer <address>.")
+	assert_eq(s.line("loopback ::1 and fe80::"), "loopback <address> and <address>")
+
+
+func test_clocks_and_cpp_names_stay() -> void:
+	var s := ReportScrub.new()
+	for kept: String in ["at 12:40:05 then", "00:01:02.5", "Round: 4, 3:12 in", "Face::bad and Node3D::_ready",
+			"[1] RendererSceneRenderRD::_render_scene", "t11402 Beta 2 SHOT ×4"]:
+		assert_eq(s.line(kept), kept)
+
+
+func test_a_onedrive_for_business_folder_hides_the_employer() -> void:
+	var s := _windows()
+	assert_eq(s.line("C:\\Users\\Jo Bloggs\\OneDrive - Contoso Ltd\\Documents\\a.txt"),
+			"~\\OneDrive - <organisation>\\Documents\\a.txt")
+	assert_eq(s.line("D:/OneDrive - Fabrikam, Inc/x"), "D:/OneDrive - <organisation>/x")
+
+
+func test_a_full_machine_name_and_its_short_form() -> void:
+	var s := ReportScrub.new("", "", "", "box42.corp.example.com")
+	assert_eq(s.line("box42.corp.example.com said hello to box42"), "<machine> said hello to <machine>")
+
+
+func test_an_email_with_the_account_name_goes_whole() -> void:
+	var s := ReportScrub.new("", "", "zandra", "")
+	assert_eq(s.line("write to zandra@mail.example.org"), "write to <address>")
+
+
+func test_paths_keep_what_follows_them() -> void:
+	var s := ReportScrub.new("", "C:\\Users\\Bob", "bob", "")
+	assert_eq(s.line("[C:\\Users\\Bob]"), "[~]")
+	var t := ReportScrub.new("", "/home/bob", "bob", "")
+	assert_eq(t.line("at /home/bob."), "at ~.")
+	assert_eq(t.line("/var/home/bob/x"), "/var/home/<you>/x", "not the tail of a longer path")
+	var u := ReportScrub.new()
+	assert_eq(u.line("[C:\\Users\\Bob]"), "[C:\\Users\\<you>]")
+	assert_eq(u.line("in /home/ann. Then"), "in /home/<you>. Then")

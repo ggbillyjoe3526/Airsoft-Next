@@ -538,6 +538,9 @@ func _physics_process(_delta: float) -> void:
 		if _rematch_left == 0.0:
 			_rematch_left = -1.0
 			_watch.new_match()
+			# A rematch's report tells this match only.
+			_recent.clear()
+			_frames.clear()
 			_sim.start_match(state)
 			_after_tick()
 		if bots_active:

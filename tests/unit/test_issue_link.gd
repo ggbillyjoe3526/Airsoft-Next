@@ -146,3 +146,18 @@ func test_the_config_is_the_owners() -> void:
 	assert_eq(c.frame_seconds, 10.0)
 	assert_eq(c.hitch_ms, 50.0)
 	assert_eq(c.log_lines, 40)
+
+
+## QA: no scrub given still scrubs (for this machine), and the note is scrubbed before it is cut.
+func test_fails_closed_and_scrubs_the_note_before_the_cut() -> void:
+	var info := BugReportTest.picture_info()
+	info.scrub = null
+	info.note = "saved in " + OS.get_user_data_dir()
+	var link := IssueLink.make(info, _config)
+	assert_eq(_query(link.url, "title"), "Bug: saved in <save folder>")
+	assert_false(link.url.uri_decode().contains(OS.get_user_data_dir()))
+	info.scrub = ReportScrub.new("", "", "William", "")
+	info.note = "a".repeat(_config.note_chars - 4) + " William"
+	var body := _query(IssueLink.make(info, _config).url, "body")
+	assert_false(body.contains("Willia"), "no part of the name")
+	assert_string_starts_with(body, "a".repeat(_config.note_chars - 4) + " <yo\n")

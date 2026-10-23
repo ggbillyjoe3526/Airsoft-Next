@@ -43,8 +43,10 @@ class ReportInfo:
 	## A crash report (the run before closed unexpectedly): Closed for Time, no Player, Frames or Recent events, and
 	## Last log lines.
 	var crash: bool = false
-	## The player's note (one line in the report; the whole of it heads the issue).
+	## The player's note (one line in the report; the whole of it heads the issue), and how many characters of it the
+	## report gives once scrubbed (0: all).
 	var note: String = ""
+	var note_chars: int = 0
 	var version: String = ""
 	var godot: String = ""
 	var system: String = ""
@@ -67,7 +69,8 @@ class ReportInfo:
 	## A crash's old log: its last lines and how many it had.
 	var log_lines := PackedStringArray()
 	var log_count: int = 0
-	## Takes names and folders out of every line; null for none (tests of the layout).
+	## Takes names and folders out of every line; null for none (tests of the layout: ReportFacts and IssueLink always
+	## give one).
 	var scrub: ReportScrub = null
 
 
@@ -82,17 +85,23 @@ class Cut:
 		drop = drop_fields
 
 
-## The report's text, whole or as `cut` gives it.
-static func write(info: ReportInfo, cut: Cut = null) -> String:
-	return "\n".join(write_lines(info, cut))
+## The report's text, whole or as `cut` gives it; `scrub` in place of the info's when given.
+static func write(info: ReportInfo, cut: Cut = null, scrub: ReportScrub = null) -> String:
+	return "\n".join(write_lines(info, cut, scrub))
 
 
-## The report's lines, whole or as `cut` gives it, each scrubbed.
-static func write_lines(info: ReportInfo, cut: Cut = null) -> PackedStringArray:
+## The report's lines, whole or as `cut` gives it, each through `scrub` (else the info's).
+static func write_lines(info: ReportInfo, cut: Cut = null, scrub: ReportScrub = null) -> PackedStringArray:
 	var c := cut if cut != null else Cut.new()
+	var by := scrub if scrub != null else info.scrub
 	var out := PackedStringArray()
 	out.append(CRASH_TITLE if info.crash else TITLE)
+	# Scrubbed before it is cut, so a cut can't leave part of a name ("Willia") that no longer matches.
 	var note := one_line(info.note)
+	if by != null:
+		note = by.line(note)
+	if info.note_chars > 0:
+		note = note.left(info.note_chars)
 	if note != "":
 		out.append("%s: %s" % [NOTE, note])
 	_field(out, c, VERSION, info.version)
@@ -117,7 +126,7 @@ static func write_lines(info: ReportInfo, cut: Cut = null) -> PackedStringArray:
 		_log(out, c, info.log_lines, info.log_count)
 	else:
 		_list(out, c, EVENTS, info.events)
-	return info.scrub.lines(out) if info.scrub != null else out
+	return by.lines(out) if by != null else out
 
 
 ## `text` on one line: its runs of spaces, tabs and line breaks as one space, trimmed.
@@ -161,7 +170,7 @@ static func _list(out: PackedStringArray, cut: Cut, label: String, entries: Pack
 	else:
 		out.append("%s (newest %d of %d):" % [label, keep, n])
 	for i in range(n - keep, n):
-		out.append(INDENT + entries[i])
+		out.append(INDENT + entries[i].trim_suffix("\r"))
 
 
 ## "Last log lines (last 40 of 4,812):", a "…" when the log was longer, and the lines.
@@ -179,4 +188,4 @@ static func _log(out: PackedStringArray, cut: Cut, lines: PackedStringArray, cou
 	if keep < total:
 		out.append(INDENT + MORE)
 	for i in range(n - keep, n):
-		out.append(INDENT + lines[i])
+		out.append(INDENT + lines[i].trim_suffix("\r"))

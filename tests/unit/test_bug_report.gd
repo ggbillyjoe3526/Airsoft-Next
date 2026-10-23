@@ -167,3 +167,31 @@ func test_every_line_goes_through_the_scrub() -> void:
 	assert_false(text.containsn("zed"), text)
 	assert_string_contains(text, "Note: <you> here")
 	assert_string_contains(text, "  Loading ~/x.pck")
+
+
+## QA: the note is scrubbed, then cut, in the report's own Note line too.
+func test_the_note_line_is_scrubbed_then_cut() -> void:
+	var info := BugReport.ReportInfo.new()
+	info.note_chars = 20
+	info.note = "it was me William Smith all along"
+	info.scrub = ReportScrub.new("", "", "William", "")
+	assert_string_contains(BugReport.write(info), "\nNote: it was me <you> Smit\n")
+	info.scrub = null
+	info.note = "x".repeat(30)
+	assert_string_contains(BugReport.write(info), "\nNote: %s\n" % "x".repeat(20))
+
+
+func test_a_given_scrub_stands_in_for_the_infos() -> void:
+	var info := BugReport.ReportInfo.new()
+	info.note = "from bob"
+	assert_string_contains(BugReport.write(info, null, ReportScrub.new("", "", "bob", "")), "Note: from <you>")
+
+
+## QA: a log line's carriage return (a Windows log) goes.
+func test_carriage_returns_go() -> void:
+	var info := BugReport.ReportInfo.new()
+	info.crash = true
+	info.errors = PackedStringArray(["ERROR a\r"])
+	info.log_lines = PackedStringArray(["one\r", "two\r"])
+	info.log_count = 2
+	assert_false(BugReport.write(info).contains("\r"))

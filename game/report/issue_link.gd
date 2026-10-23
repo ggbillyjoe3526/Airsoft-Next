@@ -23,11 +23,12 @@ var url: String = ""
 var cut: bool = false
 
 
-## The issue for `info` (its note included) under `config`'s address and limits.
+## The issue for `info` (its note included) under `config`'s address and limits. Fails closed: an info with no scrub
+## is scrubbed for this machine.
 static func make(info: BugReport.ReportInfo, config: ReportConfig) -> IssueLink:
-	var note := info.note.strip_edges().left(config.note_chars)
-	if info.scrub != null:
-		note = info.scrub.line(note)
+	var scrub := info.scrub if info.scrub != null else ReportScrub.for_this_machine(config)
+	# Scrubbed, then cut: a cut first could leave part of a name that no longer matches.
+	var note := scrub.line(info.note.strip_edges()).left(config.note_chars)
 	var title := issue_title(note, info.version, config.title_chars)
 	var link := IssueLink.new()
 	var cuts: Array[BugReport.Cut] = [BugReport.Cut.new()]
@@ -36,12 +37,12 @@ static func make(info: BugReport.ReportInfo, config: ReportConfig) -> IssueLink:
 	var last_keep := config.keep_steps[config.keep_steps.size() - 1] if not config.keep_steps.is_empty() else -1
 	cuts.append(BugReport.Cut.new(last_keep, config.drop_fields))
 	for i in cuts.size():
-		link.url = address(config.issue_url, title, note, BugReport.write(info, cuts[i]), i > 0)
+		link.url = address(config.issue_url, title, note, BugReport.write(info, cuts[i], scrub), i > 0)
 		if link.url.length() <= config.max_url_chars:
 			link.cut = i > 0
 			return link
 	# Still too long (a huge settings line, long log lines): as many of its first lines as fit.
-	var lines := BugReport.write_lines(info, cuts[cuts.size() - 1])
+	var lines := BugReport.write_lines(info, cuts[cuts.size() - 1], scrub)
 	var fits := 0
 	var over := lines.size()
 	while over - fits > 1:
