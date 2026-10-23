@@ -13,10 +13,9 @@ signal changed(immediate: bool)
 ## The tab's sections, as the concept lays them out.
 enum Section { TEAM_COLOURS, GAUGE_PATTERNS, SCREEN_READER, SOUND_CUES, REDUCED_MOTION }
 
-## The sections still to build, greyed with LATER and not clickable: gauge patterns (AC3), sound cues (AC4), reduced
-## motion (AC5) and screen reader messages (AC6).
-const LATER: Array[Section] = [Section.GAUGE_PATTERNS, Section.SCREEN_READER, Section.SOUND_CUES,
-		Section.REDUCED_MOTION]
+## The sections still to build, greyed with LATER and not clickable: sound cues (AC4), reduced motion (AC5) and screen
+## reader messages (AC6).
+const LATER: Array[Section] = [Section.SCREEN_READER, Section.SOUND_CUES, Section.REDUCED_MOTION]
 ## The columns' widths (the right one takes the rest), the labels' widths and the slider's (px).
 const LEFT_WIDTH := 860.0
 const COLUMN_GAP := 48
@@ -47,6 +46,12 @@ const MOTION_KEYS: Array[String] = ["SETTINGS_FOLLOW_SYSTEM", "SETTINGS_OFF", "S
 ## What the system answers when asked whether to reduce motion (1 yes, 0 no, -1 it can't say).
 const SYSTEM_KEYS: Dictionary[int, String] = {1: "SETTINGS_SYSTEM_YES", 0: "SETTINGS_SYSTEM_NO",
 		-1: "SETTINGS_SYSTEM_UNKNOWN"}
+## The gauge patterns sample (the concept's `.sample`): the room between its parts, its words' size, how many pips each
+## team shows and how many are filled, the scores on the blocks.
+const SAMPLE_GAP := 22
+const SAMPLE_WORD_SIZE := 12
+const SAMPLE_PIPS := 5
+const SAMPLE_SCORE: Array[int] = [3, 2]
 ## The system line's inner margins (px).
 const SYSTEM_PAD := Vector2i(14, 6)
 const PERCENT := "%d%%"
@@ -61,6 +66,10 @@ var _cue_size: HSlider = null
 var _cue_colour: MenuSwatches = null
 var _motion: MenuChoice = null
 var _system: Label = null
+## Each set's HUD colours, in TeamColours.Set's order (the sample's), and the sample's parts: each team's pips and
+## block in side order, then the low magazine.
+var _hud_sets: Array[TeamConfig] = []
+var _samples: Array[GaugeSample] = []
 ## Each section's body under its heading and the heading's LATER tag (both shown greyed while the section is LATER).
 var _bodies: Dictionary[Section, VBoxContainer] = {}
 var _later_tags: Dictionary[Section, MenuTag] = {}
@@ -149,6 +158,7 @@ func _build_team_colours(body: VBoxContainer) -> void:
 	for colour_set: int in TeamColours.Set.values():
 		var resolved := TeamColours.resolve(colour_set as TeamColours.Set, false, null, _screen.settings.tuning.teams)
 		row.add_child(_set_card(colour_set as TeamColours.Set, resolved.figures))
+		_hud_sets.append(resolved.hud)
 	_screen.add_help(body, "SETTINGS_TEAM_COLOURS_NOTE")
 
 
@@ -210,6 +220,7 @@ func _show_set(colour_set: TeamColours.Set) -> void:
 	for i in _set_cards.size():
 		_set_cards[i].set_picked(i == colour_set)
 		_in_use[i].visible = i == colour_set
+	_show_sample()
 
 
 # --- Gauge patterns and screen reader messages ---
@@ -219,8 +230,54 @@ func _build_patterns(body: VBoxContainer) -> void:
 	_note(_patterns.get_parent() as Control, "SETTINGS_PATTERNS_NOTE")
 	_patterns.toggled.connect(func(on: bool) -> void:
 		_screen.settings.gauge_patterns = on
+		_show_sample()
 		changed.emit(true))
+	body.add_child(_build_sample())
 	_screen.add_help(body, "SETTINGS_PATTERNS_HELP")
+	_show_sample()
+
+
+## The sample: Alpha's pips and block, Beta's block and pips (as the score bar sets them out), then a low magazine.
+func _build_sample() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.name = "PatternSample"
+	row.add_theme_constant_override("separation", SAMPLE_GAP)
+	var names := _screen.settings.tuning.teams.names
+	for side in 2:
+		row.add_child(MenuParts.spaced(tr(names[side]).to_upper(), SAMPLE_WORD_SIZE, 800, GameTheme.MUTED,
+				HudStyle.SPACING_ROUND))
+		var pips := GaugeSample.new(GaugeSample.Kind.PIPS, SAMPLE_PIPS, SAMPLE_SCORE[side], side)
+		var block := GaugeSample.new(GaugeSample.Kind.BLOCK, 1, SAMPLE_SCORE[side], side)
+		# Each block faces the clock: Alpha's after its pips, Beta's before.
+		row.add_child(pips)
+		row.add_child(block)
+		if side == HudStyle.STRIPED_TEAM:
+			row.move_child(block, pips.get_index())
+		_samples.append(pips)
+		_samples.append(block)
+	row.add_child(MenuParts.spaced(tr("SETTINGS_LOW_MAG").to_upper(), SAMPLE_WORD_SIZE, 800, GameTheme.MUTED,
+			HudStyle.SPACING_ROUND))
+	var mag := GaugeSample.new(GaugeSample.Kind.MAG, 1, 0, -1)
+	mag.share = _screen.settings.tuning.hud.low_mag_share
+	row.add_child(mag)
+	_samples.append(mag)
+	return row
+
+
+## The sample in the picked set's HUD colours, striped while gauge patterns are on.
+func _show_sample() -> void:
+	if _samples.is_empty() or _hud_sets.is_empty():
+		return
+	var s := _screen.settings
+	var teams := _hud_sets[clampi(s.team_colours, 0, _hud_sets.size() - 1)]
+	for part in _samples:
+		var colour := GameTheme.YELLOW if part.side < 0 else teams.colours[part.side]
+		part.show_as(colour, s.gauge_patterns and (part.side < 0 or part.side == HudStyle.STRIPED_TEAM))
+
+
+## The sample's parts, for tests: each team's pips and block in side order, then the low magazine.
+func sample_parts() -> Array[GaugeSample]:
+	return _samples
 
 
 func _build_read_out(body: VBoxContainer) -> void:
@@ -356,3 +413,96 @@ func _note(row: Control, key: String) -> Label:
 	note.add_theme_stylebox_override("normal", gap)
 	row.add_child(note)
 	return note
+
+
+## One part of the gauge patterns sample, drawn as the HUD draws it (HudStyle's pips, a score block, a magazine box) at
+## the concept's sizes, with its stripes (GaugePattern) built once.
+class GaugeSample:
+	extends Control
+
+	enum Kind { PIPS, BLOCK, MAG }
+
+	## The concept's sizes (px): the pips' gap, the block, its number's size, the magazine box and its edge.
+	const PIP_GAP := 3.0
+	const BLOCK := Vector2(44.0, 30.0)
+	const NUMBER_SIZE := 20
+	const MAG := Vector2(18.0, 34.0)
+	const MAG_LINE := 2.0
+
+	## The team it shows (-1: the magazine, yellow), its share filled (the magazine) and how it is drawn now.
+	var side: int = -1
+	var share: float = 0.0
+	var colour: Color = Color.WHITE
+	var striped: bool = false
+	var _kind: Kind = Kind.PIPS
+	var _count: int = 1
+	var _filled: int = 0
+	var _shapes: Array[PackedVector2Array] = []
+	var _outlines: Array[PackedVector2Array] = []
+	var _stripes: Array[GaugePattern] = []
+	var _number: Label = null
+
+	func _init(kind: Kind, count: int, filled: int, team: int) -> void:
+		_kind = kind
+		_count = count
+		_filled = filled
+		side = team
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		match kind:
+			Kind.PIPS:
+				var lean := HudStyle.PIP_SIZE.y * 0.5 * HudStyle.PIP_LEAN
+				for i in count:
+					_shapes.append(HudStyle.pip_shape(Vector2(lean + i * (HudStyle.PIP_SIZE.x + PIP_GAP), 0.0)))
+				custom_minimum_size = Vector2(count * (HudStyle.PIP_SIZE.x + PIP_GAP) - PIP_GAP + lean * 2.0,
+						HudStyle.PIP_SIZE.y)
+			Kind.BLOCK:
+				custom_minimum_size = BLOCK
+				_number = HudStyle.label(self, NUMBER_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
+				_number.text = str(filled)
+				_number.size = BLOCK
+				_number.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+				_shapes.append(PackedVector2Array([Vector2.ZERO, Vector2(BLOCK.x, 0.0), BLOCK, Vector2(0.0, BLOCK.y)]))
+			Kind.MAG:
+				custom_minimum_size = MAG
+				_stripes.append(GaugePattern.new())
+		for shape in _shapes:
+			var stripes := GaugePattern.new()
+			stripes.set_shape(shape)
+			_stripes.append(stripes)
+			var outline := shape.duplicate()
+			outline.append(shape[0])
+			_outlines.append(outline)
+
+	## Draws in `fill`, striped or not; the magazine's stripes follow its share.
+	func show_as(fill: Color, on: bool) -> void:
+		colour = fill
+		striped = on
+		if _number != null:
+			_number.add_theme_color_override("font_color", HudStyle.ink_on(fill))
+			HudStyle.edge_number(_number, on)
+		if _kind == Kind.MAG:
+			_stripes[0].set_rect(_mag_fill())
+		queue_redraw()
+
+	func _mag_fill() -> Rect2:
+		var inner := Rect2(Vector2.ZERO, MAG).grow(-MAG_LINE)
+		var h := inner.size.y * share
+		return Rect2(inner.position.x, inner.end.y - h, inner.size.x, h)
+
+	func _draw() -> void:
+		if _kind == Kind.MAG:
+			draw_rect(Rect2(Vector2.ZERO, MAG).grow(-MAG_LINE * 0.5), colour, false, MAG_LINE)
+			draw_rect(_mag_fill(), colour)
+			if striped:
+				_stripes[0].draw(self)
+			return
+		var empty := Color(GameTheme.TEXT, HudStyle.PIP_EMPTY_ALPHA)
+		for i in _shapes.size():
+			var filled := _kind == Kind.BLOCK or i < _filled
+			if not filled:
+				draw_polyline(_outlines[i], empty, HudStyle.PIP_BORDER)
+				continue
+			draw_colored_polygon(_shapes[i], colour)
+			if striped:
+				_stripes[i].draw(self)
