@@ -1,7 +1,8 @@
 class_name FigureModels
 extends RefCounted
 ## The rigged figures a session draws (step 23), each kind loaded once a session: its scene, its sidecar
-## (FigureSidecar), its clips' loop modes set from the sidecar (the import leaves every clip unlooped), and, made once
+## (FigureSidecar), its clips' loop modes set from the sidecar (the import leaves every clip unlooped), its legs'
+## animation graph (FigureGraph, the stepping clips' offsets measured once here), and, made once
 ## and shared by every figure that asks, the team-painted materials and the shadow twins' meshes. A kind whose model or
 ## sidecar can't be read warns once and is not drawn (its figures stay capsules). Held by PlaySession; freeing it frees
 ## all of it.
@@ -11,6 +12,7 @@ class Kind:
 	var scene: PackedScene = null
 	var sidecar: FigureSidecar = null
 	var library: AnimationLibrary = null
+	var graph: AnimationNodeBlendTree = null
 
 
 var config: FigureConfig = null
@@ -51,6 +53,11 @@ func sidecar(kind: int) -> FigureSidecar:
 ## The kind's clips, looped as the sidecar says: the one library every figure of the kind plays from.
 func library(kind: int) -> AnimationLibrary:
 	return _kinds[kind].library if has_kind(kind) else null
+
+
+## The kind's legs' animation graph: the one every figure of the kind's AnimationTree plays.
+func graph(kind: int) -> AnimationNodeBlendTree:
+	return _kinds[kind].graph if has_kind(kind) else null
 
 
 ## `source` (a Team* material of `kind`) painted `colour` for `team`, lit with `glow` of it (TeamColours' High contrast
@@ -129,16 +136,28 @@ func _load(name: String) -> Kind:
 	var k := Kind.new()
 	k.scene = packed
 	k.sidecar = side
-	# The clips live in the scene's AnimationPlayer: take its library, loop it as the sidecar says, free the copy.
+	# The clips live in the scene's AnimationPlayer: take its library, loop it as the sidecar says, build the legs'
+	# graph over the skeleton's rest, free the copy.
 	var probe := packed.instantiate()
 	var players := probe.find_children("*", "AnimationPlayer", true, false)
 	var named := 0
 	for part in side.parts:
 		if probe.find_child(part, true, false) is MeshInstance3D:
 			named += 1
+	var skeletons := probe.find_children("*", "Skeleton3D", true, false)
 	if not players.is_empty():
 		var player := players[0] as AnimationPlayer
 		k.library = player.get_animation_library(&"")
+	if k.library != null:
+		for clip in side.clips:
+			var anim := k.library.get_animation(clip.name)
+			if anim == null:
+				push_warning("FigureModels: %s.glb has no clip %s" % [base, clip.name])
+				continue
+			anim.loop_mode = Animation.LOOP_LINEAR if clip.loop else Animation.LOOP_NONE
+		if not skeletons.is_empty():
+			var skeleton := skeletons[0] as Skeleton3D
+			k.graph = FigureGraph.build(side, k.library, skeleton, String(probe.get_path_to(skeleton)), config)
 	probe.free()
 	if named == 0:
 		push_warning("FigureModels: %s.glb has none of its sidecar's parts; its figures stay capsules" % base)
@@ -146,10 +165,4 @@ func _load(name: String) -> Kind:
 	if k.library == null:
 		push_warning("FigureModels: %s.glb has no clips; its figures stay capsules" % base)
 		return null
-	for clip in side.clips:
-		var anim := k.library.get_animation(clip.name)
-		if anim == null:
-			push_warning("FigureModels: %s.glb has no clip %s" % [base, clip.name])
-			continue
-		anim.loop_mode = Animation.LOOP_LINEAR if clip.loop else Animation.LOOP_NONE
 	return k

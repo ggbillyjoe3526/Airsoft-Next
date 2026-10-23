@@ -6,8 +6,9 @@ extends Node3D
 ## volume), while the legs stay put. Calling a hit, the arm goes up and "HIT!" shows above the head; it stays up on the
 ## walk off; a figure leaving the field fades out. It holds the replica it has out, the models' cut-down figure version
 ## in its team's paint (ReplicaPaint) with its parts' figure versions fitted (ReplicaParts), and puts it away as it fades.
-## With Dev › Rigged figures on it draws its rigged figure (FigureBody, standing in Idle) in place of the capsules; the
-## sign, the fade and the replica at its hold work the same on both.
+## With Dev › Rigged figures on it draws its rigged figure (FigureBody) in place of the capsules, its legs posed by
+## `animate` (FigurePose: moving, crouching, jumping, vaulting, the hit call, the walk-off and the lean); the sign, the
+## fade and the replica at its hold work the same on both.
 
 ## The figure's proportions (m): the legs' and torso's capsules, the head, the arm, and where the sign floats. The torso
 ## reaches this far below the pivot, so its round bottom covers the joint as it tilts.
@@ -45,6 +46,13 @@ var _capsules: Array[MeshInstance3D] = []
 var _team: int = 0
 var _team_colour: Color = Color.WHITE
 var _glow: float = 0.0
+## The rigged legs: their pose (reused every frame), the lines its levels change at, whether the next pose snaps (the
+## first, or the first after the legs were left still), and the frames and time gathered beyond the far line.
+var _pose: FigurePose = null
+var _lines: Vector2 = Vector2.ZERO
+var _snap: bool = true
+var _far_frames: int = 0
+var _far_delta: float = 0.0
 
 
 ## Draws `c` in `team_colour`, glowing with `glow` of it (High contrast by day, TeamColours), holding its replicas in
@@ -116,7 +124,10 @@ func set_body(models: FigureModels, kind: int, lines: Vector2) -> void:
 		remove_child(_body)
 		_body.queue_free()
 		_body = null
+	_lines = lines
+	_snap = true
 	if models != null and models.has_kind(kind):
+		_pose = FigurePose.new(models.config) if _pose == null else _pose
 		_body = FigureBody.new()
 		if _body.setup(models, kind, character_id, _team, _team_colour, _glow, lines):
 			add_child(_body)
@@ -134,6 +145,7 @@ func body() -> FigureBody:
 
 ## The rigged figure's levels change at `lines` (m) from now on (the graphics' Mesh detail).
 func set_lod_lines(lines: Vector2) -> void:
+	_lines = lines
 	if _body != null:
 		_body.set_lod_lines(lines)
 
@@ -188,6 +200,34 @@ static func make_sign(font: Font, team_colour: Color) -> Label3D:
 	s.outline_modulate = team_colour.darkened(SIGN_OUTLINE_DARKEN)
 	s.visible = false
 	return s
+
+
+## Poses the rigged figure's legs from `c` at `fraction` between its ticks, `delta` seconds on, seen from `eye`. A
+## hidden figure's legs are left still (and snap to the pose when it shows again); beyond the far line they move every
+## FigureConfig.far_stride-th frame. After `update` and after the figure is hidden from its own eyes.
+func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
+	if _body == null:
+		return
+	if not visible:
+		_snap = true
+		return
+	var cfg := _pose.config()
+	var far := _lines.y + cfg.lod_margin
+	if global_position.distance_squared_to(eye) > far * far:
+		_far_delta += delta
+		_far_frames += 1
+		if cfg.far_stride <= 0 or _far_frames < cfg.far_stride:
+			return
+		delta = _far_delta
+	_far_frames = 0
+	_far_delta = 0.0
+	_pose.read(c, fraction, _hits)
+	if _snap:
+		_snap = false
+		_pose.snap()
+	else:
+		_pose.settle(delta)
+	_body.animate(_pose, _hits, delta)
 
 
 func update(c: Character, fraction: float) -> void:

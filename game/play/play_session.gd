@@ -734,10 +734,12 @@ func _process(delta: float) -> void:
 	if _targets_view != null:
 		_targets_view.update(state.targets, fraction, delta)
 	for f in _figures:
-		f.update(state.characters[f.character_id], fraction)
+		var c: Character = state.characters[f.character_id]
+		f.update(c, fraction)
 		# Watching through someone's eyes: their own figure would fill the view.
 		if f.character_id == watched.id:
 			f.visible = false
+		f.animate(c, fraction, delta, _eyes.global_position)
 	_hud.show_board(_input.scoreboard_held())
 	_hud.update(state, _input.zoom, delta)
 	_hud.place_team_markers(_eyes.camera, state.characters, watched, fraction)

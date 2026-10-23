@@ -5,19 +5,26 @@ extends Node3D
 ## (GeometryInstance3D visibility ranges: LOD0 to the near line, LOD1 to the far line, LOD2 beyond, each crossed
 ## FigureConfig.lod_margin past it); the levels cast no shadow and one shadow twin (the coarsest level merged into one
 ## mesh, shadows only) casts it at every range; the Team* materials wear the team's shared paint. Meshes and bones are
-## found by name, never by index (the two files order their bones differently). It stands in its Idle clip until the
-## animation steps (FI2) drive it, and fades through GeometryInstance3D.transparency, so no material is copied.
+## found by name, never by index (the two files order their bones differently). Its legs play the kind's shared graph
+## (FigureGraph) in an AnimationTree of its own, advanced by hand from a FigurePose (`animate`), then FigureBend lowers
+## and leans it; it fades through GeometryInstance3D.transparency, so no material is copied.
 
 ## The parts it draws (the shadow twin last) and each one's level (0, 1, 2; -1 for the twin).
 var meshes: Array[MeshInstance3D] = []
 var levels: PackedInt32Array = PackedInt32Array()
 var skeleton: Skeleton3D = null
-var player: AnimationPlayer = null
+## The legs' tree (its graph the kind's, its parameters its own) and the bend after it; null without a skeleton.
+var tree: AnimationTree = null
+var bend: FigureBend = null
 ## The head it wears (&"" for a kind with one head).
 var head: StringName = &""
 var _config: FigureConfig = null
 var _bones: Dictionary[StringName, int] = {}
 var _fade: float = 1.0
+## The Vault and HitCall clips' lengths (s) and the WalkOff clip's own pace (m/s).
+var _vault_seconds: float = 0.0
+var _call_seconds: float = 0.0
+var _walk_off_pace: float = 0.0
 
 
 ## Builds kind `kind` of `models` for figure `figure_id` of `team`, painted `colour` with `glow`, its levels changing at
@@ -34,7 +41,6 @@ func setup(models: FigureModels, kind: int, figure_id: int, team: int, colour: C
 	var found := model.find_children("*", "Skeleton3D", true, false)
 	var players := model.find_children("*", "AnimationPlayer", true, false)
 	skeleton = found[0] as Skeleton3D if not found.is_empty() else null
-	player = players[0] as AnimationPlayer if not players.is_empty() else null
 	if skeleton == null:
 		push_warning("FigureBody: %s has no skeleton" % _config.kinds[kind])
 		return false
@@ -79,14 +85,51 @@ func setup(models: FigureModels, kind: int, figure_id: int, team: int, colour: C
 		if index < 0:
 			push_warning("FigureBody: %s has no bone %s" % [_config.kinds[kind], bone])
 		_bones[StringName(bone)] = index
-	if player != null:
-		var clips := models.library(kind)
-		if player.get_animation_library(&"") != clips:
-			player.remove_animation_library(&"")
-			player.add_animation_library(&"", clips)
-		if player.has_animation(_config.idle_clip):
-			player.play(_config.idle_clip)
+	# The tree plays the kind's clips in place of the model's own player, which is freed.
+	for p in players:
+		(p as Node).free()
+	tree = AnimationTree.new()
+	tree.name = "Legs"
+	tree.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+	tree.add_animation_library(&"", models.library(kind))
+	tree.tree_root = models.graph(kind)
+	model.add_child(tree)
+	tree.root_node = NodePath("..")
+	bend = FigureBend.new()
+	bend.setup(skeleton, _config)
+	skeleton.add_child(bend)
+	_vault_seconds = _seconds(side, _config.vault_clip)
+	_call_seconds = _seconds(side, _config.call_clip)
+	var walk_off := side.clip(_config.walk_off_clip)
+	_walk_off_pace = walk_off.speed if walk_off != null else 0.0
 	return true
+
+
+## Poses the legs from `pose` (`hits`: the hit volume's lean geometry) and moves the tree on `delta` seconds; the bend
+## follows when the skeleton next updates.
+func animate(pose: FigurePose, hits: HitConfig, delta: float) -> void:
+	if tree == null:
+		return
+	tree.set(FigureGraph.P_GAIT, pose.gait_position())
+	tree.set(FigureGraph.P_CROUCH_SPACE, pose.speed)
+	tree.set(FigureGraph.P_CROUCH, pose.crouch)
+	if pose.stepping():
+		tree.set(FigureGraph.P_GAIT_SEEK, fposmod(pose.cycle, TAU))
+		# Backwards, the crouched walk mirrored about its forward swing, which stays at the hit legs' forward peak.
+		var crouched := FigureGraph.FORWARD_PHASE * 2.0 - pose.cycle if pose.backward else pose.cycle
+		tree.set(FigureGraph.P_CROUCH_SEEK, fposmod(crouched, TAU))
+	tree.set(FigureGraph.P_JUMP, pose.jump_weight)
+	tree.set(FigureGraph.P_JUMP_SEEK, pose.jump_time)
+	tree.set(FigureGraph.P_VAULT, pose.vault_weight)
+	tree.set(FigureGraph.P_VAULT_SEEK, pose.vault_share * _vault_seconds)
+	tree.set(FigureGraph.P_CALL, pose.call_weight)
+	tree.set(FigureGraph.P_CALL_SEEK, minf(pose.call_time, _call_seconds))
+	tree.set(FigureGraph.P_WALK_OFF, pose.walk_off_weight)
+	tree.set(FigureGraph.P_WALK_OFF_PACE, pose.walk_off_speed / _walk_off_pace if _walk_off_pace > 0.0 else 1.0)
+	tree.advance(delta)
+	bend.hits = hits
+	bend.lean = pose.lean
+	bend.crouch = pose.crouch
 
 
 ## The bone `bone_name`'s index in this figure's skeleton (-1 when it has none), as looked up by name at setup.
@@ -139,6 +182,11 @@ func _level(part: String) -> int:
 		return 0
 	var tail := part.substr(at + _config.lod_suffix.length())
 	return tail.to_int() if tail.is_valid_int() else 0
+
+
+static func _seconds(side: FigureSidecar, clip_name: StringName) -> float:
+	var clip := side.clip(clip_name)
+	return clip.seconds if clip != null else 0.0
 
 
 ## `part` without its level suffix.
