@@ -84,8 +84,9 @@ func setup(cfg: HudConfig) -> void:
 
 ## Places the marker over the pole at `pole` as seen by `camera`, inside `area` (the HUD's size); hidden when `show` is
 ## false or you stand within reach of it. With the pole off the screen's side or behind you the marker pins to that side,
-## its top at `pin.y` and its edge `pin.x` from the screen's.
-func place(camera: Camera3D, pole: Vector3, show: bool, area: Vector2, pin: Vector2) -> void:
+## its top at `pin.y` and its edge `pin.x` from the screen's; on the right its top is `right_top` instead (below the
+## hit feed when that is up there), since the left side's stack has nothing to do with what is on the right.
+func place(camera: Camera3D, pole: Vector3, show: bool, area: Vector2, pin: Vector2, right_top: float) -> void:
 	var eye := camera.global_position
 	var metres := roundi(Vector2(pole.x - eye.x, pole.z - eye.z).length())
 	visible = show and metres >= _cfg.flag_marker_hide_within
@@ -104,7 +105,7 @@ func place(camera: Camera3D, pole: Vector3, show: bool, area: Vector2, pin: Vect
 		_edge_chevron.point(to_left)
 		var x := pin.x if to_left else area.x - pin.x - _edge.get_combined_minimum_size().x
 		position = Vector2.ZERO
-		_edge.position = Vector2(x, pin.y)
+		_edge.position = Vector2(x, pin.y if to_left else right_top)
 		return
 	var half := size.x * 0.5
 	var edge := _cfg.flag_marker_edge

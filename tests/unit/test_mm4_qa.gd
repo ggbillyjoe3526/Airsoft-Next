@@ -54,13 +54,19 @@ func test_the_card_and_a_pinned_flag_marker_clear_the_tab_scoreboard_and_a_full_
 	assert_eq(in_feed.get_area(), 0.0, "plate %s in the feed %s" % [plate.get_global_rect(), hud.feed().get_global_rect()])
 	# What got you with the Tab scoreboard up
 	var card := _card(s)
-	hud.show_board(true)
-	hud.update(s.state, 1.0, 0.0)
-	hud.board().visible = true # as the Tab key holds it
 	await wait_process_frames(3)
-	var on_board := card.get_global_rect().intersection(hud.board().get_global_rect())
+	s.set_process(false) # the session would let go of the key again each frame
+	hud.show_board(true)
+	hud.board().visible = true # as the Tab key holds it
+	hud.update(s.state, 1.0, 0.0)
+	# the card gives way to the board (it hides while Tab is held) and comes back when Tab is let go
+	assert_false(card.is_visible_in_tree(), "hidden under the board")
+	var on_board := card.get_global_rect().intersection(hud.board().get_global_rect()) if card.visible else Rect2()
 	assert_eq(on_board.get_area(), 0.0, "card %s over the board %s" % [card.get_global_rect(),
 			hud.board().get_global_rect()])
+	hud.show_board(false)
+	hud.update(s.state, 1.0, 0.0)
+	assert_true(card.visible, "back when Tab is released")
 
 
 # --- wiring ---
