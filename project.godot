@@ -30,6 +30,7 @@ config/project_settings_override="user://renderer.cfg"
 
 gdscript/warnings/untyped_declaration=2
 gdscript/warnings/inferred_declaration=0
+settings/crash_handler/message="Airsoft crashed. Start it again: it offers to report the bug."
 
 [display]
 
