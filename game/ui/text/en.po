@@ -2507,3 +2507,126 @@ msgstr "%d × %d · %s"
 
 msgid "NOTICE_GRAPHICS_SETTINGS"
 msgstr "Graphics settings"
+
+msgid "SETTINGS_ACCESSIBILITY"
+msgstr "Accessibility"
+
+msgid "SETTINGS_TEAM_COLOURS"
+msgstr "Team colours"
+
+msgid "SETTINGS_SET_STANDARD"
+msgstr "Standard"
+
+msgid "SETTINGS_SET_HIGH_CONTRAST"
+msgstr "High contrast"
+
+msgid "SETTINGS_IN_USE"
+msgstr "IN USE"
+
+msgid "SETTINGS_SET_STANDARD_LEAD"
+msgstr "Blue and orange:"
+
+msgid "SETTINGS_SET_STANDARD_NOTE"
+msgstr "they stay apart for the common kinds of colour blindness."
+
+msgid "SETTINGS_SET_HIGH_CONTRAST_LEAD"
+msgstr "Light blue and dark orange,"
+
+msgid "SETTINGS_SET_HIGH_CONTRAST_NOTE"
+msgstr "apart in lightness too, for little or no colour vision. From the next match."
+
+msgid "SETTINGS_TEAM_COLOURS_NOTE"
+msgstr "Figures, flag cloth and the HUD take the set. The menus and the HUD preview change at once; the figures when the next match starts."
+
+msgid "SETTINGS_GAUGE_PATTERNS"
+msgstr "Gauge patterns"
+
+msgid "SETTINGS_PATTERNS"
+msgstr "Patterns"
+
+msgid "SETTINGS_PATTERNS_NOTE"
+msgstr "Stripes as well as colour, so the gauges read without it."
+
+msgid "SETTINGS_PATTERNS_HELP"
+msgstr "Beta's score and flag fill are striped, Alpha's solid, in both sets. A low magazine turns yellow and striped."
+
+msgid "SETTINGS_SCREEN_READER"
+msgstr "Screen reader messages"
+
+msgid "SETTINGS_READ_OUT"
+msgstr "Read out"
+
+msgid "SETTINGS_READ_OUT_NOTE"
+msgstr "Reads hit calls, your hit and round results when a screen reader is running."
+
+msgid "SETTINGS_SOUND_CUES"
+msgstr "Sound cues"
+
+msgid "SETTINGS_SHOW_CUES"
+msgstr "Show cues"
+
+msgid "SETTINGS_SHOW_CUES_NOTE"
+msgstr "A ring round the crosshair shows where you hear steps, shots and hit calls."
+
+msgid "SETTINGS_CUE_COLOUR_NOTE"
+msgstr "Red is the default."
+
+msgid "SETTINGS_CUE_STEP_LEAD"
+msgstr "Two dots"
+
+msgid "SETTINGS_CUE_STEP"
+msgstr "a step (up to %d m)"
+
+msgid "SETTINGS_CUE_SHOT_LEAD"
+msgstr "Arrowhead"
+
+msgid "SETTINGS_CUE_SHOT"
+msgstr "a shot (up to %d m)"
+
+msgid "SETTINGS_CUE_HIT_LEAD"
+msgstr "HIT tag"
+
+msgid "SETTINGS_CUE_HIT"
+msgstr "a hit call (up to %d m)"
+
+msgid "SETTINGS_CUES_HELP"
+msgstr "Fainter the further off. Shown through walls, for as far as the sound is heard."
+
+msgid "SETTINGS_REDUCED_MOTION"
+msgstr "Reduced motion"
+
+msgid "SETTINGS_MOTION"
+msgstr "Motion"
+
+msgid "SETTINGS_FOLLOW_SYSTEM"
+msgstr "Follow system"
+
+msgid "SETTINGS_MOTION_SYSTEM_LEAD"
+msgstr "Follow system"
+
+msgid "SETTINGS_MOTION_SYSTEM_NOTE"
+msgstr "uses your computer's \"reduce animation\" setting."
+
+msgid "SETTINGS_MOTION_OFF_LEAD"
+msgstr "Off:"
+
+msgid "SETTINGS_MOTION_OFF_NOTE"
+msgstr "the replica sways as you turn, and the view tips as you lean and vault."
+
+msgid "SETTINGS_MOTION_ON_LEAD"
+msgstr "On:"
+
+msgid "SETTINGS_MOTION_ON_NOTE"
+msgstr "no weapon sway or drifting dust, half the kick, a quarter of the lean roll and vault tip, nothing pulsing on the HUD. The recoil climb stays: it shows where the next BB goes. Applied at once."
+
+msgid "SETTINGS_SYSTEM_ASKS"
+msgstr "Your system asks for reduced motion: %s"
+
+msgid "SETTINGS_SYSTEM_YES"
+msgstr "Yes"
+
+msgid "SETTINGS_SYSTEM_NO"
+msgstr "No"
+
+msgid "SETTINGS_SYSTEM_UNKNOWN"
+msgstr "It doesn't say"

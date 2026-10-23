@@ -1,11 +1,13 @@
 class_name SettingsScreen
 extends Control
-## The settings, in five tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
+## The settings, in six tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
 ## (a volume for each bus), Display (SettingsDisplayPage: the window, the frame rate, the view), Graphics
-## (SettingsGraphicsPage) and HUD (SettingsHudPage); and a sixth, Dev, shown while the Dev settings box under the tabs is ticked (its switches apply only then;
-## docs/DECISIONS.md › Content tags and dev content). Opened from the title screen and the pause menu; works while the tree is paused. Every change is applied at once through SettingsApply and saved:
-## a slider a moment after it stops moving, anything else straight away, and the last change always on close. Esc or
-## Back closes it. While it is open, keys the controls don't use stop here, so none reaches play.
+## (SettingsGraphicsPage), HUD (SettingsHudPage) and Accessibility (SettingsAccessPage); and a seventh, Dev, shown while
+## the Dev settings box under the tabs is ticked (its switches apply only then; docs/DECISIONS.md › Content tags and dev
+## content). Opened from the title screen and the pause menu; works while the tree is paused. Every change is applied
+## at once through SettingsApply and saved: a slider a moment after it stops moving, anything else straight away, and
+## the last change always on close. Esc or Back closes it. While it is open, keys the controls don't use stop here, so
+## none reaches play.
 
 ## The screen closed.
 signal closed
@@ -56,6 +58,7 @@ var _volume: Dictionary[StringName, HSlider] = {}
 var _display_page: SettingsDisplayPage = null
 var _graphics_page: SettingsGraphicsPage = null
 var _hud_page: SettingsHudPage = null
+var _access_page: SettingsAccessPage = null
 var _dev_box: CheckButton = null
 var _dev_page: Control = null
 var _dev_checks: Dictionary[StringName, CheckButton] = {}
@@ -101,6 +104,7 @@ func _ready() -> void:
 	_build_display()
 	_build_graphics()
 	_build_hud()
+	_build_access()
 	_build_dev()
 	_dev_box = CheckButton.new()
 	_dev_box.text = tr("DEV_SETTINGS_BOX")
@@ -317,6 +321,16 @@ func _build_hud() -> void:
 	_hud_page.changed.connect(_changed)
 
 
+# --- Accessibility ---
+
+func _build_access() -> void:
+	var page := _page(tr("SETTINGS_ACCESSIBILITY"))
+	_access_page = SettingsAccessPage.new()
+	page.add_child(_access_page)
+	_access_page.build(self)
+	_access_page.changed.connect(_changed)
+
+
 # --- Dev ---
 
 func _build_dev() -> void:
@@ -432,6 +446,7 @@ func _refresh() -> void:
 	_display_page.refresh()
 	_graphics_page.refresh()
 	_hud_page.refresh()
+	_access_page.refresh()
 	_dev_box.set_pressed_no_signal(settings.dev_enabled)
 	_show_dev_tab()
 	set_slider(_speed, settings.dev.game_speed * 100.0)
