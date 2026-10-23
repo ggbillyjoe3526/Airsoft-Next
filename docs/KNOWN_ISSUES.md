@@ -11,7 +11,6 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 
 | Area | Issue | Class | Found |
 |---|---|---|---|
-| Models | The figures carry hand-made `_LOD1`/`_LOD2` meshes and four heads as separate nodes, so a plain instance draws every level and head (34,833 triangles for the human). The figure code must pick one head and set visibility ranges (or drop the hand-made LODs) | can wait | 2026-10-18 |
 | Bots | A bot can come off a vault standing on top of a low wall and walk across it (0.85 m wall in `test_bot_vaults.gd`: seen for 6 ticks once lane points moved; staggering every bot's lane points, as the browser game did, was left out for this) | playtest | 2026-10-22 |
 | Bots | Bots have no callouts, pings or magazine sharing. Each is its own later task (`docs/DECISIONS.md` › Bots and balance) | can wait | 2026-10-18 |
 | Bots | `data/bots.md`'s Watches the flag first column is read and checked but plays no part yet: the overtime flag comes with step 27. Names show on the Dev tab's bot intentions and the spectating line only, never over heads (owner, 2026-10-20) | can wait | 2026-10-20 |
@@ -70,3 +69,4 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 | HUD | The replica panel is about 8 px taller than the concept's (the count's font line is 48 px, the concept sets line height 1), and the replica's name is not shown (the concept and UI2 omit it); there is no hit feed until step 14 | can wait | 2026-10-19 |
 | Menus | Customise's part tabs (AT2) colour a card's numbers apart ("120" green, "2" red) but the Performance sheet's Magazines row colours "120 × 2" as one figure, by the total BBs, as the concept's magazine.png draws two colours there. The part pictures and the fitted rifle are checked headless and under xvfb only, not on a display or at 4K | can wait | 2026-10-19 |
 | Play | A figure's replica is one cut-down mesh, so a part's figure copy shows over its standard magazine or flash hider instead of in its place, and its iron sights stay up under an optic; only your replica carries parts and your figure isn't drawn, so nothing shows it yet (AT3). The owner deferred the split to the art pass (DECISIONS, 2026-10-19) | can wait | 2026-10-19 |
+| Play | Dev › Rigged figures (FI1): the figures stand in Idle with the replica at the capsules' hold, no lean, crouch or hit call yet (FI2 to FI5), and ShaderPrewarm doesn't warm their materials, so the first sight of one may hitch (FI7) | can wait | 2026-10-23 |

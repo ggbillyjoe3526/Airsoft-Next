@@ -109,6 +109,13 @@ var _lighting: FieldLighting = null
 ## Scratch for the vault prompt's look ahead each tick.
 var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
+## Each character's figure kind (FigureMix: human or robot), by character id; the player's too (the arms, FI6).
+var figure_kinds: PackedInt32Array = PackedInt32Array()
+## The rigged figures (FigureModels), loaded the first time Dev › Rigged figures is on, then kept for the session;
+## whether they are drawn, and the lines (m) their levels of detail change at (the graphics' Mesh detail).
+var _figure_models: FigureModels = null
+var _rigged: bool = false
+var _figure_lines: Vector2 = Vector2.ZERO
 var _audio: SimAudio = null
 ## The field's mix: muffled while you are out, dipped under your hit and the whistle (SoundMix).
 var _mix: SoundMix = null
@@ -472,6 +479,11 @@ func _build_views(ui: CanvasLayer) -> void:
 				_colours.figures.glow)
 		add_child(f)
 		_figures.append(f)
+	var teams := PackedInt32Array()
+	for c in state.characters:
+		teams.append(c.team)
+	figure_kinds = FigureMix.pick(state.match_seed, teams, _play.figures.robots, _play.figures.robot_salt)
+	_figure_lines = _play.figures.lod_high
 	var first_use: Array[Material] = [
 		_bbs.drawn_material(), _puffs.drawn_material(), FigureView.material(Color.WHITE, true, _colours.figures.glow)
 	]
@@ -1111,6 +1123,11 @@ func _apply_motion() -> void:
 ## The graphics drawn, onto the field: at the start and whenever they change (the settings can open from the pause menu).
 func _apply_graphics(values: GraphicsQuality) -> void:
 	GraphicsApply.apply_field(values, _lighting, _dust)
+	var lines := _play.figures.lod_lines(values.mesh_detail)
+	if lines != _figure_lines:
+		_figure_lines = lines
+		for f in _figures:
+			f.set_lod_lines(lines)
 
 
 ## The automatic step-down's watch.
@@ -1193,12 +1210,25 @@ func _apply_dev() -> void:
 		_intents.queue_free()
 		_intents = null
 	_pretend_slow = dev.pretend_slow_frames
+	_set_rigged(dev.rigged_figures)
 	if dev.retro_pixels and _retro == null:
 		_retro = RetroPixels.new()
 		add_child(_retro)
 	elif not dev.retro_pixels and _retro != null:
 		_retro.queue_free()
 		_retro = null
+
+
+## Dev › Rigged figures: every figure drawn as its rigged kind (the models loaded the first time), or as capsules again.
+func _set_rigged(on: bool) -> void:
+	if on == _rigged:
+		return
+	_rigged = on
+	if on and _figure_models == null:
+		_figure_models = FigureModels.new(_play.figures)
+		_figure_models.load_kinds()
+	for f in _figures:
+		f.set_body(_figure_models if on else null, figure_kinds[f.character_id], _figure_lines)
 
 
 ## Spectate any bot: you stand still, and each pull of the trigger follows the next bot. Your keys still go through

@@ -603,6 +603,12 @@ msgstr "PRETEND SLOW FRAMES"
 msgid "DEV_PRETEND_SLOW_FRAMES_HELP"
 msgstr "Counts every frame of a round as slow, so the automatic graphics step down a preset at the round's end (only while the graphics are the automatic pick). Changes nothing else."
 
+msgid "DEV_RIGGED_FIGURES"
+msgstr "RIGGED FIGURES"
+
+msgid "DEV_RIGGED_FIGURES_HELP"
+msgstr "Draws the other players as the rigged humans and robots, standing still for now, in place of the capsules. Changes only what you see."
+
 msgid "DEV_END_ROUND"
 msgstr "END THE ROUND NOW"
 
