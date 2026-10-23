@@ -2,8 +2,8 @@ class_name PauseMenu
 extends Control
 ## The menu Esc opens in play (concept `pause.png`): the match stops (the tree is paused) and the mouse is freed. PAUSED,
 ## the map, mode and round, then Resume, Settings and Quit match, and the match's seed at the foot. In practice (concept
-## `pause-practice.png`, `set_practice`): "Practice · Range", Resume, the Timed challenge's On / Off switch, Settings and
-## Leave practice, with no seed. Works while the tree is paused.
+## `pause-practice.png`, `set_practice`): "Practice · Range", Resume, the Timed challenge's On / Off switch, Loadout (with
+## its key, L as bound; the key works here too), Settings and Leave practice, with no seed. Works while the tree is paused.
 
 signal resumed
 signal left
@@ -11,6 +11,8 @@ signal left
 signal skipped
 ## Practice's Timed challenge was switched: on or off.
 signal challenge_toggled(on: bool)
+## Practice's Loadout row, or its key, was pressed.
+signal loadout_requested
 
 ## The shade over the match, the panel's width and margins, and the sizes of its words (px at 1080p; concept `pause.png`).
 const BACKDROP := Color(0.031, 0.051, 0.094, 0.72)
@@ -25,7 +27,7 @@ const SUBTITLE_TOP := 6
 const BUTTONS_TOP := 34
 const BUTTON_GAP := 12
 const BUTTON_PAD_X := 22
-const BUTTON_PAD_Y := 16
+const BUTTON_PAD_Y := 17
 const BUTTON_SIZE := 22
 const SEED_TOP := 28
 const SEED_PAD := 18
@@ -34,10 +36,17 @@ const SEED_SIZE := 16
 ## Timed challenge switch's chips (type size, padding, gap; px at 1080p).
 const PRACTICE_WIDTH := 560.0
 const PRACTICE_LEAVE_GAP := 10
-const PRACTICE_BOTTOM := 36
+const PRACTICE_BOTTOM := 37
+## ... and the gaps above the title, the subtitle and the buttons there (the concept's text sits a little lower).
+const PRACTICE_TOP := 46
+const PRACTICE_SUBTITLE_TOP := 7
+const PRACTICE_BUTTONS_TOP := 35
 const SWITCH_SIZE := 15
 const SWITCH_PAD := Vector2i(12, 3)
 const SWITCH_GAP := 6
+## The Loadout row's key chip: type size, padding (px at 1080p).
+const KEY_SIZE := 14
+const KEY_PAD := Vector2i(7, 2)
 
 ## The match's End the round now (returns false when no round is live), handed to the settings' Dev tab.
 var end_round: Callable = Callable()
@@ -54,11 +63,17 @@ var _seed_row: Control = null
 var _leave: Button = null
 var _leave_gap: Control = null
 var _bottom_gap: Control = null
+var _top_gap: Control = null
+var _subtitle_gap: Control = null
+var _buttons_gap: Control = null
 ## Practice: the Timed challenge's row and its chips, and whether it is on.
 var _challenge: Button = null
 var _chip_on: PanelContainer = null
 var _chip_off: PanelContainer = null
 var _challenge_on: bool = false
+## Practice's Loadout row and its key chip's words.
+var _loadout: Button = null
+var _loadout_key: Label = null
 var _practice: bool = false
 ## The settings screen, built the first time it is asked for.
 var _screen: SettingsScreen = null
@@ -89,13 +104,15 @@ func _ready() -> void:
 	add_child(panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 0)
-	box.add_child(_gap(PANEL_TOP))
+	_top_gap = _gap(PANEL_TOP)
+	box.add_child(_top_gap)
 	var title := Label.new()
 	title.text = tr("PAUSE_TITLE").to_upper()
 	title.add_theme_font_override("font", GameTheme.spaced_font(800, TITLE_SPACING, TITLE_SIZE))
 	title.add_theme_font_size_override("font_size", TITLE_SIZE)
 	box.add_child(title)
-	box.add_child(_gap(SUBTITLE_TOP))
+	_subtitle_gap = _gap(SUBTITLE_TOP)
+	box.add_child(_subtitle_gap)
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override("separation", 0)
 	_subtitle_lead = Label.new()
@@ -109,7 +126,8 @@ func _ready() -> void:
 	_subtitle.add_theme_color_override("font_color", GameTheme.MUTED)
 	line.add_child(_subtitle)
 	box.add_child(line)
-	box.add_child(_gap(BUTTONS_TOP))
+	_buttons_gap = _gap(BUTTONS_TOP)
+	box.add_child(_buttons_gap)
 	var buttons := VBoxContainer.new()
 	buttons.add_theme_constant_override("separation", BUTTON_GAP)
 	box.add_child(buttons)
@@ -117,6 +135,8 @@ func _ready() -> void:
 	_resume.pressed.connect(func() -> void: resumed.emit())
 	_challenge = _challenge_row(buttons)
 	_challenge.visible = false
+	_loadout = _loadout_row(buttons)
+	_loadout.visible = false
 	_skip = _button(buttons, tr("PAUSE_SKIP_ROUND"), false)
 	_skip.pressed.connect(func() -> void: skipped.emit())
 	_skip.visible = false
@@ -178,6 +198,16 @@ func leave_button() -> Button:
 	return _leave
 
 
+## The Loadout row, for tests.
+func loadout_button() -> Button:
+	return _loadout
+
+
+## The Loadout row's key as shown (the Loadout action's main key as bound now).
+func loadout_key_text() -> String:
+	return _loadout_key.text
+
+
 func is_practice() -> bool:
 	return _practice
 
@@ -186,11 +216,15 @@ func _set_practice(on: bool) -> void:
 	_practice = on
 	_subtitle_lead.visible = on
 	_challenge.visible = on
+	_loadout.visible = on
 	_leave_gap.visible = on
 	_leave.text = tr("PAUSE_LEAVE_PRACTICE" if on else "PAUSE_QUIT").to_upper()
 	_seed_gap.visible = not on
 	_seed_row.visible = not on
 	_bottom_gap.custom_minimum_size.y = PRACTICE_BOTTOM if on else PANEL_BOTTOM
+	_top_gap.custom_minimum_size.y = PRACTICE_TOP if on else PANEL_TOP
+	_subtitle_gap.custom_minimum_size.y = PRACTICE_SUBTITLE_TOP if on else SUBTITLE_TOP
+	_buttons_gap.custom_minimum_size.y = PRACTICE_BUTTONS_TOP if on else BUTTONS_TOP
 	_panel.custom_minimum_size.x = PRACTICE_WIDTH if on else PANEL_WIDTH
 	_panel.reset_size()
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
@@ -219,10 +253,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if visible and not settings_open() and event.is_action_pressed(&"pause") and not event.is_echo():
 		get_viewport().set_input_as_handled()
 		resumed.emit()
+	elif visible and _practice and not settings_open() and event.is_action_pressed(&"loadout") and not event.is_echo():
+		get_viewport().set_input_as_handled()
+		loadout_requested.emit()
 
 
 func open() -> void:
 	visible = true
+	# the settings may have rebound it since the menu last showed
+	_loadout_key.text = KeyNames.of_action(&"loadout")
 	_resume.grab_focus()
 
 
@@ -292,6 +331,24 @@ func _challenge_row(parent: Control) -> Button:
 	_chip_on = _chip(chips, tr("RULE_ON").to_upper())
 	_chip_off = _chip(chips, tr("RULE_OFF").to_upper())
 	b.pressed.connect(_toggle_challenge)
+	return b
+
+
+## The Loadout row: its words and, at the right, its key in a small outlined chip (practice only).
+func _loadout_row(parent: Control) -> Button:
+	var b := _button(parent, tr("PAUSE_LOADOUT"), false)
+	b.name = "Loadout"
+	var holder := HBoxContainer.new()
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	holder.offset_right = -float(BUTTON_PAD_X)
+	holder.alignment = BoxContainer.ALIGNMENT_END
+	b.add_child(holder)
+	var chip := MenuParts.key_chip(KeyNames.of_action(&"loadout"), KEY_SIZE, GameTheme.MUTED, KEY_PAD)
+	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	holder.add_child(chip)
+	_loadout_key = chip.get_child(0) as Label
+	b.pressed.connect(func() -> void: loadout_requested.emit())
 	return b
 
 

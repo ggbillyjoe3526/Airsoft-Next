@@ -19,6 +19,11 @@ const PAD := Vector4(20.0, 12.0, 18.0, 10.0)
 const RULE := 4
 const LINE_GAP := 4
 const SUB_GAP := 6
+## The Loadout line under the first panel's body: its gap above (from the body's foot), its key cap's size, padding and gap after it (px).
+const KEY_LINE_GAP := 10
+const KEY_SIZE := 13
+const KEY_PAD := Vector2i(6, 1)
+const KEY_AFTER := 6
 ## Type sizes: the kicker, the name, the first panel's title, the small words after the name, and the lines under it.
 const KICKER_SIZE := 13
 const KICKER_SPACING := 0.1
@@ -59,6 +64,9 @@ var _rule: StyleBoxFlat = null
 var _kicker: Label = null
 var _name: RichTextLabel = null
 var _sub: Label = null
+## The first panel's Loadout line: the row, and its key cap's words.
+var _key_row: VBoxContainer = null
+var _key_text: Label = null
 
 
 ## Built for `range_cfg` (where its walls are) and `player_id`'s BBs.
@@ -88,7 +96,47 @@ func setup(range_cfg: RangeConfig, player_id: int) -> void:
 	var under := StyleBoxEmpty.new()
 	under.content_margin_top = SUB_GAP - LINE_GAP
 	_sub.add_theme_stylebox_override("normal", under)
+	rows.add_child(_loadout_line())
 	_draw_last()
+
+
+## "L  Loadout · swap or tune your replica": the key as bound, the word in the text colour, the rest muted.
+func _loadout_line() -> VBoxContainer:
+	_key_row = VBoxContainer.new()
+	_key_row.name = "LoadoutLine"
+	_key_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_key_row.add_theme_constant_override("separation", 0)
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0.0, KEY_LINE_GAP - LINE_GAP)
+	_key_row.add_child(gap)
+	var line := HBoxContainer.new()
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.add_theme_constant_override("separation", 0)
+	_key_row.add_child(line)
+	var chip := MenuParts.key_chip(KeyNames.of_action(&"loadout"), KEY_SIZE, GameTheme.TEXT, KEY_PAD)
+	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_key_text = chip.get_child(0) as Label
+	line.add_child(chip)
+	var after := Control.new()
+	after.custom_minimum_size = Vector2(KEY_AFTER, 0.0)
+	line.add_child(after)
+	HudStyle.label(line, SUB_SIZE, 700, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_LEFT).text = tr("RANGE_LOADOUT")
+	HudStyle.label(line, SUB_SIZE, 600, GameTheme.MUTED, HORIZONTAL_ALIGNMENT_LEFT).text = tr("RANGE_LOADOUT_REST")
+	return _key_row
+
+
+## The Loadout's key as bound now (the settings, opened from the pause menu, may have changed it).
+func refresh_key() -> void:
+	_key_text.text = KeyNames.of_action(&"loadout")
+
+
+## The Loadout line's key and whether the line shows (the first panel only), for tests.
+func loadout_key_text() -> String:
+	return _key_text.text
+
+
+func loadout_line_visible() -> bool:
+	return _key_row.visible
 
 
 ## What your last BB did, as shown.
@@ -193,6 +241,9 @@ func _draw_last() -> void:
 	_name.text = name_text
 	_sub.text = sub
 	_sub.visible = not sub.is_empty()
+	_key_row.visible = _last.kind == Kind.NONE
+	if _key_row.visible:
+		refresh_key()
 
 
 ## The name's line: Inter 800 in the big size, the small words after it Inter 700 (bold) in the muted colour.

@@ -100,6 +100,17 @@ func face(yaw: float, pitch: float = 0.0) -> void:
 	view_pitch = pitch
 
 
+## Crouched or standing, as the crouch toggle keeps it (a held crouch key decides for itself): the range built again
+## after the Loadout puts you back as you stood.
+func set_crouched(on: bool) -> void:
+	_crouched = on
+
+
+## The crouch you chose: the toggle's, or the crouch key held. Not the body's (a vault tucks it).
+func crouch_chosen() -> bool:
+	return _crouched if _controls.crouch_toggle else Input.is_action_pressed(CROUCH)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not active:
 		return
@@ -251,7 +262,7 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.pitch = view_pitch
 	cmd.walk = Input.is_action_pressed(WALK)
 	cmd.sprint = Input.is_action_pressed(SPRINT)
-	cmd.crouch = _crouched if _controls.crouch_toggle else Input.is_action_pressed(CROUCH)
+	cmd.crouch = crouch_chosen()
 	cmd.aim = _aiming()
 	# Lean is held, whatever crouch and aim do (owner, 2026-10-03).
 	cmd.lean = Input.get_action_strength(LEAN_RIGHT) - Input.get_action_strength(LEAN_LEFT)

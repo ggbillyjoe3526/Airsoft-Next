@@ -15,6 +15,9 @@ extends Node3D
 ## all four run in `_ready` (tests and tools).
 
 signal left
+## Practice: the Loadout was asked for (its key, or the pause menu's row); the entry screen takes `practice_spot`, frees
+## the range and opens the Loadout, and builds the range again on that spot when you come back.
+signal loadout_requested
 ## `done` of `total` build steps are finished; `step_key` is the translation key of the one running next ("" at the end).
 signal progressed(done: int, total: int, step_key: String)
 ## The match has been drawn once (or the map was refused): the loading screen can go.
@@ -69,6 +72,8 @@ var settled: PlayerTally.Settled = null
 var practice: bool = false
 ## Practice: the timed challenge on from the start (the pause menu's switch; set_challenge changes it in play).
 var challenge_on: bool = false
+## Practice, coming back from the Loadout: where you stood. Set before the session enters the tree.
+var resume: PracticeSpot = null
 ## Practice, when `counts`: where a timed challenge run's best is kept and saved (null: Records.shared(), saved to its
 ## file as a settled match's records are). Tests give their own and a path of their own.
 var records: Records = null
@@ -230,6 +235,8 @@ func _build_views_and_start() -> void:
 	_apply_hud()
 	_sim.start_match(state)
 	_after_tick()
+	if resume != null:
+		_resume_spot()
 	var names := PackedStringArray()
 	for c in state.characters:
 		names.append("" if c.id == PLAYER_ID else _bots.name_of(c.id))
@@ -471,6 +478,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	_pause.end_round = _end_round_now
 	_pause.skipped.connect(_skip_from_pause)
 	_pause.challenge_toggled.connect(_on_challenge_toggled)
+	_pause.loadout_requested.connect(_request_loadout)
 
 
 func _physics_process(_delta: float) -> void:
@@ -690,6 +698,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"pause") and not event.is_echo():
 		_open_pause()
 		get_viewport().set_input_as_handled()
+	elif practice and not autopilot and event.is_action_pressed(&"loadout") and not event.is_echo():
+		# only on the range; in a match the key is nobody's
+		_request_loadout()
+		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton and event.is_pressed() and not _input.active and not get_tree().paused:
 		_capture()
 		get_viewport().set_input_as_handled()
@@ -857,6 +869,33 @@ func _resume() -> void:
 	_pause.close()
 	get_tree().paused = false
 	_capture()
+	if practice:
+		# the settings, opened from the pause menu, may have rebound the Loadout's key
+		_hud.range_readout().refresh_key()
+
+
+## Practice: where you stand now, for the range built again after the Loadout.
+func practice_spot() -> PracticeSpot:
+	return PracticeSpot.of(player, _input.view_yaw, _input.view_pitch, _input.crouch_chosen(), challenge_on,
+			match_seed)
+
+
+## The Loadout, from its key or the pause menu: the pause menu closes, the mouse is let go and the entry screen is told.
+func _request_loadout() -> void:
+	if not practice or not _running:
+		return
+	_pause.close()
+	get_tree().paused = false
+	_input.release()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	loadout_requested.emit()
+
+
+## Puts you back on the spot you left the range from; the first tick has run, so the round's own placing is undone.
+func _resume_spot() -> void:
+	resume.restore(player)
+	_input.face(resume.yaw, resume.pitch)
+	_input.set_crouched(resume.crouched)
 
 
 func _leave() -> void:

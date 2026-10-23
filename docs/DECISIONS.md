@@ -418,8 +418,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Disable levelling is a Dev switch (owner, 2026-10-13).** It unlocks everything for the Loadout without touching your
   level and counts as a cheat: no XP, and the match stays out of the records.
 - **In Practice you change gear from play, and it is your one loadout (2026-10-13, M95).** The Loadout key (L) opens it
-  there on the slot in your hands; what you pick at the range goes into the next match. The owner can rule for a separate
-  practice loadout.
+  there on the slot in your hands; what you pick at the range goes into the next match. The owner approved one loadout
+  (2026-10-22, RG5); with Disable levelling the picks stay sandboxed (locked gear plays as the slot's default again once
+  levelling is on).
 - **Aiming down the 2x scope looks like the red dot: the replica stays in view and the world shows round it (owner,
   2026-10-13, Dev 5 playtest note 5).** The view zooms 2× and the scope's rear glass shows the world; the dark surround
   is gone, so the scope's cost is its slower raise alone.

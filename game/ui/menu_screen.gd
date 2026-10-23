@@ -4,16 +4,22 @@ extends Control
 ## MatchPicks it is given), the Loadout page (LoadoutPage, built when its tab is opened and freed, after saving, when
 ## the Match tab or the title comes back) or the Armory (ArmoryPage, built and freed the same way). A tab press goes to the entry screen, which opens the settings under the bar and
 ## asks for the page. Esc backs out of what the page has open, then goes back to the title.
+## From practice (`open_practice_loadout`, concept `loadout-practice.png`) the menus are only the Loadout page under the bar's
+## LOADOUT tab and BACK TO PRACTICE: that button, the Loadout's key and Esc (after what the page has open) send
+## `practice_requested`, and there is no title to go back to.
 
 signal back
 ## A tab that is built was pressed.
 signal tab_requested(tab: TopBar.Tab)
+## From practice: back to the range was asked for (the button, the Loadout's key or Esc).
+signal practice_requested
 
 var _bar: TopBar = null
 var _match: MatchPage = null
 var _loadout: LoadoutPage = null
 var _armory: ArmoryPage = null
 var _settings: Settings = null
+var _from_practice: bool = false
 
 
 func _init(picks: MatchPicks = null, settings: Settings = null) -> void:
@@ -32,6 +38,7 @@ func _init(picks: MatchPicks = null, settings: Settings = null) -> void:
 	_bar = TopBar.new()
 	_bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_bar.tab_pressed.connect(_on_tab)
+	_bar.practice_pressed.connect(_on_practice)
 	add_child(_bar)
 	show_level()
 
@@ -41,8 +48,11 @@ func _init(picks: MatchPicks = null, settings: Settings = null) -> void:
 func show_level() -> void:
 	_bar.set_level(-1 if _settings.active_dev().disable_levelling else Progress.shared().level())
 	if _loadout != null and _loadout.locks_changed():
+		var slot := _loadout.slot()
 		leave_loadout()
 		show_loadout()
+		if _from_practice:
+			_loadout.open_from_practice(slot)
 	if _armory != null and _armory.stale():
 		leave_armory()
 		show_armory()
@@ -101,6 +111,21 @@ func show_loadout() -> void:
 	_loadout.focus_default()
 
 
+## Opens the Loadout from practice: the bar shows only LOADOUT and BACK TO PRACTICE, and the page opens on `slot`, the
+## replica in hand, with the range's note.
+func open_practice_loadout(slot: Loadout.Slot) -> void:
+	_from_practice = true
+	_bar.set_practice(true)
+	show_loadout()
+	_loadout.open_from_practice(slot)
+	_loadout.focus_default()
+
+
+## Whether the menus are the Loadout from practice.
+func from_practice() -> bool:
+	return _from_practice
+
+
 ## Shows the Armory, building it the first time (the Loadout page is saved and freed).
 func show_armory() -> void:
 	leave_loadout()
@@ -145,7 +170,19 @@ func _on_tab(tab: TopBar.Tab) -> void:
 	tab_requested.emit(tab)
 
 
+func _on_practice() -> void:
+	practice_requested.emit()
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if is_visible_in_tree() and event.is_action_pressed(&"ui_cancel") and not event.is_echo():
+	if not is_visible_in_tree() or event.is_echo():
+		return
+	if _from_practice and event.is_action_pressed(&"loadout"):
 		get_viewport().set_input_as_handled()
-		back.emit()
+		practice_requested.emit()
+	elif event.is_action_pressed(&"ui_cancel"):
+		get_viewport().set_input_as_handled()
+		if _from_practice:
+			practice_requested.emit()
+		else:
+			back.emit()
