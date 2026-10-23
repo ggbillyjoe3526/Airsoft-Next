@@ -7,7 +7,8 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus | pass | | |
-| 2026-10-23 | 2 | Opus | pass | | QA attempt 1 Fail: on 4.7.2 `OS.is_process_running` knows only this process's children, so the second-copy check never fired (in GR4's guard as well) |
+| 2026-10-23 | 2 | Opus | pass | QA Pass; Retry 7/8 (a crashed run's pid reused by any live program read as a second copy) | QA attempt 1 Fail: on 4.7.2 `OS.is_process_running` knows only this process's children, so the second-copy check never fired (in GR4's guard as well) |
+| 2026-10-23 | 3 | Opus | pass | | critic attempt 2 Retry: ProcessCheck must ask whether the process is this game |
 
 ## Decisions
 
@@ -48,6 +49,15 @@
   stay injectable. QA's proof test (`test_run_record_real_process.gd`) checks real processes: this one, init (not a
   child), a child before and after it is killed. test_error_log takes off only the loggers it added, and its
   source-grep test became a behavioural one (a listening Logger hears nothing from ErrorLog's own work).
+- **Attempt 3 (critic's Retry, pid reuse):** `ProcessCheck.is_running` now answers true only for a copy of this game.
+  Linux: `/proc/<pid>/exe` resolved equals this process's own (a replaced binary's " (deleted)" set aside); when the
+  link can't be read (another user's process), `cmdline`'s first entry names this executable or the name this process
+  was started by. Windows: tasklist by its full path (`%SystemRoot%\System32\tasklist.exe`, else the bare name),
+  its rows read by the pure `parse_tasklist(output, pid, exe_name)`: the image name (case aside) and the exact pid.
+  Tested: init and a `sleep` read as gone, a spawned copy of the game's executable as running until killed, and the
+  tasklist rows (a match, another image, the "No tasks" line, an id inside or around another, empty output). A zombie
+  left unreaped has no `exe` link and an empty `cmdline` (checked), so it reads as gone: no KNOWN_ISSUES row needed
+  for it. Leaving practice and its Loadout writing the menus is tested too.
 - **The script error test runs a Godot of its own** (`OS.execute`, printing what its ErrorLog kept): a SCRIPT ERROR
   in the unit tests' log fails `tools/unit_tests.sh`, and `Engine.print_error_messages = false` mutes a Logger too
   (checked). push_error and push_warning are tested in place.
@@ -76,6 +86,7 @@ plates=5 orders=3`) and licence notices all pass. The first run failed only on t
 deliberate SCRIPT ERROR (every test passed); the script error test now runs in a Godot of its own.
 After QA's fix (attempt 2): all five gates pass again, unit tests 2333 of 2333, `[smoke] ok frames=4850 … rounds=7
 plates=5 orders=3`.
+Attempt 3: all five gates pass, unit tests 2335 of 2335, `[smoke] ok frames=4390 … rounds=7 plates=5 orders=3`.
 
 ## Owner's checks
 

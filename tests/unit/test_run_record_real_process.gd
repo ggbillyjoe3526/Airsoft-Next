@@ -1,7 +1,8 @@
 extends GutTest
-## SV3 QA: the second-copy checks with a real process, not an injected stand-in. On Godot 4.7.2
+## SV3 QA: the second-copy checks with real processes, not an injected stand-in. On Godot 4.7.2
 ## OS.is_process_running knows only this process's own children (any other id logs an error and reads as gone), so a
-## second copy took the first one's live run for a crash; ProcessCheck answers for any process, with no error.
+## second copy took the first one's live run for a crash. ProcessCheck answers for any process, with no error, and
+## only for a copy of this game: a crashed run's id taken since by another program reads as gone (critic, attempt 2).
 
 
 func test_a_running_process_that_is_not_a_child_reads_as_running() -> void:
@@ -11,20 +12,62 @@ func test_a_running_process_that_is_not_a_child_reads_as_running() -> void:
 	assert_true(r.held_by_other(OS.get_process_id() + 1, ProcessCheck.is_running))
 
 
+## A copy of the game: this executable, waiting (killed by the test).
+const WAITING_COPY := """extends SceneTree
+func _init() -> void:
+	OS.delay_msec(30000)
+	quit()
+"""
+
+
 func test_processes_running_and_gone() -> void:
 	assert_true(ProcessCheck.is_running(OS.get_process_id()), "this one")
 	assert_false(ProcessCheck.is_running(0))
 	assert_false(ProcessCheck.is_running(-3))
 	if OS.get_name() != "Linux":
 		return
-	assert_true(ProcessCheck.is_running(1), "init: running, and nobody's child here")
-	var child := OS.create_process("sleep", ["30"])
-	assert_gt(child, 0)
-	assert_true(ProcessCheck.is_running(child), "a child")
-	OS.kill(child)
-	await wait_until(func() -> bool: return not ProcessCheck.is_running(child), 5.0)
-	assert_false(ProcessCheck.is_running(child), "gone once killed")
+	assert_false(ProcessCheck.is_running(1), "init runs, but it isn't the game: a crashed run's id taken since")
+	var other := OS.create_process("sleep", ["30"])
+	assert_gt(other, 0)
+	await wait_until(func() -> bool: return FileAccess.file_exists("/proc/%d/cmdline" % other), 5.0)
+	assert_false(ProcessCheck.is_running(other), "a live program that isn't the game")
+	OS.kill(other)
 	assert_false(ProcessCheck.is_running(4194304 + 7), "past Linux's highest pid")
+
+
+func test_another_copy_of_the_game_reads_as_running_until_it_is_gone() -> void:
+	if OS.get_name() != "Linux":
+		pass_test("Linux only here; Windows' tasklist is test_the_tasklist_rows")
+		return
+	var script := ProjectSettings.globalize_path("user://test-sv3-waiting-copy.gd")
+	var f := FileAccess.open(script, FileAccess.WRITE)
+	f.store_string(WAITING_COPY)
+	f.close()
+	var copy := OS.create_process(OS.get_executable_path(), ["--headless", "-s", script])
+	assert_gt(copy, 0)
+	await wait_until(func() -> bool: return ProcessCheck.is_running(copy), 5.0)
+	assert_true(ProcessCheck.is_running(copy), "the same executable")
+	var r := RunRecord.new()
+	r.start("0.1 Dev 1", 100, copy)
+	assert_true(r.held_by_other(OS.get_process_id(), ProcessCheck.is_running), "a second copy")
+	OS.kill(copy)
+	await wait_until(func() -> bool: return not ProcessCheck.is_running(copy), 5.0)
+	assert_false(ProcessCheck.is_running(copy), "gone once killed (a zombie left unreaped reads as gone too)")
+	DirAccess.remove_absolute(script)
+
+
+func test_the_tasklist_rows() -> void:
+	var row := "\"Airsoft.exe\",\"4120\",\"Console\",\"1\",\"210,544 K\"\r\n"
+	assert_true(ProcessCheck.parse_tasklist(row, 4120, "Airsoft.exe"), "a match")
+	assert_true(ProcessCheck.parse_tasklist(row, 4120, "AIRSOFT.EXE"), "names case aside")
+	assert_false(ProcessCheck.parse_tasklist("\"chrome.exe\",\"4120\",\"Console\",\"1\",\"98,000 K\"\r\n", 4120,
+			"Airsoft.exe"), "another program holds the id")
+	assert_false(ProcessCheck.parse_tasklist("INFO: No tasks are running which match the specified criteria.\r\n", 4120,
+			"Airsoft.exe"), "none")
+	assert_false(ProcessCheck.parse_tasklist(row, 412, "Airsoft.exe"), "an id inside another")
+	assert_false(ProcessCheck.parse_tasklist(row, 41200, "Airsoft.exe"), "an id around another")
+	assert_false(ProcessCheck.parse_tasklist("", 4120, "Airsoft.exe"), "no output")
+	assert_true(ProcessCheck.parse_tasklist("\r\n" + row.strip_edges(), 4120, "Airsoft.exe"), "a blank line first")
 
 
 const FILES: Array[String] = ["user://test-sv3-real-run.save", "user://test-sv3-real-guard.save",

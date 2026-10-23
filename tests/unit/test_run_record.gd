@@ -237,7 +237,7 @@ func test_the_entry_scene_records_a_match_its_rounds_the_menus_and_a_clean_quit(
 	assert_false(r.crashed_before())
 
 
-func test_the_entry_scene_records_practice() -> void:
+func test_the_entry_scene_records_practice_its_loadout_and_leaving_it() -> void:
 	var main: Node = _main()
 	add_child_autofree(main)
 	await wait_process_frames(2)
@@ -247,7 +247,15 @@ func test_the_entry_scene_records_practice() -> void:
 	var r := RunRecord.load_file(_run_path)
 	assert_eq(r.place, RunRecord.PRACTICE)
 	assert_eq(str(r.match_facts["map"]), "range")
+	var play: PlaySession = main._play
+	await wait_for_signal(play.started, 10.0)
+	main._open_practice_loadout()
+	assert_eq(RunRecord.load_file(_run_path).place, RunRecord.MENUS, "practice's Loadout")
+	main._back_to_practice()
+	assert_eq(RunRecord.load_file(_run_path).place, RunRecord.PRACTICE, "back on the range")
+	await wait_process_frames(2)
 	main._end_play()
+	assert_eq(RunRecord.load_file(_run_path).place, RunRecord.MENUS, "leaving practice")
 	await wait_process_frames(2)
 
 
