@@ -10,9 +10,9 @@
 
 ## Decisions
 
-- **Built on the plan's defaults; the owner's approval of the step 22 pictures and defaults is pending (2026-10-23).**
-  Restore points as the browser's (question 5): three, one per day the game is opened, the save as it was at start,
-  none when unchanged, kept in the save folder. The restart after a replace (question 6) is SV2's.
+- **The plan's defaults, approved with the step 22 pictures, 2026-10-23.** Restore points as the browser's
+  (question 5): three, one per day the game is opened, the save as it was at start, none when unchanged, kept in the
+  save folder. The restart after a replace (question 6) is SV2's.
 - **The bundle is keyed by each store's kind** ("settings", "loadouts", "progress", "records"), which is also its
   name; `SaveBundle.KINDS`, `PATHS` and `VERSIONS` are the one list. `MACHINE_KINDS` names `run` before SV3 adds it.
 - **`saved_at` is when the save was last written:** the newest modified time of its files, so "Now" and a point both
@@ -45,6 +45,9 @@
 - **Outside touches:** `game/core/version.gd` (`Version.newer`, with tests in `tests/unit/test_version.gd`): ordering
   version names belongs with their rules (contract 7). `docs/ARCHITECTURE.md` (the `game/save/` row, and its duplicate
   older row removed) and `docs/DECISIONS.md` (the save as one).
+- **`tests/unit/test_gauge_pattern.gd:169` checks the global object count with `assert_lte`:** the first full run
+  failed it with the count lower than before (10267 against 10273: objects from earlier tests freed in those frames),
+  not higher; a global count may fall, never rise (unrelated to SV1, a test-only line).
 
 ## For SV2
 
