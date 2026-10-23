@@ -212,6 +212,58 @@ func test_the_range_shows_no_wheel_and_no_marker() -> void:
 	assert_false(session.hud().hold_marker().visible)
 
 
+# --- the notice-only wheel ---
+
+func _shut_pick(hud: Hud, wheel: OrderWheelPointer, outcome: SquadOrders.Outcome) -> void:
+	wheel.start()
+	wheel.at = Vector2(60.0, 0.0)
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	wheel.close()
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+
+
+func test_the_notice_only_wheel_is_for_your_own_pick_and_reopens_clean() -> void:
+	var hud := _hud_with_orders()
+	var controls := ControlsConfig.new()
+	var wheel := OrderWheelPointer.new(controls.wheel_reach, controls.wheel_dead_zone, controls.wheel_orders.size())
+	var outcome := SquadOrders.Outcome.new()
+	var w := hud.order_wheel()
+	_shut_pick(hud, wheel, outcome)
+	outcome.record(7, SquadOrder.Kind.NONE, SquadOrders.Notice.NOBODY)
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	assert_false(w.visible, "a bot's outcome is not yours, even right after a pick")
+	outcome.record(0, SquadOrder.Kind.NONE, SquadOrders.Notice.NOT_NOW)
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	assert_eq(w.notice_text(), "Orders wait for\nthe next round")
+	assert_eq(w.banded_slice(), -1, "no order marked while it only tells you")
+	# Opened again while it tells you: a clean wheel, the pointer back, no notice left over.
+	wheel.start()
+	wheel.at = Vector2(0.0, -60.0)
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	assert_eq(w.notice_text(), "")
+	assert_eq(w.lit_slice(), 0, "the slice pointed at lights again")
+	wheel.close()
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	assert_false(w.visible, "shut with no answer owed: away at once")
+
+
+func test_the_notice_only_wheel_goes_when_the_pause_menu_opens() -> void:
+	var hud := _hud_with_orders()
+	var controls := ControlsConfig.new()
+	var wheel := OrderWheelPointer.new(controls.wheel_reach, controls.wheel_dead_zone, controls.wheel_orders.size())
+	var outcome := SquadOrders.Outcome.new()
+	var w := hud.order_wheel()
+	_shut_pick(hud, wheel, outcome)
+	outcome.record(0, SquadOrder.Kind.NONE, SquadOrders.Notice.NOBODY)
+	hud.update_orders(wheel, SquadOrder.Kind.NONE, outcome, 0.016)
+	assert_true(w.visible)
+	get_tree().paused = true
+	await wait_process_frames(2)
+	var left_up := w.visible
+	get_tree().paused = false
+	assert_false(left_up, "paused: the notice is put away, not left under the menu")
+
+
 # --- Settings ---
 
 const SAVE := "user://so4-qa.save"
