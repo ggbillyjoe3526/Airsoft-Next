@@ -35,38 +35,6 @@ acceptance:
 status: open
 attempts: 0
 
-## SV3 · The run record, the error log and the last log
-tier: core
-perf: required
-touches: game/save/run_record.gd, game/report/error_log.gd, game/report/log_tail.gd, game/report/README.md,
-  game/main.gd, game/play/play_session.gd, project.godot, docs/ARCHITECTURE.md, tests/unit/test_run_record.gd,
-  tests/unit/test_error_log.gd, tests/unit/test_log_tail.gd
-contract: Saves (8); Version (7); Headless (9)
-acceptance:
-  1. RunRecord (user://run.save, pure over its record as GraphicsGuard): a start writes RUNNING with the version, the
-     start time and the pid; Play writes the match (seed as main passed it to PlaySession, map, mode, rules, team,
-     difficulties, team sizes) and practice its map; each round start the round and score; leaving play "menus"; a
-     clean quit CLOSED. A start that finds RUNNING from a pid no longer running keeps it as `previous` (the last run
-     closed unexpectedly); RUNNING from a pid still running is a second copy and leaves the record alone.
-  2. Not recorded: the smoke run, headless runs and an editor run (EngineDebugger.is_active(), as GR4). It starts
-     after the graphics guard, so the guard's own restart never counts as a crash; the restarted start sees the run
-     that crashed.
-  3. ErrorLog (a Logger added at boot, removed at exit): the last 20 errors and warnings, each "<type> <file>:<line>
-     (<function>): <message>", a repeat of the newest counting up (×3) without a new string; a Mutex, since Godot may
-     call it from any thread; `_log_message` returns at once; nothing in it prints. errors_this_run() counts errors
-     only.
-  4. LogTail: the previous run's log (the newest rotated user://logs/godot*.log; godot.log is this run's) as its last
-     40 lines and its line count, read once, only when asked.
-  5. project.godot: debug/settings/crash_handler/message = "Airsoft crashed. Start it again: it offers to report the
-     bug." (the line Godot writes under its backtrace).
-  6. A round-start write costs under 2 ms on the cloud box (timed in the record); ErrorLog adds nothing to a frame
-     without errors (DebugPerf counts).
-  7. GUT: every state (a clean quit, a crash in play, in practice, in the menus, a second copy, the guard's restart);
-     ErrorLog from push_error, push_warning and a script error, repeats, the ring's wrap, two threads; LogTail on
-     made-up rotated files, none, one shorter than 40 lines.
-status: open
-attempts: 0
-
 ## SV4 · The bug report and its GitHub issue address
 tier: core
 perf: required
