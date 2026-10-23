@@ -52,6 +52,7 @@ var _dpi: SpinBox = null
 var _invert: CheckButton = null
 var _crouch: CheckButton = null
 var _aim: CheckButton = null
+var _wheel_pick: CheckButton = null
 var _volume: Dictionary[StringName, HSlider] = {}
 var _window: OptionButton = null
 var _vsync: CheckButton = null
@@ -218,6 +219,12 @@ func _build_controls() -> void:
 	reset.custom_minimum_size = Vector2(BOX_WIDTH * 2.0, 0.0)
 	reset.pressed.connect(_keys.reset_all)
 	page.add_child(reset)
+	add_section(page, tr("SETTINGS_ORDERS"))
+	add_help(page, "SETTINGS_ORDERS_HELP")
+	_wheel_pick = add_check_row(page, "SETTINGS_ORDER_WHEEL", "SETTINGS_WHEEL_CLICK", "SETTINGS_WHEEL_HOVER")
+	_wheel_pick.toggled.connect(func(on: bool) -> void:
+		settings.wheel_pick = ControlsConfig.WheelPick.CLICK if on else ControlsConfig.WheelPick.HOVER
+		_applied(SettingsApply.apply_controls, true))
 
 
 func _on_sensitivity(v: float) -> void:
@@ -417,6 +424,7 @@ func _refresh() -> void:
 	set_check(_invert, settings.invert_y)
 	set_check(_crouch, settings.crouch_toggle)
 	set_check(_aim, settings.aim_toggle)
+	set_check(_wheel_pick, settings.wheel_pick == ControlsConfig.WheelPick.CLICK)
 	_keys.refresh()
 	for bus: StringName in Settings.VOLUME_BUSES:
 		set_slider(_volume[bus], settings.volumes[bus] * 100.0)

@@ -55,6 +55,8 @@ var _gauge: HudFlagGauge = null
 var _warning: PanelContainer = null
 var _warning_flag: HudFlagGlyph = null
 var _flag_marker: HudFlagMarker = null
+var _order_wheel: HudOrderWheel = null
+var _hold_marker: HudHoldMarker = null
 var _hits := HitFeed.new()
 var _feed: HudFeed = null
 var _team_markers: HudTeamMarkers = null
@@ -523,6 +525,44 @@ func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool) -> void:
 ## The marker's words ("FLAG · 24 m"), or "" while it is hidden: for tests.
 func flag_marker_text() -> String:
 	return _flag_marker.text()
+
+
+## Squad orders (SO4): Hold here's marker, and over it the order wheel round the crosshair. `controls` has the wheel's
+## orders, keys and reach. The wheel builds itself when it first opens, so a session that never gives an order (the
+## range) pays nothing.
+func setup_orders(controls: ControlsConfig) -> void:
+	var colour := _teams.colours[_player.team]
+	_hold_marker = HudHoldMarker.new()
+	add_child(_hold_marker)
+	_hold_marker.setup(_cfg, colour)
+	_order_wheel = HudOrderWheel.new()
+	_place(_order_wheel, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(0.0, 0.0, 0.0, 0.0))
+	add_child(_order_wheel)
+	_order_wheel.setup(_cfg, controls, colour)
+	HudStyle.restyle(_order_wheel, _opacity)
+	HudStyle.restyle(_hold_marker, _opacity)
+
+
+## Shows the wheel as `wheel` (the pointer PlayerInput moves) has it, with the order `in_force` and the last order
+## given (`outcome`, for its notice), `delta` seconds on. Nothing is drawn while it is closed.
+func update_orders(wheel: OrderWheelPointer, in_force: SquadOrder.Kind, outcome: SquadOrders.Outcome,
+		delta: float) -> void:
+	_order_wheel.update(wheel, in_force, outcome, _player.id, delta)
+
+
+## Places Hold here's marker over `spot` (the middle of the spots held) as seen by `camera`, hidden when `show` is false;
+## held at the edge clear of the flag marker.
+func place_hold_marker(camera: Camera3D, spot: Vector3, show: bool) -> void:
+	var avoid := _flag_marker.get_rect() if _flag_marker.visible else Rect2()
+	_hold_marker.place(camera, spot, show, size, avoid)
+
+
+func order_wheel() -> HudOrderWheel:
+	return _order_wheel
+
+
+func hold_marker() -> HudHoldMarker:
+	return _hold_marker
 
 
 ## Whether the "Their flag is going up!" warning shows: for tests.

@@ -64,7 +64,7 @@ touches: game/ui/hud_order_wheel.gd, game/ui/hud_hold_marker.gd, game/ui/hud.gd,
 contract: Simulation and presentation (1)
 acceptance:
   1. Wheel, notices, hold marker and the Settings row as the concepts in `/mnt/project-files/concepts/step17-orders/`
-     show (awaiting the owner's approval); HUD size and opacity apply.
+     show (approved 2026-10-22); HUD size and opacity apply.
   2. The wheel draws its items from the data, each with its key, lights the slice pointed at and marks the order in
      force; it builds nothing while closed.
   3. The hold marker sits over the held spots' middle with its distance, kept inside the screen's edge clear of the
