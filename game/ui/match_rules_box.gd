@@ -37,6 +37,11 @@ var _settings: Settings = null
 var _tuning: SimTuning = null
 var _pickers: Dictionary[String, MenuCard] = {}
 var _blurb: RichTextLabel = null
+var _picker: Control = null
+var _under: Control = null
+var _not_used: MenuTag = null
+## Practice is picked: the rules play no part, so the picker fades and no blurb, chips or rows show.
+var _unused: bool = false
 var _chips: HFlowContainer = null
 var _rows: VBoxContainer = null
 var _team_size: MenuChoice = null
@@ -57,13 +62,16 @@ func _init(picked: MatchPicks, settings: Settings, tuning: SimTuning) -> void:
 	_settings = settings
 	_tuning = tuning
 	var head := MenuParts.padded(0.0, 0.0, 0.0, MenuParts.HEADING_GAP)
-	head.add_child(MenuParts.heading(tr("MENU_RULES")))
+	var head_row := MenuParts.heading_row(tr("MENU_RULES"))
+	_not_used = head_row.get_child(1) as MenuTag
+	head.add_child(head_row)
 	add_child(head)
-	add_child(_build_picker())
+	_picker = _build_picker()
+	add_child(_picker)
 	_blurb = _rich_blurb()
-	var under := MenuParts.padded(0.0, BLURB_TOP, 0.0, BLURB_BOTTOM)
-	under.add_child(_blurb)
-	add_child(under)
+	_under = MenuParts.padded(0.0, BLURB_TOP, 0.0, BLURB_BOTTOM)
+	_under.add_child(_blurb)
+	add_child(_under)
 	_chips = HFlowContainer.new()
 	_chips.add_theme_constant_override("h_separation", CHIP_GAP)
 	_chips.add_theme_constant_override("v_separation", CHIP_GAP)
@@ -126,6 +134,19 @@ func chip_texts() -> PackedStringArray:
 	return out
 
 
+## Marks the section used or not (Practice picked: NOT USED after the heading, the picker faded, nothing under it).
+func set_unused(on: bool) -> void:
+	if on == _unused:
+		return
+	_unused = on
+	MenuParts.set_unused([_picker], _not_used, on)
+	show_tuning(_tuning)
+
+
+func is_unused() -> bool:
+	return _unused
+
+
 func chips_visible() -> bool:
 	return _chips.visible
 
@@ -147,8 +168,9 @@ func show_tuning(tuning: SimTuning) -> void:
 		chip.queue_free()
 	for chip in MatchOptions.rule_chips(tuning.rounds, tuning.hits):
 		_chips.add_child(_chip(chip))
-	_chips.visible = not custom
-	_rows.visible = custom
+	_chips.visible = not custom and not _unused
+	_rows.visible = custom and not _unused
+	_under.visible = not _unused
 	_show_switches()
 
 

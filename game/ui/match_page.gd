@@ -37,6 +37,11 @@ const TAG_GAP := 8
 const MODE_GAP := 14
 const MODE_PAD := Vector2(20.0, 18.0)
 const MODE_HEIGHT := 94.0
+## A blurb that wraps makes its card this much taller for each extra line (the concept's 1.35 line height), the text
+## measured at the width the card gives it: the middle column less the card's padding and border.
+const MODE_LINE := 21.6
+const MODE_TEXT_WIDTH := 1920.0 - 2.0 * MARGIN_X - MAPS_WIDTH - SIDE_WIDTH - 2.0 * COLUMN_GAP - 2.0 * MODE_PAD.x \
+		- 2.0 * GameTheme.BORDER
 const MODE_NAME_SIZE := 22
 const MODE_BLURB_SIZE := 16
 const TEAM_GAP := 12
@@ -62,6 +67,9 @@ var _modes_box: VBoxContainer = null
 var _map_cards: Dictionary[String, MenuCard] = {}
 var _mode_cards: Dictionary[String, MenuCard] = {}
 var _team_cards: Array[MenuCard] = []
+## Your team's cards and heading tag: NOT USED while Practice is picked.
+var _team_row: GridContainer = null
+var _team_tag: MenuTag = null
 ## The ids on offer in the catalogue's order (to tell a change), and as the cards are laid out.
 var _offered: PackedStringArray = PackedStringArray()
 var _listed: PackedStringArray = PackedStringArray()
@@ -77,6 +85,8 @@ var _rules: MatchRulesBox = null
 var _bots: MatchBotsBox = null
 ## The mode cards' blurbs (Elimination's reads the rounds to win).
 var _mode_blurbs: Dictionary[String, Label] = {}
+## A mode card's FIELDS ONLY or RANGE ONLY tag, shown while the picked map doesn't host the mode.
+var _only_tags: Dictionary[String, MenuTag] = {}
 ## The team size the maps were last checked for.
 var _checked_size: int = 0
 var _summary_map: Label = null
@@ -271,6 +281,11 @@ func _build_modes() -> Control:
 		title.add_child(_text(tr(MatchOptions.MODE_NAME[mode]).to_upper(), MODE_NAME_SIZE, 800, GameTheme.TEXT))
 		if not MatchOptions.BUILT_MODES.has(mode):
 			title.add_child(MenuTag.later())
+		var only := MenuTag.grey(MatchOptions.FIELDS_ONLY_KEY)
+		only.name = "OnlyTag"
+		only.visible = false
+		title.add_child(only)
+		_only_tags[mode] = only
 		rows.add_child(title)
 		var blurb := _text("", MODE_BLURB_SIZE, 600, GameTheme.MUTED)
 		blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -294,8 +309,11 @@ func _build_side() -> Control:
 	side.custom_minimum_size = Vector2(SIDE_WIDTH, 0.0)
 	side.add_theme_constant_override("separation", SECTION_GAP)
 	# Your team.
-	var team := _section(_heading(tr("MENU_TEAM")))
+	var team_head := MenuParts.heading_row(tr("MENU_TEAM"))
+	_team_tag = team_head.get_child(1) as MenuTag
+	var team := _section(team_head)
 	var team_row := GridContainer.new()
+	_team_row = team_row
 	team_row.columns = 2
 	team_row.add_theme_constant_override("h_separation", TEAM_GAP)
 	team.add_child(team_row)
@@ -371,7 +389,7 @@ func _padded(left: float, top: float, right: float, bottom: float) -> MarginCont
 ## The map cards for the maps on offer now (public fields, dev ones too while Dev content is on). Rebuilt only when
 ## that list changes, since Settings reports every slider move.
 func _list_maps() -> void:
-	var fields := _catalog.fields(_settings.active_dev().dev_content)
+	var fields := _catalog.listed(_settings.active_dev().dev_content)
 	var offered := PackedStringArray()
 	for e in fields:
 		offered.append(e.id)
@@ -384,7 +402,7 @@ func _list_maps() -> void:
 	var playable: Array[MapCatalog.Entry] = []
 	var later: Array[MapCatalog.Entry] = []
 	for e in fields:
-		var m := MatchOptions.map_check(e.id, _play_tuning.map_style, _tuning.rounds.team_size)
+		var m := MatchOptions.map_check(e.id, _play_tuning.map_style, MatchOptions.check_size(e, _tuning.rounds.team_size))
 		var refused := not m.problems.is_empty()
 		problems[e.id] = refused
 		_poles[e.id] = m.has_pole
@@ -501,6 +519,15 @@ func _pick_team(team: int) -> void:
 	_refresh()
 
 
+## A mode card's height for its `blurb`: MODE_HEIGHT, and a line more for each the blurb wraps past its first.
+func _mode_height(blurb: String) -> float:
+	var font := GameTheme.font(600)
+	var wrapped := font.get_multiline_string_size(blurb, HORIZONTAL_ALIGNMENT_LEFT, MODE_TEXT_WIDTH, MODE_BLURB_SIZE, -1,
+			TextServer.BREAK_WORD_BOUND | TextServer.BREAK_MANDATORY)
+	var lines := roundi(wrapped.y / font.get_height(MODE_BLURB_SIZE))
+	return MODE_HEIGHT + maxi(0, lines - 1) * MODE_LINE
+
+
 ## Lights the picks and greys what the picked map doesn't host or isn't built; rewrites the summary.
 func _refresh() -> void:
 	if _summary_map == null or _play == null:
@@ -518,11 +545,21 @@ func _refresh() -> void:
 		var card := _mode_cards[mode]
 		card.set_greyed(not MatchOptions.mode_pickable(mode, entry, pole))
 		card.set_picked(mode == picks.mode)
+		var only_key := MatchOptions.only_tag_key(mode, entry)
+		_only_tags[mode].visible = not only_key.is_empty()
+		if not only_key.is_empty():
+			_only_tags[mode].set_text(tr(only_key))
 	for mode: String in _needs_pole:
 		_needs_pole[mode].visible = MatchOptions.needs_pole(mode, entry, pole)
 	for t in _team_cards.size():
 		_team_cards[t].set_picked(t == picks.team)
+	var practice := picks.mode == MatchOptions.MODE_PRACTICE
 	_attack_row.visible = MatchOptions.POLE_MODES.has(picks.mode)
+	var team_parts: Array[Control] = [_team_row, _attack_row]
+	MenuParts.set_unused(team_parts, _team_tag, practice)
+	_rules.set_unused(practice)
+	_bots.set_unused(practice)
+	_play.text = tr("MENU_START_PRACTICE" if practice else "MENU_PLAY")
 	_attack_team.text = tr(MatchOptions.TEAM_KEYS[picks.team])
 	var colour := _play_tuning.teams.colours[picks.team].lightened(TEAM_NAME_LIGHTEN)
 	_attack_team.add_theme_color_override("font_color", colour)
@@ -531,6 +568,7 @@ func _refresh() -> void:
 	for mode: String in _mode_blurbs:
 		var blurb_text := tr(MatchOptions.MODE_BLURB[mode])
 		_mode_blurbs[mode].text = blurb_text % _tuning.rounds.wins_needed if blurb_text.contains("%d") else blurb_text
+		_mode_cards[mode].custom_minimum_size.y = _mode_height(_mode_blurbs[mode].text)
 	var mates := MatchOptions.teammates_level(picks.bots, picks.teammates) if _tuning.rounds.team_size > 1 else ""
 	_summary_rest.text = " · " + MatchOptions.summary_rest(picks.mode, picks.team, picks.bots,
 			picks.custom_rules(_settings), mates)

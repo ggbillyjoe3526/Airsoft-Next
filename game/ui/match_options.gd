@@ -10,7 +10,11 @@ const MODE_PRACTICE := "practice"
 ## Every mode, in the order the cards show them.
 const MODES: PackedStringArray = ["elimination", "attack_defend", "practice"]
 ## The modes that are built; the others show greyed with a LATER tag.
-const BUILT_MODES: PackedStringArray = ["elimination", "attack_defend"]
+const BUILT_MODES: PackedStringArray = ["elimination", "attack_defend", "practice"]
+## The tag a mode card carries on a map that doesn't host it (translation keys): Elimination and Attack / Defend say
+## FIELDS ONLY on the range, Practice says RANGE ONLY on a field.
+const FIELDS_ONLY_KEY := "MENU_FIELDS_ONLY"
+const RANGE_ONLY_KEY := "MENU_RANGE_ONLY"
 ## The modes that need a map with a flagpole (MapData.has_pole).
 const POLE_MODES: PackedStringArray = ["attack_defend"]
 ## The words of a mode: its name and its line (translation keys).
@@ -22,7 +26,7 @@ const MODE_BLURB: Dictionary[String, String] = {
 	"practice": "MODE_PRACTICE_BLURB",
 }
 ## The modes a map of each kind hosts (data/maps.md's Kind): every field hosts Elimination and Attack / Defend (the
-## latter only with a flagpole), the range its own practice mode.
+## latter only with a flagpole), the range its own practice mode (practice on a field comes with the Woodland update).
 const KIND_MODES: Dictionary[StringName, PackedStringArray] = {
 	&"field": ["elimination", "attack_defend"],
 	&"range": ["practice"],
@@ -60,9 +64,23 @@ static func mode_pickable(mode: String, map: MapCatalog.Entry, has_pole: bool) -
 	return BUILT_MODES.has(mode) and modes_offered(map).has(mode) and (has_pole or not POLE_MODES.has(mode))
 
 
+## The words on a mode card that the picked `map` doesn't host: FIELDS ONLY on the range's, RANGE ONLY on a field's
+## Practice card; "" for a mode the map hosts (or no map).
+static func only_tag_key(mode: String, map: MapCatalog.Entry) -> String:
+	if map == null or modes_offered(map).has(mode):
+		return ""
+	return FIELDS_ONLY_KEY if map.kind == &"range" else RANGE_ONLY_KEY
+
+
 ## Whether `mode` is held back on `map` only for want of a flagpole: the card says so.
 static func needs_pole(mode: String, map: MapCatalog.Entry, has_pole: bool) -> bool:
 	return not has_pole and POLE_MODES.has(mode) and BUILT_MODES.has(mode) and modes_offered(map).has(mode)
+
+
+## The team size a map is checked for: the range plays a team of one (you alone, PlaySession.practice_tuning), a field the
+## match's.
+static func check_size(map: MapCatalog.Entry, team_size: int) -> int:
+	return 1 if map != null and map.kind == &"range" else team_size
 
 
 ## `map_id` loaded as the Match page lists it: its problems (empty when it can be played) and whether it has a pole.
@@ -133,16 +151,20 @@ static func choice_blurb(row: String, value: int) -> String:
 	return words % value if words.contains("%d") else words
 
 
-## The loading screen's kicker: "ELIMINATION · 3 V 3 · YOU'RE ALPHA".
+## The loading screen's kicker: "ELIMINATION · 3 V 3 · YOU'RE ALPHA"; practice has no teams: "PRACTICE · NO BOTS, NO SCORE".
 static func kicker(mode: String, team_size: int, team: int) -> String:
+	if mode == MODE_PRACTICE:
+		return (_tr("LOAD_KICKER_PRACTICE") % _tr(MODE_NAME[mode])).to_upper()
 	return (_tr("LOAD_KICKER") % [_tr(MODE_NAME[mode]), team_size, team_size, _tr(TEAM_KEYS[team])]).to_upper()
 
 
 ## The summary line's tail after the map's name: "Elimination · Alpha · Normal bots", or in Attack / Defend "Attack /
-## Defend · Alpha attacks first · Normal bots"; it names the teammates' level when it differs from the opponents'
+## Defend · Alpha attacks first · Normal bots", or in Practice "Practice · No bots, no score"; it names the teammates' level when it differs from the opponents'
 ## (`mates`, "" for none), and with Custom rules (`custom`) it ends " · Custom 2v2".
 static func summary_rest(mode: String, team: int, bots: String, custom: CustomRules = null,
 		mates: String = "") -> String:
+	if mode == MODE_PRACTICE:
+		return _tr("MENU_SUMMARY_PRACTICE") % _tr(MODE_NAME[mode])
 	var side := _tr(TEAM_KEYS[team])
 	if POLE_MODES.has(mode):
 		side = _tr("MENU_ATTACKS_FIRST_SHORT") % side

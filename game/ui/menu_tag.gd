@@ -1,6 +1,7 @@
 class_name MenuTag
 extends PanelContainer
-## A small capitals tag in a thin outline: LATER (grey) on what isn't built yet, DEV (violet) on dev content, LEVEL n
+## A small capitals tag in a thin outline: LATER (grey) on what isn't built yet, FIELDS ONLY, RANGE ONLY and NOT USED (the
+## same grey) on what the picked map or mode leaves unused, DEV (violet) on dev content, LEVEL n
 ## (muted) on an item not unlocked yet, and ATK (filled yellow) on the side attacking first. The concepts' `.later`,
 ## `.dev`, `.lvl2` and `.atk`.
 
@@ -15,8 +16,9 @@ const DEV_EDGE := Color("8d6fd0")
 var _label: Label = null
 
 
-## A tag reading `text` in `colour`, outlined in `edge`, on `fill` (clear by default).
-static func make(text: String, colour: Color, edge: Color, fill: Color = Color(0.0, 0.0, 0.0, 0.0)) -> MenuTag:
+## A tag reading `text` in `colour`, outlined in `edge`, on `fill` (clear by default), its words `size` px.
+static func make(text: String, colour: Color, edge: Color, fill: Color = Color(0.0, 0.0, 0.0, 0.0),
+		size: int = SIZE) -> MenuTag:
 	var tag := MenuTag.new()
 	tag.name = "Tag"
 	tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -27,8 +29,8 @@ static func make(text: String, colour: Color, edge: Color, fill: Color = Color(0
 	tag._label = Label.new()
 	tag._label.text = text
 	tag._label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tag._label.add_theme_font_override("font", GameTheme.spaced_font(700, SPACING, SIZE))
-	tag._label.add_theme_font_size_override("font_size", SIZE)
+	tag._label.add_theme_font_override("font", GameTheme.spaced_font(700, SPACING, size))
+	tag._label.add_theme_font_size_override("font_size", size)
 	tag._label.add_theme_color_override("font_color", colour)
 	tag.add_child(tag._label)
 	return tag
@@ -36,6 +38,12 @@ static func make(text: String, colour: Color, edge: Color, fill: Color = Color(0
 
 static func later() -> MenuTag:
 	return make(TranslationServer.translate("MENU_LATER"), GameTheme.DIM, GameTheme.DIM)
+
+
+## A grey tag with the words under translation `key`, `size` px: FIELDS ONLY and RANGE ONLY on a mode card, NOT USED on
+## a heading (the concept's `.later` in an `h2`).
+static func grey(key: String, size: int = SIZE) -> MenuTag:
+	return make(TranslationServer.translate(key), GameTheme.DIM, GameTheme.DIM, Color(0.0, 0.0, 0.0, 0.0), size)
 
 
 static func dev() -> MenuTag:

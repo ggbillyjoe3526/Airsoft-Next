@@ -31,7 +31,7 @@ touches: game/ui/match_options.gd, game/ui/match_page.gd, game/ui/hud.gd, game/u
 contract: Saves (8)
 acceptance:
   1. Match screen, readout, banners and pause menu as the concepts in `/mnt/project-files/concepts/step16-range/`
-     show (awaiting the owner's approval).
+     show (approved 2026-10-22).
   2. Practice is built: picking it and Start practice opens the range; quitting returns to the menus.
   3. The readout names the last BB's target and distance, where it landed or that it flew out; no target hit marker.
   4. The challenge shows ready, countdown, Go!, time, hits, best, Time! and the run's result (new best, not kept);

@@ -73,6 +73,8 @@ var challenge_on: bool = false
 ## file as a settled match's records are). Tests give their own and a path of their own.
 var records: Records = null
 var records_path: String = Records.PATH
+## Practice, when `counts`: where the pause menu's Timed challenge switch is saved (Settings.practice_challenge).
+var settings_path: String = Settings.PATH
 
 var state: GameState = null
 var player: Character = null
@@ -354,6 +356,7 @@ func set_challenge(on: bool) -> void:
 	challenge_on = on
 	if practice and state != null:
 		state.challenge.set_on(on, state.targets, _tuning.targets, state.rng)
+		challenge_on = state.challenge.phase != RangeChallenge.Phase.OFF
 
 
 func _records() -> Records:
@@ -446,6 +449,8 @@ func _build_views(ui: CanvasLayer) -> void:
 	ui.add_child(_hud)
 	_hud.setup(_play.hud, _play.teams, _play.view, _tuning, player)
 	_hud.setup_orders(_play.controls)
+	if practice:
+		_hud.setup_range(_tuning.targets)
 	# Over the field while the HUD is hidden, under the pause menu.
 	var skip_layer := Control.new()
 	skip_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -465,6 +470,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	_pause.left.connect(_leave)
 	_pause.end_round = _end_round_now
 	_pause.skipped.connect(_skip_from_pause)
+	_pause.challenge_toggled.connect(_on_challenge_toggled)
 
 
 func _physics_process(_delta: float) -> void:
@@ -741,9 +747,12 @@ func _open_pause() -> void:
 	_pause.set_can_skip(can_skip() and not _skipping)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().paused = true
-	var listed := MapCatalog.shared().find(map_id)
-	_pause.set_match(listed.display_name if listed != null else _map.display_name, tr(MatchOptions.MODE_NAME[mode]),
-			state.round_state.number, state.match_seed)
+	if practice:
+		_show_practice_pause()
+	else:
+		var listed := MapCatalog.shared().find(map_id)
+		_pause.set_match(listed.display_name if listed != null else _map.display_name,
+				tr(MatchOptions.MODE_NAME[mode]), state.round_state.number, state.match_seed)
 	_pause.open()
 
 
@@ -822,6 +831,26 @@ func what_got_you_shown() -> bool:
 		Settings.WhatGotYou.AUTO:
 			return difficulty == &"pro"
 	return false
+
+
+## Practice's pause menu: the range's name, the Timed challenge's switch and its best so far.
+func _show_practice_pause() -> void:
+	var listed := MapCatalog.shared().find(map_id)
+	_pause.set_practice(listed.display_name if listed != null else _map.display_name, challenge_on,
+			state.challenge.best)
+
+
+## The pause menu's Timed challenge switch: the challenge follows, and the choice is saved with the settings (a session
+## that doesn't count, a test's or the smoke test's, never writes the player's file).
+func _on_challenge_toggled(on: bool) -> void:
+	set_challenge(on)
+	if settings == null:
+		return
+	settings.practice_challenge = challenge_on
+	settings.mark_changed()
+	if counts:
+		settings.save_if_dirty(settings_path)
+	_show_practice_pause()
 
 
 func _resume() -> void:

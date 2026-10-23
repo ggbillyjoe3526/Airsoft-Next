@@ -10,7 +10,7 @@ public himself.
 warning; a map with no row is not listed.
 
 - **Id** is the map file's name without `.json`.
-- **Kind** is `field` for a match map (listed in the Map choice) or `range` for the practice range (its own mode, later).
+- **Kind** is `field` for a match map (listed in the Map choice) or `range` for the practice range (listed beside the fields, with Practice as its only mode).
 - **Tag** is `public` or `dev`.
 
 ## Maps
@@ -20,4 +20,4 @@ warning; a map with no row is not listed.
 | depot | Depot | field | public | An abandoned warehouse yard. |
 | woodland | Woodland | field | dev | A wide wood with a hill, at night. |
 | neonHeights | Neon Heights | field | dev | A neon city block on three floors. |
-| range | Range | range | public | The practice range. |
+| range | Range | range | public | Targets 10 to 60 m. No bots, no score. |

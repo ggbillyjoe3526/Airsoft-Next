@@ -22,6 +22,8 @@ const BUTTON_HEIGHT := 44.0
 const BLURB_SIZE := 15
 const BLURB_TOP := 10
 const BLURB_BOTTOM := 18
+## Without its blurbs (Practice) the gap under a row of levels is this short.
+const BLURB_BOTTOM_UNUSED := 6
 ## The blurbs hold room for this many lines, so the Teammates row keeps its place whatever the opponents' blurb says.
 const BLURB_LINES := 2
 const BLURB_LINE_HEIGHT := 1.35
@@ -33,6 +35,9 @@ var _opponents_blurb: RichTextLabel = null
 var _teammates_blurb: RichTextLabel = null
 var _follows: Label = null
 var _follow_again: Button = null
+var _not_used: MenuTag = null
+## Practice is picked: there are no bots, so the rows fade and say no more than their levels.
+var _unused: bool = false
 
 
 func _init(picked: MatchPicks) -> void:
@@ -40,7 +45,9 @@ func _init(picked: MatchPicks) -> void:
 	add_theme_constant_override("separation", 0)
 	_picks = picked
 	var head := MenuParts.padded(0.0, 0.0, 0.0, MenuParts.HEADING_GAP)
-	head.add_child(MenuParts.heading(tr("MENU_BOTS")))
+	var head_row := MenuParts.heading_row(tr("MENU_BOTS"))
+	_not_used = head_row.get_child(1) as MenuTag
+	head.add_child(head_row)
 	add_child(head)
 	add_child(_label_row(tr("BOTS_OPPONENTS"), false))
 	add_child(_button_row(_opponents, "Opponents_", _pick_opponents))
@@ -96,6 +103,31 @@ func show_picks(team_size: int, custom: bool) -> void:
 	var picked := not _picks.teammates.is_empty()
 	_follows.visible = not picked and not alone
 	_follow_again.visible = picked and not alone
+	if _unused:
+		_show_unused()
+
+
+## Marks the section used or not (Practice picked: NOT USED after the heading, the rows faded and no blurbs).
+func set_unused(on: bool) -> void:
+	_unused = on
+	_show_unused()
+
+
+func is_unused() -> bool:
+	return _unused
+
+
+func _show_unused() -> void:
+	var parts: Array[Control] = []
+	for i in range(1, get_child_count()):
+		parts.append(get_child(i) as Control)
+	MenuParts.set_unused(parts, _not_used, _unused)
+	# The blurbs (the XP note among them) say what the bots do; nothing plays against bots here.
+	_opponents_blurb.visible = not _unused
+	_teammates_blurb.visible = not _unused
+	var gap := BLURB_BOTTOM_UNUSED if _unused else BLURB_BOTTOM
+	for blurb: Control in [_opponents_blurb, _teammates_blurb]:
+		(blurb.get_parent() as MarginContainer).add_theme_constant_override("margin_bottom", gap)
 
 
 ## A row's label, and for the Teammates row beside it the FOLLOWS OPPONENTS note (or the button that goes back to it).
