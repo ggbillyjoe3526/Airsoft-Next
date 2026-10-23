@@ -27,6 +27,8 @@ func before_each() -> void:
 
 
 func after_each() -> void:
+	SettingsApply.use_screens(null)
+	Engine.max_fps = 0
 	InputMap.load_from_project_settings()
 	Input.action_release(&"aim")
 	get_tree().paused = false
@@ -68,7 +70,7 @@ func test_a_slider_applies_at_once_and_is_saved_on_close() -> void:
 	assert_eq(tuning.controls.sensitivity, 2.5, "applied at once")
 	screen._volume[&"Effects"].value = 40.0
 	assert_almost_eq(AudioServer.get_bus_volume_db(AudioServer.get_bus_index(&"Effects")), linear_to_db(0.4), 1e-3)
-	screen._fov.value = 100.0
+	screen._display_page.fov().value = 100.0
 	assert_eq(tuning.view.horizontal_fov_16x9, 100.0)
 	assert_false(FileAccess.file_exists(screen.save_path), "a slider is saved a moment later")
 	screen.close()
@@ -103,13 +105,17 @@ func test_a_typed_cm_per_360_sets_the_sensitivity() -> void:
 
 
 func test_the_window_vsync_and_fps_rows_change_the_settings() -> void:
-	screen._window.select(Settings.WindowMode.WINDOWED)
-	screen._window.item_selected.emit(Settings.WindowMode.EXCLUSIVE)
+	var ds := _fake_screens()
+	var page := screen._display_page
+	page.window_choice().button(Settings.WindowMode.EXCLUSIVE).pressed.emit()
 	assert_eq(s.window_mode, Settings.WindowMode.EXCLUSIVE)
-	screen._window.item_selected.emit(Settings.WindowMode.WINDOWED)
-	screen._vsync.button_pressed = false
+	assert_eq(ds.window_mode, DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN, "applied at once")
+	assert_true(FileAccess.file_exists(screen.save_path), "and saved")
+	page.window_choice().button(Settings.WindowMode.WINDOWED).pressed.emit()
+	page.vsync().button_pressed = false
 	assert_false(s.vsync)
-	screen._fps.button_pressed = true
+	assert_eq(ds.vsync_mode, DisplayServer.VSYNC_DISABLED)
+	page.show_fps().button_pressed = true
 	assert_true(s.show_fps)
 
 
@@ -309,11 +315,12 @@ func test_the_fps_readout_follows_the_setting() -> void:
 
 
 func test_the_fps_readout_leaves_no_connection_behind() -> void:
+	var before := s.changed.get_connections().size()
 	var fps := FpsReadout.new(s)
 	add_child(fps)
-	assert_eq(s.changed.get_connections().size(), 1)
+	assert_eq(s.changed.get_connections().size(), before + 1)
 	fps.free()
-	assert_eq(s.changed.get_connections().size(), 0)
+	assert_eq(s.changed.get_connections().size(), before)
 
 
 func test_the_menus_have_a_settings_tab_that_opens_the_screen() -> void:
@@ -500,3 +507,141 @@ func test_the_launch_option_shows_on_the_tab() -> void:
 	assert_string_starts_with(page.blurb(), "--graphics=low:")
 	assert_eq(page.preset_choice().selected(), 0, "Low lit")
 	s.graphics_forced = &""
+
+
+# --- Display ---
+
+## A stand-in for the window's calls with one screen (two with `two`), the screen opened again to show it.
+func _fake_screens(two: bool = false) -> FakeScreens:
+	var ds := FakeScreens.new()
+	if two:
+		ds.sizes = [Vector2i(2560, 1440), Vector2i(1920, 1080)]
+		ds.rates = [144.0, 60.0]
+	SettingsApply.use_screens(ds)
+	screen.open()
+	return ds
+
+
+func _texts(choice: MenuChoice) -> PackedStringArray:
+	var out := PackedStringArray()
+	for b: Node in choice.get_children():
+		out.append((b as Button).text)
+	return out
+
+
+func _labels(node: Node, into: PackedStringArray) -> PackedStringArray:
+	if node is Label:
+		into.append((node as Label).text)
+	for c: Node in node.get_children():
+		_labels(c, into)
+	return into
+
+
+func test_the_display_tab_has_the_concept_s_rows() -> void:
+	_fake_screens()
+	var page := screen._display_page
+	assert_eq(_texts(page.window_choice()), PackedStringArray(["WINDOWED", "BORDERLESS FULLSCREEN",
+			"EXCLUSIVE FULLSCREEN"]))
+	assert_eq(page.window_choice().selected(), Settings.WindowMode.WINDOWED)
+	var words := " ".join(_labels(page, PackedStringArray()))
+	for want: String in ["F11", "Alt", "Enter", "switches between a window and fullscreen", "FRAME RATE", "V-SYNC",
+			"FRAME-RATE LIMIT", "still plays at 60 ticks a second", "In the background it draws 30", "FIELD OF VIEW",
+			"SHOW FPS", "Frames a second, top right."]:
+		assert_string_contains(words, want)
+	assert_eq(_texts(page.limit_choice()), PackedStringArray(["30", "60", "120", "144", "165", "240", "360",
+			"UNLIMITED"]))
+	assert_eq(page.limit_choice().selected(), Settings.FRAME_LIMITS.size(), "Unlimited by default")
+	assert_true(page.vsync().button_pressed, "V-Sync on by default")
+	assert_eq(page.vsync_note(), "No tearing, at most the screen’s 144 a second. Off: a little less input delay.")
+	assert_false(page.monitor_row().visible, "no Monitor row with one screen")
+	assert_null(page.monitor_choice())
+
+
+func test_the_monitor_row_shows_with_two_screens_and_moves_the_window() -> void:
+	var ds := _fake_screens(true)
+	var page := screen._display_page
+	assert_true(page.monitor_row().visible)
+	assert_eq(_texts(page.monitor_choice()), PackedStringArray(["1 · 2560 × 1440 · 144 HZ", "2 · 1920 × 1080 · 60 HZ"]))
+	assert_eq(page.monitor_choice().selected(), 0, "the window's own screen lit")
+	page.monitor_choice().button(1).pressed.emit()
+	assert_eq(s.monitor, 1)
+	assert_eq(ds.on, 1, "moved at once")
+	assert_eq(_saved().monitor, 1, "and saved")
+	assert_string_contains(page.vsync_note(), " 60 a second", "V-Sync's note names the new screen's rate")
+	screen.open()
+	assert_eq(page.monitor_choice().selected(), 1)
+	ds.sizes.resize(1)
+	ds.rates.resize(1)
+	ds.on = 0
+	screen.open()
+	assert_false(page.monitor_row().visible, "a screen unplugged: the row goes")
+
+
+func test_a_screen_with_no_rate_shows_its_size_only() -> void:
+	var ds := FakeScreens.new()
+	ds.sizes = [Vector2i(1920, 1080), Vector2i(1280, 1024)]
+	ds.rates = [-1.0, 75.0]
+	SettingsApply.use_screens(ds)
+	screen.open()
+	var page := screen._display_page
+	assert_eq(_texts(page.monitor_choice()), PackedStringArray(["1 · 1920 × 1080", "2 · 1280 × 1024 · 75 HZ"]))
+	assert_eq(page.vsync_note(), "No tearing, at most the screen’s rate. Off: a little less input delay.")
+
+
+func test_a_frame_rate_limit_applies_at_once_and_is_saved() -> void:
+	_fake_screens()
+	var page := screen._display_page
+	page.limit_choice().button(0).pressed.emit()
+	assert_eq(s.frame_limit, 30)
+	assert_eq(Engine.max_fps, 30)
+	assert_eq(_saved().frame_limit, 30)
+	page.limit_choice().button(Settings.FRAME_LIMITS.size()).pressed.emit()
+	assert_eq(s.frame_limit, Settings.UNLIMITED)
+	assert_eq(Engine.max_fps, 0)
+	s.frame_limit = 165
+	screen.open()
+	assert_eq(page.limit_choice().selected(), Settings.FRAME_LIMITS.find(165))
+
+
+func test_f11_switches_and_the_tab_follows_but_not_while_a_key_is_being_rebound() -> void:
+	var ds := _fake_screens()
+	var watch := WindowWatch.new()
+	watch.settings = s
+	watch.save_path = screen.save_path
+	add_child_autofree(watch)
+	move_child(watch, 0) # before the screen, as in the main scene
+	screen._keys.begin(&"reload", 0)
+	get_viewport().push_input(_key(KEY_F11))
+	assert_eq(s.window_mode, Settings.WindowMode.WINDOWED, "the key list has it")
+	assert_true(screen._keys.capturing(), "and refuses it: F11 can't be bound")
+	var alt_enter := _key(KEY_ENTER)
+	alt_enter.alt_pressed = true
+	get_viewport().push_input(alt_enter)
+	assert_eq(s.window_mode, Settings.WindowMode.WINDOWED)
+	screen._keys.cancel()
+	get_viewport().push_input(_key(KEY_F11))
+	assert_eq(s.window_mode, Settings.WindowMode.BORDERLESS)
+	assert_eq(ds.window_mode, DisplayServer.WINDOW_MODE_FULLSCREEN)
+	assert_eq(screen._display_page.window_choice().selected(), Settings.WindowMode.BORDERLESS, "the tab follows")
+	assert_eq(_saved().window_mode, Settings.WindowMode.BORDERLESS, "saved")
+	get_viewport().push_input(alt_enter)
+	assert_eq(screen._display_page.window_choice().selected(), Settings.WindowMode.WINDOWED)
+	assert_true(screen.visible, "Enter didn't press anything on the screen")
+
+
+func test_the_display_tab_leaves_no_connection_behind() -> void:
+	var before := s.changed.get_connections().size()
+	screen.get_parent().remove_child(screen)
+	assert_lt(s.changed.get_connections().size(), before, "out of the tree: let go")
+	add_child(screen)
+	assert_eq(s.changed.get_connections().size(), before, "back: once again")
+
+
+func test_the_title_screen_has_no_fullscreen_button() -> void:
+	var title := TitleScreen.new()
+	add_child_autofree(title)
+	var words := " ".join(_labels(title, PackedStringArray())).to_lower()
+	for b: Node in title.find_children("*", "Button", true, false):
+		words += " " + (b as Button).text.to_lower()
+	assert_false(words.contains("fullscreen"), words)
+

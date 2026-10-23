@@ -249,7 +249,8 @@ func test_four_presets_fifty_times_in_a_match_leave_nothing_behind() -> void:
 	await wait_process_frames(2)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT), orphans, "no orphan nodes")
 	assert_eq(Performance.get_monitor(Performance.OBJECT_NODE_COUNT), nodes, "no nodes added")
-	assert_eq(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT), resources, "no resources leaked")
+	# No growth: the count can fall while an earlier test's resources are freed (CI, 2026-10-23).
+	assert_lte(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT), resources, "no resources leaked")
 	var objects := Performance.get_monitor(Performance.OBJECT_COUNT)
 	await wait_process_frames(10)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), objects, "a frame allocates nothing")

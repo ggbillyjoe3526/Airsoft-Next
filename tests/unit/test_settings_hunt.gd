@@ -71,7 +71,7 @@ func test_a_window_close_request_saves_a_slider_still_waiting_for_its_debounce()
 
 func test_the_slider_debounce_saves_by_itself_without_closing() -> void:
 	var screen := _screen()
-	screen._fov.value = 100.0
+	screen._display_page.fov().value = 100.0
 	assert_false(FileAccess.file_exists(path))
 	screen._timer.timeout.emit()
 	assert_almost_eq(_saved().fov, 100.0, 1e-4)

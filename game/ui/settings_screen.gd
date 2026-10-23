@@ -1,8 +1,8 @@
 class_name SettingsScreen
 extends Control
 ## The settings, in five tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
-## (a volume for each bus), Display (window mode, V-Sync, field of view, show FPS), Graphics (SettingsGraphicsPage) and
-## HUD (SettingsHudPage); and a sixth, Dev, shown while the Dev settings box under the tabs is ticked (its switches apply only then;
+## (a volume for each bus), Display (SettingsDisplayPage: the window, the frame rate, the view), Graphics
+## (SettingsGraphicsPage) and HUD (SettingsHudPage); and a sixth, Dev, shown while the Dev settings box under the tabs is ticked (its switches apply only then;
 ## docs/DECISIONS.md › Content tags and dev content). Opened from the title screen and the pause menu; works while the tree is paused. Every change is applied at once through SettingsApply and saved:
 ## a slider a moment after it stops moving, anything else straight away, and the last change always on close. Esc or
 ## Back closes it. While it is open, keys the controls don't use stop here, so none reaches play.
@@ -24,7 +24,6 @@ const CM_MIN := 0.1
 const CM_MAX := 1000.0
 const CM_STEP := 0.01
 const DPI_STEP := 50.0
-const FOV_STEP := 1.0
 const PERCENT_STEP := 1.0
 ## The Dev tab's switches, each a DevSettings field with a label DEV_<FIELD> and a help line DEV_<FIELD>_HELP.
 const DEV_SWITCHES: Array[StringName] = [&"dev_content", &"disable_levelling", &"bottomless", &"ghost",
@@ -54,10 +53,7 @@ var _crouch: CheckButton = null
 var _aim: CheckButton = null
 var _wheel_pick: CheckButton = null
 var _volume: Dictionary[StringName, HSlider] = {}
-var _window: OptionButton = null
-var _vsync: CheckButton = null
-var _fov: HSlider = null
-var _fps: CheckButton = null
+var _display_page: SettingsDisplayPage = null
 var _graphics_page: SettingsGraphicsPage = null
 var _hud_page: SettingsHudPage = null
 var _dev_box: CheckButton = null
@@ -284,29 +280,10 @@ func _on_volume(v: float, bus: StringName) -> void:
 
 func _build_display() -> void:
 	var page := _page(tr("SETTINGS_DISPLAY"))
-	add_section(page, tr("SETTINGS_WINDOW"))
-	var row := add_row(page, "SETTINGS_WINDOW_MODE")
-	_window = OptionButton.new()
-	for key: String in ["SETTINGS_WINDOWED", "SETTINGS_BORDERLESS", "SETTINGS_EXCLUSIVE"]:
-		_window.add_item(tr(key))
-	_window.custom_minimum_size = Vector2(SLIDER_WIDTH, 0.0)
-	_window.item_selected.connect(func(i: int) -> void:
-		settings.window_mode = i as Settings.WindowMode
-		_applied(SettingsApply.apply_display, true))
-	row.add_child(_window)
-	_vsync = add_check_row(page, "SETTINGS_VSYNC", "SETTINGS_ON", "SETTINGS_OFF")
-	_vsync.toggled.connect(func(on: bool) -> void:
-		settings.vsync = on
-		_applied(SettingsApply.apply_display, true))
-	add_section(page, tr("SETTINGS_VIEW"))
-	_fov = add_slider_row(page, "SETTINGS_FOV", Settings.FOV_MIN, Settings.FOV_MAX, FOV_STEP, "%d°")
-	_fov.value_changed.connect(func(v: float) -> void:
-		settings.fov = v
-		_applied(SettingsApply.apply_controls))
-	_fps = add_check_row(page, "SETTINGS_SHOW_FPS", "SETTINGS_ON", "SETTINGS_OFF")
-	_fps.toggled.connect(func(on: bool) -> void:
-		settings.show_fps = on
-		_changed(true))
+	_display_page = SettingsDisplayPage.new()
+	page.add_child(_display_page)
+	_display_page.build(self)
+	_display_page.changed.connect(_changed)
 
 
 # --- Graphics ---
@@ -441,10 +418,7 @@ func _refresh() -> void:
 	_keys.refresh()
 	for bus: StringName in Settings.VOLUME_BUSES:
 		set_slider(_volume[bus], settings.volumes[bus] * 100.0)
-	_window.select(settings.window_mode)
-	set_check(_vsync, settings.vsync)
-	set_slider(_fov, settings.fov)
-	set_check(_fps, settings.show_fps)
+	_display_page.refresh()
 	_graphics_page.refresh()
 	_hud_page.refresh()
 	_dev_box.set_pressed_no_signal(settings.dev_enabled)

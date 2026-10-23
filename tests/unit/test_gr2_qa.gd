@@ -252,7 +252,8 @@ func test_switching_presets_in_the_tab_many_times_leaves_no_nodes_or_resources()
 	await wait_process_frames(2)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT), orphans, "orphans")
 	assert_eq(Performance.get_monitor(Performance.OBJECT_NODE_COUNT), nodes, "nodes")
-	assert_eq(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT), resources, "resources")
+	# No growth: the count can fall while an earlier test's resources are freed (CI, 2026-10-23).
+	assert_lte(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT), resources, "resources")
 
 
 # --- Text ---

@@ -2375,3 +2375,42 @@ msgstr "New best"
 
 msgid "CHALLENGE_NOT_KEPT"
 msgstr "Not kept (Dev settings)"
+
+msgid "SETTINGS_KEYS_OR"
+msgstr "or"
+
+msgid "SETTINGS_KEYS_LINE"
+msgstr "switches between a window and fullscreen at any time, in menus and in play."
+
+msgid "SETTINGS_MONITOR"
+msgstr "MONITOR"
+
+msgid "SETTINGS_MONITOR_LINE"
+msgstr "%d · %d × %d · %d Hz"
+
+msgid "SETTINGS_MONITOR_LINE_NO_RATE"
+msgstr "%d · %d × %d"
+
+msgid "SETTINGS_FRAME_RATE"
+msgstr "FRAME RATE"
+
+msgid "SETTINGS_VSYNC_HELP"
+msgstr "No tearing, at most the screen’s %d a second. Off: a little less input delay."
+
+msgid "SETTINGS_VSYNC_HELP_NO_RATE"
+msgstr "No tearing, at most the screen’s rate. Off: a little less input delay."
+
+msgid "SETTINGS_FRAME_LIMIT"
+msgstr "FRAME-RATE LIMIT"
+
+msgid "SETTINGS_UNLIMITED"
+msgstr "Unlimited"
+
+msgid "SETTINGS_FRAME_LIMIT_HELP"
+msgstr "The most frames a second the game draws: a laptop runs cooler and quieter. The game still plays at %d ticks a second. In the background it draws %d."
+
+msgid "SETTINGS_SHOW_FPS_HELP"
+msgstr "Frames a second, top right."
+
+msgid "SETTINGS_MONITOR_HELP"
+msgstr "Only with two screens or more."

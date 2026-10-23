@@ -22,26 +22,6 @@ acceptance:
 status: open
 attempts: 0
 
-## GR3 · Window, fullscreen and the frame-rate limit
-tier: ui
-perf: skip
-touches: game/save/settings_apply.gd, game/config/display_config.gd, game/config/README.md, game/main.gd,
-  game/ui/settings_screen.gd, game/ui/text/en.po, docs/KNOWN_ISSUES.md, tests/unit/test_settings_apply.gd,
-  tests/unit/test_settings_screen.gd
-contract: Data, not literals (6); Headless (9)
-acceptance:
-  1. Display as settings-display.png: Window mode as three choices (Windowed, Borderless fullscreen, Exclusive
-     fullscreen) with the F11 and Alt+Enter line; Monitor (only with two screens or more: number, size, rate);
-     V-Sync; Frame-rate limit (30 to 360, Unlimited); Field of view and Show FPS unchanged.
-  2. F11 and Alt+Enter, in menus and in play (never while a key is being rebound), switch Windowed ↔ the last
-     fullscreen mode, and save. Leaving fullscreen gives the maximised window the game starts in, on the same monitor.
-  3. The window opens on the saved monitor; a saved monitor that is gone falls back to the primary, never off-screen.
-  4. Engine.max_fps = the limit; while the window is unfocused or minimised it is DisplayConfig.background_fps (30),
-     back on focus. The simulation still ticks 60 a second at a 30 limit (GUT on the tick count).
-  5. No title-screen fullscreen button. KNOWN_ISSUES' SE1 row loses "no F11"; window modes stay an owner check.
-status: open
-attempts: 0
-
 ## GR4 · Graphics problems: the simpler renderer and a safe start
 tier: core
 perf: skip
