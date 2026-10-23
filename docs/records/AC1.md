@@ -1,12 +1,12 @@
 # AC1 · Accessibility settings, the colour sets and the colour check
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus | pass | 8/8 accept (QA's blocker, a range's single-precision end loading as the default, fixed by the build thread before the critic) | |
 
 ## Decisions
 
