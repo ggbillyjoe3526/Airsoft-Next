@@ -1,19 +1,19 @@
 # AC3 · Patterns on the gauges
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus | pass | 8/8 accept | |
 
 ## Decisions
 
 - **Review fix (QA):** the settings sample's low magazine runs its stripe through the middle of the fill, as the HUD's
   does.
 
-- **The plan's defaults; the owner hasn't approved the step 21 pictures yet** (`gauge-patterns.png`,
+- **The plan's defaults, approved with the step 21 pictures (owner, 2026-10-23)** (`gauge-patterns.png`,
   `hud-high-contrast.png`, `settings-accessibility.png`, plan question 3): gauge patterns are their own switch, on by
   default; Beta's fills are striped and Alpha's solid in both colour sets (`HudStyle.STRIPED_TEAM`); a low magazine
   is striped as well as yellow. Each is one constant or one settings default to change.
@@ -83,3 +83,5 @@
 - Stripes are antialiased, so up to about a pixel of feather can show past a shape; the geometry is exact.
 - The flag gauge draws one stripe set per filled notch (about ten draw_multiline calls); one set for the whole run
   would cut that to one, not worth the alignment risk now.
+- A low magazine's stripe is rebuilt on each shot, resizing its line array (a small allocation per shot, never per
+  frame); keep the capacity if a profile ever shows it (critic).
