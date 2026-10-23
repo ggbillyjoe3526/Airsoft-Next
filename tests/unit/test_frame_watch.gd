@@ -321,12 +321,19 @@ func test_a_50_hz_screen_under_v_sync_raises_the_threshold() -> void:
 	assert_eq(watch.slow_windows(), 0)
 
 
-func test_a_hitch_is_skipped_and_two_never_step() -> void:
+func test_hitches_in_steady_play_never_step() -> void:
 	var watch := FrameWatch.new()
 	var asked := false
-	for i in 4:
+	for window in 4:
+		asked = _feed(watch, FRAME, 1.4) or asked
 		asked = watch.feed(2.5, Settings.UNLIMITED, true) or asked
-	assert_false(asked)
+	assert_false(asked, "one hitch a window is under the slow share")
 	assert_eq(watch.slow_windows(), 0)
-	asked = _feed(watch, SLOW, SECONDS * 2.0 + 0.1)
-	assert_true(asked, "slow play after the hitches still steps")
+
+
+func test_a_machine_under_two_frames_a_second_still_steps() -> void:
+	var watch := FrameWatch.new()
+	var asked := false
+	for i in 10:
+		asked = watch.feed(0.8, Settings.UNLIMITED, true) or asked
+	assert_true(asked)

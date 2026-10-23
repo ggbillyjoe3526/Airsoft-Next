@@ -1,18 +1,19 @@
 # GR5 · The first-start notice and the automatic step-down
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus | pass | 8/8 accept (QA's blocker, For your card left on the old preset after a step, fixed by the build thread before the critic; QA's tag test passes) | |
 
 ## Decisions
 
 - **QA's fixes:** For your card follows the pick when it steps down; with V-Sync the screen's rate is a limit too (a
   50 Hz screen's slow frame is 25 ms); a frame over `step_hitch_seconds` (0.5 s: a dragged window, a machine waking)
-  is skipped rather than filling a window; a match reads the window's focus and rate at its start and on focus in.
+  counts as 0.5 s rather than filling a window, so a machine under 2 frames a second still steps (critic); a match
+  reads the window's focus and rate at its start and on focus in.
 - **The unit suite's limit** in tools/unit_tests.sh is 900 s (was 600): the suite reached about 605 s across many
   tasks (GR5's tests add about 7 s), and 900 s still fits CI's 20-minute job.
 
@@ -71,7 +72,7 @@
 
 ## Verified here
 
-- `tests/unit/test_frame_watch.gd` (21 tests): DisplayConfig's numbers are the browser's; the limit raises the slow
+- `tests/unit/test_frame_watch.gd` (24 tests): DisplayConfig's numbers are the browser's; the limit raises the slow
   frame's time (60 FPS 20.8 ms, 30 FPS 41.7 ms, 240 FPS 20 ms); one preset down, Low none; steady frames and a 4 %
   share never step, a 6.7 % share does; two slow windows in a row step once, a smooth window between restarts the run;
   a frame that doesn't count resets the run but keeps a step due; a player's own pick drops a step waiting, an applied
@@ -96,3 +97,9 @@
 
 - The watch never counts on Compatibility, so it was fed only by tests here; the step on Forward+ is the owner's
   check above (KNOWN_ISSUES, Graphics).
+
+## Advisories left (critic)
+
+- `SettingsScreen.show_graphics` climbs two parents to find the tab; it breaks if the scroll box is restructured.
+- play_session.gd (about 1130 lines) and hud.gd (about 870) keep growing; the step line could become a Hud component
+  like HudBanner next time hud.gd is touched.

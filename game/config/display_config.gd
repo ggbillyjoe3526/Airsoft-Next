@@ -19,8 +19,8 @@ extends Resource
 ## its frames take longer than `step_slow_ms`, or than `step_limit_slack` frames of the frame-rate limit when that is
 ## longer (a limit of 30 makes every frame 33 ms; with V-Sync the screen's rate is a limit too, so a 50 Hz screen's
 ## steady 20 ms frames aren't slow). `step_windows` slow windows in a row ask for one preset down, which the HUD says for
-## `step_notice_seconds`. A frame longer than `step_hitch_seconds` (a window dragged, a machine waking) is skipped: one
-## hitch would otherwise make a whole window slow.
+## `step_notice_seconds`. A frame longer than `step_hitch_seconds` (a window dragged, a machine waking) counts as that
+## long, so one hitch can't make a whole window slow, yet a machine drawing under 2 frames a second still steps.
 @export var step_window: float = 2.0
 @export var step_slow_ms: float = 20.0
 @export var step_limit_slack: float = 1.25

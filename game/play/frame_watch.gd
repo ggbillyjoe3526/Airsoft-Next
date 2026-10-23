@@ -52,14 +52,14 @@ func slow_ms(limit: int, refresh_hz: float = 0.0) -> float:
 ## One drawn frame of `frame_seconds` under the frame-rate limit `limit` and the V-Sync rate `refresh_hz` (slow_ms);
 ## `counting` is `counts`' answer for it, and `pretend_slow` (the Dev settings' Pretend slow frames) counts it slow
 ## whatever its time. True on the frame the watch asks for a step (once a match); a frame that doesn't count starts the
-## count over, and a hitch (`step_hitch_seconds`) is skipped.
+## count over, and a hitch adds no more than `step_hitch_seconds` to the window.
 func feed(frame_seconds: float, limit: int, counting: bool, pretend_slow: bool = false, refresh_hz: float = 0.0) -> bool:
 	if not counting:
 		reset()
 		return false
-	if _asked or frame_seconds > config.step_hitch_seconds:
+	if _asked:
 		return false
-	_seconds += frame_seconds
+	_seconds += minf(frame_seconds, config.step_hitch_seconds)
 	_frames += 1
 	if pretend_slow or frame_seconds * 1000.0 > slow_ms(limit, refresh_hz):
 		_slow += 1
