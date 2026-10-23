@@ -7,7 +7,8 @@ extends Node3D
 ## near a wall so it never pokes through one. A gas pistol's slide locks back on its last BB and closes near the end of
 ## the reload; the fire selector shows the mode it is set to (SelectorPose). Its parts are fitted from their models
 ## (ReplicaParts), as the menus show them; aimed with an optic, the eye looks along the optic's sight line through its
-## glass (OpticGlass). A child of the camera.
+## glass (OpticGlass). Reduced motion (set_motion) draws less of the sway, the kick and the reload's cant. A child of the
+## camera.
 
 const MODEL_DIR := "res://assets/models/replicas/"
 ## The models' animation clips (docs/CC0_ASSETS.md › Replica models).
@@ -53,6 +54,8 @@ var _last_pitch: float = 0.0
 var _query: WorldQuery = null
 var _wall: RayHit = RayHit.new()
 var _glass: OpticGlass = null
+## How much of the sway, the kick and the reload's cant to draw (Reduced motion).
+var _motion: MotionScale = MotionScale.new()
 
 
 ## Draws `loadout` from its models, slot `i` in `paints[i]` (the replica's default where the kit names none; see
@@ -72,6 +75,11 @@ func setup(cfg: ViewModelConfig, loadout: Array[ReplicaConfig], query: WorldQuer
 		var paint := paints[i] if i < paints.size() else ReplicaPaint.default_paint(r)
 		var fitted: Dictionary = parts[i] if i < parts.size() else {}
 		_held.append(_load(r, paint, realistic, fitted))
+
+
+## Draws `motion`'s share of the sway, the kick and the reload's cant from the next frame (Reduced motion).
+func set_motion(motion: MotionScale) -> void:
+	_motion = motion
 
 
 ## The optics' glass materials, for ShaderPrewarm, with the glass's picture readied now (none without an optic's glass).
@@ -127,11 +135,11 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 	_last_pitch = view_pitch
 	_sway = (_sway + turn * _cfg.sway_per_radian).limit_length(_cfg.sway_max)
 	_sway = _sway.lerp(Vector2.ZERO, follow)
-	pos += Vector3(_sway.x, _sway.y, 0.0) * steady
+	pos += Vector3(_sway.x, _sway.y, 0.0) * (steady * _motion.sway)
 
 	# Each shot kicks it back and up, recovering.
 	_kick = lerpf(_kick, 0.0, follow)
-	pos += Vector3(0.0, _cfg.kick_lift, _cfg.kick_back) * _kick * steady
+	pos += Vector3(0.0, _cfg.kick_lift, _cfg.kick_back) * (_kick * steady * _motion.kick)
 
 	# Carried low on a sprint.
 	_carry = move_toward(_carry, 1.0 if c.sprinting else 0.0, delta / _cfg.carry_time)
@@ -156,7 +164,7 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 	if a.reload_left > 0.0:
 		var r := a.replica()
 		var progress := clampf(1.0 - a.reload_left / maxf(r.reload_time, 0.001), 0.0, 1.0)
-		var bell := sin(PI * progress)
+		var bell := sin(PI * progress) * _motion.reload_cant
 		rot += Vector3(_cfg.reload_tilt, _cfg.reload_turn, _cfg.reload_roll) * bell
 		pos += Vector3(-_cfg.reload_inward, _cfg.reload_lift, 0.0) * bell
 		_seek(held, RELOAD_CLIP, progress)

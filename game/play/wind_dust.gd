@@ -2,12 +2,15 @@ class_name WindDust
 extends GPUParticles3D
 ## Specks of dust in the air round the eye, drifting with the match's breeze (the browser game's M30 dust), so the wind
 ## that moves your BBs can be seen. The specks stay where they are in the world while the eye moves; their drift is
-## refreshed a few times a second, never per frame. The graphics settings set how many (`set_share`); at none it is
-## hidden and does no work.
+## refreshed a few times a second, never per frame. The graphics settings set how many (`set_share`), and Reduced motion
+## takes its share of that (`set_motion`, none today); at none it is hidden and does no work.
 
 var _cfg: EffectsConfig = null
 var _motion: ParticleProcessMaterial = null
 var _since: float = INF
+## The graphics settings' share of the specks and Reduced motion's share of that.
+var _quality: float = 1.0
+var _motion_share: float = 1.0
 
 
 func setup(cfg: EffectsConfig) -> void:
@@ -38,9 +41,21 @@ func setup(cfg: EffectsConfig) -> void:
 	draw_pass_1 = quad
 
 
-## Draws `share` (0..1) of the config's specks; none hides it. A new count rebuilds the specks, so only on a change.
+## Draws `share` (0..1) of the config's specks (the graphics settings'); none hides it. A new count rebuilds the specks,
+## so only on a change.
 func set_share(share: float) -> void:
-	var count := roundi(_cfg.dust_count * clampf(share, 0.0, 1.0))
+	_quality = clampf(share, 0.0, 1.0)
+	_apply()
+
+
+## Draws `motion`'s share of the specks the graphics settings ask for (Reduced motion: none).
+func set_motion(motion: MotionScale) -> void:
+	_motion_share = clampf(motion.dust, 0.0, 1.0)
+	_apply()
+
+
+func _apply() -> void:
+	var count := roundi(_cfg.dust_count * _quality * _motion_share)
 	var on := count > 0
 	var was_on := visible
 	visible = on

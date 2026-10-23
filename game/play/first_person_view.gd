@@ -4,8 +4,10 @@ extends Node3D
 ## ticks, turned by the mouse every rendered frame (PlayerInput's view) and lifted by the replica's recoil. A lean moves
 ## the eyes as the simulation does (Lean.offset, the one lean geometry) and rolls the view a little
 ## (ViewConfig.lean_camera_roll); a lean a wall cuts short eases out instead of snapping, never drawn into the wall. A
-## vault dips and tips the view. Once hit, the view follows the character's own heading as it walks off. Zooms a little
-## as the sight comes up (as its optic does; a scope zooms only inside its glass). The easing runs on rendered frames; the rules stay on the tick.
+## vault dips and tips the view. Reduced motion (set_motion) draws less of the lean's roll and the vault's dip and tip,
+## never less recoil: the climb shows where the next BB goes. Once hit, the view follows the character's own heading as
+## it walks off. Zooms a little as the sight comes up (as its optic does; a scope zooms only inside its glass). The
+## easing runs on rendered frames; the rules stay on the tick.
 
 ## Recoil on screen follows the simulation's at this rate (1/s), so a 60 Hz kick reads smoothly at any frame rate.
 const RECOIL_FOLLOW := 40.0
@@ -20,6 +22,8 @@ var _recoil: float = 0.0
 ## The lean drawn (eased out of a cut) and the vault's dip and tip now (0..1).
 var _lean: float = 0.0
 var _vault: float = 0.0
+## How much of the lean's roll and the vault's dip and tip to draw (Reduced motion).
+var _motion: MotionScale = MotionScale.new()
 
 
 ## `hits` holds the lean's geometry: the simulation's own (SimTuning.hits); the built-in values when not given.
@@ -35,6 +39,11 @@ func setup(view: ViewConfig, body: BodyConfig, hits: HitConfig = null) -> void:
 	camera.keep_aspect = Camera3D.KEEP_HEIGHT
 	add_child(camera)
 	camera.make_current()
+
+
+## Draws `motion`'s share of the lean's roll and the vault's dip and tip from the next frame (Reduced motion).
+func set_motion(motion: MotionScale) -> void:
+	_motion = motion
 
 
 ## Places the eyes for `c` at `fraction` of the way from its last tick to this one. `own`: your own character, looking
@@ -54,9 +63,10 @@ func update(c: Character, input: PlayerInput, fraction: float, delta: float, own
 	var v := c.vault
 	var swing := sin(PI * clampf(v.time / v.end, 0.0, 1.0)) if v.active and v.end > 0.0 else 0.0
 	_vault = lerpf(_vault, swing, 1.0 - exp(-_view.vault_follow * delta))
-	position = feet + Vector3(0.0, height - _view.vault_dip * _vault, 0.0) + Lean.offset(height, _lean, crouch, yaw, _hits)
+	var vault := _vault * _motion.vault_tip
+	position = feet + Vector3(0.0, height - _view.vault_dip * vault, 0.0) + Lean.offset(height, _lean, crouch, yaw, _hits)
 	# Leaning right tips the view's top to the right: a roll about the line of sight (local -Z), negative about +Z.
-	rotation = Vector3(pitch + _recoil - _view.vault_tip * _vault, yaw, -_lean * _view.lean_camera_roll)
+	rotation = Vector3(pitch + _recoil - _view.vault_tip * vault, yaw, -_lean * _view.lean_camera_roll * _motion.lean_roll)
 	var r := c.armament.replica()
 	var zoom := lerpf(1.0, aimed_zoom(r, _view), c.aim_raise)
 	input.zoom = zoom
