@@ -1,13 +1,13 @@
 # AC5 · HUD size and reduced motion
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | QA Fail: Hold here's ring off its spot at 80 / 150 %; the summary off screen at 150 % |
-| 2026-10-23 | 2 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus | pass | not run | QA Fail: Hold here's ring off its spot at 80 / 150 %; the summary off screen at 150 % |
+| 2026-10-23 | 2 | Opus | pass | 8/8 accept | |
 
 ## Decisions
 
@@ -104,3 +104,13 @@
 ## Known issues left
 
 - None new.
+
+## Advisories left (critic, QA, performance)
+
+- `Hud._fit_summary` runs each frame while the XP card or the summary is up (cheap, no allocation); it belongs on a
+  resize or a size change. It also holds a lone XP card smaller on 16:9 at 150 %, where the card alone would fit.
+- `set_hud_size` lays the HUD out again on every settings change, every step of a slider drag included, even when the
+  size is unchanged; a same-size guard would save it.
+- At 150 % the round banner meets the score bar, and banners sit about 100 px higher than at 100 %.
+- Follow system asks the OS at the start and on a settings change, not live during a match.
+- hud.gd is near 1,000 lines: the sizing and fitting code is the next thing to split out.
