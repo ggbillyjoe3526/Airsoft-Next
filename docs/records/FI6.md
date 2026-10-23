@@ -1,12 +1,12 @@
 # FI6 · Settings › Looks › Robots and the first-person arms hook
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus 5.5 (worker) | pass | pending | – |
+| 2026-10-23 | 1 | Opus 5.5 (worker) | pass | Accept 8/8 | – |
 | 2026-10-23 | QA attempt 1 | Opus 5.5 (worker) | pass | QA Pass (advisories fixed); performance Pass | – |
 
 ## Decisions
@@ -66,6 +66,9 @@ the tab and both choices.
 - A real screen reader may read the card's child labels as well as its name (the name and description are set on the
   card; the laid-over labels aren't hidden from it).
 - The Looks page is built eagerly with the screen, like Display, Graphics and HUD (small: two cards).
+- From the critic: `LABEL_TOP := 0` in settings_looks_page.gd pads nothing; the "From the next match." line
+  reaches its pad through `_next.get_parent()`, which leans on the layout; DECISIONS › ST1 still lists the settings
+  groups in the old order (the tab bar already differs).
 
 ## Outside `touches`
 
