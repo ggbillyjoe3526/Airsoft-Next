@@ -9,8 +9,9 @@ extends RefCounted
 ## leg does (FORWARD_PHASE): seeking the walk cycle keeps the drawn legs in step with the hit volume's.
 ## Over the legs (FI3) the upper body (every bone but FigureConfig.lower_bones) takes a filtered Blend2: the rifle's or the
 ## pistol's aim (a BlendSpace1D down, level and up by pitch, the two blended by the hold), the holster's hanging arms
-## over it, the Switch as a OneShot through a TimeScale (forwards to a pistol, backwards to a rifle), and on top of all
-## the trigger press as an additive OneShot. The upper body's branch sits beside the legs' TimeSeeks, never under them.
+## over it, the reload as a OneShot through a TimeSeek (FI4: the rifle's or the pistol's clip at the reload's share),
+## the Switch as a OneShot through a TimeScale (forwards to a pistol, backwards to a rifle), and on top of all the
+## trigger press as an additive OneShot. The upper body's branch sits beside the legs' TimeSeeks, never under them.
 
 ## The walk cycle's phase where Hitbox.leg_swing's sine peaks: the left leg furthest forward.
 const FORWARD_PHASE := PI * 0.5
@@ -50,6 +51,14 @@ const UPPER_REST := &"upper_rest"
 ## A gate's two inputs: the branch itself, or a one-frame clip standing in while the branch has no weight.
 const GATE_ON := "on"
 const GATE_REST := "rest"
+const RIFLE_RELOAD := &"rifle_reload"
+const PISTOL_RELOAD := &"pistol_reload"
+const RELOAD_WAY := &"reload_way"
+const RELOAD_SEEK := &"reload_seek"
+const RELOAD := &"reload"
+## The reload way's two inputs: the rifle's clip or the pistol's.
+const RELOAD_RIFLE := "rifle"
+const RELOAD_PISTOL := "pistol"
 const SWITCH_FORWARD := &"switch_forward"
 const SWITCH_BACK := &"switch_back"
 const SWITCH_WAY := &"switch_way"
@@ -84,6 +93,10 @@ const P_HOLSTER := &"parameters/holster/blend_amount"
 const P_HOLD_GATE := &"parameters/hold_gate/transition_request"
 const P_HOLSTER_GATE := &"parameters/holster_gate/transition_request"
 const P_UPPER_GATE := &"parameters/upper_gate/transition_request"
+const P_RELOAD_WAY := &"parameters/reload_way/transition_request"
+const P_RELOAD_SEEK := &"parameters/reload_seek/seek_request"
+const P_RELOAD := &"parameters/reload/request"
+const P_RELOAD_ACTIVE := &"parameters/reload/active"
 const P_SWITCH_WAY := &"parameters/switch_way/blend_amount"
 const P_SWITCH_PACE := &"parameters/switch_pace/scale"
 const P_SWITCH := &"parameters/switch/request"
@@ -171,9 +184,29 @@ static func _upper_body(graph: AnimationNodeBlendTree, library: AnimationLibrary
 	# Godot's Blend2 evaluates an input at weight 0 all the same: each branch that can sit unweighted (the aim under a
 	# full holster, the holster's arms, the whole upper body calling the hit, walking off or vaulting) stands behind a
 	# gate that swaps in a one-frame clip meanwhile.
-	_gate(graph, HOLD_GATE, HOLD, HOLD_REST, _clip(library, cfg.holster_clip))
-	_gate(graph, HOLSTER_GATE, HOLSTER_MIX, HOLSTER_REST, _clip(library, cfg.holster_clip))
+	_gate(graph, HOLD_GATE, HOLD, HOLD_REST, _clip(library, cfg.gate_clip))
+	_gate(graph, HOLSTER_GATE, HOLSTER_MIX, HOLSTER_REST, _clip(library, cfg.gate_clip))
 	_layer(graph, HOLSTER, HOLD_GATE, HOLSTER_GATE)
+	# The reload (FI4): the class's clip, picked by a Transition (only the one picked plays), placed by a TimeSeek every
+	# frame at the reload's share, so it keeps step with the simulation's reload_left; a OneShot over the holster.
+	var way := AnimationNodeTransition.new()
+	way.xfade_time = 0.0
+	way.input_count = 2
+	way.set_input_name(0, RELOAD_RIFLE)
+	way.set_input_name(1, RELOAD_PISTOL)
+	graph.add_node(RIFLE_RELOAD, _held_open(library, cfg.rifle_reload_clip))
+	graph.add_node(PISTOL_RELOAD, _held_open(library, cfg.pistol_reload_clip))
+	graph.add_node(RELOAD_WAY, way)
+	graph.connect_node(RELOAD_WAY, 0, RIFLE_RELOAD)
+	graph.connect_node(RELOAD_WAY, 1, PISTOL_RELOAD)
+	graph.add_node(RELOAD_SEEK, AnimationNodeTimeSeek.new())
+	graph.connect_node(RELOAD_SEEK, 0, RELOAD_WAY)
+	var reload := AnimationNodeOneShot.new()
+	reload.fadein_time = cfg.settle_overlay
+	reload.fadeout_time = cfg.settle_overlay
+	graph.add_node(RELOAD, reload)
+	graph.connect_node(RELOAD, 0, HOLSTER)
+	graph.connect_node(RELOAD, 1, RELOAD_SEEK)
 	graph.add_node(SWITCH_FORWARD, _clip(library, cfg.switch_clip))
 	var back := _clip(library, cfg.switch_clip)
 	back.play_mode = AnimationNodeAnimation.PLAY_MODE_BACKWARD
@@ -185,7 +218,7 @@ static func _upper_body(graph: AnimationNodeBlendTree, library: AnimationLibrary
 	switch.fadein_time = cfg.settle_overlay
 	switch.fadeout_time = cfg.settle_overlay
 	graph.add_node(SWITCH, switch)
-	graph.connect_node(SWITCH, 0, HOLSTER)
+	graph.connect_node(SWITCH, 0, RELOAD)
 	graph.connect_node(SWITCH, 1, SWITCH_PACE)
 	var upper := AnimationNodeBlend2.new()
 	upper.filter_enabled = true
@@ -195,7 +228,7 @@ static func _upper_body(graph: AnimationNodeBlendTree, library: AnimationLibrary
 			upper.set_filter_path(NodePath(prefix + ":" + bone), true)
 	graph.add_node(UPPER, upper)
 	graph.connect_node(UPPER, 0, WALK_OFF)
-	_gate(graph, UPPER_GATE, SWITCH, UPPER_REST, _clip(library, cfg.holster_clip))
+	_gate(graph, UPPER_GATE, SWITCH, UPPER_REST, _clip(library, cfg.gate_clip))
 	graph.connect_node(UPPER, 1, UPPER_GATE)
 	graph.add_node(RIFLE_FIRE, _clip(library, StringName(cfg.rifle_fire_clip + cfg.additive_suffix)))
 	graph.add_node(PISTOL_FIRE, _clip(library, StringName(cfg.pistol_fire_clip + cfg.additive_suffix)))
@@ -224,6 +257,18 @@ static func _gate(graph: AnimationNodeBlendTree, name: StringName, branch: Strin
 	graph.add_node(name, gate)
 	graph.connect_node(name, 0, branch)
 	graph.connect_node(name, 1, rest_name)
+
+
+## Clip `name` looping on its own timeline, so a OneShot over it never ends it by itself (its guess of the time left
+## goes wrong under a TimeSeek that jumps): the reload ends when asked (RELOAD_END, a switch, the holster).
+static func _held_open(library: AnimationLibrary, name: StringName) -> AnimationNodeAnimation:
+	var node := _clip(library, name)
+	var anim := library.get_animation(name) if library.has_animation(name) else null
+	node.use_custom_timeline = true
+	node.timeline_length = anim.length if anim != null else 1.0
+	node.stretch_time_scale = false
+	node.loop_mode = Animation.LOOP_LINEAR
+	return node
 
 
 ## An aim BlendSpace1D: `clips` (down, level, up) at -1, 0 and 1, blended by the pitch's share of FigureConfig.aim_pitch.

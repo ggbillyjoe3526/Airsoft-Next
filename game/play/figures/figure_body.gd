@@ -9,8 +9,8 @@ extends Node3D
 ## (FigureGraph) in an AnimationTree of its own, advanced by hand from a FigurePose (`animate`), then FigureBend lowers
 ## and leans it and draws the hit flinch (`set_flinch`); it fades through GeometryInstance3D.transparency, so no material
 ## is copied. Its upper body (FI3) plays over the legs in the same tree (the aim by pitch, the holster, a switch, a
-## trigger press per shot), FigureBend leans the aim the rest of the way, and FigureHands puts the replicas in the hand,
-## on the sling or hanging from the hand.
+## trigger press per shot, a reload: FI4), FigureBend leans the aim the rest of the way, and FigureHands puts the
+## replicas in the hand, on the sling or hanging from the hand, and a reload's magazines on the left hand.
 
 ## A gate of the upper body (FigureGraph's Transitions) as last asked: not yet, shut (a stand-in plays), open.
 const GATE_UNSET := -1
@@ -37,8 +37,14 @@ var _call_seconds: float = 0.0
 var _walk_off_pace: float = 0.0
 ## Turns a way in the figure's frame (x right, -z ahead) into the skeleton's (the file's, facing +Z).
 var _to_skeleton: Basis = Basis.IDENTITY
-## The Switch clip's length (s), time-scaled to each draw.
+## The Switch clip's length (s), time-scaled to each draw; the reload clips' (the rifle's, the pistol's), seeked to each
+## reload's share.
 var _switch_seconds: float = 0.0
+var _rifle_reload_seconds: float = 0.0
+var _pistol_reload_seconds: float = 0.0
+## The reload OneShot asked for the reload under way, and its way as last asked (GATE_UNSET, 0 rifle, 1 pistol).
+var _reload_asked: bool = false
+var _reload_way: int = GATE_UNSET
 ## The upper body's gates as last asked (GATE_UNSET until the first pose asks): the aim, the holster's arms, the whole
 ## upper body; open, it is evaluated.
 var _hold_gate: int = GATE_UNSET
@@ -127,6 +133,8 @@ func setup(models: FigureModels, kind: int, figure_id: int, team: int, colour: C
 	hands.setup(skeleton, models, kind, _config)
 	skeleton.add_child(hands)
 	_switch_seconds = _seconds(side, _config.switch_clip)
+	_rifle_reload_seconds = _seconds(side, _config.rifle_reload_clip)
+	_pistol_reload_seconds = _seconds(side, _config.pistol_reload_clip)
 	_vault_seconds = _seconds(side, _config.vault_clip)
 	_call_seconds = _seconds(side, _config.call_clip)
 	var walk_off := side.clip(_config.walk_off_clip)
@@ -164,6 +172,9 @@ func animate(pose: FigurePose, hits: HitConfig, delta: float, fired: bool = fals
 	# The spine leans what the aim clips leave of the pitch, while they show (not holstered, not calling the hit).
 	bend.aim_lean = pose.aim_lean() * pose.upper_weight() * (1.0 - pose.holster_weight)
 	hands.show_hands(pose.in_hand, pose.slung, pose.hanging)
+	hands.feet = pose.feet
+	hands.velocity = pose.velocity
+	hands.show_reload(pose.reload_slot if pose.reloading else -1, pose.reload_share, pose.snapped)
 
 
 ## The upper body's parameters: a trigger press when `fired`; the upper body's weight, its gate shut (not evaluated)
@@ -201,6 +212,28 @@ func _animate_upper(pose: FigurePose, fired: bool) -> void:
 		tree.set(FigureGraph.P_SWITCH, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 	elif not pose.switching and tree.get(FigureGraph.P_SWITCH_ACTIVE):
 		tree.set(FigureGraph.P_SWITCH, AnimationNodeOneShot.ONE_SHOT_REQUEST_FADE_OUT)
+	_animate_reload(pose)
+
+
+## The reload OneShot: asked when a reload begins (or the gate opens on one under way), the class's clip seeked every
+## frame to the reload's share of it (fitted to the replica's reload time, in step with reload_left); faded out when the
+## reload stops short of its clip's end (RELOAD_END, a switch, the holster, the hit call).
+func _animate_reload(pose: FigurePose) -> void:
+	if not pose.reloading:
+		if _reload_asked:
+			_reload_asked = false
+			if tree.get(FigureGraph.P_RELOAD_ACTIVE):
+				tree.set(FigureGraph.P_RELOAD, AnimationNodeOneShot.ONE_SHOT_REQUEST_FADE_OUT)
+		return
+	var way := 1 if pose.reload_pistol else 0
+	if way != _reload_way:
+		_reload_way = way
+		tree.set(FigureGraph.P_RELOAD_WAY, FigureGraph.RELOAD_PISTOL if way == 1 else FigureGraph.RELOAD_RIFLE)
+	if pose.reload_started or not _reload_asked:
+		_reload_asked = true
+		tree.set(FigureGraph.P_RELOAD, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
+	var seconds := _pistol_reload_seconds if way == 1 else _rifle_reload_seconds
+	tree.set(FigureGraph.P_RELOAD_SEEK, pose.reload_share * seconds)
 
 
 ## The hit flinch drawn from the next skeleton update: `tilt` (rad) in the figure's frame (FigureFlinch).

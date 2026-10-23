@@ -4,8 +4,8 @@ extends RefCounted
 ## its last two ticks into the lower body's targets, and `settle` moves the blends towards them at the browser's settle
 ## times (an exponential step: about two thirds of the way in each settle time). The upper body (FI3) from its
 ## armament: the pitch, the rifle's or the pistol's hold, the holster and the draw out of it, a switch between replicas
-## and which replica is in the hand, slung or hanging from it. Pure: no node, nothing allocated per call; one per figure,
-## reused every frame. FigureBody plays it.
+## and which replica is in the hand, slung or hanging from it, and a reload's share (FI4). Pure: no node, nothing
+## allocated per call; one per figure, reused every frame. FigureBody plays it.
 
 ## The step in the figure's own frame (m/s; x to its right, y ahead): zero below the walking speed (still).
 var gait: Vector2 = Vector2.ZERO
@@ -55,12 +55,27 @@ var switching: bool = false
 var switch_started: bool = false
 var switch_back: bool = false
 var draw_seconds: float = 0.0
+## A reload under way (FI4) in slot `reload_slot` (-1 none; not while holstered or calling the hit), whether it began
+## since the last read (reload_left rose, or none was under way), whether it is a pistol's, and its share (0..1) of the
+## replica's reload time, from the simulation's reload_left: a figure hidden or posed only now and then keeps step.
+var reloading: bool = false
+var reload_started: bool = false
+var reload_slot: int = -1
+var reload_pistol: bool = false
+var reload_share: float = 0.0
+## The figure's feet (the ground a thrown magazine lands on: no world query, plan default 15) and its velocity (m/s),
+## between the ticks; and whether the blends were snapped since the last read (nothing that happened meanwhile is
+## played out, such as a magazine's throw).
+var feet: Vector3 = Vector3.ZERO
+var velocity: Vector3 = Vector3.ZERO
+var snapped: bool = false
 ## The draw under way came out of the holster; the slot in the hand before a switch; the last read's holster and draw.
 var _from_holster: bool = false
 var _switch_from: int = -1
 var _was_holstered: bool = false
 var _was_drawing: bool = false
 var _drawn_slot: int = -1
+var _reload_left: float = 0.0
 var _config: FigureConfig = null
 
 
@@ -75,6 +90,9 @@ func config() -> FigureConfig:
 
 ## The targets for `c` at `fraction` of the way from its last tick to this one, by `hits`' rules.
 func read(c: Character, fraction: float, hits: HitConfig) -> void:
+	snapped = false
+	feet = c.prev_position.lerp(c.position, fraction)
+	velocity = c.velocity
 	var yaw := lerp_angle(c.prev_yaw, c.yaw, fraction)
 	var sin_yaw := sin(yaw)
 	var cos_yaw := cos(yaw)
@@ -107,13 +125,17 @@ func read(c: Character, fraction: float, hits: HitConfig) -> void:
 ## `called` the hand raised (the replica in the hand hangs from the other).
 func read_hands(a: Armament, called: bool) -> void:
 	switch_started = false
+	reload_started = false
 	if a == null or a.replicas.is_empty():
 		in_hand = -1
 		slung = -1
 		hanging = false
 		switching = false
 		holster = 0.0
+		reloading = false
+		reload_slot = -1
 		return
+	read_reload(a, called)
 	var drawing := a.draw_left > 0.0 and a.draw_total > 0.0
 	if drawing and (not _was_drawing or a.active != _drawn_slot):
 		# A new draw: out of the holster, or a switch from the replica that was in the hand.
@@ -141,6 +163,19 @@ func read_hands(a: Armament, called: bool) -> void:
 		in_hand = _switch_from
 	slung = _first_rifle(a) if put_away else -1
 	hanging = called and in_hand >= 0
+
+
+## The reload in `a`'s hand: under way while reload_left counts down (a switch or the holster zeroes it, cutting it),
+## not while holstered or `called`; begun anew when reload_left rose since the last read.
+func read_reload(a: Armament, called: bool) -> void:
+	var total := a.replicas[a.active].reload_time if a.active >= 0 and a.active < a.replicas.size() else 0.0
+	var now := a.reload_left > 0.0 and total > 0.0 and not a.holstered and not called
+	reload_started = now and (not reloading or a.reload_left > _reload_left or a.active != reload_slot)
+	reloading = now
+	reload_slot = a.active if now else -1
+	reload_pistol = now and _is_pistol(a, a.active)
+	reload_share = clampf(1.0 - a.reload_left / total, 0.0, 1.0) if now else 0.0
+	_reload_left = a.reload_left
 
 
 ## The share of a switch's draw from which the new replica is in the hand: the Switch clip holds the pistol from
@@ -192,6 +227,7 @@ func settle(delta: float) -> void:
 
 ## The blends set to the targets at once: a figure's first frame, or its first after its legs were left still (hidden).
 func snap() -> void:
+	snapped = true
 	speed = gait.length()
 	if speed > 0.0:
 		way = gait / speed

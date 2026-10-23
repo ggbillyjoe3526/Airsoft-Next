@@ -112,8 +112,17 @@ extends Resource
 @export var settle_hold: float = 0.06
 @export var settle_overlay: float = 0.08
 ## An upper-body branch eased under this weight (the whole upper body calling the hit, the holster's arms, the aim under
-## a full holster) isn't evaluated: a one-frame clip stands in and its weight is drawn as 0.
+## a full holster) isn't evaluated: gate_clip (one frame long) stands in and its weight is drawn as 0.
 @export var gate_below: float = 0.001
+@export var gate_clip: StringName = &"Holster"
+## The reloads (FI4): Rifle_Reload or Pistol_Reload by the replica's class, played over the holster and under the
+## switch, placed by the reload's share of the replica's reload time (the sidecar's fitTo). The magazine in the hand and
+## the old one thrown are copies of the replica model's magazine_node mesh, placed by the sidecar's magazineInHand; at
+## most thrown_max lie on the field (the oldest goes first), from a pool of that many a replica model.
+@export var rifle_reload_clip: StringName = &"Rifle_Reload"
+@export var pistol_reload_clip: StringName = &"Pistol_Reload"
+@export var magazine_node: String = "Magazine"
+@export var thrown_max: int = 12
 ## Holstered, the rifle rides slung on the Chest bone (the browser's FIGURE_RIG.sling): its butt sling_butt.x to the
 ## figure's right of the spine and sling_butt.y above the feet, sling_back_human behind the spine line (sling_back_pack
 ## over a human's pack, sling_pack_part; sling_back_robot on a robot), its long axis sling_tilt (rad) from upright, the

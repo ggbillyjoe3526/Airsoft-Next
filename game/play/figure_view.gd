@@ -11,7 +11,8 @@ extends Node3D
 ## body (the aim, the holster, a switch, a trigger press per SHOT event, `on_shot`), its replicas handed to it
 ## (FigureHands: in the hand, slung, hanging from the hand); the sign and the fade work the same on both, and so does
 ## the hit flinch (`hit`, FigureFlinch): the upper body jolts the way the BB flew, the capsules' about the pivot, the
-## rigged figure's through FigureBend.
+## rigged figure's through FigureBend. In a reload (FI4) the rigged figure's left hand carries a copy of the replica
+## model's magazine, made here once a slot in the replica's paint, and throws the old one into `thrown`.
 
 ## The figure's proportions (m): the legs' and torso's capsules, the head, the arm, and where the sign floats. The torso
 ## reaches this far below the pivot, so its round bottom covers the joint as it tilts.
@@ -42,6 +43,10 @@ var _hits: HitConfig = null
 ## The replicas the character carries, as the models' figure versions on the upper body; the one out is shown.
 var _replicas: Array[MeshInstance3D] = []
 var _classes: Array[StringName] = []
+## Each replica's magazine copy (the full model's magazine mesh, painted as the replica; null without one), hidden on
+## the capsules; where the rigged figure throws its old magazines (null: none thrown).
+var _magazines: Array[MeshInstance3D] = []
+var thrown: ThrownMagazines = null
 var _out: int = -1
 ## Seen this much (1 solid, 0 gone), as `update` last drew it; a shot since the last pose (the trigger pressed).
 var _fade: float = 1.0
@@ -70,7 +75,8 @@ var _flinch: FigureFlinch = null
 func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConfig, font: Font,
 		realistic: bool = false, parts: Array[Dictionary] = [], glow: float = 0.0, figures: FigureConfig = null) -> void:
 	character_id = c.id
-	_flinch = FigureFlinch.new(figures if figures != null else FigureConfig.new())
+	var cfg := figures if figures != null else FigureConfig.new()
+	_flinch = FigureFlinch.new(cfg)
 	_hits = hits
 	_team = c.team
 	_team_colour = team_colour
@@ -117,11 +123,14 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 	_arm.position = Vector3(BODY_RADIUS + ARM_SIZE.x * 0.5, hits.torso_top - hits.pivot_height, 0.0)
 	_upper.add_child(_arm)
 	for i in c.armament.replicas.size():
-		var held := _held_replica(c.armament.replicas[i], c.team, realistic, parts[i] if i < parts.size() else {})
+		var held := _held_replica(c.armament.replicas[i], c.team, realistic, parts[i] if i < parts.size() else {},
+				cfg.magazine_node, _magazines)
 		_replicas.append(held)
 		_classes.append(c.armament.replicas[i].site_class)
 		if held != null:
 			_upper.add_child(held)
+		if _magazines[i] != null:
+			_upper.add_child(_magazines[i])
 	_sign = make_sign(font, team_colour)
 	_sign.position = Vector3(0.0, SIGN_HEIGHT, 0.0)
 	add_child(_sign)
@@ -148,7 +157,8 @@ func set_body(models: FigureModels, kind: int, lines: Vector2) -> void:
 		_body = FigureBody.new()
 		if _body.setup(models, kind, character_id, _team, _team_colour, _glow, lines):
 			add_child(_body)
-			_body.hands.hold(_replicas, _classes)
+			_body.hands.hold(_replicas, _classes, _magazines)
+			_body.hands.thrown = thrown
 			_out = -1
 		else:
 			_body.free()
@@ -171,12 +181,26 @@ func set_lod_lines(lines: Vector2) -> void:
 
 ## The models' figure version of `r` with `parts`' figure versions on it, held at its class's place and painted for
 ## `team` (null without a model). The figure version is one mesh, so a part shows over the standard magazine or flash
-## hider rather than in its place.
-func _held_replica(r: ReplicaConfig, team: int, realistic: bool, parts: Dictionary) -> MeshInstance3D:
+## hider rather than in its place. A copy of the full model's `magazine_node` mesh for the reloads, in the same paint
+## (null without one), goes on the end of `magazines`.
+func _held_replica(r: ReplicaConfig, team: int, realistic: bool, parts: Dictionary, magazine_node: String,
+		magazines: Array[MeshInstance3D]) -> MeshInstance3D:
 	var scene := load(MODEL_DIR + r.id + ".glb") as PackedScene
 	if scene == null:
+		magazines.append(null)
 		return null
 	var model := scene.instantiate()
+	var paint := ReplicaPaint.bot_paint(team, r)
+	var mag := model.find_child(magazine_node, true, false) as MeshInstance3D
+	var copy: MeshInstance3D = null
+	if mag != null and mag.mesh != null:
+		copy = MeshInstance3D.new()
+		copy.name = "Magazine_%s" % r.id
+		copy.mesh = mag.mesh
+		copy.visible = false
+		copy.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		ReplicaPaint.apply(copy, paint, realistic)
+	magazines.append(copy)
 	var held := model.find_child("Figure", true, false) as MeshInstance3D
 	if held != null:
 		held.get_parent().remove_child(held)
@@ -186,9 +210,16 @@ func _held_replica(r: ReplicaConfig, team: int, realistic: bool, parts: Dictiona
 		for part in ReplicaParts.figure_meshes(r.id, parts):
 			part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			held.add_child(part)
-		ReplicaPaint.apply(held, ReplicaPaint.bot_paint(team, r), realistic)
+		ReplicaPaint.apply(held, paint, realistic)
 	model.free()
 	return held
+
+
+## The meshes of this figure's magazine copies (for ThrownMagazines' pools), added to `into`.
+func magazine_meshes(into: Array[Mesh]) -> void:
+	for m in _magazines:
+		if m != null and not into.has(m.mesh):
+			into.append(m.mesh)
 
 
 ## Where a replica of class `site_class` is held on the capsules' upper body.
@@ -270,6 +301,7 @@ func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 	_fired = false
 	if _fade < 1.0:
 		_body.hands.show_hands(-1, -1, false)
+		_body.hands.show_reload(-1, 0.0, true)
 
 
 ## The flinch dropped at once (a round reset or a rematch), the rigged figure's bend too.
@@ -314,6 +346,7 @@ func update(c: Character, fraction: float, delta: float = 0.0) -> void:
 		_body.set_fade(fade)
 		if fade < 1.0:
 			_body.hands.show_hands(-1, -1, false)
+			_body.hands.show_reload(-1, 0.0, true)
 		return
 	# The replica out: the one the character has in hand, put away as it fades (the paint is shared, so it can't fade).
 	var out := c.armament.active if fade >= 1.0 and c.armament.active < _replicas.size() else -1
