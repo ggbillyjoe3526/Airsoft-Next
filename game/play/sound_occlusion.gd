@@ -29,6 +29,8 @@ var _listener_id: int = -1
 ## By character id: the share its rays last found and the tick they were cast.
 var _ray_share: PackedFloat32Array = PackedFloat32Array()
 var _cast_at: PackedInt32Array = PackedInt32Array()
+## How many characters the records were last made for, so a tick with the same cast walks none of them.
+var _seen: int = 0
 
 
 ## Muffling by `cfg`'s occlusion numbers through `query` (the level; null: nothing is ever muffled).
@@ -46,14 +48,16 @@ func begin_tick(characters: Array[Character], listener: Character, ear: Vector3)
 	ticks += 1
 	rays = 0
 	_ear = ear
-	for c in characters:
-		if c.id >= _cast_at.size():
-			var from := _cast_at.size()
-			_cast_at.resize(c.id + 1)
-			_ray_share.resize(c.id + 1)
-			for i in range(from, c.id + 1):
-				_cast_at[i] = NEVER
-				_ray_share[i] = 0.0
+	if characters.size() != _seen:
+		_seen = characters.size()
+		for c in characters:
+			if c.id >= _cast_at.size():
+				var from := _cast_at.size()
+				_cast_at.resize(c.id + 1)
+				_ray_share.resize(c.id + 1)
+				for k in range(from, c.id + 1):
+					_cast_at[k] = NEVER
+					_ray_share[k] = 0.0
 	var id := listener.id if listener != null else -1
 	if id != _listener_id:
 		_listener_id = id

@@ -297,10 +297,11 @@ func _play(cue: StringName, at: Vector3, own: bool, gain: float, kind: Kind, bus
 		var share := _occlusion.impact_share(at) if impact else _occlusion.share_of(source)
 		var v := _field[i]
 		v.stream = stream
-		v.volume_db = db + linear_to_db(SoundOcclusion.level_for(bus, share, _cfg))
+		var open := share <= 0.0 # the common case: nothing in the way, so no bus or level to work out
+		v.volume_db = db if open else db + linear_to_db(SoundOcclusion.level_for(bus, share, _cfg))
 		v.pitch_scale = scale
 		v.max_distance = far
-		v.bus = SoundOcclusion.bus_for(bus, share, _cfg)
+		v.bus = bus if open else SoundOcclusion.bus_for(bus, share, _cfg)
 		v.global_position = at
 		v.play()
 
