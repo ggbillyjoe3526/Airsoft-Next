@@ -592,10 +592,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 ## Places the marker over the pole at `pole` as seen by `camera` (HudFlagMarker); hidden outside Attack / Defend
 ## (`show` false).
 func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool) -> void:
-	var card := _what_got_you
-	# The frame a card comes up it has no height yet: hold the marker back one frame instead of drawing it over the card.
-	var unsized := card != null and card.visible and card.size.y <= 0.0
-	_flag_marker.place(camera, pole, show and not unsized, size, pin_point(), pin_right_top())
+	_flag_marker.place(camera, pole, show, size, pin_point(), pin_right_top())
 
 
 ## Where the first marker pinned to the screen's left edge sits (its plate's top left): under the minimap and its
