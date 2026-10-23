@@ -34,6 +34,7 @@ var _screen: SettingsScreen = null
 var _window: MenuChoice = null
 var _monitor_row: HBoxContainer = null
 var _monitor: MenuChoice = null
+var _monitor_note: Label = null
 var _vsync: CheckButton = null
 var _vsync_note: Label = null
 var _limit: MenuChoice = null
@@ -146,6 +147,7 @@ func _build_window(column: VBoxContainer) -> void:
 	row.add_child(_window)
 	_build_keys_line(column)
 	_monitor_row = _screen.add_row(column, "SETTINGS_MONITOR", LEFT_LABEL)
+	_monitor_note = _note(_monitor_row, tr("SETTINGS_MONITOR_HELP"))
 	_monitor_row.visible = false
 
 
@@ -225,8 +227,8 @@ func _show_monitors() -> void:
 	var ds := SettingsApply.screens()
 	var count := ds.count()
 	if _monitor != null:
-		_monitor_row.remove_child(_monitor)
-		_monitor.queue_free()
+		# freed now, not queued: refresh runs on opening, never from the row's own press
+		_monitor.free()
 		_monitor = null
 	_monitor_row.visible = count >= 2
 	if not _monitor_row.visible:
@@ -242,8 +244,10 @@ func _show_monitors() -> void:
 	_monitor = MenuChoice.new(words)
 	_monitor.picked.connect(func(i: int) -> void:
 		SettingsApply.pick_monitor(_screen.settings, i)
+		_show_vsync_note()
 		changed.emit(true))
 	_monitor_row.add_child(_monitor)
+	_monitor_row.move_child(_monitor_note, -1)
 	var on := SettingsApply.monitor_now(_screen.settings, ds)
 	_monitor.put(on if on >= 0 else ds.current())
 
@@ -252,7 +256,7 @@ func _show_monitors() -> void:
 func _show_vsync_note() -> void:
 	var ds := SettingsApply.screens()
 	var at := ds.current()
-	var rate := ds.rate(at) if at >= 0 else NO_RATE
+	var rate := ds.rate(at) if at >= 0 and at < ds.count() else NO_RATE
 	if rate > NO_RATE:
 		_vsync_note.text = tr("SETTINGS_VSYNC_HELP") % roundi(rate)
 	else:

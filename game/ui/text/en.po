@@ -2411,3 +2411,6 @@ msgstr "The most frames a second the game draws: a laptop runs cooler and quiete
 
 msgid "SETTINGS_SHOW_FPS_HELP"
 msgstr "Frames a second, top right."
+
+msgid "SETTINGS_MONITOR_HELP"
+msgstr "Only with two screens or more."
