@@ -12,7 +12,10 @@ extends Node
 ## impact_window, the range's targets target_reach, the rest max_distance. Every variant is loaded up front, so the first
 ## shot never hitches. The voices are made once and shared through two VoicePools (yours plain, the field's positional)
 ## by priority. A cue never plays the same variant twice running; pitch and level are spread by kind (none on interface
-## cues). Variant, pitch and level are presentation only, on SimAudio's own random stream.
+## cues). Variant, pitch and level are presentation only, on SimAudio's own random stream. Every sound another character
+## makes (a shot and its power part, mechanisms, steps, vaults, a hit on them) and every BB impact is muffled by the
+## level geometry between it and the listener's eyes (SoundOcclusion): open, or on the half or full occlusion bus.
+## Your own sounds and the interface's are never muffled.
 
 const BUS_EFFECTS := &"Effects"
 const BUS_FOOTSTEPS := &"Footsteps"
@@ -44,12 +47,13 @@ var _priority: PackedInt32Array = PackedInt32Array()
 var _cue_voices: PackedInt32Array = PackedInt32Array()
 var _steps: VoicePool.StartLimit = null
 var _impacts: VoicePool.StartLimit = null
-## The level (SP2's rays) and the map (SP4's ambience), and whose ears the view is through this tick (null: nobody's,
-## so nothing is out of reach).
-var _query: WorldQuery = null
+## The map (SP4's ambience), and whose ears the view is through this tick (null: nobody's, so nothing is out of reach
+## or muffled).
 var _map: MapData = null
 var _listener: Character = null
 var _ear: Vector3 = Vector3.ZERO
+## Muffling through walls from the listener's eyes, through the level's WorldQuery.
+var _occlusion: SoundOcclusion = null
 ## Cue names worked out once: by power source, by surface, by surface and pace.
 var _shot: Dictionary[StringName, StringName] = {}
 var _power: Dictionary[StringName, StringName] = {}
@@ -70,9 +74,9 @@ var _order_serial: int = 0
 func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, query: WorldQuery, map: MapData) -> void:
 	_cfg = cfg
 	_body = body
-	_query = query
 	_map = map
 	_kinds(cfg)
+	_occlusion = SoundOcclusion.new(cfg, query)
 	_steps = VoicePool.StartLimit.new(cfg.step_limit, cfg.step_window)
 	_impacts = VoicePool.StartLimit.new(cfg.impact_limit, cfg.impact_window)
 	name = "Sound"
@@ -116,6 +120,7 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 	_listener = listener
 	if listener != null:
 		_ear = listener.eye(_body)
+	_occlusion.begin_tick(state.characters, listener, _ear)
 	var now := state.time
 	var events := state.events
 	for i in events.count:
@@ -125,9 +130,10 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 			GameEvent.Kind.SHOT:
 				var p := _power_of(state, e.actor, e.slot)
 				var muffled := _muffled(state, e.actor, e.slot)
+				var shooter := state.character(e.actor)
 				_play(_shot.get(p, &""), e.position, own, _cfg.shot_gain * (_cfg.muffled_gain if muffled else 1.0),
-						Kind.SHOT, BUS_MUFFLED if muffled else BUS_EFFECTS)
-				_play(_power.get(p, &""), e.position, own, _cfg.shot_gain, Kind.SHOT, BUS_POWER)
+						Kind.SHOT, BUS_MUFFLED if muffled else BUS_EFFECTS, 1.0, 0.0, shooter)
+				_play(_power.get(p, &""), e.position, own, _cfg.shot_gain, Kind.SHOT, BUS_POWER, 1.0, 0.0, shooter)
 			GameEvent.Kind.DRY_FIRE:
 				_mechanism(_dry.get(_power_of(state, e.actor, e.slot), &""), state, e, own)
 			GameEvent.Kind.RELOAD_START:
@@ -146,16 +152,20 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 				if e.target < 0:
 					if _in_reach(e.position, _cfg.max_distance) and _impacts.take(now):
 						var s := clampi(e.value2, 0, _impact.size() - 1)
-						_play(_impact[s], e.position, false, _cfg.impact_gain, Kind.IMPACT, BUS_EFFECTS)
+						_play(_impact[s], e.position, false, _cfg.impact_gain, Kind.IMPACT, BUS_EFFECTS, 1.0, 0.0, null,
+								true)
 				else:
-					_play(&"bodyHit", e.position, e.target == player_id, _cfg.body_hit_gain, Kind.HIT, BUS_EFFECTS)
+					_play(&"bodyHit", e.position, e.target == player_id, _cfg.body_hit_gain, Kind.HIT, BUS_EFFECTS, 1.0,
+							0.0, state.character(e.target))
 			GameEvent.Kind.RICOCHET_TICK:
-				_play(&"bodyHit", e.position, e.target == player_id, _cfg.body_hit_gain, Kind.HIT, BUS_EFFECTS)
+				_play(&"bodyHit", e.position, e.target == player_id, _cfg.body_hit_gain, Kind.HIT, BUS_EFFECTS, 1.0,
+						0.0, state.character(e.target))
 			# Your own hit's tick is the cue that must be read: on Interface, clear of the field's dip and muffling.
 			GameEvent.Kind.CHARACTER_HIT when e.target == player_id:
 				_play(&"hitTick", e.position, true, _cfg.hit_tick_gain, Kind.INTERFACE, BUS_INTERFACE)
 			GameEvent.Kind.CHARACTER_HIT:
-				_play(&"hitTick", e.position, false, _cfg.hit_tick_gain, Kind.HIT, BUS_EFFECTS)
+				_play(&"hitTick", e.position, false, _cfg.hit_tick_gain, Kind.HIT, BUS_EFFECTS, 1.0, 0.0,
+						state.character(e.target))
 				if own and e.target != player_id:
 					_play(&"hitMarker", e.position, true, _cfg.hit_marker_gain, Kind.INTERFACE, BUS_INTERFACE)
 			GameEvent.Kind.FOOTSTEP:
@@ -168,10 +178,10 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 				if e.value != GameEvent.Footstep.RATTLE:
 					var surface := clampi(e.value2, 0, SURFACE_NAMES.size() - 1)
 					cue = _step[surface * STEP_NAMES.size() + clampi(e.value, 0, STEP_NAMES.size() - 1)]
-				_play(cue, at, own, gain, Kind.STEP, BUS_FOOTSTEPS, 1.0, _cfg.step_reach)
+				_play(cue, at, own, gain, Kind.STEP, BUS_FOOTSTEPS, 1.0, _cfg.step_reach, c)
 			GameEvent.Kind.VAULT:
 				var gain := _cfg.own_vault_gain if own else _cfg.vault_gain
-				_play(&"vault", e.position, own, gain, Kind.VAULT, BUS_FOOTSTEPS)
+				_play(&"vault", e.position, own, gain, Kind.VAULT, BUS_FOOTSTEPS, 1.0, 0.0, state.character(e.actor))
 			GameEvent.Kind.FLAG_ROPE:
 				_play(&"rope_up" if e.value == 1 else &"rope_down", e.position, false, _cfg.rope_gain, Kind.ROPE,
 						BUS_EFFECTS)
@@ -227,7 +237,7 @@ func _exit_tree() -> void:
 func _mechanism(cue: StringName, state: GameState, e: GameEvent, own: bool) -> void:
 	var c := state.character(e.actor)
 	var at := c.eye(_body) if c != null else e.position
-	_play(cue, at, own, _cfg.mechanism_gain, Kind.MECHANISM, BUS_EFFECTS)
+	_play(cue, at, own, _cfg.mechanism_gain, Kind.MECHANISM, BUS_EFFECTS, 1.0, 0.0, c)
 
 
 ## The sound profile of `actor`'s replica in `slot` (its power's, or its own).
@@ -256,9 +266,10 @@ static func _set_muffle(cutoff_hz: float) -> void:
 
 
 ## Plays a variant of `cue` at `pitch`, spread by its `kind`: plain if `own`, else from `at`, heard as far as `reach`
-## (m; SoundConfig.max_distance when not positive) and not played beyond it. A full pool drops it.
+## (m; SoundConfig.max_distance when not positive) and not played beyond it, muffled by the walls between the listener
+## and `source` (the character making it), or the surface `at` when `impact`. A full pool drops it.
 func _play(cue: StringName, at: Vector3, own: bool, gain: float, kind: Kind, bus: StringName, pitch: float = 1.0,
-		reach: float = 0.0) -> void:
+		reach: float = 0.0, source: Character = null, impact: bool = false) -> void:
 	if not _streams.has(cue):
 		return
 	var variants: Array = _streams[cue]
@@ -282,12 +293,15 @@ func _play(cue: StringName, at: Vector3, own: bool, gain: float, kind: Kind, bus
 		v.bus = bus
 		v.play()
 	else:
+		# Rays only for a sound that has its voice.
+		var share := _occlusion.impact_share(at) if impact else _occlusion.share_of(source)
 		var v := _field[i]
 		v.stream = stream
-		v.volume_db = db
+		var open := share <= 0.0 # the common case: nothing in the way, so no bus or level to work out
+		v.volume_db = db if open else db + linear_to_db(SoundOcclusion.level_for(bus, share, _cfg))
 		v.pitch_scale = scale
 		v.max_distance = far
-		v.bus = bus
+		v.bus = bus if open else SoundOcclusion.bus_for(bus, share, _cfg)
 		v.global_position = at
 		v.play()
 

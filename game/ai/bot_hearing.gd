@@ -3,7 +3,8 @@ class_name BotHearing
 ## (as far as the shooter's replica is heard: a silencer halves it), a teammate's hit call, running, sprinting, landing
 ## and vaulting feet, a rattling magazine, and enemy BBs landing close. Each gives a rough guess of where the enemy
 ## is, off by up to hearing_error of the distance; walls between muffle a sound to wall_hearing of its range, judged by
-## rays as for the player. Hearing never counts as sight: a bot still reacts when the enemy then appears. Reads the tick's events after the step; writes only the bots' memory. Allocates nothing.
+## SoundPath's rays, as the player's muffling is. Hearing never counts as sight: a bot still reacts when the enemy then
+## appears. Reads the tick's events after the step; writes only the bots' memory. Allocates nothing.
 
 static var _hit: RayHit = RayHit.new()
 
@@ -97,7 +98,8 @@ static func _hear(w: BotWorld, source: Character, heard_at: Vector3, source_feet
 			continue
 		# Within the range a wall leaves, nothing to check; beyond it, cast the rays.
 		if heard > range_m * cfg.wall_hearing:
-			var share := _blocked_share(w, BotSenses.eye_of(c, w.tuning), source_feet)
+			var share := SoundPath.blocked_share(w.query, BotSenses.eye_of(c, w.tuning), source_feet,
+					cfg.hearing_ray_heights, _hit)
 			if heard > range_m * (1.0 - share * (1.0 - cfg.wall_hearing)):
 				continue
 		var dist := Vector2(where.x - c.position.x, where.z - c.position.z).length()
@@ -136,18 +138,6 @@ static func _share_heard(w: BotWorld, b: Bot) -> void:
 		m.has_last_known = true
 		m.heard_at = w.time
 		m.last_threat_at = w.time
-
-
-## The share (0..1) of the rays from `ear` to `feet` raised by hearing_ray_heights that a wall blocks.
-static func _blocked_share(w: BotWorld, ear: Vector3, feet: Vector3) -> float:
-	var heights := w.cfg.hearing_ray_heights
-	if heights.is_empty():
-		return 0.0
-	var blocked := 0
-	for h in heights:
-		if w.query.ray(ear, feet + Vector3(0.0, h, 0.0), _hit):
-			blocked += 1
-	return float(blocked) / heights.size()
 
 
 ## A heard guess of `source`, `dist` m from `b`: off by up to hearing_error × dist, on the floor there (the bot's own
