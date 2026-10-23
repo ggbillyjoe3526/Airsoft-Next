@@ -84,6 +84,9 @@ var _shown_hits: int = -1
 var _shown_time: int = -1
 var _shown_best: int = -1
 var _shown_hint_best: int = -1
+## The banner on screen and its countdown number, so a frame with the same banner does no string work.
+var _shown_kind: Banner = Banner.NONE
+var _shown_count: int = -1
 
 
 ## Built for `range_cfg`'s run length and `player_id`'s cues.
@@ -198,6 +201,14 @@ func _show_bar(c: RangeChallenge) -> void:
 
 
 func _show_banner() -> void:
+	if _kind == Banner.NONE:
+		_banner.visible = false
+		_shown_kind = Banner.NONE
+		return
+	if _banner.visible and _kind == _shown_kind and (_kind != Banner.COUNT or _count == _shown_count):
+		return
+	_shown_kind = _kind
+	_shown_count = _count
 	var big := ""
 	match _kind:
 		Banner.COUNT:
@@ -206,11 +217,6 @@ func _show_banner() -> void:
 			big = HudStyle.caps("CHALLENGE_GO")
 		Banner.TIME:
 			big = HudStyle.caps("CHALLENGE_TIME")
-	if _kind == Banner.NONE:
-		_banner.visible = false
-		return
-	if _banner.visible and _title.text == big and _result.visible == (_kind == Banner.TIME):
-		return
 	_title.text = big
 	_result.visible = _kind == Banner.TIME
 	var top := RESULT_TOP if _kind == Banner.TIME else BANNER_TOP
