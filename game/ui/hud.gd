@@ -27,8 +27,6 @@ const XP_GAP := 28.0
 ## range has none: CARD_TOP).
 const CARD_LEFT := 32.0
 const CARD_TOP := 250.0
-## Frames a card just added is taken to be still unlaid out (the marker waits, the feed is not trimmed for it).
-const CARD_FRESH_FRAMES := 2
 const SKIP_KEY_PAD := Vector2i(10, 4)
 const SKIP_GAP := 14
 const SKIP_SIZE := 18
@@ -81,7 +79,6 @@ var _match_tail := ""
 var _board: HudScoreboard = null
 var _board_wanted: bool = false
 var _what_got_you: WhatGotYouCard = null
-var _card_fresh: int = 0 # frames left before a card just added has been laid out (its first height means nothing)
 var _skip_hint: PanelContainer = null
 var _skip_key: Label = null
 var _names := PackedStringArray()
@@ -418,7 +415,6 @@ func show_what_got_you(facts: HitFacts, shooter_name: String, colour: Color, not
 	_place(_what_got_you, Vector4(0.0, 0.0, 0.0, 0.0), Rect2(CARD_LEFT, top, WhatGotYouCard.WIDTH, 0.0))
 	add_child(_what_got_you)
 	_what_got_you.visible = not _board.visible
-	_card_fresh = CARD_FRESH_FRAMES
 	HudStyle.restyle(_what_got_you, _opacity)
 
 
@@ -590,7 +586,6 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		_readout.visible = state.challenge.phase == RangeChallenge.Phase.OFF
 		_challenge.update(state, delta)
 	_hits.prune(state.time)
-	_card_fresh = maxi(0, _card_fresh - 1)
 	_feed.fit(_feed_room())
 	_feed.refresh(_hits, state.time, state.characters, _player)
 	queue_redraw()
@@ -599,8 +594,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 ## Places the marker over the pole at `pole` as seen by `camera` (HudFlagMarker); hidden outside Attack / Defend
 ## (`show` false).
 func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool) -> void:
-	# A card's height only counts once it has been laid out: hold the marker back till then rather than flash it aside.
-	_flag_marker.place(camera, pole, show and _card_fresh == 0, size, pin_point(), pin_right_top(), _left_stack_floor())
+	_flag_marker.place(camera, pole, show, size, pin_point(), pin_right_top(), _left_stack_floor())
 
 
 ## Where the first marker pinned to the screen's left edge sits (its plate's top left): under the minimap and its
@@ -616,7 +610,7 @@ func pin_point() -> Vector2:
 ## below the card with feed_card_gap clear.
 func _feed_room() -> float:
 	var card := _what_got_you
-	if _feed.corner != HudFeed.Place.BOTTOM_LEFT or card == null or not card.visible or _card_fresh > 0:
+	if _feed.corner != HudFeed.Place.BOTTOM_LEFT or card == null or not card.visible:
 		return -1.0
 	return maxf(0.0, size.y - _cfg.feed_margin.y - (card.offset_top + card.size.y + _cfg.feed_card_gap))
 

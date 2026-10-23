@@ -8,6 +8,7 @@
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus (QA Fail fixed by the worker: the card under the Tab board, a right-pinned plate over the feed) | pass | 7/8 retry | the card and a left-pinned plate reached a bottom-left feed at Keep |
 | 2026-10-23 | 2 | Opus | pass | 8/8 accept | |
+| 2026-10-23 | 3 | Opus (integration with SO4's hold marker; QA Fail fixed: plate over an unpinned FLAG plate, card's first-frame height) | pass | 8/8 accept (7/8 before the in-place fixes) | |
 
 ## Decisions
 
@@ -22,11 +23,18 @@
   - While What got you is up, a bottom-left feed shows only its newest lines that fit below the card with
     `feed_card_gap` (18 px) clear; all come back when the card goes.
   - The flag marker sits under the minimap in child order, so the map is never covered.
-- **The card's first frames:** its note wraps, so its first minimum height (about 1240 px) means nothing until one
-  layout pass; `_card_fresh` holds the marker and the feed's trim for that frame.
+- **The card's first frame:** its note has the card's inner width as its minimum, so the card's height is right on
+  the frame it comes up and the markers and the feed's trim need no hold-back.
+- **A side-held Hold here plate joins the flag marker's stacks** rather than sitting at the spot's height: under the
+  minimap on the left (one pin step under a FLAG plate pinned there), past the left floor on the right, in line with
+  the FLAG plates (`pin_x`). Held at the top or bottom edge it steps clear of a flag marker over its pole.
 
 ## Known issues left
 
+- Held at the top edge, the Hold here plate can sit over the score bar (from SO4); the Tab scoreboard is not arranged
+  with the markers.
+- Over its spot, the Hold here plate jumps to the minimap panel's right on reaching it (the flag marker draws under
+  the map instead).
 - The pole and the hold diamond ignore the storey on Neon Heights (no ruling either way).
 - The panel redraws every frame, also standing still with no patches; a step patch draws one arc per dash (+0.1 ms
   for 16 patches measured headless). Redraw on change first if a rendered run shows the HUD canvas heavy.

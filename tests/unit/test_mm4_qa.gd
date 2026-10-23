@@ -200,7 +200,7 @@ func test_a_right_pinned_flag_plate_clears_the_feed_whatever_its_length_and_corn
 					"on the screen")
 
 
-func test_the_marker_is_never_on_screen_over_a_card_the_frame_it_comes_up() -> void:
+func test_the_marker_is_under_a_card_the_frame_it_comes_up() -> void:
 	var s := _session()
 	await wait_physics_frames(2)
 	var hud := s.hud()
@@ -212,12 +212,8 @@ func test_the_marker_is_never_on_screen_over_a_card_the_frame_it_comes_up() -> v
 	var card := _card(s)
 	hud.place_flag_marker(camera, pole, true)
 	var plate: Control = hud._flag_marker._edge
-	var shown := hud._flag_marker.visible and plate.visible
-	assert_false(shown and plate.global_position.y < HUD_SIZE.y, "held back or off the screen that frame, at y %s" % plate.global_position.y)
-	await wait_process_frames(2)
-	hud.place_flag_marker(camera, pole, true)
-	assert_true(hud._flag_marker.visible)
-	assert_gte(plate.position.y, card.position.y + card.size.y, "then under the card")
+	assert_true(hud._flag_marker.visible and plate.visible, "shown the frame the card comes up")
+	assert_gte(plate.position.y, card.position.y + card.size.y, "under the card from the first frame")
 
 
 func test_the_flag_marker_sits_under_the_minimap_in_the_hud() -> void:

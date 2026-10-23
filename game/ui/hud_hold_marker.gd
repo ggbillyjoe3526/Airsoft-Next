@@ -25,9 +25,9 @@ const RING_HALO_ALPHA := 0.35
 const RING_AHEAD := 1.5
 
 ## Where a marker pinned at a side may sit (Hud fills it, the flag marker's stacks): `left` the top left of the left
-## stack's next place and `right_top` the top of the right one, `floor`
-## how low the left stack may reach, `panel` the minimap's rectangle, and `avoid` the flag marker's. An empty `panel`
-## and `avoid` (the default) mean there are none.
+## stack's next place and `right_top` the top of the right one, `floor_y` how low the left stack may reach, `step` the
+## stack's pin step, `flag_side` the side the flag marker is pinned to (-1 left, 1 right, 0 neither), `flag` its
+## rectangle and `panel` the minimap's. An empty `panel` and `flag` (the default) mean there are none.
 class Slots:
 	extends RefCounted
 
@@ -201,8 +201,8 @@ func _stack(box: Vector2, area: Vector2, slots: Slots) -> void:
 		y = slots.right_top
 		if slots.flag_side > 0:
 			y = maxf(y, slots.flag.position.y + slots.step)
-	# never nearer the screen's edge than hold_marker_edge (the flag's plates sit a little nearer)
-	var inset := maxf(slots.left.x, _cfg.hold_marker_edge)
+	# in line with the flag's plates in the same stack
+	var inset := slots.left.x
 	position = Vector2(inset if left else area.x - inset - box.x, maxf(y, _cfg.hold_marker_edge))
 
 
