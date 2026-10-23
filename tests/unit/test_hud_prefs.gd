@@ -24,6 +24,7 @@ func test_the_choices_survive_a_save_and_a_load() -> void:
 	s.hud.feed_corner = HudPrefs.FeedCorner.BOTTOM_LEFT
 	s.hud.feed_lines = HudPrefs.FeedLines.KEEP
 	s.hud.panel_opacity = 0.7
+	s.hud.minimap_turn = HudPrefs.MinimapTurn.FIXED
 	assert_true(s.save(SAVE))
 	var back := Settings.new(PlayTuning.new())
 	back.load_file(SAVE)
@@ -33,7 +34,7 @@ func test_the_choices_survive_a_save_and_a_load() -> void:
 func test_a_bad_value_falls_back_on_its_own() -> void:
 	var p := HudPrefs.new()
 	p.from_dict({"shape": 9, "colour": 2, "size": 99.0, "gap": 6, "opacity": "full", "outline": 1, "marker": false,
-			"feed_corner": 1.5, "feed_lines": 1, "panel_opacity": 0.2})
+			"feed_corner": 1.5, "feed_lines": 1, "panel_opacity": 0.2, "minimap_turn": 2})
 	var d := HudPrefs.new()
 	assert_eq(p.shape, d.shape, "no fifth shape")
 	assert_eq(p.colour, 2)
@@ -45,6 +46,7 @@ func test_a_bad_value_falls_back_on_its_own() -> void:
 	assert_eq(p.feed_corner, d.feed_corner, "not a whole number")
 	assert_eq(p.feed_lines, HudPrefs.FeedLines.KEEP)
 	assert_eq(p.panel_opacity, d.panel_opacity, "under the slider's range")
+	assert_eq(p.minimap_turn, HudPrefs.MinimapTurn.ROTATING, "no third turn")
 
 
 func test_an_old_save_without_the_tab_keeps_the_defaults() -> void:
@@ -61,6 +63,17 @@ func test_no_team_colour_among_the_crosshair_colours() -> void:
 	for c in HudPrefs.COLOURS:
 		for team in teams.colours:
 			assert_false(c.is_equal_approx(team), "%s is a team's colour" % c)
+
+
+func test_a_hud_saved_before_the_minimap_loads_rotating() -> void:
+	var data := HudPrefs.new().to_dict()
+	data.erase("minimap_turn")
+	data["shape"] = int(HudPrefs.Shape.DOT)
+	var p := HudPrefs.new()
+	p.minimap_turn = HudPrefs.MinimapTurn.FIXED
+	p.from_dict(data)
+	assert_eq(p.minimap_turn, HudPrefs.MinimapTurn.ROTATING, "the default, not what was set before")
+	assert_eq(p.shape, HudPrefs.Shape.DOT, "the rest still loads")
 
 
 func test_a_dynamic_crosshair_opens_with_the_spread_and_a_static_one_keeps_its_gap() -> void:
@@ -144,6 +157,10 @@ func test_the_tab_saves_a_pick_and_the_preview_follows() -> void:
 	assert_false(page.preview().panel().counted())
 	page._panels.value = 60.0
 	assert_almost_eq(s.hud.panel_opacity, 0.6, 0.001)
+	assert_eq(s.hud.minimap_turn, HudPrefs.MinimapTurn.ROTATING, "turning north up is the player's to pick")
+	page._turn.button(HudPrefs.MinimapTurn.FIXED).pressed.emit()
+	assert_eq(s.hud.minimap_turn, HudPrefs.MinimapTurn.FIXED)
+	assert_false(s.dirty, "a click saves at once")
 	screen.close()
 	var back := Settings.new(PlayTuning.new())
 	back.load_file(SAVE)
@@ -157,6 +174,7 @@ func test_the_tab_shows_the_saved_choices() -> void:
 	s.hud.shape = HudPrefs.Shape.CROSS_DOT
 	s.hud.marker_size = 1.5
 	s.hud.feed_lines = HudPrefs.FeedLines.KEEP
+	s.hud.minimap_turn = HudPrefs.MinimapTurn.FIXED
 	var screen := SettingsScreen.new()
 	screen.settings = s
 	screen.save_path = SAVE
@@ -166,6 +184,7 @@ func test_the_tab_shows_the_saved_choices() -> void:
 	assert_eq(page._shape.selected(), HudPrefs.Shape.CROSS_DOT)
 	assert_eq(page._marker_size.value, 150.0)
 	assert_eq(page._lines.selected(), HudPrefs.FeedLines.KEEP)
+	assert_eq(page._turn.selected(), HudPrefs.MinimapTurn.FIXED)
 	assert_eq(page._what_got_you.selected(), s.what_got_you)
 
 

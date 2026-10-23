@@ -105,7 +105,7 @@ var _debug: DebugView = null
 var _hud: Hud = null
 var _pause: PauseMenu = null
 var _map: MapData = null
-## What your side heard of the other team, for the minimap (MM4 draws it).
+## What your side heard of the other team, for the minimap (the HUD draws it).
 var _heard: MinimapHearing = null
 var _ui: CanvasLayer = null
 ## The next build step, and whether the match runs (all built) or is waiting to be seen once.
@@ -248,6 +248,8 @@ func _build_views_and_start() -> void:
 	_hud.set_board_match(map_name, tr("HUD_BOARD_SUB") % [tr(MatchOptions.MODE_NAME[mode]), bots, size, size],
 			difficulty == &"pro")
 	_hud.set_match_tail(tr("SUM_MATCH_TAIL") % [map_name, bots])
+	if not practice:
+		_hud.setup_minimap(_map, _play.minimap, _heard, map_name, state.characters.size())
 	_capture()
 
 
@@ -647,6 +649,8 @@ func _process(delta: float) -> void:
 	_hud.show_board(_input.scoreboard_held())
 	_hud.update(state, _input.zoom, delta)
 	_hud.place_team_markers(_eyes.camera, state.characters, watched, fraction)
+	_hud.update_minimap(state, watched, _view_yaw(watched, fraction), fraction, _bots.hold_spot(PLAYER_ID),
+			_bots.orders.held_middle)
 	if _flag != null:
 		var rs := state.round_state
 		_flag.refresh(rs.flag, rs.attackers)
@@ -666,6 +670,14 @@ func _show_orders(watched: Character, delta: float) -> void:
 	_hud.update_orders(_input.wheel(), _bots.order_of(PLAYER_ID), _bots.order_outcome, delta)
 	var held := watched == player and _bots.hold_spot(PLAYER_ID)
 	_hud.place_hold_marker(_eyes.camera, _bots.held_middle, held)
+
+
+## Where `watched` looks as the view shows it: your own mouse-look while you are in play, else their yaw `fraction` of
+## the way through the tick.
+func _view_yaw(watched: Character, fraction: float) -> float:
+	if watched == player and Elimination.is_in_play(player):
+		return _input.view_yaw
+	return lerp_angle(watched.prev_yaw, watched.yaw, fraction)
 
 
 ## Whose eyes you see through: with Spectate any bot on, the bot it follows; else your own, or once you are out in the

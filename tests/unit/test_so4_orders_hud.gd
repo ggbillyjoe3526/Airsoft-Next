@@ -251,8 +251,10 @@ func test_off_screen_it_is_held_inside_the_edge_with_a_chevron_and_no_ring() -> 
 		hud.place_hold_marker(camera, spot, true)
 		assert_ne(marker.pin, HudHoldMarker.Pin.NONE, str(spot))
 		var r := marker.get_rect()
-		assert_gte(r.position.x, edge - 0.5, "inside the left edge %s" % spot)
-		assert_lte(r.end.x, hud.size.x - edge + 0.5, "inside the right edge %s" % spot)
+		# held at a side it lines up with the flag marker's stack, a little nearer the edge
+		var side := minf(edge, hud.pin_point().x)
+		assert_gte(r.position.x, side - 0.5, "inside the left edge %s" % spot)
+		assert_lte(r.end.x, hud.size.x - side + 0.5, "inside the right edge %s" % spot)
 		assert_gte(r.position.y, edge - 0.5, "inside the top edge %s" % spot)
 		assert_lte(r.end.y, hud.size.y - edge + 0.5, "inside the bottom edge %s" % spot)
 		assert_false(marker.ring_shown())
@@ -265,7 +267,8 @@ func test_off_screen_it_is_held_inside_the_edge_with_a_chevron_and_no_ring() -> 
 func test_held_at_the_edge_it_stays_clear_of_the_flag_marker() -> void:
 	var camera := _camera(Vector3(0.0, 1.6, 0.0))
 	var marker := hud.hold_marker()
-	hud.place_hold_marker(camera, Vector3(60.0, 0.0, -10.0), true)
+	# Placed alone, with no stack to take a place in (Hud's stacks are tested in test_mm4_qa).
+	marker.place(camera, Vector3(60.0, 0.0, -10.0), true, hud.size, Rect2())
 	var spot_y := marker.position.y
 	# The flag marker's plate where the hold marker would sit.
 	var flag := Rect2(marker.position - Vector2(30.0, 0.0), Vector2(220.0, 41.0))

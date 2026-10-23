@@ -43,7 +43,7 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `lighting_config.gd` | The sun, the sky, ambient light, SSAO and exposure |
 | `flag_view_config.gd` | Attack / Defend's pole in the world: pole, base, rope, cleat, the flag cloth's size, travel and wave, the reach ring's colours |
 | `range_view_config.gd` | The practice range drawn: plate, post, figure and gear paint and sizes, a hit plate's swing, a figure's fall, the challenge's lit glow and START plate, the floor lines and wall boards |
-| `minimap_config.gd` | The minimap: the panel's size and caption room, the pinned markers' steps, how far it shows, the field drawing's scale, rules and colours, how far each sound places an enemy and how their patches blur, last and fade |
+| `minimap_config.gd` | The minimap: the panel's size, ring and caption room, what sits under it, the pinned markers' steps, the markers' sizes and the patches' look, how far it shows, the field drawing's scale, rules and colours, how far each sound places an enemy and how their patches blur, last and fade |
 | `team_config.gd` | Team names (translation keys) and colours |
 | `bot_config.gd`, `bot_tuning.tres` | How bots play (`BotConfig.load_default()`): senses, aim, firing, lanes and holds, routes, cover, searching, hunting, the holster |
 | `squad_config.gd` | Squad orders (part of `bot_tuning.tres`): Hold here's reach, wall gap, spacing, arrival and move distance |

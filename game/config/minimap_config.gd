@@ -8,6 +8,13 @@ extends Resource
 ## included (px).
 @export var size: float = 200.0
 @export var caption_room: float = 32.0
+## The panel's ring (px), and the gap between the panel and its caption's strip (px, part of caption_room).
+@export var ring: float = 2.0
+@export var caption_gap: float = 6.0
+## What sits under the caption (the moved What got you card, the markers pinned past the panel's side) starts this far
+## below it (px), and a pinned marker's left edge this far from the screen's (px).
+@export var under_gap: float = 18.0
+@export var pin_x: float = 28.0
 ## How far apart (px) the screen-edge markers pinned past the panel sit (BP5: a flag and a hold marker landed on top of
 ## each other): down its side, and across its top (a label's width).
 @export var pin_step_down: float = 48.0
@@ -68,3 +75,26 @@ extends Resource
 ## (its KNOWN_ISSUES); the dark rim keeps the dock's outline plain through a patch.
 @export var drop_colour: Color = Color(Color("16191e"), 0.95)
 @export var drop_edge: float = 0.3
+
+@export_group("Markers")
+## What the panel draws over the field, in px at 1080p. The outline (ink) under a marker keeps it plain on any ground.
+## A teammate's dot: its radius and outline width, and how far inside the edge a teammate pinned there sits; the pole
+## and the hold diamond pin the same way, mark_pad inside.
+@export var ink: Color = Color(Color("080d18"), 0.9)
+@export var dot_radius: float = 5.5
+@export var dot_outline: float = 1.8
+@export var dot_pad: float = 8.0
+@export var mark_pad: float = 9.0
+## A patch's fill under its ring, as a share of the team colour; a shot's disc from the middle to the edge as shares; the
+## dashes of a step's ring and the gap after each (px); the rings' widths.
+@export var patch_fill: float = 0.16
+@export var shot_alpha: Vector3 = Vector3(0.95, 0.75, 0.35)
+@export var dash: float = 5.0
+@export var dash_gap: float = 4.0
+@export var ring_width: float = 2.4
+@export var shot_ring_width: float = 1.6
+## The hold diamond's fill, as a share of the team colour.
+@export var hold_fill: float = 0.4
+## The area label's backing, as a share of the HUD's navy (the panel and caption are solid); all follow the panels'
+## opacity.
+@export var label_backing: float = 0.82

@@ -159,7 +159,7 @@ func test_the_marker_names_how_far_the_pole_is_and_hides_close_by() -> void:
 	var hud := session.hud()
 	hud.place_flag_marker(camera, pole, true)
 	assert_eq(hud.flag_marker_text(), "FLAG · 24 m")
-	camera.global_position = pole + Vector3(0.0, 1.7, -24.0) # facing away: kept on the bottom edge
+	camera.global_position = pole + Vector3(0.0, 1.7, -24.0) # facing away: pinned to the screen's side
 	hud.place_flag_marker(camera, pole, true)
 	assert_eq(hud.flag_marker_text(), "FLAG · 24 m")
 	camera.global_position = pole + Vector3(0.0, 1.7, 3.0)

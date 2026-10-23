@@ -24,6 +24,22 @@ const RING_HALO_ALPHA := 0.35
 ## The ring needs the spot this many radii ahead of you to draw, so no point of it is behind the camera.
 const RING_AHEAD := 1.5
 
+## Where a marker pinned at a side may sit (Hud fills it, the flag marker's stacks): `left` the top left of the left
+## stack's next place and `right_top` the top of the right one, `floor_y` how low the left stack may reach, `step` the
+## stack's pin step, `flag_side` the side the flag marker is pinned to (-1 left, 1 right, 0 neither), `flag` its
+## rectangle and `panel` the minimap's. An empty `panel` and `flag` (the default) mean there are none.
+class Slots:
+	extends RefCounted
+
+	var left := Vector2.ZERO
+	var right_top: float = 0.0
+	var floor_y: float = INF
+	var step: float = 0.0
+	var flag_side: int = 0
+	var flag := Rect2()
+	var panel := Rect2()
+
+
 var pin: Pin = Pin.NONE
 
 var _cfg: HudConfig = null
@@ -76,9 +92,12 @@ func setup(cfg: HudConfig, colour: Color) -> void:
 
 
 ## Places the marker over the held spots' middle `spot` as seen by `camera`, inside `area` (the HUD's size); hidden when
-## `show` is false. `avoid` is the flag marker's rectangle (empty when it is hidden): a marker held at the edge steps
-## clear of it, below it, or above when there is no room below.
-func place(camera: Camera3D, spot: Vector3, show: bool, area: Vector2, avoid: Rect2) -> void:
+## `show` is false. Held at the left or right it takes its place in that side's stack in `slots` (under the flag
+## marker's plate when that is pinned there too; past the left stack's floor it goes to the right instead); never over
+## the minimap's panel; held at the top or bottom it steps clear of the flag marker, below it, or above when there is
+## no room below. `avoid` is the flag marker's rectangle (empty when hidden); without `slots` a marker held at a side is
+## simply kept inside the screen.
+func place(camera: Camera3D, spot: Vector3, show: bool, area: Vector2, avoid: Rect2, slots: Slots = null) -> void:
 	visible = show
 	if not show:
 		return
@@ -110,10 +129,21 @@ func place(camera: Camera3D, spot: Vector3, show: bool, area: Vector2, avoid: Re
 	var box := _fit(pin)
 	if pin == Pin.NONE:
 		position = Vector2(at.x - box.x * 0.5, at.y - box.y)
+		if slots != null and get_rect().intersects(slots.panel):
+			# over the map's panel: held beside it instead, no tail
+			pin = Pin.EDGE
+			box = _fit(pin)
+			position = Vector2(slots.panel.end.x + _cfg.hold_marker_gap, at.y - box.y)
+	elif slots != null and (pin == Pin.LEFT or pin == Pin.RIGHT):
+		_stack(box, area, slots)
+		if slots.flag_side == 0:
+			_step_clear(avoid, area) # a flag marker over its pole near this edge is not in the stack
 	else:
 		at.x = clampf(at.x, edge + box.x * 0.5, area.x - edge - box.x * 0.5)
 		at.y = clampf(at.y, edge + box.y, area.y - edge)
 		position = Vector2(at.x - box.x * 0.5, at.y - box.y)
+		if slots != null and get_rect().intersects(slots.panel):
+			position.x = slots.panel.end.x + _cfg.hold_marker_gap
 		_step_clear(avoid, area)
 	if pin != was:
 		queue_redraw()
@@ -155,6 +185,25 @@ func _fit(held: Pin) -> Vector2:
 	_tail[1] = Vector2(mid + TAIL.x * 0.5, plate.y)
 	_tail[2] = Vector2(mid, plate.y + TAIL.y)
 	return size
+
+
+## Held at a side: in that side's stack (see place()), the chevron still pointing the way the spot is.
+func _stack(box: Vector2, area: Vector2, slots: Slots) -> void:
+	var left := pin == Pin.LEFT
+	var y := 0.0
+	if left:
+		y = slots.left.y
+		if slots.flag_side < 0:
+			y = maxf(y, slots.flag.position.y + slots.step)
+		if y + box.y > slots.floor_y:
+			left = false # the left stack would reach the feed
+	if not left:
+		y = slots.right_top
+		if slots.flag_side > 0:
+			y = maxf(y, slots.flag.position.y + slots.step)
+	# in line with the flag's plates in the same stack
+	var inset := slots.left.x
+	position = Vector2(inset if left else area.x - inset - box.x, maxf(y, _cfg.hold_marker_edge))
 
 
 ## Held at the edge: moves clear of `avoid` (the flag marker), below it when it fits, else above.

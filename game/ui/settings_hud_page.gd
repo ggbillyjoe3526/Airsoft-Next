@@ -3,8 +3,8 @@ extends HBoxContainer
 ## The settings' HUD tab (concept `hud-options.png`; the browser game's Settings › HUD and Crosshair): on the left the
 ## crosshair (shape, colour, size, thickness, gap, opacity, dynamic or static spread, outline) and the hit marker (on or
 ## off, colour, size); on the right a live preview (HudPreview), the ammo counter, where the hit feed sits and whether
-## its lines fade or stay, the navy panels' opacity and What got you. Every choice lands in the settings' HudPrefs at
-## once and `changed` asks the screen to save it.
+## its lines fade or stay, the navy panels' opacity and What got you, and the minimap's turn (Rotating or Fixed, drawn
+## as two small samples). Every choice lands in the settings' HudPrefs at once and `changed` asks the screen to save it.
 
 ## A choice changed: saved now (`immediate`, a click) or a moment after a slider stops.
 signal changed(immediate: bool)
@@ -20,6 +20,13 @@ const NOTE_GAP := 14
 const NOTE_SIZE := 15
 const PX := "%d px"
 const PERCENT := "%d%%"
+## The minimap's samples: the map they draw, the gap between them (px) and the sample's scene: you at THUMB_AT looking
+## THUMB_HEADING degrees clockwise from north, a teammate each at THUMB_TEAM (the second one hit).
+const THUMB_MAP := "depot"
+const THUMB_GAP := 8
+const THUMB_AT := Vector2(-10.0, 1.5)
+const THUMB_HEADING := 60.0
+const THUMB_TEAM: Array[Vector2] = [Vector2(-3.5, -3.5), Vector2(-13.5, 5.5), Vector2(20.0, 2.0)]
 
 var _screen: SettingsScreen = null
 var _shape: MenuChoice = null
@@ -38,6 +45,9 @@ var _corner: MenuChoice = null
 var _lines: MenuChoice = null
 var _panels: HSlider = null
 var _what_got_you: MenuChoice = null
+var _turn: MenuChoice = null
+var _thumbs: Array[Thumb] = []
+var _thumbs_row: HBoxContainer = null
 var _preview: HudPreview = null
 
 
@@ -131,6 +141,7 @@ func build(screen: SettingsScreen) -> void:
 	_what_got_you.picked.connect(func(i: int) -> void:
 		_screen.settings.what_got_you = i as Settings.WhatGotYou
 		changed.emit(true))
+	_build_minimap(right)
 
 
 ## Shows the settings as they are now.
@@ -152,6 +163,8 @@ func refresh() -> void:
 	_lines.put(p.feed_lines)
 	_screen.set_slider(_panels, p.panel_opacity * 100.0)
 	_what_got_you.put(_screen.settings.what_got_you)
+	_turn.put(p.minimap_turn)
+	_show_turn(p.minimap_turn)
 	_preview.show_prefs(p)
 
 
@@ -161,6 +174,75 @@ func preview() -> HudPreview:
 
 func _prefs() -> HudPrefs:
 	return _screen.settings.hud
+
+
+## The minimap's section: Turn (Rotating or Fixed) with a note under it, and the two samples beside them.
+func _build_minimap(right: VBoxContainer) -> void:
+	var block := HBoxContainer.new()
+	right.add_child(block)
+	var rows := VBoxContainer.new()
+	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rows.add_theme_constant_override("separation", SettingsScreen.ROW_GAP)
+	block.add_child(rows)
+	_screen.add_section(rows, tr("SETTINGS_MINIMAP"))
+	_turn = _choice(rows, "SETTINGS_MINIMAP_TURN", ["SETTINGS_MINIMAP_ROTATING", "SETTINGS_MINIMAP_FIXED"], RIGHT_LABEL,
+			"")
+	_turn.picked.connect(func(i: int) -> void:
+		_prefs().minimap_turn = i as HudPrefs.MinimapTurn
+		_show_turn(_prefs().minimap_turn)
+		changed.emit(true))
+	rows.add_child(_turn_note())
+	_thumbs_row = HBoxContainer.new()
+	_thumbs_row.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_thumbs_row.add_theme_constant_override("separation", THUMB_GAP)
+	block.add_child(_thumbs_row)
+	for key: String in ["SETTINGS_MINIMAP_ROTATING", "SETTINGS_MINIMAP_FIXED"]:
+		var thumb := Thumb.new(HudStyle.caps(key))
+		_thumbs_row.add_child(thumb)
+		_thumbs.append(thumb)
+	# The samples draw Depot's field, built once the first time the tab is seen.
+	_thumbs_row.visibility_changed.connect(_build_thumbs)
+
+
+## The note under Turn: each word's lead in the text colour and bold.
+func _turn_note() -> RichTextLabel:
+	var note := RichTextLabel.new()
+	note.bbcode_enabled = true
+	note.fit_content = true
+	note.scroll_active = false
+	note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	note.add_theme_font_override("normal_font", GameTheme.font(600))
+	note.add_theme_font_override("bold_font", GameTheme.font(800))
+	note.add_theme_font_size_override("normal_font_size", NOTE_SIZE)
+	note.add_theme_font_size_override("bold_font_size", NOTE_SIZE)
+	note.add_theme_color_override("default_color", GameTheme.MUTED)
+	var lead := GameTheme.TEXT.to_html(false)
+	note.text = "[b][color=#%s]%s[/color][/b] %s [b][color=#%s]%s[/color][/b] %s" % [lead,
+			tr("SETTINGS_MINIMAP_ROTATING_LEAD"), tr("SETTINGS_MINIMAP_ROTATING_NOTE"), lead,
+			tr("SETTINGS_MINIMAP_FIXED_LEAD"), tr("SETTINGS_MINIMAP_FIXED_NOTE")]
+	return note
+
+
+## Marks the sample of the turn chosen.
+func _show_turn(turn: HudPrefs.MinimapTurn) -> void:
+	for i in _thumbs.size():
+		_thumbs[i].mark(i == turn)
+
+
+## The first time the samples are on screen: Depot's field once, the same sample character and teammates in both.
+func _build_thumbs() -> void:
+	if not _thumbs_row.is_visible_in_tree() or _thumbs[0].built():
+		return
+	var cfg := MinimapConfig.new()
+	var map := MapData.load_map(THUMB_MAP, MapStyle.new(), 1)
+	if not map.ok():
+		return
+	var field := MinimapField.build(map, cfg)
+	var textures := HudMinimap.textures_of(field)
+	var teams := TeamConfig.new()
+	for i in _thumbs.size():
+		_thumbs[i].build(cfg, textures, field, teams.colours[0], teams.colours[1], i == 0)
 
 
 ## A choice landed: the preview follows and the screen saves it.
@@ -230,3 +312,74 @@ func _note(row: Control, key: String) -> Label:
 	note.add_theme_stylebox_override("normal", gap)
 	row.add_child(note)
 	return note
+
+
+## One sample of the minimap's turn: the panel as it shows with that turn, framed in yellow while it is the one chosen,
+## its name in a tag at the bottom left.
+class Thumb:
+	extends Control
+
+	const SIDE := 104.0
+	const OUTLINE := 2.0
+	const TAG_SIZE := 11
+	const TAG_SPACING := 0.1
+	const TAG_PAD := Vector2i(7, 2)
+	const TAG_BACKING := 0.9
+
+	var _on: bool = false
+	var _frame: Control = null
+	var _view: HudMinimap.View = null
+	var _tag: Label = null
+	var _built: bool = false
+
+	func _init(words: String) -> void:
+		var room := (OUTLINE + OUTLINE) * 2.0 + SIDE
+		custom_minimum_size = Vector2(room, room)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_frame = Control.new()
+		_frame.position = Vector2.ONE * (OUTLINE + OUTLINE)
+		_frame.size = Vector2.ONE * SIDE
+		_frame.clip_contents = true
+		_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_frame)
+		_tag = HudStyle.label(_frame, TAG_SIZE, 800, GameTheme.MUTED, HORIZONTAL_ALIGNMENT_LEFT, TAG_SPACING)
+		_tag.text = words
+		_tag.add_theme_stylebox_override("normal", HudStyle.panel_box(TAG_BACKING, TAG_PAD.x, TAG_PAD.y))
+		_tag.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE)
+		_tag.grow_vertical = Control.GROW_DIRECTION_BEGIN
+
+	func built() -> bool:
+		return _built
+
+	## Draws the sample on `field`'s `textures`: you and the teammates (`team`'s colour), the field turning with you or not.
+	func build(cfg: MinimapConfig, textures: Array[Texture2D], field: MinimapField, team: Color, enemy: Color,
+			rotating: bool) -> void:
+		_built = true
+		_view = HudMinimap.View.new()
+		var inner := cfg.size - cfg.ring * 2.0
+		_view.size = Vector2.ONE * inner
+		_view.scale = Vector2.ONE * (SIDE / inner)
+		_view.setup(cfg, textures, field.scale, field.origin, THUMB_TEAM.size())
+		_frame.add_child(_view)
+		_frame.move_child(_view, 0)
+		_view.begin(THUMB_AT, 0, -deg_to_rad(THUMB_HEADING), rotating, team, enemy)
+		for i in THUMB_TEAM.size():
+			_view.add_dot(THUMB_TEAM[i], cfg.out_colour if i == 1 else team, 0)
+		_view.queue_redraw()
+
+	func mark(on: bool) -> void:
+		_on = on
+		_tag.add_theme_color_override("font_color", GameTheme.TEXT if on else GameTheme.MUTED)
+		queue_redraw()
+
+	func _draw() -> void:
+		var line := Rect2(Vector2.ONE * (OUTLINE + OUTLINE - 1.0), Vector2.ONE * (SIDE + 2.0))
+		draw_rect(line, GameTheme.LINE, false, 1.0)
+		if not _on:
+			return
+		var side := custom_minimum_size.x
+		var inner := side - OUTLINE * 2.0
+		draw_rect(Rect2(0.0, 0.0, side, OUTLINE), GameTheme.YELLOW)
+		draw_rect(Rect2(0.0, side - OUTLINE, side, OUTLINE), GameTheme.YELLOW)
+		draw_rect(Rect2(0.0, OUTLINE, OUTLINE, inner), GameTheme.YELLOW)
+		draw_rect(Rect2(side - OUTLINE, OUTLINE, OUTLINE, inner), GameTheme.YELLOW)
