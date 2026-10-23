@@ -27,7 +27,7 @@ static func of(c: Character, view_yaw: float, view_pitch: float, challenge: bool
 	s.position = c.position
 	s.yaw = view_yaw
 	s.pitch = view_pitch
-	s.crouched = c.crouch_amount > 0.5
+	s.crouched = c.crouch_amount > 0.5 and not c.vault.active # a vault tucks the body, it is no crouch
 	s.slot = c.armament.active
 	s.holstered = c.armament.holstered
 	s.challenge_on = challenge
