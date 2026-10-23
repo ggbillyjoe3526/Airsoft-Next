@@ -83,30 +83,6 @@ acceptance:
 status: open
 attempts: 0
 
-## SP2 · Muffling through walls
-tier: core
-perf: required
-touches: game/sim/sound_path.gd, game/sim/README.md, game/ai/bot_hearing.gd, game/ai/README.md,
-  game/play/sound_occlusion.gd, game/play/sim_audio.gd, game/play/README.md, tests/unit/test_sound_path.gd,
-  tests/unit/test_sound_occlusion.gd
-contract: Simulation and presentation (1); Physics behind two interfaces (4); Data, not literals (6)
-acceptance:
-  1. SoundPath.blocked_share(query, ear, feet, heights, hit) (the browser's sim/soundPath.ts, static, no Node): the
-     share of rays from the ear to the feet raised by each height that level geometry blocks, through WorldQuery.
-     BotHearing uses it in place of its own copy; every bot test passes unchanged.
-  2. Every sound another character makes (shot, power part, mechanism, step, vault, a hit on them) plays on the bus
-     for its share from the listener's eyes: open, half (low cover) or full (a wall), at the browser's level for that
-     share. A silenced shot takes the more muffled corner of the two and both levels. A BB impact casts one ray that
-     stops surface_gap short of its surface. Your own sounds and interface cues are never muffled.
-  3. Budget: a character's share is reused for refresh_ticks; a tick casts at most ray_budget rays (a sound over the
-     budget uses its character's last share, an impact over it plays open); no ray beyond reach, where the share
-     closes to full over far_ramp. Rays per tick (max and mean) and the time they cost on the smoke match are
-     measured and recorded; a tick allocates nothing.
-  4. GUT tests on a BoxWorld: open, half behind a barrier, full behind a wall, the impact's gap, the budget held, the
-     cache reused, the listener changing to the teammate you watch once out.
-status: open
-attempts: 0
-
 ## SP4 · Kit rustle, landing thuds, whistles and ambience calls
 tier: core
 perf: required
