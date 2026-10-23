@@ -46,7 +46,7 @@ func test_the_sidecar_is_typed() -> void:
 
 
 func test_a_row_major_matrix_is_read_as_given() -> void:
-	var s := FigureSidecar.parse(JSON.stringify({"clips": [], "parts": [], "replicaOnGrip": {"rifle": BLENDER_ROWS}}))
+	var s := FigureSidecar.parse(JSON.stringify({"clips": [], "parts": ["Body"], "replicaOnGrip": {"rifle": BLENDER_ROWS}}))
 	var t: Transform3D = s.replica_on_grip[&"rifle"]
 	assert_eq(t.origin, Vector3(0.5, 0.25, -0.125))
 	assert_eq(t.basis.x, Vector3(0.0, -1.0, 0.0), "the first column")
@@ -93,4 +93,20 @@ func test_an_unreadable_sidecar_reads_as_null() -> void:
 	assert_null(FigureSidecar.parse(JSON.stringify({"clips": [{"seconds": 1.0}], "parts": []})), "a clip with no name")
 	assert_null(FigureSidecar.parse(JSON.stringify({"clips": []})), "no parts")
 	assert_null(FigureSidecar.read("res://nowhere/human.json"))
-	assert_not_null(FigureSidecar.parse(JSON.stringify({"clips": [], "parts": []})))
+	assert_not_null(FigureSidecar.parse(JSON.stringify({"clips": [], "parts": ["Body"]})))
+
+
+func test_an_empty_parts_list_reads_as_null() -> void:
+	assert_null(FigureSidecar.parse(JSON.stringify({"clips": [], "parts": []})), "nothing to draw: capsules")
+
+
+func test_odd_sidecars_read_without_a_script_error() -> void:
+	for text: String in ["", "null", "[]", "{}", "{\"clips\": 5, \"parts\": [\"Body\"]}",
+			"{\"clips\": [null], \"parts\": [\"Body\"]}", "{\"clips\": [], \"parts\": [1]}",
+			"{\"clips\": [{\"name\": \"Idle\", \"seconds\": \"x\"}], \"parts\": [\"Body\"]}",
+			"{\"clips\": [], \"parts\": [\"Body\"], \"replicaOnGrip\": 4, \"magazineInHand\": [1]}",
+			"{\"clips\": [], \"parts\": [\"Body\"], \"replicaOnGrip\": {\"rifle\": [[1,2],[3]]}, " +
+			"\"magazineInHand\": {\"a\": 5, \"b\": {}}}", "\u0001"]:
+		FigureSidecar.parse(text, "odd")
+	var s := FigureSidecar.parse("{\"clips\": [], \"parts\": [\"Body\"], \"replicaOnGrip\": {\"rifle\": [[1,2],[3]]}}")
+	assert_eq(s.replica_on_grip[&"rifle"], Transform3D.IDENTITY, "a short matrix is identity")

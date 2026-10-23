@@ -212,3 +212,30 @@ func test_the_fade_sets_transparency_on_every_mesh() -> void:
 	b.set_fade(1.0)
 	for mi in b.meshes:
 		assert_eq(mi.transparency, 0.0, "solid again")
+
+
+func test_any_id_wears_one_of_the_heads() -> void:
+	for id: int in [-1, -4, -5, 4, 5, 7, 1 << 40, 9223372036854775807, -9223372036854775808]:
+		var b := _body(FigureMix.HUMAN, id)
+		assert_true(config.heads.has(String(b.head)), "id %d" % id)
+		assert_not_null(b.skeleton.get_node_or_null(NodePath(String(b.head))), "its head is there, id %d" % id)
+
+
+func test_a_mesh_the_sidecar_does_not_list_is_not_drawn() -> void:
+	var m := FigureModels.new(config)
+	m.load_kinds()
+	m._kinds[FigureMix.ROBOT].sidecar = FigureSidecar.parse(JSON.stringify({"clips": [], "parts": ["Body"]}))
+	var b := FigureBody.new()
+	assert_true(b.setup(m, FigureMix.ROBOT, 0, 0, RED, 0.0, config.lod_high))
+	add_child_autofree(b)
+	var left := b.skeleton.find_children("*", "MeshInstance3D", false, false)
+	assert_eq(left.size(), 1, "Body only (no LOD2 listed, so no twin)")
+	assert_eq(b.meshes.size(), 1)
+
+
+func test_no_glow_leaves_the_paint_unlit() -> void:
+	var b := _body(FigureMix.HUMAN, 0)
+	var paint := b.meshes[0].get_surface_override_material(1) as BaseMaterial3D
+	assert_false(paint.emission_enabled)
+	var source := b.meshes[0].mesh.surface_get_material(1) as BaseMaterial3D
+	assert_ne(source.albedo_color, RED, "the source stays as modelled")

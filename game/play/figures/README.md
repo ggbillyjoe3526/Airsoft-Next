@@ -12,4 +12,4 @@ write it (docs/ARCHITECTURE.md › Contracts 1). Until FI7 they show only with D
 | `figure_body.gd` | `FigureBody`: one character's figure: one head by id, a level of detail by distance (visibility ranges on the Mesh detail's lines), one shadow twin, the Team* paint, bones by name, the fade through `transparency`; stands in Idle |
 | `figure_mix.gd` | `FigureMix`: who is a robot: half of each team, from the match seed on a stream of its own |
 
-Tests: `tests/unit/test_figure_models.gd`, `test_figure_body.gd`, `test_figure_mix.gd`.
+Tests: `tests/unit/test_figure_models.gd`, `test_figure_body.gd`, `test_figure_mix.gd`, `test_figure_view.gd`.

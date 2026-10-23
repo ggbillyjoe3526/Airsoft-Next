@@ -8,6 +8,15 @@
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus 5.5 (worker) | pass | pending | – |
 
+QA attempt 1: Pass (advisories fixed); performance Pass. The fixes, with QA's probes folded into the tests
+(`tests/unit/test_figure_view.gd`, new, and `test_figure_models.gd`, `test_figure_body.gd`, `test_figure_mix.gd`):
+
+- `FigureView.set_body` takes the old body out of the tree before freeing it, so a toggle never holds two bodies or
+  draws a body beside the capsules for a frame.
+- `PlaySession._set_rigged` loads nothing when there are no figures (the range).
+- `FigureSidecar.parse` refuses a sidecar with no parts, `FigureModels` a model with none of its sidecar's parts (both
+  warn, the kind stays capsules), and `FigureBody` frees any skeleton mesh the sidecar doesn't list.
+
 ## Decisions
 
 - **The plan's defaults** (`plan/step23-figures.md` › 5): visibility lines [12, 28] m on Mesh detail High and Ultra,
@@ -37,10 +46,10 @@
 
 ## Checks
 
-- `tools/check.sh`: gdlint, changelog notes, unit tests (2,580 passing, 0 failing), the smoke test and the licence
+- `tools/check.sh`: gdlint, changelog notes, unit tests (2,596 passing, 0 failing, after the QA fixes), the smoke test and the licence
   notices pass. The first run failed `test_saved_configs` (play_tuning.tres didn't write `figures` out): fixed by
   saving the FigureConfig sub-resource in the .tres.
-- `tests/unit/test_figure_models.gd` (7), `test_figure_body.gd` (11), `test_figure_mix.gd` (9) pass: the sidecars
+- `tests/unit/test_figure_models.gd` (9), `test_figure_body.gd` (14), `test_figure_mix.gd` (10), `test_figure_view.gd` (10) pass: the sidecars
   typed and looped; a missing or unreadable sidecar leaves capsules; triangles at 5, 10, 20 and 40 m (human HighCut
   19,966 / 19,966 / 6,752 / 2,337 on High) and every head, kind and line set within 60k / 20k / 6k; each head index
   wears its head with the others freed; margins and the radio's far line; one twin a figure; Team* surfaces shared per
@@ -58,6 +67,14 @@ plate carrier, HighCut head), each in Idle with its replica at the capsules' hol
 - Tick Dev › Rigged figures in a match on Depot: humans and robots on both teams, in Idle, each team's colour on the
   Team* parts; untick it: the capsules come back.
 - Walk away from a figure: no flicker at 12 m and 28 m (6 m and 16 m on Low and Medium) and the shadow always there.
+
+## Advisories left
+
+- Whether a level hidden by its visibility range is still skinned is unconfirmed headless: measure on the owner's GPU
+  (11 figures at 60 m, Visual Profiler, range-hidden against `visible = false`).
+- ShaderPrewarm doesn't warm the figures' materials (FI7).
+- The first toggle loads the models synchronously, about 48 ms (FI7 loads them at session build).
+- Idle keeps running on hidden figures (FI2 replaces the AnimationPlayer).
 
 ## Known issues left
 

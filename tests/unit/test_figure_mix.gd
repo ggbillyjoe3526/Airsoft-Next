@@ -163,3 +163,21 @@ func test_freeing_a_session_leaves_no_orphan() -> void:
 	p.free()
 	await wait_process_frames(2)
 	assert_eq(int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)), orphans)
+
+
+func test_the_mix_leaves_the_global_generator_alone_and_takes_any_seed() -> void:
+	var teams := _teams(THREE_V_THREE)
+	seed(99)
+	var a := randi()
+	seed(99)
+	FigureMix.pick(12345, teams, true, SALT)
+	assert_eq(randi(), a, "global rng untouched")
+	assert_eq(FigureMix.pick(0, PackedInt32Array(), true, SALT).size(), 0)
+	assert_eq(FigureMix.pick(-7, teams, true, SALT), FigureMix.pick(-7, teams, true, SALT))
+	assert_eq(FigureMix.pick(1 << 40, teams, true, SALT), FigureMix.pick((1 << 40) & 0xFFFFFFFF, teams, true, SALT),
+			"32-bit seeds")
+	assert_eq(FigureMix.pick(3, _teams([2, 2, 5]), true, SALT).size(), 3, "any team ids")
+	var distinct: Dictionary[PackedInt32Array, bool] = {}
+	for sd in 100:
+		distinct[FigureMix.pick(sd, teams, true, SALT)] = true
+	assert_gt(distinct.size(), 3)

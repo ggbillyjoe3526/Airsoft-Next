@@ -85,6 +85,9 @@ static func parse(text: String, source: String = "sidecar") -> FigureSidecar:
 			push_warning("FigureSidecar: %s has a part that isn't a name; the figures stay capsules" % source)
 			return null
 		s.parts.append(part as String)
+	if s.parts.is_empty():
+		push_warning("FigureSidecar: %s lists no parts; the figures stay capsules" % source)
+		return null
 	var grip: Variant = d.get("replicaOnGrip")
 	if grip is Dictionary:
 		for key: Variant in grip:

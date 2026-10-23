@@ -59,6 +59,10 @@ func setup(models: FigureModels, kind: int, figure_id: int, team: int, colour: C
 		if level == _config.shadow_level:
 			coarsest.append(mi.mesh)
 			skin = mi.skin
+	# A mesh the sidecar doesn't list would draw at every range: it goes.
+	for child in skeleton.get_children():
+		if child is MeshInstance3D and not meshes.has(child as MeshInstance3D):
+			child.free()
 	if not coarsest.is_empty():
 		var twin := MeshInstance3D.new()
 		twin.name = "ShadowTwin"

@@ -112,6 +112,8 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 ## null, or a kind it couldn't load, the capsules again (the body freed).
 func set_body(models: FigureModels, kind: int, lines: Vector2) -> void:
 	if _body != null:
+		# Out of the tree at once, so the old body never draws beside the capsules or a new body this frame.
+		remove_child(_body)
 		_body.queue_free()
 		_body = null
 	if models != null and models.has_kind(kind):

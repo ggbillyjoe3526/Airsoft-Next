@@ -132,10 +132,17 @@ func _load(name: String) -> Kind:
 	# The clips live in the scene's AnimationPlayer: take its library, loop it as the sidecar says, free the copy.
 	var probe := packed.instantiate()
 	var players := probe.find_children("*", "AnimationPlayer", true, false)
+	var named := 0
+	for part in side.parts:
+		if probe.find_child(part, true, false) is MeshInstance3D:
+			named += 1
 	if not players.is_empty():
 		var player := players[0] as AnimationPlayer
 		k.library = player.get_animation_library(&"")
 	probe.free()
+	if named == 0:
+		push_warning("FigureModels: %s.glb has none of its sidecar's parts; its figures stay capsules" % base)
+		return null
 	if k.library == null:
 		push_warning("FigureModels: %s.glb has no clips; its figures stay capsules" % base)
 		return null

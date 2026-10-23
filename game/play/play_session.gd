@@ -1224,6 +1224,9 @@ func _set_rigged(on: bool) -> void:
 	if on == _rigged:
 		return
 	_rigged = on
+	# No figures (the range): nothing to load.
+	if _figures.is_empty():
+		return
 	if on and _figure_models == null:
 		_figure_models = FigureModels.new(_play.figures)
 		_figure_models.load_kinds()
