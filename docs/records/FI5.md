@@ -1,12 +1,12 @@
 # FI5 · The hit flinch, on figures and in first person
 
-**Review:** critic pending · qa Pass · performance Pass
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus 5.5 (worker) | pass; gate 2,643 passing | – | – |
+| 2026-10-23 | 1 | Opus 5.5 (worker) | pass; gate 2,643 passing | Accept 8/8 | – |
 | 2026-10-23 | 1, QA | Opus 5.5 (worker) | QA Pass (`test_figure_flinch_qa.gd`, 14 tests); two small fixes after it | – | – |
 
 Performance: Pass. The flinch is a few vector operations a figure a frame, it allocates nothing, and hits are routed
@@ -64,6 +64,10 @@ from behind (tipped forward about the hip pivot), a robot from behind hit from i
 - A far rigged figure takes the flinch only every far_stride-th frame, though each time at its gathered time.
 - The Announcer crashes on a synthetic CHARACTER_HIT whose target is out of range. That isn't FI5 code, and the
   simulation never emits one (QA's probe).
+- From the critic: far rigged figures take the tilt every `far_stride`-th frame, so at range the 0.05 s rise lands
+  near its peak and the ease back steps (the timing is right, the shape coarse); the `figure_body.gd` doc line at the
+  top runs past the house wrap. The unread `hit_jolt` row (data/accessibility.md, `MotionScale.hit_jolt`) is kept for
+  a later camera jolt; remove it if none comes by the bug pass.
 
 ## Outside `touches`
 
