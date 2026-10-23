@@ -45,7 +45,8 @@
   doesn't touch that page).
 - **Outside `touches`:** `game/main.gd`, `game/ui/graphics_start_up.gd` (new), `game/save/graphics_apply.gd`
   (`pick_for_run`), `game/save/dev_settings.gd` and `game/ui/settings_screen.gd` (the Dev switch, `show_graphics`),
-  `game/config/README.md`, `docs/ARCHITECTURE.md`, `docs/KNOWN_ISSUES.md`, and the GR4 tests' hooks.
+  `game/config/README.md`, `docs/ARCHITECTURE.md`, `docs/KNOWN_ISSUES.md`, the GR4 tests' hooks, and
+  `tools/unit_tests.sh` (the hang limit, below).
 - **Roadmap:** steps 12 to 19 carry no "Built." mark, so step 20's line is left as it is.
 
 ## What the owner checks on his PC
@@ -81,7 +82,9 @@
 - GR4's guard and notice tests (`test_graphics_guard.gd`, `test_gr4_qa.gd`) pass through `GraphicsStartUp`.
 - Xvfb screenshots at 1080p (Compatibility): the first start's card matches `first-run.png`; the HUD line under the
   score bar at a round's end matches `graphics-step-down.png`.
-- `tools/check.sh`: see the attempt row.
+- `tools/check.sh`: gdlint, changelog notes, unit tests (2122 passing), the smoke test and the licence notices pass.
+  The suite now takes 605 s here, over `tools/unit_tests.sh`'s 600 s hang limit (it timed out with every test
+  passed), so the limit is 900 s, inside CI's 20-minute job.
 
 ## Known issues left
 
