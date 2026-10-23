@@ -32,3 +32,29 @@ static func name_for(tag: String) -> String:
 	if m.get_string(3) != "":
 		return "%s %s %s" % [base, m.get_string(3).capitalize(), m.get_string(4)]
 	return base if m.get_string(5) == "0" else "%s.%s" % [base, m.get_string(5)]
+
+
+## Whether version name `a` is a later build than `b`: "0.1 Dev 2" after "0.1 Dev 1", any Beta after every Dev, the
+## release ("0.1") after its Betas, "0.1.1" after "0.1". False when either isn't a version name (nothing is known).
+static func newer(a: String, b: String) -> bool:
+	var ka := _order(a)
+	var kb := _order(b)
+	if ka.is_empty() or kb.is_empty():
+		return false
+	for i in ka.size():
+		if ka[i] != kb[i]:
+			return ka[i] > kb[i]
+	return false
+
+
+## A name's place in the order: [major, minor, stage (Dev 0, Beta 1, release 2), number or patch]; empty if it isn't one.
+static func _order(version_name: String) -> PackedInt32Array:
+	var m := RegEx.create_from_string(NAME_PATTERN).search(version_name)
+	if m == null:
+		return PackedInt32Array()
+	var stage := 2
+	var number := m.get_string(6).to_int()
+	if m.get_string(4) != "":
+		stage = 0 if m.get_string(4) == "Dev" else 1
+		number = m.get_string(5).to_int()
+	return PackedInt32Array([m.get_string(1).to_int(), m.get_string(2).to_int(), stage, number])
