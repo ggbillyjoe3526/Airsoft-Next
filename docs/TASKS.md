@@ -31,7 +31,7 @@ touches: game/ui/hud_minimap.gd, game/ui/hud.gd, game/ui/hud_flag_marker.gd, gam
 contract: Simulation and presentation (1); Data, not literals (6); Saves (8); Headless (9)
 acceptance:
   1. The panel, caption, area label, markers, the moved What got you card and the Settings row look as the concepts
-     in `/mnt/project-files/concepts/step18-minimap/` show (awaiting the owner's approval); the panels' opacity
+     in `/mnt/project-files/concepts/step18-minimap/` show (approved 2026-10-22); the panels' opacity
      applies; nothing overlaps at 1280×720 and 1920×1080 with the feed in either corner and the Tab scoreboard up.
   2. Centred on the character the view is through; Rotating turns the field so the view is up, Fixed keeps north (-z)
      up and turns the arrow. Settings › HUD › Minimap: Rotating / Fixed, saved in HudPrefs (Rotating by default; an

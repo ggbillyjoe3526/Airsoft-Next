@@ -23,7 +23,8 @@ const MIDDLE_SIZE := Vector2(1500.0, 260.0)
 const MIDDLE_RAISE := 200.0
 ## The finished match's XP (XpCard) hangs this far under the banner.
 const XP_GAP := 28.0
-## "What got you" on the left, its top-left corner (px).
+## "What got you" on the left, its top-left corner (px): under the minimap's caption when there is a minimap (the
+## range has none: CARD_TOP).
 const CARD_LEFT := 32.0
 const CARD_TOP := 250.0
 const SKIP_KEY_PAD := Vector2i(10, 4)
@@ -59,6 +60,7 @@ var _warning_flag: HudFlagGlyph = null
 var _flag_marker: HudFlagMarker = null
 var _order_wheel: HudOrderWheel = null
 var _hold_marker: HudHoldMarker = null
+var _minimap: HudMinimap = null
 var _hits := HitFeed.new()
 var _feed: HudFeed = null
 var _team_markers: HudTeamMarkers = null
@@ -265,6 +267,28 @@ func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, 
 	_stats = stats
 
 
+## The minimap top left (HudMinimap) for `map`, its field drawn now: call it once in match setup, behind the loading
+## screen. `heard` is what your side heard of the other team, `map_name` goes in its caption. Not for the range.
+func setup_minimap(map: MapData, cfg: MinimapConfig, heard: MinimapHearing, map_name: String, characters: int) -> void:
+	_minimap = HudMinimap.new()
+	add_child(_minimap)
+	move_child(_minimap, _team_markers.get_index() + 1)
+	_minimap.setup(cfg, _teams, map, heard, map_name, characters, _cfg.minimap_margin)
+	HudStyle.restyle(_minimap, _opacity)
+
+
+## Follows the character `watched` (whose eyes the view is through) on the minimap, looking `yaw`, `fraction` of the way
+## through the tick, with your Hold here at `hold` while `holding`. Allocates nothing.
+func update_minimap(state: GameState, watched: Character, yaw: float, fraction: float, holding: bool,
+		hold: Vector3) -> void:
+	if _minimap != null:
+		_minimap.follow(state, watched, yaw, fraction, _prefs.minimap_turn, holding, hold)
+
+
+func minimap() -> HudMinimap:
+	return _minimap
+
+
 ## What the scoreboard's heading says: the map's name and the line after it, and whether the opponents are Pro (its
 ## tips show only then).
 func set_board_match(map_name: String, sub: String, pro: bool) -> void:
@@ -385,7 +409,8 @@ func set_vault_ready(ready: bool) -> void:
 func show_what_got_you(facts: HitFacts, shooter_name: String, colour: Color, note: String) -> void:
 	hide_what_got_you()
 	_what_got_you = WhatGotYouCard.new(facts, shooter_name, colour, note)
-	_place(_what_got_you, Vector4(0.0, 0.0, 0.0, 0.0), Rect2(CARD_LEFT, CARD_TOP, WhatGotYouCard.WIDTH, 0.0))
+	var top := _minimap.under_top() if _minimap != null else CARD_TOP
+	_place(_what_got_you, Vector4(0.0, 0.0, 0.0, 0.0), Rect2(CARD_LEFT, top, WhatGotYouCard.WIDTH, 0.0))
 	add_child(_what_got_you)
 	HudStyle.restyle(_what_got_you, _opacity)
 
@@ -513,6 +538,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	if _xp != null:
 		_xp.visible = not _round_result.holds_results()
 	_summary.visible = _summary.is_open() and not _round_result.holds_results()
+	if _minimap != null:
+		_minimap.visible = not _summary.visible
 	_replica.visible = not _summary.visible
 	_bottom.visible = not _summary.visible
 	_top.visible = not _summary.visible and _readout == null
@@ -561,7 +588,16 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 ## Places the marker over the pole at `pole` as seen by `camera` (HudFlagMarker); hidden outside Attack / Defend
 ## (`show` false).
 func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool) -> void:
-	_flag_marker.place(camera, pole, show, size)
+	_flag_marker.place(camera, pole, show, size, pin_point())
+
+
+## Where the first marker pinned to the screen's left edge sits (its plate's top left): under the minimap and its
+## caption, and under What got you while it is up. Further ones go the minimap's pin_step_down under each other.
+func pin_point() -> Vector2:
+	if _minimap == null:
+		return Vector2(CARD_LEFT, CARD_TOP)
+	var card := _what_got_you
+	return _minimap.pin(card.offset_top + card.size.y if card != null else 0.0)
 
 
 ## The marker's words ("FLAG · 24 m"), or "" while it is hidden: for tests.

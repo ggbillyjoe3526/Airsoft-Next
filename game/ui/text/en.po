@@ -1944,6 +1944,30 @@ msgstr "The navy panels only; text stays solid."
 msgid "SETTINGS_WHAT_GOT_YOU_NOTE"
 msgstr "Auto: against Pro bots only."
 
+msgid "SETTINGS_MINIMAP"
+msgstr "Minimap"
+
+msgid "SETTINGS_MINIMAP_TURN"
+msgstr "Turn"
+
+msgid "SETTINGS_MINIMAP_ROTATING"
+msgstr "Rotating"
+
+msgid "SETTINGS_MINIMAP_FIXED"
+msgstr "Fixed"
+
+msgid "SETTINGS_MINIMAP_ROTATING_LEAD"
+msgstr "Rotating:"
+
+msgid "SETTINGS_MINIMAP_ROTATING_NOTE"
+msgstr "the map turns with you, the way you look is up."
+
+msgid "SETTINGS_MINIMAP_FIXED_LEAD"
+msgstr "Fixed:"
+
+msgid "SETTINGS_MINIMAP_FIXED_NOTE"
+msgstr "north up, the map stays still and your arrow turns."
+
 msgid "SETTINGS_PREVIEW"
 msgstr "Preview"
 

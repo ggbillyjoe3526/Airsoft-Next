@@ -75,3 +75,5 @@ extends Resource
 @export var hold_marker_edge: float = 36.0
 @export var hold_marker_gap: float = 16.0
 @export var hold_ring_radius: float = 1.2
+## The minimap's corner: kept minimap_margin from the screen's top left (px; the feed's margin on the other side).
+@export var minimap_margin: Vector2 = Vector2(32.0, 26.0)

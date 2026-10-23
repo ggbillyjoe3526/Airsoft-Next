@@ -5,7 +5,10 @@ extends Control
 ## all drawn from the tab's choices (HudPrefs) by the same parts the HUD uses, at the panels' opacity. show() follows a
 ## change.
 
-const HEIGHT := 230.0
+const HEIGHT := 160.0
+## The feed line and the replica panel are drawn this much smaller, so they fit the shorter preview and leave the
+## Minimap row room in the tab (concept `settings-minimap.png`).
+const PART_SCALE := 0.8
 ## Where the two crosshairs sit across the preview, and how much wider the moving one opens than standing still (px;
 ## the browser game's CROSSHAIR_PREVIEW_SPREAD).
 const HIT_AT := 0.27
@@ -66,6 +69,9 @@ func _init() -> void:
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, EDGE)
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_panel.scale = Vector2.ONE * PART_SCALE
+	_panel.pivot_offset_ratio = Vector2.ONE
+	_feed.scale = Vector2.ONE * PART_SCALE
 	add_child(_panel)
 	if not _armament.replicas.is_empty():
 		_panel.refresh(_armament)
@@ -80,6 +86,7 @@ func show_prefs(prefs: HudPrefs) -> void:
 			Control.PRESET_MODE_MINSIZE, EDGE)
 	_feed.grow_horizontal = Control.GROW_DIRECTION_BEGIN if right else Control.GROW_DIRECTION_END
 	_feed.grow_vertical = Control.GROW_DIRECTION_END if right else Control.GROW_DIRECTION_BEGIN
+	_feed.pivot_offset_ratio = Vector2(1.0, 0.0) if right else Vector2(0.0, 1.0)
 	HudStyle.restyle(self, prefs.panel_opacity)
 	_place_chips()
 

@@ -2,13 +2,15 @@ class_name HudPrefs
 extends RefCounted
 ## The HUD tab's choices (concept `hud-options.png`; the browser game's settings/hudPrefs.ts), saved with the settings
 ## under "hud": the crosshair (shape, colour, size, thickness, gap, opacity, dynamic or static spread, outline), the hit
-## marker (on or off, colour, size), the ammo counter, where the hit feed sits and whether its lines fade or stay, and
-## the navy panels' opacity. The crosshair's colours leave out blue and orange, the teams'. Each value saved is checked
-## on its own and falls back to its default.
+## marker (on or off, colour, size), the ammo counter, where the hit feed sits and whether its lines fade or stay, the
+## navy panels' opacity and how the minimap turns. The crosshair's colours leave out blue and orange, the teams'. Each
+## value saved is checked on its own and falls back to its default.
 
 enum Shape { CROSS, CROSS_DOT, CIRCLE, DOT }
 enum FeedCorner { TOP_RIGHT, BOTTOM_LEFT }
 enum FeedLines { FADE, KEEP }
+## The minimap's turn: the field turns so the way you look is up, or north (the map's -z) stays up and your arrow turns.
+enum MinimapTurn { ROTATING, FIXED }
 
 ## The crosshair's and the hit marker's colours (the browser game's CROSSHAIR_COLORS): white, green, yellow, cyan, pink,
 ## red.
@@ -40,6 +42,7 @@ var ammo_counter: bool = true
 var feed_corner: FeedCorner = FeedCorner.TOP_RIGHT
 var feed_lines: FeedLines = FeedLines.FADE
 var panel_opacity: float = 1.0
+var minimap_turn: MinimapTurn = MinimapTurn.ROTATING
 
 
 func cross_colour() -> Color:
@@ -55,7 +58,7 @@ func to_dict() -> Dictionary:
 		"shape": int(shape), "colour": colour, "size": size, "thickness": thickness, "gap": gap, "opacity": opacity,
 		"dynamic": dynamic, "outline": outline, "marker": marker, "marker_colour": marker_colour,
 		"marker_size": marker_size, "ammo_counter": ammo_counter, "feed_corner": int(feed_corner),
-		"feed_lines": int(feed_lines), "panel_opacity": panel_opacity,
+		"feed_lines": int(feed_lines), "panel_opacity": panel_opacity, "minimap_turn": int(minimap_turn),
 	}
 
 
@@ -77,6 +80,7 @@ func from_dict(data: Dictionary) -> void:
 	feed_corner = _pick(data, "feed_corner", d.feed_corner, FeedCorner.size()) as FeedCorner
 	feed_lines = _pick(data, "feed_lines", d.feed_lines, FeedLines.size()) as FeedLines
 	panel_opacity = _number(data, "panel_opacity", d.panel_opacity, PANEL_OPACITY_RANGE)
+	minimap_turn = _pick(data, "minimap_turn", d.minimap_turn, MinimapTurn.size()) as MinimapTurn
 
 
 ## A whole number in [0, count) at `key`, else `fallback`.
