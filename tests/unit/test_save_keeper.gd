@@ -393,3 +393,17 @@ class TightKeeper:
 
 	func _write_points(points: Array[SaveKeeper.Point]) -> bool:
 		return points.size() <= room and super(points)
+
+
+## Each refusal names its kind for the player's words (SV2), and a replace that works clears it.
+func test_a_refusal_names_its_kind() -> void:
+	assert_false(keeper.delete_save())
+	assert_eq(keeper.refusal, SaveKeeper.Refusal.NOTHING_TO_DELETE)
+	assert_false(keeper.undo())
+	assert_eq(keeper.refusal, SaveKeeper.Refusal.NOTHING_TO_UNDO)
+	_write_save(1)
+	assert_true(keeper.delete_save())
+	assert_eq(keeper.refusal, SaveKeeper.Refusal.NONE)
+	assert_eq(keeper.last_error, "")
+	assert_false(keeper.undo())
+	assert_eq(keeper.refusal, SaveKeeper.Refusal.REPLACED_THIS_RUN)

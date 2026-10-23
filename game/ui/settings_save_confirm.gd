@@ -8,6 +8,8 @@ extends Control
 
 ## Yes was pressed.
 signal confirmed
+## It closed (CANCEL, Esc, yes, or the tab left).
+signal closed
 
 ## The look: a calm question (restore, Undo: yellow) or a red one (delete).
 enum Tone { CALM, DANGER }
@@ -143,6 +145,8 @@ func _init() -> void:
 
 
 func _ready() -> void:
+	# Esc is listened for only while it shows (Godot turns _input on at ready)
+	set_process_input(visible)
 	# the focus goes between the two buttons only, never to the tab under the shade
 	for b: Button in [_yes, _cancel]:
 		var other := _cancel if b == _yes else _yes
@@ -173,12 +177,17 @@ func ask(a: Ask) -> void:
 	_yes.text = a.yes.to_upper()
 	SettingsSavePage.paint(_yes, edge, edge, GameTheme.YELLOW_INK, BUTTON_SIZE, BUTTON_PAD)
 	visible = true
+	set_process_input(true)
 	_cancel.grab_focus()
 
 
-## Hides it, sending nothing.
+## Hides it, sending `closed` if it was showing.
 func close() -> void:
+	if not visible:
+		return
 	visible = false
+	set_process_input(false)
+	closed.emit()
 
 
 func _input(event: InputEvent) -> void:

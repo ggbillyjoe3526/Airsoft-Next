@@ -183,7 +183,7 @@ func test_the_dev_tab_has_reset_level_and_no_reset_the_save() -> void:
 		words.append((n as Label).text)
 	assert_has(words, tr("DEV_RESET_LEVEL"))
 	assert_does_not_have(words, "RESET THE SAVE")
-	assert_false(TranslationServer.translate("DEV_RESET_SAVE") != "DEV_RESET_SAVE", "its words are gone from en.po")
+	assert_eq(tr("DEV_RESET_SAVE"), "DEV_RESET_SAVE", "its words are gone from en.po")
 
 
 func test_every_map_file_is_in_the_catalogue_with_a_tag() -> void:

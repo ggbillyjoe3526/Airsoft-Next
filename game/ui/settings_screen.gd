@@ -1,14 +1,14 @@
 class_name SettingsScreen
 extends Control
-## The settings, in seven tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
-## (a volume for each bus), Display (SettingsDisplayPage: the window, the frame rate, the view), Graphics
+## The settings, in seven tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding),
+## Audio (a volume for each bus), Display (SettingsDisplayPage: the window, the frame rate, the view), Graphics
 ## (SettingsGraphicsPage), HUD (SettingsHudPage), Accessibility (SettingsAccessPage) and Save file (SettingsSavePage:
 ## restore points, Undo and delete, which restart the game, so only from the title's settings); and an eighth, Dev,
 ## shown while the Dev settings box under the tabs is ticked (its switches apply only then; docs/DECISIONS.md › Content
-## tags and dev content). Opened from the title screen and the pause menu; works while the tree is paused. Every change is applied
-## at once through SettingsApply and saved: a slider a moment after it stops moving, anything else straight away, and
-## the last change always on close. Esc or Back closes it. While it is open, keys the controls don't use stop here, so
-## none reaches play.
+## tags and dev content). Opened from the title screen and the pause menu; works while the tree is paused. Every change
+## is applied at once through SettingsApply and saved: a slider a moment after it stops moving, anything else straight
+## away, and the last change always on close. Esc or Back closes it. While it is open, keys the controls don't use stop
+## here, so none reaches play.
 
 ## The screen closed.
 signal closed
@@ -43,6 +43,8 @@ var progress: Progress = null
 ## Starts the game again (main's), after the Save file tab replaces the save; empty from the pause menu, where the save
 ## can't be replaced.
 var restart: Callable = Callable()
+## The Save file tab's restore points and Undo: the real save's when unset (a test gives its own).
+var save_keeper: SaveKeeper = null
 
 var _back: Button = null
 var _tabs: TabContainer = null
@@ -63,6 +65,8 @@ var _display_page: SettingsDisplayPage = null
 var _graphics_page: SettingsGraphicsPage = null
 var _hud_page: SettingsHudPage = null
 var _access_page: SettingsAccessPage = null
+## Save file's tab page, and the tab built in it the first time it shows (it reads the save; most visits never do).
+var _save_tab: VBoxContainer = null
 var _save_page: SettingsSavePage = null
 var _dev_box: CheckButton = null
 var _dev_page: Control = null
@@ -339,10 +343,31 @@ func _build_access() -> void:
 # --- Save file ---
 
 func _build_save() -> void:
-	var page := _page(tr("SETTINGS_SAVE_FILE"))
+	_save_tab = _page(tr("SETTINGS_SAVE_FILE"))
+	_tabs.tab_changed.connect(_on_tab_changed)
+
+
+## The Save file tab's page, built on its first show.
+func _on_tab_changed(tab: int) -> void:
+	if tab != _save_tab.get_parent().get_index() or _save_page != null:
+		return
 	_save_page = SettingsSavePage.new()
-	page.add_child(_save_page)
+	if save_keeper != null:
+		_save_page.keeper = save_keeper
+	_save_tab.add_child(_save_page)
 	_save_page.build(self)
+	if _save_page.is_visible_in_tree():
+		_save_page.refresh()
+
+
+## Save file's page, or null until its tab first shows.
+func save_page() -> SettingsSavePage:
+	return _save_page
+
+
+## The focus on Back (a question closed and the button that asked it is greyed now).
+func focus_back() -> void:
+	_back.grab_focus()
 
 
 ## Whether the save may be replaced from here: the title's settings (which can restart the game), not a match's.

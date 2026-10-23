@@ -6,9 +6,10 @@ extends HBoxContainer
 ## day, when it was opened, level, XP, matches and RESTORE, or "None yet"), Undo, and Delete and start over. RESTORE,
 ## UNDO and DELETE SAVE… ask first (SettingsSaveConfirm); on yes the shared stores are saved, the save is replaced
 ## (SaveKeeper), renderer.cfg is written from the settings now in place and the game restarts (the screen's `restart`).
-## A replace that fails changes nothing and says so. From the pause menu (no restart there) they are greyed with
-## "Leave the match to restore, undo or delete."; so are they all for a save from a newer version, Undo with nothing to
-## undo and Delete for an empty save. Open folder works anywhere. The page reads the save each time it shows. The
+## A replace that is refused or fails changes nothing and says why (SaveKeeper.refusal). From the pause menu (no
+## restart there) they are greyed with "Leave the match to restore, undo or delete."; so are they all for a save from a
+## newer version, Undo with nothing to undo or a slot from a newer build, and Delete for an empty save. Open folder
+## works anywhere. The screen builds the page on its tab's first show; it reads the save each time it shows. The
 ## keeper, the opener, the store flush, the folder and renderer.cfg's path are injected for tests.
 
 ## The columns' widths (the right one takes the rest) and the gap between them (px at 1080p).
@@ -64,6 +65,10 @@ const ROW_KEYS: Array[String] = ["SAVE_ROW_SAVED", "SAVE_ROW_VERSION", "SAVE_ROW
 const FIRST_FIGURE := 2
 ## The tiles on Your save, as the concept orders them (ROW_KEYS indices).
 const TILE_ROWS: Array[int] = [2, 3, 4, 5, 6, 1]
+## The player's line for each SaveKeeper.Refusal, in its order (NONE has none).
+const REFUSAL_KEYS: Array[String] = ["", "SAVE_REFUSED_REPLACED", "SAVE_REFUSED_NEWER", "SAVE_REFUSED_HOLDS_NEWER",
+		"SAVE_REFUSED_UNREADABLE", "SAVE_NOT_WRITTEN", "SAVE_REFUSED_NOT_PUT_BACK", "SAVE_NOTHING_TO_UNDO",
+		"SAVE_REFUSED_NOTHING_TO_DELETE"]
 ## The delete question's tiles and their shorter labels.
 const GONE_KEYS: Array[String] = ["SAVE_ROW_LEVEL", "SAVE_ROW_XP", "SAVE_GONE_UNLOCKED", "SAVE_GONE_MATCHES",
 		"SAVE_GONE_LOADOUTS"]
@@ -87,6 +92,8 @@ var _slot: SaveKeeper.UndoSlot = null
 ## What yes does for the question showing: returns whether the save was replaced.
 var _pending: Callable = Callable()
 var _confirm: SettingsSaveConfirm = null
+## The button that asked the question showing: the focus goes back to it when the question closes.
+var _asker: Button = null
 var _dot: Panel = null
 var _when: Label = null
 var _warnings: Label = null
@@ -127,6 +134,7 @@ func build(screen: SettingsScreen) -> void:
 	_build_delete(right)
 	_confirm = SettingsSaveConfirm.new()
 	_confirm.confirmed.connect(_on_confirmed)
+	_confirm.closed.connect(_give_focus_back)
 	screen.add_child(_confirm)
 	_built = true
 
@@ -180,7 +188,7 @@ func refresh() -> void:
 		_restore[i].disabled = not can or p.save.refusal() != ""
 	_none_yet.visible = _points.is_empty()
 	_slot = keeper.undo_slot()
-	_undo.disabled = not can or _slot == null
+	_undo.disabled = not can or _slot == null or _slot.save.refusal() != ""
 	_undo_line.text = tr("SAVE_NOTHING_TO_UNDO") if _slot == null else tr("SAVE_UNDO_TAKES_BACK") % [
 			tr(WHAT_KEYS[_slot.what]), stamp(_slot.taken_at, now, keeper.utc_offset_minutes)]
 	_delete.disabled = not can or _current.is_empty()
@@ -404,7 +412,7 @@ func _ask_restore(i: int) -> void:
 			_bold(tr("SAVE_UNDO"))]
 	a.after = tr("SAVE_RESTORE_AFTER")
 	a.yes = tr("SAVE_RESTORE_YES")
-	_ask(a, func() -> bool: return keeper.replace(point.save, SaveKeeper.What.RESTORE))
+	_ask(a, func() -> bool: return keeper.replace(point.save, SaveKeeper.What.RESTORE), _restore[i])
 
 
 # --- Undo ---
@@ -425,7 +433,7 @@ func _build_undo(col: VBoxContainer) -> void:
 
 
 func _ask_undo() -> void:
-	if not can_replace() or _slot == null:
+	if not can_replace() or _slot == null or _slot.save.refusal() != "":
 		return
 	var slot := _slot
 	var a := _compare(slot.save, "SAVE_UNDO_HEAD")
@@ -435,7 +443,7 @@ func _ask_undo() -> void:
 			keeper.utc_offset_minutes)]
 	a.after = tr("SAVE_RESTORE_AFTER")
 	a.yes = tr("SAVE_UNDO_YES")
-	_ask(a, keeper.undo)
+	_ask(a, keeper.undo, _undo)
 
 
 # --- Delete ---
@@ -483,7 +491,7 @@ func _ask_delete() -> void:
 	a.after = tr("SAVE_DELETE_AFTER") % _bold(tr("SAVE_UNDO"))
 	a.keeps = tr("SAVE_DELETE_KEEPS")
 	a.yes = tr("SAVE_DELETE_YES")
-	_ask(a, keeper.delete_save)
+	_ask(a, keeper.delete_save, _delete)
 
 
 # --- Asking, and yes ---
@@ -510,35 +518,61 @@ func _compare(then: SaveBundle, head_key: String) -> SettingsSaveConfirm.Ask:
 	return a
 
 
-func _ask(a: SettingsSaveConfirm.Ask, replace: Callable) -> void:
+func _ask(a: SettingsSaveConfirm.Ask, replace: Callable, asker: Button) -> void:
 	_message.visible = false
 	_pending = replace
+	_asker = asker
 	_confirm.ask(a)
 
 
+## The question closed: the focus goes back to the button that asked it, or Back when that one is greyed now.
+func _give_focus_back() -> void:
+	var asker := _asker
+	_asker = null
+	if not is_visible_in_tree():
+		return
+	if asker != null and asker.is_visible_in_tree() and not asker.disabled:
+		asker.grab_focus()
+	else:
+		_screen.focus_back()
+
+
 ## Yes: the shared stores saved, the save replaced, renderer.cfg from the settings now in place, then the restart. A
-## replace that fails changes nothing, restarts nothing and says so.
+## replace that is refused or fails changes nothing, restarts nothing and says why.
 func _on_confirmed() -> void:
-	_confirm.close()
 	var replace := _pending
 	_pending = Callable()
 	if not replace.is_valid() or not can_replace():
+		_confirm.close()
 		return
 	_flush()
 	if not bool(replace.call()):
 		push_warning("save file: %s" % keeper.last_error)
 		refresh()
+		_message.text = tr(refusal_key(keeper.refusal))
 		_message.visible = true
+		_confirm.close()
 		return
+	_pending = Callable()
+	_asker = null
+	_confirm.close()
 	_put_renderer()
 	_screen.restart.call()
+
+
+## The en.po key of the player's line for `refusal` (a failed write's for NONE: a replace that said no without one).
+static func refusal_key(refusal: SaveKeeper.Refusal) -> String:
+	return REFUSAL_KEYS[refusal] if refusal != SaveKeeper.Refusal.NONE else "SAVE_NOT_WRITTEN"
 
 
 ## renderer.cfg asks for what the settings now in place ask for, so the restarted game starts on their renderer.
 func _put_renderer() -> void:
 	var restored := Settings.new(_screen.settings.tuning)
 	restored.load_file(keeper.store_paths[SaveBundle.KINDS.find(Settings.KIND)])
-	RendererOverride.put(restored.renderer, renderer_path)
+	if not RendererOverride.put(restored.renderer, renderer_path):
+		# the restart goes ahead: the save is replaced; the next start may use the renderer it had for one run
+		push_warning("save file: %s couldn't be written for the restored settings (renderer %d); restarting anyway"
+				% [renderer_path, restored.renderer])
 
 
 ## Saves what the running game holds that hasn't been, so the save kept for Undo is the one the player has.

@@ -12,6 +12,9 @@ extends RefCounted
 ## What a replace puts in place: a restore point's save, the Undo slot's, or none (delete).
 enum What { RESTORE, UNDO, DELETE }
 const WHAT_NAMES: Array[String] = ["restore", "undo", "delete"]
+## Why the last replace, Undo or delete didn't happen (`refusal`), for the player's words; NONE after one that worked.
+enum Refusal { NONE, REPLACED_THIS_RUN, NEWER_SAVE, HOLDS_NEWER, UNREADABLE, NOT_WRITTEN, NOT_PUT_BACK,
+		NOTHING_TO_UNDO, NOTHING_TO_DELETE }
 ## How many restore points are kept (the browser game's rule).
 const RESTORE_POINTS := 3
 const POINTS_PATH := "user://restore_points.save"
@@ -48,6 +51,8 @@ var clock: Callable = Callable(Time, &"get_unix_time_from_system")
 var utc_offset_minutes: int = int(Time.get_time_zone_from_system().get("bias", 0))
 ## Why the last replace was refused or failed, naming the version for a newer save; "" after one that worked.
 var last_error: String = ""
+## The kind of the last refusal or failure (last_error's), NONE after a replace that worked.
+var refusal: Refusal = Refusal.NONE
 
 
 ## At start: keeps the save as it is as today's restore point, unless today has one, the save is empty, it is the same
@@ -112,25 +117,28 @@ func undo_slot() -> UndoSlot:
 	return slot
 
 
-## Puts `bundle` in place of the save: a restore point's (RESTORE), the Undo slot's (UNDO) or an empty one (DELETE).
-## The save as it stands goes to the Undo slot first, and nothing changes if that write fails; Undo instead uses the
-## slot up (the save it replaces is not kept). Then each store is written, or every copy removed where `bundle` has
-## none; a store that won't write puts every store and the slot back as they were and returns false. On success the
-## stores are held until the restart. Refused, with `last_error` saying why: after a replace this run (restart
-## first), a save from a newer version (named), and any replace over a save holding a store from a newer version
-## (this build couldn't keep it for Undo, and Undo keeps nothing). An empty save as it stands (nothing, or only damaged stores)
-## leaves the Undo slot as it was, so a delete is still undone after a restore over nothing. A damaged store is set
-## aside (SaveFile.quarantine) before it is replaced, never destroyed.
+## Puts `bundle` in place of the save: a restore point's (RESTORE), the Undo slot's (UNDO) or an empty one (DELETE). The
+## save as it stands goes to the Undo slot first, and nothing changes if that write fails; Undo instead uses the slot up
+## (the save it replaces is not kept). Then each store is written, or every copy removed where `bundle` has none; a
+## store that won't write puts every store and the slot back as they were and returns false. On success the stores are
+## held until the restart. Refused, with `last_error` saying why (and `refusal` its kind): after a replace this run
+## (restart first), a save from a newer version (named), and any replace over a save holding a store from a newer
+## version (this build couldn't keep it for Undo, and Undo keeps nothing). An empty save as it stands (nothing, or only
+## damaged stores) leaves the Undo slot as it was, so a delete is still undone after a restore over nothing. A damaged
+## store is set aside (SaveFile.quarantine) before it is replaced, never destroyed.
 func replace(bundle: SaveBundle, what: What) -> bool:
+	refusal = Refusal.NONE
+	last_error = ""
 	for path: String in store_paths:
 		if SaveFile.held(path):
-			return _fail("the save was already replaced this run; restart first")
+			return _fail("the save was already replaced this run; restart first", Refusal.REPLACED_THIS_RUN)
 	var refused := bundle.refusal()
 	if refused != "":
-		return _fail(refused)
+		return _fail(refused, Refusal.NEWER_SAVE)
 	var current := SaveBundle.read(store_paths)
 	if current.refusal() != "":
-		return _fail("the save now holds a store from a newer version (%s); this build won't replace it" % current.refusal())
+		return _fail("the save now holds a store from a newer version (%s); this build won't replace it" % current.refusal(),
+				Refusal.HOLDS_NEWER)
 	for kind: String in current.damaged:
 		push_warning("save: %s is damaged; set aside before it is replaced" % kind)
 		SaveFile.quarantine(store_paths[SaveBundle.KINDS.find(kind)])
@@ -140,17 +148,18 @@ func replace(bundle: SaveBundle, what: What) -> bool:
 	snaps.append(SaveFile.snapshot(undo_path))
 	for snap: SaveFile.Snapshot in snaps:
 		if not snap.ok:
-			return _fail("a copy of %s couldn't be read to keep it" % snap.path)
+			return _fail("a copy of %s couldn't be read to keep it" % snap.path, Refusal.UNREADABLE)
 	if what != What.UNDO and not current.is_empty():
 		var slot := {"what": WHAT_NAMES[what], "taken_at": _now(), "save": current.to_dict()}
 		if not SaveFile.write(undo_path, UNDO_KIND, UNDO_VERSION, slot):
-			return _fail("the save couldn't be kept for Undo")
+			return _fail("the save couldn't be kept for Undo", Refusal.NOT_WRITTEN)
 	if not bundle.write(store_paths) or (what == What.UNDO and not SaveFile.remove(undo_path)):
 		var back := true
 		for snap: SaveFile.Snapshot in snaps:
 			back = SaveFile.put_back(snap) and back
-		return _fail("a store wouldn't write; the save was put back" if back
-				else "a store wouldn't write and the save couldn't all be put back")
+		if back:
+			return _fail("a store wouldn't write; the save was put back", Refusal.NOT_WRITTEN)
+		return _fail("a store wouldn't write and the save couldn't all be put back", Refusal.NOT_PUT_BACK)
 	SaveFile.hold(PackedStringArray(store_paths))
 	print("[save] replaced (%s)" % WHAT_NAMES[what])
 	return true
@@ -160,8 +169,7 @@ func replace(bundle: SaveBundle, what: What) -> bool:
 func undo() -> bool:
 	var slot := undo_slot()
 	if slot == null:
-		last_error = "nothing to undo"
-		return false
+		return _refuse("nothing to undo", Refusal.NOTHING_TO_UNDO)
 	return replace(slot.save, What.UNDO)
 
 
@@ -169,8 +177,7 @@ func undo() -> bool:
 ## slot is kept.
 func delete_save() -> bool:
 	if SaveBundle.read(store_paths).is_empty():
-		last_error = "nothing to delete"
-		return false
+		return _refuse("nothing to delete", Refusal.NOTHING_TO_DELETE)
 	return replace(SaveBundle.new(), What.DELETE)
 
 
@@ -188,9 +195,14 @@ func _now() -> int:
 	return int(clock.call())
 
 
-func _fail(why: String) -> bool:
-	last_error = why
+func _fail(why: String, kind: Refusal) -> bool:
 	push_warning("save: not replaced: %s" % why)
+	return _refuse(why, kind)
+
+
+func _refuse(why: String, kind: Refusal) -> bool:
+	last_error = why
+	refusal = kind
 	return false
 
 

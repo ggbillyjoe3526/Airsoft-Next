@@ -74,7 +74,9 @@ func _open(in_match: bool = false) -> void:
 	if in_match:
 		screen.end_round = func() -> bool: return false
 	add_child_autofree(screen)
-	page = screen._save_page
+	assert_null(screen.save_page(), "not built until its tab shows")
+	screen._tabs.current_tab = screen._save_tab.get_parent().get_index()
+	page = screen.save_page()
 	page.keeper = keeper
 	page.flush = func() -> void: flushes += 1
 	page.opener = func(path: String) -> int:
@@ -82,7 +84,6 @@ func _open(in_match: bool = false) -> void:
 		return OK
 	page.folder = ProjectSettings.globalize_path(dir)
 	page.renderer_path = dir.path_join("renderer.cfg")
-	screen._tabs.current_tab = page.get_parent().get_parent().get_index()
 	screen.open()
 
 
@@ -413,7 +414,7 @@ func test_a_refused_replace_restarts_nothing_changes_nothing_and_says_why() -> v
 	assert_eq(restarts, 0)
 	assert_eq(_files(), before, "nothing changed, renderer.cfg included")
 	assert_true(page.message().visible)
-	assert_eq(page.message().text, tr("SAVE_NOT_WRITTEN"))
+	assert_eq(page.message().text, tr("SAVE_NOT_WRITTEN"), "a refusal with no kind reads as a failed write")
 	page.delete_button().pressed.emit()
 	assert_false(page.message().visible, "a new question clears it")
 
@@ -429,6 +430,7 @@ func test_a_real_failed_replace_puts_the_save_back_and_restarts_nothing() -> voi
 	DirAccess.remove_absolute(keeper.store_paths[2] + SaveFile.TMP)
 	assert_eq(restarts, 0)
 	assert_true(page.message().visible)
+	assert_eq(page.message().text, tr("SAVE_NOT_WRITTEN"), "a store that won't write: the disk")
 	assert_eq(_files(), before)
 
 
@@ -469,3 +471,139 @@ func _words(node: Node) -> String:
 		elif n is RichTextLabel:
 			out.append((n as RichTextLabel).get_parsed_text())
 	return " ".join(out)
+
+
+# ---------------------------------------------------------------- fix round (QA and performance advisories)
+
+func test_the_page_is_built_on_its_tab_s_first_show_only() -> void:
+	var plain := SettingsScreen.new()
+	plain.settings = Settings.new(PlayTuning.new())
+	plain.save_path = dir.path_join("settings.save")
+	add_child_autofree(plain)
+	plain.open()
+	assert_null(plain.save_page(), "opening Settings builds no Save file page")
+	plain._tabs.current_tab = 1
+	assert_null(plain.save_page(), "nor does another tab")
+	var nodes := plain.get_child_count()
+	plain._tabs.current_tab = plain._save_tab.get_parent().get_index()
+	var built := plain.save_page()
+	assert_not_null(built)
+	assert_eq(plain.get_child_count(), nodes + 1, "its question goes over the screen")
+	plain._tabs.current_tab = 0
+	plain._tabs.current_tab = plain._save_tab.get_parent().get_index()
+	assert_same(plain.save_page(), built, "built once")
+
+
+func test_a_first_show_while_open_reads_the_save() -> void:
+	_write_save(400, 6, 3)
+	var plain := SettingsScreen.new()
+	plain.settings = Settings.new(PlayTuning.new())
+	plain.save_path = keeper.store_paths[0]
+	plain.save_keeper = keeper
+	add_child_autofree(plain)
+	plain.open()
+	plain._tabs.current_tab = plain._save_tab.get_parent().get_index()
+	await wait_process_frames(1)
+	assert_same(plain.save_page().keeper, keeper)
+	assert_eq(plain.save_page().tiles()[1].text, "400", "it was read on its first show")
+
+
+func test_the_question_listens_for_esc_only_while_it_shows() -> void:
+	_three_points()
+	_open()
+	assert_false(page.confirm().is_processing_input())
+	page.restore_buttons()[0].pressed.emit()
+	assert_true(page.confirm().is_processing_input())
+	page.confirm().cancel_button().pressed.emit()
+	assert_false(page.confirm().is_processing_input())
+
+
+func test_closing_the_question_gives_the_focus_back_to_its_button() -> void:
+	_three_points()
+	_open()
+	page.restore_buttons()[1].pressed.emit()
+	assert_true(page.confirm().cancel_button().has_focus())
+	page.confirm().cancel_button().pressed.emit()
+	assert_true(page.restore_buttons()[1].has_focus(), "back on the RESTORE that asked")
+	page.delete_button().pressed.emit()
+	var esc := InputEventAction.new()
+	esc.action = &"ui_cancel"
+	esc.pressed = true
+	get_viewport().push_input(esc)
+	assert_true(page.delete_button().has_focus(), "Esc too")
+
+
+func test_a_refused_replace_greys_the_button_and_the_focus_goes_to_back() -> void:
+	_three_points()
+	_open()
+	page.restore_buttons()[0].pressed.emit()
+	# the save now holds a store from a newer version: the replace is refused and every action greys
+	assert_true(SaveFile.write(keeper.store_paths[3], Records.KIND, Records.VERSION + 1, {}))
+	page.confirm().yes_button().pressed.emit()
+	assert_eq(restarts, 0)
+	assert_true(page.restore_buttons()[0].disabled)
+	assert_true(screen._back.has_focus())
+
+
+func test_each_refusal_says_its_own_reason() -> void:
+	_three_points()
+	_open()
+	assert_true(SaveFile.write(keeper.store_paths[3], Records.KIND, Records.VERSION + 1, {}))
+	page.restore_buttons()[0].pressed.emit()
+	page.confirm().yes_button().pressed.emit()
+	assert_eq(keeper.refusal, SaveKeeper.Refusal.HOLDS_NEWER)
+	assert_eq(page.message().text, tr("SAVE_REFUSED_HOLDS_NEWER"))
+	assert_false(page.message().text == tr("SAVE_NOT_WRITTEN"))
+
+
+func test_every_refusal_kind_has_its_own_line() -> void:
+	var keys := PackedStringArray()
+	for kind: int in SaveKeeper.Refusal.values():
+		var key := SettingsSavePage.refusal_key(kind as SaveKeeper.Refusal)
+		assert_ne(tr(key), key, "%s has words in en.po" % SaveKeeper.Refusal.keys()[kind])
+		keys.append(key)
+	assert_eq(SettingsSavePage.REFUSAL_KEYS.size(), SaveKeeper.Refusal.size())
+	for key: String in ["SAVE_REFUSED_REPLACED", "SAVE_REFUSED_NEWER", "SAVE_REFUSED_HOLDS_NEWER",
+			"SAVE_NOTHING_TO_UNDO", "SAVE_REFUSED_NOTHING_TO_DELETE"]:
+		assert_has(keys, key)
+
+
+func test_a_second_replace_this_run_says_restart_first() -> void:
+	_three_points()
+	_open()
+	assert_true(keeper.replace(keeper.restore_points()[2].save, SaveKeeper.What.RESTORE))
+	page.refresh()
+	page.restore_buttons()[0].pressed.emit()
+	page.confirm().yes_button().pressed.emit()
+	assert_eq(keeper.refusal, SaveKeeper.Refusal.REPLACED_THIS_RUN)
+	assert_eq(page.message().text, tr("SAVE_REFUSED_REPLACED"))
+	assert_eq(restarts, 0)
+
+
+func test_an_undo_slot_from_a_newer_build_greys_undo() -> void:
+	_write_save(400, 6)
+	assert_true(keeper.delete_save())
+	SaveFile.release(PackedStringArray(_paths()))
+	var read := SaveFile.read(keeper.undo_path, SaveKeeper.UNDO_KIND)
+	var data: Dictionary = read.data
+	(data["save"] as Dictionary)["version"] = "99.0"
+	assert_true(SaveFile.write(keeper.undo_path, SaveKeeper.UNDO_KIND, SaveKeeper.UNDO_VERSION, data))
+	_open()
+	assert_not_null(keeper.undo_slot())
+	assert_true(page.undo_button().disabled)
+	page._ask_undo()
+	assert_false(page.confirm().visible)
+
+
+func test_a_renderer_cfg_that_won_t_write_still_restarts() -> void:
+	for i in 2:
+		_write_save(100 * (i + 1), i + 1, 1, Settings.Renderer.COMPATIBILITY if i == 0 else Settings.Renderer.AUTO)
+		now = DAY_ONE + i * DAY
+		assert_true(keeper.keep_today())
+	_open()
+	page.renderer_path = dir.path_join("no-such-folder/renderer.cfg")
+	page.restore_buttons()[1].pressed.emit()
+	page.confirm().yes_button().pressed.emit()
+	assert_eq(keeper.replaced, 1)
+	assert_eq(restarts, 1, "the save is replaced: the restart goes ahead")
+	assert_false(FileAccess.file_exists(page.renderer_path))

@@ -2748,6 +2748,24 @@ msgstr "Leave the match to restore, undo or delete."
 msgid "SAVE_NOT_WRITTEN"
 msgstr "Couldn't write your save: the disk may be full or the folder read-only. Nothing was changed."
 
+msgid "SAVE_REFUSED_REPLACED"
+msgstr "Your save was already replaced: restart the game first. Nothing else was changed."
+
+msgid "SAVE_REFUSED_NEWER"
+msgstr "That save is from a newer version of the game, so this version can't load it. Nothing was changed."
+
+msgid "SAVE_REFUSED_HOLDS_NEWER"
+msgstr "Your save is from a newer version of the game, so this version won't replace it. Nothing was changed."
+
+msgid "SAVE_REFUSED_UNREADABLE"
+msgstr "Part of your save couldn't be read, so it couldn't be kept for Undo. Nothing was changed."
+
+msgid "SAVE_REFUSED_NOT_PUT_BACK"
+msgstr "Couldn't write your save, and part of it couldn't be put back. Restart the game and check your save; the restore points are kept."
+
+msgid "SAVE_REFUSED_NOTHING_TO_DELETE"
+msgstr "Your save is already empty: there is nothing to delete."
+
 msgid "SAVE_NONE_YET"
 msgstr "None yet: the first is kept the next time you open the game."
 

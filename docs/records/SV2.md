@@ -1,12 +1,13 @@
 # SV2 · Settings › Save file
 
-**Review:** pending (critic, QA and performance not run yet)
+**Review:** pending the critic · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus (worker) | pass (2361 tests) | not run | |
+| 2026-10-23 | 1 | Opus (worker) | pass (2361 tests) | not run | QA Pass and performance Pass with advisories; one fix round (below) |
+| 2026-10-23 | 1 (fix round) | Opus (worker) | pass (2409 tests) | not run | |
 
 ## Decisions
 
@@ -33,6 +34,17 @@
 - **The folder's path** shows with backslashes on Windows; the opener gets `OS.get_user_data_dir()` as it is.
 - **The tab's NEW badge** in the picture is not drawn: tab titles are text.
 - **KNOWN_ISSUES' SE1 row** also loses HUD (built in HO1) and "Controls, Audio and Display only".
+
+- **The fix round (QA attempt 1 Pass, performance Pass, their advisories), rebased on SV1 and SV3:**
+  - A closed question gives the focus back to the button that asked it, or to Back when that one is greyed now.
+  - Each refusal says its own reason: `SaveKeeper.refusal` (outside `touches`) names its kind and
+    `SettingsSavePage.REFUSAL_KEYS` maps each to an en.po line; only a store that won't write reads "the disk may be
+    full". Undo greys when the slot's save is a newer build's, as a restore point does.
+  - A renderer.cfg that won't write is logged (push_warning) and the restart still goes ahead.
+  - The page is built on its tab's first show (`SettingsScreen.save_page()`, `save_keeper` injected for tests), not
+    with the screen: about 9–12 ms and ~107 nodes off every Settings open.
+  - The question's `_input` runs only while it shows (`set_process_input`, set again at ready).
+  - `Settings.reset_save` stays (six tests use it); its comment no longer names the Dev tab (outside `touches`).
 
 ## Known issues left
 
