@@ -10,6 +10,9 @@
 
 ## Decisions
 
+- **Review fix (QA):** the settings sample's low magazine runs its stripe through the middle of the fill, as the HUD's
+  does.
+
 - **The plan's defaults; the owner hasn't approved the step 21 pictures yet** (`gauge-patterns.png`,
   `hud-high-contrast.png`, `settings-accessibility.png`, plan question 3): gauge patterns are their own switch, on by
   default; Beta's fills are striped and Alpha's solid in both colour sets (`HudStyle.STRIPED_TEAM`); a low magazine
@@ -72,3 +75,11 @@
 
 - The HUD tab's preview (`HudPreview`) keeps its magazines unpatterned: it never shows a low magazine, so nothing
   differs today.
+
+## Advisories left (QA, performance)
+
+- `HudStyle.edge_number` always draws the dark edge: fine for Beta, but if Alpha were ever the striped team, High
+  contrast's light blue takes dark ink and the edge would hide it.
+- Stripes are antialiased, so up to about a pixel of feather can show past a shape; the geometry is exact.
+- The flag gauge draws one stripe set per filled notch (about ten draw_multiline calls); one set for the whole run
+  would cut that to one, not worth the alignment risk now.

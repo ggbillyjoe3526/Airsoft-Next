@@ -482,7 +482,7 @@ class GaugeSample:
 			_number.add_theme_color_override("font_color", HudStyle.ink_on(fill))
 			HudStyle.edge_number(_number, on)
 		if _kind == Kind.MAG:
-			_stripes[0].set_rect(_mag_fill())
+			_stripes[0].set_rect(_mag_fill(), true)
 		queue_redraw()
 
 	func _mag_fill() -> Rect2:
