@@ -1,15 +1,21 @@
 # GR2 · Applying the quality and Settings › Graphics
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus (a first worker cut off by a restart; its GraphicsApply, lighting and dust work kept and finished) | pass | pending | |
+| 2026-10-23 | 1 | Opus (a first worker cut off by a restart; its GraphicsApply, lighting and dust work kept and finished) | pass | 7/8 accept (QA's blocker, a slider held on close, fixed by the build thread; check 8: High's cost in the docs, fixed in the records) | |
 
 ## Decisions
 
+- **High is today's look plus MSAA 4× and 16× texture filtering** (the plan's table and the concept the owner is
+  approving): shadows, ambient occlusion, softness and mesh detail as before, but main draws MSAA off and 4× filtering,
+  so High costs more GPU than main, most at 4K and in the optic glass. If the owner wants High at today's cost, its
+  Edge smoothing goes to Off and Texture filtering to 4× in `data/graphics.md`.
+- **A slider held when Settings closes or the tab hides** is applied and let go (`SettingsGraphicsPage.let_go`, QA):
+  its drag_ended never comes, so the value was lost and later key steps ignored.
 - **One place applies:** `GraphicsApply.apply_settings` (through `SettingsApply.apply_graphics`, at start in
   `apply_all` and on each change in the tab) draws only values that differ from those drawn (`equals`) and tells the
   match through `GraphicsApply.Server.applied`; PlaySession and the optic glass listen, so a change from the pause menu
@@ -54,7 +60,8 @@
 
 The cloud draws headless and Compatibility only; these need Forward+ on real hardware.
 
-1. **Looks:** `godot --path . -- --graphics=high`: Depot looks as before the presets (sun shadows to 70 m, SSAO).
+1. **Looks:** `godot --path . -- --graphics=high`: Depot's shadows and SSAO as before the presets, with smoother
+   edges (MSAA 4×) and sharper far textures (16×); run it beside main with `--perf` on one seed to see what that costs.
    `--graphics=low`: no sun shadows, no ambient occlusion, no dust, a slightly softer picture (80 % sharpened by
    FSR 1). Each row on the tab changes something you can see (Ultra's 8192 shadows and Softest filter, Mesh detail on
    the far props).
@@ -66,6 +73,8 @@ The cloud draws headless and Compatibility only; these need Forward+ on real har
    a summary at exit), the same seed each time, an Elimination match on Depot played through:
    - laptop: `godot --path . -- --graphics=low --perf --seed=1234`, at its screen size;
    - desktop: `godot --path . -- --graphics=ultra --perf --seed=1234`, fullscreen at 4K;
+   - either: `godot --path . -- --graphics=high --perf --seed=1234` against main on the same seed (High's MSAA 4× and
+     16× filtering are new cost);
    - send for each the overlay's FPS and frame time (ms and max) in a busy moment and in a quiet one, and the
      `[perf-summary]` line at exit (draw calls, nodes); those become the Low and Ultra lines.
 
@@ -86,3 +95,11 @@ The cloud draws headless and Compatibility only; these need Forward+ on real har
 
 - What each row looks like, MSAA in the optic glass and the shadow-map hitch are unchecked (KNOWN_ISSUES, Graphics),
   and `pipeline/perf-budget.json` waits for the owner's figures.
+
+## Advisories left (critic, QA)
+
+- settings_graphics_page.gd is 572 lines: move CostSquares and Line to their own files when GR3 or GR4 next touches
+  the tab. MESH_LOD's pixel thresholds belong in data/graphics.md; the page's FILLED colour in GameTheme.
+- Render scale applies on each arrow-key step (key repeat rebuilds the 3D buffers); route key steps through the
+  screen's slider timer. On Compatibility with Low, FSR 1 shows disabled and pressed, so no upscaler looks picked
+  (GR4). A `--graphics=` run snaps changed rows back, and Reset leaves a stale graphics_base: dev flag, harmless.
