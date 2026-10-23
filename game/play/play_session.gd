@@ -1047,6 +1047,7 @@ func _settle() -> void:
 ## The HUD tab's choices, at the start and on every change (the settings can open from the pause menu).
 func _apply_hud() -> void:
 	_hud.apply_prefs(settings.hud)
+	_hud.set_patterns(settings.gauge_patterns)
 	# The skipping note sits outside the HUD, over it.
 	HudStyle.restyle(_skip_note, settings.hud.panel_opacity)
 

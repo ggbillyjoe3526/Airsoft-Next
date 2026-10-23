@@ -371,6 +371,14 @@ func prefs() -> HudPrefs:
 	return _prefs
 
 
+## Settings › Accessibility's gauge patterns on or off (Settings.gauge_patterns; call again after a change): Beta's
+## score pips, block and flag fill striped, and a low magazine striped as well as yellow.
+func set_patterns(on: bool) -> void:
+	_score.set_patterned(on)
+	_gauge.set_patterned(on)
+	_replica.set_patterned(on)
+
+
 ## The hit feed's lines: for tests.
 func hit_lines() -> HitFeed:
 	return _hits
@@ -598,7 +606,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	_score.set_sides(rs.attackers if flag_mode else -1)
 	_gauge.visible = flag_mode
 	if flag_mode and rs.attackers >= 0:
-		_gauge.set_flag(rs.flag.progress, _teams.colours[rs.attackers])
+		_gauge.set_flag(rs.flag.progress, _teams.colours[rs.attackers], rs.attackers == HudStyle.STRIPED_TEAM)
 	_update_warning(rs, delta)
 	if _readout != null:
 		_readout.visible = state.challenge.phase == RangeChallenge.Phase.OFF
