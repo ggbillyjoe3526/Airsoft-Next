@@ -5,27 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## AC4 · Sound cues round the crosshair
-tier: ui
-perf: required
-touches: game/play/sound_cues.gd, game/play/play_session.gd, game/play/README.md, game/ui/hud_sound_cues.gd,
-  game/ui/hud.gd, game/ui/settings_access_page.gd, tests/unit/test_sound_cues.gd
-contract: Simulation and presentation (1); Events (3); Data, not literals (6)
-acceptance:
-  1. SoundCues (plain RefCounted, fed each tick's events after the step, through the watched character's ears like
-     MinimapHearing): FOOTSTEP and VAULT of the other team within step_reach, SHOT of anyone but you within
-     max_distance × the replica's heard_scale, CHARACTER_HIT (the hit call) within max_distance; none for your own
-     sounds or teammates' steps; one pooled marker per player and kind (AccessibilityConfig's 10), life 1.4 s, fade
-     0.6 s, opacity 1 beside you to 0.35 at the edge. Walls are not checked (a muffled sound is still heard).
-  2. HudSoundCues draws them on a ring (150 px at 1080p) at their bearing relative to the view, turning as you turn:
-     two dots, an arrowhead, a HIT tag (hud-sound-cues.png), in the picked colour and size; off hides it and stops
-     feeding. A new round clears them.
-  3. GUT: reach and heard_scale; own and teammates' steps ignored; a burst is one marker; fade times; the pool never
-     grows; bearing for a sound behind and to the left. A tick and a frame allocate nothing.
-  4. The tab's Sound cues rows lose LATER.
-status: open
-attempts: 0
-
 ## AC5 · HUD size and reduced motion
 tier: ui
 perf: skip
