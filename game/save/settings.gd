@@ -18,6 +18,8 @@ enum WindowMode { WINDOWED, BORDERLESS, EXCLUSIVE }
 enum WhatGotYou { AUTO, ON, OFF }
 ## The renderer the next start asks for: Auto (Forward+, falling back by itself) or the simpler Compatibility one.
 enum Renderer { AUTO, COMPATIBILITY }
+## Reduced motion: follow the system's "reduce animation" (never written to the file), or the player's Off or On.
+enum ReducedMotion { SYSTEM, OFF, ON }
 
 ## Volumes are linear shares, 0 to 1, by audio bus (docs/DECISIONS.md › Menus, HUD, settings and accessibility).
 const VOLUME_BUSES: Array[StringName] = [&"Master", &"Effects", &"Power", &"Ambience", &"Interface"]
@@ -83,6 +85,19 @@ var realistic_colours: bool = false
 var what_got_you: WhatGotYou = WhatGotYou.AUTO
 ## The HUD tab's choices: the crosshair, the hit marker, the ammo counter, the hit feed and the panels' opacity.
 var hud: HudPrefs = HudPrefs.new()
+## Settings › Accessibility (AC1): the team colour set (TeamColours), shown from the next match.
+var team_colours: TeamColours.Set = TeamColours.Set.STANDARD
+## Stripes on Beta's gauges and a low magazine, so they read without colour.
+var gauge_patterns: bool = true
+## Markers round the crosshair for the sounds you hear: off by default, so playing by ear stays the norm; their size
+## (AccessibilityConfig.CUE_SIZE_RANGE) and colour (an index into HudPrefs.COLOURS).
+var sound_cues: bool = false
+var sound_cue_size: float = AccessibilityConfig.CUE_SIZE_DEFAULT
+var sound_cue_colour: int = AccessibilityConfig.CUE_COLOUR_DEFAULT
+## Follows the system until the player picks (reduces_motion).
+var reduced_motion: ReducedMotion = ReducedMotion.SYSTEM
+## Hit calls, your hit and round results sent to a screen reader while one runs.
+var read_out: bool = true
 ## The Custom rule set's switches, kept between Custom matches (the Match screen picks Skirmish or Custom).
 var custom_rules: CustomRules = CustomRules.new()
 ## Practice's timed challenge, switched on or off from the pause menu and kept for the next visit to the range.
@@ -166,7 +181,12 @@ func to_dict() -> Dictionary:
 		"dev_enabled": dev_enabled, "dev": dev.to_dict(), "graphics_base": String(graphics_base),
 		"graphics_custom": graphics_custom.duplicate(), "frame_limit": frame_limit, "monitor": monitor,
 		"last_fullscreen": int(last_fullscreen), "renderer": int(renderer), "first_start_seen": first_start_seen,
+		"team_colours": int(team_colours), "gauge_patterns": gauge_patterns, "sound_cues": sound_cues,
+		"sound_cue_size": sound_cue_size, "sound_cue_colour": sound_cue_colour, "read_out": read_out,
 	}
+	# Following the system is never written, so the file holds only the player's own pick.
+	if reduced_motion != ReducedMotion.SYSTEM:
+		out["reduced_motion"] = reduced_motion == ReducedMotion.ON
 	# The automatic pick is never written, so a better card later gets its own preset.
 	if graphics_choice != GRAPHICS_AUTOMATIC:
 		out["graphics_choice"] = String(graphics_choice)
@@ -211,6 +231,20 @@ func from_dict(data: Dictionary) -> void:
 	last_fullscreen = fullscreen as WindowMode
 	renderer = roundi(_number(data, "renderer", Renderer.AUTO, 0.0, Renderer.size() - 1.0)) as Renderer
 	first_start_seen = _flag(data, "first_start_seen", false)
+	_accessibility_from(data)
+
+
+## Whether motion is reduced: On, or Follow system while the system asks for it (`system_answer` is
+## DisplayServer.accessibility_should_reduce_animation()'s: 1 yes, 0 no, -1 it can't say).
+func reduces_motion(system_answer: int) -> bool:
+	if reduced_motion == ReducedMotion.SYSTEM:
+		return system_answer == 1
+	return reduced_motion == ReducedMotion.ON
+
+
+## reduces_motion with the display's answer now.
+func reduces_motion_now() -> bool:
+	return reduces_motion(DisplayServer.accessibility_should_reduce_animation())
 
 
 ## The graphics values in force: the `--graphics=` preset, else the automatic pick (`picked`, GraphicsPick's), else
@@ -331,6 +365,25 @@ func _graphics_from(data: Dictionary) -> void:
 				graphics_custom[key] = roundi(n)
 		elif value is String and GraphicsQuality.CHOICES[row].has(value):
 			graphics_custom[key] = value
+
+
+## Settings › Accessibility's values, each checked on its own; a size between the slider's steps reads as the nearest
+## step.
+func _accessibility_from(data: Dictionary) -> void:
+	var sets := TeamColours.Set.size() - 1.0
+	team_colours = roundi(_number(data, "team_colours", TeamColours.Set.STANDARD, 0.0, sets)) as TeamColours.Set
+	gauge_patterns = _flag(data, "gauge_patterns", true)
+	sound_cues = _flag(data, "sound_cues", false)
+	var sizes := AccessibilityConfig.CUE_SIZE_RANGE
+	var size := _number(data, "sound_cue_size", AccessibilityConfig.CUE_SIZE_DEFAULT, sizes.x, sizes.y)
+	sound_cue_size = snappedf(size, AccessibilityConfig.CUE_SIZE_STEP)
+	var colours := HudPrefs.COLOURS.size() - 1.0
+	sound_cue_colour = roundi(_number(data, "sound_cue_colour", AccessibilityConfig.CUE_COLOUR_DEFAULT, 0.0, colours))
+	var motion: Variant = data.get("reduced_motion")
+	reduced_motion = ReducedMotion.SYSTEM
+	if motion is bool:
+		reduced_motion = ReducedMotion.ON if motion else ReducedMotion.OFF
+	read_out = _flag(data, "read_out", true)
 
 
 static func _flag(data: Dictionary, key: String, fallback: bool) -> bool:

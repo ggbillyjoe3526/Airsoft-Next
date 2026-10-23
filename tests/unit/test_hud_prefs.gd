@@ -195,3 +195,30 @@ func _hud() -> Hud:
 			Character.new(0, 0, Vector3.ZERO, 0.0, ReplicaStats.default_loadout()))
 	return hud
 
+
+
+func test_the_hud_size_is_saved_checked_and_kept_on_the_sliders_steps() -> void:
+	assert_eq(HudPrefs.new().hud_size, 1.0, "100 % by default")
+	var p := HudPrefs.new()
+	p.hud_size = 1.25
+	var back := HudPrefs.new()
+	back.from_dict(p.to_dict())
+	assert_almost_eq(back.hud_size, 1.25, 1e-6, "saved and read back")
+	for bad: Variant in [0.5, 1.6, "big", null, NAN]:
+		back.from_dict({"hud_size": bad})
+		assert_eq(back.hud_size, 1.0, "%s keeps the default" % str(bad))
+	back.from_dict({"hud_size": 1.27, "colour": 3})
+	assert_almost_eq(back.hud_size, 1.25, 1e-6, "between steps reads as the nearest")
+	assert_eq(back.colour, 3, "a good value beside it is kept")
+	back.from_dict({"hud_size": 1.5})
+	assert_almost_eq(back.hud_size, 1.5, 1e-6, "the top of the range")
+
+
+func test_a_hud_saved_before_the_hud_size_loads_at_100_percent() -> void:
+	var data := HudPrefs.new().to_dict()
+	data.erase("hud_size")
+	data["size"] = 9.0
+	var p := HudPrefs.new()
+	p.from_dict(data)
+	assert_eq(p.hud_size, 1.0)
+	assert_eq(p.size, 9.0, "the rest loads unchanged")
