@@ -66,11 +66,13 @@
   `[cues] live=` lines confirmed the feed): `nodes_max=1043 orphans_max=794` both, `new_nodes/s=0` through the match.
 - Xvfb screenshots at 1080p (Compatibility): the ring with a step behind left, a far shot right and a hit call ahead
   in red at 100 %, and white at 200 %, and the tab's sample and key match the pictures.
-- `tools/check.sh`: see the report.
+- `tools/check.sh`: gdlint, changelog notes, unit tests (2234 passing), the smoke test and the licence notices pass.
 
 ## Files outside touches
 
 - `game/play/minimap_hearing.gd` (`_heard_scale` made public as `heard_scale`, for SoundCues).
+- `tests/unit/test_ac2_qa.gd` (the greyed-row check moved from Sound cues, now live, to Reduced motion; it also
+  checks the cue size slider takes the mouse and focus again).
 
 ## Known issues left
 
