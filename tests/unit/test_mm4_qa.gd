@@ -333,3 +333,114 @@ func test_the_flag_and_hold_markers_pinned_together_keep_apart_from_the_panel_th
 				assert_gte(hold.position.y, flag.position.y + hud.minimap().step_down() - 0.5, "a step under the flag plate")
 			if with_card:
 				assert_gt(hold.position.x, HUD_SIZE.x * 0.5, "past the feed's top the stack moves right, " + tag)
+
+
+# --- the hold marker pinned to a side against the flag marker (attempt 3) ---
+
+## A session at the layout size with the minimap up and a camera at `at`, for the markers' placement.
+func _markers_ready(at: Vector3) -> Dictionary:
+	var s := _session()
+	await wait_physics_frames(2)
+	var hud := s.hud()
+	hud.size = HUD_SIZE
+	hud.setup_orders(ControlsConfig.new())
+	var camera := Camera3D.new()
+	add_child_autofree(camera)
+	camera.global_position = at
+	return {"s": s, "hud": hud, "camera": camera}
+
+
+## The flag marker over its pole (not pinned) near a side edge, Hold here's marker held at that side: the two plates do
+## not cover each other, whatever height the pole stands at on the screen.
+func test_a_hold_marker_pinned_to_a_side_keeps_clear_of_a_flag_marker_over_its_pole_near_that_edge() -> void:
+	var r := await _markers_ready(Vector3(0.0, 1.7, 0.0))
+	var hud: Hud = r["hud"]
+	var camera: Camera3D = r["camera"]
+	for side: float in [-1.0, 1.0]:
+		var tried := 0
+		for px in range(4, 28):
+			for i in 21:
+				camera.rotation = Vector3(-0.5 + 0.05 * i, 0.0, 0.0)
+				var pole := Vector3(side * px, 0.0, -20.0)
+				var spot := Vector3(side * 60.0, 0.0, -20.0)
+				hud.place_flag_marker(camera, pole, true)
+				hud.place_hold_marker(camera, spot, true)
+				var flag: Rect2 = hud._flag_marker.occupied()
+				var held := HudHoldMarker.Pin.LEFT if side < 0.0 else HudHoldMarker.Pin.RIGHT
+				if not flag.has_area() or hud._flag_marker.pinned_side() != 0 or hud.hold_marker().pin != held:
+					continue
+				var hold := hud.hold_marker().get_rect()
+				if flag.position.x > 200.0 and flag.end.x < HUD_SIZE.x - 200.0:
+					continue
+				tried += 1
+				assert_eq(flag.intersection(hold).get_area(), 0.0,
+						"side %s: flag %s over hold %s (pole %d, pitch %d)" % [side, flag, hold, px, i])
+		assert_gt(tried, 0, "side %s: the sweep put the flag over its pole at the edge with the hold marker pinned there" % side)
+
+
+## Turning the view through a full circle with both markers up: neither plate changes side more often than the
+## geometry makes it (a swap is a few turns' worth, not a flicker), and the two never overlap.
+func test_turning_all_the_way_round_swaps_the_markers_sides_only_when_the_view_crosses_them() -> void:
+	var r := await _markers_ready(Vector3(0.0, 1.7, 0.0))
+	var hud: Hud = r["hud"]
+	var camera: Camera3D = r["camera"]
+	var pole := Vector3(0.0, 0.0, -30.0)
+	var spot := Vector3(20.0, 0.0, 10.0)
+	var flips := {"flag": 0, "hold": 0}
+	var last := {"flag": 0, "hold": 0}
+	for i in 721:
+		camera.rotation = Vector3(0.0, deg_to_rad(i * 0.5), 0.0)
+		hud.place_flag_marker(camera, pole, true)
+		hud.place_hold_marker(camera, spot, true)
+		var flag: Rect2 = hud._flag_marker.occupied()
+		var hold := hud.hold_marker().get_rect()
+		assert_eq(flag.intersection(hold).get_area(), 0.0, "overlap at %d: %s %s" % [i, flag, hold])
+		var f := signi(roundi(flag.get_center().x - HUD_SIZE.x * 0.5))
+		var h := signi(roundi(hold.get_center().x - HUD_SIZE.x * 0.5))
+		if i > 0 and f != last["flag"] and absf(flag.get_center().x - HUD_SIZE.x * 0.5) > 200.0:
+			flips["flag"] += 1
+		if i > 0 and h != last["hold"] and absf(hold.get_center().x - HUD_SIZE.x * 0.5) > 200.0:
+			flips["hold"] += 1
+		last["flag"] = f
+		last["hold"] = h
+	# Each marker passes from one side to the other while the view turns past it at most twice a turn (in front, behind).
+	assert_lte(flips["flag"] as int, 8, "flag swaps %s" % flips)
+	assert_lte(flips["hold"] as int, 8, "hold swaps %s" % flips)
+
+
+## A card just added is not yet laid out: Hold here's marker, pinned left, holds its place with the flag marker rather
+## than jumping with the card's first (meaningless) height.
+func test_a_card_just_added_does_not_move_the_pinned_hold_marker_for_a_frame() -> void:
+	var r := await _markers_ready(Vector3(0.0, 1.7, 0.0))
+	var s: PlaySession = r["s"]
+	var hud: Hud = r["hud"]
+	var camera: Camera3D = r["camera"]
+	var spot := Vector3(-40.0, 0.0, -20.0)
+	hud.place_hold_marker(camera, spot, true)
+	var before := hud.hold_marker().position
+	var note := "holds one spot short of the middle, aiming over cover, until late in the round."
+	_card(s, note)
+	hud.place_hold_marker(camera, spot, true)
+	var first := hud.hold_marker().position
+	await wait_process_frames(3)
+	hud.place_hold_marker(camera, spot, true)
+	var settled := hud.hold_marker().position
+	assert_almost_eq(first.y, settled.y, 1.0, "first frame %s, laid out %s, before the card %s" % [first, settled, before])
+
+
+## Placing the hold marker, pinned at each side and over the spot, with the flag marker up, makes no objects a frame.
+func test_placing_the_hold_marker_with_the_stacks_allocates_no_objects() -> void:
+	var r := await _markers_ready(Vector3(0.0, 1.7, 0.0))
+	var hud: Hud = r["hud"]
+	var camera: Camera3D = r["camera"]
+	var pole := Vector3(0.0, 0.0, -30.0)
+	var spots: Array[Vector3] = [Vector3(-60.0, 0.0, -20.0), Vector3(60.0, 0.0, -20.0), Vector3(0.0, 0.0, -20.0)]
+	for spot in spots:
+		hud.place_flag_marker(camera, pole, true)
+		hud.place_hold_marker(camera, spot, true)
+	var before := Performance.get_monitor(Performance.OBJECT_COUNT)
+	for i in 60:
+		for spot in spots:
+			hud.place_flag_marker(camera, pole, true)
+			hud.place_hold_marker(camera, spot, true)
+	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), before, "no objects made over 180 placements")
