@@ -393,3 +393,11 @@ func test_the_graphics_flag_forces_its_preset_for_the_run_and_is_never_saved() -
 	assert_false(saved.values().has("ultra"), "the forced preset is nowhere in the file")
 	s.save(path)
 	assert_eq(_again().graphics_forced, &"")
+
+
+func test_picking_a_preset_drops_customs_rows() -> void:
+	var s := Settings.new()
+	assert_true(s.change_graphics_row(&"wind_dust", 10, &"high"))
+	assert_false(s.graphics_custom.is_empty())
+	assert_true(s.choose_graphics(&"low", &"high"))
+	assert_true(s.graphics_custom.is_empty(), "no stale rows saved under a preset")

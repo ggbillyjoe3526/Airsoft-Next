@@ -111,8 +111,8 @@ static func shared() -> Settings:
 	if _shared == null:
 		var s := Settings.new()
 		s.load_file()
+		s.graphics_forced = GraphicsPick.forced(OS.get_cmdline_user_args()) # before apply, so it sees the flag
 		SettingsApply.apply_all(s)
-		s.graphics_forced = GraphicsPick.forced(OS.get_cmdline_user_args())
 		_shared = s
 	return _shared
 
@@ -234,7 +234,7 @@ func graphics_preset_on(picked: StringName) -> StringName:
 
 
 ## Chooses a preset, Custom or GRAPHICS_AUTOMATIC. Custom chosen from a preset starts as that preset with no rows of
-## its own; chosen again it keeps its rows. False (and nothing changes) for a name that is none of these.
+## its own; chosen again it keeps its rows. A preset or automatic drops Custom's rows. False (and nothing changes) for a name that is none of these.
 func choose_graphics(choice: StringName, picked: StringName) -> bool:
 	if choice == GraphicsQuality.CUSTOM:
 		if graphics_choice != GraphicsQuality.CUSTOM:
@@ -242,6 +242,8 @@ func choose_graphics(choice: StringName, picked: StringName) -> bool:
 			graphics_custom = {}
 	elif choice != GRAPHICS_AUTOMATIC and not GraphicsTable.PRESETS.has(choice):
 		return false
+	else:
+		graphics_custom = {} # a preset or automatic sets every row again (QA)
 	graphics_choice = choice
 	return true
 
