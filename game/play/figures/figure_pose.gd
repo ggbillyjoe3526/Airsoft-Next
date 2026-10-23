@@ -109,7 +109,7 @@ func stepping() -> bool:
 
 ## The share of the way to the target `delta` seconds of easing covers with settle time `settle` (s).
 static func settle_share(delta: float, settle: float) -> float:
-	return 1.0 - exp(-delta / settle) if settle > 0.0 else 1.0
+	return 1.0 - exp(-maxf(delta, 0.0) / settle) if settle > 0.0 else 1.0
 
 
 ## Where in the Vault clip (0..1) vault `v` is: its first `top` over the rise onto the top, the rest across it to the

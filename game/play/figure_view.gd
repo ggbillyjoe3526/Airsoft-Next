@@ -204,7 +204,8 @@ static func make_sign(font: Font, team_colour: Color) -> Label3D:
 
 ## Poses the rigged figure's legs from `c` at `fraction` between its ticks, `delta` seconds on, seen from `eye`. A
 ## hidden figure's legs are left still (and snap to the pose when it shows again); beyond the far line they move every
-## FigureConfig.far_stride-th frame. After `update` and after the figure is hidden from its own eyes.
+## FigureConfig.far_stride-th frame, but a figure's first pose is always taken (never the rig's rest pose). After
+## `update` and after the figure is hidden from its own eyes.
 func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 	if _body == null:
 		return
@@ -213,10 +214,14 @@ func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 		return
 	var cfg := _pose.config()
 	var far := _lines.y + cfg.lod_margin
-	if global_position.distance_squared_to(eye) > far * far:
+	if not _snap and global_position.distance_squared_to(eye) > far * far:
+		if cfg.far_stride <= 0:
+			_far_frames = 0
+			_far_delta = 0.0
+			return
 		_far_delta += delta
 		_far_frames += 1
-		if cfg.far_stride <= 0 or _far_frames < cfg.far_stride:
+		if _far_frames < cfg.far_stride:
 			return
 		delta = _far_delta
 	_far_frames = 0
