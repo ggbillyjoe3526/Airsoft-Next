@@ -5,23 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## AC3 · Patterns on the gauges
-tier: ui
-perf: required
-touches: game/ui/gauge_pattern.gd, game/ui/mag_gauges.gd, game/ui/hud_flag_gauge.gd, game/ui/hud_score.gd,
-  game/ui/hud_style.gd, game/ui/hud.gd, game/ui/settings_access_page.gd, tests/unit/test_gauge_pattern.gd,
-  tests/unit/test_mag_gauges.gd
-contract: Data, not literals (6)
-acceptance:
-  1. GaugePattern builds 45° stripes clipped to a rect as one cached PackedVector2Array (draw_multiline), rebuilt
-     only when the rect changes; stripe width and gap and the stripe colour's contrast are HudStyle constants.
-  2. With Gauge patterns on: a low magazine (share ≤ low_mag_share, counter on) is yellow and striped; Beta's score
-     pips, score block and Beta's flag-gauge fill are striped, Alpha's solid, in both colour sets. Off draws as today.
-  3. Still redrawn only on a change; a frame allocates nothing (GUT on the cached arrays; DebugPerf counts).
-  4. The tab's Gauge patterns row loses LATER.
-status: open
-attempts: 0
-
 ## AC4 · Sound cues round the crosshair
 tier: ui
 perf: required
