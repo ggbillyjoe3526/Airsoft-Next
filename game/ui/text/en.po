@@ -1842,6 +1842,267 @@ msgstr ", both times holding the angle"
 msgid "WGY_ALL_HELD"
 msgstr ", every time holding the angle"
 
+msgid "SETTINGS_GRAPHICS"
+msgstr "GRAPHICS"
+
+msgid "GRAPHICS_QUALITY"
+msgstr "Quality"
+
+msgid "GRAPHICS_RESOLUTION"
+msgstr "Resolution"
+
+msgid "GRAPHICS_EDGES"
+msgstr "Edges"
+
+msgid "GRAPHICS_SHADOWS"
+msgstr "Shadows"
+
+msgid "GRAPHICS_LIGHT_AND_DETAIL"
+msgstr "Light and detail"
+
+msgid "GRAPHICS_PRESET"
+msgstr "PRESET"
+
+msgid "GRAPHICS_PRESET_LOW"
+msgstr "Low"
+
+msgid "GRAPHICS_PRESET_MEDIUM"
+msgstr "Medium"
+
+msgid "GRAPHICS_PRESET_HIGH"
+msgstr "High"
+
+msgid "GRAPHICS_PRESET_ULTRA"
+msgstr "Ultra"
+
+msgid "GRAPHICS_PRESET_CUSTOM"
+msgstr "Custom"
+
+msgid "GRAPHICS_FOR_YOUR_CARD"
+msgstr "FOR YOUR CARD"
+
+msgid "GRAPHICS_BLURB_LOW"
+msgstr "No sun shadows, ambient occlusion or wind dust, and an 80 % render scale sharpened by FSR 1: holds 60 FPS on low-powered hardware."
+
+msgid "GRAPHICS_BLURB_MEDIUM"
+msgstr "Sun shadows on, no ambient occlusion, MSAA 2× and half the wind dust."
+
+msgid "GRAPHICS_BLURB_HIGH"
+msgstr "The game as it was made to look: 70 m sun shadows, ambient occlusion at half size and MSAA 4×."
+
+msgid "GRAPHICS_BLURB_ULTRA"
+msgstr "High with the sharpest, softest and farthest shadows, full ambient occlusion and the finest mesh detail. No new effects."
+
+msgid "GRAPHICS_LEAD"
+msgstr "%s:"
+
+msgid "GRAPHICS_LEAD_AUTOMATIC"
+msgstr "Automatic, %s:"
+
+msgid "GRAPHICS_AUTOMATIC_NOTE"
+msgstr "Picked for your graphics card at each start, until you choose a preset or change a row."
+
+msgid "GRAPHICS_CUSTOM_NONE"
+msgstr "%s with no changes yet. Picking a preset sets every row below again."
+
+msgid "GRAPHICS_CUSTOM_ONE"
+msgstr "%s with 1 change (marked). Picking a preset sets every row below again."
+
+msgid "GRAPHICS_CUSTOM_MANY"
+msgstr "%s with %d changes (marked). Picking a preset sets every row below again."
+
+msgid "GRAPHICS_LEAD_FORCED"
+msgstr "--graphics=%s:"
+
+msgid "GRAPHICS_FORCED"
+msgstr "this run draws %s whatever is chosen here. What you choose is saved for the next start."
+
+msgid "GRAPHICS_STUTTER"
+msgstr "If the game stutters, lower the preset or the render scale first."
+
+msgid "GRAPHICS_RENDER_SCALE"
+msgstr "RENDER SCALE"
+
+msgid "GRAPHICS_UPSCALER"
+msgstr "UPSCALER"
+
+msgid "GRAPHICS_EDGE_SMOOTHING"
+msgstr "EDGE SMOOTHING"
+
+msgid "GRAPHICS_TEMPORAL_SMOOTHING"
+msgstr "TEMPORAL SMOOTHING"
+
+msgid "GRAPHICS_SUN_SHADOWS"
+msgstr "SUN SHADOWS"
+
+msgid "GRAPHICS_SHADOW_DETAIL"
+msgstr "SHADOW DETAIL"
+
+msgid "GRAPHICS_SHADOW_SOFTNESS"
+msgstr "SHADOW SOFTNESS"
+
+msgid "GRAPHICS_SHADOW_RANGE"
+msgstr "SHADOW RANGE"
+
+msgid "GRAPHICS_AMBIENT_OCCLUSION"
+msgstr "AMBIENT OCCLUSION"
+
+msgid "GRAPHICS_TEXTURE_FILTERING"
+msgstr "TEXTURE FILTERING"
+
+msgid "GRAPHICS_MESH_DETAIL"
+msgstr "MESH DETAIL"
+
+msgid "GRAPHICS_WIND_DUST"
+msgstr "WIND DUST"
+
+msgid "GRAPHICS_DRAWS"
+msgstr "Draws %d × %d."
+
+msgid "GRAPHICS_UPSCALER_NOTE"
+msgstr "Below 100 % only."
+
+msgid "GRAPHICS_TEMPORAL_SMOOTHING_NOTE"
+msgstr "Steadier rails and wire in motion; BB streaks blur a little."
+
+msgid "GRAPHICS_NOT_ON_RENDERER"
+msgstr "Not on this renderer."
+
+msgid "GRAPHICS_CHOICE_BILINEAR"
+msgstr "Bilinear"
+
+msgid "GRAPHICS_CHOICE_FSR1"
+msgstr "FSR 1"
+
+msgid "GRAPHICS_CHOICE_FSR2"
+msgstr "FSR 2"
+
+msgid "GRAPHICS_CHOICE_OFF"
+msgstr "Off"
+
+msgid "GRAPHICS_CHOICE_ON"
+msgstr "On"
+
+msgid "GRAPHICS_CHOICE_FXAA"
+msgstr "FXAA"
+
+msgid "GRAPHICS_CHOICE_SMAA"
+msgstr "SMAA"
+
+msgid "GRAPHICS_CHOICE_MSAA_2X"
+msgstr "MSAA 2×"
+
+msgid "GRAPHICS_CHOICE_MSAA_4X"
+msgstr "MSAA 4×"
+
+msgid "GRAPHICS_CHOICE_1024"
+msgstr "Low"
+
+msgid "GRAPHICS_CHOICE_2048"
+msgstr "Medium"
+
+msgid "GRAPHICS_CHOICE_4096"
+msgstr "High"
+
+msgid "GRAPHICS_CHOICE_8192"
+msgstr "Ultra"
+
+msgid "GRAPHICS_CHOICE_HARD"
+msgstr "Hard"
+
+msgid "GRAPHICS_CHOICE_SOFT"
+msgstr "Soft"
+
+msgid "GRAPHICS_CHOICE_SOFTER"
+msgstr "Softer"
+
+msgid "GRAPHICS_CHOICE_SOFTEST"
+msgstr "Softest"
+
+msgid "GRAPHICS_CHOICE_HALF"
+msgstr "Half"
+
+msgid "GRAPHICS_CHOICE_FULL"
+msgstr "Full"
+
+msgid "GRAPHICS_CHOICE_2X"
+msgstr "2×"
+
+msgid "GRAPHICS_CHOICE_4X"
+msgstr "4×"
+
+msgid "GRAPHICS_CHOICE_8X"
+msgstr "8×"
+
+msgid "GRAPHICS_CHOICE_16X"
+msgstr "16×"
+
+msgid "GRAPHICS_CHOICE_LOW"
+msgstr "Low"
+
+msgid "GRAPHICS_CHOICE_MEDIUM"
+msgstr "Medium"
+
+msgid "GRAPHICS_CHOICE_HIGH"
+msgstr "High"
+
+msgid "GRAPHICS_CHOICE_ULTRA"
+msgstr "Ultra"
+
+msgid "GRAPHICS_COST"
+msgstr "GPU"
+
+msgid "GRAPHICS_RESET"
+msgstr "Reset to For your card (%s)"
+
+msgid "GRAPHICS_RESET_NOTE"
+msgstr "Every row applies at once. The squares say how much each takes from your graphics card."
+
+msgid "GRAPHICS_YOUR_SYSTEM"
+msgstr "YOUR SYSTEM"
+
+msgid "GRAPHICS_CARD"
+msgstr "Graphics card"
+
+msgid "GRAPHICS_RENDERER"
+msgstr "Renderer"
+
+msgid "GRAPHICS_SCREEN"
+msgstr "Screen"
+
+msgid "GRAPHICS_SCREEN_LINE"
+msgstr "%d × %d · %d Hz · monitor %d"
+
+msgid "GRAPHICS_SCREEN_LINE_NO_RATE"
+msgstr "%d × %d · monitor %d"
+
+msgid "GRAPHICS_UNKNOWN_CARD"
+msgstr "Not reported"
+
+msgid "GRAPHICS_TYPE_OTHER"
+msgstr "type not reported"
+
+msgid "GRAPHICS_TYPE_INTEGRATED"
+msgstr "integrated"
+
+msgid "GRAPHICS_TYPE_DISCRETE"
+msgstr "dedicated"
+
+msgid "GRAPHICS_TYPE_VIRTUAL"
+msgstr "virtual"
+
+msgid "GRAPHICS_TYPE_CPU"
+msgstr "software"
+
+msgid "GRAPHICS_FORWARD_PLUS"
+msgstr "Forward+"
+
+msgid "GRAPHICS_MOBILE"
+msgstr "Mobile"
+
+msgid "GRAPHICS_COMPATIBILITY"
+msgstr "Compatibility"
+
 msgid "SETTINGS_HUD"
 msgstr "HUD"
 
