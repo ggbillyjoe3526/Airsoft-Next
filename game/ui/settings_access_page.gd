@@ -147,8 +147,8 @@ func _build_team_colours(body: VBoxContainer) -> void:
 	row.add_theme_constant_override("separation", CARD_GAP)
 	body.add_child(row)
 	for colour_set: int in TeamColours.Set.values():
-		var figures := TeamColours.resolve(colour_set as TeamColours.Set, false, null, _screen.settings.tuning.teams)
-		row.add_child(_set_card(colour_set as TeamColours.Set, figures.figures))
+		var resolved := TeamColours.resolve(colour_set as TeamColours.Set, false, null, _screen.settings.tuning.teams)
+		row.add_child(_set_card(colour_set as TeamColours.Set, resolved.figures))
 	_screen.add_help(body, "SETTINGS_TEAM_COLOURS_NOTE")
 
 
