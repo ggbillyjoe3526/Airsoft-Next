@@ -110,29 +110,6 @@ acceptance:
 status: open
 attempts: 0
 
-## FI6 · Settings › Looks › Robots and the first-person arms hook
-tier: ui
-perf: skip
-touches: game/save/settings.gd, game/ui/settings_looks_page.gd, game/ui/settings_screen.gd, game/ui/text/en.po,
-  game/play/play_session.gd, game/play/replica_view.gd, game/play/figures/figure_mix.gd, docs/PLAYTEST.md,
-  tests/unit/test_settings.gd, tests/unit/test_settings_looks_page.gd, tests/unit/test_figure_mix.gd
-contract: Saves (8)
-acceptance:
-  1. A Looks tab after Controls, before Audio (the browser's place after Gameplay, which Godot folds into
-     Controls), as settings-looks.png: "Humans and robots", Robots with Mixed ("Each match mixes humans and robots on
-     both teams.") and Humans only ("Every player is human."), and "From the next match." while paused in one.
-  2. Settings.robots (true by default) saved under "robots" in the settings store; an older file without it reads
-     Mixed; Settings' version unchanged (a new key with a default needs no migration).
-  3. PlaySession hands FigureMix the setting at the start of a match or practice; your kind (human or robot, from the
-     same mix; practice: a robot half the time from the seed) reaches ReplicaView.arms_kind, where step 32's arms
-     will read it. No arm is drawn (ART.md: the arms are step 32).
-  4. The screen reader reads the tab and both choices (Accessibility's read-out).
-  5. PLAYTEST › Players and replicas: Looks › Robots, Mixed then Humans only, over two matches.
-  6. GUT: the toggle saves and reloads; an old settings file reads Mixed; robots off gives no robot figure and a
-     human arms_kind; the practice kind follows the seed.
-status: open
-attempts: 0
-
 ## FI7 · Rigged figures for everyone: capsules gone, the hit area measured, eleven figures timed
 tier: core
 perf: required

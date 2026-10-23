@@ -181,3 +181,92 @@ func test_the_mix_leaves_the_global_generator_alone_and_takes_any_seed() -> void
 	for sd in 100:
 		distinct[FigureMix.pick(sd, teams, true, SALT)] = true
 	assert_gt(distinct.size(), 3)
+
+
+func _practice(robots: bool, seed_value: int) -> PlaySession:
+	s.robots = robots
+	var p := PlaySession.new()
+	p.settings = s
+	p.practice = true
+	p.mode = "practice"
+	p.match_seed = seed_value
+	add_child_autofree(p)
+	await wait_physics_frames(2)
+	return p
+
+
+func _arms(p: PlaySession) -> ReplicaView:
+	return p.find_child("Hands", true, false) as ReplicaView
+
+
+func test_the_setting_off_gives_no_robot_and_a_human_arms_kind() -> void:
+	var p := await _play(false)
+	s.robots = false
+	var off := await _play(false)
+	for kind in off.figure_kinds:
+		assert_eq(kind, FigureMix.HUMAN, "no robot figure anywhere")
+	assert_eq(_arms(off).arms_kind, FigureMix.HUMAN)
+	assert_true(p.figure_kinds.has(FigureMix.ROBOT), "Mixed (the default) has robots")
+
+
+func test_your_arms_kind_comes_from_the_same_mix() -> void:
+	s.robots = true
+	var p := await _play(false)
+	assert_eq(_arms(p).arms_kind, p.figure_kinds[PlaySession.PLAYER_ID])
+	var teams := PackedInt32Array()
+	for c in p.state.characters:
+		teams.append(c.team)
+	assert_eq(p.figure_kinds, FigureMix.pick(p.state.match_seed, teams, true, SALT), "the setting reaches the mix")
+
+
+func test_the_practice_kind_follows_the_seed_and_is_a_robot_about_half_the_time() -> void:
+	var robots := 0
+	var seeds := 24
+	for seed_value in seeds:
+		var p := await _practice(true, seed_value + 1)
+		var kind := _arms(p).arms_kind
+		var again := FigureMix.pick(p.state.match_seed, PackedInt32Array([p.state.characters[0].team]), true, SALT)
+		assert_eq(kind, again[0], "the same seed gives the same kind (seed %d)" % seed_value)
+		if kind == FigureMix.ROBOT:
+			robots += 1
+		p.queue_free()
+		await wait_process_frames(1)
+	assert_between(robots, seeds / 4, seeds * 3 / 4, "a robot about half the time")
+
+
+func test_practice_with_humans_only_is_human() -> void:
+	for seed_value in 8:
+		var p := await _practice(false, seed_value + 1)
+		assert_eq(_arms(p).arms_kind, FigureMix.HUMAN)
+		p.queue_free()
+		await wait_process_frames(1)
+
+
+func test_a_rematch_reads_the_looks_setting_again() -> void:
+	var p := await _play(true)
+	assert_true(p.figure_kinds.has(FigureMix.ROBOT), "Mixed to begin with")
+	var robot_bodies := 0
+	for b: FigureBody in _bodies(p):
+		if b.head == &"":
+			robot_bodies += 1
+	assert_gt(robot_bodies, 0, "robots drawn")
+	s.robots = false
+	s.mark_changed()
+	await wait_physics_frames(3)
+	assert_true(p.figure_kinds.has(FigureMix.ROBOT), "paused-style change: this match is unchanged")
+	p._rematch_left = 0.0
+	await wait_physics_frames(4)
+	for kind in p.figure_kinds:
+		assert_eq(kind, FigureMix.HUMAN, "the rematch is all human")
+	assert_eq(_arms(p).arms_kind, FigureMix.HUMAN)
+	for b: FigureBody in _bodies(p):
+		assert_ne(b.head, &"", "the bodies follow: a human wears a head")
+	s.robots = true
+	s.mark_changed()
+	p._rematch_left = 0.0
+	await wait_physics_frames(4)
+	var teams := PackedInt32Array()
+	for c in p.state.characters:
+		teams.append(c.team)
+	assert_eq(p.figure_kinds, FigureMix.pick(p.state.match_seed, teams, true, SALT), "Mixed again, the seed's mix")
+	assert_eq(_arms(p).arms_kind, p.figure_kinds[PlaySession.PLAYER_ID])

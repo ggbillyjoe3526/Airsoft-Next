@@ -30,9 +30,8 @@ extends Resource
 @export var idle_clip: StringName = &"Idle"
 ## The bones the figure code reads, each looked up by name (the two files order them differently).
 @export var bones: PackedStringArray = PackedStringArray(["Hips", "Spine", "Chest", "Head", "Grip_R", "Hand_L"])
-## Robots mixed in with humans on both teams (Settings › Looks › Robots comes with FI6; Mixed is the browser's
-## default), picked from the match seed XOR this salt so no gameplay stream moves (the browser's ROBOT_SEED_SALT).
-@export var robots: bool = true
+## Robots (Settings › Looks › Robots, Mixed by default as the browser's) are picked from the match seed XOR this salt so
+## no gameplay stream moves (the browser's ROBOT_SEED_SALT).
 @export var robot_salt: int = 0x5f3759df
 
 

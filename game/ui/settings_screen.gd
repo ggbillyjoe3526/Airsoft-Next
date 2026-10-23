@@ -69,6 +69,7 @@ var _crouch: CheckButton = null
 var _aim: CheckButton = null
 var _wheel_pick: CheckButton = null
 var _volume: Dictionary[StringName, HSlider] = {}
+var _looks_page: SettingsLooksPage = null
 var _display_page: SettingsDisplayPage = null
 var _graphics_page: SettingsGraphicsPage = null
 var _hud_page: SettingsHudPage = null
@@ -117,6 +118,7 @@ func _ready() -> void:
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(_tabs)
 	_build_controls()
+	_build_looks()
 	_build_audio()
 	_build_display()
 	_build_graphics()
@@ -339,6 +341,21 @@ func _build_hud() -> void:
 	_hud_page.changed.connect(_changed)
 
 
+# --- Looks ---
+
+func _build_looks() -> void:
+	var page := _page(tr("SETTINGS_LOOKS"))
+	_looks_page = SettingsLooksPage.new()
+	page.add_child(_looks_page)
+	_looks_page.build(self)
+	_looks_page.changed.connect(_changed)
+
+
+## The Looks tab's page (tests).
+func looks_page() -> SettingsLooksPage:
+	return _looks_page
+
+
 # --- Accessibility ---
 
 func _build_access() -> void:
@@ -525,6 +542,7 @@ func _refresh() -> void:
 	_keys.refresh()
 	for bus: StringName in Settings.VOLUME_BUSES:
 		set_slider(_volume[bus], settings.volumes[bus] * 100.0)
+	_looks_page.refresh()
 	_display_page.refresh()
 	_graphics_page.refresh()
 	_hud_page.refresh()
