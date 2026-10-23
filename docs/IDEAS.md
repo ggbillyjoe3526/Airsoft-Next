@@ -33,6 +33,10 @@ New ideas the owner wants to think about (owner, 2026-10-06). Roadmap items he m
 - **A downside for the 11.1 V LiPo Battery.** It fires 15 % faster with no number made worse; a cost (more kick, a
   shorter battery life, or slower trigger response) would make it a real trade-off (owner, 2026-10-11: leave it for
   now).
+- **A built-in voice for the screen reader messages (AC6, 2026-10-23).** Read the hit calls, your hit and the rounds'
+  results aloud with Godot's text to speech (`DisplayServer.tts_speak`, needs `audio/general/text_to_speech`) for
+  players without a screen reader, behind its own switch (plan step 21, question 7: Godot's screen reader support only
+  for now).
 - **A Dev aid: skip to the last round.** The owner's suggestion, a Dev setting that jumps a match to its last round
   to test the match's end (moved from `docs/KNOWN_ISSUES.md`, KI1).
 

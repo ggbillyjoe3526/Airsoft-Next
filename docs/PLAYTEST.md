@@ -602,8 +602,9 @@ Settings › Graphics › Quality: Low, Medium, High, Ultra or Custom.
   stops swaying behind your turns, shots kick and reloads tilt it half as much, leaning rolls the view and a vault dips
   it a quarter as much, the dust goes and the flag warning holds steady; the view still climbs with recoil. Changed
   from the pause menu, it applies at once.
-- [ ] **A screen reader** (NVDA on Windows, Orca on Linux) reads out being hit, the round result once and each squad
-  order.
+- [ ] **A screen reader** (NVDA on Windows, Orca on Linux; Screen reader messages On) reads each hit call ("Rook
+  called HIT · You"), your own hit at once ("You're hit · Rook"), each round's start and result with the score, and the
+  match's result at once, each once; hits close together come as one message. Off, it reads none of them.
 
 ## Save
 
