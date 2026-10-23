@@ -9,7 +9,11 @@ write it (docs/ARCHITECTURE.md › Contracts 1). Until FI7 they show only with D
 |---|---|
 | `figure_models.gd` | `FigureModels`: each kind loaded once a session (scene, sidecar, clips looped as the sidecar says); the team-painted materials and the shadow twins' meshes, made once and shared. A kind it can't read warns and stays capsules |
 | `figure_sidecar.gd` | `FigureSidecar`: a sidecar json, typed (clips, parts, `replicaOnGrip`, `magazineInHand`); the matrices as the file gives them, in Blender's axes |
-| `figure_body.gd` | `FigureBody`: one character's figure: one head by id, a level of detail by distance (visibility ranges on the Mesh detail's lines), one shadow twin, the Team* paint, bones by name, the fade through `transparency`; stands in Idle |
+| `figure_body.gd` | `FigureBody`: one character's figure: one head by id, a level of detail by distance (visibility ranges on the Mesh detail's lines), one shadow twin, the Team* paint, bones by name, the fade through `transparency`; its legs' AnimationTree (the kind's graph, advanced by hand in `animate`) and its FigureBend |
+| `figure_pose.gd` | `FigurePose`: a character between two ticks as the legs' targets (the step in the figure's frame, crouch, backwards, jump, vault, the hit call, the walk-off, the lean), eased at the browser's settle times; pure, one per figure, no allocation |
+| `figure_graph.gd` | `FigureGraph`: the legs' graph, one a kind (gait BlendSpace2D, crouch BlendSpace1D, Blend2 layers, TimeSeeks), the stepping clips stretched to one walk cycle with their forward swing at the hit legs'; the parameter paths |
+| `figure_bend.gd` | `FigureBend`: a SkeletonModifier3D after the tree: the crouched head kept under 1.15 m, the upper chain leaned about the hip pivot |
 | `figure_mix.gd` | `FigureMix`: who is a robot: half of each team, from the match seed on a stream of its own; off in Settings › Looks › Robots (`Settings.robots`), everyone is human |
 
-Tests: `tests/unit/test_figure_models.gd`, `test_figure_body.gd`, `test_figure_mix.gd`, `test_figure_view.gd`.
+Tests: `tests/unit/test_figure_models.gd`, `test_figure_body.gd`, `test_figure_mix.gd`, `test_figure_view.gd`,
+`test_figure_pose.gd`, `test_figure_animator.gd`.

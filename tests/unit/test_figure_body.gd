@@ -197,10 +197,12 @@ func test_bones_are_looked_up_by_name_on_both_files() -> void:
 	assert_eq(human.bone(&"Nope"), -1)
 
 
-func test_it_stands_in_idle_facing_the_figure_forward() -> void:
+func test_its_legs_play_the_kinds_graph_facing_the_figure_forward() -> void:
 	var b := _body(FigureMix.ROBOT, 0)
-	assert_true(b.player.is_playing())
-	assert_eq(b.player.current_animation, "Idle")
+	assert_not_null(b.tree, "FI2: an AnimationTree in place of the model's player")
+	assert_eq(b.tree.tree_root, models.graph(FigureMix.ROBOT), "the kind's graph, shared")
+	assert_eq(b.tree.callback_mode_process, AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL)
+	assert_eq(b.find_children("*", "AnimationPlayer", true, false).size(), 0, "the model's own player freed")
 	assert_almost_eq((b.get_child(0) as Node3D).rotation.y, PI, 1e-6, "turned to face -Z")
 
 
