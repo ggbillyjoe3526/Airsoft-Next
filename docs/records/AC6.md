@@ -72,7 +72,7 @@
 - `test_ac2_qa` and `test_settings_screen` pass with the row live.
 - Performance: strings are built only on hit and round events, never per frame; each frame only a float moves while a
   message gathers (task `perf: skip`).
-- `tools/check.sh`: CHECK_RESULT.
+- `tools/check.sh`: gdlint, changelog notes, unit tests (2282 passing), the smoke test and the licence notices pass.
 
 ## Files outside touches
 
