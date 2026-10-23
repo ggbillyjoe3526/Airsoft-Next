@@ -51,13 +51,12 @@ var last_error: String = ""
 
 
 ## At start: keeps the save as it is as today's restore point, unless today has one, the save is empty, it is the same
-## as the newest point, or the file is a newer build's. A full disk drops the oldest first. True if one was kept.
+## as the newest point, or the file is a newer build's. A damaged file is set aside (SaveFile.quarantine) before a new
+## list replaces it. A full disk drops the oldest first. True if one was kept.
 func keep_today() -> bool:
 	var read := SaveFile.read(points_path, POINTS_KIND)
 	if read.ok and int(read.version) > POINTS_VERSION:
 		return false
-	if not read.ok and read.found:
-		push_warning("restore points: %s is damaged; starting a new list" % points_path)
 	var points: Array[Point] = []
 	if read.ok:
 		points = _points_from(read.data)
@@ -77,8 +76,11 @@ func keep_today() -> bool:
 	point.save = save
 	points.push_front(point)
 	points.resize(mini(points.size(), RESTORE_POINTS))
+	if not read.ok and read.found:
+		push_warning("restore points: %s is damaged; set aside for a new list" % points_path)
+		SaveFile.quarantine(points_path)
 	while not points.is_empty():
-		if SaveFile.write(points_path, POINTS_KIND, POINTS_VERSION, _points_to(points)):
+		if _write_points(points):
 			print("[save] restore point kept for %s" % today)
 			return true
 		points.pop_back()
@@ -114,12 +116,24 @@ func undo_slot() -> UndoSlot:
 ## The save as it stands goes to the Undo slot first, and nothing changes if that write fails; Undo instead uses the
 ## slot up (the save it replaces is not kept). Then each store is written, or every copy removed where `bundle` has
 ## none; a store that won't write puts every store and the slot back as they were and returns false. On success the
-## stores are held until the restart. A save from a newer version is refused (`last_error` names it).
+## stores are held until the restart. Refused, with `last_error` saying why: after a replace this run (restart
+## first), a save from a newer version (named), and any replace over a save holding a store from a newer version
+## (this build couldn't keep it for Undo, and Undo keeps nothing). An empty save as it stands (nothing, or only damaged stores)
+## leaves the Undo slot as it was, so a delete is still undone after a restore over nothing. A damaged store is set
+## aside (SaveFile.quarantine) before it is replaced, never destroyed.
 func replace(bundle: SaveBundle, what: What) -> bool:
-	last_error = bundle.refusal()
-	if last_error != "":
-		push_warning("save: not replaced: %s" % last_error)
-		return false
+	for path: String in store_paths:
+		if SaveFile.held(path):
+			return _fail("the save was already replaced this run; restart first")
+	var refused := bundle.refusal()
+	if refused != "":
+		return _fail(refused)
+	var current := SaveBundle.read(store_paths)
+	if current.refusal() != "":
+		return _fail("the save now holds a store from a newer version (%s); this build won't replace it" % current.refusal())
+	for kind: String in current.damaged:
+		push_warning("save: %s is damaged; set aside before it is replaced" % kind)
+		SaveFile.quarantine(store_paths[SaveBundle.KINDS.find(kind)])
 	var snaps: Array[SaveFile.Snapshot] = []
 	for path: String in store_paths:
 		snaps.append(SaveFile.snapshot(path))
@@ -127,8 +141,8 @@ func replace(bundle: SaveBundle, what: What) -> bool:
 	for snap: SaveFile.Snapshot in snaps:
 		if not snap.ok:
 			return _fail("a copy of %s couldn't be read to keep it" % snap.path)
-	if what != What.UNDO:
-		var slot := {"what": WHAT_NAMES[what], "taken_at": _now(), "save": SaveBundle.read(store_paths).to_dict()}
+	if what != What.UNDO and not current.is_empty():
+		var slot := {"what": WHAT_NAMES[what], "taken_at": _now(), "save": current.to_dict()}
 		if not SaveFile.write(undo_path, UNDO_KIND, UNDO_VERSION, slot):
 			return _fail("the save couldn't be kept for Undo")
 	if not bundle.write(store_paths) or (what == What.UNDO and not SaveFile.remove(undo_path)):
@@ -163,6 +177,11 @@ func delete_save() -> bool:
 ## The player's local calendar day of `unix` ("2026-10-23").
 func day_of(unix: int) -> String:
 	return Time.get_date_string_from_unix_time(unix + utc_offset_minutes * 60)
+
+
+## Writes the list; false when it couldn't be (a full disk).
+func _write_points(points: Array[Point]) -> bool:
+	return SaveFile.write(points_path, POINTS_KIND, POINTS_VERSION, _points_to(points))
 
 
 func _now() -> int:

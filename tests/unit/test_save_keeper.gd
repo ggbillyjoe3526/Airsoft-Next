@@ -56,7 +56,7 @@ func _paths() -> Array[String]:
 
 ## A save marked `n`: each store with whole numbers, fractions and a whole float (written as an integer).
 func _write_save(n: int) -> void:
-	var p := _paths()
+	var p := keeper.store_paths
 	for i in p.size():
 		assert_true(SaveFile.write(p[i], SaveBundle.KINDS[i], 1, {"n": n, "f": 0.25 * n, "w": 1.0, "list": [n, "x"]}))
 
@@ -127,6 +127,50 @@ func test_an_empty_save_keeps_none() -> void:
 	assert_false(FileAccess.file_exists(keeper.points_path))
 
 
+func test_a_day_west_of_utc() -> void:
+	_write_save(1)
+	now = DAY_ONE - 10 * 3600 # 02:00 UTC
+	keeper.utc_offset_minutes = -300
+	keeper.keep_today()
+	assert_eq(keeper.restore_points()[0].day, "2026-10-19")
+
+
+func test_a_full_disk_drops_the_oldest_point_first() -> void:
+	var tight := TightKeeper.new()
+	tight.store_paths = keeper.store_paths
+	tight.points_path = keeper.points_path
+	tight.undo_path = keeper.undo_path
+	tight.clock = func() -> float: return float(now)
+	tight.utc_offset_minutes = 0
+	for day in 3:
+		_write_save(day + 1)
+		now = DAY_ONE + day * DAY
+		assert_true(tight.keep_today())
+	tight.room = 2
+	_write_save(4)
+	now += DAY
+	assert_true(tight.keep_today())
+	var marks: Array[int] = []
+	for p: SaveKeeper.Point in tight.restore_points():
+		marks.append(int(p.save.stores["settings"]["data"]["n"]))
+	assert_eq(marks, [4, 3], "today's kept, the oldest dropped till it fit")
+	tight.room = 0
+	_write_save(5)
+	now += DAY
+	assert_false(tight.keep_today(), "nothing fits: no point, the list as it was")
+	assert_eq(tight.restore_points().size(), 2)
+
+
+func test_a_damaged_points_file_is_set_aside_for_a_new_list() -> void:
+	var f := FileAccess.open(keeper.points_path, FileAccess.WRITE)
+	f.store_string("ASAVE restore_points 1 beef\n{}")
+	f.close()
+	_write_save(1)
+	assert_true(keeper.keep_today())
+	assert_eq(keeper.restore_points().size(), 1)
+	assert_eq(_corrupt_copies(), 1, "the damaged list kept aside")
+
+
 func test_the_day_is_the_players_local_day() -> void:
 	_write_save(1)
 	now = DAY_ONE + 11 * 3600 + 1800 # 23:30 UTC
@@ -179,6 +223,9 @@ func test_a_replace_holds_the_stores_until_the_restart() -> void:
 	assert_false(SaveFile.write(_paths()[0], "settings", 1, {"late": true}), "a late settings save is refused")
 	assert_false(FileAccess.file_exists(_paths()[0]))
 	assert_false(keeper.undo(), "nothing more replaces the save before the restart")
+	assert_string_contains(keeper.last_error, "restart first")
+	assert_false(keeper.replace(SaveBundle.read(_paths()), SaveKeeper.What.RESTORE))
+	assert_string_contains(keeper.last_error, "restart first", "refused up front, not after a roll-back")
 
 
 func test_a_store_that_wont_write_leaves_every_store_and_the_undo_slot_as_they_were() -> void:
@@ -199,6 +246,69 @@ func test_a_store_that_wont_write_leaves_every_store_and_the_undo_slot_as_they_w
 	assert_false(SaveFile.held(_paths()[0]), "a failed replace holds nothing")
 	assert_false(keeper.undo())
 	assert_eq(_files(), before, "Undo fails the same way and changes nothing")
+
+
+func test_a_delete_that_cant_remove_a_store_puts_everything_back() -> void:
+	var locked := dir.path_join("locked")
+	DirAccess.make_dir_absolute(locked)
+	keeper.store_paths[3] = locked.path_join("records.save")
+	_write_save(1)
+	_write_save(2)
+	keeper.keep_today()
+	_write_save(3)
+	SaveFile.write(keeper.undo_path, SaveKeeper.UNDO_KIND, 1, {"what": "delete", "save": {}})
+	if not _lock(locked):
+		pending("no way to make a folder refuse removals here (chattr or a non-root chmod)")
+		return
+	var before := _files()
+	var records := FileAccess.get_file_as_bytes(keeper.store_paths[3])
+	var deleted := keeper.delete_save()
+	_unlock(locked)
+	assert_false(deleted)
+	assert_eq(_files(), before, "three stores, their backups and the Undo slot put back")
+	assert_eq(FileAccess.get_file_as_bytes(keeper.store_paths[3]), records)
+	assert_false(SaveFile.held(_paths()[0]))
+
+
+func test_a_restore_over_an_empty_save_keeps_the_undo_slot() -> void:
+	# QA: play (save 2), Delete (the slot holds save 2), restart, then Restore a point: save 2 must stay undoable
+	_write_save(1)
+	keeper.keep_today()
+	_write_save(2)
+	assert_true(keeper.delete_save())
+	after_each()
+	var slot := FileAccess.get_file_as_bytes(keeper.undo_path)
+	assert_true(keeper.replace(keeper.restore_points()[0].save, SaveKeeper.What.RESTORE))
+	assert_eq(FileAccess.get_file_as_bytes(keeper.undo_path), slot, "the slot as it was")
+	assert_eq(int(keeper.undo_slot().save.stores["records"]["data"]["n"]), 2)
+
+
+func test_damaged_stores_are_set_aside_never_destroyed() -> void:
+	_write_save(1)
+	keeper.keep_today()
+	for path: String in _paths():
+		SaveFile.remove(path)
+		var f := FileAccess.open(path, FileAccess.WRITE)
+		f.store_string("ASAVE garbled 1 beef\n{}")
+		f.close()
+	SaveFile.write(keeper.undo_path, SaveKeeper.UNDO_KIND, 1, {"what": "delete", "save": {}})
+	var slot := FileAccess.get_file_as_bytes(keeper.undo_path)
+	assert_true(keeper.replace(keeper.restore_points()[0].save, SaveKeeper.What.RESTORE))
+	assert_eq(_corrupt_copies(), 4, "each damaged store kept aside")
+	assert_eq(FileAccess.get_file_as_bytes(keeper.undo_path), slot, "only damaged stores: the slot as it was")
+
+
+func test_a_save_holding_a_newer_store_is_never_replaced() -> void:
+	_write_save(1)
+	keeper.keep_today()
+	SaveFile.write(_paths()[2], "progress", Progress.VERSION + 1, {"n": 9})
+	var before := _files()
+	for what: SaveKeeper.What in [SaveKeeper.What.RESTORE, SaveKeeper.What.DELETE]:
+		var b := keeper.restore_points()[0].save if what == SaveKeeper.What.RESTORE else SaveBundle.new()
+		assert_false(keeper.replace(b, what))
+		assert_string_contains(keeper.last_error, "progress is version %d" % (Progress.VERSION + 1))
+		assert_eq(_files(), before, "nothing written")
+	assert_false(keeper.delete_save())
 
 
 func test_nothing_changes_when_the_undo_slot_wont_write() -> void:
@@ -243,3 +353,43 @@ func test_an_empty_save_has_nothing_to_delete_and_keeps_the_undo_slot() -> void:
 	assert_false(keeper.delete_save())
 	assert_eq(keeper.last_error, "nothing to delete")
 	assert_eq(FileAccess.get_file_as_bytes(keeper.undo_path), slot)
+
+
+func _corrupt_copies() -> int:
+	var n := 0
+	for f: String in DirAccess.get_files_at(dir):
+		if f.contains(".corrupt-"):
+			n += 1
+	return n
+
+
+## Makes `folder` refuse removals: immutable as root (chattr), read-only otherwise. False when neither holds.
+func _lock(folder: String) -> bool:
+	var real := ProjectSettings.globalize_path(folder)
+	if OS.get_name() != "Linux":
+		return false
+	if OS.execute("chattr", ["+i", real]) == 0:
+		return true
+	OS.execute("chmod", ["555", real])
+	var probe := FileAccess.open(folder.path_join("probe"), FileAccess.WRITE)
+	if probe == null:
+		return true
+	probe.close()
+	DirAccess.remove_absolute(folder.path_join("probe"))
+	_unlock(folder)
+	return false
+
+
+func _unlock(folder: String) -> void:
+	var real := ProjectSettings.globalize_path(folder)
+	OS.execute("chattr", ["-i", real])
+	OS.execute("chmod", ["755", real])
+
+
+## A keeper whose disk holds only `room` restore points.
+class TightKeeper:
+	extends SaveKeeper
+	var room: int = SaveKeeper.RESTORE_POINTS
+
+	func _write_points(points: Array[SaveKeeper.Point]) -> bool:
+		return points.size() <= room and super(points)

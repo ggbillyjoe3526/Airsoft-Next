@@ -202,8 +202,9 @@ static func snapshot(path: String) -> Snapshot:
 	return snap
 
 
-## Puts every copy back as `snap` found it, byte for byte (a copy it didn't find is removed). Only bytes this class
-## wrote are put back (contract 8). Each copy is written beside it and renamed. False if any copy couldn't be.
+## Puts every copy back as `snap` found it, byte for byte: a copy it didn't find is removed, one unchanged is left. Only
+## bytes this class wrote are put back (contract 8). Each copy is written beside it and renamed. False if any copy
+## couldn't be.
 static func put_back(snap: Snapshot) -> bool:
 	if not snap.ok or _refuse_held(snap.path, "put back"):
 		return false
@@ -214,6 +215,8 @@ static func put_back(snap: Snapshot) -> bool:
 			if FileAccess.file_exists(copy) and DirAccess.remove_absolute(copy) != OK:
 				ok = false
 			continue
+		if FileAccess.file_exists(copy) and FileAccess.get_file_as_bytes(copy) == snap.copies[suffix]:
+			continue # unchanged
 		ok = _put(copy, snap.copies[suffix]) and ok
 	if not ok:
 		push_warning("save: couldn't put every copy of %s back" % snap.path)

@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus (worker) | pass | pending | |
+| 2026-10-23 | 1 | Opus (worker) | pass | pending | QA Fail: a Restore over an empty save wrote an empty Undo slot (a deleted save lost); damaged and newer stores could be destroyed |
+| 2026-10-23 | 2 | Opus (worker) | pass | pending | |
 
 ## Decisions
 
@@ -34,8 +35,18 @@
   names a store's version above this build's, or the build that took the point when it is newer
   (`Version.newer`, which orders "0.1 Dev 1" < "0.1 Beta 1" < "0.1" < "0.1.1"). SV2 words it for the player.
 - **The Undo slot** holds `{what, taken_at, save}`; Undo writes no slot (the save it replaces is not kept) and removes
-  the slot only once every store is written. Deleting an empty save is refused ("nothing to delete") so it never
-  overwrites a useful Undo slot with an empty save.
+  the slot only once every store is written. Deleting an empty save is refused ("nothing to delete").
+- **QA attempt 1 Fail, fixed in attempt 2:** a replace over an empty save (nothing, or only damaged stores) leaves the
+  Undo slot as it was, so Delete, restart, Restore can still undo the Delete. A damaged store is set aside
+  (`SaveFile.quarantine`, a `.corrupt-` copy) before it is replaced or removed, and a damaged `restore_points.save`
+  before a new list replaces it. Any replace over a save holding a store from a newer version is refused (`last_error`
+  names it): Undo couldn't give it back. A replace after one this run is refused up front ("restart first") instead of
+  reaching the roll-back. `put_back` leaves a copy that is unchanged, so a store that couldn't be touched isn't
+  rewritten. QA's proof test is folded into `test_save_keeper.gd`, with tests for a Delete that can't remove a store
+  (rolled back), a full disk dropping the oldest point (a keeper whose `_write_points` has room for two), a damaged
+  points file and a day west of UTC.
+- **The Delete roll-back test locks a folder** with `chattr +i` (as root) or `chmod 555` (otherwise), and is pending
+  where neither stops a removal (Windows).
 - **A file of a newer format** (`restore_points.save` or `undo.save` above version 1) is read for nothing and never
   written over.
 - **The day is the player's local day** from `Time.get_time_zone_from_system().bias` (minutes east of UTC), injected
@@ -53,6 +64,8 @@
 
 - After a replace, write `renderer.cfg` from the restored settings before the restart (`RendererOverride.put` with a
   fresh `Settings` from the bundle), or the restarted game starts on the old renderer for one run.
+- Before `replace`, flush `save_if_dirty` on the shared Settings, Progress, Records and SavedLoadouts, so the save kept
+  for Undo is the one the player has, not the last one written.
 - Greying: Undo when `undo_slot()` is null; Delete when the save is empty; restore when `save.refusal()` is not "".
 
 ## Known issues left
