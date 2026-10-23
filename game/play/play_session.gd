@@ -1290,14 +1290,11 @@ func _set_rigged(on: bool) -> void:
 		f.set_body(_figure_models if on else null, figure_kinds[f.character_id], _figure_lines)
 
 
-## The thrown magazines' pool, once a session with the models: FigureConfig.thrown_max copies of each magazine the
-## figures carry; each figure throws into it.
+## The thrown magazines' pool, once a session with the models: FigureConfig.thrown_max copies, each taking the
+## thrower's magazine; each figure throws into it.
 func _build_thrown() -> void:
-	var meshes: Array[Mesh] = []
-	for f in _figures:
-		f.magazine_meshes(meshes)
 	_thrown = ThrownMagazines.new()
-	_thrown.setup(meshes, _play.figures.thrown_max)
+	_thrown.setup(_play.figures.thrown_max)
 	add_child(_thrown)
 	for f in _figures:
 		f.thrown = _thrown

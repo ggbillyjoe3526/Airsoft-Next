@@ -1,18 +1,18 @@
 class_name ThrownMagazines
 extends Node3D
 ## The old magazines the rigged figures throw in their reloads (step 23, FI4; the browser game's FIGURE_RIG
-## thrownMagazines): a fixed pool built once a session, `size` MeshInstance3D for each replica model's magazine, so a
-## throw allocates nothing. A throw takes a free copy of the thrower's magazine (its paint too), flies it from the hand
+## thrownMagazines): a fixed pool of `size` MeshInstance3D built once a session, so a throw allocates nothing. A throw
+## takes a free copy (or the oldest out) and gives it the thrower's magazine mesh and paint, flies it from the hand
 ## with the sidecar's velocity and spin plus the figure's own velocity, falls under gravity and comes to rest on its
 ## side at the thrower's feet (no world query from presentation: the plan's default 15); it goes after its lifetime
-## (from the throw). At most `size` are out across every model: the oldest goes first. Cleared at ROUND_START.
+## (from the throw). At most `size` are out: the oldest goes first. Cleared at ROUND_START.
 ## Presentation only, in the world's frame (top level), moved on each frame's time by `update`.
 
-## The pool by model (each mesh's copies at `index * _size + i`) and each copy's flight: velocity and spin (rad/s, axis
-## times rate) in the world, the ground it lands on, gravity, lifetime, time out, out at all, landed.
+## The copies and each one's flight: its mesh's box (read once a throw), velocity and spin (rad/s, axis times rate) in
+## the world, the ground it lands on, gravity, lifetime, time out, out at all, landed.
 var _pool: Array[MeshInstance3D] = []
-var _model_of: Dictionary[Mesh, int] = {}
 var _size: int = 0
+var _box: Array[AABB] = []
 var _velocity: PackedVector3Array = PackedVector3Array()
 var _spin: PackedVector3Array = PackedVector3Array()
 var _ground: PackedFloat64Array = PackedFloat64Array()
@@ -26,24 +26,20 @@ var _order: PackedInt32Array = PackedInt32Array()
 var _count: int = 0
 
 
-## Builds `size` copies of each of `meshes` (the replicas' magazines; a mesh listed twice is built once), hidden.
-func setup(meshes: Array[Mesh], size: int) -> void:
+## Builds the `size` copies, hidden, with no mesh until thrown.
+func setup(size: int) -> void:
 	name = "ThrownMagazines"
 	top_level = true
 	_size = maxi(size, 0)
 	_order.resize(_size)
-	for mesh in meshes:
-		if mesh == null or _model_of.has(mesh):
-			continue
-		_model_of[mesh] = _model_of.size()
-		for i in _size:
-			var m := MeshInstance3D.new()
-			m.mesh = mesh
-			m.visible = false
-			m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			add_child(m)
-			_pool.append(m)
+	for i in _size:
+		var m := MeshInstance3D.new()
+		m.visible = false
+		m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(m)
+		_pool.append(m)
 	var n := _pool.size()
+	_box.resize(n)
 	_velocity.resize(n)
 	_spin.resize(n)
 	_ground.resize(n)
@@ -54,26 +50,20 @@ func setup(meshes: Array[Mesh], size: int) -> void:
 	_landed.resize(n)
 
 
-## Throws a copy of `source` (a figure's magazine in the hand: its mesh picks the pool, its paint is worn) from `at`
-## (the world's) with `velocity` and `spin`, to land at height `ground` under `gravity` and go after `lifetime` (s).
-## The oldest goes first when `size` are out. False when no pool holds its mesh.
+## Throws a copy of `source` (a figure's magazine in the hand: its mesh and paint are worn) from `at` (the world's)
+## with `velocity` and `spin`, to land at height `ground` under `gravity` and go after `lifetime` (s). The oldest goes
+## first when `size` are out. False without a source mesh or a pool.
 func throw(source: MeshInstance3D, at: Transform3D, velocity: Vector3, spin: Vector3, ground: float, gravity: float,
 		lifetime: float) -> bool:
-	if source == null or _size == 0:
-		return false
-	var model: int = _model_of.get(source.mesh, -1)
-	if model < 0:
+	if source == null or source.mesh == null or _size == 0:
 		return false
 	if _count >= _size:
 		_retire(0)
-	var at_index := -1
-	for i in _size:
-		if _out[model * _size + i] == 0:
-			at_index = model * _size + i
-			break
-	if at_index < 0:
-		return false
+	var at_index := _out.find(0)
 	var m := _pool[at_index]
+	if m.mesh != source.mesh:
+		m.mesh = source.mesh
+	_box[at_index] = source.mesh.get_aabb()
 	for s in m.get_surface_override_material_count():
 		m.set_surface_override_material(s, source.get_surface_override_material(s))
 	m.transform = at
@@ -142,8 +132,8 @@ func _fly(i: int, delta: float) -> void:
 	var rate := spin.length()
 	if rate > 0.0:
 		t.basis = Basis(spin / rate, rate * delta) * t.basis
-	if t.origin.y + _lowest(t.basis, m.get_aabb()) <= _ground[i]:
-		t = _lying(t, m.get_aabb(), _ground[i])
+	if t.origin.y + _lowest(t.basis, _box[i]) <= _ground[i]:
+		t = _lying(t, _box[i], _ground[i])
 		_landed[i] = 1
 	m.transform = t
 

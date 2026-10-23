@@ -215,13 +215,6 @@ func _held_replica(r: ReplicaConfig, team: int, realistic: bool, parts: Dictiona
 	return held
 
 
-## The meshes of this figure's magazine copies (for ThrownMagazines' pools), added to `into`.
-func magazine_meshes(into: Array[Mesh]) -> void:
-	for m in _magazines:
-		if m != null and not into.has(m.mesh):
-			into.append(m.mesh)
-
-
 ## Where a replica of class `site_class` is held on the capsules' upper body.
 static func _hold(site_class: StringName) -> Vector3:
 	return HOLD_PISTOL if site_class == &"pistol" else HOLD_RIFLE

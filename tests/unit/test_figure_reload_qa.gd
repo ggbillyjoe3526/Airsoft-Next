@@ -45,11 +45,8 @@ func _view(c: Character, kind: int = FigureMix.HUMAN) -> FigureView:
 
 
 func _pool(views: Array[FigureView]) -> ThrownMagazines:
-	var meshes: Array[Mesh] = []
-	for v in views:
-		v.magazine_meshes(meshes)
 	var t := ThrownMagazines.new()
-	t.setup(meshes, config.thrown_max)
+	t.setup(config.thrown_max)
 	add_child_autofree(t)
 	for v in views:
 		v.thrown = t
@@ -198,7 +195,7 @@ func test_more_than_twelve_throws_in_a_row_keep_the_pool_at_twelve_oldest_first(
 	assert_not_null(first_mesh)
 	t.update(3.1)
 	assert_eq(t.count(), 0, "all gone after the lifetime")
-	assert_eq(t.pool_size(), 24, "the pool never grew")
+	assert_eq(t.pool_size(), config.thrown_max, "the pool never grew")
 
 
 ## RELOAD_END ahead of the clip's end (and a new RELOAD_START in the same frame): nothing stays in the hand.
@@ -411,7 +408,7 @@ func test_set_body_swaps_mid_reload_leave_no_orphans_and_every_copy_has_one_pare
 		await _frame(v, c, TICK)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_NODE_COUNT), nodes_before, "no nodes gained")
 	assert_eq(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT), orphans_before, "no orphans")
-	assert_eq(t.pool_size(), 24, "the pool untouched")
+	assert_eq(t.pool_size(), config.thrown_max, "the pool untouched")
 	# Back to capsules: the copies are on the upper body, hidden.
 	v.set_body(null, 0, config.lod_high)
 	await wait_process_frames(2)

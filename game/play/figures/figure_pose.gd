@@ -118,12 +118,12 @@ func read(c: Character, fraction: float, hits: HitConfig) -> void:
 	walk_off_speed = hits.walk_off_speed
 	pitch = lerpf(c.prev_pitch, c.pitch, fraction)
 	sprinting = 1.0 if c.sprinting else 0.0
-	read_hands(c.armament, call > 0.0 or c.status == Character.Status.WALKING_OFF)
+	read_hands(c.armament, call > 0.0 or c.status == Character.Status.WALKING_OFF, alive)
 
 
 ## The upper body's targets from armament `a`: what is in the hand, slung or put away, the draw and a switch under way;
-## `called` the hand raised (the replica in the hand hangs from the other).
-func read_hands(a: Armament, called: bool) -> void:
+## `called` the hand raised (the replica in the hand hangs from the other); a reload counts only while `alive`.
+func read_hands(a: Armament, called: bool, alive: bool = true) -> void:
 	switch_started = false
 	reload_started = false
 	if a == null or a.replicas.is_empty():
@@ -135,7 +135,7 @@ func read_hands(a: Armament, called: bool) -> void:
 		reloading = false
 		reload_slot = -1
 		return
-	read_reload(a, called)
+	read_reload(a, called or not alive)
 	var drawing := a.draw_left > 0.0 and a.draw_total > 0.0
 	if drawing and (not _was_drawing or a.active != _drawn_slot):
 		# A new draw: out of the holster, or a switch from the replica that was in the hand.
@@ -166,10 +166,11 @@ func read_hands(a: Armament, called: bool) -> void:
 
 
 ## The reload in `a`'s hand: under way while reload_left counts down (a switch or the holster zeroes it, cutting it),
-## not while holstered or `called`; begun anew when reload_left rose since the last read.
-func read_reload(a: Armament, called: bool) -> void:
+## not while holstered or `stopped` (calling the hit or out: the simulation no longer ticks an out character's
+## armament, so its reload_left stays frozen); begun anew when reload_left rose since the last read.
+func read_reload(a: Armament, stopped: bool) -> void:
 	var total := a.replicas[a.active].reload_time if a.active >= 0 and a.active < a.replicas.size() else 0.0
-	var now := a.reload_left > 0.0 and total > 0.0 and not a.holstered and not called
+	var now := a.reload_left > 0.0 and total > 0.0 and not a.holstered and not stopped
 	reload_started = now and (not reloading or a.reload_left > _reload_left or a.active != reload_slot)
 	reloading = now
 	reload_slot = a.active if now else -1

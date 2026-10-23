@@ -10,6 +10,7 @@ extends GutTest
 ## updating: Skeleton3D hands back the clips' pose after its modifiers ran.
 
 const NEAR := Vector3(0.0, 1.6, 3.0)
+const FAR := Vector3(0.0, 1.6, 200.0)
 const FRAME := 1.0 / 60.0
 
 var config: FigureConfig = null
@@ -423,10 +424,8 @@ func test_a_branch_with_no_weight_is_gated_off_and_comes_back() -> void:
 
 ## A thrown magazines' pool for `v`'s magazines, `v`'s rigged hands throwing into it.
 func _thrown_for(v: FigureView) -> ThrownMagazines:
-	var meshes: Array[Mesh] = []
-	v.magazine_meshes(meshes)
 	var t := ThrownMagazines.new()
-	t.setup(meshes, config.thrown_max)
+	t.setup(config.thrown_max)
 	add_child_autofree(t)
 	v.thrown = t
 	v.body().hands.thrown = t
@@ -716,11 +715,9 @@ func test_in_a_match_the_pool_is_built_once_and_a_new_round_clears_it() -> void:
 	await wait_physics_frames(2)
 	var t := p._thrown
 	assert_not_null(t, "built with the rigged figures")
-	var meshes: Array[Mesh] = []
 	for f in p._figures:
-		f.magazine_meshes(meshes)
 		assert_eq(f.body().hands.thrown, t, "each figure throws into it")
-	assert_eq(t.pool_size(), config.thrown_max * meshes.size(), "12 a magazine")
+	assert_eq(t.pool_size(), config.thrown_max, "12 shared by every magazine")
 	var source := p._figures[0].body().hands.magazine(0)
 	assert_true(t.throw(source, Transform3D.IDENTITY, Vector3.ZERO, Vector3.ZERO, 0.0, 9.81, 3.0))
 	p.settings.dev.rigged_figures = false

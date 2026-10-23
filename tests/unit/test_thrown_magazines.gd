@@ -1,7 +1,7 @@
 extends GutTest
-## FI4: the thrown magazines (game/play/figures/thrown_magazines.gd): a fixed pool a magazine mesh built once, a throw
-## that falls under gravity and comes to rest on its side at the thrower's feet, gone after its lifetime, 12 at most out
-## (the oldest goes first), cleared for a new round, no allocation per throw.
+## FI4: the thrown magazines (game/play/figures/thrown_magazines.gd): one fixed pool of 12 built once, a throw wearing
+## the thrower's magazine and paint that falls under gravity and comes to rest on its side at the thrower's feet, gone
+## after its lifetime, 12 at most out (the oldest goes first), cleared for a new round, no allocation per throw.
 
 const FRAME := 1.0 / 60.0
 const GRAVITY := 9.81
@@ -26,8 +26,7 @@ static func _magazine(id: String) -> Mesh:
 
 func _pool(size: int = 12) -> ThrownMagazines:
 	var t := ThrownMagazines.new()
-	var meshes: Array[Mesh] = [rifle_mag, pistol_mag, rifle_mag]
-	t.setup(meshes, size)
+	t.setup(size)
 	add_child_autofree(t)
 	return t
 
@@ -43,10 +42,10 @@ func _throw(t: ThrownMagazines, source: MeshInstance3D, at: Vector3, velocity: V
 	return t.throw(source, Transform3D(Basis.IDENTITY, at), velocity, Vector3(-6.0, -5.2, -0.9), 0.0, GRAVITY, LIFETIME)
 
 
-func test_the_pool_is_built_once_a_magazine_and_hidden() -> void:
+func test_the_pool_is_built_once_and_hidden() -> void:
 	var t := _pool()
-	assert_eq(t.pool_size(), 24, "12 copies of each magazine (the rifle's listed twice is built once)")
-	assert_eq(t.get_child_count(), 24)
+	assert_eq(t.pool_size(), 12, "12 copies, shared by every magazine")
+	assert_eq(t.get_child_count(), 12)
 	for c in t.get_children():
 		assert_false((c as MeshInstance3D).visible)
 	assert_eq(t.count(), 0)
@@ -103,18 +102,20 @@ func test_a_thirteenth_throw_retires_the_first() -> void:
 	var second := t.thrown_at(1)
 	assert_true(_throw(t, pistol, Vector3(20.0, 1.0, 0.0)))
 	assert_eq(t.count(), 12, "12 at most")
-	assert_false(first.visible, "the oldest went")
+	assert_eq(t.thrown_at(11), first, "the oldest went: its copy is the new throw")
 	assert_eq(t.thrown_at(0), second, "the next oldest is first now")
 	assert_eq(t.thrown_at(11).transform.origin.x, 20.0, "the new one last")
+	assert_eq(t.thrown_at(11).mesh, pistol_mag, "wearing the thrower's magazine")
+	assert_eq(t.thrown_at(9).mesh, rifle_mag)
 	var shown := 0
 	for c in t.get_children():
 		shown += 1 if (c as MeshInstance3D).visible else 0
 	assert_eq(shown, 12)
 
 
-func test_a_magazine_without_a_pool_is_not_thrown_and_clear_empties_it() -> void:
+func test_no_magazine_is_not_thrown_and_clear_empties_it() -> void:
 	var t := _pool()
-	assert_false(_throw(t, _source(BoxMesh.new()), Vector3.ONE), "no pool for it")
+	assert_false(_throw(t, _source(null), Vector3.ONE), "no mesh")
 	assert_false(_throw(t, null, Vector3.ONE))
 	assert_eq(t.count(), 0)
 	_throw(t, _source(rifle_mag), Vector3.ONE)
