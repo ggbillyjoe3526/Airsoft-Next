@@ -1,12 +1,12 @@
 # GR3 · Window, fullscreen and the frame-rate limit
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus | pass | 7/8 accept (QA's blocker, a saved monitor throwing a dragged window back, fixed by the build thread; the critic's DECISIONS line, alt-tab wording and a wall-clock tick test fixed in the records) | |
 
 ## Decisions
 
@@ -86,3 +86,10 @@ The cloud has no window manager: modes, monitors, V-Sync and focus were checked 
 - Window modes, monitors, V-Sync and the background rate are unchecked on a real display (KNOWN_ISSUES, Play / SE1's
   row) until the owner's checks above.
 - DECISIONS' 2026-10-16 "home-screen fullscreen button" now says the 2026-10-19 ruling replaced it (critic).
+
+## Advisories left (critic, QA)
+
+- The three settings pages (Display, Graphics, HUD) each keep their own row helpers; share them when GR4 next touches
+  the tabs.
+- The Monitor row lists screens when Settings opens; a screen plugged in while it is open shows on the next open.
+- Ctrl+Alt+Enter also toggles fullscreen, since Alt+Enter matches with extra modifiers; harmless.
