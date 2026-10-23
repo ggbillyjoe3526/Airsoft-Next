@@ -1,12 +1,12 @@
 # AC2 · Team colour sets in play and Settings › Accessibility
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus | pass | 7/8 accept (QA's and performance's blockers, a greyed slider taking input and the opaque glow not prewarmed, fixed by the build thread; check 7: a doc comment left on the wrong function and the tables' ink rule repeated, fixed in the records commit) | |
 
 ## Decisions
 
@@ -70,7 +70,8 @@
 ## Files outside touches
 
 - `game/config/lighting_config.gd` and `game/config/README.md` (the night flag), `game/ui/hud_style.gd`,
-  `hud_score.gd` and `hud_table.gd` (the ink on a light fill), `tests/unit/test_flag_play.gd` (one comparison).
+  `hud_score.gd` and `hud_table.gd` (the ink on a light fill), `tests/unit/test_flag_play.gd` (one comparison),
+  `game/ui/menu_parts.gd` (sliders locked in a greyed section, QA).
 
 ## Known issues left
 

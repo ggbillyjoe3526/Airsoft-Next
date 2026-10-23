@@ -497,8 +497,6 @@ func _round_tuning() -> SimTuning:
 	return base if custom == null else custom.applied_to(base)
 
 
-## The rule set, a Custom switch or any setting changed (Dev content, a reset save): the round tuning is read again,
-## and what reads it redrawn, the Custom rows included.
 ## Takes the saved team colour set's HUD part when the set changed (or on the first call): whether it did.
 func _follow_team_colours() -> bool:
 	if _teams != null and _settings.team_colours == _teams_set:
@@ -516,6 +514,8 @@ static func _colour_team_card(card: MenuCard, colour: Color) -> void:
 	card.refresh()
 
 
+## The rule set, a Custom switch or any setting changed (Dev content, a reset save): the round tuning is read again,
+## and what reads it redrawn, the Custom rows included.
 func _on_rules_changed() -> void:
 	_tuning = _round_tuning()
 	_rules.show_tuning(_tuning)

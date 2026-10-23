@@ -77,9 +77,10 @@ static func backing(alpha: float, opacity: float = 1.0) -> Color:
 	return Color(GameTheme.BG, alpha * opacity)
 
 
-## The colour of words on a team colour `fill` (the score blocks, the tables' badges): dark on a light fill.
-static func ink_on(fill: Color) -> Color:
-	return GameTheme.BG if fill.get_luminance() > INK_DARK_ABOVE else GameTheme.TEXT
+## The colour of words on a team colour `fill` (the score blocks, the tables' badges): dark on a light fill, else
+## `light`.
+static func ink_on(fill: Color, light: Color = GameTheme.TEXT) -> Color:
+	return GameTheme.BG if fill.get_luminance() > INK_DARK_ABOVE else light
 
 
 ## The backing a HUD `part` draws itself at `alpha`: at the panel opacity restyle() gave it (100% until then).
