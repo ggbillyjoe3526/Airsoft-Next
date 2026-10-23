@@ -225,6 +225,9 @@ func _place_ring(camera: Camera3D, spot: Vector3, held: bool, area: Vector2) -> 
 		_ring.visible = false
 		return
 	_ring.visible = true
+	# The ring is top level, so it takes the HUD's size itself: its points in the HUD's px, its line grown as the
+	# other markers' are.
+	_ring.scale = Vector2.ONE * hud_size
 	_ring.size = area
 	_ring.position = Vector2.ZERO
 	for i in RING_SEGMENTS + 1:

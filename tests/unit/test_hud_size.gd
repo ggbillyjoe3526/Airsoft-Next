@@ -228,6 +228,34 @@ func test_a_teammate_s_marker_stays_over_their_head() -> void:
 		hud.get_parent().queue_free()
 
 
+func test_the_summary_row_keeps_its_size_at_100_and_fits_at_150() -> void:
+	for window in WINDOWS:
+		var area := canvas_of(window)
+		for hud_size: float in [1.0, 1.5]:
+			var hud := _hud(area)
+			hud.apply_prefs(_prefs_at(hud_size))
+			hud.open_summary(state, true, "Hold the angle")
+			hud.update(state, 1.0, 0.0)
+			await wait_process_frames(2)
+			var summary: MatchSummary = hud.summary()
+			assert_true(summary.is_visible_in_tree())
+			if hud_size == 1.0 and area.x >= 1920.0:
+				assert_eq(summary.fit(), 1.0, "as built at 100 %% in %s" % window)
+			for part: Control in [summary.table(), summary._side]:
+				var r := part.get_global_rect()
+				assert_true(Rect2(Vector2.ZERO, area).grow(EDGE_SLACK).encloses(r),
+						"%s at %d%% in %s: %s" % [part.name, roundi(hud_size * 100.0), window, r])
+			hud.get_parent().queue_free()
+
+
+func test_the_order_wheel_fits_the_shortest_canvas_at_150() -> void:
+	var outer := HudConfig.new().wheel_outer
+	var shortest := canvas_of(WINDOWS[1]).y
+	for window in WINDOWS:
+		shortest = minf(shortest, canvas_of(window).y)
+	assert_lt(outer * 2.0 * SIZES[1], shortest, "the wheel's ring across, at 150 %, inside the canvas's height")
+
+
 # --- the HUD tab ---
 
 func _page() -> SettingsHudPage:

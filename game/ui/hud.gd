@@ -28,6 +28,9 @@ const MIDDLE_WIDTH := 1500.0
 const MIDDLE_RAISE := 200.0
 ## The finished match's XP (XpCard) hangs this far under the banner.
 const XP_GAP := 28.0
+## The match summary's row (its panels either side of the XP card) keeps this far from the screen's sides (px): at a
+## HUD size too large for the width the row is held smaller (MatchSummary.set_fit). At 100 % on 1920 it fits as built.
+const SUMMARY_EDGE := 16.0
 ## "What got you" on the left, its top-left corner (px): under the minimap's caption when there is a minimap (the
 ## range has none: CARD_TOP).
 const CARD_LEFT := 32.0
@@ -447,6 +450,15 @@ static func scale_root(root: Control, by: float) -> void:
 	root.set_anchor_and_offset(SIDE_BOTTOM, 1.0 / by, 0.0)
 
 
+## Holds the summary's panels and the XP card at the share of their size that fits the screen's width (1 when they
+## fit as built), so a large HUD size never pushes them off the sides.
+func _fit_summary() -> void:
+	var fit := minf(1.0, (size.x - SUMMARY_EDGE * 2.0) / _summary.row_width())
+	_summary.set_fit(fit)
+	if _xp != null:
+		_xp.scale = Vector2.ONE * fit
+
+
 ## `c` (a full-screen child) undoes the HUD's size: as large as the screen and drawn at 1.
 func _keep_own_size(c: Control) -> void:
 	scale_root(c, 1.0 / _hud_size)
@@ -615,6 +627,7 @@ func show_xp(settled: PlayerTally.Settled, difficulty: StringName, progress: Pro
 	hide_xp()
 	_xp = XpCard.new(settled, difficulty, progress, Pool.shared())
 	_place(_xp, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-XpCard.WIDTH * 0.5, XP_GAP - MIDDLE_RAISE, XpCard.WIDTH, 0.0))
+	_xp.pivot_offset_ratio = Vector2(0.5, 0.0) # held smaller about its top middle with the summary (_fit_summary)
 	add_child(_xp)
 	HudStyle.restyle(_xp, _opacity)
 	_xp.visible = not _round_result.holds_results()
@@ -652,6 +665,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	if _xp != null:
 		_xp.visible = not _round_result.holds_results()
 	_summary.visible = _summary.is_open() and not _round_result.holds_results()
+	if _summary.visible or _xp != null:
+		_fit_summary()
 	if _minimap != null:
 		_minimap.visible = not _summary.visible
 	if _sound_cues != null:

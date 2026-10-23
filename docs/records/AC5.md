@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus | pass | pending | QA Fail: Hold here's ring off its spot at 80 / 150 %; the summary off screen at 150 % |
+| 2026-10-23 | 2 | Opus | pass | pending | |
 
 ## Decisions
 
@@ -20,7 +21,15 @@
   is measured on the screen's height, not the root's.
 - **The markers over the field divide the view's screen points by the HUD size** (teammate markers, the flag marker,
   Hold here's marker and its ring: a `hud_size` field each, set by the HUD), so they stay over what they mark while
-  their plates grow with the HUD (the plan's risk note). Three files outside touches for one line each.
+  their plates grow with the HUD (the plan's risk note). Three files outside touches for one line each. Hold here's
+  ring is a top-level Control, which the HUD's scale doesn't reach, so it takes the HUD size as its own scale (QA): its
+  points stay over the floor it rings and its line grows as the other markers' do.
+- **The match summary is held to the screen's width (QA).** Its panels either side of the XP card make a row 1876 px
+  wide at 100 %, which only just fits 1920, so at a larger size the row (both panels, the gaps and the XP card) is
+  held at the share of its size that fits within 16 px of the sides (`MatchSummary.set_fit`, `Hud._fit_summary`),
+  each panel about its top corner by the card and the card about its top middle: on 16:9 and 4:3 it stays at its
+  100 % size, on 21:9 it grows to about 136 %. At 100 % on 1920 nothing changes. The other parts keep the full HUD
+  size; the order wheel (680 px across) is 1020 px at 150 %, inside the shortest canvas (1080).
 - **The banners' box reaches from the screen's top down to 200 px above the crosshair**, its words at its bottom
   (was a 260 px box): at 150 % on the 1080 canvas a two-line round banner reached 1.5 px above the screen. At 100 %
   nothing moves (`MIDDLE_SIZE` became `MIDDLE_WIDTH`).
@@ -59,14 +68,16 @@
 
 ## Verified here
 
-- `tests/unit/test_hud_size.gd` (10 tests): every part (score bar, replica panel, feed, minimap, banner, bottom line,
+- `tests/unit/test_hud_size.gd`: every part (score bar, replica panel, feed, minimap, banner, bottom line,
   skip hint, step-down line, What got you, scoreboard) inside the screen at 80 % and 150 % for 1280×720, 1920×1080,
   4:3 and 21:9 windows, with and without the scoreboard; the root covering the screen, the panel keeping its margin to
   the corner and the score bar centred at the top, grown by the size; the crosshair's gap the same at 80, 100 and
   150 %, the cue ring at scale 1 over the whole screen; a second change rescales; the flag marker's tail and a
   teammate's marker over their spot at both sizes, their plates grown; the tab's slider 80–150 by 5 at 100 with its
   mark two sevenths along, the preview's panel and line at 0.8 × size, its tag and outlines; a change reaching a match
-  (root and skipping note) at once.
+  (root and skipping note) at once; the summary's panels on screen at 100 and 150 % in every window, as built at
+  100 % on 1920 wide; the order wheel's ring inside the shortest canvas at 150 % (12 tests). QA's `test_ac5_qa.gd`
+  (the summary and XP card, the round table, Hold here's ring at every size, no new connections) passes 4/4.
 - `tests/unit/test_motion_scale.gd` (12 tests): full motion all 1; reduced the file's shares; a given table's shares;
   On, Off and Follow system with the display's yes, no and can't-say; the camera roll at a full lean (full and a
   quarter), the recoil climb equal both ways, the vault's dip and tip a quarter; the replica's offset after a shot
@@ -84,7 +95,8 @@
 ## Files outside touches
 
 - `game/ui/hud_team_markers.gd`, `game/ui/hud_flag_marker.gd`, `game/ui/hud_hold_marker.gd` (a `hud_size` field, the
-  view's screen points divided by it).
+  view's screen points divided by it; Hold here's ring scaled by it).
+- `game/ui/match_summary.gd` (`row_width`, `set_fit`: the panels held to the screen's width, QA).
 - `tests/unit/test_ac2_qa.gd` (the greyed-row check moved from Reduced motion, now live, to Screen reader messages; it
   also checks Reduced motion's choices take the mouse and focus again).
 - Docs: `game/play/README.md` (MotionScale's row), `docs/PLAYTEST.md` (the HUD size and Reduced motion checks).

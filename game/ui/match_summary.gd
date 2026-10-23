@@ -5,7 +5,8 @@ extends Control
 ## the middle the XP card as the HUD already shows it (AR1), on the right your records for this difficulty and mode
 ## (SummaryRecords), What got you for each time you were hit (SummaryHits) and the next Pro tip (Pro bots only), and at
 ## the foot "A new match starts shortly · click to start now". The HUD opens it at the match's end and closes it when
-## the next match starts.
+## the next match starts. At a HUD size too large for the screen's width the HUD holds its panels and the XP card
+## smaller (`set_fit`).
 
 ## The table: the player's column width (px), then the columns after it: header keys and widths (px).
 const PLAYER_WIDTH := 120.0
@@ -39,6 +40,9 @@ var _tip_box: PanelContainer = null
 var _tip: Label = null
 var _foot: Label = null
 var _open: bool = false
+## How far under the screen's middle the panels start, and the share of their size they are held at (set_fit).
+var _top: float = 0.0
+var _fit: float = 1.0
 
 
 ## `top` is how far under the screen's middle the panels start (px), level with the XP card.
@@ -55,7 +59,9 @@ func setup(teams: TeamConfig, mate_colour: Color, top: float) -> void:
 	for key in COLUMNS:
 		heads.append(HudStyle.caps(key))
 	_table.setup(PLAYER_WIDTH, heads, PackedFloat32Array(WIDTHS), mate_colour)
+	_top = top
 	_pin(_table, -XpCard.WIDTH * 0.5 - GAP, top, Control.GROW_DIRECTION_BEGIN)
+	_table.pivot_offset_ratio = Vector2(1.0, 0.0) # held smaller about its top corner by the XP card
 	add_child(_table)
 	_side = VBoxContainer.new()
 	_side.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -86,6 +92,29 @@ func setup(teams: TeamConfig, mate_colour: Color, top: float) -> void:
 	_foot.add_theme_stylebox_override("normal", HudStyle.panel_box(HudStyle.BACKING_AIM, 12, 4))
 	_foot.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, FOOT_MARGIN)
 	_foot.grow_horizontal = Control.GROW_DIRECTION_BOTH
+
+
+## The panels' and the XP card's row across the screen at their full size (px): the card, the gaps and the wider panel
+## on each side (they sit either side of the card, level, so the row is symmetric).
+func row_width() -> float:
+	var panel := maxf(_table.get_combined_minimum_size().x, maxf(SIDE_WIDTH, _side.get_combined_minimum_size().x))
+	return XpCard.WIDTH + (GAP + panel) * 2.0
+
+
+## Holds the panels at `fit` (0..1) of their size about their top corners by the XP card, with the gaps to it, so the
+## row fits the screen's width at a large HUD size (the HUD holds the card at the same share). 1 is as built.
+func set_fit(fit: float) -> void:
+	if is_equal_approx(fit, _fit):
+		return
+	_fit = fit
+	_pin(_table, -(XpCard.WIDTH * 0.5 + GAP) * fit, _top, Control.GROW_DIRECTION_BEGIN)
+	_pin(_side, (XpCard.WIDTH * 0.5 + GAP) * fit, _top, Control.GROW_DIRECTION_END)
+	_table.scale = Vector2.ONE * fit
+	_side.scale = Vector2.ONE * fit
+
+
+func fit() -> float:
+	return _fit
 
 
 func set_names(names: PackedStringArray) -> void:
