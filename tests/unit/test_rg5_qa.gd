@@ -384,3 +384,40 @@ func test_three_trips_to_the_loadout_and_back_leave_nothing_behind_and_keep_the_
 			assert_eq(o, orphans, "trip %d: no orphan nodes grow" % trip)
 	assert_eq(main._play.loadout_requested.get_connections().size(), 1, "one listener on the key's signal")
 	main._end_play()
+
+
+# --- a spot taken mid-vault, over the sandbags ---
+
+func test_a_spot_taken_mid_vault_comes_back_settled_on_the_sandbags_or_the_floor_not_inside_them() -> void:
+	var first := PlaySession.new()
+	first.practice = true
+	first.map_id = "range"
+	first.settings = settings
+	add_child_autofree(first)
+	await wait_physics_frames(2)
+	var c := first.player
+	c.position = Vector3(4.6, c.position.y, 4.0)
+	c.prev_position = c.position
+	c.velocity = Vector3.ZERO
+	await wait_physics_frames(10)
+	var floor_y := c.position.y
+	assert_true(c.grounded, "standing before the sandbags")
+	assert_true(Vault.find_along(c, Vector2(0.0, -1.0), first._tuning, first._level.query(), c.vault), "a vault there")
+	c.vault.active = true
+	var guard := 0
+	while c.vault.active and c.vault.time < c.vault.rise_end * 0.95 and guard < 120:
+		await wait_physics_frames(1)
+		guard += 1
+	assert_true(c.vault.active, "caught mid-vault")
+	assert_gt(c.position.y, floor_y + 0.5, "in the air over the sandbags")
+	var spot := first.practice_spot()
+	assert_false(spot.crouched, "the tuck is no stance")
+	var back := _range(spot)
+	await wait_physics_frames(90)
+	var p := back.player
+	assert_true(p.grounded, "settled, not hanging or falling")
+	assert_false(p.vault.active)
+	var on_top := floor_y + 0.9
+	var settled := absf(p.position.y - floor_y) < 0.05 or absf(p.position.y - on_top) < 0.05
+	assert_true(settled, "on the floor or on top of the sandbags (y %.3f; floor %.3f)" % [p.position.y, floor_y])
+	assert_gt(p.position.y, floor_y - 0.05, "never through the floor")
