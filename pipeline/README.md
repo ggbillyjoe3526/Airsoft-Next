@@ -78,7 +78,7 @@ The table with its evidence rules is `.claude/agents/critic.md`; in short:
 
 - **Accept** when every blocking check passes, at most one non-blocking check fails, and QA and performance both say
   Pass; the score is the checks passed, out of 8. Otherwise **Retry** with only the failed checks and their evidence.
-- **Near miss.** A verdict one check short of Accept is re-run on Opus before the task goes back when its failed check
+- **Near miss.** A verdict one check short of Accept is re-run once before the task goes back when its failed check
   is a judgment (checks 5 to 8, or one of 1 to 4 decided by reading). A check failed on a measured number (a budget, a
   count) goes straight back, or to the owner when only a changed criterion can pass it: a re-run can't change a number.
 - **Four attempts** per task: one build plus three targeted retries. After the fourth, checks green and at least 6 of

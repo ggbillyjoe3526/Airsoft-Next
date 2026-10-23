@@ -665,14 +665,32 @@ build for these.
   your browser opens a new issue on the game's GitHub titled "Bug: " and your note's first line, the note and the
   whole report below it, and the panel says "Opened GitHub in your browser. The whole report is copied too." Nothing
   is posted until you press Submit there. The match stays paused behind the panel; Back and Esc close only the panel.
-- [ ] **A long report is cut and pasted.** After a long match with errors (Dev › Log a test error a few times, after
-  SV6), Report on GitHub says part of the report didn't fit; the issue says so too, and pasting (Ctrl+V) into it gives
+- [ ] **A long report is cut and pasted.** After a long match with errors (Dev › Log a test error a few times),
+  Report on GitHub says part of the report didn't fit; the issue says so too, and pasting (Ctrl+V) into it gives
   the whole report. Copy report alone copies the same text.
 - [ ] **No folder path or account name anywhere.** Read the report beside the note, the opened issue and the pasted
   text: no `C:\Users\…` or home folder, no Windows account or computer name, no address; they read `<you>`,
   `<machine>`, `~` or `<save folder>`.
-- [ ] **The error line.** After a script error (Dev › Log a test error, after SV6), the pause menu says "Something went
+- [ ] **The error line.** After a script error (Dev › Log a test error), the pause menu says "Something went
   wrong in this match (1 error)…" under Report a Bug; without one there is no line.
+### The crash screen
+
+On a release build. Settings › Dev › Crash the game now (behind a confirm) closes the game as a crash would.
+
+- [ ] **After a crash.** Crash the game mid-match (open Settings from the pause menu), then start again: before the
+  title, THE GAME CLOSED UNEXPECTEDLY with When (today, about when it closed, how long after it started), the version,
+  the match with its round and score, and the seed (COPY puts it on the clipboard). The report beside it ends with the
+  crash handler's lines: "Airsoft crashed. Start it again: it offers to report the bug."
+- [ ] **Shown once.** Continue opens the title (with any graphics notice as usual); starting again shows the title
+  straight away. The same after Report a Bug, or after closing the window on the crash screen.
+- [ ] **Report a Bug** opens a new GitHub issue in your browser with the note and the report filled in; nothing is sent
+  until Submit. Copy report pastes the whole report. Open log folder opens the folder of `godot*.log` files.
+- [ ] **No name or folder** of yours anywhere in the report (your account, the computer's name, `C:\Users\…`).
+- [ ] **Other ways to close.** End the game from the Task Manager mid-match, and crash it in the menus and on the range:
+  each shows the screen once; Match reads "In the menus" or "Practice · Range".
+- [ ] **A crash while the first match loads its graphics.** After the safe start's restart the screen still shows the
+  run that crashed (its log, not the restart's).
+- [ ] **Log a test error** (Settings › Dev) adds an error to a report's Recent errors.
 
 ## Old bugs to recheck
 

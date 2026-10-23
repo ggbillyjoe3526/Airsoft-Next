@@ -52,7 +52,7 @@ func start(smoke: bool) -> GraphicsGuard.Action:
 		guard.trip(s, machine.preset)
 		s.save(settings_path)
 		RendererOverride.put(s.renderer, renderer_path)
-		print("[boot] the last start closed while drawing: restarting on the simpler renderer and Low")
+		print(LogTail.RESTART_LINE)
 	guard.save(guard_path)
 	if action == GraphicsGuard.Action.RESTART_SAFE and restart.is_valid():
 		restart.call()

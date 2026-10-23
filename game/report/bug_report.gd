@@ -99,14 +99,9 @@ static func write_lines(info: ReportInfo, cut: Cut = null, scrub: ReportScrub = 
 	var by := scrub if scrub != null else info.scrub
 	var out := PackedStringArray()
 	out.append(CRASH_TITLE if info.crash else TITLE)
-	# Scrubbed before it is cut, so a cut can't leave part of a name ("Willia") that no longer matches.
-	var note := one_line(ReportScrub.cut_whole(info.note, info.note_chars * SCRUB_MARGIN) if info.note_chars > 0 else info.note)
-	if by != null:
-		note = by.line(note)
-	if info.note_chars > 0:
-		note = note.left(info.note_chars)
+	var note := note_line(info, by)
 	if note != "":
-		out.append("%s: %s" % [NOTE, note])
+		out.append(note)
 	_field(out, c, VERSION, info.version)
 	_field(out, c, GODOT, info.godot)
 	_field(out, c, SYSTEM, info.system)
@@ -130,6 +125,18 @@ static func write_lines(info: ReportInfo, cut: Cut = null, scrub: ReportScrub = 
 	else:
 		_list(out, c, EVENTS, info.events)
 	return by.lines(out) if by != null else out
+
+
+## The Note line, "" without a note: the note on one line, through `scrub` (else the info's), then cut to note_chars.
+## Scrubbed before it is cut, so a cut can't leave part of a name ("Willia") that no longer matches.
+static func note_line(info: ReportInfo, scrub: ReportScrub = null) -> String:
+	var by := scrub if scrub != null else info.scrub
+	var note := one_line(ReportScrub.cut_whole(info.note, info.note_chars * SCRUB_MARGIN) if info.note_chars > 0 else info.note)
+	if by != null:
+		note = by.line(note)
+	if info.note_chars > 0:
+		note = note.left(info.note_chars)
+	return "%s: %s" % [NOTE, note] if note != "" else ""
 
 
 ## `text` on one line: its runs of spaces, tabs and line breaks as one space, trimmed.

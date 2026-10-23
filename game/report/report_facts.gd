@@ -109,7 +109,7 @@ static func crash(previous: Dictionary, tail: LogTail, settings: Settings, note:
 				_text(facts.get("teammates")))
 		info.round_text = started_round_text(_whole(previous.get("round")), previous.get("score", []))
 	if log_path != "":
-		info.errors = errors_in_log(FileAccess.get_file_as_string(log_path).split("\n"), config.errors)
+		info.errors = errors_in_log(tail.recent_lines(), config.errors)
 		info.log_lines = newest(tail.lines(), config.log_lines)
 		info.log_count = tail.line_count()
 	info.scrub = scrub if scrub != null else ReportScrub.for_this_machine(config)

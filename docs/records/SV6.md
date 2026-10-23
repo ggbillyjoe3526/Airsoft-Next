@@ -1,0 +1,103 @@
+# SV6 · The crash screen
+
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
+
+## Attempts
+
+| Date | Attempt | Worker model | checks | Critic | Retry reason |
+|---|---|---|---|---|---|
+| 2026-10-23 | 1 | Opus | pass | QA Fail | |
+| 2026-10-23 | 2 | Opus | pass | QA Pass; Accept 8/8 | QA attempt 1 Fail: two Continues in one frame raised a script error in `main.gd`; a Report a Bug whose browser didn't open still said GitHub opened and cleared `previous` |
+
+## Decisions
+
+- **The plan's defaults, approved with the step 22 pictures, 2026-10-23** (`plan/step22-save-and-crash.md` › 5;
+  question 4: the crash screen once, full screen, at the next start after any run that didn't close cleanly, before
+  the title and its notices, never for the smoke run, headless or editor runs; question 1: Report a Bug opens a
+  prefilled public GitHub issue, nothing sent until Submit, plus Copy report; question 9: Dev › Crash the game now and
+  Log a test error).
+- **Where it shows:** `main.gd` builds the title as before, hides it and lays `CrashScreen` over it when the run record
+  has a `previous`; the graphics notices wait for Continue (`show_boot_notices` then, as on any start; the safe start's
+  question is on the title already). No record (smoke, headless, editor, a second copy) means no screen.
+- **Shown once:** Continue and Report a Bug clear `previous` and write the record at once; a quit with the screen up
+  clears it in the clean quit's write. Report a Bug leaves the screen up with its confirmation, so the player reads it
+  and presses Continue.
+- **Report a Bug** opens IssueLink's address and copies the whole report too (as SV5's panel), saying "Opened GitHub in
+  your browser. The whole report is copied too." (or that the link was cut). Copy report, the seed's COPY and Open log
+  folder (`user://logs`, globalised) say what they did; a failed open says so.
+- **The screen's words are the player's:** the map's own name and the mode's translated name ("Depot · Elimination ·
+  round 4, 2–1", "Practice · Range", "In the menus"); the report beside keeps BugReport's developer wording. The Seed
+  row shows only for a match.
+- **When** is local time (the system's time zone bias): "Today about 14:32", "Yesterday about …", else the ISO date,
+  then ", 12:40 after it started"; "Not known: that run's log wasn't found" without the old log.
+- **The note box:** 500 characters (`ReportConfig.note_chars`), cut in script on every change (a TextEdit has no limit),
+  its count inside; focused when the screen opens (the picture's caret). Esc is Continue only while the note is empty,
+  so a key never throws a typed note away (QA advisory; the simplest safe rule: Continue still leaves at once).
+- **The report** is a read-only TextEdit (selectable, scrolls, wraps) in Inter 500: no monospace font ships, and the
+  picture's renders in Inter too. ReportFacts reads the log once when the screen opens; a note change only rewrites
+  BugReport's text.
+- **The orange tape:** HazardTape gains `stripe_colour` (yellow by default), set to GraphicsNotice's warning orange.
+- **KNOWN_ISSUES row fixed (SV3's):** after the safe start's restart LogTail took the restart's short log. The restart
+  prints `LogTail.RESTART_LINE`; LogTail now passes over a log holding it for the one before (`skip_line`,
+  newest first, each read only when the newer one was passed over).
+- **Dev › Actions:** Log a test error (push_error, a fixed English line: the log is the developer's), then Crash the game
+  now behind a confirm (`OS.crash`). Both are injectable on SettingsScreen (`log_test_error`, `crash_now`), so no test
+  crashes the test run.
+
+- **QA attempt 1 Fail, the fixes (attempt 2).** `_crash_continued` returns when the screen is already gone, so a second
+  Continue in the same frame does nothing. Report a Bug checks the opener's answer as Open log folder does: on a
+  failure it copies the report, says "Your browser couldn't be opened, so nothing went to GitHub…" and neither emits
+  `reported` nor clears `previous`. QA's proof tests (and its two Esc probes through real input) are folded into
+  `test_crash_screen.gd`. Advisories taken: Crash the game now's confirm focuses Cancel; Match leaves out an empty mode
+  (no trailing " · "); LogTail matches the restart line as a whole line; the log is read once (`get_file_as_bytes`,
+  its lines counted natively, only its last 256 kB, `LogTail.TAIL_BYTES`, decoded) and ReportFacts takes the errors
+  from those lines instead of reading the file again (a crash report's Recent errors now come from the log's end);
+  the report without its note is scrubbed once when the screen opens, and a keystroke only scrubs the note's own line
+  (`BugReport.note_line`, shared with `write_lines`).
+- **The critic's and QA's last advisories (after Accept):** a 256 kB cut that lands inside a multi-byte character now
+  moves past the next newline before decoding, so no "Unicode parsing error" reaches the log or ErrorLog (tested with
+  "›" lines); `RESTART_LINE` lives in `LogTail` (GraphicsStartUp prints it), so `game/report/` no longer depends on
+  `game/ui/`; the report box keeps its scroll as the note changes; ARCHITECTURE's entry scene row names the crash
+  screen.
+- **Rebased** onto SV5 (`c5f90b1`, on main after SV4 merged): `BugReport.note_line` takes SV4's final note cut
+  (`ReportScrub.cut_whole` before the scrub); the tests' ReportScrub takes a ReportConfig; Dev › Reset the save (gone in
+  SV2) stays gone; PLAYTEST's crash screen checks follow SV5's Bug reports, whose "after SV6" marks went.
+- **Advisory left (QA):** the When's local time uses `Time.get_time_zone_from_system().bias` as minutes east of UTC;
+  on Windows its sign is unchecked here (an owner's check: When reads the local clock).
+
+## Checks
+
+`tools/check.sh`: gdlint, changelog notes, unit tests (2465 of 2465, no script error), smoke test and licence notices all pass.
+Attempt 2: all five gates pass, unit tests 2474 of 2474, no script error.
+After the last advisories: all five gates pass, unit tests 2475 of 2475, no script error.
+After the rebase onto SV5: all five gates pass, unit tests 2553 of 2553, no script error.
+
+## Screenshot
+
+`pipeline/out/sv6_crash_screen.png` (Compatibility, Xvfb, 1920x1080, a crash in a match with a note typed): matches
+crash-screen.png's layout, text and colours; the report shows this machine's facts.
+
+## Owner's checks
+
+- On a Windows export: Dev › Crash the game now mid-match, then start again: the screen with the match, the round, the
+  seed and the crash handler's line at the end of the report; Report a Bug opens GitHub filled in; Open log folder
+  opens `%APPDATA%\Airsoft\logs`; starting again after Continue shows the title. When reads the local clock (the
+  time zone bias's sign on Windows).
+- Ending the game from the Task Manager, in the menus and on the range, shows the screen once each.
+
+## Advisories left
+
+- LogTail holds the whole old log in memory once at start, as bytes, for its line count (decoded only its last 256 kB).
+- The When line's local time on Windows around daylight saving (the system's bias now, not at the crash) is unchecked.
+- The left column's facts panel sits about 70 px lower than the concept's (the heading's and blurb's line heights).
+
+## Known issues left
+
+- A crash before any script runs writes no run record, so no crash screen follows it (a KNOWN_ISSUES row, document).
+
+## Outside `touches`
+
+`game/report/log_tail.gd` and `game/ui/graphics_start_up.gd` (the restart log passed over, the log read once),
+`game/report/report_facts.gd` (errors from LogTail's lines), `game/report/bug_report.gd` (`note_line`), `game/ui/hazard_tape.gd`
+(the orange tape), `game/report/README.md` (LogTail's line), `docs/ARCHITECTURE.md` (`CrashScreen` in the `game/ui/`
+row and the entry scene's), `docs/TASKS.md` (the block out), `tests/unit/test_log_tail.gd`, `docs/records/SV6.md`.

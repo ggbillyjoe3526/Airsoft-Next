@@ -8,7 +8,9 @@ description: Run one task of the Airsoft FPS through the build pipeline (checks,
 The protocol is `pipeline/README.md`; this is the step list. You are the worker, on the model the task's `tier` names
 (`docs/PROCESS.md` › Models); the rest are agents you spawn. Where the repo's agent names aren't offered as agent
 types, spawn `general-purpose` with the definition's model (aliases only: `haiku`, `sonnet`, `opus`) and its body at
-the top of the prompt. Tell every agent not to call `mcp__hearthbot__` tools.
+the top of the prompt. Tell every agent not to call `mcp__hearthbot__` tools. Hand grunt work (summaries, doc lookups,
+reading logs, condensing output) to Haiku agents, several at once where it splits, each kept under 100k context
+(`docs/PROCESS.md` › Models).
 
 1. **Read** the task block and the contracts it names (grep, then ranges). Branch from the latest `origin/main`. The
    block's `status` and `attempts` change once, in the records commit (a status-only push re-runs CI).
@@ -23,7 +25,7 @@ the top of the prompt. Tell every agent not to call `mcp__hearthbot__` tools.
 5. **Review agents**, in this order, each told the task id, the head the checks passed on and `tools/check.sh`'s
    summary (a docs-only `tier: trivial` task gets `triage`'s diff summary instead, checked by you against the task):
    - `performance`; on Unexplained, again on Opus.
-   - `critic` (Opus for `tier: core`). On Retry: `pipeline/README.md` › Verdict and attempts (near misses, the attempt
+   - `critic` (Opus). On Retry: `pipeline/README.md` › Verdict and attempts (near misses, the attempt
      count), fix only the failed checks and findings, go to 2.
    - A check only a changed acceptance criterion can pass: ask the owner at once on a decision card and stop there.
 6. **Changelog**: spawn `changelog` with the task id and title, the pull request title, a player-words summary, the
@@ -42,7 +44,7 @@ the top of the prompt. Tell every agent not to call `mcp__hearthbot__` tools.
 ## A `tier: fix` task
 
 The same steps, lighter where nothing changes for the player (`docs/PROCESS.md` › The pipeline): the critic runs on
-Sonnet (Opus only for a judgment near miss), the changelog brief names no FEATURES heading unless the fix changes how
+Opus as always, the changelog brief names no FEATURES heading unless the fix changes how
 an existing feature behaves, `docs/PLAYTEST.md` gets a line only when the player sees a difference, and the record is
 the review line, the attempt rows and one Decisions line (no Known issues section when it leaves none).
 
