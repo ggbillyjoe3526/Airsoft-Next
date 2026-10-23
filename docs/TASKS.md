@@ -87,13 +87,14 @@ acceptance:
   3. FigureHands holds the replica's figure version on Grip_R by the sidecar's replicaOnGrip, converted from Blender
      axes once at load; holstered (Holster, Holster_Sprint in a sprint) the rifle rides slung on Chest (FigureConfig
      sling: butt 0.17 right, 1.42 up, tilt 0.75, back 0.19 human, 0.27 over the pack, 0.17 robot) and comes to the
-     hand at 0.5 of the draw; calling the hit (HitCall's upper body: the hand up, wrist about 1.98 m) the rifle hangs
-     from the other hand 0.25 rad off straight down, muzzle forward.
+     hand at 0.5 of the draw; calling the hit (HitCall's upper body: Hand_L up, its bone about 1.8 m and the
+     fingertips 1.98 m) the rifle hangs from the other hand 0.25 rad off straight down, muzzle forward.
   4. Parts and paint as today (ReplicaParts, ReplicaPaint, Realistic colours); test_lo3_qa and test_parts_in_play
      read the replicas through FigureView as before.
   5. GUT: in Rifle_Aim the replica's grip lies within 3 cm of Hand_R and its muzzle points within 5° of the pitch at
      0 and ±45°; Switch shows the pistol only past 0.35; a SHOT plays Fire once; holstered the rifle sits on Chest
-     within the sling numbers; HitCall raises Hand_R (or the hand the clip raises) above 1.85 m.
+     within the sling numbers; HitCall raises Hand_L's bone above 1.75 m (the clip raises the left hand; Hand_R
+     stays near 0.95 m).
 status: open
 attempts: 0
 
