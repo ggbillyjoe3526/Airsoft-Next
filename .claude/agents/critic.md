@@ -2,7 +2,7 @@
 name: critic
 description: Judgment-only review of a task or code change whose checks all passed (pipeline/README.md). Runs on every change that touches code, scenes, config, assets or gameplay data. Reads the task block, the check summary, the contracts the diff touches, QA's and the performance agent's reports and the diff; ticks eight binary checks; never edits files. Its model per run is in docs/PROCESS.md › Models.
 tools: Read, Glob, Grep, Bash
-model: sonnet
+model: opus
 effort: medium
 ---
 

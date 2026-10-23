@@ -120,6 +120,9 @@ can't verify (how it feels to play), tell the owner exactly what to test.
 - **Ask the owner at once** when a check can only pass by changing an acceptance criterion.
 - Screenshots only when you need to see something.
 - Agent reports stay short: QA, performance and the critic about 30 lines, triage 15.
+- **Models** (`docs/PROCESS.md` › Models): Opus for code, design, the critic and bug passes; Sonnet for UI, QA and
+  performance; Haiku 5.5 as the cheap "minion army" for grunt work (summaries, lookups, logs, triage, changelog), many
+  in parallel, each under 100k context (owner, 2026-10-23).
 
 **Design decisions:** if unsure, ask the owner before acting. For small details that are easy to change later, pick a
 sensible default, note it with a one-line reason in the task's record (`docs/records/`), or in `docs/DECISIONS.md` if

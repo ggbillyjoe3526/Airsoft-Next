@@ -146,17 +146,19 @@ release description:
 
 ## Models
 
-Which model runs which job (owner, 2026-10-08); the roles themselves are in `pipeline/README.md` › Roles. A thread
+Which model runs which job (owner, 2026-10-08 and 2026-10-23); the roles themselves are in `pipeline/README.md` › Roles. A thread
 never changes a model or an effort level unless the owner asks.
 
 - **Opus 5.5 for the coordinator, the planning thread and `tier: core` tasks,** each bug pass (`BP<n>`) and the fixes an
   audit hands on among them. Opus threads run at Extra effort (`xhigh`), the owner's project setting; a `worker` agent a
-  thread splits its task to inherits the thread's model at high effort. The critic runs on Opus for core tasks and near
-  misses, and the performance agent when a regression stays unexplained.
+  thread splits its task to inherits the thread's model at high effort. The critic always runs on Opus (owner,
+  2026-10-23), and the performance agent does when a regression stays unexplained.
 - **Sonnet 5.5, medium, for `tier: ui`, `tier: trivial` and `tier: fix` tasks** (a fix in a core system, such as the
-  simulation, physics or bots, on Opus), QA, and the other critic and performance runs.
-- **Haiku 5.5, low, for small helper jobs:** the changelog and triage agents, and the diff check on a docs-only
-  `tier: trivial` task.
+  simulation, physics or bots, on Opus), QA, and the other performance runs.
+- **Haiku 5.5, low, is the cheap, fast "minion army" for grunt work** (owner, 2026-10-23): summaries, web and doc
+  lookups, reading logs, triage, the changelog, simple debugging and trivial questions, and the diff check on a
+  docs-only `tier: trivial` task. Run several at once where the work splits, and keep each one under 100k context (a
+  narrow brief, named files and line ranges, short reports), so the Opus and Sonnet contexts stay clean for reasoning.
 - **Fable 5.1 only with the owner's explicit approval, asked for each time.** It costs far more than Opus, so it is
   proposed only where it would do significantly better: an audit, or a review of a major architectural change, a
   major redesign, or how a new system fits into the project. The ask names the job, why Opus is not enough and the
