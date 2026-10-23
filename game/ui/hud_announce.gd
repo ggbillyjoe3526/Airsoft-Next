@@ -26,12 +26,15 @@ func set_names(names: PackedStringArray) -> void:
 	_announcer.set_names(names)
 
 
-## Settings.read_out: on, a polite live region; off, LIVE_OFF with no text and nothing gathered.
+## Settings.read_out: on, a polite live region; off, LIVE_OFF with no text and nothing gathered. Called on every
+## settings change: staying on keeps the region's mode, so a message showing keeps its priority.
 func set_on(on: bool) -> void:
 	_announcer.set_on(on)
-	accessibility_live = AccessibilityServer.LIVE_POLITE if on else AccessibilityServer.LIVE_OFF
 	if not on:
+		accessibility_live = AccessibilityServer.LIVE_OFF
 		text = ""
+	elif accessibility_live == AccessibilityServer.LIVE_OFF:
+		accessibility_live = AccessibilityServer.LIVE_POLITE
 
 
 ## The tick's events in `state`.

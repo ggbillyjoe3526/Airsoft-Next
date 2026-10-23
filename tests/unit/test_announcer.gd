@@ -242,6 +242,8 @@ func test_the_label_takes_each_message_at_its_priority() -> void:
 	hud.update(_state, 1.0, 0.35)
 	assert_eq(label.text, "You're hit · Rook")
 	assert_eq(label.accessibility_live, AccessibilityServer.LIVE_ASSERTIVE, "your hit at once")
+	hud.set_read_out(true)
+	assert_eq(label.accessibility_live, AccessibilityServer.LIVE_ASSERTIVE, "a settings change keeps the priority showing")
 	_event(GameEvent.Kind.ROUND_START, 2)
 	hud.on_tick(_state)
 	_state.events.clear()

@@ -44,6 +44,8 @@
   by hand to keep testing the lock, and checks every built section takes input.
 - **Settings reach a match at once** through `PlaySession._apply_hud` (`Hud.set_read_out`), with the gauge patterns and
   sound cues: a one-line change outside touches.
+- **A settings change keeps the region's priority** (QA and performance): `set_on(true)` while already on leaves the
+  live mode alone, so the match result showing stays assertive when a setting changes from the pause menu.
 
 ## What the owner checks on his PC
 
@@ -85,3 +87,6 @@
 
 - A screen reader hears only the hit feed, your hit and the rounds' turns: squad orders and the menus' custom-drawn
   controls wait for a Beta polish pass (KNOWN_ISSUES row).
+- While you skip a round the HUD is hidden, and the label with it, so hit lines during the skip aren't read and the
+  last one stays as the region's text until the next message (QA). The round's end still reads: the skip ends in the
+  same tick as the round, before the message goes out.
