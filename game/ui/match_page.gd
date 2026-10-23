@@ -60,6 +60,8 @@ var picks: MatchPicks = null
 
 var _settings: Settings = null
 var _tuning: SimTuning = null
+## The mode last picked on a field, given back when a field is picked again after the Range's Practice took over.
+var _field_mode: String = ""
 var _play_tuning: PlayTuning = null
 var _catalog: MapCatalog = null
 var _maps_grid: GridContainer = null
@@ -536,6 +538,10 @@ func _refresh() -> void:
 		_map_cards[id].set_picked(id == picks.map_id)
 	var entry := _catalog.find(picks.map_id)
 	var pole: bool = _poles.get(picks.map_id, false)
+	if picks.mode != MatchOptions.MODE_PRACTICE:
+		_field_mode = picks.mode
+	elif MatchOptions.mode_pickable(_field_mode, entry, pole):
+		picks.mode = _field_mode
 	if not MatchOptions.mode_pickable(picks.mode, entry, pole):
 		for mode in MatchOptions.MODES:
 			if MatchOptions.mode_pickable(mode, entry, pole):
