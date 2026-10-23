@@ -41,6 +41,9 @@ class Held:
 	var selector: SelectorPose = null
 
 var _cfg: ViewModelConfig = null
+## Whose arms you would see (FigureMix.HUMAN or FigureMix.ROBOT), set by PlaySession from the match's mix. No arm is
+## drawn yet: step 32's first-person arms read it.
+var arms_kind: int = FigureMix.HUMAN
 var _held: Array[Held] = []
 var _active: int = -1
 var _kick: float = 0.0

@@ -156,6 +156,11 @@ never players.
 - [ ] **Look straight down.** Standing, crouched and in a vault: you see the ground, never your own body (Beta 1
   item 24).
 - [ ] **Hit call.** Hit a bot: the HIT! sign, the hand up, the replica hanging; readable at 20 to 30 m.
+- [ ] **Looks › Robots.** Settings › Looks (between Controls and Audio) shows Mixed in use. Start a match with
+  Dev › Rigged figures on: both teams have humans and robots. In the pause menu's Settings, pick Humans only: the tab
+  says "From the next match." and this match is unchanged; start the next one: everyone is human. Pick Mixed again
+  and a third match brings the robots back. Tab to a card and press Enter, and with a screen reader on, hear Mixed
+  and Humans only read with which is in use.
 - [ ] **Replicas.** The rifle and pistol look like toys: blocky, two-tone, stippled grips; others' replicas are in
   their team's colours.
 - [ ] **Replica detail on High.** Fine speckle, rounded lit edges, rail slots and sights. In Loadout try every optic,

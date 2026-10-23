@@ -109,7 +109,7 @@ var _lighting: FieldLighting = null
 ## Scratch for the vault prompt's look ahead each tick.
 var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
-## Each character's figure kind (FigureMix: human or robot), by character id; the player's too (the arms, FI6).
+## Each character's figure kind (FigureMix: human or robot), by character id; the player's too (ReplicaView.arms_kind).
 var figure_kinds: PackedInt32Array = PackedInt32Array()
 ## The rigged figures (FigureModels), loaded the first time Dev › Rigged figures is on, then kept for the session;
 ## whether they are drawn, and the lines (m) their levels of detail change at (the graphics' Mesh detail).
@@ -482,7 +482,9 @@ func _build_views(ui: CanvasLayer) -> void:
 	var teams := PackedInt32Array()
 	for c in state.characters:
 		teams.append(c.team)
-	figure_kinds = FigureMix.pick(state.match_seed, teams, _play.figures.robots, _play.figures.robot_salt)
+	# Settings › Looks › Robots, read once a match (and a practice); your kind goes to the arms (step 32 draws them).
+	figure_kinds = FigureMix.pick(state.match_seed, teams, chosen.robots, _play.figures.robot_salt)
+	_hands.arms_kind = figure_kinds[PLAYER_ID]
 	_figure_lines = _play.figures.lod_high
 	var first_use: Array[Material] = [
 		_bbs.drawn_material(), _puffs.drawn_material(), FigureView.material(Color.WHITE, true, _colours.figures.glow)

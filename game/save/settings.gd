@@ -98,6 +98,9 @@ var sound_cue_colour: int = AccessibilityConfig.CUE_COLOUR_DEFAULT
 var reduced_motion: ReducedMotion = ReducedMotion.SYSTEM
 ## Hit calls, your hit and round results sent to a screen reader while one runs.
 var read_out: bool = true
+## Settings › Looks › Robots (FI6): Mixed (true) puts robots among the humans on both teams (FigureMix), Humans only
+## (false) makes everyone human. Read once a match, so a change shows from the next one.
+var robots: bool = true
 ## The Custom rule set's switches, kept between Custom matches (the Match screen picks Skirmish or Custom).
 var custom_rules: CustomRules = CustomRules.new()
 ## Practice's timed challenge, switched on or off from the pause menu and kept for the next visit to the range.
@@ -183,6 +186,7 @@ func to_dict() -> Dictionary:
 		"last_fullscreen": int(last_fullscreen), "renderer": int(renderer), "first_start_seen": first_start_seen,
 		"team_colours": int(team_colours), "gauge_patterns": gauge_patterns, "sound_cues": sound_cues,
 		"sound_cue_size": sound_cue_size, "sound_cue_colour": sound_cue_colour, "read_out": read_out,
+		"robots": robots,
 	}
 	# Following the system is never written, so the file holds only the player's own pick.
 	if reduced_motion != ReducedMotion.SYSTEM:
@@ -232,6 +236,7 @@ func from_dict(data: Dictionary) -> void:
 	renderer = roundi(_number(data, "renderer", Renderer.AUTO, 0.0, Renderer.size() - 1.0)) as Renderer
 	first_start_seen = _flag(data, "first_start_seen", false)
 	_accessibility_from(data)
+	robots = _flag(data, "robots", true)
 
 
 ## Whether motion is reduced: On, or Follow system while the system asks for it (`system_answer` is

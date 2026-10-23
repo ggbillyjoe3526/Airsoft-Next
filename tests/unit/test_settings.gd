@@ -494,3 +494,31 @@ func test_each_bad_accessibility_value_keeps_its_own_default() -> void:
 	assert_eq(t.team_colours, TeamColours.Set.STANDARD)
 	assert_almost_eq(t.sound_cue_size, 0.6, 1e-6, "between steps reads as the nearest")
 	assert_eq(t.sound_cue_colour, AccessibilityConfig.CUE_COLOUR_DEFAULT)
+
+
+func test_robots_start_mixed_and_round_trip_through_the_save_file() -> void:
+	assert_true(s.robots, "Mixed is the default")
+	assert_eq(s.to_dict().get("robots"), true, "saved under robots")
+	s.robots = false
+	assert_true(s.save(path))
+	assert_false(_again().robots, "Humans only is kept")
+	s.robots = true
+	assert_true(s.save(path))
+	assert_true(_again().robots)
+
+
+func test_a_file_from_before_looks_reads_mixed_with_the_version_unchanged() -> void:
+	SaveFile.write(path, Settings.KIND, Settings.VERSION, {"sensitivity": 1.5, "read_out": false})
+	var t := _again()
+	assert_eq(Settings.VERSION, 1, "no migration for a new key with a default")
+	assert_eq(t.load_message, "")
+	assert_true(t.robots, "an older save reads Mixed")
+	assert_false(t.read_out, "the rest of the file is kept")
+
+
+func test_a_bad_robots_value_reads_mixed() -> void:
+	SaveFile.write(path, Settings.KIND, Settings.VERSION, {"robots": "no", "fov": 95.0})
+	var t := _again()
+	assert_eq(t.load_message, "", "a good file with a bad value is not a damaged file")
+	assert_true(t.robots)
+	assert_almost_eq(t.fov, 95.0, 1e-6)
