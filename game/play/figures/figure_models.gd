@@ -90,6 +90,11 @@ static func grip_from_blender(m: Transform3D) -> Transform3D:
 	return m * Transform3D(BLENDER_FROM_GODOT, Vector3.ZERO)
 
 
+## A vector in Blender's axes (the sidecar's throw: X right, Y forward, Z up) in Godot's (three.js's x, z, -y).
+static func godot_from_blender(v: Vector3) -> Vector3:
+	return BLENDER_FROM_GODOT.transposed() * v
+
+
 ## The slung rifle's butt frame in the chest bone's frame: the butt at `butt` (x to the figure's right, y above the
 ## feet), `back` behind the chest, the long axis `tilt` from upright with the muzzle down to the figure's left and its
 ## right side facing out of the back; `chest` the chest bone's pose (the skeleton's frame, facing +Z).

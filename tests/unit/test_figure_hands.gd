@@ -2,10 +2,15 @@ extends GutTest
 ## FI3: the upper body (game/play/figures/figure_hands.gd, figure_graph.gd's upper chain, figure_body.gd, figure_bend.gd's
 ## aim, figure_view.gd): the replica in the fist and pointing where the shot goes at 0 and ±45°, the Switch's pistol
 ## only past 0.35, one trigger press a SHOT, the rifle slung on the chest by the sling numbers, the hand up calling the
-## hit with the rifle hanging from the other, the replicas handed back to the capsules. Read as the skeleton finishes
+## hit with the rifle hanging from the other, the replicas handed back to the capsules. FI4, the reloads: the clip at
+## the reload's share of the replica's reload time (near, far, after hiding and drawn at 240 Hz), the new magazine on
+## Hand_L over 0.389-0.509 of a 1.8 s reload and the old one where the replica's own clip pulls it, one copy on the hand
+## at most, the old one thrown at its release and gone after 3 s, nothing more thrown once a switch, the hit call or
+## hiding cuts it, no allocation, the pool built once a match and cleared at ROUND_START. Read as the skeleton finishes
 ## updating: Skeleton3D hands back the clips' pose after its modifiers ran.
 
 const NEAR := Vector3(0.0, 1.6, 3.0)
+const FAR := Vector3(0.0, 1.6, 200.0)
 const FRAME := 1.0 / 60.0
 
 var config: FigureConfig = null
@@ -38,20 +43,22 @@ func _view(kind: int, c: Character) -> FigureView:
 	var hands := v.body().hands
 	sk.skeleton_updated.connect(func() -> void:
 		var d := {}
-		for bone: String in ["Hand_R", "Middle1_R", "Grip_R", "Hand_L", "Middle3_L", "Chest"]:
+		for bone: String in ["Hand_R", "Middle1_R", "Grip_R", "Hand_L", "Middle3_L", "Chest", "Hips"]:
 			d[bone] = sk.get_bone_global_pose(sk.find_bone(bone))
 		d[&"in_hand"] = hands.replica(hands.in_hand).transform if hands.replica(hands.in_hand) != null else null
 		d[&"slung"] = hands.replica(hands.slung).transform if hands.replica(hands.slung) != null else null
+		var mag := hands.magazine(hands.mag_slot)
+		d[&"magazine"] = mag.global_transform if mag != null and hands.mag_shown != FigureHands.MAG_NONE else null
 		_drawn[v] = d)
 	return v
 
 
-## Poses `v` from `c` for `frames` frames and waits for the skeleton to draw it.
-func _pose(v: FigureView, c: Character, frames: int = 1) -> Dictionary:
+## Poses `v` from `c` for `frames` frames (seen from `eye`) and waits for the skeleton to draw it.
+func _pose(v: FigureView, c: Character, frames: int = 1, eye: Vector3 = NEAR) -> Dictionary:
 	_drawn.erase(v)
 	for i in frames:
 		v.update(c, 1.0)
-		v.animate(c, 1.0, FRAME, NEAR)
+		v.animate(c, 1.0, FRAME, eye)
 	await wait_process_frames(1)
 	return _drawn.get(v, {})
 
@@ -270,6 +277,9 @@ func test_back_to_capsules_the_replicas_go_back_to_the_upper_body() -> void:
 	assert_null(v.body())
 	for r in v._replicas:
 		assert_eq(r.get_parent(), v._upper, "back on the capsules")
+	for m in v._magazines:
+		assert_eq(m.get_parent(), v._upper, "the magazines' copies too")
+		assert_false(m.visible)
 	v.update(c, 1.0)
 	assert_true(v._replicas[0].visible, "the one in hand shown")
 	assert_false(v._replicas[1].visible)
@@ -407,3 +417,316 @@ func test_a_branch_with_no_weight_is_gated_off_and_comes_back() -> void:
 	var held: Transform3D = d[&"in_hand"]
 	var hand: Transform3D = d["Hand_R"]
 	assert_lt((held * v.body().hands.grip_point(1)).distance_to(hand.origin), 0.15, "the pistol back in the fist")
+
+
+# FI4: the reloads.
+
+
+## A thrown magazines' pool for `v`'s magazines, `v`'s rigged hands throwing into it.
+func _thrown_for(v: FigureView) -> ThrownMagazines:
+	var t := ThrownMagazines.new()
+	t.setup(config.thrown_max)
+	add_child_autofree(t)
+	v.thrown = t
+	v.body().hands.thrown = t
+	return t
+
+
+## Hand_L in the Hips' frame: as drawn (`d`), and as `clip` poses it at `time` (s).
+func _hand_in_hips(d: Dictionary) -> Transform3D:
+	return (d["Hips"] as Transform3D).affine_inverse() * (d["Hand_L"] as Transform3D)
+
+
+func _clip_hand_in_hips(v: FigureView, clip: StringName, time: float) -> Transform3D:
+	var sk := v.body().skeleton
+	var prefix := String(v.body().tree.get_parent().get_path_to(sk))
+	var anim := models.library(FigureMix.HUMAN).get_animation(clip)
+	var hips := FigureGraph.bone_pose(anim, sk, prefix, sk.find_bone("Hips"), time)
+	return hips.affine_inverse() * FigureGraph.bone_pose(anim, sk, prefix, sk.find_bone("Hand_L"), time)
+
+
+## The centre of replica `id`'s own magazine in the replica's frame, its Reload clip at `share` (the full model).
+func _replica_magazine(id: String, share: float) -> Vector3:
+	var model := (load("res://assets/models/replicas/%s.glb" % id) as PackedScene).instantiate() as Node3D
+	add_child(model)
+	var player := model.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+	player.play(&"Reload")
+	player.seek(share * player.current_animation_length, true)
+	player.pause()
+	await wait_process_frames(1)
+	var mag := model.find_child(config.magazine_node, true, false) as MeshInstance3D
+	var centre := model.global_transform.affine_inverse() * mag.global_transform * mag.get_aabb().get_center()
+	model.free()
+	return centre
+
+
+func test_a_reload_shows_the_new_magazine_on_hand_l_over_its_share_and_one_copy_at_most() -> void:
+	var c := _character()
+	var v := _view(FigureMix.HUMAN, c)
+	await _pose(v, c, 5)
+	var a := c.armament
+	var total := a.replicas[0].reload_time
+	assert_eq(total, 1.8, "the AEG reloads in 1.8 s")
+	var hands := v.body().hands
+	var new_shares := PackedFloat64Array()
+	var old_shares := PackedFloat64Array()
+	var most := 0
+	a.reload_left = total
+	while a.reload_left > 0.0:
+		var share := 1.0 - a.reload_left / total
+		var d: Dictionary = await _pose(v, c)
+		var shown := 0
+		for slot in a.replicas.size():
+			shown += 1 if hands.magazine(slot) != null and hands.magazine(slot).visible else 0
+		most = maxi(most, shown)
+		if hands.mag_shown == FigureHands.MAG_NEW:
+			new_shares.append(share)
+		elif hands.mag_shown == FigureHands.MAG_OLD:
+			old_shares.append(share)
+		if hands.mag_shown != FigureHands.MAG_NONE:
+			var hand: Transform3D = d["Hand_L"]
+			var mag: Transform3D = d[&"magazine"]
+			assert_lt(mag.origin.distance_to(v.body().skeleton.global_transform * hand.origin), 0.2,
+					"share %.3f: the copy rides on Hand_L" % share)
+		a.reload_left = maxf(0.0, a.reload_left - FRAME)
+	var step := FRAME / total
+	assert_false(new_shares.is_empty())
+	assert_almost_eq(new_shares[0], 0.389, step, "the new magazine from 0.389")
+	assert_almost_eq(new_shares[new_shares.size() - 1], 0.509, step, "to 0.509")
+	assert_almost_eq(old_shares[0], 0.0926, step, "the old one pulled from oldMagazine.from")
+	assert_almost_eq(old_shares[old_shares.size() - 1], 0.185, step, "until its release")
+	assert_eq(most, 1, "one copy on the hand at most (the figure version's own magazine can't hide)")
+	await _pose(v, c, 5)
+	assert_false(hands.magazine(0).visible, "none after the reload")
+
+
+func test_the_old_magazine_starts_where_the_replicas_own_clip_pulls_it() -> void:
+	for slot: int in [0, 1]:
+		var c := _character()
+		c.armament.active = slot
+		var v := _view(FigureMix.HUMAN, c)
+		await _pose(v, c, 5)
+		var a := c.armament
+		var r := a.replicas[slot]
+		var side := models.sidecar(FigureMix.HUMAN)
+		var clip := config.pistol_reload_clip if r.site_class == &"pistol" else config.rifle_reload_clip
+		var share := side.magazine_in_hand[clip].old.from + 0.005
+		a.reload_left = r.reload_time
+		await _pose(v, c)
+		a.reload_left = r.reload_time * (1.0 - share)
+		await _pose(v, c, 10)
+		var hands := v.body().hands
+		assert_eq(hands.mag_shown, FigureHands.MAG_OLD, r.id)
+		var mag := hands.magazine(slot)
+		var copy := mag.transform * mag.get_aabb().get_center()
+		var own := hands.replica(slot).transform * (await _replica_magazine(r.id, share))
+		gut.p("%s: the old copy %.3f m from the replica's own magazine at %.3f" % [r.id, copy.distance_to(own), share])
+		assert_lt(copy.distance_to(own), 0.02, "%s: the old copy takes the magazine out of the replica" % r.id)
+
+
+func test_the_reload_clip_keeps_step_with_reload_left_near_far_and_after_hiding() -> void:
+	var c := _character()
+	var v := _view(FigureMix.HUMAN, c)
+	await _pose(v, c, 5)
+	var a := c.armament
+	var total := a.replicas[0].reload_time
+	var tree := v.body().tree
+	a.reload_left = total
+	var d: Dictionary = {}
+	for i in 27:
+		d = await _pose(v, c)
+		a.reload_left -= FRAME
+	var share := 1.0 - (a.reload_left + FRAME) / total
+	assert_true(tree.get(FigureGraph.P_RELOAD_ACTIVE), "the reload plays")
+	var off := _hand_in_hips(d).origin.distance_to(_clip_hand_in_hips(v, config.rifle_reload_clip, share * 1.8).origin)
+	assert_lt(off, 0.01, "near: Hand_L where Rifle_Reload has it at %.2f of its 1.8 s" % share)
+	# Far: posed every far_stride-th frame, the time gathered; the stride's frame finds the clip at the reload's share.
+	for i in config.far_stride * 6:
+		v.update(c, 1.0)
+		v.animate(c, 1.0, FRAME, FAR)
+		a.reload_left -= FRAME
+	d = await _pose(v, c, config.far_stride, FAR)
+	share = 1.0 - a.reload_left / total
+	off = _hand_in_hips(d).origin.distance_to(_clip_hand_in_hips(v, config.rifle_reload_clip, share * 1.8).origin)
+	assert_lt(off, 0.01, "far: in step at %.2f" % share)
+	# Hidden (your watched bot), then shown again: in step at once, without its release thrown.
+	var t := _thrown_for(v)
+	for i in 20:
+		v.update(c, 1.0)
+		v.visible = false
+		v.animate(c, 1.0, FRAME, NEAR)
+		a.reload_left -= FRAME
+	d = await _pose(v, c)
+	share = 1.0 - a.reload_left / total
+	assert_gt(share, 0.185, "past the release while hidden")
+	off = _hand_in_hips(d).origin.distance_to(_clip_hand_in_hips(v, config.rifle_reload_clip, share * 1.8).origin)
+	assert_lt(off, 0.02, "shown again: in step at %.2f" % share)
+	assert_eq(t.count(), 0, "no throw for a release it wasn't drawn through")
+	a.reload_left = 0.0
+	await _pose(v, c, 20)
+	assert_false(tree.get(FigureGraph.P_RELOAD_ACTIVE), "RELOAD_END: done")
+
+
+func test_drawn_faster_than_the_ticks_the_reload_plays_to_its_end() -> void:
+	# At 240 Hz reload_left holds for four frames a tick: the OneShot mustn't guess the clip has ended (it ends only
+	# when the reload does).
+	var c := _character()
+	var v := _view(FigureMix.HUMAN, c)
+	await _pose(v, c, 5)
+	var a := c.armament
+	var tree := v.body().tree
+	a.reload_left = a.replicas[0].reload_time
+	var playing := 0
+	var ticks := 0
+	while a.reload_left > FRAME:
+		for i in 4:
+			v.update(c, 1.0, FRAME * 0.25)
+			v.animate(c, 1.0, FRAME * 0.25, NEAR)
+		playing += 1 if tree.get(FigureGraph.P_RELOAD_ACTIVE) else 0
+		ticks += 1
+		a.reload_left -= FRAME
+	assert_eq(playing, ticks, "the reload played every tick of it")
+	await wait_process_frames(1)
+
+
+func test_the_old_magazine_is_thrown_at_its_release_lands_and_goes_after_3_s() -> void:
+	var c := _character()
+	c.velocity = Vector3(0.0, 0.0, -2.0)
+	var v := _view(FigureMix.HUMAN, c)
+	await _pose(v, c, 5)
+	var t := _thrown_for(v)
+	var a := c.armament
+	var total := a.replicas[0].reload_time
+	var release := models.sidecar(FigureMix.HUMAN).magazine_in_hand[config.rifle_reload_clip].old.release
+	a.reload_left = total
+	var last_old: Transform3D = Transform3D.IDENTITY
+	var thrown_share := -1.0
+	while thrown_share < 0.0 and a.reload_left > 0.0:
+		var share := 1.0 - a.reload_left / total
+		var d: Dictionary = await _pose(v, c)
+		if t.count() > 0:
+			thrown_share = share
+		elif d.get(&"magazine") != null and v.body().hands.mag_shown == FigureHands.MAG_OLD:
+			last_old = d[&"magazine"]
+		a.reload_left -= FRAME
+	assert_almost_eq(thrown_share, release, FRAME / total, "thrown at its release")
+	var m := t.thrown_at(0)
+	assert_lt(m.transform.origin.distance_to(last_old.origin), 0.1, "let go where the hand held it")
+	assert_eq(m.mesh, v.body().hands.magazine(0).mesh, "a copy of the replica's magazine")
+	var start := m.transform.origin
+	var time := 0.0
+	while not t.landed_at(0) and time < 2.0:
+		t.update(FRAME)
+		time += FRAME
+	assert_true(t.landed_at(0), "landed")
+	var lying := m.transform
+	assert_almost_eq(absf(lying.basis.x.y), 1.0, 1e-4, "on its side")
+	assert_lt(lying.origin.y, 0.05, "at the figure's feet")
+	assert_lt(lying.origin.x, start.x - 0.2, "thrown out to the figure's left (it faces -Z)")
+	assert_lt(lying.origin.z, start.z, "carried ahead by the figure's own run")
+	t.update(3.0 - time - FRAME)
+	assert_eq(t.count(), 1)
+	t.update(2.0 * FRAME)
+	assert_eq(t.count(), 0, "gone after 3 s")
+	while a.reload_left > 0.0:
+		await _pose(v, c)
+		a.reload_left -= FRAME
+	assert_eq(t.count(), 0, "one throw a reload")
+
+
+func test_a_reload_cut_by_a_switch_or_the_hit_call_throws_nothing_more() -> void:
+	var c := _character()
+	var v := _view(FigureMix.HUMAN, c)
+	await _pose(v, c, 5)
+	var t := _thrown_for(v)
+	var a := c.armament
+	var tree := v.body().tree
+	var hands := v.body().hands
+	a.reload_left = a.replicas[0].reload_time
+	for i in 15:
+		await _pose(v, c)
+		a.reload_left -= FRAME
+	assert_eq(hands.mag_shown, FigureHands.MAG_OLD, "pulling the old one")
+	# The switch: the simulation zeroes reload_left and draws the pistol.
+	a.reload_left = 0.0
+	a.active = 1
+	a.draw_total = 0.3
+	a.draw_left = 0.3
+	await _pose(v, c)
+	assert_eq(hands.mag_shown, FigureHands.MAG_NONE, "the copy gone at once")
+	assert_true(tree.get(FigureGraph.P_SWITCH_ACTIVE), "the switch plays")
+	for i in 40:
+		await _pose(v, c)
+		a.draw_left = maxf(0.0, a.draw_left - FRAME)
+	assert_false(tree.get(FigureGraph.P_RELOAD_ACTIVE), "cut")
+	assert_eq(t.count(), 0, "nothing thrown")
+	# Past its release, then the hit call: the one thrown stays, nothing more.
+	a.reload_left = a.replicas[1].reload_time
+	var release := models.sidecar(FigureMix.HUMAN).magazine_in_hand[config.pistol_reload_clip].old.release
+	while 1.0 - a.reload_left / a.replicas[1].reload_time < release + 0.05:
+		await _pose(v, c)
+		a.reload_left -= FRAME
+	assert_eq(t.count(), 1)
+	c.status = Character.Status.CALLING
+	for i in 60:
+		await _pose(v, c)
+		c.status_time += FRAME
+		a.reload_left = maxf(0.0, a.reload_left - FRAME)
+	assert_eq(t.count(), 1, "nothing more")
+	assert_eq(hands.mag_shown, FigureHands.MAG_NONE, "calling: no magazine in the raised hand")
+	assert_false(tree.get(FigureGraph.P_RELOAD_ACTIVE), "the hit call cut it")
+
+
+func test_reloads_and_throws_allocate_no_objects() -> void:
+	var c := _character()
+	var v := _view(FigureMix.HUMAN, c)
+	var a := c.armament
+	await _pose(v, c, 10)
+	var t := _thrown_for(v)
+	var before := Performance.get_monitor(Performance.OBJECT_COUNT)
+	for frame in 360:
+		if frame % 90 == 0:
+			a.reload_left = a.replicas[a.active].reload_time
+		if frame == 200:
+			a.reload_left = 0.0
+			a.active = 1
+			a.draw_total = 0.3
+			a.draw_left = 0.3
+		a.reload_left = maxf(0.0, a.reload_left - FRAME)
+		a.draw_left = maxf(0.0, a.draw_left - FRAME)
+		v.update(c, 1.0)
+		v.animate(c, 1.0, FRAME, NEAR if frame % 120 < 100 else FAR)
+		t.update(FRAME)
+		await wait_process_frames(1)
+	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), before)
+	assert_gt(t.count(), 0, "thrown meanwhile")
+
+
+func test_in_a_match_the_pool_is_built_once_and_a_new_round_clears_it() -> void:
+	var settings := Settings.new(PlayTuning.new())
+	settings.dev_enabled = true
+	settings.dev.rigged_figures = true
+	var p := PlaySession.new()
+	p.settings = settings
+	p.map_id = "depot"
+	p.autopilot = true
+	p.match_seed = 5
+	add_child_autofree(p)
+	await wait_physics_frames(2)
+	var t := p._thrown
+	assert_not_null(t, "built with the rigged figures")
+	for f in p._figures:
+		assert_eq(f.body().hands.thrown, t, "each figure throws into it")
+	assert_eq(t.pool_size(), config.thrown_max, "12 shared by every magazine")
+	var source := p._figures[0].body().hands.magazine(0)
+	assert_true(t.throw(source, Transform3D.IDENTITY, Vector3.ZERO, Vector3.ZERO, 0.0, 9.81, 3.0))
+	p.settings.dev.rigged_figures = false
+	p._apply_dev()
+	p.settings.dev.rigged_figures = true
+	p._apply_dev()
+	assert_eq(p._thrown, t, "built once a session")
+	assert_true(t.throw(source, Transform3D.IDENTITY, Vector3.ZERO, Vector3.ZERO, 0.0, 9.81, 3.0))
+	p.state.events.add(GameEvent.Kind.ROUND_START)
+	p._after_tick()
+	assert_eq(t.count(), 0, "cleared at ROUND_START")
+	get_tree().paused = false

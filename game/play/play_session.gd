@@ -118,6 +118,9 @@ var figure_kinds: PackedInt32Array = PackedInt32Array()
 var _figure_models: FigureModels = null
 var _rigged: bool = false
 var _figure_lines: Vector2 = Vector2.ZERO
+## The magazines the rigged figures throw in their reloads (FI4): a fixed pool built with the models, cleared each
+## round.
+var _thrown: ThrownMagazines = null
 var _audio: SimAudio = null
 ## The field's mix: muffled while you are out, dipped under your hit and the whistle (SoundMix).
 var _mix: SoundMix = null
@@ -707,6 +710,8 @@ func _after_tick() -> void:
 				_input.face(player.spawn_yaw)
 				_puffs.clear()
 				_reset_flinches()
+				if _thrown != null:
+					_thrown.clear()
 				if not practice:
 					round_started.emit(e.value, state.round_state.score)
 			GameEvent.Kind.MATCH_OVER:
@@ -745,6 +750,8 @@ func _process(delta: float) -> void:
 	if _targets_view != null:
 		_targets_view.update(state.targets, fraction, delta)
 	var eye := _eyes.global_position
+	if _thrown != null:
+		_thrown.update(delta)
 	for f in _figures:
 		var c: Character = state.characters[f.character_id]
 		f.update(c, fraction, delta)
@@ -1276,8 +1283,21 @@ func _set_rigged(on: bool) -> void:
 	if on and _figure_models == null:
 		_figure_models = FigureModels.new(_play.figures)
 		_figure_models.load_kinds()
+		_build_thrown()
+	if not on and _thrown != null:
+		_thrown.clear()
 	for f in _figures:
 		f.set_body(_figure_models if on else null, figure_kinds[f.character_id], _figure_lines)
+
+
+## The thrown magazines' pool, once a session with the models: FigureConfig.thrown_max copies, each taking the
+## thrower's magazine; each figure throws into it.
+func _build_thrown() -> void:
+	_thrown = ThrownMagazines.new()
+	_thrown.setup(_play.figures.thrown_max)
+	add_child(_thrown)
+	for f in _figures:
+		f.thrown = _thrown
 
 
 ## Spectate any bot: you stand still, and each pull of the trigger follows the next bot. Your keys still go through
