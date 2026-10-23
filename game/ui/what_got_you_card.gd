@@ -115,6 +115,8 @@ func _init(facts: HitFacts, shooter_name: String, colour: Color, note: String) -
 		var text := RichTextLabel.new()
 		text.bbcode_enabled = true
 		text.fit_content = true
+		# Wrapping at the card's own width from the first frame, so its height is right before it has been laid out.
+		text.custom_minimum_size.x = WIDTH - PAD.x * 2
 		text.scroll_active = false
 		text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		text.mouse_filter = Control.MOUSE_FILTER_IGNORE

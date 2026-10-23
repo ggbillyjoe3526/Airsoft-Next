@@ -118,8 +118,10 @@ func step_down() -> float:
 	return _cfg.pin_step_down
 
 
-## What the panel and its caption cover on the screen.
+## What the panel and its caption cover on the screen (nothing while it is hidden).
 func panel_rect() -> Rect2:
+	if not visible:
+		return Rect2()
 	return Rect2(_corner, Vector2(_cfg.size, _cfg.size + _cfg.caption_room))
 
 

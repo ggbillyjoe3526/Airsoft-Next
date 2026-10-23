@@ -136,6 +136,8 @@ func place(camera: Camera3D, spot: Vector3, show: bool, area: Vector2, avoid: Re
 			position = Vector2(slots.panel.end.x + _cfg.hold_marker_gap, at.y - box.y)
 	elif slots != null and (pin == Pin.LEFT or pin == Pin.RIGHT):
 		_stack(box, area, slots)
+		if slots.flag_side == 0:
+			_step_clear(avoid, area) # a flag marker over its pole near this edge is not in the stack
 	else:
 		at.x = clampf(at.x, edge + box.x * 0.5, area.x - edge - box.x * 0.5)
 		at.y = clampf(at.y, edge + box.y, area.y - edge)
