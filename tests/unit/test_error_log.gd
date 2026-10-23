@@ -7,6 +7,22 @@ const NO_TRACE: Array[ScriptBacktrace] = []
 ## Errors each thread logs at once, and prints timed through `_log_message`.
 const PER_THREAD := 500
 const PRINTS := 10000
+## The run that makes a real script error under an ErrorLog and prints its entries.
+const SCRIPT_ERROR_RUN := """extends SceneTree
+func _init() -> void:
+	var kept := ErrorLog.new()
+	OS.add_logger(kept)
+	_bad()
+	OS.remove_logger(kept)
+	for e: String in kept.entries():
+		print("ENTRY " + e)
+	print("ERRORS %d" % kept.errors_this_run())
+	quit()
+func _bad() -> void:
+	var d := {}
+	var v: Variant = d.missing
+	print(v)
+"""
 
 var _log: ErrorLog
 
@@ -23,32 +39,39 @@ func _error(message: String, file: String = "res://x.gd", line: int = 1, type: i
 	_log._log_error("f", file, line, message, "", false, type, NO_TRACE)
 
 
-## A script error: the bad access stops this function, and the test carries on.
-func _script_error() -> void:
-	var d := {}
-	var v: Variant = d.missing
-	_log.set_meta(&"never", v)
-
-
-func test_push_error_push_warning_and_a_script_error_land_with_the_script_s_place() -> void:
+func test_push_error_and_push_warning_land_with_the_script_s_place() -> void:
 	OS.add_logger(_log)
 	push_error("sv3 test error")
 	push_warning("sv3 test warning")
-	_script_error()
 	OS.remove_logger(_log)
 	assert_push_error("sv3 test error")
 	assert_push_warning("sv3 test warning")
-	assert_engine_error("Invalid access to property or key 'missing'")
 	var lines := _log.entries()
-	assert_eq(lines.size(), 3)
-	var test_name := "test_push_error_push_warning_and_a_script_error_land_with_the_script_s_place"
+	assert_eq(lines.size(), 2)
+	var test_name := "test_push_error_and_push_warning_land_with_the_script_s_place"
 	assert_string_starts_with(lines[0], "ERROR %s:" % SELF)
 	assert_string_ends_with(lines[0], " (%s): sv3 test error" % test_name, "the script's place, not variant_utility.cpp")
 	assert_string_starts_with(lines[1], "WARNING %s:" % SELF)
 	assert_string_ends_with(lines[1], "): sv3 test warning")
-	assert_string_starts_with(lines[2], "SCRIPT ERROR %s:" % SELF)
-	assert_string_contains(lines[2], " (_script_error): Invalid access to property or key 'missing'")
-	assert_eq(_log.errors_this_run(), 2, "errors only: the warning doesn't count")
+	assert_eq(_log.errors_this_run(), 1, "errors only: the warning doesn't count")
+
+
+## A real script error, in a Godot of its own: the unit tests' log must carry no SCRIPT ERROR (tools/unit_tests.sh),
+## and muting Godot's error printing mutes the Logger too. It prints what its ErrorLog kept.
+func test_a_script_error_lands_with_its_script_s_place() -> void:
+	var path := ProjectSettings.globalize_path("user://test-sv3-script-error.gd")
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(SCRIPT_ERROR_RUN)
+	f.close()
+	var out: Array = []
+	var code := OS.execute(OS.get_executable_path(), ["--headless", "--path", ProjectSettings.globalize_path("res://"),
+			"-s", path], out, true)
+	DirAccess.remove_absolute(path)
+	assert_eq(code, 0)
+	var text := "".join(PackedStringArray(out))
+	assert_string_contains(text, "ENTRY SCRIPT ERROR %s:" % path)
+	assert_string_contains(text, " (_bad): Invalid access to property or key 'missing'")
+	assert_string_contains(text, "ERRORS 1")
 
 
 func test_a_line_without_a_backtrace_is_the_error_s_own_place_and_its_message_first() -> void:
