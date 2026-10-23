@@ -589,9 +589,9 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		_readout.visible = state.challenge.phase == RangeChallenge.Phase.OFF
 		_challenge.update(state, delta)
 	_hits.prune(state.time)
+	_card_fresh = maxi(0, _card_fresh - 1)
 	_feed.fit(_feed_room())
 	_feed.refresh(_hits, state.time, state.characters, _player)
-	_card_fresh = maxi(0, _card_fresh - 1)
 	queue_redraw()
 
 
@@ -617,7 +617,7 @@ func _feed_room() -> float:
 	var card := _what_got_you
 	if _feed.corner != HudFeed.Place.BOTTOM_LEFT or card == null or not card.visible or _card_fresh > 0:
 		return -1.0
-	return size.y - _cfg.feed_margin.y - (card.offset_top + card.size.y + _cfg.feed_card_gap)
+	return maxf(0.0, size.y - _cfg.feed_margin.y - (card.offset_top + card.size.y + _cfg.feed_card_gap))
 
 
 ## How low a plate pinned in the left stack may reach (px): feed_card_gap above the bottom-left feed's top, or the

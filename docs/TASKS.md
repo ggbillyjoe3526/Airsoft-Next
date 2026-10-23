@@ -22,34 +22,6 @@ acceptance:
 status: open
 attempts: 0
 
-## MM4 · The minimap on the HUD
-tier: ui
-perf: required
-touches: game/ui/hud_minimap.gd, game/ui/hud.gd, game/ui/hud_flag_marker.gd, game/ui/what_got_you_card.gd,
-  game/config/hud_config.gd, game/config/minimap_config.gd, game/config/play_tuning.tres, game/play/play_session.gd,
-  game/save/hud_prefs.gd, game/ui/settings_hud_page.gd, game/ui/text/en.po, tests/unit/
-contract: Simulation and presentation (1); Data, not literals (6); Saves (8); Headless (9)
-acceptance:
-  1. The panel, caption, area label, markers, the moved What got you card and the Settings row look as the concepts
-     in `/mnt/project-files/concepts/step18-minimap/` show (approved 2026-10-22); the panels' opacity
-     applies; nothing overlaps at 1280×720 and 1920×1080 with the feed in either corner and the Tab scoreboard up.
-  2. Centred on the character the view is through; Rotating turns the field so the view is up, Fixed keeps north (-z)
-     up and turns the arrow. Settings › HUD › Minimap: Rotating / Fixed, saved in HudPrefs (Rotating by default; an
-     old settings file loads).
-  3. You a white arrow; each teammate a dot in the team colour, grey once hit, pinned to the edge when off the panel,
-     with an up or down arrow on another storey; only that storey's drawing shows. No enemy is ever drawn except as
-     MM2's patches: dashed for steps, a dot for a shot, fading; a rim patch beyond the edge.
-  4. Your Hold here's spot (SquadOrderBook.hold_spot) as a diamond while it is in force, none for a hold where each
-     stood; the pole in Attack / Defend while the round is live.
-  5. The area label names where the watched character stands (MapAreas), rebuilt only when it changes; the caption
-     reads the map and round. The flag marker (and SO4's hold marker once landed) pinned past the panel's side sits
-     under it, pin_step apart, never behind it.
-  6. None on the range; hidden with the HUD while skipping and under the match summary; freed with the session (no
-     orphan nodes); one Control drawing over the field texture, and a frame with the minimap up allocates nothing.
-     The smoke test plays its match with the minimap up and no script errors.
-status: open
-attempts: 0
-
 ## SP4 · Kit rustle, landing thuds, whistles and ambience calls
 tier: core
 perf: required

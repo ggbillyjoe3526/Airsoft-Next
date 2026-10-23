@@ -670,6 +670,8 @@ func _show_orders(watched: Character, delta: float) -> void:
 	_hud.update_orders(_input.wheel(), _bots.order_of(PLAYER_ID), _bots.order_outcome, delta)
 	var held := watched == player and _bots.hold_spot(PLAYER_ID)
 	_hud.place_hold_marker(_eyes.camera, _bots.held_middle, held)
+
+
 ## Where `watched` looks as the view shows it: your own mouse-look while you are in play, else their yaw `fraction` of
 ## the way through the tick.
 func _view_yaw(watched: Character, fraction: float) -> float:
