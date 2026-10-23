@@ -1,13 +1,13 @@
 # SV1 · The save as one: restore points, Undo and delete
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus (worker) | pass | pending | QA Fail: a Restore over an empty save wrote an empty Undo slot (a deleted save lost); damaged and newer stores could be destroyed |
-| 2026-10-23 | 2 | Opus (worker) | pass | pending | |
+| 2026-10-23 | 1 | Opus (worker) | pass | not run | QA Fail: a Restore over an empty save wrote an empty Undo slot (a deleted save lost); damaged and newer stores could be destroyed |
+| 2026-10-23 | 2 | Opus (worker) | pass | Accept 8/8 | |
 
 ## Decisions
 
@@ -67,7 +67,24 @@
 - Before `replace`, flush `save_if_dirty` on the shared Settings, Progress, Records and SavedLoadouts, so the save kept
   for Undo is the one the player has, not the last one written.
 - Greying: Undo when `undo_slot()` is null; Delete when the save is empty; restore when `save.refusal()` is not "".
+- A save holding a store newer than this build refuses Restore, Delete and Undo for good; word it for the player and
+  offer a way out (QA attempt 2).
+- Undo's confirm shows the slot's `what` and `taken_at`: a slot kept from before a Restore over an empty save can
+  still bring back an older save (QA attempt 2).
 
 ## Known issues left
 
 None.
+
+## Advisories left
+
+- Damaged stores are set aside before the snapshot and the Undo write (save_keeper.gd:134-136), so a replace that then
+  fails has already renamed them to `.corrupt-*`: nothing lost, but not literally "nothing changes" (critic, QA).
+- Only a store with every copy damaged is set aside; a damaged main with a good `.bak` is replaced without a
+  `.corrupt-` copy (the `.bak` holds the good data). `SaveFile.quarantine` ignores a failed rename (QA).
+- `put_back`'s skip of unchanged copies has no test of its own; the Delete roll-back test passes either way (QA).
+- A failed rename in `SaveFile._put` leaves a stray `<file>.put` that nothing cleans (critic, QA).
+- `current.refusal()` is called twice in `replace` (critic).
+- keep_today reads the whole bundle before checking for today's point (about 0.6 ms at boot); `_plain` rebuilds the
+  payload on each write, worth watching if records grow (performance).
+- Performance measured f97c55f; ae22751 changes only the boot and replace paths, no hot path (critic).
