@@ -518,6 +518,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   the debug overlay shows it.
 - **Saves live under `user://` and are written crash-safe, as in katanashotgun (owner, 2026-10-18).** The browser
   game's saves don't carry over: no player has one worth carrying, so no migration from them is written (2026-10-18).
+- **A start that closed while drawing restarts once on the simpler renderer and Low, then asks (2026-10-23, GR4; the
+  plan's default, the step 20 pictures awaiting the owner).** Keep safe graphics, or Try my settings again (restored,
+  restarted); never a second automatic restart. The renderer the next start asks for is `user://renderer.cfg`, the one
+  file outside SaveFile, because Godot reads it before any script.
 
 ## Content tags and dev content
 

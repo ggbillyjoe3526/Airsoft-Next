@@ -99,15 +99,16 @@ func test_every_edge_smoothing_maps_to_one_filter_at_most() -> void:
 	assert_eq(GraphicsApply.SOFTNESS.size(), GraphicsQuality.CHOICES[GraphicsQuality.SHADOW_SOFTNESS].size())
 
 
-func test_the_simpler_renderer_draws_bilinear_fxaa_and_no_ssao_or_taa() -> void:
+func test_the_simpler_renderer_draws_bilinear_msaa_and_no_ssao_or_taa() -> void:
 	var low := GraphicsApply.drawable(table.preset(&"low"), COMPATIBILITY, table)
 	assert_eq(low.upscaler, GraphicsQuality.Upscaler.BILINEAR, "Low's FSR 1 falls back to bilinear")
+	assert_eq(low.edge_smoothing, GraphicsQuality.EdgeSmoothing.OFF, "Low's FXAA to the cheaper neighbour, none")
 	var custom := table.preset(&"high")
 	custom.edge_smoothing = GraphicsQuality.EdgeSmoothing.SMAA
 	custom.temporal_smoothing = true
 	custom.upscaler = GraphicsQuality.Upscaler.FSR2
 	var drawn := GraphicsApply.drawable(custom, COMPATIBILITY, table)
-	assert_eq(drawn.edge_smoothing, GraphicsQuality.EdgeSmoothing.FXAA, "SMAA to the cheaper neighbour")
+	assert_eq(drawn.edge_smoothing, GraphicsQuality.EdgeSmoothing.MSAA_2X, "SMAA's cheaper neighbour FXAA is refused too")
 	assert_false(drawn.temporal_smoothing, "TAA is Forward+ only")
 	assert_eq(drawn.ambient_occlusion, GraphicsQuality.AmbientOcclusion.OFF, "SSAO is Forward+ only")
 	assert_eq(drawn.upscaler, GraphicsQuality.Upscaler.BILINEAR)

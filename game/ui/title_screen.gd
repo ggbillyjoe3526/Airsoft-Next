@@ -1,8 +1,9 @@
 class_name TitleScreen
 extends Control
 ## The title (docs/records/MN1.md): the wordmark and the tagline over a still, blurred picture of Depot, START, and the
-## foot (bottom right): the version, Licences (the credits) and Quit. Everything is drawn for 1920x1080 and placed from
-## the left and bottom edges; the window's stretch scales it.
+## foot (bottom right): the version, Licences (the credits) and Quit, and a notice above the foot when there is one
+## (GraphicsNotice). Everything is drawn for 1920x1080 and placed from the left and bottom edges; the window's stretch
+## scales it.
 
 signal start_pressed
 signal credits_pressed
@@ -26,10 +27,14 @@ const SHADE_STOPS: Array[Vector2] = [Vector2(0.0, 0.95), Vector2(0.38, 0.75), Ve
 const FOOT_BOTTOM := 40.0
 const FOOT_RIGHT := 48.0
 const FOOT_GAP := 32.0
+## A notice's corner: from the right edge, and from the bottom (above the foot).
+const NOTICE_RIGHT := 48.0
+const NOTICE_BOTTOM := 96.0
 
 var _start: Button = null
 var _credits: Button = null
 var _quit: Button = null
+var _notice: GraphicsNotice = null
 
 
 func _init() -> void:
@@ -52,6 +57,31 @@ func credits_button() -> Button:
 
 func quit_button() -> Button:
 	return _quit
+
+
+## Shows `notice` bottom right, above the foot, in place of any other; START works under it.
+func show_notice(notice: GraphicsNotice) -> void:
+	close_notice()
+	_notice = notice
+	add_child(notice)
+	notice.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	notice.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	notice.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	notice.offset_right = -NOTICE_RIGHT
+	notice.offset_bottom = -NOTICE_BOTTOM
+	notice.offset_left = notice.offset_right
+	notice.offset_top = notice.offset_bottom
+
+
+## The notice showing, or null.
+func notice() -> GraphicsNotice:
+	return _notice
+
+
+func close_notice() -> void:
+	if _notice != null:
+		_notice.queue_free()
+		_notice = null
 
 
 ## Puts the keyboard focus on START.

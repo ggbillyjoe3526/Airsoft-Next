@@ -62,6 +62,8 @@ Source: "..\THIRD_PARTY_NOTICES.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Airsoft"; Filename: "{app}\Airsoft.exe"; IconFilename: "{app}\Airsoft.ico"
+; The safe graphics shortcut: the simpler renderer for this run, for a card or driver the normal one won't start on.
+Name: "{group}\Airsoft (safe graphics)"; Filename: "{app}\Airsoft.exe"; Parameters: "--rendering-method gl_compatibility"; IconFilename: "{app}\Airsoft.ico"; Comment: "Starts Airsoft on the simpler renderer"
 Name: "{group}\Uninstall Airsoft"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\Airsoft"; Filename: "{app}\Airsoft.exe"; IconFilename: "{app}\Airsoft.ico"; Tasks: desktopicon
 

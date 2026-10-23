@@ -58,8 +58,9 @@ const CELL_RENDERERS := 3
 const CELL_FIRST_PRESET := 4
 ## The choices only some renderers draw, as shipped: row, choice, renderers.
 const BUILT_IN_ONLY: Array[Array] = [
-	["upscaler", "fsr1", "forward_plus, mobile"],
+	["upscaler", "fsr1", "forward_plus"],
 	["upscaler", "fsr2", "forward_plus"],
+	["edge_smoothing", "fxaa", "forward_plus, mobile"],
 	["edge_smoothing", "smaa", "forward_plus, mobile"],
 ]
 

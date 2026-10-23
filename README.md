@@ -18,6 +18,12 @@ screen. The plan is `docs/ROADMAP.md`; what is happening now is `docs/HANDOFF.md
   [Releases page](https://github.com/ggbillyjoe3526/Airsoft-Next/releases) once 0.1 Dev 1 is tagged.
 - **From source:** install Godot **4.7.2** (standard, not .NET), choose *Import*, pick this folder's `project.godot`
   and press F5.
+- **If the game won't open, or closes while drawing:** start it on the simpler renderer, which runs on almost any
+  graphics card. On Windows use the *Airsoft (safe graphics)* shortcut in the Start menu; on Linux, or from source,
+  start it as `./Airsoft.x86_64 --rendering-method gl_compatibility` (`godot --path . --rendering-method
+  gl_compatibility`). Once it opens, *Settings › Graphics › Renderer: Compatibility* keeps it for every start, and
+  updating the graphics driver often brings the normal renderer back. A start that closed while drawing restarts by
+  itself on the simpler renderer and Low and asks whether to keep them.
 - **Controls:** move WASD, walk Shift, sprint Alt, crouch C or Ctrl, jump Space, fire and aim the left and
   right mouse buttons, reload R, fire mode B, replicas 1, 2 or the mouse wheel, pause Esc. Debug keys (not rebindable): F3 the overlay (FPS, seed, position), F4 BB paths, F5 hit areas; `-- --seed <n>` replays a match. Every key, the mouse and the volumes change under *Settings* (title
   screen or pause menu).

@@ -22,31 +22,6 @@ acceptance:
 status: open
 attempts: 0
 
-## GR4 · Graphics problems: the simpler renderer and a safe start
-tier: core
-perf: skip
-touches: game/save/graphics_guard.gd, game/save/renderer_override.gd, game/main.gd, game/play/play_session.gd,
-  game/ui/graphics_notice.gd, game/ui/title_screen.gd, game/ui/settings_graphics_page.gd, game/ui/text/en.po,
-  project.godot, installer/Airsoft.iss, README.md, docs/ARCHITECTURE.md, docs/DECISIONS.md,
-  tests/unit/test_graphics_guard.gd
-contract: Saves (8, one exception); Headless (9)
-acceptance:
-  1. Boot logs `[boot] renderer <method> (<driver>) · <card> · <type>`. project.godot states
-     rendering_device/fallback_to_opengl3=true, so a machine without Vulkan or D3D12 starts on Compatibility.
-  2. On Compatibility the automatic pick is Low; rows it can't draw (temporal smoothing, FSR, SSAO, SMAA as checked)
-     are greyed with "Not with the simpler renderer"; a title notice says once per change why the game uses it.
-  3. Graphics › Renderer (Auto, Compatibility), from the next start: Compatibility writes user://renderer.cfg (one
-     key, read by Godot through application/config/project_settings_override before any script runs); Auto deletes
-     it. ARCHITECTURE notes the contract 8 exception; DECISIONS gets the line.
-  4. GraphicsGuard (pure over a SaveFile record): a start writes "starting"; the first match's shaders warm (PF1) or
-     a clean quit write "settled". A start that finds "starting" writes renderer.cfg and Low and restarts once
-     (OS.set_restart_on_exit); that start shows graphics-problem.png: Keep safe graphics, or Try my settings again
-     (restores both, restarts). The smoke run never trips it. GUT: every state, a second crash, a missing file.
-  5. The installer adds "Airsoft (safe graphics)" with `--rendering-method gl_compatibility`; README gives the same
-     flag for Linux and for a game that won't open.
-status: open
-attempts: 0
-
 ## GR5 · The first-start notice and the automatic step-down
 tier: ui
 perf: required

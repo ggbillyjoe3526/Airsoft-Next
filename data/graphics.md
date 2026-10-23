@@ -57,10 +57,13 @@ never stops the game from starting.
 
 ## Choices only some renderers draw
 
-A choice the renderer in use can't draw is greyed, though the rest of its row can still be picked.
+A choice the renderer in use can't draw is greyed, though the rest of its row can still be picked. Checked against
+Godot 4.7.2 on the simpler renderer (GR4), which refuses FSR 1, FSR 2, FXAA, SMAA and temporal smoothing with a
+warning and draws no ambient occlusion; MSAA and texture filtering it draws. On it, Low's FXAA draws no edge smoothing.
 
 | Row | Choice | Renderers |
 |---|---|---|
-| upscaler | fsr1 | forward_plus, mobile |
+| upscaler | fsr1 | forward_plus |
 | upscaler | fsr2 | forward_plus |
+| edge_smoothing | fxaa | forward_plus, mobile |
 | edge_smoothing | smaa | forward_plus, mobile |

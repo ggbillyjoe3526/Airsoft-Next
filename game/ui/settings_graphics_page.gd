@@ -3,9 +3,11 @@ extends HBoxContainer
 ## The settings' Graphics tab (concept `settings-graphics.png`; the rows are data/graphics.md's, through
 ## GraphicsTable.shared()): on the left the preset (Low to Ultra, or Custom) with "For your card" on the card's pick and
 ## a line on the one in force, Resolution (render scale, upscaler) and Edges (edge and temporal smoothing), then Your
-## system; on the right Shadows and Light and detail, and Reset to For your card. Each row shows what it takes from the
-## graphics card as squares (the table's Cost); a choice the renderer in use can't draw is greyed. Changing a row makes
-## the choice Custom on the preset you were on, its changed rows marked with a dot. Every change is drawn at once
+## system; on the right Shadows and Light and detail, Start-up (the renderer the next start asks for: Auto or
+## Compatibility, written to RendererOverride's file at once) and Reset to For your card. Each row shows what it takes
+## from the graphics card as squares (the table's Cost); a choice the renderer in use can't draw is greyed, and the row
+## shows the one drawn instead (on the simpler renderer Low's FSR 1 shows as bilinear). Changing a row makes the choice
+## Custom on the preset you were on, its changed rows marked with a dot. Every change is drawn at once
 ## (SettingsApply.apply_graphics) and `changed` asks the screen to save it; a slider applies when it is let go, since a
 ## new render size or shadow map can hitch.
 
@@ -75,6 +77,8 @@ const DRIVER_NAMES: Dictionary[String, String] = {
 	"opengl3_es": "OpenGL ES 3",
 	"opengl3_angle": "OpenGL 3 (ANGLE)",
 }
+## The Renderer row's choices, in Settings.Renderer's order.
+const RENDERER_CHOICES: Array[String] = ["GRAPHICS_CHOICE_AUTO", "GRAPHICS_COMPATIBILITY"]
 ## A screen whose refresh rate the system doesn't give reports this or less.
 const NO_RATE := 0.0
 ## The Your system box's inner margins, its key column and its type sizes (px).
@@ -86,6 +90,8 @@ const SYSTEM_SPACING := 0.12
 
 ## The card and renderer the tab shows and picks for: this machine's (GraphicsApply.machine) unless a test gives one.
 var probe: GraphicsPick.Probe = null
+## The file the Renderer row writes (tests give their own).
+var renderer_path: String = RendererOverride.PATH
 
 var _screen: SettingsScreen = null
 var _table: GraphicsTable = null
@@ -98,6 +104,7 @@ var _reset: Button = null
 var _card: Label = null
 var _renderer: Label = null
 var _display: Label = null
+var _renderer_choice: MenuChoice = null
 
 
 func _init() -> void:
@@ -120,6 +127,7 @@ func build(screen: SettingsScreen) -> void:
 	var right := _column(0.0)
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_build_sections(right, RIGHT_SECTIONS, RIGHT_LABEL)
+	_build_renderer(right)
 	_build_reset(right)
 
 
@@ -133,15 +141,18 @@ func refresh() -> void:
 	_show_blurb(s, values)
 	var marked := s.graphics_forced == &"" and s.graphics_choice == GraphicsQuality.CUSTOM
 	var base := _table.preset(s.graphics_base)
+	# the choice drawn: one this renderer can't draw shows as the one it draws instead
+	var drawn := GraphicsApply.drawable(values, probe.rendering_method, _table)
 	for id: StringName in _rows:
 		var line := _rows[id]
-		line.show_level(values.level(id), _screen)
+		line.show_level(drawn.level(id), _screen)
 		line.mark(marked and values.level(id) != base.level(id))
 	# The upscaler only works below full size.
 	_rows[GraphicsQuality.UPSCALER].dim(values.render_scale >= GraphicsApply.PERCENT)
 	_show_draws(values.render_scale)
 	_reset.text = (tr("GRAPHICS_RESET") % tr(PRESET_KEY % String(probe.preset).to_upper())).to_upper()
 	_show_system()
+	_renderer_choice.put(int(s.renderer))
 
 
 ## Closed or hidden mid-drag (Esc, or another tab) a slider's drag_ended never comes: apply what each held slider
@@ -180,6 +191,10 @@ func reset_button() -> Button:
 ## The For your card tag's button (the pick's preset).
 func tagged() -> Button:
 	return _tag.get_parent() as Button
+
+
+func renderer_choice() -> MenuChoice:
+	return _renderer_choice
 
 
 func system_lines() -> PackedStringArray:
@@ -281,7 +296,8 @@ func _build_row(column: VBoxContainer, id: StringName, width: float) -> Line:
 		gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		line.row.add_child(gap)
 	line.row.add_child(CostSquares.new(r.cost, tr("GRAPHICS_COST")))
-	line.grey(_table, probe.rendering_method, tr("GRAPHICS_NOT_ON_RENDERER"))
+	var simpler := probe.rendering_method == GraphicsPick.COMPATIBILITY
+	line.grey(_table, probe.rendering_method, tr("GRAPHICS_NOT_WITH_SIMPLER" if simpler else "GRAPHICS_NOT_ON_RENDERER"))
 	return line
 
 
@@ -311,6 +327,20 @@ func _system_row(grid: GridContainer, key: String) -> Label:
 	k.custom_minimum_size.x = SYSTEM_KEY_WIDTH
 	var v := HudStyle.label(grid, SYSTEM_SIZE, 600, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_LEFT)
 	return v
+
+
+## Start-up: the renderer the next start asks for.
+func _build_renderer(column: VBoxContainer) -> void:
+	_screen.add_section(column, tr("GRAPHICS_START_UP"))
+	var row := _screen.add_row(column, "GRAPHICS_RENDERER_ROW", RIGHT_LABEL)
+	var words := PackedStringArray()
+	for key in RENDERER_CHOICES:
+		words.append(tr(key))
+	_renderer_choice = MenuChoice.new(words)
+	_renderer_choice.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(_renderer_choice)
+	_renderer_choice.picked.connect(_on_renderer)
+	_note(row, "GRAPHICS_RENDERER_NOTE")
 
 
 func _build_reset(column: VBoxContainer) -> void:
@@ -378,6 +408,17 @@ func _on_reset() -> void:
 	_landed()
 
 
+## A renderer picked: written for the next start and saved at once; nothing changes in this one.
+func _on_renderer(index: int) -> void:
+	var s := _screen.settings
+	if index == int(s.renderer):
+		return
+	s.renderer = index as Settings.Renderer
+	RendererOverride.put(s.renderer, renderer_path)
+	changed.emit(true)
+	refresh()
+
+
 ## A change landed: drawn at once, saved at once, and the tab shows it.
 func _landed() -> void:
 	SettingsApply.apply_graphics(_screen.settings)
@@ -441,11 +482,8 @@ func _show_draws(percent: int) -> void:
 
 
 func _show_system() -> void:
-	var card := probe.adapter_name if probe.adapter_name != "" else tr("GRAPHICS_UNKNOWN_CARD")
-	_card.text = "%s · %s" % [card, tr(CARD_TYPE_KEYS.get(probe.adapter_type, "GRAPHICS_TYPE_OTHER"))]
-	var renderer: String = RENDERER_KEYS.get(probe.rendering_method, "")
-	_renderer.text = "%s · %s" % [tr(renderer) if renderer != "" else probe.rendering_method,
-			DRIVER_NAMES.get(probe.driver, probe.driver)]
+	_card.text = card_words(probe)
+	_renderer.text = renderer_words(probe)
 	var at := DisplayServer.window_get_current_screen()
 	var size := DisplayServer.screen_get_size(at)
 	var rate := DisplayServer.screen_get_refresh_rate(at)
@@ -453,6 +491,22 @@ func _show_system() -> void:
 		_display.text = tr("GRAPHICS_SCREEN_LINE") % [size.x, size.y, roundi(rate), at + 1]
 	else:
 		_display.text = tr("GRAPHICS_SCREEN_LINE_NO_RATE") % [size.x, size.y, at + 1]
+
+
+## The card in words: its name ("Not reported" when the driver doesn't say) and type.
+static func card_words(machine: GraphicsPick.Probe) -> String:
+	var card: String = machine.adapter_name
+	if card == "":
+		card = TranslationServer.translate("GRAPHICS_UNKNOWN_CARD")
+	var kind: String = CARD_TYPE_KEYS.get(machine.adapter_type, "GRAPHICS_TYPE_OTHER")
+	return "%s · %s" % [card, TranslationServer.translate(kind)]
+
+
+## The renderer in force and its driver in words ("Forward+ · Vulkan").
+static func renderer_words(machine: GraphicsPick.Probe) -> String:
+	var renderer: String = RENDERER_KEYS.get(machine.rendering_method, "")
+	var words: String = TranslationServer.translate(renderer) if renderer != "" else machine.rendering_method
+	return "%s · %s" % [words, DRIVER_NAMES.get(machine.driver, machine.driver)]
 
 
 ## One row of the tab: its label, its control (one of `choice`, `check` and `slider`) and its changed mark.

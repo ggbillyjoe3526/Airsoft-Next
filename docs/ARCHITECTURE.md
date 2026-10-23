@@ -19,7 +19,7 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 
 | Folder | Holds | Now |
 |---|---|---|
-| `game/main.tscn`, `main.gd` | The entry scene: the title, the menus, the credits, the perf overlay; `--smoke` drives the headless smoke test | built |
+| `game/main.tscn`, `main.gd` | The entry scene: the title, the menus, the credits, the perf overlay; the boot log's renderer line and the safe start (`GraphicsGuard`, `GraphicsNotice` on the title); `--smoke` drives the headless smoke test | built |
 | `game/core/` | Engine-wide helpers: `Version` (name and tag rules) | built |
 | `game/save/` | `SaveFile`: crash-safe writes (temp file, then rename, with a backup) | built |
 | `game/ui/` | Screens and HUD on one `GameTheme` (the navy and safety yellow palette, the slanted `SlantStyle` main button): `TitleScreen`, `MenuScreen` (`TopBar`, `MatchPage` with `MenuCard`, `MenuTag`, `MatchOptions` and the kept `MatchPicks`; `LoadoutPage` built on the LOADOUT tab, with `LoadoutStrip`, `LoadoutGear`, `CustomiseView`, `PerformanceSheet` over `LoadoutFacts`/`LoadoutPerformance`, and the replica pictures drawn live from the glb models by `ReplicaPictures`, painted by `ReplicaPaint`; `ArmoryPage` built on the ARMORY tab, with `ArmorySummary` and `ArmoryTrack` over `ArmoryFacts`, the items' pictures by `ItemPictures` and `PowerModels`, and the `XpBar` the end-of-match `XpCard` shares), `LoadingScreen`, `SettingsScreen`, `Credits`, `Hud` (with `HudScore`, `HudBanner`, `HudRangeReadout` and `HudRangeChallenge` in practice, `ReplicaPanel`, `MagGauges` and the shared `HudStyle`; the minimap's field images by `MinimapField`, shown by `HudMinimap`), `PauseMenu` (map, mode, round and the match seed; in practice the Timed challenge switch and Leave practice); `MenuScale` grows the menus with a tall window; the words by translation key in `text/en.po` | built |
@@ -30,7 +30,7 @@ the rulings behind them are in `docs/DECISIONS.md` › Engine and stack. Each `g
 | `game/input/` | `PlayerInput`, the player's controller; default bindings in project.godot's input map (`game/input/README.md`) | built |
 | `game/play/` | `PlaySession` (a match, played) and the views drawn from the state: camera, replica in hand, BBs, puffs, figures, sound (`game/play/README.md`) | built |
 | `game/map/` | Maps from `data/maps/*.json` (listed and tagged public or dev by `MapCatalog` from `data/maps.md`), their greybox and Jolt colliders behind `WorldQuery` and `CharacterMover` (`game/map/README.md`) | built |
-| `game/save/` | `SaveFile` and the player's settings (`Settings`, applied by `SettingsApply`, and the Dev tab's `DevSettings`); key bindings in `game/input/` | built |
+| `game/save/` | `SaveFile` and the player's settings (`Settings`, applied by `SettingsApply` and `GraphicsApply`, and the Dev tab's `DevSettings`); the safe start's record (`GraphicsGuard`) and the renderer file (`RendererOverride`); key bindings in `game/input/` | built |
 | `game/pool/` | `Pool`: data/pool.md's replicas and power sources, and what fits what by tags | built |
 | `game/loadout/` | The loadout carried: `SavedLoadouts` (five named, the current one carried, its own `SaveFile` store), `Loadout` and each replica's `ReplicaTune`, `LoadoutRules` (what's offered, the edits, the `Kit` a loadout plays as: power sources and the site limit); colours in `game/config/replica_schemes.gd` | built |
 | `game/progress/`, `game/stats/` | Levels, records | later |
@@ -61,6 +61,9 @@ pull request that builds them.
 7. **Version.** `Version.current()` is the only reader of `application/config/version`; the release workflow writes
    it from the owner's tag. Nothing else derives a version.
 8. **Saves.** Every file the game writes to `user://` goes through `SaveFile` (atomic write, backup, magic header).
+   One exception: `user://renderer.cfg` (`RendererOverride`), one key Godot reads itself through
+   `application/config/project_settings_override` before any script runs, so it is a plain settings file, written to
+   a temp file and renamed.
 9. **Headless.** `godot --headless -- --smoke` runs with zero script errors and prints `[smoke] ok`; once bots exist
    it plays a whole match. New systems keep it so.
 
@@ -70,4 +73,5 @@ User arguments go after `--` (`godot --path . -- --smoke`). `--smoke`: the headl
 perf overlay's numbers every 2 s and a summary at exit. `--graphics=low|medium|high|ultra`: that graphics preset for
 the run, in place of the saved choice or the card's pick; the flag is never saved, though a row changed in that
 run bases Custom on it (`GraphicsPick.forced`), for the owner's
-baselines.
+baselines. Godot's own `--rendering-method gl_compatibility` (before `--`) starts on the simpler renderer for the run:
+the installer's "Airsoft (safe graphics)" shortcut.

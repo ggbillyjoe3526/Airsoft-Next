@@ -25,6 +25,8 @@ signal progressed(done: int, total: int, step_key: String)
 signal started
 ## A finished match counted: its XP, levels reached and records (`settled`).
 signal match_settled
+## The field's shaders are warm (ShaderPrewarm done): the graphics started (GraphicsGuard settles on it).
+signal shaders_warmed
 
 const PLAYER_ID := 0
 ## "Skipping the round": its size and how far over the bottom edge (px).
@@ -444,7 +446,9 @@ func _build_views(ui: CanvasLayer) -> void:
 		first_use.append_array(_flag.materials())
 	first_use.append_array(_hands.prewarm_glass())
 	first_use.append_array(range_materials)
-	ShaderPrewarm.new().setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE))
+	var warm := ShaderPrewarm.new()
+	warm.setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE))
+	warm.tree_exited.connect(_on_shaders_warmed, CONNECT_ONE_SHOT)
 	var profiles: Array[StringName] = []
 	for c in state.characters:
 		for r in c.armament.replicas:
@@ -667,6 +671,12 @@ func _process(delta: float) -> void:
 	if _first_frame_due:
 		_first_frame_due = false
 		started.emit()
+
+
+## The prewarm left the tree: done, unless the match itself is leaving.
+func _on_shaders_warmed() -> void:
+	if is_inside_tree() and not is_queued_for_deletion():
+		shaders_warmed.emit()
 
 
 ## Squad orders on screen (SO4): the order wheel while its key is held, and Hold here's marker over the spots your

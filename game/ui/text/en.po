@@ -2414,3 +2414,63 @@ msgstr "Frames a second, top right."
 
 msgid "SETTINGS_MONITOR_HELP"
 msgstr "Only with two screens or more."
+
+msgid "GRAPHICS_NOT_WITH_SIMPLER"
+msgstr "Not with the simpler renderer."
+
+msgid "GRAPHICS_RENDERER_ROW"
+msgstr "RENDERER"
+
+msgid "GRAPHICS_START_UP"
+msgstr "Start-up"
+
+msgid "GRAPHICS_CHOICE_AUTO"
+msgstr "Auto"
+
+msgid "GRAPHICS_RENDERER_NOTE"
+msgstr "From the next start. Compatibility, the simpler renderer, draws fewer effects on almost any card."
+
+msgid "NOTICE_SAFE_KICKER"
+msgstr "Safe graphics"
+
+msgid "NOTICE_SAFE_TITLE"
+msgstr "The game closed while drawing"
+
+msgid "NOTICE_SAFE_BODY"
+msgstr "Last time the game stopped before your first match had finished loading its graphics. This start uses the [b]simpler renderer[/b] and [b]Low[/b], which work on almost any graphics card."
+
+msgid "NOTICE_YOUR_SETTINGS"
+msgstr "Your settings"
+
+msgid "NOTICE_NOW"
+msgstr "Now"
+
+msgid "NOTICE_KEPT"
+msgstr "%s (kept, not in use)"
+
+msgid "NOTICE_SAFE_FOOT"
+msgstr "Updating the graphics card’s driver often fixes this. You can switch back any time in Settings › Graphics."
+
+msgid "NOTICE_KEEP"
+msgstr "Keep safe graphics"
+
+msgid "NOTICE_TRY_AGAIN"
+msgstr "Try my settings again"
+
+msgid "NOTICE_SIMPLER_KICKER"
+msgstr "Graphics"
+
+msgid "NOTICE_SIMPLER_TITLE"
+msgstr "On the simpler renderer"
+
+msgid "NOTICE_SIMPLER_SETTINGS"
+msgstr "Settings › Graphics asks for the [b]simpler renderer[/b], which draws fewer effects and works on almost any graphics card. Set Renderer back to Auto there for the normal one, from the next start."
+
+msgid "NOTICE_SIMPLER_LAUNCH"
+msgstr "The game was started with the [b]simpler renderer[/b] (the safe graphics shortcut), which draws fewer effects and works on almost any graphics card. Start it the usual way for the normal one."
+
+msgid "NOTICE_SIMPLER_FALLBACK"
+msgstr "This graphics card or its driver can't run the normal renderer (Vulkan or Direct3D 12), so the game uses the [b]simpler renderer[/b], which draws fewer effects. Updating the driver may bring the normal one back."
+
+msgid "NOTICE_OK"
+msgstr "OK"

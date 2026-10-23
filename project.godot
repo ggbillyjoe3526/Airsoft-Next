@@ -20,6 +20,7 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/show_image=false
 boot_splash/bg_color=Color(0.11, 0.11, 0.1, 1)
 config/icon="res://icon.svg"
+config/project_settings_override="user://renderer.cfg"
 
 [debug]
 
@@ -201,3 +202,7 @@ common/physics_ticks_per_second=60
 common/max_physics_steps_per_frame=10
 common/physics_jitter_fix=0.0
 common/physics_interpolation=true
+
+[rendering]
+
+rendering_device/fallback_to_opengl3=true
