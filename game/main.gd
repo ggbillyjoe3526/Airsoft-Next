@@ -1,7 +1,7 @@
 extends Node
 ## The entry scene: the title (TitleScreen: START, Licences, Quit), the menus (MenuScreen: the top bar over the Match page
 ## with its map, mode, team, bots and rules, the Loadout page, which the LOADOUT tab builds and leaving it saves and
-## frees, or the Armory, built and freed the same way), the settings under the top bar, the credits, the F3 performance overlay and the Show FPS readout. The Match page
+## frees, or the Armory, built and freed the same way), the settings under the top bar, the credits, the F3 performance overlay, the Show FPS readout and the window's keys and focus (WindowWatch). The Match page
 ## lists the public maps, and the dev ones too while the Dev settings' Dev content switch is on (MapCatalog). PLAY saves the
 ## loadouts, frees the title and the menus (no menu nodes live during a match) and opens a match (PlaySession) on the picked
 ## map and team, on the `--seed` launch option's seed if given, else a fresh one, behind the loading screen until it has
@@ -74,6 +74,8 @@ var _smoke_orders := -1
 func _ready() -> void:
 	_smoke = OS.get_cmdline_user_args().has("--smoke")
 	_launch_seed = LaunchSeed.parse(OS.get_cmdline_user_args())
+	# before the settings screens and the match, so a key list waiting for a key has F11 first
+	add_child(WindowWatch.new())
 	_build_screens()
 	_title.focus_start()
 	_credits = Credits.new()

@@ -1,11 +1,14 @@
 class_name SettingsApply
 ## Puts Settings into the game, each group on its own so a slider only does its own work: the mouse and the camera (the
-## PlayTuning that PlayerInput and the view read live), the audio buses' volumes, the window and V-Sync, the graphics
-## (GraphicsApply, on the root viewport) and the key bindings (the InputMap). Nothing is cached, so the change shows at
-## once.
+## PlayTuning that PlayerInput and the view read live), the audio buses' volumes, the window (its monitor and mode),
+## V-Sync and the frame-rate limit, the graphics (GraphicsApply, on the root viewport) and the key bindings (the
+## InputMap). Nothing is cached, so the change shows at once. The window goes through `screens()`, which a test swaps
+## for a stand-in: the headless display server has no screens and never changes mode.
 
 ## Silence: the bus is muted at a volume of 0 rather than set to minus infinity.
 const MUTE_DB := -80.0
+
+static var _screens: Screens = null
 
 
 static func apply_all(s: Settings) -> void:
@@ -42,23 +45,110 @@ static func apply_audio(s: Settings) -> void:
 		AudioServer.set_bus_volume_db(i, linear_to_db(v) if v > 0.0 else MUTE_DB)
 
 
-## The window mode and V-Sync. Windowed leaves a windowed (or maximised) window alone, and only leaves fullscreen.
+## The window and the frame rate: the window onto the saved monitor (the primary when that one is gone, so never
+## off-screen), its mode, V-Sync and Engine.max_fps. Windowed leaves a windowed (or maximised) window alone, and leaving
+## fullscreen gives the maximised window the game starts in, on the monitor it was on.
 static func apply_display(s: Settings) -> void:
-	var now := DisplayServer.window_get_mode()
-	var fullscreen := now == DisplayServer.WINDOW_MODE_FULLSCREEN or now == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+	var ds := screens()
+	_place(s, ds)
+	var now := ds.mode()
 	match s.window_mode:
 		Settings.WindowMode.BORDERLESS:
 			if now != DisplayServer.WINDOW_MODE_FULLSCREEN:
-				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+				ds.set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		Settings.WindowMode.EXCLUSIVE:
 			if now != DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
-				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
+				ds.set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
 		_:
-			if fullscreen:
-				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			if now == DisplayServer.WINDOW_MODE_FULLSCREEN or now == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
+				var at := ds.current()
+				ds.set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
+				if at >= 0 and ds.current() != at:
+					_move(ds, at)
 	var want := DisplayServer.VSYNC_ENABLED if s.vsync else DisplayServer.VSYNC_DISABLED
-	if DisplayServer.window_get_vsync_mode() != want:
-		DisplayServer.window_set_vsync_mode(want)
+	if ds.vsync() != want:
+		ds.set_vsync(want)
+	apply_frame_rate(s)
+
+
+## Engine.max_fps: the frame-rate limit, or DisplayConfig.background_fps (the lower of the two) while the game is in the
+## background. The simulation's 60 ticks a second don't depend on it: a slower frame runs more ticks.
+static func apply_frame_rate(s: Settings) -> void:
+	var ds := screens()
+	var limit := s.frame_limit
+	if not ds.focused:
+		var background := ds.config.background_fps
+		limit = background if limit == Settings.UNLIMITED else mini(limit, background)
+	if Engine.max_fps != limit:
+		Engine.max_fps = limit
+
+
+## The game came to the front (`focused`) or went to the background (unfocused or minimised): WindowWatch.
+static func set_focused(s: Settings, focused: bool) -> void:
+	screens().focused = focused
+	apply_frame_rate(s)
+
+
+## Settings › Display's Window mode: `mode`, remembered as the one F11 goes back to when it is a fullscreen one.
+static func pick_window_mode(s: Settings, mode: Settings.WindowMode) -> void:
+	s.window_mode = mode
+	if mode != Settings.WindowMode.WINDOWED:
+		s.last_fullscreen = mode
+	apply_display(s)
+
+
+## F11 or Alt+Enter: a window from fullscreen, or the last fullscreen mode from a window.
+static func toggle_fullscreen(s: Settings) -> void:
+	if s.window_mode == Settings.WindowMode.WINDOWED:
+		pick_window_mode(s, s.last_fullscreen)
+		return
+	s.last_fullscreen = s.window_mode
+	pick_window_mode(s, Settings.WindowMode.WINDOWED)
+
+
+## Settings › Display's Monitor: the window moves to screen `screen` and opens there from now on.
+static func pick_monitor(s: Settings, screen: int) -> void:
+	s.monitor = screen
+	apply_display(s)
+
+
+## The screen the saved monitor names now: itself, the primary when it is gone, or -1 to leave the window where it is
+## (no monitor saved, or no screens to ask, as headless).
+static func monitor_now(s: Settings, ds: Screens = null) -> int:
+	if ds == null:
+		ds = screens()
+	var count := ds.count()
+	if s.monitor == Settings.MONITOR_HERE or count <= 0:
+		return -1
+	return s.monitor if s.monitor < count else ds.primary()
+
+
+## The game's window calls, or the stand-in a test gave.
+static func screens() -> Screens:
+	if _screens == null:
+		_screens = Screens.new()
+	return _screens
+
+
+## A test's stand-in for the window calls; null goes back to the real ones.
+static func use_screens(stand_in: Screens) -> void:
+	_screens = stand_in
+
+
+static func _place(s: Settings, ds: Screens) -> void:
+	var target := monitor_now(s, ds)
+	if target >= 0 and ds.current() != target:
+		_move(ds, target)
+
+
+## Onto screen `target`: a maximised window is let down, moved and maximised again, so it fills the new screen.
+static func _move(ds: Screens, target: int) -> void:
+	if ds.mode() != DisplayServer.WINDOW_MODE_MAXIMIZED:
+		ds.set_current(target)
+		return
+	ds.set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	ds.set_current(target)
+	ds.set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
 
 
 ## The graphics values in force onto the root viewport and, through GraphicsApply's `applied`, the match: only when
@@ -72,3 +162,45 @@ static func apply_graphics(s: Settings) -> void:
 ## The key bindings into the InputMap.
 static func apply_bindings(s: Settings) -> void:
 	s.bindings.apply()
+
+
+## The window's DisplayServer calls, one each, so a test can stand in for them; whether the game is in front
+## (`set_focused`); and the display config.
+class Screens:
+	extends RefCounted
+	## False while the window is unfocused or minimised.
+	var focused: bool = true
+	var config: DisplayConfig = DisplayConfig.new()
+
+	func mode() -> DisplayServer.WindowMode:
+		return DisplayServer.window_get_mode()
+
+	func set_mode(m: DisplayServer.WindowMode) -> void:
+		DisplayServer.window_set_mode(m)
+
+	func vsync() -> DisplayServer.VSyncMode:
+		return DisplayServer.window_get_vsync_mode()
+
+	func set_vsync(m: DisplayServer.VSyncMode) -> void:
+		DisplayServer.window_set_vsync_mode(m)
+
+	## The number of screens (none headless).
+	func count() -> int:
+		return DisplayServer.get_screen_count()
+
+	func primary() -> int:
+		return DisplayServer.get_primary_screen()
+
+	## The screen the window is on, or -1.
+	func current() -> int:
+		return DisplayServer.window_get_current_screen()
+
+	func set_current(screen: int) -> void:
+		DisplayServer.window_set_current_screen(screen)
+
+	func size(screen: int) -> Vector2i:
+		return DisplayServer.screen_get_size(screen)
+
+	## Refresh rate (Hz), or less than 0 when the system doesn't say.
+	func rate(screen: int) -> float:
+		return DisplayServer.screen_get_refresh_rate(screen)
