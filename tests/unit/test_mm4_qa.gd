@@ -156,3 +156,74 @@ func test_a_settings_file_from_before_the_minimap_loads_rotating_and_a_float_fro
 	assert_eq(s.hud.minimap_turn, HudPrefs.MinimapTurn.FIXED, "JSON hands numbers back as floats")
 	s.from_dict({"hud": {"minimap_turn": "fixed"}})
 	assert_eq(s.hud.minimap_turn, HudPrefs.MinimapTurn.ROTATING, "a word is not a turn")
+
+
+# --- after the fixes ---
+
+## The flag marker pinned to the right with `lines` hits in the feed at `corner`; the plate's rect against the feed's.
+func _right_plate_over_feed(s: PlaySession, lines: int, corner: HudPrefs.FeedCorner) -> float:
+	var hud := s.hud()
+	hud.size = HUD_SIZE
+	var prefs := HudPrefs.new()
+	prefs.feed_corner = corner
+	prefs.feed_lines = HudPrefs.FeedLines.KEEP
+	hud.apply_prefs(prefs)
+	hud.hit_lines().clear()
+	for i in lines:
+		hud.hit_lines().add(3, 4, s.state.time)
+	hud.feed().refresh(hud.hit_lines(), s.state.time, s.state.characters, s.player)
+	var pole := s.state.round_state.pole
+	var camera: Camera3D = get_tree().root.find_child("QaCam", true, false)
+	camera.global_position = pole + Vector3(-6.0, 1.7, -24.0)
+	hud.place_flag_marker(camera, pole, true)
+	return 0.0
+
+
+func test_a_right_pinned_flag_plate_clears_the_feed_whatever_its_length_and_corner() -> void:
+	var s := _session()
+	await wait_physics_frames(2)
+	var camera := Camera3D.new()
+	camera.name = "QaCam"
+	add_child_autofree(camera)
+	var hud := s.hud()
+	for corner: int in [HudPrefs.FeedCorner.TOP_RIGHT, HudPrefs.FeedCorner.BOTTOM_LEFT]:
+		for lines: int in [0, 6, 10]:
+			_right_plate_over_feed(s, lines, corner as HudPrefs.FeedCorner)
+			await wait_process_frames(3)
+			hud.place_flag_marker(camera, s.state.round_state.pole, true)
+			var plate: Control = hud._flag_marker._edge
+			assert_true(plate.visible, "pinned, %d lines, corner %d" % [lines, corner])
+			var hit := plate.get_global_rect().intersection(hud.feed().get_global_rect())
+			assert_eq(hit.get_area(), 0.0, "%d lines, corner %d: plate %s feed %s" % [lines, corner,
+					plate.get_global_rect(), hud.feed().get_global_rect()])
+			assert_true(plate.get_global_rect().end.y <= HUD_SIZE.y and plate.global_position.x + plate.size.x <= HUD_SIZE.x,
+					"on the screen")
+
+
+func test_the_marker_is_never_on_screen_over_a_card_the_frame_it_comes_up() -> void:
+	var s := _session()
+	await wait_physics_frames(2)
+	var hud := s.hud()
+	var pole := s.state.round_state.pole
+	var camera := Camera3D.new()
+	add_child_autofree(camera)
+	camera.global_position = pole + Vector3(6.0, 1.7, -24.0) # behind you, to the left
+	var card := _card(s)
+	hud.place_flag_marker(camera, pole, true)
+	var plate: Control = hud._flag_marker._edge
+	var shown := hud._flag_marker.visible and plate.visible
+	assert_false(shown and plate.global_position.y < HUD_SIZE.y, "held back or off the screen that frame, at y %s" % plate.global_position.y)
+	await wait_process_frames(2)
+	hud.place_flag_marker(camera, pole, true)
+	assert_true(hud._flag_marker.visible)
+	assert_gte(plate.position.y, card.position.y + card.size.y, "then under the card")
+
+
+func test_the_flag_marker_sits_under_the_minimap_in_the_hud() -> void:
+	var s := _session()
+	await wait_physics_frames(2)
+	var hud := s.hud()
+	assert_lt(hud._flag_marker.get_index(), hud.minimap().get_index(), "the map draws over it")
+	assert_gt(hud._flag_marker.get_index(), hud.team_markers().get_index(), "and it over the names")
+	assert_lt(hud._flag_marker.get_index(), hud.feed().get_index(), "other panels as before")
+	assert_lt(hud._flag_marker.get_index(), hud.board().get_index())
