@@ -135,3 +135,55 @@ func test_nothing_on_disk_reports_not_found() -> void:
 	var r := SaveFile.read(_path(), "thing")
 	assert_false(r.ok)
 	assert_false(r.found)
+
+
+# ---------------------------------------------------------------- SV1: the payload, hold, last_failure, snapshots
+func test_data_read_back_writes_the_same_bytes() -> void:
+	var data := {"n": 3, "w": 1.0, "f": 0.25, "big": 1000000000, "list": [1, 2.5, "x", {"k": 2.0}], "neg": -4}
+	assert_true(SaveFile.write(_path(), "thing", 2, data))
+	var text := SaveFile.read_text(_path())
+	var back := SaveFile.read(_path(), "thing")
+	assert_eq(SaveFile.encode("thing", 2, back.data), text, "JSON's floats are written as the file had them")
+	assert_string_contains(text, "\"w\": 1\n")
+
+
+func test_a_held_file_refuses_writes_removes_and_quarantine() -> void:
+	SaveFile.write(_path(), "thing", 1, {"n": 1})
+	var before := SaveFile.read_text(_path())
+	var paths := PackedStringArray([_path()])
+	SaveFile.hold(paths)
+	assert_true(SaveFile.held(_path()))
+	assert_false(SaveFile.write(_path(), "thing", 1, {"n": 2}))
+	assert_false(SaveFile.remove(_path()))
+	SaveFile.quarantine(_path())
+	assert_eq(SaveFile.read_text(_path()), before, "the held file as it was")
+	assert_null(SaveFile.last_failure, "a held file's refusal is no failure")
+	SaveFile.release(paths)
+	assert_true(SaveFile.write(_path(), "thing", 1, {"n": 2}))
+
+
+func test_last_failure_names_the_file_and_a_good_write_clears_it() -> void:
+	DirAccess.make_dir_absolute(_path() + SaveFile.TMP)
+	assert_false(SaveFile.write(_path(), "thing", 1, {"n": 1}))
+	assert_not_null(SaveFile.last_failure)
+	assert_eq(SaveFile.last_failure.path, _path())
+	assert_almost_eq(SaveFile.last_failure.time, Time.get_unix_time_from_system(), 5.0)
+	DirAccess.remove_absolute(_path() + SaveFile.TMP)
+	assert_true(SaveFile.write(_path(), "thing", 1, {"n": 1}))
+	assert_null(SaveFile.last_failure)
+
+
+func test_put_back_restores_every_copy_byte_for_byte() -> void:
+	SaveFile.write(_path(), "thing", 1, {"n": 1})
+	SaveFile.write(_path(), "thing", 1, {"n": 2})
+	var main := FileAccess.get_file_as_bytes(_path())
+	var bak := FileAccess.get_file_as_bytes(_path() + SaveFile.BAK)
+	var snap := SaveFile.snapshot(_path())
+	assert_true(snap.ok)
+	SaveFile.write(_path(), "thing", 1, {"n": 3})
+	_write_raw(_path() + SaveFile.TMP, "stray")
+	assert_true(SaveFile.put_back(snap))
+	assert_eq(FileAccess.get_file_as_bytes(_path()), main)
+	assert_eq(FileAccess.get_file_as_bytes(_path() + SaveFile.BAK), bak)
+	assert_false(FileAccess.file_exists(_path() + SaveFile.TMP), "a copy the snapshot didn't find is removed")
+	assert_eq(DirAccess.get_files_at(dir).size(), 2, "nothing left beside them")
