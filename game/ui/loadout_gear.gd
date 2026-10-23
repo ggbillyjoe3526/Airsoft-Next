@@ -49,6 +49,14 @@ const REPLICA_SUB_SIZE := 15
 const REPLICA_TEXT_GAP := 4
 const HINT_SIZE := 15
 const HINT_GAP := 16
+## The range's note under the hint (concept `loadout-practice.png`): the gap above, the padding (left past the rule, top,
+## right, bottom; the left is past the rule), the rule's width, the kicker's and the words' sizes and the words' extra line spacing (px at 1080p).
+const NOTE_GAP := 28
+const NOTE_PAD := Vector4(18.0, 14.0, 18.0, 16.0)
+const NOTE_RULE := 4
+const NOTE_KICKER_SIZE := 13
+const NOTE_SIZE := 17
+const NOTE_LINE := 3
 const FOOT_LEFT := 56.0
 const FOOT_BOTTOM := 58.0
 const FOOT_SIZE := 18
@@ -73,6 +81,7 @@ var _foot_name: Label = null
 var _foot_rest: Label = null
 var _customise: Button = null
 var _facts: LoadoutFacts = null
+var _note: Control = null
 
 
 func _init(pictures: ReplicaPictures, facts: LoadoutFacts) -> void:
@@ -305,7 +314,56 @@ func _build_replicas() -> Control:
 	gap.custom_minimum_size = Vector2(0.0, HINT_GAP - MenuParts.HEADING_GAP)
 	column.add_child(gap)
 	column.add_child(hint)
+	_note = _build_range_note()
+	column.add_child(_note)
 	return column
+
+
+## Shows or hides the note from the range (Loadout opened from practice): what is carried here is the match loadout too.
+func show_range_note(on: bool) -> void:
+	_note.visible = on
+
+
+func range_note_visible() -> bool:
+	return _note.visible
+
+
+## The note: a gap, then a yellow rule with a panel beside it (lined above, right and below), "FROM THE RANGE" and the
+## words in it. Hidden until asked for.
+func _build_range_note() -> Control:
+	var holder := VBoxContainer.new()
+	holder.name = "RangeNote"
+	holder.add_theme_constant_override("separation", 0)
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0.0, NOTE_GAP - MenuParts.HEADING_GAP)
+	holder.add_child(gap)
+	var plate := HBoxContainer.new()
+	plate.add_theme_constant_override("separation", 0)
+	var rule := ColorRect.new()
+	rule.color = GameTheme.YELLOW
+	rule.custom_minimum_size = Vector2(NOTE_RULE, 0.0)
+	plate.add_child(rule)
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var face := GameTheme.box(Color(GameTheme.PANEL, 0.96), GameTheme.LINE, int(NOTE_PAD.x),
+			int(NOTE_PAD.y))
+	face.border_width_left = 0
+	face.content_margin_right = NOTE_PAD.z
+	face.content_margin_bottom = NOTE_PAD.w
+	panel.add_theme_stylebox_override("panel", face)
+	var words := VBoxContainer.new()
+	words.add_theme_constant_override("separation", 6)
+	words.add_child(MenuParts.spaced(tr("LOADOUT_RANGE_KICKER").to_upper(), NOTE_KICKER_SIZE, 800, GameTheme.YELLOW,
+			0.1))
+	var text := MenuParts.text(tr("LOADOUT_RANGE_NOTE"), NOTE_SIZE, 600, GameTheme.TEXT)
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.add_theme_constant_override("line_spacing", NOTE_LINE)
+	words.add_child(text)
+	panel.add_child(words)
+	plate.add_child(panel)
+	holder.add_child(plate)
+	holder.visible = false
+	return holder
 
 
 ## The replicas to list: the ones a new player carries first (ReplicaStats.DEFAULT_LOADOUT), then the rest in the pool's

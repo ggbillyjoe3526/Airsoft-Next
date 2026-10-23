@@ -30,7 +30,7 @@ touches: game/main.gd, game/play/play_session.gd, game/ui/pause_menu.gd, game/ui
 contract: Commands (2); Saves (8)
 acceptance:
   1. L (rebindable) or the pause menu's Loadout opens the Loadout as concept `loadout-practice.png`
-     (`/mnt/project-files/concepts/step16-range/`, awaiting the owner's approval) shows, on the slot in hand; in a
+     (`/mnt/project-files/concepts/step16-range/`, approved 2026-10-22) shows, on the slot in hand; in a
      match L does nothing.
   2. L or Back to practice saves and rebuilds the range where you stood (place, view, stance, slot, holster,
      challenge switch); a run under way is dropped.

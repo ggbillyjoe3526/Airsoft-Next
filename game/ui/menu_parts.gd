@@ -12,6 +12,9 @@ const GLOW := Color("27406b")
 const GLOW_CENTRE := Vector2(0.5, 0.6)
 const GLOW_REACH := 0.7
 const GLOW_SIZE := 64
+## A key cap's corner radius and least width (px).
+const KEY_CORNER := 4
+const KEY_MIN_WIDTH := 26.0
 
 
 ## A label in Inter at `weight`.
@@ -30,6 +33,21 @@ static func spaced(words: String, size: int, weight: int, colour: Color, em: flo
 	var label := text(words, size, weight, colour)
 	label.add_theme_font_override("font", GameTheme.spaced_font(weight, em, size))
 	return label
+
+
+## A key's cap: its words in a small outlined box with rounded corners (the concepts' `.key`); the box's only child is
+## the label. Its mouse is ignored.
+static func key_chip(words: String, size: int, colour: Color, pad: Vector2i) -> PanelContainer:
+	var chip := PanelContainer.new()
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.custom_minimum_size = Vector2(KEY_MIN_WIDTH, 0.0)
+	var face := GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), colour, pad.x, pad.y)
+	face.set_corner_radius_all(KEY_CORNER)
+	chip.add_theme_stylebox_override("panel", face)
+	var label := text(words, size, 800, colour)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	chip.add_child(label)
+	return chip
 
 
 ## The section heading (22 px, muted, spaced).

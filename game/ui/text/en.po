@@ -1683,6 +1683,9 @@ msgstr "SQUAD: HOLD HERE"
 msgid "ACT_ORDER_REGROUP"
 msgstr "SQUAD: REGROUP"
 
+msgid "ACT_LOADOUT"
+msgstr "LOADOUT (PRACTICE)"
+
 msgid "ORDER_FOLLOW"
 msgstr "Follow Me"
 
@@ -1979,6 +1982,24 @@ msgstr "Timed challenge"
 
 msgid "PAUSE_LEAVE_PRACTICE"
 msgstr "Leave practice"
+
+msgid "PAUSE_LOADOUT"
+msgstr "Loadout"
+
+msgid "MENU_BACK_TO_PRACTICE"
+msgstr "← Back to practice"
+
+msgid "LOADOUT_RANGE_KICKER"
+msgstr "From the range"
+
+msgid "LOADOUT_RANGE_NOTE"
+msgstr "Practice: take any replica you have unlocked and customise it. What you carry here is your loadout for matches too."
+
+msgid "RANGE_LOADOUT"
+msgstr "Loadout"
+
+msgid "RANGE_LOADOUT_REST"
+msgstr " · swap or tune your replica"
 
 msgid "PAUSE_PRACTICE_CHALLENGE"
 msgstr " · timed challenge"

@@ -6,6 +6,8 @@ extends Control
 ## Realistic colours switch writes Settings.realistic_colours and saves the settings the way the Settings screen does. Keys 1
 ## to 5 carry the loadout in that place; Esc backs out of rename, replace and remove, then of Customise. Built when the tab is
 ## opened and freed when it is left, so no menu nodes and no replica pictures are kept while it is not on show.
+## From practice (`open_from_practice`, concept `loadout-practice.png`) it opens on the slot in hand and the gear page adds
+## the FROM THE RANGE note; the picks are the same loadout the next match carries.
 
 ## Sent when Customise opens or closes.
 signal customising_changed
@@ -137,6 +139,13 @@ func slot() -> Loadout.Slot:
 
 func customising() -> bool:
 	return _customising
+
+
+## Opened from practice: on `slot`, the replica in hand there, with the range's note on the gear page.
+func open_from_practice(slot_in: Loadout.Slot) -> void:
+	_slot = slot_in
+	_gear.show_range_note(true)
+	_refresh()
 
 
 ## The load problem shown at the top ("" when there was none).

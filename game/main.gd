@@ -11,6 +11,9 @@ extends Node
 ## plays a whole match on Depot with a bot in your place (faster than real time), giving squad orders once the first
 ## round is live (F twice, then the order wheel held, pointed up and let go), leaves, opens practice on the range where
 ## a pilot shoots till it rings a plate, leaves, then quits with a report line.
+## The Loadout from practice: the range's Loadout key (or the pause menu's row) takes where you stood (PracticeSpot), frees
+## the range and opens the menus as the Loadout alone (MenuScreen.open_practice_loadout); BACK TO PRACTICE, the key or Esc
+## saves it and builds the range again on that spot.
 
 const SMOKE_SETTINGS_OPEN := 10
 const SMOKE_SETTINGS_CLOSE := 20
@@ -48,6 +51,8 @@ var _title: TitleScreen
 var _menus: MenuScreen
 var _play: PlaySession
 var _loading: LoadingScreen
+## Practice, while its Loadout is open: where you stood on the range, for the range built again. Null otherwise.
+var _spot: PracticeSpot = null
 ## What the Match page has picked, kept while the menus are freed for a match.
 var _picks := MatchPicks.new()
 var _perf: DebugPerf
@@ -127,6 +132,7 @@ func _build_menus() -> void:
 	_menus.back.connect(_show_title)
 	_menus.tab_requested.connect(_on_tab)
 	_menus.match_page().play_pressed.connect(_start_play)
+	_menus.practice_requested.connect(_back_to_practice)
 	add_child(_menus)
 
 
@@ -206,7 +212,7 @@ func _start_play(smoke_practice: bool = false) -> void:
 	_menus.leave_loadout()
 	SavedLoadouts.shared().save_if_dirty()
 	_free_screens()
-	var practice := smoke_practice or (not _smoke and _picks.mode == MatchOptions.MODE_PRACTICE)
+	var practice := smoke_practice or _spot != null or (not _smoke and _picks.mode == MatchOptions.MODE_PRACTICE)
 	var team := PlaySession.TEAM_ALPHA if _smoke else _picks.team
 	var map_id := PRACTICE_MAP if smoke_practice else SMOKE_MAP if _smoke else _picks.map_id
 	_play = PlaySession.new()
@@ -214,6 +220,7 @@ func _start_play(smoke_practice: bool = false) -> void:
 	_play.counts = not _smoke
 	_play.practice = practice
 	_play.challenge_on = practice and not _smoke and Settings.shared().practice_challenge
+	_play.resume = _spot
 	_play.mode = MatchOptions.MODE_PRACTICE if practice else _picks.mode
 	_play.difficulty = StringName(_picks.bots)
 	_play.teammate_difficulty = StringName(_picks.teammates)
@@ -222,7 +229,11 @@ func _start_play(smoke_practice: bool = false) -> void:
 	_play.map_id = map_id
 	_play.player_team = team
 	# --seed replays a match; else a fresh seed each Play (the smoke test keeps one fixed seed, so it plays the same match).
-	if _launch_seed != LaunchSeed.NONE:
+	if _spot != null:
+		# back from the Loadout: the same range, its breeze and pop-ups as they were
+		_play.match_seed = _spot.match_seed
+		_play.challenge_on = _spot.challenge_on
+	elif _launch_seed != LaunchSeed.NONE:
 		_play.match_seed = _launch_seed
 	else:
 		_play.match_seed = SMOKE_SEED if _smoke else LaunchSeed.fresh()
@@ -233,6 +244,8 @@ func _start_play(smoke_practice: bool = false) -> void:
 	_play.progressed.connect(_loading.set_progress_step)
 	_play.started.connect(_free_loading)
 	_play.left.connect(_end_play)
+	_play.loadout_requested.connect(_open_practice_loadout)
+	_spot = null
 	add_child(_play)
 	_scale_menus()
 	_perf.watch(_play)
@@ -258,6 +271,29 @@ func _free_loading() -> void:
 	if _loading != null:
 		_loading.queue_free()
 		_loading = null
+
+
+## Practice's Loadout (its key, or the pause menu's row): where you stand is kept, the range is freed and the menus open as
+## the Loadout alone, on the slot in hand.
+func _open_practice_loadout() -> void:
+	if _play == null or not _play.practice or _smoke:
+		return
+	_spot = _play.practice_spot()
+	_perf.watch(null)
+	_free_loading()
+	_play.queue_free()
+	_play = null
+	_build_screens()
+	_title.visible = false
+	_menus.visible = true
+	_menus.open_practice_loadout(_spot.slot as Loadout.Slot)
+	_scale_menus()
+
+
+## From the Loadout from practice: the range is built again on the spot (the loadouts are saved by `_start_play`).
+func _back_to_practice() -> void:
+	if _spot != null:
+		_start_play()
 
 
 func _end_play() -> void:

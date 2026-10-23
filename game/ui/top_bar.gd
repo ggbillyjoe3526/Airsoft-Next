@@ -3,8 +3,12 @@ extends PanelContainer
 ## The bar on every menu page: the wordmark, the tabs MATCH, LOADOUT, ARMORY and SETTINGS (a tab not built yet is greyed
 ## with a LATER tag: `LATER_TABS`, none now), and the level chip (`set_level`; hidden while levelling is off). The current tab is
 ## lit with a yellow rule. A tab press is sent as `tab_pressed`; the page decides what to show and calls `set_current`.
+## From practice (`set_practice`, concept `loadout-practice.png`) the bar shows only the LOADOUT tab and, before the level
+## chip, the yellow BACK TO PRACTICE button with the Loadout's key; it is sent as `practice_pressed`.
 
 signal tab_pressed(tab: Tab)
+## The BACK TO PRACTICE button was pressed.
+signal practice_pressed
 
 enum Tab { MATCH, LOADOUT, ARMORY, SETTINGS }
 
@@ -17,6 +21,15 @@ const TAG_SIZE := 13
 const TAB_PAD_X := 24
 const TAG_GAP := 10
 const CHIP_SIZE := 18
+## BACK TO PRACTICE: its words' size and spacing, padding (x, y), the gap before its key cap, the key's size and padding,
+## and the gap after it before the level chip (px at 1080p).
+const BACK_SIZE := 18
+const BACK_SPACING := 0.06
+const BACK_PAD := Vector2i(20, 10)
+const BACK_KEY_GAP := 12
+const BACK_KEY_SIZE := 14
+const BACK_KEY_PAD := Vector2i(7, 2)
+const BACK_AFTER := 12
 ## Tabs not built yet, shown greyed with the LATER tag.
 const LATER_TABS: Array[Tab] = []
 const TAB_KEYS: Dictionary[Tab, String] = {
@@ -27,6 +40,11 @@ const TAB_KEYS: Dictionary[Tab, String] = {
 }
 
 var _tabs: Dictionary[Tab, Button] = {}
+var _back: PanelContainer = null
+var _back_button: Button = null
+var _back_key: Label = null
+var _back_after: Control = null
+var _practice: bool = false
 var _current: Tab = Tab.MATCH
 var _chip: Control = null
 var _level: Label = null
@@ -54,9 +72,37 @@ func _init() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
+	_back = _build_back()
+	row.add_child(_back)
+	_back_after = _gap(BACK_AFTER)
+	_back_after.visible = false
+	row.add_child(_back_after)
 	_chip = _build_chip()
 	row.add_child(_chip)
 	set_current(Tab.MATCH)
+
+
+## From practice: only the LOADOUT tab and BACK TO PRACTICE (with the Loadout's key as bound now); off, the whole bar.
+func set_practice(on: bool) -> void:
+	_practice = on
+	for tab: Tab in _tabs:
+		_tabs[tab].get_parent().visible = not on or tab == Tab.LOADOUT
+	_back.visible = on
+	_back_after.visible = on
+	_back_key.text = KeyNames.of_action(&"loadout")
+
+
+func is_practice() -> bool:
+	return _practice
+
+
+## The BACK TO PRACTICE button, for tests.
+func back_button() -> Button:
+	return _back_button
+
+
+func back_key_text() -> String:
+	return _back_key.text
 
 
 ## Shows the player's level on the chip; a level below 0 (levelling off) hides it.
@@ -85,6 +131,45 @@ func set_current(tab: Tab) -> void:
 	_current = tab
 	for t: Tab in _tabs:
 		_style_tab(t)
+
+
+## BACK TO PRACTICE: a yellow plate with its words and the key's cap, and a flat button over it for the click and the focus.
+func _build_back() -> PanelContainer:
+	var plate := PanelContainer.new()
+	plate.name = "BackToPractice"
+	plate.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	plate.add_theme_stylebox_override("panel", GameTheme.box(GameTheme.YELLOW, Color(0.0, 0.0, 0.0, 0.0), 0, 0))
+	var pad := MarginContainer.new()
+	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pad.add_theme_constant_override("margin_left", BACK_PAD.x)
+	pad.add_theme_constant_override("margin_right", BACK_PAD.x)
+	pad.add_theme_constant_override("margin_top", BACK_PAD.y)
+	pad.add_theme_constant_override("margin_bottom", BACK_PAD.y)
+	var line := HBoxContainer.new()
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.add_theme_constant_override("separation", BACK_KEY_GAP)
+	var words := MenuParts.spaced(tr("MENU_BACK_TO_PRACTICE").to_upper(), BACK_SIZE, 800, GameTheme.YELLOW_INK,
+			BACK_SPACING)
+	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	line.add_child(words)
+	var cap := MenuParts.key_chip(KeyNames.of_action(&"loadout"), BACK_KEY_SIZE, GameTheme.YELLOW_INK, BACK_KEY_PAD)
+	cap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_back_key = cap.get_child(0) as Label
+	line.add_child(cap)
+	pad.add_child(line)
+	plate.add_child(pad)
+	_back_button = Button.new()
+	_back_button.name = "Back"
+	_back_button.focus_mode = Control.FOCUS_ALL
+	var clear := StyleBoxEmpty.new()
+	for state: String in ["normal", "pressed", "disabled"]:
+		_back_button.add_theme_stylebox_override(state, clear)
+	_back_button.add_theme_stylebox_override("hover", GameTheme.box(Color(1.0, 1.0, 1.0, 0.15), Color(0.0, 0.0, 0.0, 0.0), 0, 0))
+	_back_button.add_theme_stylebox_override("focus", GameTheme.focus_box())
+	_back_button.pressed.connect(func() -> void: practice_pressed.emit())
+	plate.add_child(_back_button)
+	plate.visible = false
+	return plate
 
 
 func _build_tab(tab: Tab) -> Control:

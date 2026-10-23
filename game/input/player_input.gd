@@ -100,6 +100,12 @@ func face(yaw: float, pitch: float = 0.0) -> void:
 	view_pitch = pitch
 
 
+## Crouched or standing, as the crouch toggle keeps it (a held crouch key decides for itself): the range built again
+## after the Loadout puts you back as you stood.
+func set_crouched(on: bool) -> void:
+	_crouched = on
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not active:
 		return
