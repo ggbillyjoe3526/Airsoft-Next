@@ -19,6 +19,8 @@ var _ids := PackedInt32Array()
 var _markers: Array[HudTeamMarker] = []
 var _hit := RayHit.new()
 var _frame: int = 0
+## The HUD's size (Hud.set_hud_size): the view's screen points are divided by it, as the HUD's root is scaled by it.
+var hud_size: float = 1.0
 
 
 ## A marker for each of `you`'s teammates in `characters`, checked against `query` with `body`'s heights.
@@ -61,7 +63,7 @@ func place(camera: Camera3D, characters: Array[Character], watched: Character, c
 					and _query.ray(eye, at + Vector3.UP * (head * CHEST_SHARE), _hit)
 		var out := not Elimination.is_in_play(c)
 		m.set_look(OUT_GREY if out else colour, out)
-		var p := camera.unproject_position(top)
+		var p := camera.unproject_position(top) / hud_size
 		m.position = Vector2(p.x - m.size.x * 0.5, p.y - m.size.y)
 
 

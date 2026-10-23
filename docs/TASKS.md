@@ -5,26 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## AC5 · HUD size and reduced motion
-tier: ui
-perf: skip
-touches: game/ui/hud.gd, game/ui/hud_preview.gd, game/ui/settings_hud_page.gd, game/ui/settings_access_page.gd,
-  game/play/motion_scale.gd, game/play/first_person_view.gd, game/play/replica_view.gd, game/play/wind_dust.gd,
-  game/play/play_session.gd, game/ui/text/en.po, tests/unit/test_hud_size.gd, tests/unit/test_motion_scale.gd
-contract: Simulation and presentation (1); Data, not literals (6); Headless (9)
-acceptance:
-  1. Settings › HUD gains HUD size (80–150 %, step 5 %) as settings-hud-size.png; the preview follows it. In play
-     every HUD part but the crosshair, hit marker and sound cue ring scales by it about its anchor (the HUD root's
-     size is the viewport over the scale, so anchors and edges hold); applied at once, also from the pause menu.
-  2. MotionScale.of(reduced) gives the motion table's shares; Reduced motion On, or System with the display asking
-     for it: sway 0, kick and reload cant × 0.5, lean roll and vault dip and tip × 0.25, no wind dust, the flag
-     warning steady; the recoil climb unchanged. Applied at once.
-  3. GUT: the HUD's parts' rects at 0.8 and 1.5 stay on screen at 1280×720 and 1920×1080; the camera roll at a full
-     lean and the replica's offset after a shot under both settings; the climb equal in both.
-  4. The tab's Reduced motion row loses LATER.
-status: open
-attempts: 0
-
 ## AC6 · Screen reader messages for hits and rounds
 tier: ui
 perf: skip

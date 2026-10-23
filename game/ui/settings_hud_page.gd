@@ -2,7 +2,8 @@ class_name SettingsHudPage
 extends HBoxContainer
 ## The settings' HUD tab (concept `hud-options.png`; the browser game's Settings › HUD and Crosshair): on the left the
 ## crosshair (shape, colour, size, thickness, gap, opacity, dynamic or static spread, outline) and the hit marker (on or
-## off, colour, size); on the right a live preview (HudPreview), the ammo counter, where the hit feed sits and whether
+## off, colour, size); on the right a live preview (HudPreview), the HUD size (marked at 100 %, concept
+## `settings-hud-size.png`), the ammo counter, where the hit feed sits and whether
 ## its lines fade or stay, the navy panels' opacity and What got you, and the minimap's turn (Rotating or Fixed, drawn
 ## as two small samples). Every choice lands in the settings' HudPrefs at once and `changed` asks the screen to save it.
 
@@ -44,6 +45,7 @@ var _ammo: CheckButton = null
 var _corner: MenuChoice = null
 var _lines: MenuChoice = null
 var _panels: HSlider = null
+var _hud_size: HSlider = null
 var _what_got_you: MenuChoice = null
 var _turn: MenuChoice = null
 var _thumbs: Array[Thumb] = []
@@ -118,6 +120,7 @@ func build(screen: SettingsScreen) -> void:
 	_preview = HudPreview.new()
 	right.add_child(_preview)
 	_follow_teams()
+	_hud_size = _hud_size_row(right)
 	screen.add_section(right, tr("SETTINGS_AMMO_AND_FEED"))
 	_ammo = screen.add_check_row(right, "SETTINGS_AMMO_COUNTER", "SETTINGS_ON", "SETTINGS_OFF", RIGHT_LABEL)
 	_note(_ammo.get_parent() as Control, "SETTINGS_AMMO_COUNTER_NOTE")
@@ -166,6 +169,7 @@ func refresh() -> void:
 	_corner.put(p.feed_corner)
 	_lines.put(p.feed_lines)
 	_screen.set_slider(_panels, p.panel_opacity * 100.0)
+	_screen.set_slider(_hud_size, p.hud_size * 100.0)
 	_what_got_you.put(_screen.settings.what_got_you)
 	_turn.put(p.minimap_turn)
 	_show_turn(p.minimap_turn)
@@ -177,8 +181,26 @@ func preview() -> HudPreview:
 	return _preview
 
 
+func hud_size() -> HSlider:
+	return _hud_size
+
+
 func _prefs() -> HudPrefs:
 	return _screen.settings.hud
+
+
+## HUD size in percent (AccessibilityConfig's range and step), marked at 100 % under its slider, with its note.
+func _hud_size_row(column: Control) -> HSlider:
+	var lo := roundf(AccessibilityConfig.HUD_SIZE_RANGE.x * 100.0)
+	var hi := roundf(AccessibilityConfig.HUD_SIZE_RANGE.y * 100.0)
+	var step := roundf(AccessibilityConfig.HUD_SIZE_STEP * 100.0)
+	var slider := _narrow(_screen.add_slider_row(column, "SETTINGS_HUD_SIZE", lo, hi, step, PERCENT, RIGHT_LABEL))
+	slider.add_child(Mark.new(AccessibilityConfig.HUD_SIZE_DEFAULT * 100.0, PERCENT))
+	_note(slider.get_parent() as Control, "").text = tr("SETTINGS_HUD_SIZE_NOTE") % [lo, hi]
+	slider.value_changed.connect(func(v: float) -> void:
+		_prefs().hud_size = v / 100.0
+		_after(false))
+	return slider
 
 
 ## The minimap's section: Turn (Rotating or Fixed) with a note under it, and the two samples beside them.
@@ -414,3 +436,41 @@ class Thumb:
 		draw_rect(Rect2(0.0, side - OUTLINE, side, OUTLINE), GameTheme.YELLOW)
 		draw_rect(Rect2(0.0, OUTLINE, OUTLINE, inner), GameTheme.YELLOW)
 		draw_rect(Rect2(side - OUTLINE, OUTLINE, OUTLINE, inner), GameTheme.YELLOW)
+
+
+## A mark on a slider's track at one value, its figure under it (the concept's 100 % tick under HUD size).
+class Mark:
+	extends Control
+
+	const TICK := Vector2(2.0, 20.0)
+	const FIGURE_SIZE := 11
+	const FIGURE_DROP := 4.0
+
+	var _value: float = 0.0
+	var _figure: String = ""
+
+	func _init(value: float, fmt: String) -> void:
+		_value = value
+		_figure = fmt % value
+		name = "Mark"
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		show_behind_parent = true # under the grabber
+		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	## Where the grabber's middle sits at the value (px across the slider).
+	func at() -> float:
+		var slider := get_parent() as Range
+		if slider == null or slider.max_value <= slider.min_value:
+			return 0.0
+		var grab := float(get_theme_icon(&"grabber", &"HSlider").get_width())
+		var share := (_value - slider.min_value) / (slider.max_value - slider.min_value)
+		return grab * 0.5 + share * (size.x - grab)
+
+	func _draw() -> void:
+		var x := at()
+		var mid := size.y * 0.5
+		draw_rect(Rect2(x - TICK.x * 0.5, mid - TICK.y * 0.5, TICK.x, TICK.y), GameTheme.MUTED)
+		var font := GameTheme.font(700)
+		var wide := font.get_string_size(_figure, HORIZONTAL_ALIGNMENT_LEFT, -1, FIGURE_SIZE).x
+		draw_string(font, Vector2(x - wide * 0.5, mid + TICK.y * 0.5 + FIGURE_DROP + font.get_ascent(FIGURE_SIZE)), _figure,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, FIGURE_SIZE, GameTheme.DIM)

@@ -13,18 +13,24 @@ extends Control
 ## feed; the last BB's readout bottom left (HudRangeReadout) and the timed challenge's bar, ready line and banners
 ## (HudRangeChallenge). Under the score bar, for a few seconds after a round's end, the automatic graphics step-down's
 ## line (concept `graphics-step-down.png`, `show_graphics_step`). With Settings › Accessibility's sound cues on, the
-## ring of markers round the crosshair for the sounds heard (HudSoundCues). Text is only rebuilt when what it shows
-## changes. No hints teaching the controls (owner, 2026-10-16).
+## ring of markers round the crosshair for the sounds heard (HudSoundCues). The HUD tab's HUD size scales every part
+## about its anchor but the crosshair, the hit marker and the cue ring (`set_hud_size`); Reduced motion holds the flag
+## warning steady (`set_motion`). Text is only rebuilt when what it shows changes. No hints teaching the controls (owner,
+## 2026-10-16).
 
 const MARGIN := 32.0
 ## The replica panel's lane, bottom right: as wide as its hop-up note, as tall as its notes and panel.
 const PANEL_LANE := Vector2(340.0, 230.0)
 const TOP_WIDTH := 800.0
-## The banners' and hit call's box, centred above the crosshair.
-const MIDDLE_SIZE := Vector2(1500.0, 260.0)
+## The banners' and hit call's box: this wide, centred, from the screen's top down to this far above the crosshair, its
+## words at its bottom (so at a large HUD size a tall banner never leaves the screen's top).
+const MIDDLE_WIDTH := 1500.0
 const MIDDLE_RAISE := 200.0
 ## The finished match's XP (XpCard) hangs this far under the banner.
 const XP_GAP := 28.0
+## The match summary's row (its panels either side of the XP card) keeps this far from the screen's sides (px): at a
+## HUD size too large for the width the row is held smaller (MatchSummary.set_fit). At 100 % on 1920 it fits as built.
+const SUMMARY_EDGE := 16.0
 ## "What got you" on the left, its top-left corner (px): under the minimap's caption when there is a minimap (the
 ## range has none: CARD_TOP).
 const CARD_LEFT := 32.0
@@ -47,6 +53,8 @@ const STEP_KICKER_SPACING := 0.14
 const STEP_SIZE := 19
 const STEP_HINT_SIZE := 16
 const STEP_BACKING := 0.88
+## The least HUD size drawn, so a broken value never divides by nothing (the settings keep it within 0.8–1.5).
+const HUD_SIZE_FLOOR := 0.1
 
 var _cfg: HudConfig = null
 var _teams: TeamConfig = null
@@ -114,6 +122,9 @@ var _hop_slot: int = -1
 var _prefs := HudPrefs.new()
 ## The panel opacity the HUD's parts show (HudStyle.restyle).
 var _opacity: float = 1.0
+## The HUD's size (HudPrefs.hud_size, 1 = as drawn), and how much of the flag warning's pulse shows (Reduced motion).
+var _hud_size: float = 1.0
+var _pulse_share: float = 1.0
 
 
 func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, player: Character) -> void:
@@ -189,8 +200,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_flag_marker.setup(_cfg)
 	# Banners and the hit call, centre.
 	var middle := VBoxContainer.new()
-	_place(middle, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-MIDDLE_SIZE.x * 0.5, -MIDDLE_RAISE - MIDDLE_SIZE.y,
-			MIDDLE_SIZE.x, MIDDLE_SIZE.y))
+	_place(middle, Vector4(0.5, 0.0, 0.5, 0.5), Rect2(-MIDDLE_WIDTH * 0.5, 0.0, MIDDLE_WIDTH, -MIDDLE_RAISE))
 	middle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	middle.alignment = BoxContainer.ALIGNMENT_END
 	add_child(middle)
@@ -318,6 +328,7 @@ func setup_sound_cues(cues: SoundCues, cfg: AccessibilityConfig) -> void:
 	_sound_cues.visible = false
 	add_child(_sound_cues)
 	move_child(_sound_cues, _team_markers.get_index() + 1)
+	_keep_own_size(_sound_cues)
 
 
 ## Settings › Accessibility's sound cues: on or off, the markers' size (1 = as built) and colour (an index into
@@ -400,6 +411,57 @@ func apply_prefs(prefs: HudPrefs) -> void:
 	if not is_equal_approx(prefs.panel_opacity, _opacity):
 		_opacity = prefs.panel_opacity
 		HudStyle.restyle(self, _opacity)
+	set_hud_size(prefs.hud_size)
+
+
+## Scales the HUD by `hud_size` (1 = as drawn at 1080p; HudPrefs.hud_size) about the screen's top left, its root as large
+## as the screen over the scale, so each part keeps its anchor and its edge and grows from it. The crosshair, the hit
+## marker and the sound cue ring keep their own size; the markers over the field are placed where the view sees them.
+func set_hud_size(hud_size: float) -> void:
+	var s := maxf(hud_size, HUD_SIZE_FLOOR)
+	_hud_size = s
+	scale_root(self, s)
+	if _sound_cues != null:
+		_keep_own_size(_sound_cues)
+	_team_markers.hud_size = s
+	_flag_marker.hud_size = s
+	if _hold_marker != null:
+		_hold_marker.hud_size = s
+	queue_redraw()
+
+
+func hud_size() -> float:
+	return _hud_size
+
+
+## How much of the flag warning's pulse shows (MotionScale.hud_pulse: none holds it steady at full). Call again after a
+## change.
+func set_motion(motion: MotionScale) -> void:
+	_pulse_share = clampf(motion.hud_pulse, 0.0, 1.0)
+
+
+## Scales `root` (a full-screen Control) by `by` about the top left, keeping it as large as its parent over the scale:
+## what is anchored inside it keeps its anchor and its edge and grows from it.
+static func scale_root(root: Control, by: float) -> void:
+	root.scale = Vector2.ONE * by
+	root.set_anchor_and_offset(SIDE_LEFT, 0.0, 0.0)
+	root.set_anchor_and_offset(SIDE_TOP, 0.0, 0.0)
+	root.set_anchor_and_offset(SIDE_RIGHT, 1.0 / by, 0.0)
+	root.set_anchor_and_offset(SIDE_BOTTOM, 1.0 / by, 0.0)
+
+
+## Holds the summary's panels and the XP card at the share of their size that fits the screen's width (1 when they
+## fit as built), so a large HUD size never pushes them off the sides.
+func _fit_summary() -> void:
+	var fit := minf(1.0, (size.x - SUMMARY_EDGE * 2.0) / _summary.row_width())
+	_summary.set_fit(fit)
+	if _xp != null:
+		_xp.scale = Vector2.ONE * fit
+
+
+## `c` (a full-screen child) undoes the HUD's size: as large as the screen and drawn at 1.
+func _keep_own_size(c: Control) -> void:
+	scale_root(c, 1.0 / _hud_size)
 
 
 func prefs() -> HudPrefs:
@@ -565,6 +627,7 @@ func show_xp(settled: PlayerTally.Settled, difficulty: StringName, progress: Pro
 	hide_xp()
 	_xp = XpCard.new(settled, difficulty, progress, Pool.shared())
 	_place(_xp, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-XpCard.WIDTH * 0.5, XP_GAP - MIDDLE_RAISE, XpCard.WIDTH, 0.0))
+	_xp.pivot_offset_ratio = Vector2(0.5, 0.0) # held smaller about its top middle with the summary (_fit_summary)
 	add_child(_xp)
 	HudStyle.restyle(_xp, _opacity)
 	_xp.visible = not _round_result.holds_results()
@@ -602,6 +665,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	if _xp != null:
 		_xp.visible = not _round_result.holds_results()
 	_summary.visible = _summary.is_open() and not _round_result.holds_results()
+	if _summary.visible or _xp != null:
+		_fit_summary()
 	if _minimap != null:
 		_minimap.visible = not _summary.visible
 	if _sound_cues != null:
@@ -625,7 +690,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	if _show_cross:
 		var spread := deg_to_rad(a.replica().spread_deg * c.spread_scale) * 2.0
 		var half_fov := deg_to_rad(_view.vertical_fov(zoom)) * 0.5
-		_gap = CrosshairDraw.gap(_prefs, tan(spread) / tan(half_fov) * size.y * 0.5)
+		# On the screen, not the HUD's scaled root: the crosshair keeps its own size.
+		_gap = CrosshairDraw.gap(_prefs, tan(spread) / tan(half_fov) * size.y * _hud_size * 0.5)
 	if not a.replicas.is_empty():
 		_replica.refresh(a)
 		if a.active != _hop_slot and _hop_left > 0.0:
@@ -712,6 +778,7 @@ func setup_orders(controls: ControlsConfig) -> void:
 	_hold_marker = HudHoldMarker.new()
 	add_child(_hold_marker)
 	_hold_marker.setup(_cfg, colour)
+	_hold_marker.hud_size = _hud_size
 	_order_wheel = HudOrderWheel.new()
 	_place(_order_wheel, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(0.0, 0.0, 0.0, 0.0))
 	add_child(_order_wheel)
@@ -772,7 +839,8 @@ func score() -> HudScore:
 	return _score
 
 
-## The warning pulses while the other team raises its flag and you aren't at the rope pulling it down.
+## The warning pulses while the other team raises its flag and you aren't at the rope pulling it down; with Reduced
+## motion it holds steady at full.
 func _update_warning(rs: RoundState, delta: float) -> void:
 	var c := _player
 	var at_rope := Flag.at_pole(c, rs.flag, _sim.flag)
@@ -782,14 +850,16 @@ func _update_warning(rs: RoundState, delta: float) -> void:
 	if show:
 		_warning_flag.colour = _teams.colours[rs.attackers]
 		_pulse += delta
-		var swing := 1.0 - HudStyle.WARNING_PULSE_LOW
-		_warning.modulate.a = HudStyle.WARNING_PULSE_LOW + swing * (0.5 + 0.5 * cos(_pulse * TAU * _cfg.flag_warning_pulse))
+		var dip := (1.0 - HudStyle.WARNING_PULSE_LOW) * _pulse_share
+		_warning.modulate.a = 1.0 - dip * (0.5 - 0.5 * cos(_pulse * TAU * _cfg.flag_warning_pulse))
 	else:
 		_pulse = 0.0
 
 
 func _draw() -> void:
 	var centre := size * 0.5
+	# The crosshair and the hit marker keep their own size whatever the HUD's: drawn about the middle at 1 / HUD size.
+	draw_set_transform(centre * (1.0 - 1.0 / _hud_size), 0.0, Vector2.ONE / _hud_size)
 	if _show_cross:
 		CrosshairDraw.cross(self, centre, _prefs, _gap)
 	if _marker_left > 0.0 and _prefs.marker:

@@ -2217,6 +2217,12 @@ msgstr "HUD opacity"
 msgid "SETTINGS_HUD_OPACITY_NOTE"
 msgstr "The navy panels only; text stays solid."
 
+msgid "SETTINGS_HUD_SIZE"
+msgstr "HUD size"
+
+msgid "SETTINGS_HUD_SIZE_NOTE"
+msgstr "Everything but the crosshair, hit marker and cue ring. %d to %d %%."
+
 msgid "SETTINGS_WHAT_GOT_YOU_NOTE"
 msgstr "Auto: against Pro bots only."
 
@@ -2252,6 +2258,12 @@ msgstr "Hit"
 
 msgid "SETTINGS_PREVIEW_MOVING"
 msgstr "Moving"
+
+msgid "SETTINGS_PREVIEW_HUD_SIZE"
+msgstr "HUD size %d%%"
+
+msgid "SETTINGS_PREVIEW_DASHED"
+msgstr "Dashed: 100%"
 
 msgid "SETTINGS_PREVIEW_NAME"
 msgstr "Dash"
