@@ -7,6 +7,8 @@ extends SkeletonModifier3D
 ## volume and the eye use (Hitbox, Lean), and the hit flinch (FI5) on top. The skeleton's frame is the file's (facing
 ## +Z), so a lean right, to the figure's right (-X there), is a positive roll about +Z. Presentation only: FigureView
 ## sets `lean`, `crouch` and `flinch`.
+## Then (FI3, `aim`) the upper chain pitched about the spine's own joint by `aim_lean`: what the aim clips leave of the
+## pitch (they turn the replica FigureConfig.aim_reach of it), so the replica points where the shot goes.
 
 ## Leaning (-1 left .. 1 right) and crouched (0..1), as drawn this frame.
 var lean: float = 0.0
@@ -16,6 +18,8 @@ var crouch: float = 0.0
 var flinch: Vector3 = Vector3.ZERO
 ## The hit volume's numbers (pivot, crouch drop, lean angle, standing top), set by FigureBody before each frame.
 var hits: HitConfig = null
+## The aim's pitch (rad, up positive) the spine leans beyond what the aim clips turn the replica.
+var aim_lean: float = 0.0
 var _config: FigureConfig = null
 var _hips: int = -1
 var _spine: int = -1
@@ -35,6 +39,7 @@ func _process_modification_with_delta(_delta: float) -> void:
 	var skeleton := get_skeleton()
 	if skeleton != null:
 		bend(skeleton)
+		aim(skeleton)
 
 
 ## Lowers and leans `skeleton` from the pose its clips gave it.
@@ -63,3 +68,13 @@ func head_top(skeleton: Skeleton3D) -> float:
 ## The highest the head's top is drawn at this crouch (m): the standing hit top to crouch_top_max, crouched fully.
 func top_limit() -> float:
 	return lerpf(Hitbox.hit_top(0.0, hits), _config.crouch_top_max, crouch)
+
+
+## Pitches `skeleton`'s upper chain (Spine and all above it) by `aim_lean` about the spine's joint, about the figure's
+## sideways axis: up is a turn of +Z (ahead in the file) towards +Y, a negative turn about +X.
+func aim(skeleton: Skeleton3D) -> void:
+	if _spine < 0 or aim_lean == 0.0:
+		return
+	var spine := skeleton.get_bone_global_pose(_spine)
+	var turn := Basis(Vector3.RIGHT, -aim_lean)
+	skeleton.set_bone_global_pose(_spine, Transform3D(turn * spine.basis, spine.origin))

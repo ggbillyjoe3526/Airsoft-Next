@@ -7,7 +7,10 @@ extends Node3D
 ## mesh, shadows only) casts it at every range; the Team* materials wear the team's shared paint. Meshes and bones are
 ## found by name, never by index (the two files order their bones differently). Its legs play the kind's shared graph
 ## (FigureGraph) in an AnimationTree of its own, advanced by hand from a FigurePose (`animate`), then FigureBend lowers
-## and leans it and draws the hit flinch (`set_flinch`); it fades through GeometryInstance3D.transparency, so no material is copied.
+## and leans it and draws the hit flinch (`set_flinch`); it fades through GeometryInstance3D.transparency, so no material
+## is copied. Its upper body (FI3) plays over the legs in the same tree (the aim by pitch, the holster, a switch, a
+## trigger press per shot), FigureBend leans the aim the rest of the way, and FigureHands puts the replicas in the hand,
+## on the sling or hanging from the hand.
 
 ## The parts it draws (the shadow twin last) and each one's level (0, 1, 2; -1 for the twin).
 var meshes: Array[MeshInstance3D] = []
@@ -16,6 +19,8 @@ var skeleton: Skeleton3D = null
 ## The legs' tree (its graph the kind's, its parameters its own) and the bend after it; null without a skeleton.
 var tree: AnimationTree = null
 var bend: FigureBend = null
+## The replicas on the figure (FigureView hands them over), placed each time the skeleton is posed.
+var hands: FigureHands = null
 ## The head it wears (&"" for a kind with one head).
 var head: StringName = &""
 var _config: FigureConfig = null
@@ -27,6 +32,8 @@ var _call_seconds: float = 0.0
 var _walk_off_pace: float = 0.0
 ## Turns a way in the figure's frame (x right, -z ahead) into the skeleton's (the file's, facing +Z).
 var _to_skeleton: Basis = Basis.IDENTITY
+## The Switch clip's length (s), time-scaled to each draw.
+var _switch_seconds: float = 0.0
 
 
 ## Builds kind `kind` of `models` for figure `figure_id` of `team`, painted `colour` with `glow`, its levels changing at
@@ -106,6 +113,10 @@ func setup(models: FigureModels, kind: int, figure_id: int, team: int, colour: C
 		placed = node.transform * placed
 		node = node.get_parent() as Node3D
 	_to_skeleton = placed.basis.orthonormalized().inverse()
+	hands = FigureHands.new()
+	hands.setup(skeleton, models, kind, _config)
+	skeleton.add_child(hands)
+	_switch_seconds = _seconds(side, _config.switch_clip)
 	_vault_seconds = _seconds(side, _config.vault_clip)
 	_call_seconds = _seconds(side, _config.call_clip)
 	var walk_off := side.clip(_config.walk_off_clip)
@@ -113,11 +124,13 @@ func setup(models: FigureModels, kind: int, figure_id: int, team: int, colour: C
 	return true
 
 
-## Poses the legs from `pose` (`hits`: the hit volume's lean geometry) and moves the tree on `delta` seconds; the bend
-## follows when the skeleton next updates.
-func animate(pose: FigurePose, hits: HitConfig, delta: float) -> void:
+## Poses the legs and the upper body from `pose` (`hits`: the hit volume's lean geometry; `fired`: a shot since the last
+## pose, one trigger press) and moves the tree on `delta` seconds; the bend and the replicas follow when the skeleton
+## next updates.
+func animate(pose: FigurePose, hits: HitConfig, delta: float, fired: bool = false) -> void:
 	if tree == null:
 		return
+	_animate_upper(pose, fired)
 	tree.set(FigureGraph.P_GAIT, pose.gait_position())
 	tree.set(FigureGraph.P_CROUCH_SPACE, pose.speed)
 	tree.set(FigureGraph.P_CROUCH, pose.crouch)
@@ -138,6 +151,33 @@ func animate(pose: FigurePose, hits: HitConfig, delta: float) -> void:
 	bend.hits = hits
 	bend.lean = pose.lean
 	bend.crouch = pose.crouch
+	# The spine leans what the aim clips leave of the pitch, while they show (not holstered, not calling the hit).
+	bend.aim_lean = pose.aim_lean() * pose.upper_weight() * (1.0 - pose.holster_weight)
+	hands.show_hands(pose.in_hand, pose.slung, pose.hanging)
+
+
+## The upper body's parameters: the aim by pitch, the hold, the holster (Holster_Sprint on the walk cycle), a switch
+## begun (forwards to a pistol, backwards to a rifle, scaled to the draw), cut when the draw is (a holster, a hit), and
+## a trigger press when `fired`.
+func _animate_upper(pose: FigurePose, fired: bool) -> void:
+	var aim := pose.aim_blend()
+	tree.set(FigureGraph.P_RIFLE_AIM, aim)
+	tree.set(FigureGraph.P_PISTOL_AIM, aim)
+	tree.set(FigureGraph.P_HOLD, pose.pistol_weight)
+	tree.set(FigureGraph.P_HOLSTER, pose.holster_weight)
+	tree.set(FigureGraph.P_HOLSTER_MIX, pose.sprint_weight)
+	if pose.stepping():
+		tree.set(FigureGraph.P_HOLSTER_SPRINT_SEEK, fposmod(pose.cycle, TAU))
+	if pose.switch_started and pose.draw_seconds > 0.0:
+		tree.set(FigureGraph.P_SWITCH_WAY, 1.0 if pose.switch_back else 0.0)
+		tree.set(FigureGraph.P_SWITCH_PACE, _switch_seconds / pose.draw_seconds)
+		tree.set(FigureGraph.P_SWITCH, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
+	elif not pose.switching and tree.get(FigureGraph.P_SWITCH_ACTIVE):
+		tree.set(FigureGraph.P_SWITCH, AnimationNodeOneShot.ONE_SHOT_REQUEST_FADE_OUT)
+	tree.set(FigureGraph.P_UPPER, pose.upper_weight())
+	tree.set(FigureGraph.P_FIRE_HOLD, pose.pistol_weight)
+	if fired:
+		tree.set(FigureGraph.P_FIRE, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 
 
 ## The hit flinch drawn from the next skeleton update: `tilt` (rad) in the figure's frame (FigureFlinch).

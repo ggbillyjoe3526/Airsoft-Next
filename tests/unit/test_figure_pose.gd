@@ -213,3 +213,138 @@ func test_reading_and_settling_allocate_nothing() -> void:
 		pose.read(c, 0.5, hits)
 		pose.settle(0.016)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), before)
+
+
+## FI3: the upper body's targets.
+
+## A character holding the default loadout (a rifle, then a pistol), standing.
+func _armed() -> Character:
+	var c := Character.new(1, 0, Vector3.ZERO, 0.0, ReplicaStats.default_loadout())
+	c.grounded = true
+	return c
+
+
+func test_the_aim_blends_by_pitch_and_the_spine_leans_the_rest() -> void:
+	var c := _armed()
+	c.prev_pitch = deg_to_rad(20.0)
+	c.pitch = deg_to_rad(40.0)
+	pose.read(c, 0.5, hits)
+	assert_almost_eq(pose.pitch, deg_to_rad(30.0), EPS, "between the ticks")
+	assert_almost_eq(pose.aim_blend(), 0.5, EPS, "half way to AimUp's 60°")
+	assert_almost_eq(pose.aim_lean(), deg_to_rad(30.0) * (1.0 - cfg.aim_reach), EPS, "the spine leans 0.45 of it")
+	c.prev_pitch = deg_to_rad(-80.0)
+	c.pitch = c.prev_pitch
+	pose.read(c, 1.0, hits)
+	assert_eq(pose.aim_blend(), -1.0, "AimDown at most")
+	assert_almost_eq(pose.aim_lean(), deg_to_rad(-80.0) + cfg.aim_reach * cfg.aim_pitch, EPS, "past the clips' reach")
+
+
+func test_the_rifle_in_hand_and_the_pistol_held_by_its_class() -> void:
+	var c := _armed()
+	pose.read(c, 1.0, hits)
+	pose.snap()
+	assert_eq(pose.in_hand, 0)
+	assert_eq(pose.slung, -1)
+	assert_eq(pose.pistol_weight, 0.0)
+	c.armament.active = 1
+	pose.read(c, 1.0, hits)
+	assert_eq(pose.pistol, 1.0, "the pistol's aim")
+	pose.settle(cfg.settle_hold)
+	assert_almost_eq(pose.pistol_weight, 1.0 - exp(-1.0), 1e-3, "eased at hold")
+
+
+func test_a_switch_starts_once_and_hands_over_at_its_share() -> void:
+	var c := _armed()
+	pose.read(c, 1.0, hits)
+	var a := c.armament
+	a.active = 1
+	a.draw_total = 0.3
+	a.draw_left = 0.3
+	pose.read(c, 1.0, hits)
+	assert_true(pose.switch_started, "begun")
+	assert_true(pose.switching)
+	assert_false(pose.switch_back, "to a pistol: forwards")
+	assert_eq(pose.draw_seconds, 0.3)
+	assert_eq(pose.in_hand, 0, "the rifle still in the hand")
+	a.draw_left = 0.3 * (1.0 - cfg.switch_pistol_from) + 0.001
+	pose.read(c, 1.0, hits)
+	assert_false(pose.switch_started, "once")
+	assert_eq(pose.in_hand, 0, "just before 0.35")
+	a.draw_left = 0.3 * (1.0 - cfg.switch_pistol_from) - 0.001
+	pose.read(c, 1.0, hits)
+	assert_eq(pose.in_hand, 1, "the pistol past 0.35")
+	a.draw_left = 0.0
+	pose.read(c, 1.0, hits)
+	assert_false(pose.switching, "done")
+	# Back to the rifle: backwards, the rifle in the hand from 0.65.
+	a.active = 0
+	a.draw_left = 0.3
+	pose.read(c, 1.0, hits)
+	assert_true(pose.switch_started)
+	assert_true(pose.switch_back)
+	a.draw_left = 0.3 * cfg.switch_pistol_from + 0.001
+	pose.read(c, 1.0, hits)
+	assert_eq(pose.in_hand, 1, "the pistol until 0.65")
+	a.draw_left = 0.3 * cfg.switch_pistol_from - 0.001
+	pose.read(c, 1.0, hits)
+	assert_eq(pose.in_hand, 0)
+
+
+func test_holstered_the_rifle_is_slung_and_a_draw_brings_it_to_the_hand_at_half() -> void:
+	var c := _armed()
+	var a := c.armament
+	a.active = 1
+	a.holstered = true
+	pose.read(c, 1.0, hits)
+	assert_eq(pose.in_hand, -1, "nothing in the hand")
+	assert_eq(pose.slung, 0, "the rifle slung, even with the pistol put away")
+	assert_eq(pose.holster, 1.0)
+	a.holstered = false
+	a.active = 0
+	a.draw_total = 1.0
+	a.draw_left = 0.8
+	pose.read(c, 1.0, hits)
+	assert_false(pose.switch_started, "out of the holster isn't a switch")
+	assert_eq(pose.slung, 0, "still slung at 0.2")
+	assert_eq(pose.holster, 1.0, "the arms still hang")
+	a.draw_left = 0.25
+	pose.read(c, 1.0, hits)
+	assert_eq(pose.in_hand, 0, "in the hand at 0.75")
+	assert_eq(pose.slung, -1)
+	assert_almost_eq(pose.holster, 0.5, EPS, "the arms half way up to the aim")
+	a.draw_left = 0.0
+	pose.read(c, 1.0, hits)
+	assert_eq(pose.holster, 0.0)
+
+
+func test_calling_the_hit_the_replica_hangs_and_the_upper_body_gives_way() -> void:
+	var c := _armed()
+	c.status = Character.Status.CALLING
+	pose.read(c, 1.0, hits)
+	pose.snap()
+	assert_true(pose.hanging)
+	assert_eq(pose.in_hand, 0)
+	assert_eq(pose.upper_weight(), 0.0, "HitCall's whole body")
+	c.status = Character.Status.WALKING_OFF
+	pose.read(c, 1.0, hits)
+	assert_true(pose.hanging, "still hanging on the walk off")
+	c.armament.holstered = true
+	pose.read(c, 1.0, hits)
+	assert_false(pose.hanging, "holstered: it stays slung")
+	assert_eq(pose.slung, 0)
+
+
+func test_reading_the_upper_body_allocates_nothing() -> void:
+	var c := _armed()
+	var a := c.armament
+	pose.read(c, 0.5, hits)
+	var before := Performance.get_monitor(Performance.OBJECT_COUNT)
+	for i in 1000:
+		a.active = int(i / 50.0) % 2
+		a.draw_total = 0.3
+		a.draw_left = 0.3 - fmod(i * 0.01, 0.3)
+		a.holstered = int(i / 200.0) % 2 == 1
+		c.pitch = sin(i * 0.1)
+		pose.read(c, 0.5, hits)
+		pose.settle(0.016)
+	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), before)

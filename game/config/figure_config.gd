@@ -80,6 +80,53 @@ extends Resource
 @export var far_stride: int = 4
 ## The bones the figure code reads, each looked up by name (the two files order them differently).
 @export var bones: PackedStringArray = PackedStringArray(["Hips", "Spine", "Chest", "Head", "Grip_R", "Hand_L"])
+## The upper body (FI3; the browser's FIGURE_RIG): the bones the legs' clips drive. Every other bone is the upper body,
+## which the aim, switch, holster and fire clips (upperBodyOnly, made over a still pelvis) take over from the legs.
+@export var lower_bones: PackedStringArray = PackedStringArray(["Root", "Hips", "Thigh_L", "Shin_L", "Foot_L", "Toe_L",
+		"Thigh_R", "Shin_R", "Foot_R", "Toe_R"])
+## The aim clips, down, level and up, for the rifle and the pistol: AimUp and AimDown are posed at ±aim_pitch (rad) and
+## turn the replica aim_reach of it (bot11.py clip_aim: the hands at pitch × 0.55); FigureBend's spine leans the rest.
+@export var rifle_aim_clips: PackedStringArray = PackedStringArray(["Rifle_AimDown", "Rifle_Aim", "Rifle_AimUp"])
+@export var pistol_aim_clips: PackedStringArray = PackedStringArray(["Pistol_AimDown", "Pistol_Aim", "Pistol_AimUp"])
+@export var aim_pitch: float = PI / 3.0
+@export var aim_reach: float = 0.55
+## The draw from one replica to another, time-scaled to the replica's draw time (the sidecar's fitTo). Made rifle to
+## pistol, the pistol in the hand from switch_pistol_from of it; to a rifle it plays backwards, the rifle in the hand
+## from 1 - switch_pistol_from.
+@export var switch_clip: StringName = &"Switch"
+@export var switch_pistol_from: float = 0.35
+## One trigger press each, played additively over the aim per shot: made additive once at load, against its first frame
+## (the sidecar's fireClips), kept in the kind's library under the clip's name and additive_suffix.
+@export var rifle_fire_clip: StringName = &"Rifle_Fire"
+@export var pistol_fire_clip: StringName = &"Pistol_Fire"
+@export var additive_suffix: String = "_Add"
+## Holstered, the arms hang (Holster; in a sprint Holster_Sprint's pumping arms, in step with the Sprint clip's legs).
+## Drawn from the holster, the replica comes to the hand holster_swap of the way through the draw and the arms rise to
+## the aim over the rest of it.
+@export var holster_clip: StringName = &"Holster"
+@export var holster_sprint_clip: StringName = &"Holster_Sprint"
+@export var holster_sprint_pace_clip: StringName = &"Sprint"
+@export var holster_swap: float = 0.5
+## How fast the upper body settles (s, as the legs' settle times): between the rifle's and the pistol's aim and in and
+## out of the holster (hold); the switch and the trigger press faded in (overlay).
+@export var settle_hold: float = 0.06
+@export var settle_overlay: float = 0.08
+## Holstered, the rifle rides slung on the Chest bone (the browser's FIGURE_RIG.sling): its butt sling_butt.x to the
+## figure's right of the spine and sling_butt.y above the feet, sling_back_human behind the spine line (sling_back_pack
+## over a human's pack, sling_pack_part; sling_back_robot on a robot), its long axis sling_tilt (rad) from upright, the
+## muzzle down to the left and its right side facing out. Placed against the Holster clip's chest, standing.
+@export var chest_bone: StringName = &"Chest"
+@export var sling_butt: Vector2 = Vector2(0.17, 1.42)
+@export var sling_tilt: float = 0.75
+@export var sling_back_human: float = 0.19
+@export var sling_back_pack: float = 0.27
+@export var sling_back_robot: float = 0.17
+@export var sling_pack_part: String = "Kit_Pack"
+## The replica in the hand sits on this bone by the sidecar's replicaOnGrip for its class (rifle, pistol).
+@export var grip_bone: StringName = &"Grip_R"
+## Calling the hit (the left hand up), the replica hangs from the right hand's grip, its long axis this far (rad) off
+## straight down with the muzzle forward.
+@export var hang_tilt: float = 0.25
 ## Robots (Settings › Looks › Robots, Mixed by default as the browser's) are picked from the match seed XOR this salt so
 ## no gameplay stream moves (the browser's ROBOT_SEED_SALT).
 @export var robot_salt: int = 0x5f3759df

@@ -671,6 +671,8 @@ func _after_tick() -> void:
 				if e.actor == PLAYER_ID:
 					shots += 1
 					_hands.on_shot()
+				elif e.actor >= 0 and e.actor < _figure_of.size() and _figure_of[e.actor] != null:
+					_figure_of[e.actor].on_shot()
 			GameEvent.Kind.BB_IMPACT:
 				impacts += 1
 				if e.target < 0:
