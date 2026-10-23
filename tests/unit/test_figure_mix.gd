@@ -240,3 +240,33 @@ func test_practice_with_humans_only_is_human() -> void:
 		assert_eq(_arms(p).arms_kind, FigureMix.HUMAN)
 		p.queue_free()
 		await wait_process_frames(1)
+
+
+func test_a_rematch_reads_the_looks_setting_again() -> void:
+	var p := await _play(true)
+	assert_true(p.figure_kinds.has(FigureMix.ROBOT), "Mixed to begin with")
+	var robot_bodies := 0
+	for b: FigureBody in _bodies(p):
+		if b.head == &"":
+			robot_bodies += 1
+	assert_gt(robot_bodies, 0, "robots drawn")
+	s.robots = false
+	s.mark_changed()
+	await wait_physics_frames(3)
+	assert_true(p.figure_kinds.has(FigureMix.ROBOT), "paused-style change: this match is unchanged")
+	p._rematch_left = 0.0
+	await wait_physics_frames(4)
+	for kind in p.figure_kinds:
+		assert_eq(kind, FigureMix.HUMAN, "the rematch is all human")
+	assert_eq(_arms(p).arms_kind, FigureMix.HUMAN)
+	for b: FigureBody in _bodies(p):
+		assert_ne(b.head, &"", "the bodies follow: a human wears a head")
+	s.robots = true
+	s.mark_changed()
+	p._rematch_left = 0.0
+	await wait_physics_frames(4)
+	var teams := PackedInt32Array()
+	for c in p.state.characters:
+		teams.append(c.team)
+	assert_eq(p.figure_kinds, FigureMix.pick(p.state.match_seed, teams, true, SALT), "Mixed again, the seed's mix")
+	assert_eq(_arms(p).arms_kind, p.figure_kinds[PlaySession.PLAYER_ID])

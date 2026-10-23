@@ -124,3 +124,60 @@ func test_the_cards_take_keyboard_focus() -> void:
 	for i in SettingsLooksPage.ROBOTS.size():
 		assert_eq(page.card(i).focus_mode, Control.FOCUS_ALL)
 		assert_false(page.card(i).disabled)
+
+
+func test_the_cards_are_described_for_the_reader_as_built() -> void:
+	var page := _open()
+	for i in SettingsLooksPage.ROBOTS.size():
+		var card := page.card(i)
+		assert_eq(card.accessibility_name, tr(SettingsLooksPage.NAME_KEYS[i]))
+		assert_true(card.accessibility_description.begins_with(tr(SettingsLooksPage.NOTE_KEYS[i])))
+	var fresh := SettingsLooksPage.new()
+	fresh.build(screen)
+	for i in SettingsLooksPage.ROBOTS.size():
+		assert_ne(fresh.card(i).accessibility_name, "", "named before any refresh")
+		assert_eq(fresh.card(i).accessibility_description, tr(SettingsLooksPage.NOTE_KEYS[i]))
+	fresh.free()
+
+
+func test_tab_goes_from_one_card_to_the_next_and_enter_picks() -> void:
+	var page := _open()
+	screen._tabs.current_tab = page.get_parent().get_parent().get_index()
+	await wait_process_frames(3)
+	page.card(0).grab_focus()
+	assert_true(page.card(0).has_focus())
+	assert_eq(page.card(0).find_next_valid_focus(), page.card(1), "Tab from Mixed goes to Humans only")
+	page.card(1).grab_focus()
+	page.card(1).pressed.emit()
+	assert_false(s.robots)
+
+
+func test_escape_closes_the_screen_from_the_looks_tab() -> void:
+	var page := _open()
+	screen._tabs.current_tab = page.get_parent().get_parent().get_index()
+	var closed := [false]
+	screen.closed.connect(func() -> void: closed[0] = true)
+	var ev := InputEventAction.new()
+	ev.action = &"ui_cancel"
+	ev.pressed = true
+	screen._input(ev)
+	assert_true(closed[0])
+
+
+func test_opening_and_closing_the_screen_leaves_no_orphans() -> void:
+	await wait_process_frames(2)
+	var orphans := int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
+	var nodes := int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
+	for i in 3:
+		var sc := SettingsScreen.new()
+		sc.settings = s
+		sc.save_path = dir.path_join("o.save")
+		add_child(sc)
+		sc.open()
+		await wait_process_frames(1)
+		sc.looks_page().card(1).pressed.emit()
+		sc.close()
+		sc.free()
+		await wait_process_frames(2)
+	assert_eq(int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)), orphans)
+	assert_eq(int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), nodes)

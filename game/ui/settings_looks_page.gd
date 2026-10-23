@@ -110,6 +110,7 @@ func _card(index: int) -> MenuCard:
 		changed.emit(true))
 	_cards.append(card)
 	_in_use.append(tag)
+	_describe(index, false)
 	return card
 
 
@@ -119,5 +120,10 @@ func _show(robots: bool) -> void:
 		var on := ROBOTS[i] == robots
 		_cards[i].set_picked(on)
 		_in_use[i].visible = on
-		_cards[i].accessibility_name = tr(NAME_KEYS[i])
-		_cards[i].accessibility_description = tr(NOTE_KEYS[i]) + (" " + tr("SETTINGS_IN_USE") if on else "")
+		_describe(i, on)
+
+
+## What the screen reader reads for card `index`: the choice, its blurb and, while picked, that it is in use.
+func _describe(index: int, in_use: bool) -> void:
+	_cards[index].accessibility_name = tr(NAME_KEYS[index])
+	_cards[index].accessibility_description = tr(NOTE_KEYS[index]) + (" " + tr("SETTINGS_IN_USE") if in_use else "")

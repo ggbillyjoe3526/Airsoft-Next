@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus 5.5 (worker) | pass | pending | – |
+| 2026-10-23 | QA attempt 1 | Opus 5.5 (worker) | pass | QA Pass (advisories fixed); performance Pass | – |
 
 ## Decisions
 
@@ -26,6 +27,18 @@
   after the mix. No arm is drawn (step 32).
 - **The mix still shows only behind Dev › Rigged figures** until FI7; the setting is read at the start either way, so
   `figure_kinds` and `arms_kind` are right with the switch off.
+
+## Fixes after QA
+
+- **A rematch reads the Looks setting again** (`PlaySession._refresh_kinds`, after `_sim.start_match`): the mix is
+  picked again from the same seed, `arms_kind` set, and a figure whose kind changed gets a new body through
+  `FigureView.set_body` when rigged bodies are drawn (`set_body` itself untouched). Before, a change made while paused
+  ("From the next match.") only showed from a new session. The pick is one helper, `_pick_kinds`, shared with the
+  first start.
+- **The cards are described for the screen reader as they are built,** not only on the first refresh.
+- **QA's probe file is folded into the real tests** and deleted: wrong-typed "robots" values read Mixed, the Tab
+  and Enter order across the cards, Escape closing, no orphans after opening and closing the screen, and a rematch
+  after a changed setting (replacing the probe's stale "rematch keeps the old mix" check).
 
 ## Checks
 
@@ -47,6 +60,12 @@ the tab and both choices.
   cards sit 218 px from the top (the screen's section gap above the heading), and the Dev settings strip is the real
   screen's. The concept's two note boxes are not part of the screen.
 - No arm is drawn: `arms_kind` has no reader until step 32.
+
+## Advisories left
+
+- A real screen reader may read the card's child labels as well as its name (the name and description are set on the
+  card; the laid-over labels aren't hidden from it).
+- The Looks page is built eagerly with the screen, like Display, Graphics and HUD (small: two cards).
 
 ## Outside `touches`
 

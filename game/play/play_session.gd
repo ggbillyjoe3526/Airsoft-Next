@@ -479,12 +479,7 @@ func _build_views(ui: CanvasLayer) -> void:
 				_colours.figures.glow)
 		add_child(f)
 		_figures.append(f)
-	var teams := PackedInt32Array()
-	for c in state.characters:
-		teams.append(c.team)
-	# Settings › Looks › Robots, read once a match (and a practice); your kind goes to the arms (step 32 draws them).
-	figure_kinds = FigureMix.pick(state.match_seed, teams, chosen.robots, _play.figures.robot_salt)
-	_hands.arms_kind = figure_kinds[PLAYER_ID]
+	_pick_kinds()
 	_figure_lines = _play.figures.lod_high
 	var first_use: Array[Material] = [
 		_bbs.drawn_material(), _puffs.drawn_material(), FigureView.material(Color.WHITE, true, _colours.figures.glow)
@@ -561,6 +556,7 @@ func _physics_process(_delta: float) -> void:
 			_frames.clear()
 			_pause.errors = error_log
 			_sim.start_match(state)
+			_refresh_kinds()
 			_after_tick()
 		if bots_active:
 			_bots.think(state, _commands, TICK)
@@ -1219,6 +1215,34 @@ func _apply_dev() -> void:
 	elif not dev.retro_pixels and _retro != null:
 		_retro.queue_free()
 		_retro = null
+
+
+## Settings › Looks › Robots, read at the start of every match (a rematch too, so a change made while paused shows from
+## the next match) and a practice: each character's kind from the match seed, your own going to the arms (step 32 draws
+## them). Returns the characters whose kind changed.
+func _pick_kinds() -> Array[int]:
+	var teams := PackedInt32Array()
+	for c in state.characters:
+		teams.append(c.team)
+	var robots := (settings if settings != null else Settings.shared()).robots
+	var before := figure_kinds
+	figure_kinds = FigureMix.pick(state.match_seed, teams, robots, _play.figures.robot_salt)
+	_hands.arms_kind = figure_kinds[PLAYER_ID]
+	var changed_ids: Array[int] = []
+	for i in figure_kinds.size():
+		if i >= before.size() or before[i] != figure_kinds[i]:
+			changed_ids.append(i)
+	return changed_ids
+
+
+## A rematch: the Looks setting read again, and a figure whose kind changed is drawn as its new kind (when rigged).
+func _refresh_kinds() -> void:
+	var changed_ids := _pick_kinds()
+	if not _rigged:
+		return
+	for f in _figures:
+		if changed_ids.has(f.character_id):
+			f.set_body(_figure_models, figure_kinds[f.character_id], _figure_lines)
 
 
 ## Dev › Rigged figures: every figure drawn as its rigged kind (the models loaded the first time), or as capsules again.

@@ -517,8 +517,9 @@ func test_a_file_from_before_looks_reads_mixed_with_the_version_unchanged() -> v
 
 
 func test_a_bad_robots_value_reads_mixed() -> void:
-	SaveFile.write(path, Settings.KIND, Settings.VERSION, {"robots": "no", "fov": 95.0})
-	var t := _again()
-	assert_eq(t.load_message, "", "a good file with a bad value is not a damaged file")
-	assert_true(t.robots)
-	assert_almost_eq(t.fov, 95.0, 1e-6)
+	for bad: Variant in [1, 0, 1.0, "false", "true", null, [], {}, [false]]:
+		SaveFile.write(path, Settings.KIND, Settings.VERSION, {"robots": bad, "fov": 95.0})
+		var t := _again()
+		assert_eq(t.load_message, "", "a good file with a bad value is not a damaged file (%s)" % str(bad))
+		assert_true(t.robots, "%s reads Mixed" % str(bad))
+		assert_almost_eq(t.fov, 95.0, 1e-6)
