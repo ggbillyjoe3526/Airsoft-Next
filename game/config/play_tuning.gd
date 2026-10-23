@@ -19,6 +19,7 @@ const DEFAULT_PATH := "res://game/config/play_tuning.tres"
 @export var flag: FlagViewConfig = FlagViewConfig.new()
 @export var range_view: RangeViewConfig = RangeViewConfig.new()
 @export var minimap: MinimapConfig = MinimapConfig.new()
+@export var figures: FigureConfig = FigureConfig.new()
 ## Seconds the match's summary stays up before the next match starts (a click starts it sooner); the wait starts once
 ## the last round's table makes way.
 @export var rematch_delay: float = 15.0

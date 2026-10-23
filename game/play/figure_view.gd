@@ -6,6 +6,8 @@ extends Node3D
 ## volume), while the legs stay put. Calling a hit, the arm goes up and "HIT!" shows above the head; it stays up on the
 ## walk off; a figure leaving the field fades out. It holds the replica it has out, the models' cut-down figure version
 ## in its team's paint (ReplicaPaint) with its parts' figure versions fitted (ReplicaParts), and puts it away as it fades.
+## With Dev › Rigged figures on it draws its rigged figure (FigureBody, standing in Idle) in place of the capsules; the
+## sign, the fade and the replica at its hold work the same on both.
 
 ## The figure's proportions (m): the legs' and torso's capsules, the head, the arm, and where the sign floats. The torso
 ## reaches this far below the pivot, so its round bottom covers the joint as it tilts.
@@ -36,6 +38,13 @@ var _hits: HitConfig = null
 ## The replicas the character carries, as the models' figure versions on the upper body; the one out is shown.
 var _replicas: Array[MeshInstance3D] = []
 var _out: int = -1
+## The rigged figure drawn in place of the capsules, or null; the capsules' meshes, hidden while it is drawn; the team
+## and its colour and glow, for a body made later.
+var _body: FigureBody = null
+var _capsules: Array[MeshInstance3D] = []
+var _team: int = 0
+var _team_colour: Color = Color.WHITE
+var _glow: float = 0.0
 
 
 ## Draws `c` in `team_colour`, glowing with `glow` of it (High contrast by day, TeamColours), holding its replicas in
@@ -45,6 +54,9 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 		realistic: bool = false, parts: Array[Dictionary] = [], glow: float = 0.0) -> void:
 	character_id = c.id
 	_hits = hits
+	_team = c.team
+	_team_colour = team_colour
+	_glow = glow
 	name = "Figure_%d" % c.id
 	top_level = true
 	_mat = material(team_colour, false, glow)
@@ -83,6 +95,7 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 	arm.position = Vector3(0.0, ARM_SIZE.y * 0.5, 0.0)
 	_arm = Node3D.new()
 	_arm.add_child(arm)
+	_capsules = [_legs, _torso, _head, arm]
 	_arm.position = Vector3(BODY_RADIUS + ARM_SIZE.x * 0.5, hits.torso_top - hits.pivot_height, 0.0)
 	_upper.add_child(_arm)
 	for i in c.armament.replicas.size():
@@ -93,6 +106,36 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 	_sign = make_sign(font, team_colour)
 	_sign.position = Vector3(0.0, SIGN_HEIGHT, 0.0)
 	add_child(_sign)
+
+
+## Draws figure kind `kind` of `models` in place of the capsules, its levels changing at `lines` (m); with `models`
+## null, or a kind it couldn't load, the capsules again (the body freed).
+func set_body(models: FigureModels, kind: int, lines: Vector2) -> void:
+	if _body != null:
+		# Out of the tree at once, so the old body never draws beside the capsules or a new body this frame.
+		remove_child(_body)
+		_body.queue_free()
+		_body = null
+	if models != null and models.has_kind(kind):
+		_body = FigureBody.new()
+		if _body.setup(models, kind, character_id, _team, _team_colour, _glow, lines):
+			add_child(_body)
+		else:
+			_body.free()
+			_body = null
+	for m in _capsules:
+		m.visible = _body == null
+
+
+## The rigged figure drawn, or null.
+func body() -> FigureBody:
+	return _body
+
+
+## The rigged figure's levels change at `lines` (m) from now on (the graphics' Mesh detail).
+func set_lod_lines(lines: Vector2) -> void:
+	if _body != null:
+		_body.set_lod_lines(lines)
 
 
 ## The models' figure version of `r` with `parts`' figure versions on it, held at its class's place and painted for
@@ -175,6 +218,9 @@ func update(c: Character, fraction: float) -> void:
 		_out = out
 		if _out >= 0 and _replicas[_out] != null:
 			_replicas[_out].visible = true
+	if _body != null:
+		_body.set_fade(fade)
+		return
 	var see_through := BaseMaterial3D.TRANSPARENCY_ALPHA if fade < 1.0 else BaseMaterial3D.TRANSPARENCY_DISABLED
 	if _mat.transparency != see_through:
 		_mat.transparency = see_through

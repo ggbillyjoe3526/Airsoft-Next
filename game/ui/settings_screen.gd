@@ -30,7 +30,8 @@ const DPI_STEP := 50.0
 const PERCENT_STEP := 1.0
 ## The Dev tab's switches, each a DevSettings field with a label DEV_<FIELD> and a help line DEV_<FIELD>_HELP.
 const DEV_SWITCHES: Array[StringName] = [&"dev_content", &"disable_levelling", &"bottomless", &"ghost",
-		&"bots_hold_fire", &"spectate_bots", &"bot_intent", &"retro_pixels", &"pretend_slow_frames"]
+		&"bots_hold_fire", &"spectate_bots", &"bot_intent", &"retro_pixels", &"pretend_slow_frames",
+		&"rigged_figures"]
 ## Dev › Actions' error and crash, in the log (English: the log is read by the developer).
 const DEV_TEST_ERROR := "Dev: a test error (Settings › Dev › Log a test error)"
 const DEV_CRASH := "Dev: Settings › Dev › Crash the game now"

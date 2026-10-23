@@ -4,40 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## FI1 · The rigged figures load: one head, LODs, team paint and the mix
-tier: core
-perf: required
-touches: game/play/figures/, game/config/figure_config.gd, game/config/play_tuning.gd, game/config/play_tuning.tres,
-  game/play/figure_view.gd, game/play/play_session.gd, game/save/dev_settings.gd, game/ui/settings_screen.gd,
-  game/ui/text/en.po, game/play/README.md, tests/unit/test_figure_models.gd, tests/unit/test_figure_body.gd,
-  tests/unit/test_figure_mix.gd
-contract: Simulation and presentation (1); Data, not literals (6); Headless (9)
-acceptance:
-  1. FigureModels loads human.glb and robot.glb and their sidecars once per session (a typed FigureSidecar: clips
-     with loop, speed, upperBodyOnly, fitTo; parts; replicaOnGrip; magazineInHand) and sets each clip's loop mode
-     from the sidecar. A missing or unreadable sidecar warns and falls back to the capsules.
-  2. FigureBody instances a kind for one character: the human's head is FigureConfig.heads[id % 4] (HighCut, Cap,
-     Boonie, FullCut: the owner's "four heads picked by figure id"), the other heads freed; meshes found by name, never
-     by index; every bone looked up by name.
-  3. LODs by visibility range: LOD0 to the near line, LOD1 to the far line, LOD2 beyond, each line with a 0.5 m
-     margin; the lines are [12, 28] m on mesh_detail High and Ultra and [6, 16] on Low and Medium (DECISIONS BD1).
-     A part with no LOD2 (Kit_Radio) ends at the far line. The LOD meshes cast no shadow; one shadow twin (LOD2 body,
-     head and kit, SHADOWS_ONLY) casts it at every range.
-  4. Team paint: the "Team*" materials (case-insensitive prefix) get the team colour and the High contrast glow
-     (TeamColours), as one material per kind, team and glow made once and shared; Outfit, Shell, Visor and the rest
-     stay as modelled (the robot's white suit with team caps, RM10).
-  5. FigureMix: robots on, each team's figures are half robots (an odd count's extra one by a coin), picked from the
-     match seed through RandomNumberGenerator seeded with seed ^ FigureConfig.robot_salt (0x5f3759df), so no gameplay
-     stream moves; off, all human. The player gets a kind too (for FI6's arms hook).
-  6. Dev › Rigged figures (DevSettings, off) draws FigureBody in Idle in place of the capsules; the sign, fade
-     (GeometryInstance3D.transparency over vanish_time) and the replica at today's hold work on both.
-  7. GUT: drawn triangles at 5, 10, 20 and 40 m are one head and one level (human 19,966 / 6,752 / 2,337 at High's
-     lines) and within CC0_ASSETS' 60k / 20k / 6k; every head index has its head; a team's Team* surfaces share one
-     material; the mix is the same for a seed, differs across seeds, puts robots on both teams of a 3v3 and none with
-     robots off, and leaves the match's own draws (bot kits, wind) unchanged; freeing a session leaves no orphan.
-status: open
-attempts: 0
-
 ## FI2 · The legs: moving, crouching, jumping, vaulting, the hit call and the walk-off, and the one lean
 tier: core
 perf: required
