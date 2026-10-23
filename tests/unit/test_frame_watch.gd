@@ -304,3 +304,29 @@ func test_a_rematch_may_ask_again() -> void:
 	await wait_physics_frames(2)
 	assert_false(_feed(w, SLOW, SECONDS))
 	assert_true(_feed(w, SLOW, SECONDS), "the next match's watch")
+
+
+# --- The screen's rate and hitches (QA) ---
+
+func test_a_50_hz_screen_under_v_sync_raises_the_threshold() -> void:
+	var watch := FrameWatch.new()
+	assert_almost_eq(watch.slow_ms(Settings.UNLIMITED, 50.0), 25.0, 0.001)
+	assert_almost_eq(watch.slow_ms(Settings.UNLIMITED, 144.0), 20.0, 0.001, "fast screens keep the floor")
+	assert_almost_eq(watch.slow_ms(Settings.UNLIMITED, -1.0), 20.0, 0.001, "an unknown rate is none")
+	assert_almost_eq(watch.slow_ms(30, 60.0), 1.25 * 1000.0 / 30.0, 0.001, "the longer frame of the two")
+	var asked := false
+	for i in int(4.0 * 50.0):
+		asked = watch.feed(0.0201, Settings.UNLIMITED, true, false, 50.0) or asked
+	assert_false(asked, "a 50 Hz screen's steady frames aren't slow")
+	assert_eq(watch.slow_windows(), 0)
+
+
+func test_a_hitch_is_skipped_and_two_never_step() -> void:
+	var watch := FrameWatch.new()
+	var asked := false
+	for i in 4:
+		asked = watch.feed(2.5, Settings.UNLIMITED, true) or asked
+	assert_false(asked)
+	assert_eq(watch.slow_windows(), 0)
+	asked = _feed(watch, SLOW, SECONDS * 2.0 + 0.1)
+	assert_true(asked, "slow play after the hitches still steps")

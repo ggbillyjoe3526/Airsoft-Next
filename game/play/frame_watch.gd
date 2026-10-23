@@ -37,26 +37,31 @@ static func preset_below(preset: StringName) -> StringName:
 	return GraphicsTable.PRESETS[at - 1] if at > 0 else &""
 
 
-## A slow frame's time (ms) under the frame-rate limit `limit` (Settings.UNLIMITED for none): `step_slow_ms`, or
-## `step_limit_slack` of the limit's frame when that is longer.
-func slow_ms(limit: int) -> float:
-	if limit <= Settings.UNLIMITED:
-		return config.step_slow_ms
-	return maxf(config.step_slow_ms, config.step_limit_slack * 1000.0 / limit)
+## A slow frame's time (ms) under the frame-rate limit `limit` (Settings.UNLIMITED for none) and, with V-Sync, the
+## screen's rate `refresh_hz` (0 or less when off or unknown): `step_slow_ms`, or `step_limit_slack` of the longer of
+## the two frames when that is longer.
+func slow_ms(limit: int, refresh_hz: float = 0.0) -> float:
+	var frame_ms := 0.0
+	if limit > Settings.UNLIMITED:
+		frame_ms = 1000.0 / limit
+	if refresh_hz > 0.0:
+		frame_ms = maxf(frame_ms, 1000.0 / refresh_hz)
+	return maxf(config.step_slow_ms, config.step_limit_slack * frame_ms)
 
 
-## One drawn frame of `frame_seconds` under the frame-rate limit `limit`; `counting` is `counts`' answer for it, and
-## `pretend_slow` (the Dev settings' Pretend slow frames) counts it slow whatever its time. True on the frame the watch
-## asks for a step (once a match); a frame that doesn't count starts the count over.
-func feed(frame_seconds: float, limit: int, counting: bool, pretend_slow: bool = false) -> bool:
+## One drawn frame of `frame_seconds` under the frame-rate limit `limit` and the V-Sync rate `refresh_hz` (slow_ms);
+## `counting` is `counts`' answer for it, and `pretend_slow` (the Dev settings' Pretend slow frames) counts it slow
+## whatever its time. True on the frame the watch asks for a step (once a match); a frame that doesn't count starts the
+## count over, and a hitch (`step_hitch_seconds`) is skipped.
+func feed(frame_seconds: float, limit: int, counting: bool, pretend_slow: bool = false, refresh_hz: float = 0.0) -> bool:
 	if not counting:
 		reset()
 		return false
-	if _asked:
+	if _asked or frame_seconds > config.step_hitch_seconds:
 		return false
 	_seconds += frame_seconds
 	_frames += 1
-	if pretend_slow or frame_seconds * 1000.0 > slow_ms(limit):
+	if pretend_slow or frame_seconds * 1000.0 > slow_ms(limit, refresh_hz):
 		_slow += 1
 	if _seconds < config.step_window:
 		return false

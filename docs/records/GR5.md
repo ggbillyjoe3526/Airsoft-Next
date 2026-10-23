@@ -10,6 +10,12 @@
 
 ## Decisions
 
+- **QA's fixes:** For your card follows the pick when it steps down; with V-Sync the screen's rate is a limit too (a
+  50 Hz screen's slow frame is 25 ms); a frame over `step_hitch_seconds` (0.5 s: a dragged window, a machine waking)
+  is skipped rather than filling a window; a match reads the window's focus and rate at its start and on focus in.
+- **The unit suite's limit** in tools/unit_tests.sh is 900 s (was 600): the suite reached about 605 s across many
+  tasks (GR5's tests add about 7 s), and 900 s still fits CI's 20-minute job.
+
 - **The plan's defaults, the owner's approval of the step 20 pictures pending (plan questions 2 and 8):** the first
   start picks Medium on integrated graphics (and a card that doesn't say), High on a dedicated card, Low on software,
   virtual graphics or the simpler renderer, never Ultra (GraphicsPick, GR1); the step-down is kept and changes the
@@ -89,4 +95,4 @@
 ## Known issues left
 
 - The watch never counts on Compatibility, so it was fed only by tests here; the step on Forward+ is the owner's
-  check above (KNOWN_ISSUES, Graphics). With V-Sync on a screen under 60 Hz, frames sit at 20 ms and may step down.
+  check above (KNOWN_ISSUES, Graphics).

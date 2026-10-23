@@ -138,6 +138,10 @@ func refresh() -> void:
 	var values := s.graphics_in_force(probe.preset, _table)
 	var on := _lit_preset(s)
 	_preset.put(_preset_index(on))
+	# the card's pick may have stepped down this run: the tag follows it (its anchors and lift are local)
+	var tagged := _preset.button(_preset_index(probe.preset))
+	if _tag.get_parent() != tagged:
+		_tag.reparent(tagged, false)
 	_show_blurb(s, values)
 	var marked := s.graphics_forced == &"" and s.graphics_choice == GraphicsQuality.CUSTOM
 	var base := _table.preset(s.graphics_base)

@@ -140,6 +140,9 @@ var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
 ## frames say nothing about the graphics); the Dev settings' Pretend slow frames.
 var _watch: FrameWatch = FrameWatch.new()
 var _focused: bool = true
+## The screen's rate (DisplayServer, 0 or less when unknown), a limit on the frames while V-Sync is on; read at the
+## start and when the window gets the focus back (it may have moved to another screen).
+var _refresh_hz: float = 0.0
 var _warm: bool = false
 var _pretend_slow: bool = false
 var _stats: MatchStats = MatchStats.new()
@@ -173,6 +176,7 @@ func _ready() -> void:
 	name = "Play"
 	# Everything here is placed by hand between ticks (fraction below), so the engine's own interpolation stays off.
 	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	_read_window()
 	if staged:
 		progressed.emit(0, STEP_KEYS.size(), STEP_KEYS[0])
 		return
@@ -775,6 +779,7 @@ func _notification(what: int) -> void:
 		_watch.reset()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
 		_focused = true
+		_read_window()
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and _input != null and _input.active and not autopilot:
 		_open_pause()
 
@@ -1048,7 +1053,15 @@ func _watch_frame(delta: float) -> void:
 	var in_play := _warm and not practice and not autopilot and not _skipping and state.round_state.is_live()
 	var counting := FrameWatch.counts(graphics_automatic(), machine.preset, _focused, get_tree().paused, in_play,
 			machine.rendering_method)
-	_watch.feed(delta, settings.frame_limit, counting, _pretend_slow)
+	_watch.feed(delta, settings.frame_limit, counting, _pretend_slow, _refresh_hz if settings.vsync else 0.0)
+
+
+## The window's focus and its screen's rate, from the display (a headless run has neither: focused, rate unknown).
+func _read_window() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	_focused = DisplayServer.window_is_focused()
+	_refresh_hz = DisplayServer.screen_get_refresh_rate()
 
 
 ## A player's own pick in Settings › Graphics (from the pause menu) ends the watch's count and drops a step waiting.
