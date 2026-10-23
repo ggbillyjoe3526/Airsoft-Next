@@ -10,7 +10,7 @@
 
 ## Decisions
 
-- **The plan's default, the owner's approval of the step 20 pictures pending (plan question 6):** a start that closed
+- **The plan's default, approved with the step 20 pictures, 2026-10-23 (plan question 6):** a start that closed
   while drawing makes the next start restart itself on the simpler renderer and Low, then ask on the title (Keep safe
   graphics, or Try my settings again, which restores both and restarts), rather than asking first on a screen that may
   not draw. The renderer file is the plan's question 7 default: one plain file Godot reads, the contract 8 exception.
