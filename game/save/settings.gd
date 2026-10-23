@@ -325,15 +325,16 @@ func reset_save(path: String = PATH) -> void:
 	SettingsApply.apply_all(self)
 
 
-## The value at `key` if it is a number within [lo, hi], else `fallback`.
+## The value at `key` if it is a number within [lo, hi], else `fallback`; an end taken from a Vector2 range is single
+## precision, so HudPrefs.RANGE_SLACK past it still counts, clamped (QA).
 static func _number(data: Dictionary, key: String, fallback: float, lo: float, hi: float) -> float:
 	var v: Variant = data.get(key)
 	if not (v is float or v is int):
 		return fallback
 	var f := float(v)
-	if is_nan(f) or f < lo or f > hi:
+	if is_nan(f) or f < lo - HudPrefs.RANGE_SLACK or f > hi + HudPrefs.RANGE_SLACK:
 		return fallback
-	return f
+	return clampf(f, lo, hi)
 
 
 ## The graphics choice, base and Custom rows, each checked on its own: a Custom row of an unknown row, or with a value

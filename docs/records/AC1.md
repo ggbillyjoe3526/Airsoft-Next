@@ -10,6 +10,11 @@
 
 ## Decisions
 
+- **A range's end loads (QA):** Vector2 ranges hold single precision, so a saved 0.8 HUD size or 0.6 cue size sat
+  just under the range's end and loaded as the default. HudPrefs' and Settings' number readers let a value within
+  `HudPrefs.RANGE_SLACK` (1e-6) of an end in and clamp it; this also fixes the crosshair's lowest opacity, 0.2,
+  which had the same fault since the HUD tab.
+
 - **The plan's defaults; the owner hasn't approved the step 21 pictures yet** (`colour-sets.png`,
   `settings-accessibility.png`, plan questions 1 to 9). High contrast is the browser game's set (figures `#8ccfff` and
   `#b8460c`, HUD orange `#e0601a`, a 0.3 paint glow on day fields), sound cues are off, red and 100 %, gauge patterns
@@ -83,3 +88,9 @@ gaps above are this table's) and answers the props question.
 ## Known issues left
 
 - None new. KNOWN_ISSUES' SE1 row (no Accessibility tab) stays until AC2.
+
+## Advisories left (QA)
+
+- Several map paints pass the prop-hue rule's 0.3 saturation bar by a hair (Neon Heights `#eef3f6` 0.298, `#464e5e`
+  0.293, `#353848` 0.291; MapStyle container 3 0.290): a small retune of one of them trips the test, which then names
+  it.

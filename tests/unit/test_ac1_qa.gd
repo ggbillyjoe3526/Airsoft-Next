@@ -71,7 +71,7 @@ func test_every_slider_step_is_stable_through_save_and_load_and_inside_the_range
 		s.hud.hud_size = v
 		var back := _through_json(s).hud.hud_size
 		assert_almost_eq(back, v, 1e-9, "hud %s" % v)
-		assert_between(back, r.x, r.y, "hud %s stays inside the slider's range" % v)
+		assert_between(back, r.x - HudPrefs.RANGE_SLACK, r.y, "hud %s stays inside the slider's range" % v)
 		# Loading what was loaded changes nothing: no drift over repeated saves.
 		var again := _loaded({"hud": {"hud_size": back}}).hud.hud_size
 		assert_eq(again, back, "hud %s second load" % v)
@@ -80,16 +80,16 @@ func test_every_slider_step_is_stable_through_save_and_load_and_inside_the_range
 		var v := snappedf(c.x + i * AccessibilityConfig.CUE_SIZE_STEP, 0.0001)
 		var back := _through_json(_loaded({"sound_cue_size": v})).sound_cue_size
 		assert_almost_eq(back, v, 1e-9, "cue %s" % v)
-		assert_between(back, c.x, c.y, "cue %s stays inside the range" % v)
+		assert_between(back, c.x - HudPrefs.RANGE_SLACK, c.y, "cue %s stays inside the range" % v)
 
 
 func test_the_range_ends_load_as_the_ends() -> void:
 	var p := HudPrefs.new()
 	p.from_dict({"hud_size": 0.8})
-	assert_eq(p.hud_size, AccessibilityConfig.HUD_SIZE_RANGE.x)
+	assert_almost_eq(p.hud_size, 0.8, 1e-9, "the end saved, not the default (Vector2's 0.8 is single precision)")
 	p.from_dict({"hud_size": 1.5})
 	assert_eq(p.hud_size, AccessibilityConfig.HUD_SIZE_RANGE.y)
-	assert_eq(_loaded({"sound_cue_size": 0.6}).sound_cue_size, AccessibilityConfig.CUE_SIZE_RANGE.x)
+	assert_almost_eq(_loaded({"sound_cue_size": 0.6}).sound_cue_size, 0.6, 1e-9)
 	assert_eq(_loaded({"sound_cue_size": 2.0}).sound_cue_size, AccessibilityConfig.CUE_SIZE_RANGE.y)
 
 
@@ -183,3 +183,11 @@ func test_an_exception_row_with_a_case_or_spacing_slip_is_kept_loudly_not_silent
 	var about_exceptions := t.problems.filter(func(p: String) -> bool: return p.contains("exception"))
 	assert_eq(about_exceptions.size(), 2)
 
+
+func test_a_number_just_past_a_range_end_is_refused_and_one_inside_the_slack_clamped() -> void:
+	var p := HudPrefs.new()
+	p.from_dict({"hud_size": 0.79})
+	assert_eq(p.hud_size, 1.0, "past the end: the default")
+	p.from_dict({"opacity": 0.2})
+	assert_almost_eq(p.opacity, 0.2, 1e-6, "the crosshair's lowest opacity loads too")
+	assert_eq(_loaded({"sound_cue_size": 2.01}).sound_cue_size, AccessibilityConfig.CUE_SIZE_DEFAULT)
