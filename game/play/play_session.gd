@@ -699,7 +699,9 @@ func _process(delta: float) -> void:
 		return
 	_follow_skip(delta)
 	_watch_frame(delta)
-	_frames.add(delta)
+	# Once the field's shaders are warm: the warm-up's slow frames are no player's.
+	if _warm:
+		_frames.add(delta)
 	# The next match waits while the last round's table holds the results back.
 	if _rematch_left > 0.0 and not _hud.holds_results():
 		_rematch_left = maxf(0.0, _rematch_left - delta)

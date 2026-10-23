@@ -34,9 +34,12 @@ func test_the_machines_fields_as_the_pictures() -> void:
 	assert_eq(ReportFacts.godot_text({"major": 4, "minor": 7, "patch": 2, "status": "stable", "build": "official",
 			"hash": "ed1daf0bf001b61586d9930840f2f1394092c079"}), "4.7.2.stable.official.ed1daf0bf")
 	assert_eq(ReportFacts.godot_text({}), "")
-	assert_eq(ReportFacts.system_text("Windows 11", "10.0.22631", 16, 32 * 1024 * 1024 * 1024),
+	# OS.get_version_alias()'s own shapes: Windows "11 (build 22631)", macOS "Sequoia (15.0.0)", Linux its version.
+	assert_eq(ReportFacts.system_text("Windows", "11 (build 22631)", "10.0.22631", 16, 32 * 1024 * 1024 * 1024),
 			"Windows 11 (10.0.22631), 16 threads, 32 GB")
-	assert_eq(ReportFacts.system_text("Ubuntu 24.04.5 LTS", "24.04", 4, 16872804352), "Ubuntu 24.04.5 LTS, 4 threads, 16 GB")
+	assert_eq(ReportFacts.system_text("macOS", "Sequoia (15.0.0)", "15.0.0", 8, 0), "macOS Sequoia (15.0.0), 8 threads")
+	assert_eq(ReportFacts.system_text("Ubuntu 24.04.5 LTS", "24.04", "24.04", 4, 16872804352),
+			"Ubuntu 24.04.5 LTS, 4 threads, 16 GB")
 	assert_eq(ReportFacts.card_text("NVIDIA GeForce RTX 3070", PackedStringArray(["nvidia", "566.36"])),
 			"NVIDIA GeForce RTX 3070 (driver 566.36)")
 	assert_eq(ReportFacts.card_text("", PackedStringArray()), "", "headless names no card")
@@ -45,6 +48,16 @@ func test_the_machines_fields_as_the_pictures() -> void:
 	assert_eq(ReportFacts.window_text(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN, Vector2i(2560, 1440), 144.0),
 			"fullscreen 2560 × 1440 at 144 Hz")
 	assert_eq(ReportFacts.window_text(DisplayServer.WINDOW_MODE_WINDOWED, Vector2i(1280, 720), -1.0), "windowed 1280 × 720")
+
+
+## The real calls: this machine's line names its system once, its threads and memory.
+func test_the_system_line_from_the_engine() -> void:
+	var line := ReportFacts.system_now()
+	var os_name := OS.get_distribution_name() if OS.get_name() == "Linux" else OS.get_name()
+	assert_string_starts_with(line, os_name)
+	assert_string_contains(line, ", %d threads, " % OS.get_processor_count())
+	assert_eq(line.count(os_name), 1, "named once")
+	assert_string_ends_with(line, " GB")
 
 
 func test_times_and_clocks() -> void:

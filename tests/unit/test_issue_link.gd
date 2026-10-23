@@ -109,13 +109,20 @@ func test_each_cut_step() -> void:
 
 func test_too_long_for_any_cut_gives_the_first_lines_that_fit() -> void:
 	var info := _long_info()
-	info.settings_changed = "z".repeat(9000)
+	# Lines are cut to max_line_chars, so it takes several long fields no cut leaves out.
+	var long := "z".repeat(_config.max_line_chars - 20)
+	info.system = long
+	info.graphics_card = long
+	info.renderer = long
+	info.window = long
+	info.language = long
 	var link := IssueLink.make(info, _config)
 	assert_true(link.cut)
 	assert_lte(link.url.length(), _config.max_url_chars)
 	var body := _query(link.url, "body")
 	assert_string_contains(body, IssueLink.CUT_NOTE)
-	assert_string_contains(body, "\nScreen: in play\n", "the first lines")
+	assert_string_contains(body, "\nGodot: 4.7.2.stable.official.ed1daf0bf\nSystem: zzz", "the first lines")
+	assert_false(body.contains("\nScreen: "), "not the last ones")
 	assert_true(body.ends_with("\n```"), "the fence closes")
 	# Tighter still: fewer lines, never over.
 	_config.max_url_chars = 2000
@@ -161,3 +168,16 @@ func test_fails_closed_and_scrubs_the_note_before_the_cut() -> void:
 	var body := _query(IssueLink.make(info, _config).url, "body")
 	assert_false(body.contains("Willia"), "no part of the name")
 	assert_string_starts_with(body, "a".repeat(_config.note_chars - 4) + " <yo\n")
+
+
+## QA attempt 2: a huge pasted note can't stall the game.
+func test_a_huge_note_is_quick() -> void:
+	var info := BugReportTest.picture_info()
+	info.scrub = ReportScrub.new("", "", "William", "")
+	info.note = "b".repeat(60000)
+	var t := Time.get_ticks_msec()
+	var link := IssueLink.make(info, _config)
+	var took := Time.get_ticks_msec() - t
+	gut.p("IssueLink with a 60,000-character note: %d ms" % took)
+	assert_lt(took, 500)
+	assert_string_starts_with(_query(link.url, "body"), "b".repeat(_config.note_chars) + "\n\n")

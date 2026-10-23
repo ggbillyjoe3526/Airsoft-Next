@@ -38,6 +38,8 @@ const DEFAULT_PATH := "res://game/config/report_config.tres"
 ## The account and machine names are taken out as whole words from this many characters (shorter ones would take
 ## out ordinary words; the folders they name are still taken out).
 @export var min_name_chars: int = 3
+## The longest line a report gives (characters): a longer one is cut, before and after it is scrubbed.
+@export var max_line_chars: int = 2000
 ## The player reads as crouched past this much of a crouch (Character.crouch_amount, 0 to 1).
 @export_range(0.0, 1.0) var crouched_at: float = 0.5
 ## The teams as reports name them, Alpha's first (English: reports are read by the developer).

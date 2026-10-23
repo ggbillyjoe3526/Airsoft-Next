@@ -32,9 +32,10 @@ const HEX := r"[0-9a-f]{1,4}"
 ## A full stop may follow an address (the end of a sentence), never another number.
 const IPV4 := r"(?<![\d.])(?:" + OCTET + r"\.){3}" + OCTET + r"(?!\d|\.\d)"
 ## Every IPv6 form: full, compressed ("2001:db8::1", "fe80::1ff:fe23:4567:890a", "::ffff:c0a8:105") and with an IPv4
-## tail ("::ffff:1.2.3.4"). It holds a digit, so a C++ name ("Face::bad") isn't one; clocks have no "::" and too few
-## groups.
-const IPV6 := r"(?i)(?<![\w:.])(?=[0-9a-f:.]*\d)(?:" \
+## tail ("::ffff:1.2.3.4"), with its zone ("%eth0", "%Ethernet 2", "%12"). It holds a digit, so a C++ name ("Face::bad")
+## isn't one; clocks have no "::" and too few groups. A label may run into it ("ip:fe80::1", "host:::1": one colon
+## before it, never two) and a colon may follow it ("2001:db8::1: refused"), not a word or another colon.
+const IPV6 := r"(?i)(?<![\w.])(?<!::)(?=[0-9a-f:.]*\d)(?:" \
 		+ r"(?:[0-9a-f]{0,4}:){2,6}" + OCTET + r"(?:\." + OCTET + r"){3}(?!\d|\.\d)" \
 		+ r"|(?:" + HEX + r":){7}" + HEX \
 		+ r"|(?:" + HEX + r":){1,6}:" + HEX \
@@ -45,15 +46,18 @@ const IPV6 := r"(?i)(?<![\w:.])(?=[0-9a-f:.]*\d)(?:" \
 		+ r"|" + HEX + r":(?::" + HEX + r"){1,6}" \
 		+ r"|:(?::" + HEX + r"){1,7}" \
 		+ r"|(?:" + HEX + r":){1,7}:" \
-		+ r")(?![\w:])"
+		+ r")(?:%[\w.\-]+(?: \d+\b)?)?(?!\w|:[\w:])"
 const MAC := r"(?i)(?<![0-9a-f:-])(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}(?![0-9a-f:-])"
-const EMAIL := r"(*UCP)[\w.+-]+@[\w-]+(?:\.[\w-]+)+"
+## Starts only where a run of its characters starts, and never gives back, so a long run with no "@" costs one pass,
+## not one a character (a pasted note of 60,000 took 4.7 s).
+const EMAIL := r"(*UCP)(?<![\w.+-])[\w.+-]++@[\w-]+(?:\.[\w-]+)+"
 ## The characters a regular expression gives a meaning to, escaped in a name or path.
 const SPECIAL := "\\^$.|?*+()[]{}"
 
 var _paths: Array[RegEx] = []
 var _path_words: PackedStringArray = []
 var _names: Array[RegEx] = []
+var _max_chars: int = 0
 var _name_words: PackedStringArray = []
 var _user_folder := RegEx.create_from_string(USER_FOLDER)
 var _onedrive := RegEx.create_from_string(ONEDRIVE)
@@ -64,10 +68,14 @@ var _addresses: Array[RegEx] = [RegEx.create_from_string(IPV6), RegEx.create_fro
 
 
 ## `save_folder` (OS.get_user_data_dir), `home`, `account` and `machine` as this machine gives them ("" for one not
-## known); names shorter than `min_chars` are taken out of paths only. A machine's full name ("box.corp.example") goes
+## known); names shorter than `config`'s min_name_chars are taken out of paths only, and a line is cut to its
+## max_line_chars. A machine's full name ("box.corp.example") goes
 ## and so does its first part ("box").
 func _init(save_folder: String = "", home: String = "", account: String = "", machine: String = "",
-		min_chars: int = 3) -> void:
+		config: ReportConfig = null) -> void:
+	var c := config if config != null else ReportConfig.new()
+	var min_chars := c.min_name_chars
+	_max_chars = c.max_line_chars
 	_add_path(save_folder, SAVE_FOLDER)
 	_add_path(home, HOME)
 	var names: Array[PackedStringArray] = [PackedStringArray([account, YOU]), PackedStringArray([machine, MACHINE])]
@@ -90,14 +98,14 @@ static func for_this_machine(config: ReportConfig = null) -> ReportScrub:
 	var machine := _env(["COMPUTERNAME", "HOSTNAME"])
 	if machine == "" and FileAccess.file_exists("/etc/hostname"):
 		machine = FileAccess.get_file_as_string("/etc/hostname").strip_edges()
-	var min_chars := config.min_name_chars if config != null else ReportConfig.new().min_name_chars
-	return ReportScrub.new(OS.get_user_data_dir(), home, account, machine, min_chars)
+	return ReportScrub.new(OS.get_user_data_dir(), home, account, machine, config)
 
 
-## `text` with the folders, names and addresses taken out. E-mail addresses go before the names, so "<you>@domain"
-## never stays behind.
+## `text` with the folders, names and addresses taken out, cut to max_line_chars. E-mail addresses go before the names,
+## so "<you>@domain" never stays behind. A huge line is cut to twice that before it is scrubbed (a pasted note can't
+## stall the game), and to it after, so the first cut can't leave part of a name in what is kept.
 func line(text: String) -> String:
-	var out := text
+	var out := text.left(_max_chars * 2) if _max_chars > 0 else text
 	for i in _paths.size():
 		out = _paths[i].sub(out, _path_words[i], true)
 	out = _user_folder.sub(out, "$1" + YOU, true)
@@ -107,7 +115,7 @@ func line(text: String) -> String:
 		out = _names[i].sub(out, _name_words[i], true)
 	for r in _addresses:
 		out = r.sub(out, ADDRESS, true)
-	return out
+	return out.left(_max_chars) if _max_chars > 0 else out
 
 
 ## Every line of `texts`, scrubbed.

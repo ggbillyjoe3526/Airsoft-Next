@@ -132,10 +132,16 @@ static func godot_text(v: Dictionary) -> String:
 	return out + ("." + hash_part if hash_part != "" else "")
 
 
-## "Windows 11 (10.0.22631), 16 threads, 32 GB".
-static func system_text(os_name: String, version: String, threads: int, memory_bytes: int) -> String:
+## "Windows 11 (10.0.22631), 16 threads, 32 GB": the system's name, OS.get_version_alias()'s name for the release
+## ("11" of Windows' "11 (build 22631)", "Sequoia" of macOS'; Linux' is its version, already in the distribution's
+## name) and the version.
+static func system_text(os_name: String, alias: String, version: String, threads: int, memory_bytes: int) -> String:
 	var parts := PackedStringArray()
-	parts.append(os_name if version == "" or os_name.contains(version) else "%s (%s)" % [os_name, version])
+	var release := alias.get_slice(" (", 0).strip_edges()
+	var named := os_name
+	if release != "" and release != version and not os_name.contains(release):
+		named += " " + release
+	parts.append(named if version == "" or named.contains(version) else "%s (%s)" % [named, version])
 	if threads > 0:
 		parts.append("%d threads" % threads)
 	if memory_bytes > 0:
@@ -346,12 +352,17 @@ static func errors_in_log(lines: PackedStringArray, most: int) -> PackedStringAr
 	return newest(out, most)
 
 
+## This machine's System line, from the engine's own calls.
+static func system_now() -> String:
+	var os_name := OS.get_distribution_name() if OS.get_name() == "Linux" else OS.get_name()
+	return system_text(os_name, OS.get_version_alias(), OS.get_version(), OS.get_processor_count(),
+			int(OS.get_memory_info().get("physical", 0)))
+
+
 ## The machine's own facts, the same for a live report and a crash's (it is this machine that crashed).
 static func _machine(info: BugReport.ReportInfo, settings: Settings) -> void:
 	info.godot = godot_text(Engine.get_version_info())
-	var os_name := OS.get_distribution_name() if OS.get_name() == "Linux" else OS.get_name()
-	info.system = system_text(os_name, OS.get_version(), OS.get_processor_count(),
-			int(OS.get_memory_info().get("physical", 0)))
+	info.system = system_now()
 	info.graphics_card = card_text(RenderingServer.get_video_adapter_name(), OS.get_video_adapter_driver_info())
 	var machine := GraphicsApply.machine()
 	var preset := String(settings.graphics_preset_on(machine.preset)) if settings != null else String(machine.preset)

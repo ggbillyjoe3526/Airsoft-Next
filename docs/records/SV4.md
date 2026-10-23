@@ -7,7 +7,8 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus | pass | QA Fail; performance Pass | |
-| 2026-10-23 | 2 | Opus | pass | | QA attempt 1 Fail: an IPv4 address ending a sentence and compressed IPv6 reached a report |
+| 2026-10-23 | 2 | Opus | pass | 8/8 (held for QA); QA Fail | QA attempt 1 Fail: an IPv4 address ending a sentence and compressed IPv6 reached a report |
+| 2026-10-23 | 3 | Opus | pass | | QA attempt 2 Fail: an IPv6 address after "label:" or before a colon reached a report |
 
 ## Decisions
 
@@ -62,6 +63,21 @@
   replica changes each tick, so every shot takes a new entry. Performance's advisories: PlaySession clears both rings
   when a rematch starts (tested), and RecentEvents reads look_back and burst_ticks once. Left as KNOWN_ISSUES rows (can
   wait): a common-word account or machine name over-scrubs, and FrameWindow counts the shader warm-up frames.
+- **QA attempt 2 Fail and the critic's 8/8 (held for QA), the fixes (attempt 3).** Blocker: IPv6 may now follow a
+  label's single colon ("ip:fe80::1", "host:::1" read "ip:<address>", "host:<address>"; never right after "::") and
+  be followed by a colon ("2001:db8::1: refused"), never by a word or another colon; "12:40:05", "res://a.gd:12:5",
+  "Face::bad", "std::vector<int>::iterator", "Vector2::ZERO" and "x:y" stay. QA's tests are folded into
+  `test_report_scrub.gd`. A zone goes with its address ("%eth0", "%Ethernet 2", "%12"). The e-mail pattern starts
+  only where a run starts and never gives back (possessive), so it is linear: a 60,000-character line took 4.7 s and
+  now 12 ms; every line is also cut to `max_line_chars` (2,000, ReportConfig), to twice that before scrubbing and to
+  it after so the first cut can't leave part of a name, and the note to twice its 500 before scrubbing. The critic's
+  points: the System line takes `OS.get_version_alias()`'s release name ("Windows" + "11 (build 22631)" reads
+  "Windows 11 (10.0.22631)", as the picture), tested in the call's own shapes and through `system_now()` on this
+  machine; FrameWindow is fed only once the shaders are warm (`_warm`), so that KNOWN_ISSUES row went; ReportScrub
+  takes its name length and line length from a ReportConfig (`_init`'s last argument) rather than a repeated 3. Left as
+  KNOWN_ISSUES rows (can wait): a digitless IPv6 (`dead::beef`), a four-part version read as an address (`v1.2.3.4`),
+  credentials in a web address. IssueLink's "too long for any cut" test now uses five long fields, since one long line
+  is cut to 2,000.
 - **Rebased** onto `origin/main` after SV1 (#83) and SV3 (#84) merged; ARCHITECTURE's `game/save/` row is main's.
 
 ## Performance (perf: required)
@@ -74,7 +90,8 @@ Cloud box, headless, no GPU:
   read before any assert; `assert_lte`).
 - Summing a full window (1,000 frames) for a report: 0.15 ms.
 - A whole report from a real match (ReportFacts, BugReport and IssueLink with 30 events, 20 errors, scrubbed): 3.7 ms
-  (70 lines, a 3,117-character address), made only when the player asks (4.7 ms at attempt 2, after the rebase; the scrub's patterns are longer).
+  (70 lines, a 3,117-character address), made only when the player asks (4.7 ms at attempt 2, after the rebase; the scrub's patterns are longer; 4.8 ms at attempt 3). A 60,000-character
+note through IssueLink: 2 ms.
 
 Performance attempt 1: Pass.
 
@@ -84,6 +101,8 @@ Performance attempt 1: Pass.
 frames=4499 … rounds=9 plates=5 orders=3`) and licence notices all pass.
 Attempt 2 (rebased on main): all five gates pass, unit tests 2446 of 2446, no script error, `[smoke] ok frames=3048 …
 rounds=6 plates=5 orders=3`.
+Attempt 3: all five gates pass, unit tests 2451 of 2451, no script error, `[smoke] ok frames=2508 … rounds=6 plates=5
+orders=3`.
 
 ## Owner's checks
 
@@ -96,10 +115,10 @@ rounds=6 plates=5 orders=3`.
 - The address length through ShellExecute is untested (a KNOWN_ISSUES row, playtest).
 - ReportScrub's address shapes can take a four-part version number for an address, and a spaced user folder name runs
   to the next slash (a KNOWN_ISSUES row, can wait).
-- A common-word account or machine name over-scrubs; FrameWindow counts the shader warm-up frames (KNOWN_ISSUES rows,
-  can wait).
+- A common-word account or machine name over-scrubs; a digitless IPv6 stays; a four-part version reads as an address;
+  credentials in a web address keep their user name (KNOWN_ISSUES rows, can wait).
 
 ## Outside `touches`
 
-`docs/KNOWN_ISSUES.md` (four rows), `docs/ARCHITECTURE.md` (the `game/report/` row), `game/config/README.md` (a row),
+`docs/KNOWN_ISSUES.md` (six rows), `docs/ARCHITECTURE.md` (the `game/report/` row), `game/config/README.md` (a row),
 `docs/TASKS.md` (the block out), `docs/records/SV4.md`, `tests/unit/test_report_facts.gd` (ReportFacts' tests).

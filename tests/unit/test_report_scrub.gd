@@ -168,3 +168,44 @@ func test_paths_keep_what_follows_them() -> void:
 	var u := ReportScrub.new()
 	assert_eq(u.line("[C:\\Users\\Bob]"), "[C:\\Users\\<you>]")
 	assert_eq(u.line("in /home/ann. Then"), "in /home/<you>. Then")
+
+
+## QA attempt 2: an IPv6 address after "label:" or before a colon came through.
+func test_an_ipv6_address_after_a_label_or_before_a_colon() -> void:
+	var s := ReportScrub.new()
+	assert_eq(s.line("addr:2001:db8::1"), "addr:<address>")
+	assert_eq(s.line("ip:fe80::1"), "ip:<address>")
+	assert_eq(s.line("from:2001:db8::1"), "from:<address>")
+	assert_eq(s.line("IPv6:2001:db8::1"), "IPv6:<address>")
+	assert_eq(s.line("host:::1"), "host:<address>")
+	assert_eq(s.line("connect to 2001:db8::1: refused"), "connect to <address>: refused")
+	for kept: String in ["12:40:05", "res://a.gd:12:5", "Face::bad", "std::vector<int>::iterator", "Vector2::ZERO",
+			"x:y", "at: _load (res://game/x.gd:12)"]:
+		assert_eq(s.line(kept), kept)
+
+
+func test_an_ipv6_zone_goes_with_it() -> void:
+	var s := ReportScrub.new()
+	assert_eq(s.line("fe80::1%eth0 up"), "<address> up")
+	assert_eq(s.line("fe80::1%Ethernet 2 up"), "<address> up")
+	assert_eq(s.line("[fe80::1ff:fe23:4567:890a%12]:80"), "[<address>]:80")
+
+
+## QA attempt 2: a long run with no "@" was quadratic for the e-mail pattern (60,000 characters, 4.7 s).
+func test_a_huge_line_is_quick_and_cut() -> void:
+	var config := ReportConfig.new()
+	var s := ReportScrub.new("", "/home/william", "William", "", config)
+	var huge := "a".repeat(60000)
+	var t := Time.get_ticks_msec()
+	var out := s.line(huge)
+	var whole := ReportConfig.new()
+	whole.max_line_chars = 0
+	var unbounded := ReportScrub.new("", "", "", "", whole)
+	var all := unbounded.line(huge + " me@example.com")
+	var took := Time.get_ticks_msec() - t
+	gut.p("a 60,000-character line, cut and whole: %d ms" % took)
+	assert_lt(took, 500)
+	assert_eq(out.length(), config.max_line_chars)
+	assert_true(all.ends_with(" <address>"), "linear even uncut")
+	var name_at_cut := "x".repeat(config.max_line_chars - 4) + " William"
+	assert_false(s.line(name_at_cut).contains("Will"), "scrubbed before it is cut")

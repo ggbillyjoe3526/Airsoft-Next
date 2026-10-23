@@ -28,7 +28,8 @@ var cut: bool = false
 static func make(info: BugReport.ReportInfo, config: ReportConfig) -> IssueLink:
 	var scrub := info.scrub if info.scrub != null else ReportScrub.for_this_machine(config)
 	# Scrubbed, then cut: a cut first could leave part of a name that no longer matches.
-	var note := scrub.line(info.note.strip_edges()).left(config.note_chars)
+	var note := scrub.line(info.note.strip_edges().left(config.note_chars * BugReport.SCRUB_MARGIN)) \
+			.left(config.note_chars)
 	var title := issue_title(note, info.version, config.title_chars)
 	var link := IssueLink.new()
 	var cuts: Array[BugReport.Cut] = [BugReport.Cut.new()]
