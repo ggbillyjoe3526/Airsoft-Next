@@ -10,7 +10,7 @@
 
 ## Decisions
 
-- **Defaults (the plan's, the owner's approval of the picture pending):** V-Sync on and Unlimited, as before, so
+- **Defaults (the plan's, approved with the step 20 pictures, 2026-10-23):** V-Sync on and Unlimited, as before, so
   nobody's frame rate changes on update; limits 30, 60, 120, 144, 165, 240 and 360 (GR1's `Settings.FRAME_LIMITS`,
   the common screen rates); 30 in the background (`DisplayConfig.background_fps`: a match on a second screen stays
   watchable, an alt-tabbed game runs cool), a lower limit winning.
