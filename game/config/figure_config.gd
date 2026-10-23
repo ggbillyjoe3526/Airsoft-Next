@@ -118,7 +118,7 @@ extends Resource
 ## The reloads (FI4): Rifle_Reload or Pistol_Reload by the replica's class, played over the holster and under the
 ## switch, placed by the reload's share of the replica's reload time (the sidecar's fitTo). The magazine in the hand and
 ## the old one thrown are copies of the replica model's magazine_node mesh, placed by the sidecar's magazineInHand; at
-## most thrown_max lie on the field (the oldest goes first), from a pool of that many a replica model.
+## most thrown_max lie on the field (the oldest goes first), from one shared pool of that many.
 @export var rifle_reload_clip: StringName = &"Rifle_Reload"
 @export var pistol_reload_clip: StringName = &"Pistol_Reload"
 @export var magazine_node: String = "Magazine"

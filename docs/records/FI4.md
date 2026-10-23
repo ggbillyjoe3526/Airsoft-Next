@@ -1,12 +1,15 @@
 # FI4 · Reloads: the magazine in hand and the old one thrown
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
+
+QA attempt 1 failed (an eliminated figure's frozen reload, fixed in the fix round); QA attempt 2 passed
+(`tests/unit/test_figure_reload_pool_qa.gd`, 7).
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus 5.5 (worker) | pass | – | – |
+| 2026-10-23 | 1 | Opus 5.5 (worker) | pass | Accept 8/8 | – |
 | 2026-10-23 | 1, QA | – | QA Fail (`tests/unit/test_figure_reload_qa.gd`, 14), fixed; performance Pass | – | – |
 | 2026-10-23 | 1, fix round | Opus 5.5 (worker) | pass | – | QA: an eliminated figure's frozen reload; performance: one shared pool, the box cached |
 
@@ -65,7 +68,7 @@ Pass: all 12 figures reloading cost +0.17 ms for 12 in `animate`; no allocation 
 - `tools/check.sh`: gdlint, changelog notes, unit tests (2,731 passing, 0 failing), the smoke test and the licence notices pass. After the fix round (with QA's 14): 2,745 passing, 0 failing; the rest pass.
 - Mutations: the reload clip unlooped (`_clip` for `_held_open`) fails the 240 Hz test (94 of 108 ticks); the new
   magazine's window widened by 0.05 fails the 0.389-0.509 test.
-- `tests/unit/test_thrown_magazines.gd` (5): the pool once a mesh, a fall that lands on its side at the feet and goes after
+- `tests/unit/test_thrown_magazines.gd` (5): one shared pool, a fall that lands on its side at the feet and goes after
   3 s, a 13th throw retiring the first, no pool no throw and clear, no allocation over 600 frames of throws.
 - `tests/unit/test_figure_hands.gd` (+8): the new magazine on Hand_L over 0.389-0.509 of a 1.8 s reload and the old over
   0.093-0.185, one copy at most; the old copy where the replica's clip pulls its magazine (AEG, pistol); the clip in step
@@ -91,6 +94,10 @@ pistol reload; right a robot 0.15 into a rifle reload, pulling the old magazine 
 - A figure that jumps or falls while throwing lands its magazine at its feet height mid-air, for up to 3 s (plan risk,
   accepted).
 - A far figure with far_stride 0 stays frozen mid-reload with the magazine in its hand (as its frozen pose).
+- From the critic: the reload clip moves at the 60 Hz tick like FI3's draw (the share isn't interpolated by
+  `fraction`), so it may look steppy at 144 Hz and up; the clip loops through its 0.08 s fade-out, so the reload's
+  first frames blend in at falling weight; `FigureModels.godot_from_blender`'s comment says "Y forward" where the
+  rig faces Blender -Y (the conversion is right).
 
 ## Known issues left
 

@@ -4,28 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## FI4 · Reloads: the magazine in hand and the old one thrown
-tier: core
-perf: required
-touches: game/play/figures/, game/config/figure_config.gd, game/config/play_tuning.tres, game/play/figure_view.gd,
-  game/play/play_session.gd, tests/unit/test_thrown_magazines.gd, tests/unit/test_figure_hands.gd
-contract: Simulation and presentation (1); Events (3); Data, not literals (6)
-acceptance:
-  1. RELOAD_START plays Rifle_Reload or Pistol_Reload as a OneShot time-scaled to the replica's reload time (fitTo);
-     RELOAD_END or a switch cuts it; reload_left keeps it in step with the simulation.
-  2. Between the sidecar's from and to a copy of the replica model's Magazine mesh rides on Hand_L (magazineOnBone);
-     the old magazine is a second copy from oldMagazine.from, released at release with releaseVelocity and
-     releaseSpin (figure space, plus the figure's own velocity), falls at 9.81 m/s², stops on its side at the
-     figure's ground height and goes after lifetime 3 s; 12 at most, the oldest goes first.
-  3. The figure version's own magazine can't hide (one mesh until the art pass, DECISIONS 2026-10-19): only the
-     in-hand and thrown copies show, never a third.
-  4. ThrownMagazines is a fixed pool built once a session (12 MeshInstance3D a replica kind), no allocation per
-     reload; cleared at ROUND_START.
-  5. GUT: a 1.8 s reload shows the hand's magazine over 0.389-0.509 of it; a release throws one that lands and is
-     gone after 3 s; a 13th throw retires the first; a reload cut by a switch throws nothing more.
-status: open
-attempts: 0
-
 ## FI7 · Rigged figures for everyone: capsules gone, the hit area measured, eleven figures timed
 tier: core
 perf: required
