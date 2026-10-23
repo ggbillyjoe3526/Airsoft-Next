@@ -22,6 +22,8 @@
 - **"Yours" is the listener's:** watching a teammate once you are out, their sounds are the ones left out. Teammates'
   shots and hit calls show; their steps and vaults don't. Steps of a player already out (walking off) make no cue, as
   on the minimap. A hit call shows at the caller's feet.
+  New ears clear the markers (QA): the view moving to another player, as a side change does, so a marker made while
+  that player was a teammate doesn't stay up as their own sound.
 - **A full pool makes room:** one marker per player and kind; with all ten up, the one heard longest ago makes way,
   so the newest sound always shows. A burst renews and moves one marker.
 - **Opacity is by the distance when heard** (1 beside you to 0.35 at the reach), times the fade over the last 0.6 s

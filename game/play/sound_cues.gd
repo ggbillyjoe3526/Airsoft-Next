@@ -46,14 +46,14 @@ func _init(cfg: AccessibilityConfig, sound: SoundConfig) -> void:
 		cues.append(Cue.new())
 
 
-## After a simulation tick: the cues `listener` heard in the tick's events. A new match, a new round or a listener on
-## another team clears them.
+## After a simulation tick: the cues `listener` heard in the tick's events. A new match, a new round or new ears (the
+## view moved to another player) clear them.
 func on_tick(state: GameState, listener: Character) -> void:
 	if state.match_number != _match:
 		_match = state.match_number
 		clear()
 	if listener != null:
-		if listener.team != side:
+		if listener.team != side or listener.id != listener_id:
 			clear()
 			side = listener.team
 		listener_id = listener.id
@@ -134,6 +134,8 @@ func _hear(character_id: int, kind: Kind, at: Vector3, reach: float, listener: C
 	if d > reach:
 		return
 	var c := _marker_for(character_id, kind)
+	if c == null:
+		return
 	c.character_id = character_id
 	c.kind = kind
 	c.at = at

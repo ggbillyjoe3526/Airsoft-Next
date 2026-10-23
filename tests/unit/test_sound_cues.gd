@@ -204,7 +204,7 @@ func test_the_pool_never_grows_and_the_oldest_makes_way() -> void:
 	assert_null(cues.cue_of(2, SoundCues.Kind.STEP), "the oldest made way")
 
 
-func test_a_new_round_a_new_match_and_another_side_clear_them() -> void:
+func test_a_new_round_a_new_match_and_new_ears_clear_them() -> void:
 	_step(enemy)
 	_tick()
 	state.events.add(GameEvent.Kind.ROUND_START)
@@ -220,6 +220,12 @@ func test_a_new_round_a_new_match_and_another_side_clear_them() -> void:
 	_tick(enemy)
 	assert_eq(cues.live_count(), 0, "another side's ears")
 	assert_eq(cues.side, ENEMY_TEAM)
+	_tick(you)
+	_shot(mate)
+	_tick(you)
+	assert_eq(cues.live_count(), 1, "your teammate's shot")
+	_tick(mate)
+	assert_eq(cues.live_count(), 0, "watching that teammate: their own shot is no cue")
 
 
 # --- the bearing and the ring ---
