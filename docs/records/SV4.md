@@ -1,6 +1,6 @@
 # SV4 · The bug report and its GitHub issue address
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
@@ -9,7 +9,7 @@
 | 2026-10-23 | 1 | Opus | pass | QA Fail; performance Pass | |
 | 2026-10-23 | 2 | Opus | pass | 8/8 (held for QA); QA Fail | QA attempt 1 Fail: an IPv4 address ending a sentence and compressed IPv6 reached a report |
 | 2026-10-23 | 3 | Opus | pass | QA Fail | QA attempt 2 Fail: an IPv6 address after "label:" or before a colon reached a report |
-| 2026-10-23 | 4 | Opus | pass | | QA attempt 3 Fail: the cut left half a name or address; IPv6 was quadratic; a MAC after a label reached a report |
+| 2026-10-23 | 4 | Opus | pass | Accept 8/8; QA Pass | QA attempt 3 Fail: the cut left half a name or address; IPv6 was quadratic; a MAC after a label reached a report |
 
 ## Decisions
 
@@ -136,6 +136,17 @@ Attempt 4 (on main after SV2): all five gates pass, unit tests 2492 of 2492, no 
 - A common-word account or machine name over-scrubs; a digitless IPv6 stays; a four-part version reads as an address;
   a C++-style name holding a digit (`Fade::1`) reads as an address; credentials in a web address keep their user name
   (KNOWN_ISSUES rows, can wait).
+- An account name with a space can leave its first word at a cut, when scrubbing first shrinks a very long line (over
+  4,000 characters, mostly save-folder paths) or note so the name lands at the cut (a KNOWN_ISSUES row, can wait).
+
+## Advisories left
+
+- Scrub the plain names and folders on the uncut text (those patterns are linear) and keep the pre-cut only in front
+  of the address and e-mail patterns; that closes the spaced-name cut above (critic, QA).
+- `note_chars` 0 means "all" in BugReport but empties the note in IssueLink; the final line cut is a plain `left()`
+  with no "…"; the Note line is scrubbed twice (critic).
+- The rematch check in test_report_facts asserted no hitches over two real frames, which a loaded machine can miss; it
+  now asserts the injected 200 ms frame went (SV6's QA saw it fail once).
 
 ## Outside `touches`
 

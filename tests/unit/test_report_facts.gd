@@ -260,4 +260,4 @@ func test_a_live_report_from_a_match() -> void:
 	var after := session.recent_events().lines(session.state, PlaySession.PLAYER_ID)
 	assert_false(" ".join(after).contains("t10000 "), "the last match's events went")
 	session.frame_window().summarise()
-	assert_eq(session.frame_window().hitches, 0, "and its frames")
+	assert_lt(session.frame_window().worst_ms, 200.0, "and its frames")
