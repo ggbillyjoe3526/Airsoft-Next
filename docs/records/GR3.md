@@ -56,7 +56,7 @@ The cloud has no window manager: modes, monitors, V-Sync and focus were checked 
    each mode) and the next start opens there. Unplug that monitor and start: the game opens on the primary, whole and
    on-screen. With one monitor the row is gone.
 4. **Background:** Show FPS on, limit Unlimited, alt-tab to another window (and minimise): the figure drops to about
-   30 and the fan quietens; back in the game it climbs again. A match keeps running in the background.
+   30 and the fan quietens; back in the game it climbs again. In a match, alt-tab opens the pause menu, drawn at about 30 a second.
 5. **Limits:** 30 with V-Sync off in a match: movement and BBs keep their real speed (60 ticks a second), only fewer
    frames; say how 30 feels. 144 and 240 on a fast screen: the Show FPS figure sits at the limit.
 6. **V-Sync** off on a 60 Hz screen: the figure goes above 60 with tearing; on, at most the screen's rate.
@@ -85,5 +85,4 @@ The cloud has no window manager: modes, monitors, V-Sync and focus were checked 
 
 - Window modes, monitors, V-Sync and the background rate are unchecked on a real display (KNOWN_ISSUES, Play / SE1's
   row) until the owner's checks above.
-- DECISIONS' 2026-10-16 "home-screen fullscreen button" stands until the owner's ruling (plan question 5) is written
-  there.
+- DECISIONS' 2026-10-16 "home-screen fullscreen button" now says the 2026-10-19 ruling replaced it (critic).

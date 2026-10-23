@@ -127,7 +127,7 @@ func test_f11_works_paused_and_unpaused_and_the_mouse_mode_is_left_alone() -> vo
 
 func test_f11_goes_fullscreen_on_the_screen_the_window_is_on_now() -> void:
 	s.monitor = 1
-	SettingsApply.apply_display(s) # opened on the saved monitor
+	SettingsApply.apply_display(s, true) # opened on the saved monitor
 	ds.on = 0 # the player dragged the window to the other screen
 	SettingsApply.toggle_fullscreen(s)
 	assert_eq(ds.on, 0, "fullscreen where the window is, not thrown back to the saved monitor")

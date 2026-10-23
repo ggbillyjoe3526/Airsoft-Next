@@ -65,7 +65,8 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
 - **Kept features (owner, 2026-10-05).** Grenades (Replica Update) and skins (Progression Update), with greyed Loadout
   placeholders; suppressor sounds (Replica Update); Capture the Flag as a possible Modes Update mode.
 - **The Dev 6 playtest's additions and removals stand (owner, 2026-10-16).** Added: an in-match hop-up control, a
-  home-screen fullscreen button, one feed with a placement setting, and WON or LOST at a round's end. Removed: resting
+  home-screen fullscreen button (replaced 2026-10-19: no title-screen button; F11 and Alt+Enter, and Settings ›
+  Display's Window mode), one feed with a placement setting, and WON or LOST at a round's end. Removed: resting
   on cover, the Voices setting, and the Skins option (it moves into Colour).
 - **Extraction (Modes Update): solo against bots, more and more aggressive opponents, quicker and closer waves, a
   longer extract timer and no respawn (owner, 2026-10-06).**

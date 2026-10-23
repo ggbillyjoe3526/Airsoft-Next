@@ -3,8 +3,9 @@ extends Resource
 ## The window and the frame rate (Settings › Display; SettingsApply and WindowWatch): the frames drawn a second while the
 ## game is in the background, and the keys that switch between a window and fullscreen.
 
-## Frames a second at most while the window is unfocused or minimised (the plan's default): enough to watch a match on a
-## second screen, little enough that an alt-tabbed game keeps the machine cool and quiet. A lower frame-rate limit wins.
+## Frames a second at most while the window is unfocused or minimised (the plan's default): enough for the menus or the
+## pause menu (a match pauses on alt-tab) on a second screen, little enough that an alt-tabbed game keeps the machine
+## cool and quiet. A lower frame-rate limit wins.
 @export var background_fps: int = 30
 ## The key that switches between a window and the last fullscreen mode on its own (Windows and Linux habit).
 @export var toggle_key: Key = KEY_F11
