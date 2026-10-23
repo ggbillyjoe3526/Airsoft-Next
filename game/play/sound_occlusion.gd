@@ -132,6 +132,8 @@ static func level_for(bus: StringName, share: float, cfg: SoundConfig) -> float:
 			given = SoundMix.share_gain(cfg, SoundMix.HALF_SHARE)
 		SoundMix.BUS_EFFECTS_FULL, SoundMix.BUS_POWER_FULL:
 			given = SoundMix.share_gain(cfg, SoundMix.FULL_SHARE)
+	if given <= 0.0: # a bus muffled to silence already gives all of it
+		return 1.0
 	return SoundMix.share_gain(cfg, share) / given
 
 
