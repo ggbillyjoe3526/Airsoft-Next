@@ -3,5 +3,5 @@
 - High contrast covers the figures, the flag and the whole HUD. Its figures glow faintly in daylight.
 - A new set shows from your next match. The Match page and HUD previews change at once.
 - Numbers on light team blocks turn dark, so they stay readable.
-- Gauge patterns, Sound cues, Reduced motion and Screen reader are greyed out as "later".
+- Sound cues, Reduced motion and Screen reader are greyed out as "later".
 - Plywood crates and racks are a duller tan, and the mustard generator, skip and container more yellow, so no prop reads as Beta.
