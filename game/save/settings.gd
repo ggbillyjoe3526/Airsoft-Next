@@ -234,7 +234,8 @@ func graphics_preset_on(picked: StringName) -> StringName:
 
 
 ## Chooses a preset, Custom or GRAPHICS_AUTOMATIC. Custom chosen from a preset starts as that preset with no rows of
-## its own; chosen again it keeps its rows. A preset or automatic drops Custom's rows. False (and nothing changes) for a name that is none of these.
+## its own; chosen again it keeps its rows. A preset or automatic drops Custom's rows. False (and nothing changes) for
+## a name that is none of these.
 func choose_graphics(choice: StringName, picked: StringName) -> bool:
 	if choice == GraphicsQuality.CUSTOM:
 		if graphics_choice != GraphicsQuality.CUSTOM:

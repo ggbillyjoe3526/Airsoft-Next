@@ -68,5 +68,6 @@ pull request that builds them.
 
 User arguments go after `--` (`godot --path . -- --smoke`). `--smoke`: the headless smoke test. `--perf`: log the
 perf overlay's numbers every 2 s and a summary at exit. `--graphics=low|medium|high|ultra`: that graphics preset for
-the run, in place of the saved choice or the card's pick, never saved (`GraphicsPick.forced`), for the owner's
+the run, in place of the saved choice or the card's pick; the flag is never saved, though a row changed in that
+run bases Custom on it (`GraphicsPick.forced`), for the owner's
 baselines.

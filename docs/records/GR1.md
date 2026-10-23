@@ -1,12 +1,12 @@
 # GR1 · The quality table, Custom and the hardware pick
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus (QA's two advisories fixed by the build thread) | pass | 8/8 accept | |
 
 ## Decisions
 
@@ -43,6 +43,11 @@
 - **Saved Custom rows** are cleaned on load (an unknown row, or a value of the wrong type or a choice the game doesn't
   know, dropped alone); resolve also drops a value the table doesn't offer.
 
+- **QA fixes:** picking a preset or automatic drops Custom's rows, so none are saved stale; `--graphics` is read
+  before SettingsApply runs, so GR2's apply sees it.
+- **The flag and Custom:** the flag itself is never saved, but a row changed during a `--graphics` run bases Custom
+  on the forced preset (owner's baselines only; ARCHITECTURE says so).
+
 ## Engine names confirmed (Godot 4.7.2, headless ClassDB and ProjectSettings probe)
 
 - Viewport: `anisotropic_filtering_level` (AnisotropicFiltering, ANISOTROPY_DISABLED 0 to ANISOTROPY_16X 4),
@@ -64,3 +69,7 @@
   PackedStringArray]` constants misread them through a variable key and crashed the engine. CHOICES and BUILT_IN are
   `Dictionary[StringName, Array]` for that reason.
 - Which renderer draws which choice is unconfirmed until GR4 runs on the simpler renderer.
+- For GR2/GR4: Low uses FSR 1, which Compatibility can't draw; applying must fall back to bilinear where a choice
+  can't draw. The Risks paragraphs for GR2-GR5 (shadow-atlas hitch, restart loop, owner checklists) live in the plan.
+- Parsing and saved choice names are case-sensitive (each bad one warns and keeps its default); only the flag isn't.
+- The typed-dictionary engine crash: KNOWN_ISSUES row (document).
