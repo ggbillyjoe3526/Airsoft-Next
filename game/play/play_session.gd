@@ -256,10 +256,12 @@ func _build_views_and_start() -> void:
 		settings = Settings.shared()
 	settings.changed.connect(_apply_dev)
 	settings.changed.connect(_apply_hud)
+	settings.changed.connect(_apply_motion)
 	settings.changed.connect(_follow_graphics_pick)
 	GraphicsApply.server().applied.connect(_apply_graphics)
 	_apply_dev()
 	_apply_hud()
+	_apply_motion()
 	_apply_graphics(GraphicsApply.drawn_or(settings))
 	_sim.start_match(state)
 	_after_tick()
@@ -824,6 +826,8 @@ func _exit_tree() -> void:
 		settings.changed.disconnect(_apply_dev)
 	if settings != null and settings.changed.is_connected(_apply_hud):
 		settings.changed.disconnect(_apply_hud)
+	if settings != null and settings.changed.is_connected(_apply_motion):
+		settings.changed.disconnect(_apply_motion)
 	if settings != null and settings.changed.is_connected(_follow_graphics_pick):
 		settings.changed.disconnect(_follow_graphics_pick)
 	if GraphicsApply.server().applied.is_connected(_apply_graphics):
@@ -1067,8 +1071,19 @@ func _apply_hud() -> void:
 	_hud.set_sound_cues(settings.sound_cues, settings.sound_cue_size, settings.sound_cue_colour)
 	if not settings.sound_cues:
 		_cues.clear()
-	# The skipping note sits outside the HUD, over it.
+	# The skipping note sits outside the HUD, over it, at the HUD's size.
 	HudStyle.restyle(_skip_note, settings.hud.panel_opacity)
+	Hud.scale_root(_skip_note.get_parent() as Control, _hud.hud_size())
+
+
+## Settings › Accessibility's Reduced motion (On, or Follow system while the display asks for it), at the start and on
+## every change: how much of the view's and the replica's movements, the wind dust and the HUD's pulse are drawn.
+func _apply_motion() -> void:
+	var motion := MotionScale.of(settings.reduces_motion_now())
+	_eyes.set_motion(motion)
+	_hands.set_motion(motion)
+	_dust.set_motion(motion)
+	_hud.set_motion(motion)
 
 
 ## The graphics drawn, onto the field: at the start and whenever they change (the settings can open from the pause menu).

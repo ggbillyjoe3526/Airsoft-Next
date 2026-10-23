@@ -18,6 +18,8 @@ const CHEVRON := Vector2(10.0, 16.0)
 ## The pinned plate's type size (the concept's 22).
 const EDGE_SIZE := 22
 
+## The HUD's size (Hud.set_hud_size): the view's screen points are divided by it, as the HUD's root is scaled by it.
+var hud_size: float = 1.0
 var _cfg: HudConfig = null
 var _plate: PanelContainer = null
 var _distance: Label = null
@@ -103,7 +105,7 @@ func place(camera: Camera3D, pole: Vector3, show: bool, area: Vector2, pin: Vect
 		_edge_distance.text = _distance.text.to_upper()
 	var top := pole + Vector3.UP * _cfg.flag_marker_height
 	var behind := camera.is_position_behind(top)
-	var at := Vector2.ZERO if behind else camera.unproject_position(top)
+	var at := Vector2.ZERO if behind else camera.unproject_position(top) / hud_size
 	var to_left := camera.global_basis.x.dot(top - eye) < 0.0 if behind else at.x < 0.0
 	_set_pinned(behind or at.x < 0.0 or at.x > area.x)
 	if _pinned:
