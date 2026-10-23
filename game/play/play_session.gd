@@ -445,6 +445,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	_hud = Hud.new()
 	ui.add_child(_hud)
 	_hud.setup(_play.hud, _play.teams, _play.view, _tuning, player)
+	_hud.setup_orders(_play.controls)
 	# Over the field while the HUD is hidden, under the pause menu.
 	var skip_layer := Control.new()
 	skip_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -637,11 +638,20 @@ func _process(delta: float) -> void:
 		_flag.refresh(rs.flag, rs.attackers)
 		_hud.place_flag_marker(_eyes.camera, rs.pole, rs.attackers >= 0 and rs.is_live())
 	_hud.set_watching(_bots.name_of(watched.id) if watched != player else "")
+	_show_orders(watched, delta)
 	if _intents != null:
 		_intents.update(state, fraction)
 	if _first_frame_due:
 		_first_frame_due = false
 		started.emit()
+
+
+## Squad orders on screen (SO4): the order wheel while its key is held, and Hold here's marker over the spots your
+## teammates hold, through your own eyes only.
+func _show_orders(watched: Character, delta: float) -> void:
+	_hud.update_orders(_input.wheel(), _bots.order_of(PLAYER_ID), _bots.order_outcome, delta)
+	var held := watched == player and _bots.hold_spot(PLAYER_ID)
+	_hud.place_hold_marker(_eyes.camera, _bots.held_middle, held)
 
 
 ## Whose eyes you see through: with Spectate any bot on, the bot it follows; else your own, or once you are out in the
@@ -724,6 +734,7 @@ func _capture() -> void:
 func _open_pause() -> void:
 	_input.release()
 	_hud.show_board(false)
+	_hud.close_order_wheel()
 	# The hint comes back on resume naming Jump's key as bound then (Settings can rebind it); a hold starts over.
 	_hud.set_skip_hint(false)
 	_skip_armed = false

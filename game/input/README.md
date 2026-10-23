@@ -17,7 +17,7 @@ side cancels it). Holding the order wheel's key moves the wheel's own pointer in
 top); feet still move, the mouse wheel switches nothing, and fire and aim need a fresh press once it closes. Hover (the
 default) gives the order pointed at on letting go, Click only on a click (a click gives it either way); the wheel's
 orders, keys and names are `ControlsConfig` data, Hover or Click a saved setting. It closes giving nothing on pause or
-focus loss (`release`), once you are out, and on the range (`allow_orders`). The wheel on screen is the HUD's (SO4).
+focus loss (`release`), once you are out, and on the range (`allow_orders`). The wheel on screen is the HUD's (`HudOrderWheel`).
 
 | File | What it holds |
 |---|---|

@@ -16,8 +16,8 @@ const NONE := 0
 const ACTIONS: Array[StringName] = [
 	&"move_forward", &"move_back", &"move_left", &"move_right", &"walk", &"sprint", &"crouch", &"jump",
 	&"lean_left", &"lean_right", &"fire", &"aim", &"reload", &"fire_mode", &"slot_1", &"slot_2", &"holster",
-	&"slot_next", &"slot_previous", &"hop_up_less", &"hop_up_more", &"scoreboard", &"order_wheel", &"order_follow",
-	&"order_hold", &"order_regroup",
+	&"slot_next", &"slot_previous", &"hop_up_less", &"hop_up_more", &"scoreboard", &"order_follow", &"order_hold",
+	&"order_regroup", &"order_wheel",
 ]
 ## Actions that can never be left keyless (owner rule, DECISIONS › Menus, HUD, settings and accessibility).
 const ESSENTIAL: Array[StringName] = [&"fire", &"move_forward", &"move_back", &"move_left", &"move_right"]

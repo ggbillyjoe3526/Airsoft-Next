@@ -117,6 +117,24 @@ msgstr "· %d m"
 msgid "HUD_FLAG_GOING_UP"
 msgstr "Their flag is going up!"
 
+msgid "HUD_HOLD_MARKER"
+msgstr "Hold · %d m"
+
+msgid "HUD_ORDER_ACTIVE"
+msgstr "Active"
+
+msgid "HUD_ORDER_CANCELLED"
+msgstr "Back to the\nteam plan"
+
+msgid "HUD_ORDER_ON_PLAN"
+msgstr "Squad already\non the\nteam plan"
+
+msgid "HUD_ORDER_NOBODY"
+msgstr "No teammates\nin play\nto order"
+
+msgid "HUD_ORDER_NOT_NOW"
+msgstr "Orders wait for\nthe next round"
+
 msgid "HUD_CHIP_SEMI"
 msgstr "S"
 
@@ -287,6 +305,21 @@ msgstr "Click a key, then press the new one. Esc cancels; Backspace or Delete cl
 
 msgid "SETTINGS_KEYS_RESET"
 msgstr "Reset keys"
+
+msgid "SETTINGS_ORDERS"
+msgstr "Squad orders"
+
+msgid "SETTINGS_ORDERS_HELP"
+msgstr "Hold the order wheel key to open the wheel. Hover: point at an order and let go of the key. Click: point at an order, then click."
+
+msgid "SETTINGS_ORDER_WHEEL"
+msgstr "Order wheel"
+
+msgid "SETTINGS_WHEEL_HOVER"
+msgstr "Hover"
+
+msgid "SETTINGS_WHEEL_CLICK"
+msgstr "Click"
 
 msgid "SETTINGS_VOLUME"
 msgstr "VOLUME"

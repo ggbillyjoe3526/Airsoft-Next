@@ -10,7 +10,7 @@ signal rebound
 ## Something to tell the player, in one line.
 signal note(text: String)
 
-const ROW_LABEL_WIDTH := 320.0
+const ROW_LABEL_WIDTH := 344.0
 const KEY_BUTTON_WIDTH := 200.0
 const ROW_GAP := 4
 

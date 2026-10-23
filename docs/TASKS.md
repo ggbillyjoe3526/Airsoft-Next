@@ -55,25 +55,6 @@ acceptance:
 status: open
 attempts: 0
 
-## SO4 · The order wheel and hold marker on screen
-tier: ui
-perf: optional
-touches: game/ui/hud_order_wheel.gd, game/ui/hud_hold_marker.gd, game/ui/hud.gd, game/config/hud_config.gd,
-  game/config/play_tuning.tres, game/play/play_session.gd, game/ui/settings_screen.gd, game/ui/text/en.po,
-  tests/unit/
-contract: Simulation and presentation (1)
-acceptance:
-  1. Wheel, notices, hold marker and the Settings row as the concepts in `/mnt/project-files/concepts/step17-orders/`
-     show (awaiting the owner's approval); HUD size and opacity apply.
-  2. The wheel draws its items from the data, each with its key, lights the slice pointed at and marks the order in
-     force; it builds nothing while closed.
-  3. The hold marker sits over the held spots' middle with its distance, kept inside the screen's edge clear of the
-     flag marker; none for a hold where each stood, none once the order ends.
-  4. The notices show as the approved concept and G4 allow; Settings › Controls › Order wheel: Hover / Click.
-  5. Wheel and marker are freed with the session; a tick with neither shown allocates nothing.
-status: open
-attempts: 0
-
 ## MM4 · The minimap on the HUD
 tier: ui
 perf: required
