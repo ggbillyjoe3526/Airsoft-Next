@@ -7,7 +7,7 @@ extends Node3D
 ## mesh, shadows only) casts it at every range; the Team* materials wear the team's shared paint. Meshes and bones are
 ## found by name, never by index (the two files order their bones differently). Its legs play the kind's shared graph
 ## (FigureGraph) in an AnimationTree of its own, advanced by hand from a FigurePose (`animate`), then FigureBend lowers
-## and leans it; it fades through GeometryInstance3D.transparency, so no material is copied.
+## and leans it and draws the hit flinch (`set_flinch`); it fades through GeometryInstance3D.transparency, so no material is copied.
 
 ## The parts it draws (the shadow twin last) and each one's level (0, 1, 2; -1 for the twin).
 var meshes: Array[MeshInstance3D] = []
@@ -25,6 +25,8 @@ var _fade: float = 1.0
 var _vault_seconds: float = 0.0
 var _call_seconds: float = 0.0
 var _walk_off_pace: float = 0.0
+## Turns a way in the figure's frame (x right, -z ahead) into the skeleton's (the file's, facing +Z).
+var _to_skeleton: Basis = Basis.IDENTITY
 
 
 ## Builds kind `kind` of `models` for figure `figure_id` of `team`, painted `colour` with `glow`, its levels changing at
@@ -98,6 +100,12 @@ func setup(models: FigureModels, kind: int, figure_id: int, team: int, colour: C
 	bend = FigureBend.new()
 	bend.setup(skeleton, _config)
 	skeleton.add_child(bend)
+	var placed := Transform3D.IDENTITY
+	var node: Node3D = skeleton
+	while node != self:
+		placed = node.transform * placed
+		node = node.get_parent() as Node3D
+	_to_skeleton = placed.basis.orthonormalized().inverse()
 	_vault_seconds = _seconds(side, _config.vault_clip)
 	_call_seconds = _seconds(side, _config.call_clip)
 	var walk_off := side.clip(_config.walk_off_clip)
@@ -130,6 +138,12 @@ func animate(pose: FigurePose, hits: HitConfig, delta: float) -> void:
 	bend.hits = hits
 	bend.lean = pose.lean
 	bend.crouch = pose.crouch
+
+
+## The hit flinch drawn from the next skeleton update: `tilt` (rad) in the figure's frame (FigureFlinch).
+func set_flinch(tilt: Vector3) -> void:
+	if bend != null:
+		bend.flinch = _to_skeleton * tilt
 
 
 ## The bone `bone_name`'s index in this figure's skeleton (-1 when it has none), as looked up by name at setup.

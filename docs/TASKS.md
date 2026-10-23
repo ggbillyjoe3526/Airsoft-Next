@@ -54,30 +54,6 @@ acceptance:
 status: open
 attempts: 0
 
-## FI5 · The hit flinch, on figures and in first person
-tier: core
-perf: required
-touches: game/play/figures/, game/config/figure_config.gd, game/config/viewmodel_config.gd,
-  game/config/play_tuning.tres, game/play/figure_view.gd, game/play/replica_view.gd, game/play/play_session.gd,
-  docs/PLAYTEST.md, tests/unit/test_figure_flinch.gd, tests/unit/test_motion_scale.gd
-contract: Simulation and presentation (1); Events (3); Data, not literals (6)
-acceptance:
-  1. CHARACTER_HIT on a figure jolts its upper body the way the BB flew (the event's direction in figure space,
-     flattened): FigureConfig.flinch lean 0.32 rad, in over rise 0.05 s, eased back over time 0.4 s, through
-     FigureBend about the pivot, while HitCall raises the hand; on both the capsules and the rigged figures.
-  2. Your own hit: the replica jolts ViewModelConfig.hit_jolt 1.5 recoil kicks and drops hit_drop 0.5 m out of view
-     over hit_drop_time 0.25 s before it hides (today it vanishes at once); first-person arms' raised hand is FI6's
-     hook, nothing drawn.
-  3. Reduced motion leaves both as they are (neither moves the camera); the flinch never changes the hit volume or a
-     sight line (the character is already out).
-  4. PlaySession routes each event to the figure by character id (an array, no lookups that allocate).
-  5. PLAYTEST › Players and replicas: watch a bot get hit side-on and from behind; get hit yourself.
-  6. GUT: a hit from the figure's left leans it right by 0.32 rad at 0.05 s and under 0.02 at 0.45 s; from behind
-     forward; two hits a tick apart don't stack past 0.32; the first-person replica is below its hip spot by 0.5 m at
-     0.25 s and hidden after.
-status: open
-attempts: 0
-
 ## FI7 · Rigged figures for everyone: capsules gone, the hit area measured, eleven figures timed
 tier: core
 perf: required

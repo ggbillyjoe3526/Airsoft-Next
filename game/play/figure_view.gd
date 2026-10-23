@@ -8,7 +8,8 @@ extends Node3D
 ## in its team's paint (ReplicaPaint) with its parts' figure versions fitted (ReplicaParts), and puts it away as it fades.
 ## With Dev › Rigged figures on it draws its rigged figure (FigureBody) in place of the capsules, its legs posed by
 ## `animate` (FigurePose: moving, crouching, jumping, vaulting, the hit call, the walk-off and the lean); the sign, the
-## fade and the replica at its hold work the same on both.
+## fade and the replica at its hold work the same on both, and so does the hit flinch (`hit`, FigureFlinch): the upper
+## body jolts the way the BB flew, the capsules' about the pivot, the rigged figure's through FigureBend.
 
 ## The figure's proportions (m): the legs' and torso's capsules, the head, the arm, and where the sign floats. The torso
 ## reaches this far below the pivot, so its round bottom covers the joint as it tilts.
@@ -53,14 +54,17 @@ var _lines: Vector2 = Vector2.ZERO
 var _snap: bool = true
 var _far_frames: int = 0
 var _far_delta: float = 0.0
+## The hit flinch, eased on every frame's time in `update` (hidden or far all the same).
+var _flinch: FigureFlinch = null
 
 
 ## Draws `c` in `team_colour`, glowing with `glow` of it (High contrast by day, TeamColours), holding its replicas in
 ## its team's paints (`realistic`: each bold scheme as its plain colour) with `parts[i]` on replica `i` (Kit.parts; bots
-## carry theirs as they come).
+## carry theirs as they come); `figures` gives the hit flinch's numbers (the built-in ones when null).
 func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConfig, font: Font,
-		realistic: bool = false, parts: Array[Dictionary] = [], glow: float = 0.0) -> void:
+		realistic: bool = false, parts: Array[Dictionary] = [], glow: float = 0.0, figures: FigureConfig = null) -> void:
 	character_id = c.id
+	_flinch = FigureFlinch.new(figures if figures != null else FigureConfig.new())
 	_hits = hits
 	_team = c.team
 	_team_colour = team_colour
@@ -233,9 +237,24 @@ func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 	else:
 		_pose.settle(delta)
 	_body.animate(_pose, _hits, delta)
+	_body.set_flinch(_flinch.tilt())
 
 
-func update(c: Character, fraction: float) -> void:
+## The flinch dropped at once (a round reset or a rematch), the rigged figure's bend too.
+func reset_flinch() -> void:
+	_flinch.reset()
+	if _body != null:
+		_body.set_flinch(Vector3.ZERO)
+
+
+## A BB flying along `way` (the world's) hit the character, facing `yaw`: the upper body jolts that way (flattened).
+func hit(way: Vector3, yaw: float) -> void:
+	_flinch.hit(Basis(Vector3.UP, -yaw) * way)
+
+
+## Places and poses the figure for `c` at `fraction` between its ticks, the hit flinch `delta` seconds on.
+func update(c: Character, fraction: float, delta: float = 0.0) -> void:
+	_flinch.advance(delta)
 	var feet := c.prev_position.lerp(c.position, fraction)
 	var crouch := lerpf(c.prev_crouch_amount, c.crouch_amount, fraction)
 	global_position = feet
@@ -247,6 +266,8 @@ func update(c: Character, fraction: float) -> void:
 	_legs.scale = Vector3(1.0, hip / _hits.pivot_height, 1.0)
 	_upper.position = Vector3(0.0, hip, 0.0)
 	_upper.rotation = Vector3(0.0, 0.0, -lerpf(c.prev_lean, c.lean, fraction) * _hits.lean_max_angle)
+	if _flinch.running():
+		_upper.basis = FigureFlinch.turn(_flinch.tilt()) * _upper.basis
 	var calling := c.status == Character.Status.CALLING or c.status == Character.Status.WALKING_OFF
 	# The arm hangs at the side, or goes straight up to call the hit.
 	_arm.rotation = Vector3(0.0, 0.0, 0.0 if calling else PI)

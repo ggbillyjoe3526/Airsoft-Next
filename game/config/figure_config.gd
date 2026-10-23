@@ -69,6 +69,12 @@ extends Resource
 @export var lean_bone: StringName = &"Spine"
 @export var head_bone: StringName = &"Head"
 @export var crouch_top_max: float = 1.15
+## The hit flinch (FI5; the browser game's CHARACTERS.flinch): on a hit the upper body jolts the way the BB flew,
+## `flinch_lean` radians about the hip pivot (FigureBend; the capsules' upper body), in over `flinch_rise` seconds and
+## eased back over `flinch_time`, while the hand goes up for the call.
+@export var flinch_lean: float = 0.32
+@export var flinch_rise: float = 0.05
+@export var flinch_time: float = 0.4
 ## Beyond the far line (LOD2) a figure's legs are posed every `far_stride`-th frame with the time gathered (0: held
 ## still out there); a hidden figure's not at all.
 @export var far_stride: int = 4

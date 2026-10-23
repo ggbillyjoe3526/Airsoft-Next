@@ -4,12 +4,16 @@ extends SkeletonModifier3D
 ## crouched figure lowered so its head's top stays under the line from the standing hit top to
 ## FigureConfig.crouch_top_max (1.15 m fully crouched: crouch cover is 1.2 m, DECISIONS 2026-09-30), then Hips' upper
 ## chain (Spine and all above it) tilted about the hip pivot by lean × lean_max_angle: the one lean geometry the hit
-## volume and the eye use (Hitbox, Lean). The skeleton's frame is the file's (facing +Z), so a lean right, to the
-## figure's right (-X there), is a positive roll about +Z. Presentation only: FigureView sets `lean` and `crouch`.
+## volume and the eye use (Hitbox, Lean), and the hit flinch (FI5) on top. The skeleton's frame is the file's (facing
+## +Z), so a lean right, to the figure's right (-X there), is a positive roll about +Z. Presentation only: FigureView
+## sets `lean`, `crouch` and `flinch`.
 
 ## Leaning (-1 left .. 1 right) and crouched (0..1), as drawn this frame.
 var lean: float = 0.0
 var crouch: float = 0.0
+## The hit flinch drawn this frame (FI5): the way the upper chain's top goes, its length the angle (rad; the skeleton's
+## frame, flat), tipped about the same pivot after the lean.
+var flinch: Vector3 = Vector3.ZERO
 ## The hit volume's numbers (pivot, crouch drop, lean angle, standing top), set by FigureBody before each frame.
 var hits: HitConfig = null
 var _config: FigureConfig = null
@@ -43,10 +47,10 @@ func bend(skeleton: Skeleton3D) -> void:
 		hips.origin.y -= drop
 		skeleton.set_bone_global_pose(_hips, hips)
 	var roll := lean * hits.lean_max_angle
-	if roll == 0.0:
+	if roll == 0.0 and flinch == Vector3.ZERO:
 		return
 	var pivot := Vector3(0.0, hits.pivot_height - hits.crouch_drop * crouch, 0.0)
-	var turn := Basis(Vector3.BACK, roll)
+	var turn := FigureFlinch.turn(flinch) * Basis(Vector3.BACK, roll)
 	var about := Transform3D(turn, pivot - turn * pivot)
 	skeleton.set_bone_global_pose(_spine, about * skeleton.get_bone_global_pose(_spine))
 

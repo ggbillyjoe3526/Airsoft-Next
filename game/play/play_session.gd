@@ -109,6 +109,8 @@ var _lighting: FieldLighting = null
 ## Scratch for the vault prompt's look ahead each tick.
 var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
+## Each character's figure by character id (null for yours), so an event reaches its figure without a lookup.
+var _figure_of: Array[FigureView] = []
 ## Each character's figure kind (FigureMix: human or robot), by character id; the player's too (ReplicaView.arms_kind).
 var figure_kinds: PackedInt32Array = PackedInt32Array()
 ## The rigged figures (FigureModels), loaded the first time Dev › Rigged figures is on, then kept for the session;
@@ -469,6 +471,7 @@ func _build_views(ui: CanvasLayer) -> void:
 		add_child(_targets_view)
 		_targets_view.setup(state.targets, _play.range_view, _tuning, sign_font)
 		range_materials = _targets_view.materials()
+	_figure_of.resize(state.characters.size())
 	for c in state.characters:
 		if c.id == PLAYER_ID:
 			continue
@@ -476,9 +479,10 @@ func _build_views(ui: CanvasLayer) -> void:
 		var parts: Array[Dictionary] = []
 		parts.assign(_bot_parts.get(c.id, []))
 		f.setup(c, _colours.figures.colours[c.team], _tuning.hits, _tuning.body, sign_font, realistic, parts,
-				_colours.figures.glow)
+				_colours.figures.glow, _play.figures)
 		add_child(f)
 		_figures.append(f)
+		_figure_of[c.id] = f
 	_pick_kinds()
 	_figure_lines = _play.figures.lod_high
 	var first_use: Array[Material] = [
@@ -557,6 +561,7 @@ func _physics_process(_delta: float) -> void:
 			_pause.errors = error_log
 			_sim.start_match(state)
 			_refresh_kinds()
+			_reset_flinches()
 			_after_tick()
 		if bots_active:
 			_bots.think(state, _commands, TICK)
@@ -675,7 +680,10 @@ func _after_tick() -> void:
 			GameEvent.Kind.CHARACTER_HIT:
 				_puffs.body_hit(e.position)
 				if e.target == PLAYER_ID:
+					_hands.on_hit()
 					_hit_called(e.actor)
+				elif e.target >= 0 and e.target < _figure_of.size() and _figure_of[e.target] != null:
+					_figure_of[e.target].hit(e.direction, state.characters[e.target].yaw)
 			GameEvent.Kind.RICOCHET_TICK:
 				_puffs.body_hit(e.position)
 			GameEvent.Kind.TARGET_HIT:
@@ -696,6 +704,7 @@ func _after_tick() -> void:
 			GameEvent.Kind.ROUND_START:
 				_input.face(player.spawn_yaw)
 				_puffs.clear()
+				_reset_flinches()
 				if not practice:
 					round_started.emit(e.value, state.round_state.score)
 			GameEvent.Kind.MATCH_OVER:
@@ -736,7 +745,7 @@ func _process(delta: float) -> void:
 	var eye := _eyes.global_position
 	for f in _figures:
 		var c: Character = state.characters[f.character_id]
-		f.update(c, fraction)
+		f.update(c, fraction, delta)
 		# Watching through someone's eyes: their own figure would fill the view.
 		if f.character_id == watched.id:
 			f.visible = false
@@ -1218,6 +1227,12 @@ func _apply_dev() -> void:
 	elif not dev.retro_pixels and _retro != null:
 		_retro.queue_free()
 		_retro = null
+
+
+## Every figure upright again (a new round or a rematch: a flinch never carries over to the spawn).
+func _reset_flinches() -> void:
+	for f in _figures:
+		f.reset_flinch()
 
 
 ## Settings › Looks › Robots, read at the start of every match (a rematch too, so a change made while paused shows from

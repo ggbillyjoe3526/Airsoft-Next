@@ -47,6 +47,12 @@ extends Resource
 @export var holster_drop: float = 0.5
 @export var holster_tilt: float = 0.9
 @export var holster_time: float = 0.2
+## Your own hit (FI5; the browser game's renderView.ts hitJolt and hitDrop): the replica jolts `hit_jolt` shots' kicks
+## and drops `hit_drop` (m) out of view over `hit_drop_time` seconds, then hides. Reduced motion leaves both as they are:
+## neither moves the camera.
+@export var hit_jolt: float = 1.5
+@export var hit_drop: float = 0.5
+@export var hit_drop_time: float = 0.25
 ## A reload lifts and cants it (rad at the middle of the reload: muzzle up, roll, turn) and brings it inwards.
 @export var reload_tilt: float = 0.3
 @export var reload_roll: float = -0.55
