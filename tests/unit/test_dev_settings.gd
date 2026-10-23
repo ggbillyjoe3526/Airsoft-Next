@@ -173,15 +173,17 @@ func test_end_the_round_needs_a_match() -> void:
 	assert_eq(live._note.text, tr("DEV_NO_ROUND"), "between rounds")
 
 
-func test_the_reset_button_asks_first_then_resets() -> void:
+## Dev › Reset the save went with SV2 (Settings › Save file's Delete and start over does it, with Undo); Reset level
+## stays.
+func test_the_dev_tab_has_reset_level_and_no_reset_the_save() -> void:
 	s.dev_enabled = true
-	s.sensitivity = 3.0
 	var screen := _screen()
-	assert_false(screen._confirm_reset.visible)
-	screen._confirm_reset.confirmed.emit()
-	assert_eq(s.sensitivity, 1.0)
-	assert_true(screen._tabs.is_tab_hidden(_dev_tab(screen)), "the Dev box is off again")
-	assert_almost_eq(screen._sensitivity.value, 1.0, 0.001, "the screen shows the reset values")
+	var words := PackedStringArray()
+	for n: Node in screen._dev_page.find_children("*", "Label", true, false):
+		words.append((n as Label).text)
+	assert_has(words, tr("DEV_RESET_LEVEL"))
+	assert_does_not_have(words, "RESET THE SAVE")
+	assert_eq(tr("DEV_RESET_SAVE"), "DEV_RESET_SAVE", "its words are gone from en.po")
 
 
 func test_every_map_file_is_in_the_catalogue_with_a_tag() -> void:

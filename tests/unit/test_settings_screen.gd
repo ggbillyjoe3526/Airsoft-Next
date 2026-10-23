@@ -673,6 +673,26 @@ func test_the_accessibility_tab_comes_after_hud() -> void:
 	assert_eq(names[at - 1], tr("SETTINGS_HUD").to_upper())
 
 
+func test_the_save_file_tab_comes_after_accessibility_and_before_dev() -> void:
+	var names := PackedStringArray()
+	for i in screen._tabs.get_tab_count():
+		names.append(screen._tabs.get_tab_title(i))
+	var at := names.find(tr("SETTINGS_SAVE_FILE").to_upper())
+	assert_gt(at, 0)
+	assert_eq(names[at - 1], tr("SETTINGS_ACCESSIBILITY").to_upper())
+	assert_eq(names[at + 1], tr("SETTINGS_DEV").to_upper())
+
+
+## From the title (main gives the restart) the save may be replaced; from a match (End the round) or with no restart,
+## not.
+func test_the_save_may_be_replaced_only_from_the_title() -> void:
+	assert_false(screen.can_replace(), "no restart given")
+	screen.restart = func() -> void: pass
+	assert_true(screen.can_replace())
+	screen.end_round = func() -> bool: return false
+	assert_false(screen.can_replace(), "in a match")
+
+
 func test_the_accessibility_tab_has_the_concept_s_rows() -> void:
 	var page := _access()
 	var words := _words(page)

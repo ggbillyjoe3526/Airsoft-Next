@@ -315,8 +315,8 @@ func active_dev() -> DevSettings:
 	return dev if dev_enabled else _dev_defaults
 
 
-## The Dev tab's Reset the save: the file and its backups go and every setting is back to its default, applied at once.
-## The first-launch state, as for a new player.
+## The settings file and its backups go and every setting is back to its default, applied at once: the first-launch
+## state, as for a new player. (Settings › Save file's Delete replaces the whole save instead, with Undo.)
 func reset_save(path: String = PATH) -> void:
 	SaveFile.remove(path)
 	from_dict({})
