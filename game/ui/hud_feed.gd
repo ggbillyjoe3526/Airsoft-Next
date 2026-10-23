@@ -117,9 +117,17 @@ func _row_for(i: int) -> HudFeedRow:
 
 
 func _name(c: Character, you: Character) -> String:
+	return name_of(c, you, _names, _teams)
+
+
+## The name the feed shows for `c` as seen by `you`: "You", its name in `names` (by character id), or else its team's
+## name in `teams`. The screen reader's lines (Announcer) say the same.
+static func name_of(c: Character, you: Character, names: PackedStringArray, teams: TeamConfig) -> String:
 	if c.id == you.id:
-		return tr("HUD_YOU")
-	return _names[c.id] if c.id < _names.size() and _names[c.id] != "" else tr(_teams.names[c.team])
+		return TranslationServer.translate(&"HUD_YOU")
+	if c.id < names.size() and names[c.id] != "":
+		return names[c.id]
+	return TranslationServer.translate(teams.names[c.team])
 
 
 func _colour(c: Character, you: Character) -> Color:
