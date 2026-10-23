@@ -18,4 +18,5 @@ write it (docs/ARCHITECTURE.md › Contracts 1). Until FI7 they show only with D
 | `figure_mix.gd` | `FigureMix`: who is a robot: half of each team, from the match seed on a stream of its own; off in Settings › Looks › Robots (`Settings.robots`), everyone is human |
 
 Tests: `tests/unit/test_figure_models.gd`, `test_figure_body.gd`, `test_figure_mix.gd`, `test_figure_view.gd`,
-`test_figure_pose.gd`, `test_figure_animator.gd`, `test_figure_flinch.gd`, `test_figure_legs_qa.gd`, `test_figure_hands.gd`.
+`test_figure_pose.gd`, `test_figure_animator.gd`, `test_figure_flinch.gd`, `test_figure_legs_qa.gd`, `test_figure_hands.gd`,
+`test_figure_hands_qa.gd`, `test_figure_flinch_qa.gd`.

@@ -1,6 +1,6 @@
 # FI3 · The upper body: aim, the replica in the hands, firing, switching, the holster and the hanging rifle
 
-**Review:** qa Pass · performance Pass · critic pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus 5.5 (worker) | pass | – | – |
 | 2026-10-23 | 1, QA | – | QA Pass (`tests/unit/test_figure_hands_qa.gd`, 18); performance Pass | – | – |
-| 2026-10-23 | 1, fix round | Opus 5.5 (worker) | pass | – | rebase onto FI5; QA's stale press; the weightless branches |
+| 2026-10-23 | 1, fix round | Opus 5.5 (worker) | pass | Accept 7/8 (8: stale docs after the rebase, fixed in the records commit) | rebase onto FI5; QA's stale press; the weightless branches |
 
 ## Decisions
 
@@ -27,7 +27,7 @@
   rifle to pistol only. A switch between two replicas of one class plays it forwards (KNOWN_ISSUES).
 - **A draw is told from the armament, not the DRAW event:** `FigurePose.read_hands` sees a new draw (draw_left up, or a
   new slot) and calls it out of the holster when the last read was holstered, else a switch. SHOT goes by event,
-  routed through `PlaySession._figure_by_id` (id-indexed, no search) to `FigureView.on_shot`, played at the next pose.
+  routed through FI5's `PlaySession._figure_of` (id-indexed, no search) to `FigureView.on_shot`, played at the next pose.
 - **A switch cut short (a holster, a hit) fades the Switch OneShot out** (`ONE_SHOT_REQUEST_FADE_OUT` once no switch is
   under way).
 - **The Fire OneShot fades in over overlay 0.08 s and out in no time:** the clip's last frame is its first (the change
@@ -99,6 +99,10 @@ robot holstered side on, a human calling the hit (left hand up, the rifle hangin
 - The worker's limits: a switch between two replicas of one class plays the rifle-to-pistol clip; a figure shown again
   mid-switch starts the Switch from its beginning; a holstered figure that vaults keeps the Vault clip's arms.
 - The spine's lean past ±60° (the clips' reach) carries the rest of the pitch alone: say if it reads badly.
+- From the critic: the gate stand-in reuses `holster_clip` three times (figure_graph.gd), which works only while
+  Holster is one frame; it deserves its own FigureConfig name (`gate_clip`). `FigureHands.release()` doesn't reset
+  `hanging`. After the critic, the KNOWN_ISSUES row, the SHOT routing line and the README's test list were brought
+  up to date (check 8).
 
 ## Known issues left
 
