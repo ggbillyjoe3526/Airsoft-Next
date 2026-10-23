@@ -12,8 +12,9 @@ extends Control
 ## the rounds' own banners. On the practice range (`setup_range`, concepts `step16-range/`): no score bar, rounds or hit
 ## feed; the last BB's readout bottom left (HudRangeReadout) and the timed challenge's bar, ready line and banners
 ## (HudRangeChallenge). Under the score bar, for a few seconds after a round's end, the automatic graphics step-down's
-## line (concept `graphics-step-down.png`, `show_graphics_step`). Text is only rebuilt when what it shows changes. No
-## hints teaching the controls (owner, 2026-10-16).
+## line (concept `graphics-step-down.png`, `show_graphics_step`). With Settings › Accessibility's sound cues on, the
+## ring of markers round the crosshair for the sounds heard (HudSoundCues). Text is only rebuilt when what it shows
+## changes. No hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 32.0
 ## The replica panel's lane, bottom right: as wide as its hop-up note, as tall as its notes and panel.
@@ -72,6 +73,9 @@ var _order_wheel: HudOrderWheel = null
 var _hold_marker: HudHoldMarker = null
 var _hold_slots := HudHoldMarker.Slots.new()
 var _minimap: HudMinimap = null
+## The sound cue ring round the crosshair (AC4), and whether Settings › Accessibility has it on.
+var _sound_cues: HudSoundCues = null
+var _cues_on: bool = false
 var _hits := HitFeed.new()
 var _feed: HudFeed = null
 var _team_markers: HudTeamMarkers = null
@@ -304,6 +308,37 @@ func update_minimap(state: GameState, watched: Character, yaw: float, fraction: 
 
 func minimap() -> HudMinimap:
 	return _minimap
+
+
+## The sound cue ring (HudSoundCues) for `cues`, on the ring `cfg` sets, over the teammate markers and under the rest;
+## hidden until set_sound_cues turns it on. Call once in match setup.
+func setup_sound_cues(cues: SoundCues, cfg: AccessibilityConfig) -> void:
+	_sound_cues = HudSoundCues.new()
+	_sound_cues.setup(cues, cfg)
+	_sound_cues.visible = false
+	add_child(_sound_cues)
+	move_child(_sound_cues, _team_markers.get_index() + 1)
+
+
+## Settings › Accessibility's sound cues: on or off, the markers' size (1 = as built) and colour (an index into
+## HudPrefs.COLOURS). Call again after a change.
+func set_sound_cues(on: bool, marker_scale: float, colour: int) -> void:
+	_cues_on = on
+	if _sound_cues == null:
+		return
+	_sound_cues.visible = on and not _summary.visible
+	_sound_cues.set_style(marker_scale, HudPrefs.COLOURS[clampi(colour, 0, HudPrefs.COLOURS.size() - 1)])
+
+
+## Turns the cue ring with the character `watched` (whose eyes the view is through), looking `yaw`, `fraction` of the
+## way through the tick. Allocates nothing.
+func place_sound_cues(watched: Character, yaw: float, fraction: float) -> void:
+	if _sound_cues != null:
+		_sound_cues.follow(watched.prev_position.lerp(watched.position, fraction), yaw)
+
+
+func sound_cues() -> HudSoundCues:
+	return _sound_cues
 
 
 ## What the scoreboard's heading says: the map's name and the line after it, and whether the opponents are Pro (its
@@ -569,6 +604,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	_summary.visible = _summary.is_open() and not _round_result.holds_results()
 	if _minimap != null:
 		_minimap.visible = not _summary.visible
+	if _sound_cues != null:
+		_sound_cues.visible = _cues_on and not _summary.visible
 	_replica.visible = not _summary.visible
 	_bottom.visible = not _summary.visible
 	_top.visible = not _summary.visible and _readout == null
