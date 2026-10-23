@@ -142,6 +142,19 @@ func test_typing_into_a_full_note_keeps_it_and_the_caret() -> void:
 	assert_eq(panel.note_box().get_caret_column(), 7)
 
 
+func test_tab_from_the_note_moves_round_the_panel() -> void:
+	panel.open(_info())
+	panel.set_note("It froze")
+	assert_true(panel.note_box().has_focus())
+	var tab := InputEventKey.new()
+	tab.keycode = KEY_TAB
+	tab.physical_keycode = KEY_TAB
+	tab.pressed = true
+	get_viewport().push_input(tab)
+	assert_true(panel.report_button().has_focus(), "Tab goes on to Report on GitHub")
+	assert_eq(panel.note_text(), "It froze", "and types no tab into the note")
+
+
 func test_focus_stays_inside_the_panel_over_the_pause_menu() -> void:
 	var menu := PauseMenu.new()
 	add_child_autofree(menu)
@@ -213,7 +226,7 @@ func test_copy_report_copies_and_opens_nothing() -> void:
 
 func test_the_report_names_no_folder_or_account() -> void:
 	var info := _info()
-	info.scrub = ReportScrub.new("", "/home/zandra", "zandra", "zandra-laptop", config.min_name_chars)
+	info.scrub = ReportScrub.new("", "/home/zandra", "zandra", "zandra-laptop", config)
 	info.errors = PackedStringArray(["ERROR /home/zandra/Airsoft/game.gd:1 (f): zandra's save"])
 	panel.open(info)
 	panel.set_note("Seen by zandra")

@@ -306,6 +306,8 @@ func _left_column() -> VBoxContainer:
 	_note.name = "Note"
 	_note.custom_minimum_size = Vector2(0.0, NOTE_HEIGHT)
 	_note.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	# Tab moves round the panel; a note has no use for a tab character
+	_note.tab_input_mode = false
 	_note.add_theme_font_override("font", GameTheme.font(600))
 	_note.add_theme_font_size_override("font_size", NOTE_SIZE)
 	_note.add_theme_stylebox_override("normal", GameTheme.box(GameTheme.BG, GameTheme.LINE, NOTE_PAD.x, NOTE_PAD.y))

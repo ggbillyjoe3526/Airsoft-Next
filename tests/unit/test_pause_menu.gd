@@ -269,6 +269,27 @@ func test_a_paused_match_reports_itself() -> void:
 	session._resume()
 
 
+func test_a_rematch_counts_its_own_errors() -> void:
+	var session := PlaySession.new()
+	session.autopilot = true
+	session.error_log = _log(0, 0)
+	add_child_autofree(session)
+	await wait_physics_frames(2)
+	_add(session.error_log, 2, 0)
+	session._open_pause()
+	var paused := session.find_child("PauseMenu", true, false) as PauseMenu
+	assert_string_contains(paused.error_text(), "(2 errors)")
+	session._resume()
+	session._rematch_left = 0.0
+	await wait_physics_frames(2)
+	session._open_pause()
+	assert_eq(paused.error_text(), "", "the next match starts its count again")
+	_add(session.error_log, 1, 0)
+	paused.open()
+	assert_string_contains(paused.error_text(), "(1 error)")
+	session._resume()
+
+
 func test_opening_and_closing_it_leaves_no_nodes() -> void:
 	menu.set_match("Depot", "Elimination", 4, 48213)
 	menu.open()

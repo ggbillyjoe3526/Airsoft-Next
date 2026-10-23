@@ -545,6 +545,7 @@ func _physics_process(_delta: float) -> void:
 			# A rematch's report tells this match only.
 			_recent.clear()
 			_frames.clear()
+			_pause.errors = error_log
 			_sim.start_match(state)
 			_after_tick()
 		if bots_active:

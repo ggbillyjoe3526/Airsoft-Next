@@ -1,8 +1,8 @@
 # game/report
 
-What a bug report is made of and the report itself (step 22). The Report a Bug panel and the crash screen come later
-(SV5, SV6); the run record they read is `game/save/run_record.gd` (`RunRecord`). Every number is a `ReportConfig` value
-(`game/config/report_config.tres`).
+What a bug report is made of and the report itself (step 22). The Report a Bug panel is `game/ui/report_panel.gd`
+(SV5); the crash screen comes later (SV6); the run record they read is `game/save/run_record.gd` (`RunRecord`). Every
+number is a `ReportConfig` value (`game/config/report_config.tres`).
 
 - `ErrorLog`: a `Logger` the entry scene adds at boot and removes at exit (`OS.add_logger`). Keeps this run's last 20
   errors and warnings as "<type> <file>:<line> (<function>): <message>", the place the top frame of the script

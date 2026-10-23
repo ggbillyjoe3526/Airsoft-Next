@@ -5,30 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## SV5 · Report a Bug from the title and the pause menu
-tier: ui
-perf: skip
-touches: game/ui/report_panel.gd, game/ui/title_screen.gd, game/ui/pause_menu.gd, game/main.gd,
-  game/ui/text/en.po, docs/PLAYTEST.md, tests/unit/test_report_panel.gd, tests/unit/test_pause_menu.gd
-contract: Headless (9)
-acceptance:
-  1. ReportPanel as report-bug.png: REPORT A BUG · WHAT WENT WRONG?, the note box (500 characters, trimmed in
-     script, with its count), the whole report read-only beside it (rebuilt as the note changes), REPORT ON GITHUB
-     (IssueLink through the injected opener; the whole report on the injected clipboard too), COPY REPORT, BACK; after
-     Report: "Opened GitHub in your browser. The whole report is copied too." (or the cut line); the fine print says
-     the issue is public and nothing is sent until Submit.
-  2. The title's foot gains "Report a Bug" before Licences; the pause menu's foot gains REPORT A BUG beside the seed
-     (alone in practice), as pause-report.png; with ErrorLog.errors_this_run() above 0 the line "Something went
-     wrong in this match (N errors). The game carried on; Report a Bug sends what happened." shows under it.
-  3. Opened from the pause menu the match stays paused and Back returns to the menu; Esc closes the panel only.
-  4. The smoke test opens and closes the panel from the title (never pressing Report); PLAYTEST gains a Bug reports
-     section (what to check: the issue opens filled in, a long report cut and pasted, no folder path or account name
-     anywhere in it).
-  5. GUT: the panel's text against BugReport; Report calls the opener once with IssueLink's address and the
-     clipboard once; the error line only with errors; the note's trim.
-status: open
-attempts: 0
-
 ## SV6 · The crash screen
 tier: ui
 perf: skip
