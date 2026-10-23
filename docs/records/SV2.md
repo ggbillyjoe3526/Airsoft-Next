@@ -1,13 +1,13 @@
 # SV2 · Settings › Save file
 
-**Review:** pending the critic · qa Pass · performance Pass
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-23 | 1 | Opus (worker) | pass (2361 tests) | not run | QA Pass and performance Pass with advisories; one fix round (below) |
-| 2026-10-23 | 1 (fix round) | Opus (worker) | pass (2409 tests) | not run | |
+| 2026-10-23 | 1 (fix round) | Opus (worker) | pass (2409 tests) | QA re-check Pass; Accept 8/8 | |
 
 ## Decisions
 
@@ -54,3 +54,13 @@ None.
 
 The restart after a restore, an Undo and a delete (Windows and Linux), Open folder on both, and a restored
 Compatibility renderer coming up on the next start: PLAYTEST › Save.
+
+## Advisories left
+
+- `paint` (settings_save_page.gd) styles the confirm's buttons too and belongs in MenuParts; the page is the largest
+  settings script (714 lines). `_pending` is reset twice in `_on_confirmed` (critic).
+- The red refusal line clears only on the next question, so leaving the tab and coming back still shows it (QA).
+- A NOTHING_TO_UNDO refusal shows the Undo help line; the UNREADABLE line says "kept for Undo" also for an Undo; a
+  greyed Undo from a newer build still reads "takes back a restore…" (QA, critic).
+- The in-match screenshot shows a focus ring on the greyed DELETE SAVE… left from the shot's earlier question; the
+  owner checks keyboard focus in the pause menu (critic).

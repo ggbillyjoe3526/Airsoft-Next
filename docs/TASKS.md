@@ -5,36 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## SV2 · Settings › Save file
-tier: ui
-perf: skip
-touches: game/ui/settings_save_page.gd, game/ui/settings_screen.gd, game/main.gd, game/ui/text/en.po,
-  docs/KNOWN_ISSUES.md, docs/PLAYTEST.md, tests/unit/test_settings_save_page.gd, tests/unit/test_settings_screen.gd
-contract: Saves (8); Headless (9)
-acceptance:
-  1. A Save file tab after Accessibility, as settings-save-file.png: Your save ("Saved automatically", "Last saved
-     <when>" from the newest store's modified time, the summary tiles); Save folder (the folder's path and OPEN
-     FOLDER, OS.shell_open through an injected opener); Restore points (date, when it was opened, level, XP, matches,
-     RESTORE each; "None yet: the first is kept the next time you open the game."); Undo ("Nothing to undo." or what it
-     takes back); Delete and start over (DELETE SAVE…).
-  2. Restore asks as save-restore-confirm.png (Now against the restore point, row by row; RESTORE AND RESTART,
-     CANCEL); Delete asks as save-delete-confirm.png (what goes; DELETE AND RESTART, CANCEL); Undo asks "Undo?" with the
-     same table. On yes: the replace (SV1), renderer.cfg written from the new settings (RendererOverride.put), then the
-     game restarts (main's _restart). A refused replace leaves everything and says why ("Couldn't write your save:
-     the disk may be full or the folder read-only. Nothing was changed.").
-  3. From the pause menu the tab shows the same with Restore, Undo and Delete greyed: "Leave the match to restore,
-     undo or delete." Open folder works anywhere.
-  4. Warnings in Your save: a newer version's save ("Your save is from a newer version (…): nothing you change now is
-     saved"), a failed write this run (SaveFile.last_failure).
-  5. Dev › Reset the save goes (Delete and start over does it, with Undo); Reset level stays.
-  6. KNOWN_ISSUES' SE1 row loses "Save file"; PLAYTEST › Save is rewritten to what is built (the save folder, restore
-     points, Undo, Delete; Save to file and Load file only if the owner pulls them in, open question 7).
-  7. GUT: the rows against SaveKeeper's state (no points, three, an Undo waiting, greyed in a match); each confirm
-     calls replace once and asks for the restart once; the opener gets the folder's path; a refused replace restarts
-     nothing.
-status: open
-attempts: 0
-
 ## SV4 · The bug report and its GitHub issue address
 tier: core
 perf: required
