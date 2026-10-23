@@ -4,34 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## FI3 · The upper body: aim, the replica in the hands, firing, switching, the holster and the hanging rifle
-tier: core
-perf: required
-touches: game/play/figures/, game/config/figure_config.gd, game/config/play_tuning.tres, game/play/figure_view.gd,
-  game/play/play_session.gd, tests/unit/test_figure_hands.gd, tests/unit/test_figure_pose.gd, tests/unit/test_lo3_qa.gd,
-  tests/unit/test_parts_in_play.gd
-contract: Simulation and presentation (1); Events (3); Data, not literals (6)
-acceptance:
-  1. The upper body (every bone but FigureConfig.lower_bones) takes a Blend2 with that filter over the legs: Rifle or
-     Pistol Aim between AimDown, Aim and AimUp by pitch (the clips' ±60° turn the replica 0.55 of it; FigureBend's
-     spine leans the rest), rifle and pistol eased at hold 0.06; the six Rest clips are never used (MV1).
-  2. Switch is a OneShot time-scaled to the replica's draw time (sidecar fitTo), the pistol in hand from 0.35 of it;
-     Fire is an additive one press per SHOT event (an additive copy of Rifle_Fire and Pistol_Fire made once at load
-     relative to its first frame, as the sidecar says), eased in at overlay 0.08.
-  3. FigureHands holds the replica's figure version on Grip_R by the sidecar's replicaOnGrip, converted from Blender
-     axes once at load; holstered (Holster, Holster_Sprint in a sprint) the rifle rides slung on Chest (FigureConfig
-     sling: butt 0.17 right, 1.42 up, tilt 0.75, back 0.19 human, 0.27 over the pack, 0.17 robot) and comes to the
-     hand at 0.5 of the draw; calling the hit (HitCall's upper body: Hand_L up, its bone about 1.8 m and the
-     fingertips 1.98 m) the rifle hangs from the other hand 0.25 rad off straight down, muzzle forward.
-  4. Parts and paint as today (ReplicaParts, ReplicaPaint, Realistic colours); test_lo3_qa and test_parts_in_play
-     read the replicas through FigureView as before.
-  5. GUT: in Rifle_Aim the replica's grip lies within 3 cm of Hand_R and its muzzle points within 5° of the pitch at
-     0 and ±45°; Switch shows the pistol only past 0.35; a SHOT plays Fire once; holstered the rifle sits on Chest
-     within the sling numbers; HitCall raises Hand_L's bone above 1.75 m (the clip raises the left hand; Hand_R
-     stays near 0.95 m).
-status: open
-attempts: 0
-
 ## FI4 · Reloads: the magazine in hand and the old one thrown
 tier: core
 perf: required

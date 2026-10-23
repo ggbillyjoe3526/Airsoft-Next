@@ -274,7 +274,8 @@ func test_the_hit_call_and_the_walk_off_raise_the_hand_and_the_reset_lowers_it()
 		c.status_time = 0.016 * i
 		v.animate(c, 1.0, 0.016, NEAR)
 	var high := sk.get_bone_global_pose(hand).origin.y
-	assert_gt(high, low + 0.5, "calling raises the left hand")
+	# Standing, the left hand is on the aimed rifle (FI3's upper body), about 1.45 m up: calling puts it over the head.
+	assert_gt(high, maxf(low + 0.3, 1.75), "calling raises the left hand")
 	c.status = Character.Status.WALKING_OFF
 	c.velocity = Vector3(0.0, 0.0, -hits.walk_off_speed)
 	for i in 40:

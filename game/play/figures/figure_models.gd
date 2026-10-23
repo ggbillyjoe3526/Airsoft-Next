@@ -1,9 +1,11 @@
 class_name FigureModels
 extends RefCounted
 ## The rigged figures a session draws (step 23), each kind loaded once a session: its scene, its sidecar
-## (FigureSidecar), its clips' loop modes set from the sidecar (the import leaves every clip unlooped), its legs'
-## animation graph (FigureGraph, the stepping clips' offsets measured once here), and, made once
-## and shared by every figure that asks, the team-painted materials and the shadow twins' meshes. A kind whose model or
+## (FigureSidecar), its clips' loop modes set from the sidecar (the import leaves every clip unlooped), the fire clips'
+## additive copies, its animation graph (FigureGraph, the stepping clips' offsets measured once here), where each replica
+## class sits on the grip bone (the sidecar's replicaOnGrip turned from Blender's axes once) and where the slung rifle
+## rides on the chest, and, made once and shared by every figure that asks, the team-painted materials and the shadow
+## twins' meshes. A kind whose model or
 ## sidecar can't be read warns once and is not drawn (its figures stay capsules). Held by PlaySession; freeing it frees
 ## all of it.
 
@@ -13,9 +15,16 @@ class Kind:
 	var sidecar: FigureSidecar = null
 	var library: AnimationLibrary = null
 	var graph: AnimationNodeBlendTree = null
+	## Replica class to its place on the grip bone, in Godot's axes: the replica's frame to the bone's.
+	var grip: Dictionary[StringName, Transform3D] = {}
+	## The slung rifle's butt frame (its long axis -Z, the muzzle's way) in the chest bone's frame.
+	var sling: Transform3D = Transform3D.IDENTITY
 
 
 var config: FigureConfig = null
+## Blender's axes from Godot's (x, y, z to x, -z, y): a replica file's point in the replica's own Blender frame.
+const BLENDER_FROM_GODOT := Basis(Vector3(1.0, 0.0, 0.0), Vector3(0.0, 0.0, 1.0), Vector3(0.0, -1.0, 0.0))
+
 ## By kind (FigureConfig.kinds' order): null until loaded, or when it couldn't be.
 var _kinds: Array[Kind] = []
 var _loaded: bool = false
@@ -32,8 +41,8 @@ func _init(figure_config: FigureConfig) -> void:
 func load_kinds() -> bool:
 	if not _loaded:
 		_loaded = true
-		for name in config.kinds:
-			_kinds.append(_load(name))
+		for i in config.kinds.size():
+			_kinds.append(_load(i))
 	return not _kinds.has(null)
 
 
@@ -58,6 +67,39 @@ func library(kind: int) -> AnimationLibrary:
 ## The kind's legs' animation graph: the one every figure of the kind's AnimationTree plays.
 func graph(kind: int) -> AnimationNodeBlendTree:
 	return _kinds[kind].graph if has_kind(kind) else null
+
+
+## Where replica class `site_class` sits on `kind`'s grip bone: the replica's frame (Godot's axes) to the bone's;
+## the rifle's place for a class the sidecar doesn't name, identity when it names none.
+func grip(kind: int, site_class: StringName) -> Transform3D:
+	if not has_kind(kind):
+		return Transform3D.IDENTITY
+	var places := _kinds[kind].grip
+	return places.get(site_class, places.get(&"rifle", Transform3D.IDENTITY))
+
+
+## The slung rifle's butt frame in `kind`'s chest bone's frame (FigureConfig sling numbers).
+func sling(kind: int) -> Transform3D:
+	return _kinds[kind].sling if has_kind(kind) else Transform3D.IDENTITY
+
+
+## A replicaOnGrip matrix (Blender's axes: X right, Y forward, Z up, for both the replica and the bone) as the replica's
+## frame in Godot's axes (X right, Y up, -Z forward) to the bone's: the figure's joints keep Blender's bone axes (the
+## glTF export turns the armature, not each bone), so only the replica's side is turned.
+static func grip_from_blender(m: Transform3D) -> Transform3D:
+	return m * Transform3D(BLENDER_FROM_GODOT, Vector3.ZERO)
+
+
+## The slung rifle's butt frame in the chest bone's frame: the butt at `butt` (x to the figure's right, y above the
+## feet), `back` behind the chest, the long axis `tilt` from upright with the muzzle down to the figure's left and its
+## right side facing out of the back; `chest` the chest bone's pose (the skeleton's frame, facing +Z).
+static func sling_on_chest(chest: Transform3D, butt: Vector2, back: float, tilt: float) -> Transform3D:
+	# The file faces +Z, so the figure's left is +X and behind it is -Z.
+	var muzzle := Vector3(sin(tilt), -cos(tilt), 0.0)
+	var right_side := Vector3(0.0, 0.0, -1.0)
+	var z := -muzzle
+	var frame := Basis(right_side, z.cross(right_side), z)
+	return chest.affine_inverse() * Transform3D(frame, Vector3(-butt.x, butt.y, chest.origin.z - back))
 
 
 ## `source` (a Team* material of `kind`) painted `colour` for `team`, lit with `glow` of it (TeamColours' High contrast
@@ -122,8 +164,8 @@ func shadow_mesh(kind: int, head: StringName, sources: Array[Mesh]) -> ArrayMesh
 	return made
 
 
-func _load(name: String) -> Kind:
-	var base := config.models_dir + name
+func _load(kind: int) -> Kind:
+	var base := config.models_dir + config.kinds[kind]
 	var side := FigureSidecar.read(base + ".json")
 	if side == null:
 		return null
@@ -157,7 +199,12 @@ func _load(name: String) -> Kind:
 			anim.loop_mode = Animation.LOOP_LINEAR if clip.loop else Animation.LOOP_NONE
 		if not skeletons.is_empty():
 			var skeleton := skeletons[0] as Skeleton3D
-			k.graph = FigureGraph.build(side, k.library, skeleton, String(probe.get_path_to(skeleton)), config)
+			var prefix := String(probe.get_path_to(skeleton))
+			_add_additive(k.library, skeleton, prefix)
+			k.graph = FigureGraph.build(side, k.library, skeleton, prefix, config)
+			k.sling = _sling(kind, side, k.library, skeleton, prefix)
+	for site_class in side.replica_on_grip:
+		k.grip[site_class] = grip_from_blender(side.replica_on_grip[site_class])
 	probe.free()
 	if named == 0:
 		push_warning("FigureModels: %s.glb has none of its sidecar's parts; its figures stay capsules" % base)
@@ -166,3 +213,36 @@ func _load(name: String) -> Kind:
 		push_warning("FigureModels: %s.glb has no clips; its figures stay capsules" % base)
 		return null
 	return k
+
+
+## The fire clips' additive copies (FigureConfig.additive_suffix), made once into the kind's library.
+func _add_additive(library: AnimationLibrary, skeleton: Skeleton3D, prefix: String) -> void:
+	for clip: StringName in [config.rifle_fire_clip, config.pistol_fire_clip]:
+		var made := StringName(clip + config.additive_suffix)
+		if library.has_animation(made):
+			continue
+		if not library.has_animation(clip):
+			push_warning("FigureModels: no clip %s" % clip)
+			continue
+		library.add_animation(made, FigureGraph.additive(library.get_animation(clip), skeleton, prefix))
+
+
+## Kind `kind`'s sling against the chest drawn standing holstered: the Holster clip's first frame over Idle's (the rest
+## without the clips).
+func _sling(kind: int, side: FigureSidecar, library: AnimationLibrary, skeleton: Skeleton3D,
+		prefix: String) -> Transform3D:
+	var chest_bone := skeleton.find_bone(config.chest_bone)
+	if chest_bone < 0:
+		push_warning("FigureModels: no bone %s" % config.chest_bone)
+		return Transform3D.IDENTITY
+	var chest := skeleton.get_bone_global_rest(chest_bone)
+	if library.has_animation(config.holster_clip):
+		var idle := library.get_animation(config.idle_clip) if library.has_animation(config.idle_clip) else null
+		chest = FigureGraph.bone_pose(library.get_animation(config.holster_clip), skeleton, prefix, chest_bone, 0.0,
+				idle, config.lower_bones)
+	var back := config.sling_back_human
+	if side.parts.has(config.sling_pack_part):
+		back = config.sling_back_pack
+	elif kind == FigureMix.ROBOT:
+		back = config.sling_back_robot
+	return sling_on_chest(chest, config.sling_butt, back, config.sling_tilt)

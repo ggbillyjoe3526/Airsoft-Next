@@ -7,9 +7,11 @@ extends Node3D
 ## walk off; a figure leaving the field fades out. It holds the replica it has out, the models' cut-down figure version
 ## in its team's paint (ReplicaPaint) with its parts' figure versions fitted (ReplicaParts), and puts it away as it fades.
 ## With Dev › Rigged figures on it draws its rigged figure (FigureBody) in place of the capsules, its legs posed by
-## `animate` (FigurePose: moving, crouching, jumping, vaulting, the hit call, the walk-off and the lean); the sign, the
-## fade and the replica at its hold work the same on both, and so does the hit flinch (`hit`, FigureFlinch): the upper
-## body jolts the way the BB flew, the capsules' about the pivot, the rigged figure's through FigureBend.
+## `animate` (FigurePose: moving, crouching, jumping, vaulting, the hit call, the walk-off and the lean) and its upper
+## body (the aim, the holster, a switch, a trigger press per SHOT event, `on_shot`), its replicas handed to it
+## (FigureHands: in the hand, slung, hanging from the hand); the sign and the fade work the same on both, and so does
+## the hit flinch (`hit`, FigureFlinch): the upper body jolts the way the BB flew, the capsules' about the pivot, the
+## rigged figure's through FigureBend.
 
 ## The figure's proportions (m): the legs' and torso's capsules, the head, the arm, and where the sign floats. The torso
 ## reaches this far below the pivot, so its round bottom covers the joint as it tilts.
@@ -39,7 +41,11 @@ var _mat: StandardMaterial3D = null
 var _hits: HitConfig = null
 ## The replicas the character carries, as the models' figure versions on the upper body; the one out is shown.
 var _replicas: Array[MeshInstance3D] = []
+var _classes: Array[StringName] = []
 var _out: int = -1
+## Seen this much (1 solid, 0 gone), as `update` last drew it; a shot since the last pose (the trigger pressed).
+var _fade: float = 1.0
+var _fired: bool = false
 ## The rigged figure drawn in place of the capsules, or null; the capsules' meshes, hidden while it is drawn; the team
 ## and its colour and glow, for a body made later.
 var _body: FigureBody = null
@@ -113,6 +119,7 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 	for i in c.armament.replicas.size():
 		var held := _held_replica(c.armament.replicas[i], c.team, realistic, parts[i] if i < parts.size() else {})
 		_replicas.append(held)
+		_classes.append(c.armament.replicas[i].site_class)
 		if held != null:
 			_upper.add_child(held)
 	_sign = make_sign(font, team_colour)
@@ -124,6 +131,12 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, body_cfg: BodyConf
 ## null, or a kind it couldn't load, the capsules again (the body freed).
 func set_body(models: FigureModels, kind: int, lines: Vector2) -> void:
 	if _body != null:
+		# The replicas back on the capsules' upper body first: they outlive the body.
+		_body.hands.release(_upper)
+		for i in _replicas.size():
+			if _replicas[i] != null:
+				_replicas[i].transform = Transform3D(Basis.IDENTITY, _hold(_classes[i]))
+		_out = -1
 		# Out of the tree at once, so the old body never draws beside the capsules or a new body this frame.
 		remove_child(_body)
 		_body.queue_free()
@@ -135,6 +148,8 @@ func set_body(models: FigureModels, kind: int, lines: Vector2) -> void:
 		_body = FigureBody.new()
 		if _body.setup(models, kind, character_id, _team, _team_colour, _glow, lines):
 			add_child(_body)
+			_body.hands.hold(_replicas, _classes)
+			_out = -1
 		else:
 			_body.free()
 			_body = null
@@ -165,7 +180,7 @@ func _held_replica(r: ReplicaConfig, team: int, realistic: bool, parts: Dictiona
 	var held := model.find_child("Figure", true, false) as MeshInstance3D
 	if held != null:
 		held.get_parent().remove_child(held)
-		held.position = HOLD_PISTOL if r.site_class == &"pistol" else HOLD_RIFLE
+		held.position = _hold(r.site_class)
 		held.visible = false
 		held.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		for part in ReplicaParts.figure_meshes(r.id, parts):
@@ -174,6 +189,17 @@ func _held_replica(r: ReplicaConfig, team: int, realistic: bool, parts: Dictiona
 		ReplicaPaint.apply(held, ReplicaPaint.bot_paint(team, r), realistic)
 	model.free()
 	return held
+
+
+## Where a replica of class `site_class` is held on the capsules' upper body.
+static func _hold(site_class: StringName) -> Vector3:
+	return HOLD_PISTOL if site_class == &"pistol" else HOLD_RIFLE
+
+
+## A shot from this figure (its SHOT event): one trigger press at its next pose.
+func on_shot() -> void:
+	if _body != null:
+		_fired = true
 
 
 ## The figure's material in `colour`; `faded` gives it the see-through variant a figure leaving the field fades with,
@@ -215,13 +241,16 @@ func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 		return
 	if not visible:
 		_snap = true
+		_fired = false
 		return
 	var cfg := _pose.config()
 	var far := _lines.y + cfg.lod_margin
 	if not _snap and global_position.distance_squared_to(eye) > far * far:
 		if cfg.far_stride <= 0:
+			# Held still out there: a press kept now would play stale when the figure comes near.
 			_far_frames = 0
 			_far_delta = 0.0
+			_fired = false
 			return
 		_far_delta += delta
 		_far_frames += 1
@@ -236,8 +265,11 @@ func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 		_pose.snap()
 	else:
 		_pose.settle(delta)
-	_body.animate(_pose, _hits, delta)
+	_body.animate(_pose, _hits, delta, _fired)
 	_body.set_flinch(_flinch.tilt())
+	_fired = false
+	if _fade < 1.0:
+		_body.hands.show_hands(-1, -1, false)
 
 
 ## The flinch dropped at once (a round reset or a rematch), the rigged figure's bend too.
@@ -276,6 +308,13 @@ func update(c: Character, fraction: float, delta: float = 0.0) -> void:
 	if c.status == Character.Status.LEAVING:
 		fade = clampf(1.0 - c.status_time / maxf(_hits.vanish_time, 0.001), 0.0, 1.0)
 	visible = fade > 0.0
+	_fade = fade
+	if _body != null:
+		# The rigged figure's hands show the replicas as animate poses it; put away as it fades (the paint is shared).
+		_body.set_fade(fade)
+		if fade < 1.0:
+			_body.hands.show_hands(-1, -1, false)
+		return
 	# The replica out: the one the character has in hand, put away as it fades (the paint is shared, so it can't fade).
 	var out := c.armament.active if fade >= 1.0 and c.armament.active < _replicas.size() else -1
 	if out != _out:
@@ -284,9 +323,6 @@ func update(c: Character, fraction: float, delta: float = 0.0) -> void:
 		_out = out
 		if _out >= 0 and _replicas[_out] != null:
 			_replicas[_out].visible = true
-	if _body != null:
-		_body.set_fade(fade)
-		return
 	var see_through := BaseMaterial3D.TRANSPARENCY_ALPHA if fade < 1.0 else BaseMaterial3D.TRANSPARENCY_DISABLED
 	if _mat.transparency != see_through:
 		_mat.transparency = see_through

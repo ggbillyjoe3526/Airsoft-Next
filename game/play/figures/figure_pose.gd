@@ -2,8 +2,10 @@ class_name FigurePose
 extends RefCounted
 ## What a figure's legs do (step 23, FI2; the browser game's sim/figureLegs.ts rules): `read` turns a Character between
 ## its last two ticks into the lower body's targets, and `settle` moves the blends towards them at the browser's settle
-## times (an exponential step: about two thirds of the way in each settle time). Pure: no node, nothing allocated per
-## call; one per figure, reused every frame. FigureBody plays it.
+## times (an exponential step: about two thirds of the way in each settle time). The upper body (FI3) from its
+## armament: the pitch, the rifle's or the pistol's hold, the holster and the draw out of it, a switch between replicas
+## and which replica is in the hand, slung or hanging from it. Pure: no node, nothing allocated per call; one per figure,
+## reused every frame. FigureBody plays it.
 
 ## The step in the figure's own frame (m/s; x to its right, y ahead): zero below the walking speed (still).
 var gait: Vector2 = Vector2.ZERO
@@ -32,6 +34,33 @@ var call_weight: float = 0.0
 var walk_off_weight: float = 0.0
 ## The speed below which the legs stand (HitConfig.walking_speed, as the hit volume's legs).
 var still_speed: float = 0.0
+## The upper body: the aim's pitch (rad, up positive) between the ticks; sprinting (Holster_Sprint's arms); the pistol's
+## hold and the holster as targets (0 or 1; the holster eased out over a draw from it) and as eased; the sprint's arms
+## as eased.
+var pitch: float = 0.0
+var sprinting: float = 0.0
+var pistol: float = 0.0
+var holster: float = 0.0
+var pistol_weight: float = 0.0
+var holster_weight: float = 0.0
+var sprint_weight: float = 0.0
+## The replica slots drawn: in the hand (-1 none), slung on the chest (-1 none), and whether the one in the hand hangs
+## from it (calling the hit, walking off).
+var in_hand: int = -1
+var slung: int = -1
+var hanging: bool = false
+## A switch between replicas under way (the Switch clip: backwards to a rifle), whether it began since the last read
+## (the clip is fired once), and how long the draw takes in all (s).
+var switching: bool = false
+var switch_started: bool = false
+var switch_back: bool = false
+var draw_seconds: float = 0.0
+## The draw under way came out of the holster; the slot in the hand before a switch; the last read's holster and draw.
+var _from_holster: bool = false
+var _switch_from: int = -1
+var _was_holstered: bool = false
+var _was_drawing: bool = false
+var _drawn_slot: int = -1
 var _config: FigureConfig = null
 
 
@@ -69,6 +98,77 @@ func read(c: Character, fraction: float, hits: HitConfig) -> void:
 	var off := c.status == Character.Status.WALKING_OFF or c.status == Character.Status.LEAVING
 	walk_off = 1.0 if off else 0.0
 	walk_off_speed = hits.walk_off_speed
+	pitch = lerpf(c.prev_pitch, c.pitch, fraction)
+	sprinting = 1.0 if c.sprinting else 0.0
+	read_hands(c.armament, call > 0.0 or c.status == Character.Status.WALKING_OFF)
+
+
+## The upper body's targets from armament `a`: what is in the hand, slung or put away, the draw and a switch under way;
+## `called` the hand raised (the replica in the hand hangs from the other).
+func read_hands(a: Armament, called: bool) -> void:
+	switch_started = false
+	if a == null or a.replicas.is_empty():
+		in_hand = -1
+		slung = -1
+		hanging = false
+		switching = false
+		holster = 0.0
+		return
+	var drawing := a.draw_left > 0.0 and a.draw_total > 0.0
+	if drawing and (not _was_drawing or a.active != _drawn_slot):
+		# A new draw: out of the holster, or a switch from the replica that was in the hand.
+		_from_holster = _was_holstered
+		_switch_from = in_hand
+		switching = not _from_holster and _switch_from >= 0 and _switch_from != a.active
+		switch_started = switching
+		switch_back = switching and not _is_pistol(a, a.active)
+	if not drawing:
+		_from_holster = false
+		switching = false
+	_was_drawing = drawing
+	_was_holstered = a.holstered
+	_drawn_slot = a.active
+	draw_seconds = a.draw_total
+	var share := 1.0 - a.draw_left / a.draw_total if drawing else 1.0
+	var swap := _config.holster_swap
+	var put_away := a.holstered or (_from_holster and share < swap)
+	holster = 1.0 if a.holstered else 0.0
+	if _from_holster and drawing:
+		holster = 1.0 if share < swap else clampf((1.0 - share) / maxf(1.0 - swap, 1e-6), 0.0, 1.0)
+	pistol = 1.0 if _is_pistol(a, a.active) else 0.0
+	in_hand = -1 if put_away else a.active
+	if switching and share < switch_share(switch_back):
+		in_hand = _switch_from
+	slung = _first_rifle(a) if put_away else -1
+	hanging = called and in_hand >= 0
+
+
+## The share of a switch's draw from which the new replica is in the hand: the Switch clip holds the pistol from
+## switch_pistol_from on, and played backwards to a rifle, the rifle from 1 - that.
+func switch_share(back: bool) -> float:
+	return 1.0 - _config.switch_pistol_from if back else _config.switch_pistol_from
+
+
+## The share of the aim clips' blend (-1 AimDown .. 1 AimUp) for the pitch.
+func aim_blend() -> float:
+	return clampf(pitch / _config.aim_pitch, -1.0, 1.0) if _config.aim_pitch > 0.0 else 0.0
+
+
+## How far (rad) the spine leans the aim beyond what the clips turn the replica (aim_reach of the blend's pitch).
+func aim_lean() -> float:
+	return pitch - _config.aim_reach * _config.aim_pitch * aim_blend()
+
+
+static func _is_pistol(a: Armament, slot: int) -> bool:
+	return slot >= 0 and slot < a.replicas.size() and a.replicas[slot].site_class == &"pistol"
+
+
+## The first slot that isn't a pistol (the rifle that rides slung), or -1.
+static func _first_rifle(a: Armament) -> int:
+	for i in a.replicas.size():
+		if not _is_pistol(a, i):
+			return i
+	return -1
 
 
 ## Moves the eased blends `delta` seconds towards the targets.
@@ -84,6 +184,10 @@ func settle(delta: float) -> void:
 	walk_off_weight = lerpf(walk_off_weight, walk_off, mode)
 	jump_weight = lerpf(jump_weight, jump, settle_share(delta, _config.settle_jump))
 	vault_weight = lerpf(vault_weight, vault, settle_share(delta, _config.settle_vault))
+	var hold := settle_share(delta, _config.settle_hold)
+	pistol_weight = lerpf(pistol_weight, pistol, hold)
+	holster_weight = lerpf(holster_weight, holster, hold)
+	sprint_weight = lerpf(sprint_weight, sprinting, mode)
 
 
 ## The blends set to the targets at once: a figure's first frame, or its first after its legs were left still (hidden).
@@ -95,11 +199,20 @@ func snap() -> void:
 	vault_weight = vault
 	call_weight = call
 	walk_off_weight = walk_off
+	pistol_weight = pistol
+	holster_weight = holster
+	sprint_weight = sprinting
 
 
 ## The eased step (m/s, the figure's frame): where the gait blend stands.
 func gait_position() -> Vector2:
 	return way * speed
+
+
+## How much the upper body's own clips show over the legs': none while calling the hit, walking off or vaulting (their
+## clips move the whole body), as eased.
+func upper_weight() -> float:
+	return 1.0 - maxf(maxf(call_weight, walk_off_weight), vault_weight)
 
 
 ## Whether the legs step: the walk cycle sets the stepping clips' place (below it they run free, so Idle breathes).

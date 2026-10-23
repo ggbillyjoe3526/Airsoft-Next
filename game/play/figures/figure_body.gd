@@ -7,7 +7,15 @@ extends Node3D
 ## mesh, shadows only) casts it at every range; the Team* materials wear the team's shared paint. Meshes and bones are
 ## found by name, never by index (the two files order their bones differently). Its legs play the kind's shared graph
 ## (FigureGraph) in an AnimationTree of its own, advanced by hand from a FigurePose (`animate`), then FigureBend lowers
-## and leans it and draws the hit flinch (`set_flinch`); it fades through GeometryInstance3D.transparency, so no material is copied.
+## and leans it and draws the hit flinch (`set_flinch`); it fades through GeometryInstance3D.transparency, so no material
+## is copied. Its upper body (FI3) plays over the legs in the same tree (the aim by pitch, the holster, a switch, a
+## trigger press per shot), FigureBend leans the aim the rest of the way, and FigureHands puts the replicas in the hand,
+## on the sling or hanging from the hand.
+
+## A gate of the upper body (FigureGraph's Transitions) as last asked: not yet, shut (a stand-in plays), open.
+const GATE_UNSET := -1
+const GATE_SHUT := 0
+const GATE_OPEN := 1
 
 ## The parts it draws (the shadow twin last) and each one's level (0, 1, 2; -1 for the twin).
 var meshes: Array[MeshInstance3D] = []
@@ -16,6 +24,8 @@ var skeleton: Skeleton3D = null
 ## The legs' tree (its graph the kind's, its parameters its own) and the bend after it; null without a skeleton.
 var tree: AnimationTree = null
 var bend: FigureBend = null
+## The replicas on the figure (FigureView hands them over), placed each time the skeleton is posed.
+var hands: FigureHands = null
 ## The head it wears (&"" for a kind with one head).
 var head: StringName = &""
 var _config: FigureConfig = null
@@ -27,6 +37,13 @@ var _call_seconds: float = 0.0
 var _walk_off_pace: float = 0.0
 ## Turns a way in the figure's frame (x right, -z ahead) into the skeleton's (the file's, facing +Z).
 var _to_skeleton: Basis = Basis.IDENTITY
+## The Switch clip's length (s), time-scaled to each draw.
+var _switch_seconds: float = 0.0
+## The upper body's gates as last asked (GATE_UNSET until the first pose asks): the aim, the holster's arms, the whole
+## upper body; open, it is evaluated.
+var _hold_gate: int = GATE_UNSET
+var _holster_gate: int = GATE_UNSET
+var _upper_gate: int = GATE_UNSET
 
 
 ## Builds kind `kind` of `models` for figure `figure_id` of `team`, painted `colour` with `glow`, its levels changing at
@@ -106,6 +123,10 @@ func setup(models: FigureModels, kind: int, figure_id: int, team: int, colour: C
 		placed = node.transform * placed
 		node = node.get_parent() as Node3D
 	_to_skeleton = placed.basis.orthonormalized().inverse()
+	hands = FigureHands.new()
+	hands.setup(skeleton, models, kind, _config)
+	skeleton.add_child(hands)
+	_switch_seconds = _seconds(side, _config.switch_clip)
 	_vault_seconds = _seconds(side, _config.vault_clip)
 	_call_seconds = _seconds(side, _config.call_clip)
 	var walk_off := side.clip(_config.walk_off_clip)
@@ -113,11 +134,13 @@ func setup(models: FigureModels, kind: int, figure_id: int, team: int, colour: C
 	return true
 
 
-## Poses the legs from `pose` (`hits`: the hit volume's lean geometry) and moves the tree on `delta` seconds; the bend
-## follows when the skeleton next updates.
-func animate(pose: FigurePose, hits: HitConfig, delta: float) -> void:
+## Poses the legs and the upper body from `pose` (`hits`: the hit volume's lean geometry; `fired`: a shot since the last
+## pose, one trigger press) and moves the tree on `delta` seconds; the bend and the replicas follow when the skeleton
+## next updates.
+func animate(pose: FigurePose, hits: HitConfig, delta: float, fired: bool = false) -> void:
 	if tree == null:
 		return
+	_animate_upper(pose, fired)
 	tree.set(FigureGraph.P_GAIT, pose.gait_position())
 	tree.set(FigureGraph.P_CROUCH_SPACE, pose.speed)
 	tree.set(FigureGraph.P_CROUCH, pose.crouch)
@@ -138,6 +161,46 @@ func animate(pose: FigurePose, hits: HitConfig, delta: float) -> void:
 	bend.hits = hits
 	bend.lean = pose.lean
 	bend.crouch = pose.crouch
+	# The spine leans what the aim clips leave of the pitch, while they show (not holstered, not calling the hit).
+	bend.aim_lean = pose.aim_lean() * pose.upper_weight() * (1.0 - pose.holster_weight)
+	hands.show_hands(pose.in_hand, pose.slung, pose.hanging)
+
+
+## The upper body's parameters: a trigger press when `fired`; the upper body's weight, its gate shut (not evaluated)
+## under FigureConfig.gate_below; then, while it shows, the aim by pitch, the hold, the holster (its arms' and the aim's
+## gates shut at none and at full; Holster_Sprint on the walk cycle), a switch begun (forwards to a pistol, backwards to
+## a rifle, scaled to the draw), cut when the draw is (a holster, a hit).
+func _animate_upper(pose: FigurePose, fired: bool) -> void:
+	tree.set(FigureGraph.P_FIRE_HOLD, pose.pistol_weight)
+	if fired:
+		tree.set(FigureGraph.P_FIRE, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
+	var below := _config.gate_below
+	var upper := pose.upper_weight()
+	upper = 0.0 if upper < below else upper
+	_upper_gate = _gate(FigureGraph.P_UPPER_GATE, _upper_gate, upper > 0.0)
+	tree.set(FigureGraph.P_UPPER, upper)
+	if _upper_gate == GATE_SHUT:
+		# Calling the hit, walking off or vaulting: nothing under the gate plays, so nothing there is asked (a switch
+		# begun now would wait in its OneShot and play late).
+		return
+	var aim := pose.aim_blend()
+	tree.set(FigureGraph.P_RIFLE_AIM, aim)
+	tree.set(FigureGraph.P_PISTOL_AIM, aim)
+	tree.set(FigureGraph.P_HOLD, pose.pistol_weight)
+	var holster := pose.holster_weight
+	holster = 0.0 if holster < below else (1.0 if holster > 1.0 - below else holster)
+	_hold_gate = _gate(FigureGraph.P_HOLD_GATE, _hold_gate, holster < 1.0)
+	_holster_gate = _gate(FigureGraph.P_HOLSTER_GATE, _holster_gate, holster > 0.0)
+	tree.set(FigureGraph.P_HOLSTER, holster)
+	tree.set(FigureGraph.P_HOLSTER_MIX, pose.sprint_weight)
+	if pose.stepping():
+		tree.set(FigureGraph.P_HOLSTER_SPRINT_SEEK, fposmod(pose.cycle, TAU))
+	if pose.switch_started and pose.draw_seconds > 0.0:
+		tree.set(FigureGraph.P_SWITCH_WAY, 1.0 if pose.switch_back else 0.0)
+		tree.set(FigureGraph.P_SWITCH_PACE, _switch_seconds / pose.draw_seconds)
+		tree.set(FigureGraph.P_SWITCH, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
+	elif not pose.switching and tree.get(FigureGraph.P_SWITCH_ACTIVE):
+		tree.set(FigureGraph.P_SWITCH, AnimationNodeOneShot.ONE_SHOT_REQUEST_FADE_OUT)
 
 
 ## The hit flinch drawn from the next skeleton update: `tilt` (rad) in the figure's frame (FigureFlinch).
@@ -196,6 +259,15 @@ func _level(part: String) -> int:
 		return 0
 	var tail := part.substr(at + _config.lod_suffix.length())
 	return tail.to_int() if tail.is_valid_int() else 0
+
+
+## Gate `param` (as last asked, `state`) opened or shut as `open` says, asked of the tree only when that changes (a
+## Transition plays no input until asked once); its state after.
+func _gate(param: StringName, state: int, open: bool) -> int:
+	var wanted := GATE_OPEN if open else GATE_SHUT
+	if wanted != state:
+		tree.set(param, FigureGraph.GATE_ON if open else FigureGraph.GATE_REST)
+	return wanted
 
 
 static func _seconds(side: FigureSidecar, clip_name: StringName) -> float:
