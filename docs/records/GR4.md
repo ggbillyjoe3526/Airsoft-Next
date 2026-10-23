@@ -1,12 +1,12 @@
 # GR4 · Graphics problems: the simpler renderer and a safe start
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus | pass | 7/8 accept (check 7: the start-up wiring in main.gd and the 626-line Graphics page, both left as advisories; the guard's doc re-wrapped) | |
 
 ## Decisions
 
@@ -111,3 +111,6 @@
 - Start-up does three small synchronous file operations before the first frame, and the settle write lands in the
   first match's load; measure if a hitch shows. The title saves the record each time it rebuilds while the question
   waits; it could skip an unchanged save.
+- Can wait (critic): main.gd carries about 120 lines of graphics start-up and five test hooks; move them to a small
+  `GraphicsStartUp` helper, and split CostSquares and Line out of settings_graphics_page.gd (626 lines, GR2's
+  advisory), when GR5 next touches them.

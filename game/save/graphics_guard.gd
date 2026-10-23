@@ -8,8 +8,8 @@ extends RefCounted
 ## the state RESTARTING, so the restarted start (or the next, if the restart never came) asks. While an answer waits,
 ## or when the graphics in force are already the safe ones, a start that never settled trips nothing: one automatic
 ## restart per crash, never a loop. A start that finds STARTING written by a copy still running (`pid`) is a second
-## copy, not a crash: it leaves the record alone. Also remembers the reason the title last gave for the simpler renderer, so it says
-## so once per change.
+## copy, not a crash: it leaves the record alone. Also remembers the reason the title last gave for the simpler
+## renderer, so it says so once per change.
 
 const PATH := "user://graphics_guard.save"
 const KIND := "graphics_guard"
