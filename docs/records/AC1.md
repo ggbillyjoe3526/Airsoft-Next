@@ -15,7 +15,7 @@
   `HudPrefs.RANGE_SLACK` (1e-6) of an end in and clamp it; this also fixes the crosshair's lowest opacity, 0.2,
   which had the same fault since the HUD tab.
 
-- **The plan's defaults; the owner hasn't approved the step 21 pictures yet** (`colour-sets.png`,
+- **The plan's defaults, approved with the step 21 pictures, 2026-10-23** (`colour-sets.png`,
   `settings-accessibility.png`, plan questions 1 to 9). High contrast is the browser game's set (figures `#8ccfff` and
   `#b8460c`, HUD orange `#e0601a`, a 0.3 paint glow on day fields), sound cues are off, red and 100 %, gauge patterns
   are on, Reduced motion follows the system, screen reader messages are on and the HUD size is 100 %. Each is one cell
@@ -39,6 +39,7 @@
   - The test fails on any other colour inside the rule. It also fails an exception whose prop is gone, whose colour
     changed (beyond 1/255), or which no longer reads as a team, so the list can't rot.
   - Either answer from the owner is a data change: delete the rows and recolour the props, or keep the rows.
+  - The owner answered on 2026-10-23: recolour, no exceptions. AC2 recolours the props and empties the list.
 - **The hue is measured as HSL on linear RGB**, as the browser game's three.js `getHSL` did by default. Neon Heights'
   crates `#eef3f6` pass that way: saturation 0.298, just under 0.3. On sRGB they'd read 0.31 and fail. Container 3
   `#5e6e7d` (slate) is the other close one, at saturation 0.290 and 2° from High contrast's blue. Glowing signs and
