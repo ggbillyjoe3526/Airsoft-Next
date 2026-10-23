@@ -27,7 +27,7 @@ const DPI_STEP := 50.0
 const PERCENT_STEP := 1.0
 ## The Dev tab's switches, each a DevSettings field with a label DEV_<FIELD> and a help line DEV_<FIELD>_HELP.
 const DEV_SWITCHES: Array[StringName] = [&"dev_content", &"disable_levelling", &"bottomless", &"ghost",
-		&"bots_hold_fire", &"spectate_bots", &"bot_intent", &"retro_pixels"]
+		&"bots_hold_fire", &"spectate_bots", &"bot_intent", &"retro_pixels", &"pretend_slow_frames"]
 ## What the screen edits; the game's own by default.
 var settings: Settings = null
 ## Where it saves (a test points this at a temporary file).
@@ -135,6 +135,17 @@ func open() -> void:
 	visible = true
 	# take focus, so Tab and Enter can't reach the screen underneath
 	_back.grab_focus()
+
+
+## Shows the Graphics tab (the first start's notice's Graphics settings).
+func show_graphics() -> void:
+	# the page sits in its tab's scroll box
+	_tabs.current_tab = _graphics_page.get_parent().get_parent().get_index()
+
+
+## The tab showing (tests).
+func current_tab() -> int:
+	return _tabs.current_tab
 
 
 ## Hides the screen, saving any change not yet saved.

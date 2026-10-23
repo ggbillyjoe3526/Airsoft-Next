@@ -35,10 +35,11 @@ func after_all() -> void:
 func _main_with(guard: GraphicsGuard) -> Node:
 	guard.save(_guard_path)
 	var main := MAIN.instantiate()
-	main.guard_path = _guard_path
-	main.renderer_path = _renderer_path
-	main.settings_path = _settings_path
-	main.set("restart", func() -> void: main.set_meta(&"restarted", true))
+	var graphics: GraphicsStartUp = main.graphics
+	graphics.guard_path = _guard_path
+	graphics.renderer_path = _renderer_path
+	graphics.settings_path = _settings_path
+	graphics.restart = func() -> void: main.set_meta(&"restarted", true)
 	return main
 
 

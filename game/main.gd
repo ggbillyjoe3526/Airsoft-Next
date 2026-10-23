@@ -14,9 +14,9 @@ extends Node
 ## The Loadout from practice: the range's Loadout key (or the pause menu's row) takes where you stood (PracticeSpot), frees
 ## the range and opens the menus as the Loadout alone (MenuScreen.open_practice_loadout); BACK TO PRACTICE, the key or Esc
 ## saves it and builds the range again on that spot.
-## Graphics problems: boot logs the renderer in force; a start that never drew its first match restarts once on safe
-## graphics and the title asks (GraphicsGuard, RendererOverride); the title says once why the game is on the simpler
-## renderer. Nothing is guarded in the smoke run, a headless one or one the editor started.
+## The graphics at start-up (GraphicsStartUp): boot logs the renderer in force; a start that never drew its first match
+## restarts once on safe graphics and the title asks; the title says once why the game is on the simpler renderer, and
+## on the first start which preset the card picked (its Graphics settings opens Settings › Graphics).
 
 const SMOKE_SETTINGS_OPEN := 10
 const SMOKE_SETTINGS_CLOSE := 20
@@ -72,15 +72,8 @@ var _smoke_plates := -1
 var _smoke_range_left_at := -1
 var _smoke_order_step := 0
 var _smoke_orders := -1
-## The safe start's record, or null where nothing is guarded. Tests point the paths at their own files and replace
-## `restart` (which otherwise quits and starts the game again with the same options).
-var _guard: GraphicsGuard = null
-var guard_path: String = ""
-var renderer_path: String = RendererOverride.PATH
-var settings_path: String = Settings.PATH
-var restart: Callable = Callable()
-## Whether a process id is running (OS.is_process_running); tests replace it.
-var process_running: Callable = Callable()
+## The graphics at start-up: the safe start's record and the title's notices (tests set its paths and hooks first).
+var graphics: GraphicsStartUp = GraphicsStartUp.new()
 
 
 func _ready() -> void:
@@ -88,8 +81,11 @@ func _ready() -> void:
 	_launch_seed = LaunchSeed.parse(OS.get_cmdline_user_args())
 	print("[boot] Airsoft %s on Godot %s" % [Version.current(), Engine.get_version_info()["string"]])
 	print(RendererOverride.boot_line(GraphicsApply.machine()))
-	if _guard_start() == GraphicsGuard.Action.RESTART_SAFE:
+	if not graphics.restart.is_valid():
+		graphics.restart = _restart
+	if graphics.start(_smoke) == GraphicsGuard.Action.RESTART_SAFE:
 		return
+	graphics.graphics_settings_requested.connect(_open_graphics_settings)
 	# before the settings screens and the match, so a key list waiting for a key has F11 first
 	add_child(WindowWatch.new())
 	_build_screens()
@@ -104,12 +100,12 @@ func _ready() -> void:
 	_scale_menus()
 	get_window().size_changed.connect(_scale_menus)
 	set_process(_smoke)
-	_show_renderer_notice()
+	graphics.show_boot_notices(_title)
 
 
 func _exit_tree() -> void:
 	# a clean quit: the graphics started (the trip's own restart is not one)
-	_settle_graphics()
+	graphics.settle()
 	var window := get_window()
 	if window.size_changed.is_connected(_scale_menus):
 		window.size_changed.disconnect(_scale_menus)
@@ -144,7 +140,7 @@ func _build_title() -> void:
 	_title.credits_pressed.connect(_show_credits)
 	_title.quit_pressed.connect(get_tree().quit)
 	add_child(_title)
-	_show_safe_notice()
+	graphics.show_safe_notice(_title)
 
 
 func _build_menus() -> void:
@@ -265,7 +261,7 @@ func _start_play(smoke_practice: bool = false) -> void:
 	_play.progressed.connect(_loading.set_progress_step)
 	_play.started.connect(_free_loading)
 	_play.left.connect(_end_play)
-	_play.shaders_warmed.connect(_settle_graphics)
+	_play.shaders_warmed.connect(graphics.settle)
 	_play.loadout_requested.connect(_open_practice_loadout)
 	_spot = null
 	add_child(_play)
@@ -344,122 +340,22 @@ func _end_play() -> void:
 	_scale_menus()
 
 
-# --- Graphics problems ---
+# --- Graphics at start-up ---
 
-## The safe start's check, before anything is built: on a start that never drew its first match, the safe graphics are
-## written and the game restarts (RESTART_SAFE). Not in the smoke run, a headless one or one the editor started (its
-## Stop button ends a run as a crash would), unless a test gives a path.
-func _guard_start() -> GraphicsGuard.Action:
-	var unguarded := _smoke or DisplayServer.get_name() == "headless" or EngineDebugger.is_active()
-	if guard_path == "" and unguarded:
-		return GraphicsGuard.Action.NONE
-	if guard_path == "":
-		guard_path = GraphicsGuard.PATH
-	if not restart.is_valid():
-		restart = _restart
-	if not process_running.is_valid():
-		process_running = Callable(OS, &"is_process_running")
-	var s := Settings.shared()
-	var machine := GraphicsApply.machine()
-	RendererOverride.sync(s.renderer, renderer_path)
-	_guard = GraphicsGuard.load_file(guard_path)
-	if _guard.held_by_other(OS.get_process_id(), process_running):
-		# a second copy beside the first: the first one's record, untouched
-		_guard = null
-		return GraphicsGuard.Action.NONE
-	_guard.pid = OS.get_process_id()
-	var low := GraphicsTable.shared().preset(GraphicsGuard.SAFE_PRESET)
-	var safe_now := machine.rendering_method == GraphicsPick.COMPATIBILITY \
-			and s.graphics_in_force(machine.preset).equals(low)
-	var action := _guard.start(safe_now)
-	if action == GraphicsGuard.Action.RESTART_SAFE:
-		_guard.trip(s, machine.preset)
-		s.save(settings_path)
-		RendererOverride.put(s.renderer, renderer_path)
-		print("[boot] the last start closed while drawing: restarting on the simpler renderer and Low")
-	_guard.save(guard_path)
-	if action == GraphicsGuard.Action.RESTART_SAFE:
-		restart.call()
-	return action
-
-
-## Starts the game again with the same options, once this one has quit, less a renderer option (the safe-graphics
-## shortcut's), so the renderer the restart is for (user://renderer.cfg) is the one it gets.
+## Starts the game again with the same options (less a renderer option, GraphicsStartUp.restart_args), once this one
+## has quit.
 func _restart() -> void:
-	OS.set_restart_on_exit(true, restart_args(OS.get_cmdline_args()))
+	OS.set_restart_on_exit(true, GraphicsStartUp.restart_args(OS.get_cmdline_args()))
 	get_tree().quit()
 
 
-## `args` without `--rendering-method` and its value.
-static func restart_args(args: PackedStringArray) -> PackedStringArray:
-	var kept := PackedStringArray()
-	var i := 0
-	while i < args.size():
-		if args[i] == "--rendering-method":
-			i += 2
-			continue
-		if not args[i].begins_with("--rendering-method="):
-			kept.append(args[i])
-		i += 1
-	return kept
-
-
-## The graphics started: the first match's shaders warmed, or a clean quit.
-func _settle_graphics() -> void:
-	if _guard != null and _guard.settle():
-		_guard.save(guard_path)
-
-
-## The safe start's question on the title, while it waits for an answer.
-func _show_safe_notice() -> void:
-	if _guard == null or not _guard.asking():
+## The first start's Graphics settings: the menus, and the settings on their Graphics tab.
+func _open_graphics_settings() -> void:
+	if _title == null or _menus == null:
 		return
-	var machine := GraphicsApply.machine()
-	var was := _guard.previous
-	var words := GraphicsNotice.graphics_words(StringName(str(was["graphics_choice"])),
-			GraphicsPick.pick(machine.adapter_type, RendererOverride.FORWARD_PLUS),
-			clampi(int(was["renderer"]), 0, Settings.Renderer.size() - 1) as Settings.Renderer)
-	var s := Settings.shared()
-	var now := GraphicsNotice.graphics_words(s.graphics_choice, machine.preset, s.renderer)
-	var notice := GraphicsNotice.safe_start(words, now)
-	notice.chosen.connect(_on_safe_answer)
-	_title.show_notice(notice)
-	# the safe notice says why the game is on the simpler renderer
-	_guard.notice_due(RendererOverride.REASON_SETTINGS)
-	_guard.save(guard_path)
-
-
-## Keep safe graphics (0), or Try my settings again (1): the player's graphics back, and a restart.
-func _on_safe_answer(index: int) -> void:
-	_title.close_notice()
-	if index == 0:
-		_guard.keep()
-		_guard.save(guard_path)
-		return
-	var s := Settings.shared()
-	_guard.try_again(s)
-	s.save(settings_path)
-	RendererOverride.put(s.renderer, renderer_path)
-	_guard.save(guard_path)
-	restart.call()
-
-
-## Once per change of reason, why the game is on the simpler renderer (none while the safe start asks).
-func _show_renderer_notice() -> void:
-	if _guard == null or _guard.asking():
-		return
-	var machine := GraphicsApply.machine()
-	var shown := _guard.renderer_notice
-	var due := _guard.notice_due(RendererOverride.reason_now(machine.rendering_method))
-	if _guard.renderer_notice != shown:
-		_guard.save(guard_path)
-	if not due:
-		return
-	var card := SettingsGraphicsPage.card_words(machine)
-	var renderer := SettingsGraphicsPage.renderer_words(machine)
-	var notice := GraphicsNotice.simpler_renderer(_guard.renderer_notice, card, renderer)
-	notice.chosen.connect(func(_i: int) -> void: _title.close_notice())
-	_title.show_notice(notice)
+	_show_menus()
+	_open_settings()
+	_settings_screen.show_graphics()
 
 
 func _process(_delta: float) -> void:

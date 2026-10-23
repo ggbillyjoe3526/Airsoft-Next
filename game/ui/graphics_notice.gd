@@ -3,8 +3,8 @@ extends PanelContainer
 ## A notice card on the title screen, bottom right (concept `graphics-problem.png`): a kicker, a title, a line with
 ## bold words, facts in two columns, a quieter foot and one or two buttons, the first solid yellow. START works under
 ## it. `safe_start` is the one after a start that closed while drawing (Keep safe graphics, or Try my settings again);
-## `simpler_renderer` says once why the game is on the simpler renderer. `chosen` gives the button's index; the
-## owner frees the notice.
+## `simpler_renderer` says once why the game is on the simpler renderer; `first_start` (concept `first-run.png`) names
+## the automatic pick, the card and the screen once. `chosen` gives the button's index; the owner frees the notice.
 
 signal chosen(index: int)
 
@@ -32,6 +32,10 @@ const ACTIONS_TOP := 8.0
 ## The words for each preset and renderer (Settings › Graphics' keys).
 const PRESET_KEY := "GRAPHICS_PRESET_%s"
 const RENDERER_KEYS: Array[String] = ["GRAPHICS_FORWARD_PLUS", "GRAPHICS_COMPATIBILITY"]
+## The window modes' words (Settings › Display's), by Settings.WindowMode.
+const WINDOW_KEYS: Array[String] = ["SETTINGS_WINDOWED", "SETTINGS_BORDERLESS", "SETTINGS_EXCLUSIVE"]
+## A refresh rate at or under this is one the screen didn't report.
+const NO_RATE := 0.0
 ## The simpler renderer's line for each RendererOverride reason.
 const REASON_KEYS: Dictionary[String, String] = {
 	RendererOverride.REASON_SETTINGS: "NOTICE_SIMPLER_SETTINGS",
@@ -90,6 +94,26 @@ static func simpler_renderer(reason: String, card: String, renderer: String) -> 
 	n.facts(PackedStringArray([tr_static("GRAPHICS_CARD"), card, tr_static("GRAPHICS_RENDERER"), renderer]))
 	n.actions(PackedStringArray([tr_static("NOTICE_OK")]))
 	return n
+
+
+## The first start's notice: the automatic pick (`preset`, a GraphicsTable preset), the card (`card`, its name and
+## type) and the screen (`screen`, screen_words). OK (0) or Graphics settings (1).
+static func first_start(preset: StringName, card: String, screen: String) -> GraphicsNotice:
+	var n := GraphicsNotice.new()
+	n.kicker(tr_static("NOTICE_FIRST_KICKER"), GameTheme.YELLOW)
+	n.heading(tr_static("NOTICE_FIRST_TITLE") % tr_static(PRESET_KEY % String(preset).to_upper()))
+	n.line(tr_static("NOTICE_FIRST_BODY"))
+	n.facts(PackedStringArray([tr_static("GRAPHICS_CARD"), card, tr_static("GRAPHICS_SCREEN"), screen]))
+	n.actions(PackedStringArray([tr_static("NOTICE_OK"), tr_static("NOTICE_GRAPHICS_SETTINGS")]))
+	return n
+
+
+## The screen in words: "2560 × 1440 · 144 Hz · borderless fullscreen", without the rate when the screen gives none.
+static func screen_words(size: Vector2i, rate: float, mode: Settings.WindowMode) -> String:
+	var window := tr_static(WINDOW_KEYS[mode]).to_lower()
+	if rate > NO_RATE:
+		return tr_static("NOTICE_FIRST_SCREEN") % [size.x, size.y, roundi(rate), window]
+	return tr_static("NOTICE_FIRST_SCREEN_NO_RATE") % [size.x, size.y, window]
 
 
 ## A player's graphics in words: the preset (`choice`, or the card's pick `picked` while automatic, or Custom) and the

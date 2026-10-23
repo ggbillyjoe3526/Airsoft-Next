@@ -11,6 +11,9 @@ extends Node3D
 ## Practice (`practice`, M21) plays the range instead: you alone with its targets (RangeTargetsView, its markings
 ## RangeView), no bots and no rounds, a breeze, spare magazines kept full, no XP and no match records; the timed
 ## challenge (off unless switched on) keeps its best.
+## The automatic step-down (FrameWatch): while the graphics are the automatic pick, a live round's frame times are
+## watched; when they run slow the next round's end steps the pick one preset down for the run (never saved, never
+## mid-round) and the HUD says so. Once a match; not in practice or the smoke test.
 ## The build is four steps (the map, the level, the teams, the views). Staged, one runs each rendered frame and
 ## `progressed` reports each, for the loading screen; `started` follows the frame the match is first drawn. Not staged,
 ## all four run in `_ready` (tests and tools).
@@ -133,6 +136,15 @@ var _skip_held_for: float = 0.0
 var _skip_armed: bool = false
 var _skip_note: Label = null
 var _tally: PlayerTally = PlayerTally.new(PLAYER_ID)
+## The automatic step-down's watch, whether the window has the focus and whether the shaders are warm (the warm-up's
+## frames say nothing about the graphics); the Dev settings' Pretend slow frames.
+var _watch: FrameWatch = FrameWatch.new()
+var _focused: bool = true
+## The screen's rate (DisplayServer, 0 or less when unknown), a limit on the frames while V-Sync is on; read at the
+## start and when the window gets the focus back (it may have moved to another screen).
+var _refresh_hz: float = 0.0
+var _warm: bool = false
+var _pretend_slow: bool = false
 var _stats: MatchStats = MatchStats.new()
 ## Attack / Defend's pole; null in Elimination.
 var _flag: FlagView = null
@@ -164,6 +176,7 @@ func _ready() -> void:
 	name = "Play"
 	# Everything here is placed by hand between ticks (fraction below), so the engine's own interpolation stays off.
 	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	_read_window()
 	if staged:
 		progressed.emit(0, STEP_KEYS.size(), STEP_KEYS[0])
 		return
@@ -236,6 +249,7 @@ func _build_views_and_start() -> void:
 		settings = Settings.shared()
 	settings.changed.connect(_apply_dev)
 	settings.changed.connect(_apply_hud)
+	settings.changed.connect(_follow_graphics_pick)
 	GraphicsApply.server().applied.connect(_apply_graphics)
 	_apply_dev()
 	_apply_hud()
@@ -499,6 +513,7 @@ func _physics_process(_delta: float) -> void:
 	for i in _pacer.ticks():
 		if _rematch_left == 0.0:
 			_rematch_left = -1.0
+			_watch.new_match()
 			_sim.start_match(state)
 			_after_tick()
 		if bots_active:
@@ -614,6 +629,7 @@ func _after_tick() -> void:
 			GameEvent.Kind.ROUND_OVER:
 				rounds_played += 1
 				_stop_skip()
+				_step_graphics_down()
 			GameEvent.Kind.SQUAD_ORDER when e.actor == PLAYER_ID:
 				orders_given += 1
 			GameEvent.Kind.ROUND_START:
@@ -634,6 +650,7 @@ func _process(delta: float) -> void:
 			_advance_build()
 		return
 	_follow_skip(delta)
+	_watch_frame(delta)
 	# The next match waits while the last round's table holds the results back.
 	if _rematch_left > 0.0 and not _hud.holds_results():
 		_rematch_left = maxf(0.0, _rematch_left - delta)
@@ -676,6 +693,7 @@ func _process(delta: float) -> void:
 ## The prewarm left the tree: done, unless the match itself is leaving.
 func _on_shaders_warmed() -> void:
 	if is_inside_tree() and not is_queued_for_deletion():
+		_warm = true
 		shaders_warmed.emit()
 
 
@@ -756,6 +774,12 @@ func _start_now() -> void:
 
 
 func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_focused = false
+		_watch.reset()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		_focused = true
+		_read_window()
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and _input != null and _input.active and not autopilot:
 		_open_pause()
 
@@ -766,6 +790,8 @@ func _exit_tree() -> void:
 		settings.changed.disconnect(_apply_dev)
 	if settings != null and settings.changed.is_connected(_apply_hud):
 		settings.changed.disconnect(_apply_hud)
+	if settings != null and settings.changed.is_connected(_follow_graphics_pick):
+		settings.changed.disconnect(_follow_graphics_pick)
 	if GraphicsApply.server().applied.is_connected(_apply_graphics):
 		GraphicsApply.server().applied.disconnect(_apply_graphics)
 	if get_tree() != null:
@@ -779,6 +805,7 @@ func _capture() -> void:
 
 
 func _open_pause() -> void:
+	_watch.reset()
 	_input.release()
 	_hud.show_board(false)
 	_hud.close_order_wheel()
@@ -1009,6 +1036,54 @@ func _apply_graphics(values: GraphicsQuality) -> void:
 	GraphicsApply.apply_field(values, _lighting, _dust)
 
 
+## The automatic step-down's watch.
+func frame_watch() -> FrameWatch:
+	return _watch
+
+
+## Whether the graphics are the automatic pick: nothing chosen in Settings › Graphics and no `--graphics=` preset.
+func graphics_automatic() -> bool:
+	return settings.graphics_choice == Settings.GRAPHICS_AUTOMATIC and settings.graphics_forced == &""
+
+
+## This frame's time to the watch: only a match's live round counts, once its shaders are warm (not practice, the smoke
+## test's pilot or a round being skipped), and only while FrameWatch.counts.
+func _watch_frame(delta: float) -> void:
+	var machine := GraphicsApply.machine()
+	var in_play := _warm and not practice and not autopilot and not _skipping and state.round_state.is_live()
+	var counting := FrameWatch.counts(graphics_automatic(), machine.preset, _focused, get_tree().paused, in_play,
+			machine.rendering_method)
+	_watch.feed(delta, settings.frame_limit, counting, _pretend_slow, _refresh_hz if settings.vsync else 0.0)
+
+
+## The window's focus and its screen's rate, from the display (a headless run has neither: focused, rate unknown).
+func _read_window() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	_focused = DisplayServer.window_is_focused()
+	_refresh_hz = DisplayServer.screen_get_refresh_rate()
+
+
+## A player's own pick in Settings › Graphics (from the pause menu) ends the watch's count and drops a step waiting.
+func _follow_graphics_pick() -> void:
+	if not graphics_automatic():
+		_watch.drop()
+
+
+## A round's end: a step the watch asked for applies now, the automatic pick one preset down for the run (never saved),
+## and the HUD says so. Low never steps; a player's own pick since drops it.
+func _step_graphics_down() -> void:
+	if not _watch.take() or not graphics_automatic():
+		return
+	var below := FrameWatch.preset_below(GraphicsApply.machine().preset)
+	if below == &"":
+		return
+	GraphicsApply.pick_for_run(below)
+	SettingsApply.apply_graphics(settings)
+	print("[graphics] frames ran slow: the automatic pick steps down to %s for this run" % below)
+	_hud.show_graphics_step(tr(GraphicsNotice.PRESET_KEY % String(below).to_upper()), _watch.config.step_notice_seconds)
+
+
 ## The Dev settings in force, put into play: the cheats into the simulation, and the views they ask for built or freed.
 func _apply_dev() -> void:
 	var dev := settings.active_dev()
@@ -1024,6 +1099,7 @@ func _apply_dev() -> void:
 	elif not dev.bot_intent and _intents != null:
 		_intents.queue_free()
 		_intents = null
+	_pretend_slow = dev.pretend_slow_frames
 	if dev.retro_pixels and _retro == null:
 		_retro = RetroPixels.new()
 		add_child(_retro)

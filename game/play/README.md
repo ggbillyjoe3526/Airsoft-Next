@@ -33,10 +33,11 @@ and hands the tick's events on; everything else here draws the state every rende
 | `minimap_hearing.gd` | `MinimapHearing`: what your side heard for the minimap, fed each tick's events through the ears the view is through: one patch per enemy, the last footstep, vault or shot heard within its reach (a silencer halves a shot's), off their real place by a blur on the match's minimap stream (`Seeds.minimap_seed`) with them always inside it, renewed in place while they stay in it, fading after its life; a hit call removes theirs, a new round clears all; `beyond_view` for the rim. Plain data for the HUD (`PlaySession.minimap_hearing`) |
 | `bot_intent_view.gd` | `BotIntentView`: the Dev settings' Bot intentions, a label over each bot saying what it is doing |
 | `retro_pixels.gd`, `retro_pixels.gdshader` | `RetroPixels`: the Dev settings' Retro pixels, a full-screen filter under the HUD |
+| `frame_watch.gd` | `FrameWatch`: the automatic graphics step-down's watch (the browser game's, DisplayConfig's numbers): fed each frame's time while the graphics are the automatic pick, focused, unpaused, in a live round of a match once its shaders are warm and not on the simpler renderer; two slow 2 s windows in a row (over 5 % of frames past 20 ms, or 1.25 frames of the limit) ask once a match; `PlaySession` steps the pick one preset down for the run at the round's end (`GraphicsApply.pick_for_run`, never saved) and the HUD says so for 5 s; Low never steps; a pause, focus loss or a player's own pick starts it over; the Dev settings' Pretend slow frames counts every frame slow |
 | `shader_prewarm.gd` | `ShaderPrewarm`: draws the late materials (a fading figure, a BB, a puff, the sign) as specks for the first frames, so nothing compiles mid-match |
 
 You play the team the Match page picked (Alpha by default) with bot teammates against bots on the other. Tuning: `PlayTuning` (`game/config/play_tuning.tres`). Tests:
-`tests/unit/test_play_session.gd`; sound `tests/unit/test_voice_pool.gd`,
+`tests/unit/test_play_session.gd`; the step-down `tests/unit/test_frame_watch.gd`; sound `tests/unit/test_voice_pool.gd`,
 `tests/unit/test_sound_mix.gd`, `tests/unit/test_sound_occlusion.gd`, `tests/unit/test_sound_path.gd`,
 `tests/unit/test_foley_tracker.gd`, `tests/unit/test_whistle_queue.gd`, `tests/unit/test_ambient_calls.gd`, landings in
 `tests/unit/test_footsteps.gd`.
