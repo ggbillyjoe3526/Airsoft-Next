@@ -1,12 +1,12 @@
 # AC6 · Screen reader messages for hits and rounds
 
-**Review:** critic pending · qa pending · performance pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-23 | 1 | Opus | pass | pending | |
+| 2026-10-23 | 1 | Opus | pass | 7/8 accept (check 8: the round-skip known issue lacked its KNOWN_ISSUES row, added) | |
 
 ## Decisions
 
@@ -89,4 +89,12 @@
   controls wait for a Beta polish pass (KNOWN_ISSUES row).
 - While you skip a round the HUD is hidden, and the label with it, so hit lines during the skip aren't read and the
   last one stays as the region's text until the next message (QA). The round's end still reads: the skip ends in the
-  same tick as the round, before the message goes out.
+  same tick as the round, before the message goes out (KNOWN_ISSUES row).
+
+## Advisories left (critic, performance)
+
+- Hit lines are built even with no screen reader running; gating on `DisplayServer.accessibility_screen_reader_active()`
+  needs a seam for the tests (it answers -1 headless).
+- The Announcer restates the banners' wording that HudStyle builds (only the case differs); QA's tests guard the match,
+  and a shared builder with a caps flag would stop any drift.
+- `Announcer.JOIN_WINDOW` is a tuning value in code; HudConfig holds the other HUD timings.
