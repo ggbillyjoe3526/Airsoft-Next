@@ -18,7 +18,7 @@
   Sound cues size slider still dragged and saved); with High contrast by day the prewarm also draws the opaque glowing
   figure material, the one the first bot seen is drawn with (performance).
 
-- **The plan's defaults; the owner hasn't approved the step 21 pictures yet** (`settings-accessibility.png`,
+- **The plan's defaults, approved with the step 21 pictures, 2026-10-23** (`settings-accessibility.png`,
   `hud-high-contrast.png`, plan questions 1 and 2). A new set shows from the next match (the session resolves it once
   at Play); the menus, the HUD tab's preview and its minimap samples change at once. High contrast's figures glow
   faintly on day fields (0.3 of their own colour as emission). Each is one line or one cell to change.
