@@ -242,3 +242,154 @@ func test_realistic_colours_is_off_by_default_and_kept() -> void:
 	assert_true(t.realistic_colours)
 	t.from_dict({"realistic_colours": "yes"})
 	assert_false(t.realistic_colours, "a value that won't read keeps the default")
+
+
+func test_the_graphics_and_window_fields_start_at_their_defaults() -> void:
+	assert_eq(s.graphics_choice, Settings.GRAPHICS_AUTOMATIC, "the first start picks from the card")
+	assert_eq(s.graphics_base, GraphicsTable.DEFAULT_PRESET)
+	assert_eq(s.graphics_custom, {} as Dictionary[String, Variant])
+	assert_eq(s.frame_limit, Settings.UNLIMITED)
+	assert_eq(s.monitor, Settings.MONITOR_HERE)
+	assert_eq(s.last_fullscreen, Settings.WindowMode.BORDERLESS)
+	assert_eq(s.renderer, Settings.Renderer.AUTO)
+	assert_false(s.first_start_seen)
+
+
+func test_the_new_fields_round_trip_through_the_save_file() -> void:
+	s.graphics_choice = GraphicsQuality.CUSTOM
+	s.graphics_base = &"low"
+	s.graphics_custom = {"wind_dust": 40, "edge_smoothing": "smaa"}
+	s.frame_limit = 144
+	s.monitor = 1
+	s.last_fullscreen = Settings.WindowMode.EXCLUSIVE
+	s.renderer = Settings.Renderer.COMPATIBILITY
+	s.first_start_seen = true
+	assert_true(s.save(path))
+	var t := _again()
+	assert_eq(t.load_message, "")
+	assert_eq(t.graphics_choice, GraphicsQuality.CUSTOM)
+	assert_eq(t.graphics_base, &"low")
+	assert_eq(t.graphics_custom, {"wind_dust": 40, "edge_smoothing": "smaa"} as Dictionary[String, Variant])
+	assert_eq(t.frame_limit, 144)
+	assert_eq(t.monitor, 1)
+	assert_eq(t.last_fullscreen, Settings.WindowMode.EXCLUSIVE)
+	assert_eq(t.renderer, Settings.Renderer.COMPATIBILITY)
+	assert_true(t.first_start_seen)
+
+
+func test_the_automatic_pick_is_never_written() -> void:
+	assert_false(s.to_dict().has("graphics_choice"), "automatic: no choice in the file")
+	s.save(path)
+	assert_eq(_again().graphics_choice, Settings.GRAPHICS_AUTOMATIC)
+	s.graphics_choice = &"medium"
+	assert_eq(s.to_dict().get("graphics_choice"), "medium", "a chosen preset is written")
+
+
+func test_a_file_from_before_the_graphics_fields_loads_unchanged() -> void:
+	SaveFile.write(path, Settings.KIND, Settings.VERSION, {
+		"sensitivity": 1.5, "window_mode": Settings.WindowMode.BORDERLESS, "vsync": false, "fov": 95.0,
+		"show_fps": true, "volumes": {"Master": 0.7},
+	})
+	var t := _again()
+	assert_eq(Settings.VERSION, 1, "the version stays 1")
+	assert_eq(t.load_message, "", "an older file is not a damaged one")
+	assert_almost_eq(t.sensitivity, 1.5, 1e-6)
+	assert_eq(t.window_mode, Settings.WindowMode.BORDERLESS)
+	assert_false(t.vsync)
+	assert_almost_eq(t.fov, 95.0, 1e-6)
+	assert_true(t.show_fps)
+	assert_almost_eq(t.volumes[&"Master"], 0.7, 1e-6)
+	assert_eq(t.graphics_choice, Settings.GRAPHICS_AUTOMATIC)
+	assert_eq(t.frame_limit, Settings.UNLIMITED)
+	assert_eq(t.monitor, Settings.MONITOR_HERE)
+	assert_eq(t.last_fullscreen, Settings.WindowMode.BORDERLESS)
+	assert_eq(t.renderer, Settings.Renderer.AUTO)
+	assert_false(t.first_start_seen)
+
+
+func test_each_bad_graphics_or_window_value_keeps_its_own_default() -> void:
+	SaveFile.write(path, Settings.KIND, Settings.VERSION, {
+		"graphics_choice": "extreme", "graphics_base": "custom", "monitor": -3, "last_fullscreen": 0,
+		"renderer": 5, "first_start_seen": 1, "frame_limit": -60, "fov": 100.0,
+		"graphics_custom": {"sparkles": "on", "render_scale": 5000, "upscaler": 2, "edge_smoothing": "msaa_8x",
+				"wind_dust": "lots", "shadow_detail": "2048", "shadow_range": 90.0},
+	})
+	var t := _again()
+	assert_eq(t.load_message, "")
+	assert_eq(t.graphics_choice, Settings.GRAPHICS_AUTOMATIC, "not a preset")
+	assert_eq(t.graphics_base, GraphicsTable.DEFAULT_PRESET, "Custom can't be built on Custom")
+	assert_eq(t.monitor, Settings.MONITOR_HERE)
+	assert_eq(t.last_fullscreen, Settings.WindowMode.BORDERLESS, "windowed isn't a fullscreen mode")
+	assert_eq(t.renderer, Settings.Renderer.AUTO)
+	assert_false(t.first_start_seen, "a number is not a flag")
+	assert_eq(t.frame_limit, Settings.UNLIMITED, "a negative limit")
+	assert_almost_eq(t.fov, 100.0, 1e-6, "a good value beside them is kept")
+	assert_eq(t.graphics_custom, {"shadow_detail": "2048", "shadow_range": 90} as Dictionary[String, Variant],
+			"each bad Custom row is dropped alone; an unknown row is kept out")
+	SaveFile.write(path, Settings.KIND, Settings.VERSION, {"graphics_choice": 3, "graphics_custom": [1, 2]})
+	t = _again()
+	assert_eq(t.graphics_choice, Settings.GRAPHICS_AUTOMATIC)
+	assert_eq(t.graphics_custom, {} as Dictionary[String, Variant])
+
+
+func test_a_frame_limit_reads_as_the_nearest_the_higher_on_a_tie() -> void:
+	var cases: Array[Vector2] = [Vector2(0, 0), Vector2(30, 30), Vector2(10, 30), Vector2(45, 60), Vector2(50, 60),
+			Vector2(90, 120), Vector2(100, 120), Vector2(152, 144), Vector2(154.5, 165), Vector2(200, 165), Vector2(202.5, 240),
+			Vector2(300, 360), Vector2(1000, 360), Vector2(-1, 0)]
+	for c in cases:
+		assert_eq(Settings.nearest_frame_limit(c.x), int(c.y), "%s, given %s" % [c.y, c.x])
+	SaveFile.write(path, Settings.KIND, Settings.VERSION, {"frame_limit": 75})
+	assert_eq(_again().frame_limit, 60, "a saved 75 (katanashotgun's) reads as 60")
+
+
+func test_a_changed_row_makes_custom_from_the_preset_you_were_on() -> void:
+	var table := GraphicsTable.read_file()
+	assert_true(s.change_graphics_row(GraphicsQuality.EDGE_SMOOTHING, "smaa", &"medium", table),
+			"automatic, the card's pick Medium")
+	assert_eq(s.graphics_choice, GraphicsQuality.CUSTOM)
+	assert_eq(s.graphics_base, &"medium")
+	assert_eq(s.graphics_custom, {"edge_smoothing": "smaa"} as Dictionary[String, Variant])
+	assert_true(s.change_graphics_row(GraphicsQuality.WIND_DUST, 20, &"high", table))
+	assert_eq(s.graphics_base, &"medium", "already Custom: its base stays")
+	assert_eq(s.graphics_custom, {"edge_smoothing": "smaa", "wind_dust": 20} as Dictionary[String, Variant])
+	assert_true(s.change_graphics_row(GraphicsQuality.EDGE_SMOOTHING, "msaa_2x", &"high", table))
+	assert_eq(s.graphics_custom, {"wind_dust": 20} as Dictionary[String, Variant], "back to the base's value")
+	var q := s.graphics_in_force(&"high", table)
+	assert_eq(q.wind_dust, 20)
+	assert_eq(q.shadow_detail, table.preset(&"medium").shadow_detail)
+	assert_false(s.change_graphics_row(GraphicsQuality.WIND_DUST, 500, &"high", table), "not offered")
+	assert_false(s.change_graphics_row(&"sparkles", "on", &"high", table), "not a row")
+	assert_eq(s.graphics_custom, {"wind_dust": 20} as Dictionary[String, Variant], "nothing changed")
+	var u := Settings.new(PlayTuning.new())
+	u.graphics_choice = &"low"
+	u.change_graphics_row(GraphicsQuality.SUN_SHADOWS, "on", &"high", table)
+	assert_eq(u.graphics_base, &"low", "a chosen preset is the base, not the card's pick")
+	assert_true(u.graphics_in_force(&"high", table).sun_shadows)
+
+
+func test_choosing_custom_starts_from_the_preset_you_were_on() -> void:
+	var table := GraphicsTable.read_file()
+	s.graphics_choice = &"ultra"
+	assert_true(s.choose_graphics(GraphicsQuality.CUSTOM, &"medium"))
+	assert_eq(s.graphics_base, &"ultra")
+	assert_eq(s.graphics_custom, {} as Dictionary[String, Variant])
+	assert_true(s.graphics_in_force(&"medium", table).equals(table.preset(&"ultra")))
+	s.change_graphics_row(GraphicsQuality.WIND_DUST, 10, &"medium", table)
+	assert_true(s.choose_graphics(GraphicsQuality.CUSTOM, &"medium"), "Custom again keeps its rows")
+	assert_eq(s.graphics_custom, {"wind_dust": 10} as Dictionary[String, Variant])
+	assert_true(s.choose_graphics(Settings.GRAPHICS_AUTOMATIC, &"medium"))
+	assert_true(s.graphics_in_force(&"medium", table).equals(table.preset(&"medium")), "automatic: the card's pick")
+	assert_false(s.choose_graphics(&"extreme", &"medium"))
+	assert_eq(s.graphics_choice, Settings.GRAPHICS_AUTOMATIC)
+
+
+func test_the_graphics_flag_forces_its_preset_for_the_run_and_is_never_saved() -> void:
+	var table := GraphicsTable.read_file()
+	s.graphics_choice = &"low"
+	s.graphics_forced = GraphicsPick.forced(PackedStringArray(["--graphics=ultra"]))
+	assert_true(s.graphics_in_force(&"medium", table).equals(table.preset(&"ultra")))
+	var saved := s.to_dict()
+	assert_eq(saved.get("graphics_choice"), "low", "the player's own choice is what is saved")
+	assert_false(saved.values().has("ultra"), "the forced preset is nowhere in the file")
+	s.save(path)
+	assert_eq(_again().graphics_forced, &"")

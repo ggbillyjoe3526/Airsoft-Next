@@ -40,6 +40,8 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `debug_view_config.gd` | The F4/F5 debug draw: a BB trail's length and colours, the hit volumes' colours and roundness |
 | `hud_config.gd` | the low-magazine share, the magazine boxes' sizes, the crosshair, the hit marker, banner times, the hop-up readout, the vault prompt, the flag marker and warning |
 | `map_style.gd` | A map's greybox: colours and surface by block kind, the ground, the world grid |
+| `graphics_table.gd`, `graphics_quality.gd` | Read `data/graphics.md`: the graphics presets (Low to Ultra), each row's label, choices or range, cost and the renderers that draw it; one set of values a field per row, a preset's or Custom's (a preset with your own rows over it) |
+| `graphics_pick.gd` | The first start's preset from the graphics card and the renderer (never Ultra), and the `--graphics=` launch option |
 | `lighting_config.gd` | The sun, the sky, ambient light, SSAO and exposure |
 | `flag_view_config.gd` | Attack / Defend's pole in the world: pole, base, rope, cleat, the flag cloth's size, travel and wave, the reach ring's colours |
 | `range_view_config.gd` | The practice range drawn: plate, post, figure and gear paint and sizes, a hit plate's swing, a figure's fall, the challenge's lit glow and START plate, the floor lines and wall boards |
