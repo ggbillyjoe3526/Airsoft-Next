@@ -16,7 +16,8 @@ extends Node
 ## saves it and builds the range again on that spot.
 ## The graphics at start-up (GraphicsStartUp): boot logs the renderer in force; a start that never drew its first match
 ## restarts once on safe graphics and the title asks; the title says once why the game is on the simpler renderer, and
-## on the first start which preset the card picked (its Graphics settings opens Settings › Graphics).
+## on the first start which preset the card picked (its Graphics settings opens Settings › Graphics). Then today's
+## restore point (SaveKeeper.keep_today), not in the smoke run, a headless one or one the editor started.
 
 const SMOKE_SETTINGS_OPEN := 10
 const SMOKE_SETTINGS_CLOSE := 20
@@ -85,6 +86,9 @@ func _ready() -> void:
 		graphics.restart = _restart
 	if graphics.start(_smoke) == GraphicsGuard.Action.RESTART_SAFE:
 		return
+	# today's restore point, the save as it was at start; never from the smoke run, a headless one or the editor's
+	if not (_smoke or DisplayServer.get_name() == "headless" or EngineDebugger.is_active()):
+		SaveKeeper.new().keep_today()
 	graphics.graphics_settings_requested.connect(_open_graphics_settings)
 	# before the settings screens and the match, so a key list waiting for a key has F11 first
 	add_child(WindowWatch.new())
