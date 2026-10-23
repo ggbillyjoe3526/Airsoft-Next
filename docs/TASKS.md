@@ -21,23 +21,3 @@ acceptance:
   3. The rating is saved and the end-of-match card says where the next match starts.
 status: open
 attempts: 0
-
-## GR5 · The first-start notice and the automatic step-down
-tier: ui
-perf: required
-touches: game/play/frame_watch.gd, game/play/play_session.gd, game/play/README.md, game/config/display_config.gd,
-  game/ui/graphics_notice.gd, game/ui/title_screen.gd, game/ui/hud.gd, game/ui/text/en.po,
-  tests/unit/test_frame_watch.gd
-contract: Simulation and presentation (1); Events (3); Data, not literals (6)
-acceptance:
-  1. First start (no settings file, automatic pick): first-run.png on the title screen, card and screen named, OK
-     or Graphics settings; START works under it; shown once (first_start_seen); never in the smoke run.
-  2. FrameWatch (plain RefCounted, fed frame times): the browser's numbers in DisplayConfig (2 s windows, 20 ms or
-     1.25 × the limit's frame, 5 % slow share, 2 windows); counts only while automatic, focused, unpaused, in play and
-     not on Compatibility; asks once per match.
-  3. The step applies at ROUND_OVER (never mid-round), one preset down, not saved, with the HUD line of
-     graphics-step-down.png for 5 s. Low never steps.
-  4. GUT: steady frames never step; two slow windows step once; a pause, focus loss or a player's own pick resets;
-     the limit raises the threshold. The watch allocates nothing per frame.
-status: open
-attempts: 0
