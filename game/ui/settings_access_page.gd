@@ -2,10 +2,10 @@ class_name SettingsAccessPage
 extends HBoxContainer
 ## The settings' Accessibility tab (concept `settings-accessibility.png`; the browser game's Settings › Accessibility):
 ## on the left Team colours (Standard and High contrast as two cards, each with its figures' two colours and its blurb),
-## Gauge patterns and Screen reader messages; on the right Sound cues (on or off, size, colour, what each marker means)
-## and Reduced motion (Follow system, Off or On, and what the system asks for). Every choice lands in the settings at
-## once and `changed` asks the screen to save it. A section not built yet is greyed with LATER (`LATER`): the task that
-## builds it takes it out of the list.
+## Gauge patterns and Screen reader messages; on the right Sound cues (on or off, size, colour, the ring's sample and
+## what each marker means) and Reduced motion (Follow system, Off or On, and what the system asks for). Every choice
+## lands in the settings at once and `changed` asks the screen to save it. A section not built yet is greyed with LATER
+## (`LATER`): the task that builds it takes it out of the list.
 
 ## A choice landed: saved now (`immediate`, a click) or a moment after a slider stops.
 signal changed(immediate: bool)
@@ -13,9 +13,9 @@ signal changed(immediate: bool)
 ## The tab's sections, as the concept lays them out.
 enum Section { TEAM_COLOURS, GAUGE_PATTERNS, SCREEN_READER, SOUND_CUES, REDUCED_MOTION }
 
-## The sections still to build, greyed with LATER and not clickable: sound cues (AC4), reduced motion (AC5) and screen
-## reader messages (AC6).
-const LATER: Array[Section] = [Section.SCREEN_READER, Section.SOUND_CUES, Section.REDUCED_MOTION]
+## The sections still to build, greyed with LATER and not clickable: reduced motion (AC5) and screen reader messages
+## (AC6).
+const LATER: Array[Section] = [Section.SCREEN_READER, Section.REDUCED_MOTION]
 ## The columns' widths (the right one takes the rest), the labels' widths and the slider's (px).
 const LEFT_WIDTH := 860.0
 const COLUMN_GAP := 48
@@ -55,6 +55,10 @@ const SAMPLE_SCORE: Array[int] = [3, 2]
 ## The system line's inner margins (px).
 const SYSTEM_PAD := Vector2i(14, 6)
 const PERCENT := "%d%%"
+## The sound cue sample beside the key and the gaps between them, between the key's lines and after each icon (px).
+const CUE_ROW_GAP := 18
+const CUE_KEY_GAP := 6
+const CUE_ICON_GAP := 10
 
 var _screen: SettingsScreen = null
 var _set_cards: Array[MenuCard] = []
@@ -64,6 +68,9 @@ var _read_out: CheckButton = null
 var _cues: CheckButton = null
 var _cue_size: HSlider = null
 var _cue_colour: MenuSwatches = null
+## The cue ring's sample and the key's icons (a step, a shot, a hit call), drawn by the HUD's own painter.
+var _cue_sample: CueSample = null
+var _cue_icons: Array[CueIcon] = []
 var _motion: MenuChoice = null
 var _system: Label = null
 ## Each set's HUD colours, in TeamColours.Set's order (the sample's), and the sample's parts: each team's pips and
@@ -106,6 +113,7 @@ func refresh() -> void:
 	_screen.set_check(_cues, s.sound_cues)
 	_screen.set_slider(_cue_size, s.sound_cue_size * 100.0)
 	_cue_colour.put(s.sound_cue_colour)
+	_show_cues()
 	_motion.put(s.reduced_motion)
 	_show_system(DisplayServer.accessibility_should_reduce_animation())
 
@@ -302,6 +310,7 @@ func _build_cues(body: VBoxContainer) -> void:
 	_cue_size.custom_minimum_size.x = SLIDER_WIDTH
 	_cue_size.value_changed.connect(func(v: float) -> void:
 		_screen.settings.sound_cue_size = v / 100.0
+		_show_cues()
 		changed.emit(false))
 	var colour_row := _screen.add_row(body, "SETTINGS_COLOUR", RIGHT_LABEL)
 	_cue_colour = MenuSwatches.new(HudPrefs.COLOURS)
@@ -309,16 +318,61 @@ func _build_cues(body: VBoxContainer) -> void:
 	_note(colour_row, "SETTINGS_CUE_COLOUR_NOTE")
 	_cue_colour.picked.connect(func(i: int) -> void:
 		_screen.settings.sound_cue_colour = i
+		_show_cues()
 		changed.emit(true))
-	# What each marker means, with how far its sound carries (the sound's own reach in play).
+	# The ring's sample, and beside it what each marker means with how far its sound carries (its reach in play).
+	var row := HBoxContainer.new()
+	row.name = "CueSample"
+	row.add_theme_constant_override("separation", CUE_ROW_GAP)
+	body.add_child(row)
+	_cue_sample = CueSample.new()
+	row.add_child(_cue_sample)
+	var key_lines := VBoxContainer.new()
+	key_lines.add_theme_constant_override("separation", CUE_KEY_GAP)
+	key_lines.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	key_lines.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(key_lines)
 	var sound := _screen.settings.tuning.sound
 	var reach: Dictionary[String, float] = {"SETTINGS_CUE_STEP": sound.step_reach,
 			"SETTINGS_CUE_SHOT": sound.max_distance, "SETTINGS_CUE_HIT": sound.max_distance}
+	var kinds: Array[SoundCues.Kind] = [SoundCues.Kind.STEP, SoundCues.Kind.SHOT, SoundCues.Kind.HIT]
+	var i := 0
 	for key: String in reach:
-		var line := _lead_note(key + "_LEAD", "")
-		line.text += " " + tr(key) % roundi(reach[key])
-		body.add_child(line)
-	_screen.add_help(body, "SETTINGS_CUES_HELP")
+		var line := HBoxContainer.new()
+		line.add_theme_constant_override("separation", CUE_ICON_GAP)
+		key_lines.add_child(line)
+		var icon := CueIcon.new(kinds[i])
+		line.add_child(icon)
+		_cue_icons.append(icon)
+		var words := _lead_note(key + "_LEAD", "")
+		words.text += " " + tr(key) % roundi(reach[key])
+		words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		line.add_child(words)
+		i += 1
+	var help := MenuParts.text(tr("SETTINGS_CUES_HELP"), NOTE_SIZE, 600, GameTheme.MUTED)
+	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	key_lines.add_child(help)
+	_show_cues()
+
+
+## The sample and the key's icons in the picked colour, the sample's markers at the picked size.
+func _show_cues() -> void:
+	if _cue_sample == null:
+		return
+	var s := _screen.settings
+	var colour := HudPrefs.COLOURS[clampi(s.sound_cue_colour, 0, HudPrefs.COLOURS.size() - 1)]
+	_cue_sample.show_as(s.sound_cue_size, colour)
+	for icon in _cue_icons:
+		icon.show_as(colour)
+
+
+## The cue sample and the key's icons, for tests.
+func cue_sample() -> CueSample:
+	return _cue_sample
+
+
+func cue_icons() -> Array[CueIcon]:
+	return _cue_icons
 
 
 # --- Reduced motion ---
@@ -506,3 +560,77 @@ class GaugeSample:
 			draw_colored_polygon(_shapes[i], colour)
 			if striped:
 				_stripes[i].draw(self)
+
+
+## The sound cue ring's sample (concept `settings-accessibility.png`): a stretch of field with the crosshair, the ring
+## and three markers on it, a step behind and to the left, a fainter shot to the right and a hit call ahead, drawn by
+## the HUD's painter (HudSoundCues.Painter) at the concept's smaller scale times the picked size.
+class CueSample:
+	extends Control
+
+	## The sample's size, its ring's radius and the markers' scale at 100 % (px; the concept's), its field and edge.
+	const SIZE := Vector2(200.0, 176.0)
+	const RADIUS := 62.0
+	const SCALE := 0.62
+	const FIELD := Color("6b6452")
+	const EDGE := 2.0
+	## The crosshair: a plus this wide (px) in lines this thick.
+	const CROSS := 14.0
+	const CROSS_WIDTH := 1.6
+	## The markers: each kind's bearing (radians clockwise from ahead) and strength.
+	const KINDS: Array[SoundCues.Kind] = [SoundCues.Kind.STEP, SoundCues.Kind.SHOT, SoundCues.Kind.HIT]
+	const BEARINGS: Array[float] = [-0.75 * PI, 0.5 * PI, 0.0]
+	const STRENGTHS: Array[float] = [1.0, 0.55, 1.0]
+
+	var painter: HudSoundCues.Painter = HudSoundCues.Painter.new()
+
+	func _init() -> void:
+		custom_minimum_size = SIZE
+		clip_contents = true
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+	## The markers at `cue_scale` (1 = 100 %) in `colour`.
+	func show_as(cue_scale: float, colour: Color) -> void:
+		painter.set_style(SCALE * cue_scale, colour)
+		queue_redraw()
+
+	func _draw() -> void:
+		var centre := size * 0.5
+		draw_rect(Rect2(Vector2.ZERO, size), FIELD)
+		var half := CROSS * 0.5
+		draw_line(centre - Vector2(half, 0.0), centre + Vector2(half, 0.0), GameTheme.TEXT, CROSS_WIDTH)
+		draw_line(centre - Vector2(0.0, half), centre + Vector2(0.0, half), GameTheme.TEXT, CROSS_WIDTH)
+		painter.ring(self, centre, RADIUS, 1.0)
+		for i in KINDS.size():
+			var b := BEARINGS[i]
+			painter.marker(self, KINDS[i], centre + Vector2(sin(b), -cos(b)) * RADIUS, b, STRENGTHS[i])
+		draw_rect(Rect2(Vector2.ZERO, size).grow(-EDGE * 0.5), GameTheme.LINE, false, EDGE)
+
+
+## One marker of the key (concept `settings-accessibility.png`): a step's dots rising to the right, an arrowhead
+## pointing up, a HIT tag, each scaled to fit its box.
+class CueIcon:
+	extends Control
+
+	const SIZE := Vector2(34.0, 24.0)
+	## Each kind's scale and bearing (radians clockwise from up), in SoundCues.Kind's order.
+	const SCALES: Array[float] = [0.8, 0.68, 0.58]
+	const BEARINGS: Array[float] = [0.5 * PI, 0.0, 0.0]
+
+	var kind: SoundCues.Kind = SoundCues.Kind.STEP
+	var painter: HudSoundCues.Painter = HudSoundCues.Painter.new()
+
+	func _init(cue_kind: SoundCues.Kind) -> void:
+		kind = cue_kind
+		custom_minimum_size = SIZE
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+	## The marker in `colour`.
+	func show_as(colour: Color) -> void:
+		painter.set_style(SCALES[kind], colour)
+		queue_redraw()
+
+	func _draw() -> void:
+		painter.marker(self, kind, size * 0.5, BEARINGS[kind], 1.0)

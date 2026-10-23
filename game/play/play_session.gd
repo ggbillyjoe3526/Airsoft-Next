@@ -114,6 +114,10 @@ var _pause: PauseMenu = null
 var _map: MapData = null
 ## What your side heard of the other team, for the minimap (the HUD draws it).
 var _heard: MinimapHearing = null
+## Settings › Accessibility's sound cues round the crosshair, fed through the same ears as the minimap's hearing while
+## they are on, and the ring's numbers (not in PlayTuning, as DisplayConfig).
+var _cues: SoundCues = null
+var _access: AccessibilityConfig = AccessibilityConfig.new()
 var _ui: CanvasLayer = null
 ## The next build step, and whether the match runs (all built) or is waiting to be seen once.
 var _step: int = 0
@@ -309,6 +313,7 @@ func _start_simulation(map: MapData) -> void:
 	_sim.nav = NavGrid.build(map, _tuning.nav, _tuning.body)
 	state = GameState.new(match_seed, _tuning)
 	_heard = MinimapHearing.new(_play.minimap)
+	_cues = SoundCues.new(_access, _play.sound)
 	state.dev_content = MapCatalog.shared().is_dev(map_id)
 	var loadout := ReplicaStats.default_loadout()
 	if kit == null:
@@ -489,6 +494,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	_hud = Hud.new()
 	ui.add_child(_hud)
 	_hud.setup(_play.hud, _colours.hud, _play.view, _tuning, player)
+	_hud.setup_sound_cues(_cues, _access)
 	_hud.setup_orders(_play.controls)
 	if practice:
 		_hud.setup_range(_tuning.targets)
@@ -586,6 +592,11 @@ func minimap_hearing() -> MinimapHearing:
 	return _heard
 
 
+## The sound cues heard, for the ring round the crosshair.
+func sound_cues() -> SoundCues:
+	return _cues
+
+
 ## What the F3 overlay reads (DebugPerf), so it never reaches into the session's fields: the match's seed, where you
 ## stand, and how many entities exist (characters and BBs in the air).
 func match_seed_used() -> int:
@@ -600,12 +611,14 @@ func entity_count() -> int:
 	return state.characters.size() + state.bbs.active_count() if state != null else 0
 
 
-## Hands the tick's events to the bots' ears, the minimap's and sound's (through the eyes the view is through), the
-## field's mix, the HUD and the effects.
+## Hands the tick's events to the bots' ears, the minimap's, the sound cues' (while on) and sound's (through the eyes
+## the view is through), the field's mix, the HUD and the effects.
 func _after_tick() -> void:
 	_bots.observe(state)
 	var ears := spectated()
 	_heard.on_tick(state, ears)
+	if settings.sound_cues:
+		_cues.on_tick(state, ears)
 	_debug.on_tick()
 	_audio.on_tick(state, PLAYER_ID, ears)
 	_mix.on_tick(state, PLAYER_ID)
@@ -695,8 +708,9 @@ func _process(delta: float) -> void:
 	_hud.show_board(_input.scoreboard_held())
 	_hud.update(state, _input.zoom, delta)
 	_hud.place_team_markers(_eyes.camera, state.characters, watched, fraction)
-	_hud.update_minimap(state, watched, _view_yaw(watched, fraction), fraction, _bots.hold_spot(PLAYER_ID),
-			_bots.orders.held_middle)
+	var yaw := _view_yaw(watched, fraction)
+	_hud.update_minimap(state, watched, yaw, fraction, _bots.hold_spot(PLAYER_ID), _bots.orders.held_middle)
+	_hud.place_sound_cues(watched, yaw, fraction)
 	if _flag != null:
 		var rs := state.round_state
 		_flag.refresh(rs.flag, rs.attackers)
@@ -1044,10 +1058,15 @@ func _settle() -> void:
 	match_settled.emit()
 
 
-## The HUD tab's choices, at the start and on every change (the settings can open from the pause menu).
+## The HUD tab's choices and the Accessibility tab's for the HUD (gauge patterns, sound cues), at the start and on every
+## change (the settings can open from the pause menu).
 func _apply_hud() -> void:
 	_hud.apply_prefs(settings.hud)
 	_hud.set_patterns(settings.gauge_patterns)
+	# Sound cues switched off stop being fed: what was up goes, so switching on again starts clean.
+	_hud.set_sound_cues(settings.sound_cues, settings.sound_cue_size, settings.sound_cue_colour)
+	if not settings.sound_cues:
+		_cues.clear()
 	# The skipping note sits outside the HUD, over it.
 	HudStyle.restyle(_skip_note, settings.hud.panel_opacity)
 

@@ -40,10 +40,14 @@ func test_a_greyed_later_row_takes_no_click_drag_or_focus() -> void:
 	var screen := _screen()
 	var page: SettingsAccessPage = screen._access_page
 	var open: Array[Control] = []
-	for c in _live(page._bodies[SettingsAccessPage.Section.SOUND_CUES]):
+	for c in _live(page._bodies[SettingsAccessPage.Section.REDUCED_MOTION]):
 		open.append(c)
-	assert_eq(open.size(), 0, "Sound cues is LATER, yet these still take the mouse: %s" % [open])
-	assert_eq(page.cue_size().focus_mode, Control.FOCUS_NONE, "the greyed size slider takes keyboard focus")
+	assert_eq(open.size(), 0, "Reduced motion is LATER, yet these still take the mouse: %s" % [open])
+	for b in page.motion().find_children("*", "BaseButton", true, false):
+		assert_eq((b as Control).focus_mode, Control.FOCUS_NONE, "a greyed choice takes keyboard focus")
+	# Sound cues went live (AC4): its slider takes the mouse and the focus again.
+	assert_eq(page.cue_size().mouse_filter, Control.MOUSE_FILTER_STOP)
+	assert_eq(page.cue_size().focus_mode, Control.FOCUS_ALL)
 
 
 func test_every_later_section_is_locked_all_through() -> void:
