@@ -126,30 +126,6 @@ acceptance:
 status: open
 attempts: 0
 
-## SP3 · The referee's whistle and each field's ambience as data
-tier: core
-perf: skip
-touches: tools/render_whistle.gd, assets/audio/cues/, assets/audio/README.md, docs/ASSETS.md,
-  game/config/ambience_config.gd, game/config/sound_config.gd, game/config/play_tuning.tres, game/config/README.md,
-  game/map/map_data.gd, game/map/README.md, tests/unit/test_whistle_sound.gd, tests/unit/test_ambience_config.gd
-contract: Data, not literals (6); Headless (9)
-acceptance:
-  1. tools/render_whistle.gd (run headless, as map_pictures.gd; no add-on) renders the browser's pea whistle from
-     SoundConfig's whistle numbers (2900 Hz, 28 Hz warble by 4 %, 20 ms in, 50 ms out) as whistle_short (0.14 s) and
-     whistle_long (0.8 s), three variants each (the warble's phase moved), 16-bit mono 44.1 kHz like the other cues,
-     with their .import files. assets/audio/README.md and ASSETS say how to re-render; made by the project.
-  2. A test reads each file: its length, its peak, and its pitch within 2 % of 2900 Hz.
-  3. SoundConfig holds the whistle's level and blast pattern: round start two short (the second 1.6 lengths on), round
-     over one long, match over three more long 1.3 lengths apart.
-  4. AmbienceConfig (typed Resource): per ambience (yard, woods, city) a day and a night set of beds (loop, gain,
-     width) and calls (cue, level, gap min and max, distance min and max, height, seed): the browser's AMBIENCES, in
-     play_tuning.tres. Tests: every loop and cue named exists on disk; no call louder than a bird, no bed louder than
-     the yard's (DECISIONS 2026-10-05).
-  5. MapData reads `ambience`: none means yard, an unknown id warns and means yard. Depot yard, Woodland woods, Neon
-     Heights city, the range yard.
-status: open
-attempts: 0
-
 ## SP4 · Kit rustle, landing thuds, whistles and ambience calls
 tier: core
 perf: required
