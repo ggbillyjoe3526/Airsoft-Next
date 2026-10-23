@@ -17,7 +17,7 @@
 - **The unit suite's limit** in tools/unit_tests.sh is 900 s (was 600): the suite reached about 605 s across many
   tasks (GR5's tests add about 7 s), and 900 s still fits CI's 20-minute job.
 
-- **The plan's defaults, the owner's approval of the step 20 pictures pending (plan questions 2 and 8):** the first
+- **The plan's defaults, approved with the step 20 pictures, 2026-10-23 (plan questions 2 and 8):** the first
   start picks Medium on integrated graphics (and a card that doesn't say), High on a dedicated card, Low on software,
   virtual graphics or the simpler renderer, never Ultra (GraphicsPick, GR1); the step-down is kept and changes the
   preset between rounds only, never the resolution mid-round.
