@@ -5,5 +5,5 @@
 - The area you stand in is named at the panel's top left, and the map and round are under it.
 - In Attack / Defend the pole shows while the round is live, and so does your Hold here spot as a diamond.
 - Rotating (the default) turns the field so the way you look is up; Fixed keeps north up and turns your arrow. Settings › HUD › Minimap picks it.
-- What got you moves down under the minimap's caption, and the flag marker pinned to the left edge sits under the minimap, never behind it. The card hides while Tab is held, and a hit feed in the bottom left shows fewer lines while the card is up.
+- What got you moves down under the minimap's caption, and the flag marker pinned to the left edge sits under the minimap, never behind it, and Hold here's marker pinned to a side stacks under it the same way. The card hides while Tab is held, and a hit feed in the bottom left shows fewer lines while the card is up.
 - Once you are out the minimap follows the teammate you watch.

@@ -62,6 +62,7 @@ var _warning_flag: HudFlagGlyph = null
 var _flag_marker: HudFlagMarker = null
 var _order_wheel: HudOrderWheel = null
 var _hold_marker: HudHoldMarker = null
+var _hold_slots := HudHoldMarker.Slots.new()
 var _minimap: HudMinimap = null
 var _hits := HitFeed.new()
 var _feed: HudFeed = null
@@ -672,8 +673,15 @@ func update_orders(wheel: OrderWheelPointer, in_force: SquadOrder.Kind, outcome:
 ## Places Hold here's marker over `spot` (the middle of the spots held) as seen by `camera`, hidden when `show` is false;
 ## held at the edge clear of the flag marker.
 func place_hold_marker(camera: Camera3D, spot: Vector3, show: bool) -> void:
-	var avoid := _flag_marker.get_rect() if _flag_marker.visible else Rect2()
-	_hold_marker.place(camera, spot, show, size, avoid)
+	var slots := _hold_slots
+	slots.left = pin_point()
+	slots.right_top = pin_right_top()
+	slots.floor_y = _left_stack_floor()
+	slots.step = _minimap.step_down() if _minimap != null else 0.0
+	slots.flag_side = _flag_marker.pinned_side()
+	slots.flag = _flag_marker.occupied()
+	slots.panel = _minimap.panel_rect() if _minimap != null else Rect2()
+	_hold_marker.place(camera, spot, show, size, slots.flag, slots)
 
 
 ## Puts the wheel away (the pause menu opening).

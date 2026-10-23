@@ -276,3 +276,60 @@ func test_a_full_bottom_left_feed_keeps_clear_of_the_card_and_the_flag_plate() -
 	hud.hide_what_got_you()
 	hud.update(s.state, 1.0, 0.0)
 	assert_eq(feed.shown(), HudPrefs.KEPT_LINES, "all the lines are back")
+
+
+## The flag and hold markers both pinned to one side, the minimap up, a full bottom-left Keep feed, with and without the
+## card: they sit apart, clear of the panel, the card and the feed, and on the screen; the left stack with room stays left.
+func test_the_flag_and_hold_markers_pinned_together_keep_apart_from_the_panel_the_card_and_the_feed() -> void:
+	var s := _session()
+	await wait_physics_frames(2)
+	var hud := s.hud()
+	hud.size = HUD_SIZE
+	hud.setup_orders(ControlsConfig.new())
+	var prefs := HudPrefs.new()
+	prefs.feed_corner = HudPrefs.FeedCorner.BOTTOM_LEFT
+	prefs.feed_lines = HudPrefs.FeedLines.KEEP
+	hud.apply_prefs(prefs)
+	hud.hit_lines().clear()
+	for i in HudPrefs.KEPT_LINES:
+		hud.hit_lines().add(3, 4, s.state.time, true)
+	var pole := s.state.round_state.pole
+	var camera := Camera3D.new()
+	add_child_autofree(camera)
+	var note := "holds one spot short of the middle, aiming over cover, until late in the round, and then falls back " \
+			+ "to the stairs to watch the long lane for anyone who dares to cross it."
+	var screen := Rect2(Vector2.ZERO, HUD_SIZE)
+	for with_card: bool in [false, true]:
+		if with_card:
+			_card(s, note)
+		for side: float in [1.0, -1.0]:
+			camera.global_position = pole + Vector3(6.0 * side, 1.7, -24.0)
+			var spot := camera.global_position + Vector3(-8.0 * side, 0.0, 30.0)
+			for i in 4:
+				hud.update(s.state, 1.0, 0.0)
+				hud.place_flag_marker(camera, pole, true)
+				hud.place_hold_marker(camera, spot, true)
+				await wait_process_frames(1)
+			hud.update(s.state, 1.0, 0.0)
+			hud.place_flag_marker(camera, pole, true)
+			hud.place_hold_marker(camera, spot, true)
+			var tag := "card %s, side %s" % [with_card, side]
+			var flag: Rect2 = hud._flag_marker.occupied()
+			var hold := hud.hold_marker().get_rect()
+			var feed := hud.feed()
+			var rows := Rect2(32.0, HUD_SIZE.y - hud._cfg.feed_margin.y - feed.lines_height(), 255.0, feed.lines_height())
+			var others: Array[Rect2] = [hud.minimap().panel_rect(), rows]
+			if with_card:
+				others.append(hud.what_got_you().get_rect())
+			assert_true(flag.has_area() and hud.hold_marker().visible, "both up, " + tag)
+			assert_eq(flag.intersection(hold).get_area(), 0.0, "flag %s over hold %s, %s" % [flag, hold, tag])
+			for other: Rect2 in others:
+				assert_eq(flag.intersection(other).get_area(), 0.0, "flag %s over %s, %s" % [flag, other, tag])
+				assert_eq(hold.intersection(other).get_area(), 0.0, "hold %s over %s, %s" % [hold, other, tag])
+			assert_true(screen.encloses(flag) and screen.encloses(hold), "on the screen, " + tag)
+			if not with_card and side > 0.0:
+				assert_lt(flag.end.x, HUD_SIZE.x * 0.5, "the left stack has room, so it stays left")
+				assert_lt(hold.end.x, HUD_SIZE.x * 0.5)
+				assert_gte(hold.position.y, flag.position.y + hud.minimap().step_down() - 0.5, "a step under the flag plate")
+			if with_card:
+				assert_gt(hold.position.x, HUD_SIZE.x * 0.5, "past the feed's top the stack moves right, " + tag)

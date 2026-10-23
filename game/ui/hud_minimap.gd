@@ -113,6 +113,16 @@ func under_top() -> float:
 	return _corner.y + _cfg.size + _cfg.caption_room + _cfg.under_gap
 
 
+## How far apart (px) markers stacked down the panel's side sit.
+func step_down() -> float:
+	return _cfg.pin_step_down
+
+
+## What the panel and its caption cover on the screen.
+func panel_rect() -> Rect2:
+	return Rect2(_corner, Vector2(_cfg.size, _cfg.size + _cfg.caption_room))
+
+
 ## Where the first marker pinned to the screen's left edge sits (the top left of its plate): under the panel and its
 ## caption, or under a card that hangs there (`card_bottom`, its lower edge; 0 for none).
 func pin(card_bottom: float) -> Vector2:

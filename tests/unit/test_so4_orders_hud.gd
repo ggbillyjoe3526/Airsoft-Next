@@ -265,7 +265,8 @@ func test_off_screen_it_is_held_inside_the_edge_with_a_chevron_and_no_ring() -> 
 func test_held_at_the_edge_it_stays_clear_of_the_flag_marker() -> void:
 	var camera := _camera(Vector3(0.0, 1.6, 0.0))
 	var marker := hud.hold_marker()
-	hud.place_hold_marker(camera, Vector3(60.0, 0.0, -10.0), true)
+	# Placed alone, with no stack to take a place in (Hud's stacks are tested in test_mm4_qa).
+	marker.place(camera, Vector3(60.0, 0.0, -10.0), true, hud.size, Rect2())
 	var spot_y := marker.position.y
 	# The flag marker's plate where the hold marker would sit.
 	var flag := Rect2(marker.position - Vector2(30.0, 0.0), Vector2(220.0, 41.0))

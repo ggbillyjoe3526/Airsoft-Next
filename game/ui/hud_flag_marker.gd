@@ -27,6 +27,7 @@ var _edge: PanelContainer = null
 var _edge_chevron: Chevron = null
 var _edge_distance: Label = null
 var _pinned: bool = false
+var _side: int = 0 # where a pinned plate sits: -1 left, 1 right (0 while it is over the pole or hidden)
 
 
 ## The chevron on a pinned plate: a yellow triangle pointing left or right.
@@ -93,6 +94,7 @@ func place(camera: Camera3D, pole: Vector3, show: bool, area: Vector2, pin: Vect
 	var eye := camera.global_position
 	var metres := roundi(Vector2(pole.x - eye.x, pole.z - eye.z).length())
 	visible = show and metres >= _cfg.flag_marker_hide_within
+	_side = 0
 	if not visible:
 		return
 	if metres != _metres:
@@ -111,12 +113,25 @@ func place(camera: Camera3D, pole: Vector3, show: bool, area: Vector2, pin: Vect
 		var x := pin.x if on_left else area.x - pin.x - plate.x
 		position = Vector2.ZERO
 		_edge.position = Vector2(x, pin.y if on_left else right_top)
+		_side = -1 if on_left else 1
 		return
 	var half := size.x * 0.5
 	var edge := _cfg.flag_marker_edge
 	at.x = clampf(at.x, edge + half, area.x - edge - half)
 	at.y = clampf(at.y, edge + size.y, area.y - edge)
 	position = Vector2(at.x - half, at.y - size.y)
+
+
+## Where a plate pinned to a side sits: -1 on the left, 1 on the right, 0 when it is not pinned (or hidden).
+func pinned_side() -> int:
+	return _side
+
+
+## What the marker covers on the screen: the pinned plate, or the plate with its tail; empty while hidden.
+func occupied() -> Rect2:
+	if not visible:
+		return Rect2()
+	return Rect2(_edge.position, _edge.get_combined_minimum_size()) if _pinned else get_rect()
 
 
 ## The marker's words ("FLAG · 24 m"), or "" while it is hidden: for tests.
