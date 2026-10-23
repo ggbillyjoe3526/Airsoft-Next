@@ -5,43 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## SV4 · The bug report and its GitHub issue address
-tier: core
-perf: required
-touches: game/report/bug_report.gd, game/report/report_scrub.gd, game/report/issue_link.gd,
-  game/report/recent_events.gd, game/report/frame_window.gd, game/report/report_facts.gd, game/report/README.md,
-  game/config/report_config.gd, game/config/report_config.tres, game/play/play_session.gd,
-  tests/unit/test_bug_report.gd, tests/unit/test_report_scrub.gd, tests/unit/test_issue_link.gd,
-  tests/unit/test_recent_events.gd, tests/unit/test_frame_window.gd
-contract: Simulation and presentation (1); Events (3); Data, not literals (6); Version (7)
-acceptance:
-  1. BugReport (pure over a ReportInfo) writes the browser's layout, as the pictures: title ("Airsoft bug report" or
-     "Airsoft crash report"), Note, Version (Version.current(), "exported, release" or "source run"), Godot, System,
-     Graphics card (name and driver), Renderer and preset, Window, Language, Time (UTC) and time since start, Seed,
-     Match, Round (tick and match time), Screen, Player, Frames, Dev settings, Settings changed (only values that differ
-     from a new player's; bindings as a count), then Recent errors, Recent events and, for a crash, Last log lines;
-     "-" for anything not known. A cut (newest N of each list, fields dropped) is a parameter.
-  2. ReportScrub runs over every line: the save folder's path becomes "<save folder>", the home folder "~", the
-     account name (USERNAME / USER, 3 characters or more, whole word) "<you>"; no machine name, address or account
-     name reaches a report (GUT with injected names, Windows and Linux paths, inside log lines too).
-  3. IssueLink: https://github.com/ggbillyjoe3526/Airsoft-Next/issues/new?title=…&body=… (ReportConfig), title
-     "Bug: <note's first line, 70 characters>" or "Bug report (<version>)", body the note (or "**What happened?** …")
-     and the report in a fence longer than any backtick run in it; over max_url_chars (8,000) cut as the browser (lists
-     10, 3, 0; then Settings and Dev settings; then the last lines), with the "paste the whole report" line; says
-     whether it cut.
-  4. RecentEvents keeps the last 30 shots, hits, calls, reloads, draws and round changes from each tick's events in a
-     fixed PackedInt32Array ring (a burst of one actor's shots within 60 ticks counts up one entry); FrameWindow the
-     last 10 s of frame times in a PackedFloat32Array (average, worst, hitches over 50 ms). Neither allocates after
-     warm-up; both are formatted only when a report is made.
-  5. ReportFacts gathers a ReportInfo from the running game (system, renderer, settings, PlaySession's match and
-     player, ErrorLog, RecentEvents, FrameWindow) and from a RunRecord's `previous` and LogTail for a crash.
-  6. Every number (list lengths, burst ticks, frame seconds, hitch ms, note 500, title 70, URL 8,000, log lines 40)
-     is a ReportConfig value.
-  7. GUT: a full report and a crash report against fixed text; each cut step; a report too long for any cut; a note
-     with backticks and "#3"; the rings' wrap and bursts; nothing allocated by a warm tick (DebugPerf counts).
-status: open
-attempts: 0
-
 ## SV5 · Report a Bug from the title and the pause menu
 tier: ui
 perf: skip
