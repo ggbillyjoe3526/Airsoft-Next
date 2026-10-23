@@ -43,7 +43,7 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `graphics_table.gd`, `graphics_quality.gd` | Read `data/graphics.md`: the graphics presets (Low to Ultra), each row's label, choices or range, cost and the renderers that draw it; one set of values a field per row, a preset's or Custom's (a preset with your own rows over it) |
 | `graphics_pick.gd` | The first start's preset from the graphics card and the renderer (never Ultra), and the `--graphics=` launch option |
 | `display_config.gd` | The window: the frames a second drawn in the background (30), and the keys that switch between a window and fullscreen (F11, Alt+Enter); the automatic graphics step-down's numbers (FrameWatch: 2 s windows, 20 ms or 1.25 frames of the limit, a 5 % slow share, 2 windows, the HUD line's 5 s) |
-| `lighting_config.gd` | The sun, the sky, ambient light, SSAO and exposure |
+| `lighting_config.gd` | The sun, the sky, ambient light, SSAO and exposure, and whether the preset is night (no glow on team paint) |
 | `flag_view_config.gd` | Attack / Defend's pole in the world: pole, base, rope, cleat, the flag cloth's size, travel and wave, the reach ring's colours |
 | `range_view_config.gd` | The practice range drawn: plate, post, figure and gear paint and sizes, a hit plate's swing, a figure's fall, the challenge's lit glow and START plate, the floor lines and wall boards |
 | `minimap_config.gd` | The minimap: the panel's size, ring and caption room, what sits under it, the pinned markers' steps, the markers' sizes and the patches' look, how far it shows, the field drawing's scale, rules and colours, how far each sound places an enemy and how their patches blur, last and fade |

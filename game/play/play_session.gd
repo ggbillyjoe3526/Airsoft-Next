@@ -148,6 +148,9 @@ var _pretend_slow: bool = false
 var _stats: MatchStats = MatchStats.new()
 ## Attack / Defend's pole; null in Elimination.
 var _flag: FlagView = null
+## The team colour set this match draws (Settings › Accessibility), resolved once at Play: a change in Settings shows
+## from the next match.
+var _colours: TeamColours = null
 ## Practice: the targets and the range's markings; the smoke test's pilot on the range.
 var _targets_view: RangeTargetsView = null
 var _pilot: RangePilot = null
@@ -418,8 +421,10 @@ func _build_views(ui: CanvasLayer) -> void:
 	_hands = ReplicaView.new()
 	_hands.name = "Hands"
 	_eyes.camera.add_child(_hands)
-	# Replica colours are read once a match: a change in Settings applies from the next.
-	var realistic := (settings if settings != null else Settings.shared()).realistic_colours
+	# Replica and team colours are read once a match: a change in Settings applies from the next.
+	var chosen := settings if settings != null else Settings.shared()
+	var realistic := chosen.realistic_colours
+	_colours = team_colours_for(chosen, _play.lighting, _play.teams)
 	_hands.setup(_play.viewmodel, player.armament.replicas, _level.query(), kit.paints, realistic, kit.parts, _play.view,
 			_eyes.camera)
 	_bbs = BBView.new()
@@ -447,15 +452,16 @@ func _build_views(ui: CanvasLayer) -> void:
 		var f := FigureView.new()
 		var parts: Array[Dictionary] = []
 		parts.assign(_bot_parts.get(c.id, []))
-		f.setup(c, _play.teams.colours[c.team], _tuning.hits, _tuning.body, sign_font, realistic, parts)
+		f.setup(c, _colours.figures.colours[c.team], _tuning.hits, _tuning.body, sign_font, realistic, parts,
+				_colours.figures.glow)
 		add_child(f)
 		_figures.append(f)
 	var first_use: Array[Material] = [
-		_bbs.drawn_material(), _puffs.drawn_material(), FigureView.material(Color.WHITE, true)
+		_bbs.drawn_material(), _puffs.drawn_material(), FigureView.material(Color.WHITE, true, _colours.figures.glow)
 	]
 	if state.round_state.mode == RoundState.Mode.ATTACK_DEFEND:
 		_flag = FlagView.new()
-		_flag.setup(_play.flag, _play.teams, state.round_state.pole, _tuning.flag.radius)
+		_flag.setup(_play.flag, _colours.figures, state.round_state.pole, _tuning.flag.radius)
 		add_child(_flag)
 		first_use.append_array(_flag.materials())
 	first_use.append_array(_hands.prewarm_glass())
@@ -479,7 +485,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	add_child(_debug)
 	_hud = Hud.new()
 	ui.add_child(_hud)
-	_hud.setup(_play.hud, _play.teams, _play.view, _tuning, player)
+	_hud.setup(_play.hud, _colours.hud, _play.view, _tuning, player)
 	_hud.setup_orders(_play.controls)
 	if practice:
 		_hud.setup_range(_tuning.targets)
@@ -550,6 +556,17 @@ func match_stats() -> MatchStats:
 ## The last hit on you, for the "What got you" card (time -INF until the first).
 func last_hit() -> HitFacts:
 	return _bots.last_hit if _bots != null else null
+
+
+## `s`'s team colour set for a field lit by `lighting` (its night flag), with `base`'s team names: the figures' part
+## (figures, their sign outline, the flag) and the HUD's.
+static func team_colours_for(s: Settings, lighting: LightingConfig, base: TeamConfig) -> TeamColours:
+	return TeamColours.resolve(s.team_colours, lighting.night, null, base)
+
+
+## The team colours this match draws (null before the views are built).
+func team_colours() -> TeamColours:
+	return _colours
 
 
 ## The HUD, and the flag pole (null outside Attack / Defend): for tests.
@@ -883,8 +900,8 @@ func _hit_called(shooter_id: int) -> void:
 		return
 	var who := _bots.name_of(shooter_id)
 	if who == "":
-		who = tr(_play.teams.names[shooter.team])
-	var colour := _play.teams.colours[shooter.team]
+		who = tr(_colours.hud.names[shooter.team])
+	var colour := _colours.hud.colours[shooter.team]
 	var note := _bots.card_note_of(shooter_id)
 	_hud.add_hit_on_you(state.round_state.number, facts, who, colour, note)
 	if what_got_you_shown():

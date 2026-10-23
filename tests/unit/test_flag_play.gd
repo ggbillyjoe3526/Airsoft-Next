@@ -139,7 +139,7 @@ func test_the_warning_shows_while_their_flag_goes_up_and_you_are_off_the_rope() 
 	var colours: Array[Color] = []
 	for g: Node in flag:
 		colours.append((g as HudFlagGlyph).colour)
-	assert_has(colours, PlayTuning.new().teams.colours[rs.attackers], "the warning flies the attackers' flag")
+	assert_has(colours, session.team_colours().hud.colours[rs.attackers], "the warning flies the attackers' flag")
 	session.player.position = rs.flag.position
 	hud.update(session.state, 1.0, 0.0)
 	assert_false(hud.flag_warning_shown(), "already at the rope pulling it down")

@@ -42,6 +42,9 @@ const BACKING_AIM := 0.55
 const BACKING_PANEL := 0.82
 ## A spare magazine's box, as a share of the text colour (the loaded one is full strength).
 const MAG_SPARE_ALPHA := 0.85
+## Words on a team colour fill: dark on a fill lighter than this (luminance; High contrast's light blue), else light.
+## Standard's blue and orange stay under it.
+const INK_DARK_ABOVE := 0.7
 ## The banner: padding (px) and the yellow rule along its top edge.
 const BANNER_PAD := Vector4(80.0, 20.0, 80.0, 20.0)
 const BANNER_RULE := 4.0
@@ -72,6 +75,11 @@ const SPACING_SUB := 0.08
 ## The page colour at `alpha`, scaled by the HUD tab's panel `opacity` (HudPrefs.panel_opacity): every HUD backing.
 static func backing(alpha: float, opacity: float = 1.0) -> Color:
 	return Color(GameTheme.BG, alpha * opacity)
+
+
+## The colour of words on a team colour `fill` (the score blocks, the tables' badges): dark on a light fill.
+static func ink_on(fill: Color) -> Color:
+	return GameTheme.BG if fill.get_luminance() > INK_DARK_ABOVE else GameTheme.TEXT
 
 
 ## The backing a HUD `part` draws itself at `alpha`: at the panel opacity restyle() gave it (100% until then).

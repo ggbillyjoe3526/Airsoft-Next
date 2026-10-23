@@ -49,6 +49,9 @@ var _turn: MenuChoice = null
 var _thumbs: Array[Thumb] = []
 var _thumbs_row: HBoxContainer = null
 var _preview: HudPreview = null
+## The team colours the preview and the samples show: the saved set's HUD part, and that set, to tell a change.
+var _teams: TeamConfig = null
+var _teams_set: int = -1
 
 
 func _init() -> void:
@@ -114,6 +117,7 @@ func build(screen: SettingsScreen) -> void:
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_preview = HudPreview.new()
 	right.add_child(_preview)
+	_follow_teams()
 	screen.add_section(right, tr("SETTINGS_AMMO_AND_FEED"))
 	_ammo = screen.add_check_row(right, "SETTINGS_AMMO_COUNTER", "SETTINGS_ON", "SETTINGS_OFF", RIGHT_LABEL)
 	_note(_ammo.get_parent() as Control, "SETTINGS_AMMO_COUNTER_NOTE")
@@ -166,6 +170,7 @@ func refresh() -> void:
 	_turn.put(p.minimap_turn)
 	_show_turn(p.minimap_turn)
 	_preview.show_prefs(p)
+	_follow_teams()
 
 
 func preview() -> HudPreview:
@@ -200,8 +205,9 @@ func _build_minimap(right: VBoxContainer) -> void:
 		var thumb := Thumb.new(HudStyle.caps(key))
 		_thumbs_row.add_child(thumb)
 		_thumbs.append(thumb)
-	# The samples draw Depot's field, built once the first time the tab is seen.
-	_thumbs_row.visibility_changed.connect(_build_thumbs)
+	# The samples draw Depot's field, built once the first time the tab is seen; the team colours follow a set picked
+	# on the Accessibility tab when this one shows again.
+	_thumbs_row.visibility_changed.connect(_on_shown)
 
 
 ## The note under Turn: each word's lead in the text colour and bold.
@@ -230,6 +236,24 @@ func _show_turn(turn: HudPrefs.MinimapTurn) -> void:
 		_thumbs[i].mark(i == turn)
 
 
+func _on_shown() -> void:
+	_follow_teams()
+	_build_thumbs()
+
+
+## Takes the saved team colour set's HUD part into the preview and the samples when the set changed.
+func _follow_teams() -> void:
+	var picked := _screen.settings.team_colours
+	if _teams != null and picked == _teams_set:
+		return
+	_teams_set = picked
+	_teams = TeamColours.resolve(picked, false).hud
+	_preview.show_teams(_teams)
+	for thumb in _thumbs:
+		if thumb.built():
+			thumb.paint(_teams.colours[0], _teams.colours[1])
+
+
 ## The first time the samples are on screen: Depot's field once, the same sample character and teammates in both.
 func _build_thumbs() -> void:
 	if not _thumbs_row.is_visible_in_tree() or _thumbs[0].built():
@@ -240,9 +264,8 @@ func _build_thumbs() -> void:
 		return
 	var field := MinimapField.build(map, cfg)
 	var textures := HudMinimap.textures_of(field)
-	var teams := TeamConfig.new()
 	for i in _thumbs.size():
-		_thumbs[i].build(cfg, textures, field, teams.colours[0], teams.colours[1], i == 0)
+		_thumbs[i].build(cfg, textures, field, _teams.colours[0], _teams.colours[1], i == 0)
 
 
 ## A choice landed: the preview follows and the screen saves it.
@@ -329,6 +352,8 @@ class Thumb:
 	var _on: bool = false
 	var _frame: Control = null
 	var _view: HudMinimap.View = null
+	var _cfg: MinimapConfig = null
+	var _rotating: bool = false
 	var _tag: Label = null
 	var _built: bool = false
 
@@ -355,6 +380,8 @@ class Thumb:
 	func build(cfg: MinimapConfig, textures: Array[Texture2D], field: MinimapField, team: Color, enemy: Color,
 			rotating: bool) -> void:
 		_built = true
+		_cfg = cfg
+		_rotating = rotating
 		_view = HudMinimap.View.new()
 		var inner := cfg.size - cfg.ring * 2.0
 		_view.size = Vector2.ONE * inner
@@ -362,9 +389,13 @@ class Thumb:
 		_view.setup(cfg, textures, field.scale, field.origin, THUMB_TEAM.size())
 		_frame.add_child(_view)
 		_frame.move_child(_view, 0)
-		_view.begin(THUMB_AT, 0, -deg_to_rad(THUMB_HEADING), rotating, team, enemy)
+		paint(team, enemy)
+
+	## Draws the sample's scene with you and your teammates in `team`'s colour, `enemy` the other team's.
+	func paint(team: Color, enemy: Color) -> void:
+		_view.begin(THUMB_AT, 0, -deg_to_rad(THUMB_HEADING), _rotating, team, enemy)
 		for i in THUMB_TEAM.size():
-			_view.add_dot(THUMB_TEAM[i], cfg.out_colour if i == 1 else team, 0)
+			_view.add_dot(THUMB_TEAM[i], _cfg.out_colour if i == 1 else team, 0)
 		_view.queue_redraw()
 
 	func mark(on: bool) -> void:
