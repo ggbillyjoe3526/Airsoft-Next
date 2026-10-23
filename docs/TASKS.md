@@ -5,39 +5,6 @@ takes one, and its block leaves this file in the pull request that lands it. Its
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
 
-## SV1 · The save as one: restore points, Undo and delete
-tier: core
-perf: skip
-touches: game/save/save_bundle.gd, game/save/save_keeper.gd, game/save/save_file.gd, game/save/README.md,
-  game/main.gd, tests/unit/test_save_bundle.gd, tests/unit/test_save_keeper.gd, tests/unit/test_save_file.gd
-contract: Saves (8); Headless (9)
-acceptance:
-  1. SaveBundle reads the four stores (settings, loadouts, progress, records: each class's PATH and KIND) as one:
-     {saved_at, version (Version.current()), stores: {name: {version, data}}}; a missing store is absent, a damaged
-     one is absent and named. Its summary (saved at, version, level, XP, items unlocked, matches played, saved
-     loadouts) is read through fresh store instances, never the shared ones.
-  2. SaveKeeper keeps restore points in user://restore_points.save: at start, the save as it was, at most one per
-     calendar day (the player's local day) and only when it differs from the newest, 3 in all, newest first (the
-     browser's rule; RESTORE_POINTS 3); none for an empty save. The clock and paths are injected.
-  3. replace(bundle, what) for a restore point, Undo or delete (an empty bundle): the save as it stands goes to
-     user://undo.save with what it was before (restore, undo, delete) first, and nothing changes if that write fails;
-     then each store is written; a store that won't write puts every store back as it was and returns false (never
-     half one save, half another). Undo brings back the Undo slot's save and uses the slot up (the save it replaces is
-     not kept). Delete removes every copy (.tmp, .bak) of each store.
-  4. A store written by a newer version (its version above this build's) is refused for restore with the version
-     named; a restore point taken by a newer build likewise.
-  5. SaveFile gains hold(paths): after a replace the four store paths refuse writes for the rest of the run (logged,
-     returns false), so nothing the running game holds (a settings close, save_if_dirty) writes over the new save
-     before the restart; and last_failure (path, time) for the tab's warning.
-  6. main.gd keeps today's restore point at boot after the graphics guard (not in the smoke run, headless or an
-     editor run).
-  7. GUT: a day's second start keeps no new point; a fourth day drops the oldest; an unchanged save keeps none; a
-     replace, Undo and delete round-trip byte for byte; a failing store write (a read-only path) leaves all four as
-     they were and the Undo slot as it was; hold refuses; a newer store is refused; every SaveFile kind under game/
-     is either in the bundle or on the machine-file list (graphics_guard, run, restore_points, undo).
-status: open
-attempts: 0
-
 ## SV2 · Settings › Save file
 tier: ui
 perf: skip

@@ -524,6 +524,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   plan's default, the step 20 pictures awaiting the owner).** Keep safe graphics, or Try my settings again (restored,
   restarted); never a second automatic restart. The renderer the next start asks for is `user://renderer.cfg`, the one
   file outside SaveFile, because Godot reads it before any script.
+- **The save is the four player stores, read and replaced as one (2026-10-23, SV1; the plan's defaults, the step 22
+  pictures awaiting the owner).** Settings with key bindings, saved loadouts, progress and records; `SaveBundle.KINDS`
+  is the one list, and every other SaveFile kind is a machine file (`MACHINE_KINDS`). A restore, Undo or delete keeps
+  the save as it stands for Undo first, never leaves half one save, and holds the stores' files until the restart.
 
 ## Content tags and dev content
 
