@@ -15,8 +15,9 @@ extends Control
 ## line (concept `graphics-step-down.png`, `show_graphics_step`). With Settings › Accessibility's sound cues on, the
 ## ring of markers round the crosshair for the sounds heard (HudSoundCues). The HUD tab's HUD size scales every part
 ## about its anchor but the crosshair, the hit marker and the cue ring (`set_hud_size`); Reduced motion holds the flag
-## warning steady (`set_motion`). Text is only rebuilt when what it shows changes. No hints teaching the controls (owner,
-## 2026-10-16).
+## warning steady (`set_motion`). Screen reader messages read the hit feed, your hit and the rounds' turns through a
+## live region that is never drawn (HudAnnounce, `set_read_out`). Text is only rebuilt when what it shows changes. No
+## hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 32.0
 ## The replica panel's lane, bottom right: as wide as its hop-up note, as tall as its notes and panel.
@@ -86,6 +87,7 @@ var _sound_cues: HudSoundCues = null
 var _cues_on: bool = false
 var _hits := HitFeed.new()
 var _feed: HudFeed = null
+var _announce: HudAnnounce = null
 var _team_markers: HudTeamMarkers = null
 var _round_result: HudRoundResult = null
 var _summary: MatchSummary = null
@@ -254,6 +256,10 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_watching.add_theme_stylebox_override("normal", HudStyle.panel_box(HudStyle.BACKING_AIM, 12, 4))
 	_watching.visible = false
 	_build_skip_hint(bottom)
+	# Screen reader messages: never drawn, so anywhere will do.
+	_announce = HudAnnounce.new()
+	add_child(_announce)
+	_announce.setup(teams, player, _rounds.half_time_after)
 
 
 ## Makes this the practice range's HUD: no score bar, rounds or hit feed, and the readout and the timed challenge in
@@ -293,6 +299,7 @@ func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, 
 	_feed.set_names(names)
 	_round_result.set_names(names)
 	_summary.set_names(names)
+	_announce.set_names(names)
 	_names = names
 	_stats = stats
 
@@ -476,6 +483,15 @@ func set_patterns(on: bool) -> void:
 	_replica.set_patterned(on)
 
 
+## Settings › Accessibility's Screen reader messages on or off (Settings.read_out; call again after a change).
+func set_read_out(on: bool) -> void:
+	_announce.set_on(on)
+
+
+func announce() -> HudAnnounce:
+	return _announce
+
+
 ## The hit feed's lines: for tests.
 func hit_lines() -> HitFeed:
 	return _hits
@@ -619,6 +635,7 @@ func on_tick(state: GameState) -> void:
 				_round_result.match_over()
 				_show_banner(HudStyle.round_stamp(e.value, _player.team), _match_stamp_sub(state.round_state.score),
 						_teams.colours[e.value] if e.value >= 0 else Color.TRANSPARENT)
+	_announce.on_tick(state)
 
 
 ## The finished match's XP under the banner (`settled`, at the bots' `difficulty`, `progress` as it stands now), until the
@@ -714,6 +731,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	if _readout != null:
 		_readout.visible = state.challenge.phase == RangeChallenge.Phase.OFF
 		_challenge.update(state, delta)
+	_announce.advance(delta)
 	_hits.prune(state.time)
 	_feed.fit(_feed_room())
 	_feed.refresh(_hits, state.time, state.characters, _player)
