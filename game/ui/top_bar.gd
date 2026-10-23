@@ -30,6 +30,8 @@ const BACK_KEY_GAP := 12
 const BACK_KEY_SIZE := 14
 const BACK_KEY_PAD := Vector2i(7, 2)
 const BACK_AFTER := 12
+## BACK TO PRACTICE's face under the pointer.
+const BACK_HOVER := Color(1.0, 1.0, 1.0, 0.15)
 ## Tabs not built yet, shown greyed with the LATER tag.
 const LATER_TABS: Array[Tab] = []
 const TAB_KEYS: Dictionary[Tab, String] = {
@@ -164,7 +166,7 @@ func _build_back() -> PanelContainer:
 	var clear := StyleBoxEmpty.new()
 	for state: String in ["normal", "pressed", "disabled"]:
 		_back_button.add_theme_stylebox_override(state, clear)
-	_back_button.add_theme_stylebox_override("hover", GameTheme.box(Color(1.0, 1.0, 1.0, 0.15), Color(0.0, 0.0, 0.0, 0.0), 0, 0))
+	_back_button.add_theme_stylebox_override("hover", GameTheme.box(BACK_HOVER, Color(0.0, 0.0, 0.0, 0.0), 0, 0))
 	_back_button.add_theme_stylebox_override("focus", GameTheme.focus_box())
 	_back_button.pressed.connect(func() -> void: practice_pressed.emit())
 	plate.add_child(_back_button)

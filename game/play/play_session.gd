@@ -876,7 +876,8 @@ func _resume() -> void:
 
 ## Practice: where you stand now, for the range built again after the Loadout.
 func practice_spot() -> PracticeSpot:
-	return PracticeSpot.of(player, _input.view_yaw, _input.view_pitch, challenge_on, match_seed)
+	return PracticeSpot.of(player, _input.view_yaw, _input.view_pitch, _input.crouch_chosen(), challenge_on,
+			match_seed)
 
 
 ## The Loadout, from its key or the pause menu: the pause menu closes, the mouse is let go and the entry screen is told.

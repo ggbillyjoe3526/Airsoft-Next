@@ -172,7 +172,7 @@ func test_a_spot_keeps_place_view_stance_slot_and_holster() -> void:
 	c.crouch_amount = 1.0
 	c.armament.active = 1
 	c.armament.holstered = true
-	var spot := PracticeSpot.of(c, 0.7, -0.2, true, 99)
+	var spot := PracticeSpot.of(c, 0.7, -0.2, true, true, 99)
 	var fresh := Character.new(0, 0, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
 	spot.restore(fresh)
 	assert_eq(fresh.position, Vector3(3.0, 0.5, -4.0))

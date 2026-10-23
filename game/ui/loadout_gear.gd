@@ -62,6 +62,9 @@ const FOOT_BOTTOM := 58.0
 const FOOT_SIZE := 18
 const CUSTOMISE_RIGHT := 56.0
 const CUSTOMISE_BOTTOM := 44.0
+## The range note: the gap between its kicker and its words, and the kicker's letter spacing (share of its size).
+const NOTE_WORDS_GAP := 6
+const NOTE_KICKER_SPACING := 0.1
 
 var _pictures: ReplicaPictures = null
 var _glow: GradientTexture2D = null
@@ -352,9 +355,9 @@ func _build_range_note() -> Control:
 	face.content_margin_bottom = NOTE_PAD.w
 	panel.add_theme_stylebox_override("panel", face)
 	var words := VBoxContainer.new()
-	words.add_theme_constant_override("separation", 6)
+	words.add_theme_constant_override("separation", NOTE_WORDS_GAP)
 	words.add_child(MenuParts.spaced(tr("LOADOUT_RANGE_KICKER").to_upper(), NOTE_KICKER_SIZE, 800, GameTheme.YELLOW,
-			0.1))
+			NOTE_KICKER_SPACING))
 	var text := MenuParts.text(tr("LOADOUT_RANGE_NOTE"), NOTE_SIZE, 600, GameTheme.TEXT)
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.add_theme_constant_override("line_spacing", NOTE_LINE)

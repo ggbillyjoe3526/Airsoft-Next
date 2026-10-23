@@ -81,8 +81,11 @@ func test_a_spot_taken_mid_vault_is_not_a_crouch() -> void:
 	var c := Character.new(0, 0, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
 	c.vault.active = true
 	c.crouch_amount = 0.6 * 0.95
-	var spot := PracticeSpot.of(c, 0.0, 0.0, false, 1)
-	assert_false(spot.crouched, "a vault's tuck is not a crouch")
+	var spot := PracticeSpot.of(c, 0.0, 0.0, false, false, 1)
+	assert_false(spot.crouched, "a vault's tuck is not a crouch: the spot keeps the stance you chose, not the body's")
+	c.vault.active = false
+	c.crouch_amount = 1.0
+	assert_false(PracticeSpot.of(c, 0.0, 0.0, false, false, 1).crouched, "a body still rising from a crouch you left")
 
 
 # --- Esc and typing in the practice Loadout, through the real input path ---

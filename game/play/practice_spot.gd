@@ -21,13 +21,14 @@ var challenge_on: bool = false
 var match_seed: int = 0
 
 
-## The spot of `c`, looking along (`view_yaw`, `view_pitch`).
-static func of(c: Character, view_yaw: float, view_pitch: float, challenge: bool, seed_used: int) -> PracticeSpot:
+## The spot of `c`, looking along (`view_yaw`, `view_pitch`), crouched if you chose to be (`crouched`).
+static func of(c: Character, view_yaw: float, view_pitch: float, crouched: bool, challenge: bool,
+		seed_used: int) -> PracticeSpot:
 	var s := PracticeSpot.new()
 	s.position = c.position
 	s.yaw = view_yaw
 	s.pitch = view_pitch
-	s.crouched = c.crouch_amount > 0.5 and not c.vault.active # a vault tucks the body, it is no crouch
+	s.crouched = crouched
 	s.slot = c.armament.active
 	s.holstered = c.armament.holstered
 	s.challenge_on = challenge
