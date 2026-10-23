@@ -5,7 +5,9 @@ extends Node
 ## inside never darkens it. A scope's is magnified by its zoom, only inside the glass; a red dot's is clear, with the lit
 ## dot on it (optic_glass.gdshader). Round the glass the optic's own model shows and the view is the main camera's, with
 ## nothing dark round it. The second camera draws only while a sight is raised, into a small square picture; the disc
-## shows only then, so at the hip the optic looks as its model does. Children: the picture and its camera.
+## shows only then, so at the hip the optic looks as its model does. Children: the picture and its camera. The picture
+## follows the graphics' render scale and edge smoothing (GraphicsApply's `applied`), and copies the field's environment
+## again after a change, so its ambient occlusion matches the view round it.
 
 ## The visual layer your replica is drawn on, which the glass's camera leaves out (the last of Godot's 20).
 const HANDS_LAYER := 1 << 19
@@ -61,6 +63,28 @@ func setup(cfg: ViewModelConfig, view: ViewConfig, eyes: Camera3D) -> void:
 	_camera.keep_aspect = Camera3D.KEEP_HEIGHT
 	_port.add_child(_camera)
 	_camera.current = true
+
+
+func _enter_tree() -> void:
+	var graphics := GraphicsApply.server()
+	if not graphics.applied.is_connected(_follow):
+		graphics.applied.connect(_follow)
+	if graphics.drawn != null:
+		_follow(graphics.drawn)
+
+
+func _exit_tree() -> void:
+	if GraphicsApply.server().applied.is_connected(_follow):
+		GraphicsApply.server().applied.disconnect(_follow)
+
+
+## The graphics drawn changed: the picture's scale and edge smoothing follow, and its environment is copied again at the
+## next raise of a sight (once a change, never per frame).
+func _follow(values: GraphicsQuality) -> void:
+	if _port == null:
+		return
+	GraphicsApply.apply_picture(values, _port)
+	_env_ready = false
 
 
 ## A glass for `optic` (a fitted optic part with Key `key`, on `model`, its sight line at `sight_line` in the model's

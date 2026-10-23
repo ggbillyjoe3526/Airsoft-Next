@@ -1,8 +1,8 @@
 class_name SettingsScreen
 extends Control
-## The settings, in four tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
-## (a volume for each bus), Display (window mode, V-Sync, field of view, show FPS) and HUD (SettingsHudPage); and a
-## fifth, Dev, shown while the Dev settings box under the tabs is ticked (its switches apply only then;
+## The settings, in five tabs: Controls (the mouse, sensitivity as cm/360, the crouch and aim toggles, rebinding), Audio
+## (a volume for each bus), Display (window mode, V-Sync, field of view, show FPS), Graphics (SettingsGraphicsPage) and
+## HUD (SettingsHudPage); and a sixth, Dev, shown while the Dev settings box under the tabs is ticked (its switches apply only then;
 ## docs/DECISIONS.md › Content tags and dev content). Opened from the title screen and the pause menu; works while the tree is paused. Every change is applied at once through SettingsApply and saved:
 ## a slider a moment after it stops moving, anything else straight away, and the last change always on close. Esc or
 ## Back closes it. While it is open, keys the controls don't use stop here, so none reaches play.
@@ -58,6 +58,7 @@ var _window: OptionButton = null
 var _vsync: CheckButton = null
 var _fov: HSlider = null
 var _fps: CheckButton = null
+var _graphics_page: SettingsGraphicsPage = null
 var _hud_page: SettingsHudPage = null
 var _dev_box: CheckButton = null
 var _dev_page: Control = null
@@ -102,6 +103,7 @@ func _ready() -> void:
 	_build_controls()
 	_build_audio()
 	_build_display()
+	_build_graphics()
 	_build_hud()
 	_build_dev()
 	_dev_box = CheckButton.new()
@@ -144,6 +146,7 @@ func close() -> void:
 	if not visible:
 		return
 	_keys.cancel()
+	_graphics_page.let_go()
 	visible = false
 	_timer.stop()
 	settings.save_if_dirty(save_path)
@@ -306,6 +309,16 @@ func _build_display() -> void:
 		_changed(true))
 
 
+# --- Graphics ---
+
+func _build_graphics() -> void:
+	var page := _page(tr("SETTINGS_GRAPHICS"))
+	_graphics_page = SettingsGraphicsPage.new()
+	page.add_child(_graphics_page)
+	_graphics_page.build(self)
+	_graphics_page.changed.connect(_changed)
+
+
 # --- HUD ---
 
 func _build_hud() -> void:
@@ -432,6 +445,7 @@ func _refresh() -> void:
 	set_check(_vsync, settings.vsync)
 	set_slider(_fov, settings.fov)
 	set_check(_fps, settings.show_fps)
+	_graphics_page.refresh()
 	_hud_page.refresh()
 	_dev_box.set_pressed_no_signal(settings.dev_enabled)
 	_show_dev_tab()

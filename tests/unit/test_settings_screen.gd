@@ -339,3 +339,164 @@ func _settings_child(parent: Node) -> SettingsScreen:
 		if c is SettingsScreen and not c.is_queued_for_deletion():
 			return c
 	return null
+
+
+# --- Graphics (GR2) ---
+
+func _graphics() -> SettingsGraphicsPage:
+	return screen._graphics_page
+
+
+func _probe(preset: StringName, method: String = "forward_plus") -> GraphicsPick.Probe:
+	var p := GraphicsPick.Probe.new()
+	p.preset = preset
+	p.rendering_method = method
+	p.driver = "vulkan"
+	p.adapter_name = "Test Card"
+	p.adapter_type = RenderingDevice.DEVICE_TYPE_DISCRETE_GPU
+	return p
+
+
+## A second Graphics page on the screen's settings, for a machine `p`.
+func _page_with(p: GraphicsPick.Probe) -> SettingsGraphicsPage:
+	var page := SettingsGraphicsPage.new()
+	page.probe = p
+	screen.add_child(page)
+	page.build(screen)
+	page.refresh()
+	return page
+
+
+func _saved() -> Settings:
+	var t := Settings.new(PlayTuning.new())
+	t.load_file(screen.save_path)
+	return t
+
+
+## The button for `choice_name` on row `id`'s line.
+func _choice_button(page: SettingsGraphicsPage, id: StringName, choice_name: String) -> Button:
+	var line := page.line(id)
+	return line.choice.button(line.levels.find(GraphicsQuality.CHOICES[id].find(choice_name)))
+
+
+func test_the_graphics_tab_sits_between_display_and_hud() -> void:
+	var names := PackedStringArray()
+	for i in screen._tabs.get_tab_count():
+		names.append(screen._tabs.get_tab_title(i))
+	var at := names.find(tr("SETTINGS_GRAPHICS").to_upper())
+	assert_gt(at, 0)
+	assert_eq(names[at - 1], tr("SETTINGS_DISPLAY").to_upper())
+	assert_eq(names[at + 1], tr("SETTINGS_HUD").to_upper())
+
+
+func test_while_automatic_the_tab_says_so_and_tags_the_card_s_pick() -> void:
+	var page := _graphics()
+	var pick := GraphicsTable.PRESETS.find(page.probe.preset)
+	assert_eq(s.graphics_choice, Settings.GRAPHICS_AUTOMATIC)
+	assert_string_starts_with(page.blurb(), "Automatic")
+	assert_eq(page.preset_choice().selected(), pick, "the pick is lit")
+	assert_eq(page.tagged(), page.preset_choice().button(pick), "For your card on the pick")
+	for id in GraphicsQuality.ROWS:
+		assert_false(page.line(id).marked(), "%s unmarked" % id)
+
+
+func test_choosing_a_preset_draws_it_at_once_and_saves_the_choice() -> void:
+	var page := _graphics()
+	page.preset_choice().button(GraphicsTable.PRESETS.find(&"ultra")).pressed.emit()
+	assert_eq(s.graphics_choice, &"ultra")
+	assert_true(GraphicsApply.server().drawn.equals(GraphicsTable.shared().preset(&"ultra")), "drawn at once")
+	assert_eq(get_tree().root.msaa_3d, Viewport.MSAA_4X)
+	assert_eq(_saved().graphics_choice, &"ultra", "saved at once")
+	assert_string_starts_with(page.blurb(), "Ultra:")
+
+
+func test_changing_a_row_makes_custom_on_the_preset_you_were_on_and_marks_it() -> void:
+	var page := _graphics()
+	page.preset_choice().button(GraphicsTable.PRESETS.find(&"high")).pressed.emit()
+	_choice_button(page, GraphicsQuality.AMBIENT_OCCLUSION, "full").pressed.emit()
+	assert_eq(s.graphics_choice, GraphicsQuality.CUSTOM)
+	assert_eq(s.graphics_base, &"high")
+	assert_eq(page.preset_choice().selected(), GraphicsTable.PRESETS.size(), "Custom lit")
+	for id in GraphicsQuality.ROWS:
+		assert_eq(page.line(id).marked(), id == GraphicsQuality.AMBIENT_OCCLUSION, "%s marked only if changed" % id)
+	assert_string_contains(page.blurb(), "Custom: High with 1 change")
+	assert_eq(GraphicsApply.server().drawn.ambient_occlusion, GraphicsQuality.AmbientOcclusion.FULL, "drawn at once")
+	var saved := _saved()
+	assert_eq(saved.graphics_choice, GraphicsQuality.CUSTOM)
+	assert_eq(saved.graphics_custom, {"ambient_occlusion": "full"} as Dictionary[String, Variant])
+
+
+func test_reset_goes_back_to_the_card_s_pick() -> void:
+	var page := _graphics()
+	_choice_button(page, GraphicsQuality.MESH_DETAIL, "ultra").pressed.emit()
+	assert_eq(s.graphics_choice, GraphicsQuality.CUSTOM)
+	assert_string_contains(page.reset_button().text, tr("GRAPHICS_PRESET_" + String(page.probe.preset).to_upper())
+			.to_upper())
+	page.reset_button().pressed.emit()
+	assert_eq(s.graphics_choice, Settings.GRAPHICS_AUTOMATIC)
+	assert_true(s.graphics_custom.is_empty())
+	assert_false(page.line(GraphicsQuality.MESH_DETAIL).marked())
+	assert_eq(_saved().graphics_choice, Settings.GRAPHICS_AUTOMATIC)
+	assert_true(GraphicsApply.server().drawn.equals(GraphicsApply.values_for(s, page.probe)))
+
+
+func test_every_row_shows_its_cost_from_the_table() -> void:
+	var page := _graphics()
+	for id in GraphicsQuality.ROWS:
+		var squares := page.line(id).row.get_child(-1) as SettingsGraphicsPage.CostSquares
+		assert_not_null(squares, "%s has squares" % id)
+		assert_eq(squares.cost(), GraphicsTable.shared().row(id).cost, "%s's cost" % id)
+
+
+func test_a_slider_applies_when_it_is_let_go() -> void:
+	var page := _graphics()
+	page.preset_choice().button(GraphicsTable.PRESETS.find(&"high")).pressed.emit()
+	assert_true(page.line(GraphicsQuality.UPSCALER).dimmed(), "the upscaler is greyed at 100 %")
+	var slider := page.line(GraphicsQuality.RENDER_SCALE).slider
+	slider.drag_started.emit()
+	slider.value = 70.0
+	assert_eq(s.graphics_choice, &"high", "nothing applied while held")
+	slider.drag_ended.emit(true)
+	assert_eq(s.graphics_choice, GraphicsQuality.CUSTOM)
+	assert_eq(s.graphics_in_force(page.probe.preset).render_scale, 70)
+	assert_almost_eq(get_tree().root.scaling_3d_scale, 0.7, 0.001, "drawn on release")
+	assert_false(page.line(GraphicsQuality.UPSCALER).dimmed(), "the upscaler works below 100 %")
+	page.preset_choice().button(GraphicsTable.PRESETS.find(&"high")).pressed.emit()
+
+
+func test_the_simpler_renderer_greys_what_it_can_t_draw() -> void:
+	var page := _page_with(_probe(&"low", "gl_compatibility"))
+	assert_false(_choice_button(page, GraphicsQuality.UPSCALER, "bilinear").disabled)
+	assert_true(_choice_button(page, GraphicsQuality.UPSCALER, "fsr1").disabled, "no FSR 1")
+	assert_true(_choice_button(page, GraphicsQuality.UPSCALER, "fsr2").disabled, "no FSR 2")
+	assert_true(_choice_button(page, GraphicsQuality.EDGE_SMOOTHING, "smaa").disabled, "no SMAA")
+	assert_false(_choice_button(page, GraphicsQuality.EDGE_SMOOTHING, "msaa_4x").disabled)
+	assert_true(page.line(GraphicsQuality.TEMPORAL_SMOOTHING).check.disabled, "no TAA")
+	assert_true(page.line(GraphicsQuality.TEMPORAL_SMOOTHING).dimmed())
+	assert_true(page.line(GraphicsQuality.AMBIENT_OCCLUSION).dimmed(), "no SSAO")
+	assert_false(page.line(GraphicsQuality.SUN_SHADOWS).dimmed())
+	var forward := _page_with(_probe(&"high"))
+	assert_false(_choice_button(forward, GraphicsQuality.UPSCALER, "fsr2").disabled, "Forward+ draws them all")
+
+
+func test_your_system_names_the_card_the_renderer_and_the_screen() -> void:
+	var lines := _page_with(_probe(&"high")).system_lines()
+	assert_eq(lines[0], "Test Card · dedicated")
+	assert_eq(lines[1], "Forward+ · Vulkan")
+	assert_string_contains(lines[2], "monitor")
+	var unknown := _probe(&"medium", "gl_compatibility")
+	unknown.adapter_name = ""
+	unknown.adapter_type = RenderingDevice.DEVICE_TYPE_OTHER
+	unknown.driver = "opengl3"
+	var other := _page_with(unknown).system_lines()
+	assert_eq(other[0], "%s · %s" % [tr("GRAPHICS_UNKNOWN_CARD"), tr("GRAPHICS_TYPE_OTHER")])
+	assert_eq(other[1], "Compatibility · OpenGL 3")
+
+
+func test_the_launch_option_shows_on_the_tab() -> void:
+	s.graphics_forced = &"low"
+	screen.open()
+	var page := _graphics()
+	assert_string_starts_with(page.blurb(), "--graphics=low:")
+	assert_eq(page.preset_choice().selected(), 0, "Low lit")
+	s.graphics_forced = &""

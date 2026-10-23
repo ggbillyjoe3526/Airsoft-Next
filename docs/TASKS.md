@@ -22,33 +22,6 @@ acceptance:
 status: open
 attempts: 0
 
-## GR2 · Applying the quality and Settings › Graphics
-tier: ui
-perf: required
-touches: game/save/graphics_apply.gd, game/save/settings_apply.gd, game/play/field_lighting.gd,
-  game/play/wind_dust.gd, game/play/optic_glass.gd, game/play/play_session.gd, game/play/README.md,
-  game/ui/settings_graphics_page.gd, game/ui/settings_screen.gd, game/ui/text/en.po, docs/KNOWN_ISSUES.md,
-  tests/unit/test_graphics_apply.gd, tests/unit/test_settings_screen.gd
-contract: Simulation and presentation (1); Data, not literals (6); Headless (9)
-acceptance:
-  1. GraphicsApply.apply(values, viewport) sets the root viewport's scaling_3d_scale and mode, msaa_3d,
-     screen_space_aa, use_taa, anisotropic filtering and mesh_lod_threshold, and RenderingServer's directional shadow
-     size and soft-shadow quality; apply_field(values, lighting, dust) sets the sun's shadow_enabled and max distance,
-     the Environment's SSAO on and half size, and the dust's amount. The optic glass follows scale and edge smoothing.
-     At start, on a change in menus and mid-match from the pause menu, without rebuilding the field.
-  2. The Graphics tab as settings-graphics.png: Preset (Low to Ultra, Custom) with "For your card" on the pick's
-     preset and the chosen preset's blurb; the rows in two columns with cost squares from the table; changing a row
-     makes it Custom based on the preset you were on and marks the changed rows; Reset to For your card; Your
-     system (card and type, renderer and driver, screen size and rate). Every row applies at once and is saved.
-  3. While the pick is automatic, the tab says so; choosing anything saves graphics_choice.
-  4. High draws as today (sun shadows 70 m, SSAO half); Low draws no sun shadows, no SSAO and no dust.
-  5. Switching all four presets 50 times in a match leaves no orphan nodes or leaked resources (DebugPerf counts);
-     a frame allocates nothing; the smoke test with `--graphics=low` and `--graphics=ultra` has no script errors.
-  6. KNOWN_ISSUES: the "no quality presets" and the wind dust rows are deleted; the record lists what the owner
-     measures with `--graphics=` on his laptop (Low) and desktop (Ultra at 4K) for pipeline/perf-budget.json.
-status: open
-attempts: 0
-
 ## GR3 · Window, fullscreen and the frame-rate limit
 tier: ui
 perf: skip

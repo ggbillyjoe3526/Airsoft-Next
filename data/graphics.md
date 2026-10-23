@@ -1,7 +1,8 @@
 # Graphics: the quality presets
 
 Settings › Graphics offers four presets, Low, Medium, High and Ultra, and Custom, which is a preset with some of its
-rows changed. This file is every row and each preset's value for it. High is how the game looked before the presets.
+rows changed. This file is every row and each preset's value for it. High keeps the look from before the presets
+(shadows, ambient occlusion, mesh detail) and adds MSAA 4× and 16× texture filtering, which cost more on the GPU.
 
 **The game reads this file.** It is bundled into the build and read when the game starts
 (`game/config/graphics_table.gd`), like [levels.md](levels.md). After editing, run `tools/unit_tests.sh`:

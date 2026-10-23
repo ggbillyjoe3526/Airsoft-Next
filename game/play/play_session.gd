@@ -6,7 +6,8 @@ extends Node3D
 ## teammates against three bots on Beta, Elimination rounds to five wins. Esc pauses; losing focus pauses too. Emits
 ## `left` when the player leaves to the title screen. The Dev settings in force apply here and follow every change
 ## (game speed, bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions, Retro pixels, End the
-## round now): the cheats through the simulation (DevCheats), the views built only while on.
+## round now): the cheats through the simulation (DevCheats), the views built only while on. The graphics drawn follow
+## too (GraphicsApply's `applied`: the sun's shadows, ambient occlusion and the wind dust), without rebuilding the field.
 ## Practice (`practice`, M21) plays the range instead: you alone with its targets (RangeTargetsView, its markings
 ## RangeView), no bots and no rounds, a breeze, spare magazines kept full, no XP and no match records; the timed
 ## challenge (off unless switched on) keeps its best.
@@ -95,6 +96,7 @@ var _hands: ReplicaView = null
 var _bbs: BBView = null
 var _puffs: PuffView = null
 var _dust: WindDust = null
+var _lighting: FieldLighting = null
 ## Scratch for the vault prompt's look ahead each tick.
 var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
@@ -207,7 +209,8 @@ func _build_level() -> void:
 	_level = MapLevel.new()
 	add_child(_level)
 	_level.build(_map, _play.map_style, _tuning.body)
-	add_child(FieldLighting.build(_play.lighting))
+	_lighting = FieldLighting.build(_play.lighting)
+	add_child(_lighting)
 
 
 func _build_teams() -> void:
@@ -231,8 +234,10 @@ func _build_views_and_start() -> void:
 		settings = Settings.shared()
 	settings.changed.connect(_apply_dev)
 	settings.changed.connect(_apply_hud)
+	GraphicsApply.server().applied.connect(_apply_graphics)
 	_apply_dev()
 	_apply_hud()
+	_apply_graphics(GraphicsApply.drawn_or(settings))
 	_sim.start_match(state)
 	_after_tick()
 	if resume != null:
@@ -751,6 +756,8 @@ func _exit_tree() -> void:
 		settings.changed.disconnect(_apply_dev)
 	if settings != null and settings.changed.is_connected(_apply_hud):
 		settings.changed.disconnect(_apply_hud)
+	if GraphicsApply.server().applied.is_connected(_apply_graphics):
+		GraphicsApply.server().applied.disconnect(_apply_graphics)
 	if get_tree() != null:
 		get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -985,6 +992,11 @@ func _apply_hud() -> void:
 	_hud.apply_prefs(settings.hud)
 	# The skipping note sits outside the HUD, over it.
 	HudStyle.restyle(_skip_note, settings.hud.panel_opacity)
+
+
+## The graphics drawn, onto the field: at the start and whenever they change (the settings can open from the pause menu).
+func _apply_graphics(values: GraphicsQuality) -> void:
+	GraphicsApply.apply_field(values, _lighting, _dust)
 
 
 ## The Dev settings in force, put into play: the cheats into the simulation, and the views they ask for built or freed.

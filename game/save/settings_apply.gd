@@ -1,7 +1,8 @@
 class_name SettingsApply
 ## Puts Settings into the game, each group on its own so a slider only does its own work: the mouse and the camera (the
-## PlayTuning that PlayerInput and the view read live), the audio buses' volumes, the window and V-Sync, and the key
-## bindings (the InputMap). Nothing is cached, so the change shows at once.
+## PlayTuning that PlayerInput and the view read live), the audio buses' volumes, the window and V-Sync, the graphics
+## (GraphicsApply, on the root viewport) and the key bindings (the InputMap). Nothing is cached, so the change shows at
+## once.
 
 ## Silence: the bus is muted at a volume of 0 rather than set to minus infinity.
 const MUTE_DB := -80.0
@@ -11,6 +12,7 @@ static func apply_all(s: Settings) -> void:
 	apply_controls(s)
 	apply_audio(s)
 	apply_display(s)
+	apply_graphics(s)
 	apply_bindings(s)
 	s.changed.emit()
 
@@ -57,6 +59,14 @@ static func apply_display(s: Settings) -> void:
 	var want := DisplayServer.VSYNC_ENABLED if s.vsync else DisplayServer.VSYNC_DISABLED
 	if DisplayServer.window_get_vsync_mode() != want:
 		DisplayServer.window_set_vsync_mode(want)
+
+
+## The graphics values in force onto the root viewport and, through GraphicsApply's `applied`, the match: only when
+## they differ from those drawn.
+static func apply_graphics(s: Settings) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree != null:
+		GraphicsApply.apply_settings(s, tree.root)
 
 
 ## The key bindings into the InputMap.

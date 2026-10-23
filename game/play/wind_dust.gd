@@ -2,7 +2,8 @@ class_name WindDust
 extends GPUParticles3D
 ## Specks of dust in the air round the eye, drifting with the match's breeze (the browser game's M30 dust), so the wind
 ## that moves your BBs can be seen. The specks stay where they are in the world while the eye moves; their drift is
-## refreshed a few times a second, never per frame.
+## refreshed a few times a second, never per frame. The graphics settings set how many (`set_share`); at none it is
+## hidden and does no work.
 
 var _cfg: EffectsConfig = null
 var _motion: ParticleProcessMaterial = null
@@ -37,8 +38,23 @@ func setup(cfg: EffectsConfig) -> void:
 	draw_pass_1 = quad
 
 
+## Draws `share` (0..1) of the config's specks; none hides it. A new count rebuilds the specks, so only on a change.
+func set_share(share: float) -> void:
+	var count := roundi(_cfg.dust_count * clampf(share, 0.0, 1.0))
+	var on := count > 0
+	var was_on := visible
+	visible = on
+	emitting = on
+	if on and count != amount:
+		amount = count # starts again, full from the first frame (preprocess)
+	elif on and not was_on:
+		restart()
+
+
 ## Follows the eye at `eye` and drifts with `wind` (m/s), `delta` seconds since the last frame.
 func update(eye: Vector3, wind: Vector3, delta: float) -> void:
+	if not visible:
+		return
 	global_position = eye
 	_since += delta
 	if _since < _cfg.dust_refresh:
