@@ -165,6 +165,18 @@ func test_the_range_holds_the_spot_over_ticks_with_a_toggled_crouch_a_holstered_
 	assert_true(play._input.active, "the keys and mouse are yours again")
 
 
+func test_the_spot_taken_in_play_keeps_the_toggled_crouch_you_chose_not_the_body() -> void:
+	var play := _range(PracticeSpot.new())
+	play._play.controls.crouch_toggle = true
+	await wait_physics_frames(2)
+	play._input.set_crouched(true)
+	play.player.crouch_amount = 0.3 # still going down
+	assert_true(play.practice_spot().crouched, "crouched as you chose, though the body is still on its way")
+	play._input.set_crouched(false)
+	play.player.crouch_amount = 0.9 # still coming up
+	assert_false(play.practice_spot().crouched, "standing as you chose")
+
+
 func test_without_the_crouch_toggle_the_range_comes_back_standing_once_the_key_is_not_held() -> void:
 	var spot := PracticeSpot.new()
 	spot.position = Vector3(0.0, 0.0, -3.0)
