@@ -314,10 +314,11 @@ func test_graphics_words() -> void:
 func _main_with(guard: GraphicsGuard) -> Node:
 	guard.save(_guard_path)
 	var main := MAIN.instantiate()
-	main.guard_path = _guard_path
-	main.renderer_path = _renderer_path
-	main.settings_path = _settings_path
-	main.set("restart", func() -> void: main.set_meta(&"restarted", true))
+	var graphics: GraphicsStartUp = main.graphics
+	graphics.guard_path = _guard_path
+	graphics.renderer_path = _renderer_path
+	graphics.settings_path = _settings_path
+	graphics.restart = func() -> void: main.set_meta(&"restarted", true)
 	return main
 
 
@@ -325,7 +326,7 @@ func test_the_smoke_run_and_headless_runs_guard_nothing() -> void:
 	var main := MAIN.instantiate()
 	add_child_autofree(main)
 	await wait_process_frames(1)
-	assert_null(main.get("_guard"))
+	assert_null((main.graphics as GraphicsStartUp).guard)
 	assert_null((main.get("_title") as TitleScreen).notice())
 
 
@@ -387,7 +388,7 @@ func test_keep_safe_graphics_closes_the_question_for_good() -> void:
 	var read := GraphicsGuard.load_file(_guard_path)
 	assert_false(read.asking())
 	assert_eq(read.renderer_notice, RendererOverride.REASON_SETTINGS, "the notice said why already")
-	main.call("_settle_graphics")
+	(main.graphics as GraphicsStartUp).settle()
 	assert_eq(GraphicsGuard.load_file(_guard_path).state, GraphicsGuard.State.SETTLED)
 
 
@@ -470,10 +471,10 @@ func test_a_second_copy_beside_a_running_one_leaves_its_record_alone() -> void:
 	var g := _guard(GraphicsGuard.State.STARTING)
 	g.pid = OS.get_process_id() + 1
 	var main := _main_with(g)
-	main.set("process_running", func(_id: int) -> bool: return true)
+	(main.graphics as GraphicsStartUp).process_running = (func(_id: int) -> bool: return true)
 	add_child_autofree(main)
 	assert_false(main.has_meta(&"restarted"))
-	assert_null(main.get("_guard"))
+	assert_null((main.graphics as GraphicsStartUp).guard)
 	var kept := GraphicsGuard.load_file(_guard_path)
 	assert_eq(kept.state, GraphicsGuard.State.STARTING)
 	assert_eq(kept.pid, OS.get_process_id() + 1)
@@ -486,7 +487,7 @@ func test_a_start_whose_writer_is_gone_still_trips() -> void:
 	var g := _guard(GraphicsGuard.State.STARTING)
 	g.pid = OS.get_process_id() + 1
 	var main := _main_with(g)
-	main.set("process_running", func(_id: int) -> bool: return false)
+	(main.graphics as GraphicsStartUp).process_running = (func(_id: int) -> bool: return false)
 	add_child(main)
 	assert_true(main.has_meta(&"restarted"))
 	main.free()
@@ -517,9 +518,8 @@ func test_the_pid_survives_the_file_and_a_bad_one_reads_as_unknown() -> void:
 
 
 func test_the_restart_drops_a_renderer_option() -> void:
-	var script: GDScript = load("res://game/main.gd")
 	var args := PackedStringArray(["--rendering-method", "gl_compatibility", "--fullscreen"])
-	assert_eq(script.restart_args(args), PackedStringArray(["--fullscreen"]))
+	assert_eq(GraphicsStartUp.restart_args(args), PackedStringArray(["--fullscreen"]))
 	args = PackedStringArray(["--rendering-method=gl_compatibility", "--seed", "4"])
-	assert_eq(script.restart_args(args), PackedStringArray(["--seed", "4"]))
-	assert_eq(script.restart_args(PackedStringArray()), PackedStringArray())
+	assert_eq(GraphicsStartUp.restart_args(args), PackedStringArray(["--seed", "4"]))
+	assert_eq(GraphicsStartUp.restart_args(PackedStringArray()), PackedStringArray())
