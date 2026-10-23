@@ -1,21 +1,26 @@
 class_name SimAudio
 extends Node
-## The match's sound, from the tick's events (docs/ARCHITECTURE.md › Contracts 3): shots with their power part (a silenced
-## one's shot duller and quieter; its power part and clicks as they are), dry clicks, magazines, the selector, the
-## hop-up dial and draws, BB impacts by surface, footsteps by surface and pace, vaults, the flag's rope ratcheting up
-## or down, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
+## The match's sound, from the tick's events (docs/ARCHITECTURE.md › Contracts 3): shots with their power part (a
+## silenced one's shot duller and quieter; its power part and clicks as they are), dry clicks, magazines, the selector,
+## the hop-up dial and draws, BB impacts by surface, footsteps by surface and pace, vaults, the flag's rope ratcheting
+## up or down, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
 ## yours, the thump when it's you. On the practice range steel rings and a figure knocks, heard down its whole length,
-## your own target hit plays the confirmation, and the timed challenge's countdown, Go and Time beep. A squad order of
-## yours that a teammate took plays a radio's double click in your ear (on_order). Your own sounds
-## play plain; everyone else's from where they happen, and only within reach of the ears the view is through (the
-## listener): others' steps step_reach and at most step_limit per step_window, BB impacts at most impact_limit per
-## impact_window, the range's targets target_reach, the rest max_distance. Every variant is loaded up front, so the first
-## shot never hitches. The voices are made once and shared through two VoicePools (yours plain, the field's positional)
-## by priority. A cue never plays the same variant twice running; pitch and level are spread by kind (none on interface
-## cues). Variant, pitch and level are presentation only, on SimAudio's own random stream. Every sound another character
-## makes (a shot and its power part, mechanisms, steps, vaults, a hit on them) and every BB impact is muffled by the
-## level geometry between it and the listener's eyes (SoundOcclusion): open, or on the half or full occlusion bus.
-## Your own sounds and the interface's are never muffled.
+## your own target hit plays the confirmation, and the timed challenge's countdown and Go beep. A squad order of yours
+## that a teammate took plays a radio's double click in your ear (on_order). Kit rustles as a crouch, a stand or a lean
+## starts (FoleyTracker, from the state: bots never hear it); a landing thuds louder and lower the harder it comes down,
+## with a rustle under a hard one. The referee's whistle (WhistleQueue) on the Interface bus: two short blasts start a
+## round, one long ends it, three more end the match, and the range's Time is one long. The map's ambience: its day beds
+## on the Ambience bus and its calls round the listener (AmbientCalls), positional, at the pool's lowest priority. Your
+## own sounds play plain; everyone else's from where they happen, and only within reach of the ears the view is through
+## (the listener): others' steps step_reach and at most step_limit per step_window, their rustle foley_reach and at most
+## foley_limit per foley_window, BB impacts at most impact_limit per impact_window, the range's targets target_reach,
+## the rest max_distance. Every variant is loaded up front, so the first shot never hitches. The voices are made once
+## and shared through two VoicePools (yours plain, the field's positional) by priority. A cue never plays the same
+## variant twice running; pitch and level are spread by kind (none on interface cues). Variant, pitch and level are
+## presentation only, on SimAudio's own random stream. Every sound another character makes (a shot and its power part,
+## mechanisms, steps, vaults, rustle, a hit on them) and every BB impact is muffled by the level geometry between it and
+## the listener's eyes (SoundOcclusion): open, or on the half or full occlusion bus. Your own sounds and the interface's
+## are never muffled.
 
 const BUS_EFFECTS := &"Effects"
 const BUS_FOOTSTEPS := &"Footsteps"
@@ -29,7 +34,9 @@ const BUS_MUFFLED := &"Muffled"
 const SURFACE_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth"]
 const STEP_NAMES: PackedStringArray = ["run", "sprint", "land"]
 ## What a play is, for its pitch and level spread, its priority in the field's pool and how many of its cue may sound.
-enum Kind { SHOT, MECHANISM, STEP, VAULT, ROPE, IMPACT, HIT, STEEL, INTERFACE, RADIO }
+enum Kind { SHOT, MECHANISM, STEP, VAULT, ROPE, IMPACT, HIT, STEEL, INTERFACE, RADIO, FOLEY, CALL }
+## How far past the ears' distance a call's voice still carries, so the far edge of its ring is never cut off.
+const CALL_SLACK := 1.0
 
 var _cfg: SoundConfig = null
 var _streams: Dictionary[StringName, Array] = {}
@@ -47,9 +54,8 @@ var _priority: PackedInt32Array = PackedInt32Array()
 var _cue_voices: PackedInt32Array = PackedInt32Array()
 var _steps: VoicePool.StartLimit = null
 var _impacts: VoicePool.StartLimit = null
-## The map (SP4's ambience), and whose ears the view is through this tick (null: nobody's, so nothing is out of reach
-## or muffled).
-var _map: MapData = null
+var _foleys: VoicePool.StartLimit = null
+## Whose ears the view is through this tick (null: nobody's, so nothing is out of reach or muffled, and no call sounds).
 var _listener: Character = null
 var _ear: Vector3 = Vector3.ZERO
 ## Muffling through walls from the listener's eyes, through the level's WorldQuery.
@@ -62,23 +68,38 @@ var _mag_out: Dictionary[StringName, StringName] = {}
 var _mag_in: Dictionary[StringName, StringName] = {}
 var _impact: Array[StringName] = []
 var _step: Array[StringName] = []
-var _ambience: AudioStreamPlayer = null
 var _body: BodyConfig = null
+## The slowest landing that thuds (m/s; FootstepConfig.land_min_speed): a landing's level and pitch grow from it.
+var _land_min: float = 0.0
+## Kit rustle from the state, once per movement.
+var _foley: FoleyTracker = FoleyTracker.new()
+## The referee's whistle: its one voice, on Interface, and the blasts waiting for it.
+var _whistle: AudioStreamPlayer = null
+var _blasts: WhistleQueue = null
+## The map's ambience: a voice per bed, and its calls with the match they were last timed for.
+var _beds: Array[AudioStreamPlayer] = []
+var _calls: AmbientCalls = null
+var _calls_match: int = -1
 ## The squad order outcome last heard (SquadOrders.Outcome.serial).
 var _order_serial: int = 0
 
 
 ## Loads every cue `profiles` (the loadouts' sound profiles, ReplicaConfig.sound_profile) and the field need, makes the
-## voices and starts the ambience bed; replica sounds come from the eyes of a character shaped as `body`. A profile with
-## no power part (the Cyber Pistol's) plays its shot alone. `query` and `map` are the level's (either may be null).
-func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, query: WorldQuery, map: MapData) -> void:
+## voices and starts the map's ambience (its beds; its calls are timed in play); replica sounds come from the eyes of a
+## character shaped as `body`. A profile with no power part (the Cyber Pistol's) plays its shot alone. `query` and
+## `map` are the level's (either may be null: no map plays the default ambience); `footsteps` says how soft a landing
+## still thuds (null: the default).
+func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, query: WorldQuery, map: MapData,
+		footsteps: FootstepConfig = null) -> void:
 	_cfg = cfg
 	_body = body
-	_map = map
+	_land_min = footsteps.land_min_speed if footsteps != null else FootstepConfig.new().land_min_speed
 	_kinds(cfg)
 	_occlusion = SoundOcclusion.new(cfg, query)
 	_steps = VoicePool.StartLimit.new(cfg.step_limit, cfg.step_window)
 	_impacts = VoicePool.StartLimit.new(cfg.impact_limit, cfg.impact_window)
+	_foleys = VoicePool.StartLimit.new(cfg.foley_limit, cfg.foley_window)
+	_blasts = WhistleQueue.new(cfg)
 	name = "Sound"
 	for p in profiles:
 		_shot[p] = _load("shot_%s" % p)
@@ -93,7 +114,8 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 		for k in STEP_NAMES:
 			_step.append(_load("step_%s_%s" % [s, k]))
 	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault",
-			"foley_holster", "magRattle", "rope_up", "rope_down", "steelRing", "radio_ack"]:
+			"foley_holster", "magRattle", "rope_up", "rope_down", "steelRing", "radio_ack", "foley_crouch", "foley_stand",
+			"foley_lean", "whistle_short", "whistle_long"]:
 		_load(cue)
 	_set_muffle(cfg.muffled_cutoff_hz)
 	for i in cfg.field_voices:
@@ -111,7 +133,11 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 		_own.append(v)
 	_field_pool = VoicePool.new(_field)
 	_own_pool = VoicePool.new(_own)
-	_start_ambience()
+	_whistle = AudioStreamPlayer.new()
+	_whistle.bus = BUS_INTERFACE
+	_whistle.volume_db = linear_to_db(cfg.whistle_gain)
+	add_child(_whistle)
+	_start_ambience(map.ambience if map != null else AmbienceConfig.DEFAULT_ID)
 
 
 ## Plays the tick's events in `state`; `player_id` is the one heard as yourself, `listener` the character the view is
@@ -174,11 +200,20 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 				if not own and not (_in_reach(at, _cfg.step_reach) and _steps.take(now)):
 					continue
 				var gain := _cfg.own_step_gain if own else _cfg.step_gain
+				var pitch := 1.0
 				var cue := &"magRattle"
 				if e.value != GameEvent.Footstep.RATTLE:
 					var surface := clampi(e.value2, 0, SURFACE_NAMES.size() - 1)
 					cue = _step[surface * STEP_NAMES.size() + clampi(e.value, 0, STEP_NAMES.size() - 1)]
-				_play(cue, at, own, gain, Kind.STEP, BUS_FOOTSTEPS, 1.0, _cfg.step_reach, c)
+				var speed := e.direction.length()
+				if e.value == GameEvent.Footstep.LAND:
+					var hard := land_hardness(_cfg, _land_min, speed)
+					gain = (_cfg.own_land_gain if own else _cfg.step_gain) * lerpf(1.0, _cfg.land_hard_gain, hard)
+					pitch = lerpf(1.0, _cfg.land_hard_pitch, hard)
+				_play(cue, at, own, gain, Kind.STEP, BUS_FOOTSTEPS, pitch, _cfg.step_reach, c)
+				# A hard landing rustles the kit under its thud.
+				if e.value == GameEvent.Footstep.LAND and speed >= _cfg.hard_land_speed and c != null:
+					_kit(&"foley_crouch", c, own, now)
 			GameEvent.Kind.VAULT:
 				var gain := _cfg.own_vault_gain if own else _cfg.vault_gain
 				_play(&"vault", e.position, own, gain, Kind.VAULT, BUS_FOOTSTEPS, 1.0, 0.0, state.character(e.actor))
@@ -194,17 +229,23 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 							1.0, _cfg.target_reach)
 				if own:
 					_play(&"hitMarker", e.position, true, _cfg.hit_marker_gain, Kind.INTERFACE, BUS_INTERFACE)
+			# Time is up: the referee's long blast.
+			GameEvent.Kind.CHALLENGE when own and e.value == RangeChallenge.Cue.TIME:
+				_blasts.round_over(now)
 			GameEvent.Kind.CHALLENGE when own:
-				var pitch := 1.0
-				match e.value:
-					RangeChallenge.Cue.GO:
-						pitch = _cfg.go_pitch
-					RangeChallenge.Cue.TIME:
-						pitch = _cfg.time_pitch
+				var pitch := _cfg.go_pitch if e.value == RangeChallenge.Cue.GO else 1.0
 				_play(&"count_beep", Vector3.ZERO, true, _cfg.beep_gain, Kind.INTERFACE, BUS_INTERFACE, pitch)
-			# Practice has no rounds to start: no start beep on the range.
+			# Practice has no rounds to start: no whistle on the range. A new round's whistle cuts the last short.
 			GameEvent.Kind.ROUND_START when not state.round_state.practice:
-				_play(&"count_beep", Vector3.ZERO, true, _cfg.beep_gain, Kind.INTERFACE, BUS_INTERFACE)
+				_whistle.stop()
+				_blasts.round_start(now)
+			GameEvent.Kind.ROUND_OVER:
+				_blasts.round_over(now)
+			GameEvent.Kind.MATCH_OVER:
+				_blasts.match_over(now)
+	_blow_due(now)
+	_rustle(state, player_id, now)
+	_call(state, now)
 
 
 ## The radio click, in your ear only, when the squad order last recorded in `outcome` (since the last call) is one of
@@ -230,8 +271,76 @@ func _exit_tree() -> void:
 		v.stop()
 	for v in _own:
 		v.stop()
-	if _ambience != null:
-		_ambience.stop()
+	for v in _beds:
+		v.stop()
+	if _whistle != null:
+		_whistle.stop()
+
+
+## How hard a landing at `speed` (m/s down) came down, 0 at `land_min` (the softest that thuds) .. 1 at `cfg`'s
+## hard_land_speed and over: its level and pitch go from a step's to land_hard_gain and land_hard_pitch times it.
+static func land_hardness(cfg: SoundConfig, land_min: float, speed: float) -> float:
+	if cfg.hard_land_speed <= land_min:
+		return 1.0 if speed >= cfg.hard_land_speed else 0.0
+	return clampf((speed - land_min) / (cfg.hard_land_speed - land_min), 0.0, 1.0)
+
+
+## The whistle's blasts due at `now` (s), on its one voice (a later one cuts an earlier one still sounding).
+func _blow_due(now: float) -> void:
+	var blast := _blasts.pop_due(now)
+	while blast != WhistleQueue.Blast.NONE:
+		var cue := &"whistle_long" if blast == WhistleQueue.Blast.LONG else &"whistle_short"
+		var variants: Array = _streams[cue]
+		if not variants.is_empty():
+			_whistle.stream = variants[_variant(cue, variants.size())]
+			_whistle.play()
+		blast = _blasts.pop_due(now)
+
+
+## Kit rustle for every crouch, stand and lean that started this tick (anyone in play; `player_id` heard as yourself).
+func _rustle(state: GameState, player_id: int, now: float) -> void:
+	_foley.update(state.characters)
+	for i in state.characters.size():
+		var moves := _foley.moves[i]
+		if moves == FoleyTracker.Move.NONE:
+			continue
+		var c := state.characters[i]
+		var own := c.id == player_id
+		if (moves & FoleyTracker.Move.CROUCH) != 0:
+			_kit(&"foley_crouch", c, own, now)
+		if (moves & FoleyTracker.Move.STAND) != 0:
+			_kit(&"foley_stand", c, own, now)
+		if (moves & FoleyTracker.Move.LEAN) != 0:
+			_kit(&"foley_lean", c, own, now)
+
+
+## `c`'s kit rustling as `cue`: yours plain at own_foley_gain; others' from their eyes, within foley_reach and the
+## rustle's start limit, muffled through walls.
+func _kit(cue: StringName, c: Character, own: bool, now: float) -> void:
+	if own:
+		_play(cue, Vector3.ZERO, true, _cfg.own_foley_gain, Kind.FOLEY, BUS_FOOTSTEPS)
+		return
+	var at := c.eye(_body)
+	if _in_reach(at, _cfg.foley_reach) and _foleys.take(now):
+		_play(cue, at, false, _cfg.foley_gain, Kind.FOLEY, BUS_FOOTSTEPS, 1.0, _cfg.foley_reach, c)
+
+
+## The ambience's calls due at `now` (s), round the listener's ears at each call's level and pitch spread, timed afresh
+## for each match from its seed. None without a listener.
+func _call(state: GameState, now: float) -> void:
+	if state.match_number != _calls_match:
+		_calls_match = state.match_number
+		_calls.begin(state.match_seed, state.match_number, now)
+	if _listener == null:
+		return
+	for i in _calls.size():
+		if not _calls.due(i, now, _ear):
+			continue
+		var kind := _calls.calls[i]
+		var at := _calls.at
+		var pitch := 1.0 + _rng.randf_range(-kind.pitch, kind.pitch)
+		var far := maxf(_cfg.max_distance, _ear.distance_to(at) + CALL_SLACK)
+		_play(kind.cue, at, false, kind.level, Kind.CALL, BUS_AMBIENCE, pitch, far)
 
 
 func _mechanism(cue: StringName, state: GameState, e: GameEvent, own: bool) -> void:
@@ -336,11 +445,13 @@ func _kinds(cfg: SoundConfig) -> void:
 		Kind.SHOT: cfg.shot_pitch, Kind.MECHANISM: cfg.mechanism_pitch, Kind.STEP: cfg.step_pitch,
 		Kind.VAULT: cfg.vault_pitch, Kind.ROPE: cfg.rope_pitch, Kind.IMPACT: cfg.impact_pitch, Kind.HIT: 0.0,
 		Kind.STEEL: cfg.steel_ring_pitch, Kind.INTERFACE: 0.0, Kind.RADIO: cfg.radio_ack_pitch,
+		Kind.FOLEY: cfg.foley_pitch, Kind.CALL: 0.0, # a call's spread is its own (AmbienceCall.pitch)
 	}
 	var level: Dictionary[Kind, float] = {
 		Kind.SHOT: cfg.shot_spread_db, Kind.MECHANISM: cfg.mechanism_spread_db, Kind.STEP: cfg.step_spread_db,
 		Kind.VAULT: cfg.vault_spread_db, Kind.ROPE: cfg.rope_spread_db, Kind.IMPACT: cfg.impact_spread_db,
 		Kind.HIT: cfg.hit_spread_db, Kind.STEEL: cfg.steel_ring_spread_db, Kind.INTERFACE: 0.0, Kind.RADIO: 0.0,
+		Kind.FOLEY: cfg.foley_spread_db, Kind.CALL: 0.0,
 	}
 	for k: Kind in pitch:
 		_pitch_spread[k] = pitch[k]
@@ -351,6 +462,7 @@ func _kinds(cfg: SoundConfig) -> void:
 	_priority[Kind.HIT] = VoicePool.Priority.SHOT
 	_priority[Kind.INTERFACE] = VoicePool.Priority.OWN
 	_priority[Kind.RADIO] = VoicePool.Priority.OWN
+	_priority[Kind.CALL] = VoicePool.Priority.CALL
 	_cue_voices[Kind.SHOT] = cfg.shot_cue_voices
 
 
@@ -371,18 +483,27 @@ func _load(cue: String) -> StringName:
 	return key
 
 
-func _start_ambience() -> void:
-	var path := "%s%s.wav" % [SoundConfig.LOOP_DIR, _cfg.ambience]
-	if not ResourceLoader.exists(path):
-		push_warning("SimAudio: no ambience loop %s" % path)
-		return
+## Starts ambience `id`'s day beds, each looping on the Ambience bus at its gain times its loop's stored peak, and
+## makes its calls (timed in play). The night set waits for step 26's Day / Night flag. One copy of each bed, unpanned:
+## a plain voice has no pan for the browser's two copies spread `width` apart.
+func _start_ambience(id: StringName) -> void:
+	var ambience := _cfg.ambiences.set_for(id, false)
 	var peaks: Variant = JSON.parse_string(FileAccess.get_file_as_string(SoundConfig.PEAKS_PATH))
-	var peak := 1.0
-	if peaks is Dictionary:
-		peak = float((peaks as Dictionary).get(String(_cfg.ambience), 1.0))
-	_ambience = AudioStreamPlayer.new()
-	_ambience.stream = load(path)
-	_ambience.bus = BUS_AMBIENCE
-	_ambience.volume_db = linear_to_db(_cfg.ambience_gain * peak)
-	add_child(_ambience)
-	_ambience.play()
+	for bed in ambience.beds:
+		var path := "%s%s.wav" % [SoundConfig.LOOP_DIR, bed.loop]
+		if not ResourceLoader.exists(path):
+			push_warning("SimAudio: no ambience loop %s" % path)
+			continue
+		var peak := 1.0
+		if peaks is Dictionary:
+			peak = float((peaks as Dictionary).get(String(bed.loop), 1.0))
+		var v := AudioStreamPlayer.new()
+		v.stream = load(path)
+		v.bus = BUS_AMBIENCE
+		v.volume_db = linear_to_db(bed.gain * peak)
+		add_child(v)
+		v.play()
+		_beds.append(v)
+	_calls = AmbientCalls.new(ambience.calls)
+	for call in ambience.calls:
+		_load(String(call.cue))

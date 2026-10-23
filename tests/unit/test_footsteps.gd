@@ -98,3 +98,85 @@ func test_says_what_the_step_landed_on() -> void:
 	c.step_distance = cfg.stride_run
 	Footsteps.step(c, cfg, events, on_metal)
 	assert_eq(events.first(GameEvent.Kind.FOOTSTEP).value2, RayHit.Surface.METAL)
+
+
+func test_a_landing_carries_how_hard_it_came_down() -> void:
+	var dropper := Character.new()
+	dropper.grounded = false
+	dropper.velocity.y = -7.25
+	Footsteps.step(dropper, cfg, events, world)
+	dropper.velocity.y = -2.0 # slowed just before the ground: the fastest fall counts
+	Footsteps.step(dropper, cfg, events, world)
+	dropper.grounded = true
+	Footsteps.step(dropper, cfg, events, world)
+	var land := events.first(GameEvent.Kind.FOOTSTEP)
+	assert_eq(land.value, GameEvent.Footstep.LAND)
+	assert_almost_eq(land.direction.length(), 7.25, 1e-5)
+	assert_almost_eq(land.direction.normalized(), Vector3.DOWN, Vector3.ONE * 1e-6)
+	events.clear()
+	_walk(dropper, cfg.stride_run + 0.01, 10)
+	assert_eq(events.first(GameEvent.Kind.FOOTSTEP).direction, Vector3.ZERO, "a step carries no speed")
+
+
+func test_a_landing_sounds_louder_and_lower_the_harder_it_comes_down() -> void:
+	var sound := SoundConfig.new()
+	sound.step_spread_db = 0.0
+	sound.step_pitch = 0.0
+	var audio := SimAudio.new()
+	add_child_autofree(audio)
+	audio.setup(sound, [] as Array[StringName], BodyConfig.new(), null, null, cfg)
+	var state := GameState.new(1)
+	var you := Character.new(0, 0, Vector3.ZERO)
+	var them := Character.new(1, 1, Vector3(0.0, 0.0, 5.0))
+	state.characters.append_array([you, them])
+	var levels := PackedFloat64Array()
+	var pitches := PackedFloat64Array()
+	var mid := (cfg.land_min_speed + sound.hard_land_speed) / 2.0
+	for speed: float in [cfg.land_min_speed, mid, sound.hard_land_speed, sound.hard_land_speed * 2.0]:
+		var v := _land(audio, state, them, speed)
+		levels.append(v.volume_db)
+		pitches.append(v.pitch_scale)
+	assert_almost_eq(levels[0], linear_to_db(sound.step_gain), 1e-4, "the softest thud is today's step")
+	assert_almost_eq(pitches[0], 1.0, 1e-6)
+	assert_almost_eq(levels[1], linear_to_db(sound.step_gain * lerpf(1.0, sound.land_hard_gain, 0.5)), 1e-4)
+	assert_almost_eq(levels[2], linear_to_db(sound.step_gain * sound.land_hard_gain), 1e-4, "a hard one")
+	assert_almost_eq(pitches[2], sound.land_hard_pitch, 1e-6)
+	assert_eq(levels[3], levels[2], "no louder past hard_land_speed")
+	assert_eq(SimAudio.land_hardness(sound, cfg.land_min_speed, mid), 0.5)
+
+
+func test_only_a_hard_landing_rustles_and_your_own_lands_at_its_level() -> void:
+	var sound := SoundConfig.new()
+	sound.step_spread_db = 0.0
+	var audio := SimAudio.new()
+	add_child_autofree(audio)
+	audio.setup(sound, [] as Array[StringName], BodyConfig.new(), null, null, cfg)
+	var state := GameState.new(1)
+	var you := Character.new(0, 0, Vector3.ZERO)
+	state.characters.append(you)
+	_land(audio, state, you, cfg.land_min_speed + 0.1)
+	assert_almost_eq(audio._own[0].volume_db, linear_to_db(sound.own_land_gain), 0.1, "a hop: about your own level")
+	assert_null(audio._own[1].stream, "a hop: no rustle")
+	_land(audio, state, you, sound.hard_land_speed)
+	assert_true((audio._streams[&"foley_crouch"] as Array).has(audio._own[2].stream), "a hard one rustles")
+
+
+## `c` landing at `speed` in one tick of `audio`, heard by you (character 0); the voice its thud played on.
+func _land(audio: SimAudio, state: GameState, c: Character, speed: float) -> Object:
+	state.time += 1.0
+	state.events.clear()
+	var e := state.events.add(GameEvent.Kind.FOOTSTEP)
+	e.actor = c.id
+	e.value = GameEvent.Footstep.LAND
+	e.position = c.position
+	e.direction = Vector3.DOWN * speed
+	audio.on_tick(state, 0, state.characters[0])
+	var land := audio._streams[audio._step[GameEvent.Footstep.LAND]] as Array
+	var newest: Object = null
+	for v in audio._own:
+		if v.playing and land.has(v.stream):
+			newest = v
+	for v in audio._field:
+		if v.playing and land.has(v.stream):
+			newest = v
+	return newest

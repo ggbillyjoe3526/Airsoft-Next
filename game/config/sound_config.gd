@@ -2,11 +2,11 @@ class_name SoundConfig
 extends Resource
 ## How the rendered sounds (assets/audio/) play: each kind's level (linear gain, the browser game's config/audio.ts
 ## levels), pitch and level spread, how far sounds carry, the voice pools, the field's mix (out of play and the dips),
-## the occlusion numbers, the ambience and the referee's whistle. Read by SimAudio and SoundMix. The buses are
-## default_bus_layout.tres: Field (the world, which SoundMix muffles and dips) and Interface under Master; Effects
-## (replicas, impacts, hits) and Ambience under Field; Footsteps, Power, Muffled (a silenced shot, through its low-pass
-## filter) and EffectsHalf and EffectsFull (heard through low cover or a wall) under Effects; PowerHalf and PowerFull
-## under Power.
+## the occlusion numbers, kit rustle and landings, the ambience and the referee's whistle. Read by SimAudio and
+## SoundMix. The buses are default_bus_layout.tres: Field (the world, which SoundMix muffles and dips) and Interface
+## under Master; Effects (replicas, impacts, hits) and Ambience under Field; Footsteps, Power, Muffled (a silenced shot,
+## through its low-pass filter) and EffectsHalf and EffectsFull (heard through low cover or a wall) under Effects;
+## PowerHalf and PowerFull under Power.
 
 const CUE_DIR := "res://assets/audio/cues/"
 const LOOP_DIR := "res://assets/audio/loops/"
@@ -30,6 +30,23 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var impact_spread_db: float = 2.0
 @export var hit_spread_db: float = 0.5
 @export var steel_ring_spread_db: float = 1.0
+## Kit rustle (FoleyTracker; the browser game's levels.foley and ownFoley): a crouch, a stand or a lean starting.
+## Others' only within foley_reach (m) of your ears and at most foley_limit starting within foley_window (s).
+@export var foley_gain: float = 0.8
+@export var own_foley_gain: float = 0.45
+@export var foley_pitch: float = 0.08
+@export var foley_spread_db: float = 1.5
+@export var foley_reach: float = 9.0
+@export var foley_limit: int = 3
+@export var foley_window: float = 0.15
+## A landing (a FOOTSTEP LAND) sounds as a step from FootstepConfig.land_min_speed (m/s down) and louder and lower the
+## harder it comes down, up to land_hard_gain times the level and land_hard_pitch times the pitch at hard_land_speed
+## (a hop lands at about 5.4 m/s, a drop off a 1.6 m ledge at 8), with a kit rustle at that speed or more. Your own
+## landing at own_land_gain, a little over your own steps.
+@export var hard_land_speed: float = 8.0
+@export var land_hard_gain: float = 1.41
+@export var land_hard_pitch: float = 0.85
+@export var own_land_gain: float = 0.3
 ## A vault's hands and kit on the obstacle: louder than a step, as it carries further.
 @export var vault_gain: float = 0.7
 @export var own_vault_gain: float = 0.4
@@ -51,10 +68,9 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var target_reach: float = 80.0
 @export var steel_ring_gain: float = 1.4
 @export var steel_ring_pitch: float = 0.03
-## The timed challenge's shot timer (M93), on the countdown beep: one each second of the countdown, Go a little lower,
-## and Time lower still (a stand-in for the referee's long blast until one is rendered).
+## The timed challenge's shot timer (M93), on the countdown beep: one each second of the countdown and Go a little
+## lower; Time is the referee's long blast.
 @export var go_pitch: float = 0.8
-@export var time_pitch: float = 0.55
 ## A silenced replica's shot (ReplicaConfig.muffled): duller and quieter, low-passed at this cutoff (Hz) on the Muffled
 ## bus and played at this share of its level (the browser game's AUDIO.suppressed). Its power part sounds as it is.
 @export var muffled_cutoff_hz: float = 1400.0
@@ -109,10 +125,9 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var occlusion_far_step: float = 5.0
 @export var occlusion_refresh_ticks: int = 6
 @export var occlusion_ray_budget: int = 24
-## The map's ambience bed at the browser game's gain, times the loop's stored peak (assets/audio/README.md).
-@export var ambience: StringName = &"yard"
-@export var ambience_gain: float = 0.035
-## Every field's beds and calls by day and by night (the browser game's AMBIENCES), picked by the map's `ambience`.
+## Every field's beds and calls by day and by night (the browser game's AMBIENCES), picked by the map's `ambience`: the
+## beds on the Ambience bus at their gain times the loop's stored peak (assets/audio/README.md), the calls round the
+## listener on the Ambience bus at the field pool's lowest priority.
 @export var ambiences: AmbienceConfig = AmbienceConfig.new()
 ## The referee's pea whistle (the browser game's whistle.ts), rendered by tools/render_whistle.gd as whistle_short and
 ## whistle_long, whistle_variants of each with the warble's phase moved round its cycle, and played at whistle_gain on

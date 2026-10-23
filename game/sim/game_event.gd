@@ -15,7 +15,7 @@ enum Kind {
 	BB_IMPACT, ## actor's BB stopped at position: on the level (target -1, value2 the RayHit.Surface) or a body not knocked out.
 	BB_LOST, ## actor's BB fell out of the level or flew past its lifetime at position.
 	CHARACTER_HIT, ## actor's BB hit target at position, flying along direction: target is out and calls the hit.
-	FOOTSTEP, ## actor's footstep (value: Footstep) on surface (value2: RayHit.Surface).
+	FOOTSTEP, ## actor's footstep (value: Footstep) on surface (value2: RayHit.Surface); LAND: direction, down at its speed.
 	VAULT, ## actor started a vault at position: hands and boots on the obstacle, loud (bots hear it far).
 	ROUND_START, ## round number value is live.
 	ROUND_OVER, ## value won the round (-1: a draw), for reason.
@@ -47,6 +47,7 @@ var value: int = 0
 ## A second number: a footstep's or an impact's surface, a round's end reason.
 var value2: int = 0
 var position: Vector3 = Vector3.ZERO
+## Which way: a shot's or a hit's flight; a landing's fall, its length the touchdown speed (m/s).
 var direction: Vector3 = Vector3.ZERO
 
 

@@ -202,7 +202,7 @@ func test_steel_rings_down_the_range_a_figure_knocks_and_your_hit_confirms() -> 
 	assert_null(audio._own[1].stream, "someone else's hit: no confirmation")
 
 
-func test_the_challenge_beeps_its_countdown_go_and_time_and_the_range_has_no_start_beep() -> void:
+func test_the_challenge_beeps_its_countdown_and_go_time_is_the_long_blast_and_the_range_has_no_start_whistle() -> void:
 	var audio := SimAudio.new()
 	add_child_autofree(audio)
 	var sound := SoundConfig.new()
@@ -211,16 +211,23 @@ func test_the_challenge_beeps_its_countdown_go_and_time_and_the_range_has_no_sta
 	state.round_state.practice = true
 	state.events.add(GameEvent.Kind.ROUND_START)
 	audio.on_tick(state, 0, null)
-	assert_null(audio._own[0].stream, "practice starts with no beep")
+	assert_null(audio._whistle.stream, "practice starts with no whistle")
 	var pitches := PackedFloat64Array()
-	for cue: RangeChallenge.Cue in [RangeChallenge.Cue.COUNT, RangeChallenge.Cue.GO, RangeChallenge.Cue.TIME]:
+	for cue: RangeChallenge.Cue in [RangeChallenge.Cue.COUNT, RangeChallenge.Cue.GO]:
 		state.events.clear()
 		var e := state.events.add(GameEvent.Kind.CHALLENGE)
 		e.actor = 0
 		e.value = cue
 		audio.on_tick(state, 0, null)
 		pitches.append(audio._own[pitches.size()].pitch_scale)
-	var wanted := PackedFloat64Array([1.0, sound.go_pitch, sound.time_pitch])
+	var wanted := PackedFloat64Array([1.0, sound.go_pitch])
 	for i in wanted.size():
 		assert_almost_eq(pitches[i], wanted[i], 1e-6)
-	assert_true((audio._streams[&"count_beep"] as Array).has(audio._own[2].stream))
+	assert_true((audio._streams[&"count_beep"] as Array).has(audio._own[1].stream))
+	state.events.clear()
+	var time := state.events.add(GameEvent.Kind.CHALLENGE)
+	time.actor = 0
+	time.value = RangeChallenge.Cue.TIME
+	audio.on_tick(state, 0, null)
+	assert_true((audio._streams[&"whistle_long"] as Array).has(audio._whistle.stream), "Time: the long blast")
+	assert_null(audio._own[2].stream, "no beep for Time")

@@ -49,7 +49,7 @@ func test_the_sets_are_the_browsers() -> void:
 	assert_eq(_loops(amb.night[&"city"]), ["traffic", "neon"])
 	assert_eq(_cues(amb.night[&"city"]), ["ambience_arcade", "ambience_horn"])
 	var yard_bed := amb.day[&"yard"].beds[0]
-	assert_almost_eq(yard_bed.gain, cfg.ambience_gain, 1e-6, "the yard's bed as it plays today")
+	assert_almost_eq(yard_bed.gain, 0.035, 1e-6, "the browser's yard bed")
 	assert_almost_eq(yard_bed.width, 0.7, 1e-6)
 	var birds := amb.day[&"yard"].calls[0]
 	assert_eq([birds.level, birds.pitch, birds.gap_min, birds.gap_max, birds.distance_min, birds.distance_max],
