@@ -26,7 +26,7 @@ const HINT_PAD := Vector4(26.0, 12.0, 26.0, 14.0)
 const HINT_KICKER_SIZE := 13
 const HINT_SIZE := 28
 const HINT_GAP := 4
-## The lit orange the targets glow in and the ready line's rule and kicker take (RangeViewConfig's lit colour).
+## The lit orange the targets glow in and the ready line's rule and kicker take (the concept's, a shade warmer than RangeViewConfig's lit colour).
 const LIT := Color("ff9a2e")
 ## The banners: the countdown's and GO!'s top, TIME!'s top, their padding (the concept's `.banner`), the big words' size.
 const BANNER_TOP := 300.0
@@ -78,7 +78,6 @@ var _lane_banner: VBoxContainer = null
 var _kind: Banner = Banner.NONE
 var _count: int = 0
 var _banner_left: float = 0.0
-var _result_left: float = 0.0
 ## What the bar and the ready line show now, so text is rebuilt only on a change.
 var _shown_hits: int = -1
 var _shown_time: int = -1
@@ -147,14 +146,12 @@ func on_tick(state: GameState) -> void:
 			RangeChallenge.Cue.COUNT:
 				_kind = Banner.COUNT
 				_count = e.value2
-				_result_left = 0.0
 				_banner_left = INF
 			RangeChallenge.Cue.GO:
 				_kind = Banner.GO
 				_banner_left = GO_TIME
 			RangeChallenge.Cue.TIME:
 				_kind = Banner.TIME
-				_result_left = RESULT_TIME
 				_banner_left = RESULT_TIME
 				_fill_result(state.challenge.last)
 
@@ -165,9 +162,7 @@ func update(state: GameState, delta: float) -> void:
 	if c.phase == RangeChallenge.Phase.OFF:
 		_kind = Banner.NONE
 		_banner_left = 0.0
-		_result_left = 0.0
 	_banner_left = maxf(0.0, _banner_left - delta) if is_finite(_banner_left) else _banner_left
-	_result_left = maxf(0.0, _result_left - delta)
 	if _banner_left <= 0.0:
 		_kind = Banner.NONE
 	_show_bar(c)
