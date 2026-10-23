@@ -1,6 +1,6 @@
 # SP3 · The referee's whistle and each field's ambience as data
 
-**Review:** critic Accept 8/8 · qa Pass · performance skipped (perf: skip)
+**Review:** critic Accept 8/8 · qa Pass · performance Pass (the block said perf: skip, but the diff touches config and assets)
 
 ## Attempts
 
@@ -21,6 +21,7 @@
   with no set or a null one (QA). Three small Resource scripts (`AmbienceSet`, `AmbienceBed`, `AmbienceCall`) sit in
   `game/config/`, since a saved `.tres` needs one script per nested type: a planning miss in the touches list, not a
   defect. A call's seed is `rng_seed` (`seed` shadows a built-in).
+- **Measured:** the six cues add 51 KB imported; `play_tuning.tres` loads 1.2 ms slower once a launch; map parsing unchanged.
 - **Maps:** `MapData.ambience`; none means yard, an unknown or non-text value warns and plays the yard. Depot and the
   range are yard, Woodland woods, Neon Heights city.
 
