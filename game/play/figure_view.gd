@@ -240,6 +240,13 @@ func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 	_body.set_flinch(_flinch.tilt())
 
 
+## The flinch dropped at once (a round reset or a rematch), the rigged figure's bend too.
+func reset_flinch() -> void:
+	_flinch.reset()
+	if _body != null:
+		_body.set_flinch(Vector3.ZERO)
+
+
 ## A BB flying along `way` (the world's) hit the character, facing `yaw`: the upper body jolts that way (flattened).
 func hit(way: Vector3, yaw: float) -> void:
 	_flinch.hit(Basis(Vector3.UP, -yaw) * way)

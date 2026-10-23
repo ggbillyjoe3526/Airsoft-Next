@@ -561,6 +561,7 @@ func _physics_process(_delta: float) -> void:
 			_pause.errors = error_log
 			_sim.start_match(state)
 			_refresh_kinds()
+			_reset_flinches()
 			_after_tick()
 		if bots_active:
 			_bots.think(state, _commands, TICK)
@@ -703,6 +704,7 @@ func _after_tick() -> void:
 			GameEvent.Kind.ROUND_START:
 				_input.face(player.spawn_yaw)
 				_puffs.clear()
+				_reset_flinches()
 				if not practice:
 					round_started.emit(e.value, state.round_state.score)
 			GameEvent.Kind.MATCH_OVER:
@@ -1225,6 +1227,12 @@ func _apply_dev() -> void:
 	elif not dev.retro_pixels and _retro != null:
 		_retro.queue_free()
 		_retro = null
+
+
+## Every figure upright again (a new round or a rematch: a flinch never carries over to the spawn).
+func _reset_flinches() -> void:
+	for f in _figures:
+		f.reset_flinch()
 
 
 ## Settings › Looks › Robots, read at the start of every match (a rematch too, so a change made while paused shows from

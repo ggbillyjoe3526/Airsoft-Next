@@ -18,15 +18,22 @@ func _init(config: FigureConfig) -> void:
 	_config = config
 
 
-## A BB flying along `way` (the figure's frame) hit it: the jolt starts, from the tilt drawn now. A BB with no flat way
-## (straight down) leaves it as it is.
+## A BB flying along `way` (the figure's frame) hit it: the jolt starts, from the tilt drawn now, the lean scaled by
+## the flat share of the way (a steep BB jolts it less). A BB with no flat way (straight down) leaves it as it is.
 func hit(way: Vector3) -> void:
 	var flat := Vector3(way.x, 0.0, way.z)
 	if flat.length_squared() < 1e-8:
 		return
 	_from = tilt()
-	_to = flat.normalized() * _config.flinch_lean
+	_to = flat / way.length() * _config.flinch_lean
 	_age = 0.0
+
+
+## No flinch from now on (a new round or match: the figure stands at its spawn).
+func reset() -> void:
+	_age = -1.0
+	_from = Vector3.ZERO
+	_to = Vector3.ZERO
 
 
 ## `delta` seconds on (a hidden or far figure's frames count all the same).

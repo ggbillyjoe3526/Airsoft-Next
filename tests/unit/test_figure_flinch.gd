@@ -121,6 +121,39 @@ func test_a_hit_straight_down_leaves_it_upright() -> void:
 	assert_almost_eq(_upper_up(v), Vector3.UP, Vector3.ONE * EPS)
 
 
+func test_a_steep_bb_jolts_it_by_its_flat_share() -> void:
+	for way: Vector3 in [Vector3(0.001, -1.0, 0.0), Vector3(1.0, -1.0, 0.0), Vector3(3.0, 0.0, 4.0)]:
+		var f := FigureFlinch.new(config)
+		f.hit(way)
+		f.advance(config.flinch_rise)
+		var share := Vector2(way.x, way.z).length() / way.length()
+		assert_almost_eq(f.tilt().length(), config.flinch_lean * share, 1e-5, "way %s" % way)
+	var c := _character()
+	var v := _view(c)
+	v.hit(Vector3(0.001, -1.0, 0.0), 0.0)
+	v.update(c, 1.0, config.flinch_rise)
+	assert_lt(_angle(_upper_up(v)), 0.001, "a nearly vertical BB barely moves it")
+
+
+func test_a_reset_stands_it_upright_at_once() -> void:
+	var c := _character()
+	var v := _view(c, FigureMix.HUMAN)
+	v.animate(c, 1.0, DT, NEAR)
+	v.hit(Vector3.RIGHT, 0.0)
+	v.update(c, 1.0, config.flinch_rise)
+	v.animate(c, 1.0, DT, NEAR)
+	assert_gt(v.body().bend.flinch.length(), 0.3)
+	v.reset_flinch()
+	assert_false(v._flinch.running())
+	assert_eq(v.body().bend.flinch, Vector3.ZERO, "the bend upright before the next pose")
+	v.set_body(null, 0, config.lod_high)
+	v.hit(Vector3.RIGHT, 0.0)
+	v.update(c, 1.0, config.flinch_rise)
+	v.reset_flinch()
+	v.update(c, 1.0, DT)
+	assert_almost_eq(_upper_up(v), Vector3.UP, Vector3.ONE * EPS, "the capsules upright")
+
+
 func test_the_flinch_eases_while_the_figure_is_hidden() -> void:
 	var c := _character()
 	var v := _view(c)
@@ -242,6 +275,18 @@ func test_play_session_routes_a_hit_to_the_figure_by_id() -> void:
 	mine.target = PlaySession.PLAYER_ID
 	p._after_tick()
 	assert_eq(p._hands._hit_age, 0.0, "your own hit drops your replica")
+	target.hit(Vector3.RIGHT, 0.0)
+	p.state.events.clear()
+	p.state.events.add(GameEvent.Kind.ROUND_START)
+	p._after_tick()
+	assert_false(target._flinch.running(), "a new round stands every figure upright")
+	get_tree().paused = false
+	for f in p._figures:
+		f.hit(Vector3.RIGHT, 0.0)
+	p._rematch_left = 0.0
+	await wait_physics_frames(1)
+	for f in p._figures:
+		assert_false(f._flinch.running(), "a rematch stands figure %d upright" % f.character_id)
 
 
 # --- your own hit ---
