@@ -92,11 +92,19 @@ static func server() -> Server:
 	return _server
 
 
-## This machine's card and renderer, and the preset it picks, read once (they don't change while the game runs).
+## This machine's card and renderer, and the preset it picks, read once (they don't change while the game runs; the
+## pick only by `pick_for_run`).
 static func machine() -> GraphicsPick.Probe:
 	if _machine == null:
 		_machine = GraphicsPick.probe()
 	return _machine
+
+
+## The automatic step-down (FrameWatch): `preset` is the automatic pick for the rest of this run, in place of the
+## card's, so Settings › Graphics lights it and For your card names it. Never saved, as the pick never is: the next
+## start picks from the card again.
+static func pick_for_run(preset: StringName) -> void:
+	machine().preset = preset
 
 
 ## The values to draw for `s`: its values in force (`probe`'s pick while automatic), each choice the renderer can't

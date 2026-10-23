@@ -11,8 +11,9 @@ extends Control
 ## it (HudFlagGauge), the warning while the other team's flag goes up, the marker over the pole with its distance, and
 ## the rounds' own banners. On the practice range (`setup_range`, concepts `step16-range/`): no score bar, rounds or hit
 ## feed; the last BB's readout bottom left (HudRangeReadout) and the timed challenge's bar, ready line and banners
-## (HudRangeChallenge). Text is only rebuilt when what it shows changes. No hints teaching the controls (owner,
-## 2026-10-16).
+## (HudRangeChallenge). Under the score bar, for a few seconds after a round's end, the automatic graphics step-down's
+## line (concept `graphics-step-down.png`, `show_graphics_step`). Text is only rebuilt when what it shows changes. No
+## hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 32.0
 ## The replica panel's lane, bottom right: as wide as its hop-up note, as tall as its notes and panel.
@@ -36,6 +37,15 @@ const BOARD_TOP := 160.0
 ## The flag warning's plate margins and the gap between its flag and its words.
 const WARNING_PAD := Vector2i(36, 10)
 const WARNING_GAP := 18
+## The graphics step-down's line: its plate's margins (the left one inside the yellow edge), the gap between its parts,
+## the kicker's, the line's and the hint's type, and the plate's opacity.
+const STEP_PAD := Vector4i(14, 10, 18, 10)
+const STEP_GAP := 14
+const STEP_KICKER_SIZE := 12
+const STEP_KICKER_SPACING := 0.14
+const STEP_SIZE := 19
+const STEP_HINT_SIZE := 16
+const STEP_BACKING := 0.88
 
 var _cfg: HudConfig = null
 var _teams: TeamConfig = null
@@ -81,6 +91,10 @@ var _board_wanted: bool = false
 var _what_got_you: WhatGotYouCard = null
 var _skip_hint: PanelContainer = null
 var _skip_key: Label = null
+## The graphics step-down's line, its words and its seconds left.
+var _step_line: PanelContainer = null
+var _step_words: Label = null
+var _step_left: float = 0.0
 var _names := PackedStringArray()
 var _stats: MatchStats = null
 var _pulse: float = 0.0
@@ -134,6 +148,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_score.setup(teams, _rounds.wins_needed)
 	_score.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	top.add_child(_score)
+	_build_step_line(top)
 	_gauge = HudFlagGauge.new()
 	_gauge.setup(roundi(1.0 / sim.flag.rope_step), _score.custom_minimum_size.x)
 	_gauge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -533,6 +548,9 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		if _hop_left <= 0.0:
 			_replica.hide_hop()
 	_vault_left = maxf(0.0, _vault_left - delta)
+	if _step_left > 0.0:
+		_step_left -= delta
+		_step_line.visible = _step_left > 0.0
 	_vault_prompt.visible = _vault_left > 0.0 and in_play
 	# The round's stamp stays up as long as the table under it, the match's banner as long as the XP.
 	if _stats != null:
@@ -772,6 +790,48 @@ func _match_stamp_sub(score: PackedInt32Array) -> String:
 func _show_banner(text: String, sub: String, colour: Color = Color.TRANSPARENT) -> void:
 	_banner.show_text(text, sub, colour)
 	_banner_left = _cfg.banner_time
+
+
+## The automatic graphics step-down's line under the score bar for `seconds`: "GRAPHICS  Set to `preset_name` to keep
+## the game smooth  Settings › Graphics to pick your own".
+func show_graphics_step(preset_name: String, seconds: float) -> void:
+	_step_words.text = tr("HUD_GRAPHICS_STEPPED") % preset_name
+	_step_left = seconds
+	_step_line.visible = seconds > 0.0
+
+
+## The graphics step-down's line, while it shows (tests).
+func graphics_step_line() -> PanelContainer:
+	return _step_line if _step_line.visible else null
+
+
+## The step-down's plate: a yellow edge on the left, the kicker, the line and the hint in a row; hidden until shown.
+func _build_step_line(parent: Control) -> void:
+	_step_line = PanelContainer.new()
+	_step_line.name = "GraphicsStep"
+	_step_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_step_line.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var box := HudStyle.panel_box(STEP_BACKING, STEP_PAD.z, STEP_PAD.y)
+	box.content_margin_left = STEP_PAD.x
+	box.content_margin_bottom = STEP_PAD.w
+	box.border_color = GameTheme.YELLOW
+	box.border_width_left = roundi(HudStyle.BANNER_RULE)
+	_step_line.add_theme_stylebox_override("panel", box)
+	_step_line.visible = false
+	parent.add_child(_step_line)
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", STEP_GAP)
+	_step_line.add_child(row)
+	var kicker := HudStyle.label(row, STEP_KICKER_SIZE, 800, GameTheme.YELLOW, HORIZONTAL_ALIGNMENT_LEFT,
+			STEP_KICKER_SPACING)
+	kicker.text = tr("HUD_GRAPHICS_KICKER").to_upper()
+	kicker.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_step_words = HudStyle.label(row, STEP_SIZE, 700, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_LEFT)
+	_step_words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var hint := HudStyle.label(row, STEP_HINT_SIZE, 600, GameTheme.MUTED, HORIZONTAL_ALIGNMENT_LEFT)
+	hint.text = tr("HUD_GRAPHICS_PICK_OWN")
+	hint.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 
 ## "SPACE Hold to skip the round" under the watching line: the key in a chip, the words beside it, a yellow edge.
