@@ -1608,6 +1608,16 @@ msgstr "Won"
 msgid "HUD_LOST"
 msgstr "Lost"
 
+# Screen reader messages (Announcer): who called the hit, then whose BB it was.
+msgid "HUD_SR_CALLED_HIT"
+msgstr "%s called HIT · %s"
+
+msgid "HUD_SR_YOU_ARE_HIT"
+msgstr "You're hit · %s"
+
+msgid "HUD_SR_SCORE"
+msgstr "%s %d – %d %s"
+
 msgid "HUD_PLAYED"
 msgstr "%s played"
 

@@ -1062,11 +1062,12 @@ func _settle() -> void:
 	match_settled.emit()
 
 
-## The HUD tab's choices and the Accessibility tab's for the HUD (gauge patterns, sound cues), at the start and on every
-## change (the settings can open from the pause menu).
+## The HUD tab's choices and the Accessibility tab's for the HUD (gauge patterns, sound cues, screen reader messages), at
+## the start and on every change (the settings can open from the pause menu).
 func _apply_hud() -> void:
 	_hud.apply_prefs(settings.hud)
 	_hud.set_patterns(settings.gauge_patterns)
+	_hud.set_read_out(settings.read_out)
 	# Sound cues switched off stop being fed: what was up goes, so switching on again starts clean.
 	_hud.set_sound_cues(settings.sound_cues, settings.sound_cue_size, settings.sound_cue_colour)
 	if not settings.sound_cues:

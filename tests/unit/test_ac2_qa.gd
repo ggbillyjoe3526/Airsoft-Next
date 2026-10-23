@@ -39,10 +39,15 @@ func _live(node: Node) -> Array[Control]:
 func test_a_greyed_later_row_takes_no_click_drag_or_focus() -> void:
 	var screen := _screen()
 	var page: SettingsAccessPage = screen._access_page
-	var open: Array[Control] = []
-	for c in _live(page._bodies[SettingsAccessPage.Section.SCREEN_READER]):
-		open.append(c)
-	assert_eq(open.size(), 0, "Screen reader messages are LATER, yet these still take the mouse: %s" % [open])
+	# Screen reader messages went live (AC6), the last LATER section: its switch takes the mouse and the focus.
+	assert_true(SettingsAccessPage.LATER.is_empty(), "every section is built")
+	assert_eq(page.read_out().mouse_filter, Control.MOUSE_FILTER_STOP)
+	assert_eq(page.read_out().focus_mode, Control.FOCUS_ALL)
+	# The greying a later section would get still locks every control in it.
+	var body: Control = page._bodies[SettingsAccessPage.Section.SCREEN_READER]
+	var parts: Array[Control] = [body]
+	MenuParts.set_unused(parts, page._later_tags[SettingsAccessPage.Section.SCREEN_READER], true)
+	assert_eq(_live(body).size(), 0, "a greyed section still takes the mouse: %s" % [_live(body)])
 	assert_eq(page.read_out().focus_mode, Control.FOCUS_NONE, "a greyed switch takes keyboard focus")
 	# Sound cues went live (AC4): its slider takes the mouse and the focus again.
 	assert_eq(page.cue_size().mouse_filter, Control.MOUSE_FILTER_STOP)
@@ -56,9 +61,12 @@ func test_a_greyed_later_row_takes_no_click_drag_or_focus() -> void:
 func test_every_later_section_is_locked_all_through() -> void:
 	var screen := _screen()
 	var page: SettingsAccessPage = screen._access_page
-	for section: SettingsAccessPage.Section in SettingsAccessPage.LATER:
+	for section: SettingsAccessPage.Section in SettingsAccessPage.Section.values():
 		var body: Control = page._bodies[section]
-		assert_eq(_live(body).size(), 0, "section %s has live controls" % section)
+		if SettingsAccessPage.LATER.has(section):
+			assert_eq(_live(body).size(), 0, "section %s has live controls" % section)
+		else:
+			assert_gt(_live(body).size(), 0, "built section %s takes no input" % section)
 
 
 func test_opening_settings_again_and_again_adds_no_connections() -> void:

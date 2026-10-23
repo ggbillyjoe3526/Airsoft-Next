@@ -698,9 +698,9 @@ func test_the_accessibility_tab_has_the_concept_s_rows() -> void:
 func test_the_rows_of_later_tasks_are_greyed_with_later() -> void:
 	var page := _access()
 	assert_false(page.greyed(SettingsAccessPage.Section.TEAM_COLOURS), "the team colours are live")
-	for section: SettingsAccessPage.Section in SettingsAccessPage.LATER:
-		assert_true(page.greyed(section), str(section))
-	assert_eq(page.read_out().mouse_filter, Control.MOUSE_FILTER_IGNORE, "a greyed row takes no click")
+	for section: SettingsAccessPage.Section in SettingsAccessPage.Section.values():
+		assert_eq(page.greyed(section), SettingsAccessPage.LATER.has(section), str(section))
+	assert_eq(page.read_out().mouse_filter, Control.MOUSE_FILTER_STOP, "screen reader messages are live (AC6)")
 	assert_eq(page.patterns().mouse_filter, Control.MOUSE_FILTER_STOP, "gauge patterns are live (AC3)")
 	assert_eq(page.set_card(TeamColours.Set.HIGH_CONTRAST).mouse_filter, Control.MOUSE_FILTER_STOP)
 
