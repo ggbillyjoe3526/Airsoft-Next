@@ -4,54 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## FC1 · Field checks: the rules every field keeps, run on every field
-tier: core
-perf: skip
-touches: tests/support/field_checks.gd, tests/support/field_standard.gd, tests/unit/test_field_rules.gd,
-  tests/unit/test_map_areas.gd, tests/README.md, docs/KNOWN_ISSUES.md
-contract: Data, not literals (6)
-acceptance:
-  1. FieldChecks (`tests/support/`, dev only: `tests/*` never exports) holds pure checks over one field's MapData
-     and NavGrid, each giving a check id, pass, warn or fail, and a sentence with its figure and place. The test runs
-     them on every `field` row of `data/maps.md` (MapCatalog), never on Depot by name.
-  2. FieldStandard holds the browser's numbers as named constants (contentRules.ts MAP_STANDARD, TEAM_COLOUR_RULE,
-     physics.ts maxRampSlope), a per-field EXCEPTIONS list (owner-allowed clashes and sightlines, each with its reason)
-     and a per-field KNOWN_FAILING list (check id, reason, the build step that clears it).
-  3. The rules (browser mapRules.ts, mapLayoutChecks.ts laneChecks):
-     field.registered: the row has a name and a blurb and its file loads (`MapData.ok()`).
-     field.room: each end has a spawn and a dead-zone spot per player of the largest `CustomRules.TEAM_SIZES` (3).
-     field.onFloor: every spawn, dead-zone spot, lane point and the flag within 0.05 m of the nav floor under it,
-     on walkable ground.
-     field.ramps: every ramp 1:2 or gentler (rise over run at most 0.5).
-     field.killY: `kill_y` below every block's bottom.
-     field.blocks: no two blocks overlap by more than 0.025 m on all three axes, bar listed exceptions; a listed
-     pair no longer there warns.
-     field.teamColour: no drawn block colour (`MapStyle.colour_of` for each kind on the field, every container
-     colour) has HSL saturation 0.3 or more within 20° of hue of any team colour (both sets, figures and HUD,
-     AccessibilityTable). HSL as the browser's three.js getHSL; Godot's `Color.s` is HSV and reads greyer colours
-     as saturated.
-     field.areas: every walkable nav cell in a named area, every name holding one (MapAreas); test_map_areas'
-     Depot-only test moves here.
-     field.lanes: 3 or more pass, 2 warn, fewer fail.
-  4. A field's failing checks must equal its KNOWN_FAILING list exactly: a new failure fails the test, and a listed
-     check that passes fails it too ("take it off the list"). Warnings print, never fail. A field whose file is
-     refused fails unless NOT_YET names it with the step that makes it load.
-  5. Each rule fails on its fault, in a copy of Depot's data: a spawn lifted 0.5 m, a 1:1.5 ramp, `kill_y` 0, a
-     crate moved 0.1 m into another, a kind coloured team orange, a walkable spot in no area, one lane.
-  6. The lists as measured for the plan (2026-10-24): Depot fails field.teamColour only (MapStyle's crate: hue 43°,
-     HSL saturation 0.31, 15° from Standard orange); Neon Heights fails field.teamColour and field.blocks (two floors
-     inside the barrier at 11.3, 2.0, 7.625); Woodland is NOT_YET (its terrain is read in step 26). Where the worker
-     measures otherwise, the record says so and the lists follow the measure. The crate breaks the owner's prop hue
-     rule (no prop within 20° of a team hue, no exceptions, 2026-10-23), so FC1 fixes it in `MapStyle`: duller or
-     toward yellow, still plywood, outside 20° of every team colour in both sets. Depot's list then starts empty for
-     field.teamColour; Neon Heights' colour clash is fixed the same way if it is a prop, else listed.
-  7. FieldStandard's header names each check not ported and where it lands: night and light pools (step 26), the
-     overtime flag (step 27), every block drawn inside its box (the first task to draw a block as more than its box),
-     look-only decor (Neon Heights, 0.4), the perf gate (no Godot perf matrix yet). Not ported: map.access and
-     map.modes (the catalog's own rules and an information line).
-status: open
-attempts: 0
-
 ## FC2 · Field checks: sightlines, walks, routes and the flag
 tier: core
 perf: required
