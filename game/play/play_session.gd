@@ -105,6 +105,8 @@ var _hands: ReplicaView = null
 var _bbs: BBView = null
 var _puffs: PuffView = null
 var _dust: WindDust = null
+var _gas: GasPuffs = null
+var _kicked: KickedDust = null
 var _lighting: FieldLighting = null
 ## The skyline round the field, or null on a map without one (SkylineView).
 var _skyline: SkylineView = null
@@ -468,6 +470,13 @@ func _build_views(ui: CanvasLayer) -> void:
 	_dust = WindDust.new()
 	_dust.setup(_play.effects)
 	add_child(_dust)
+	_gas = GasPuffs.new()
+	_gas.setup(_play.effects)
+	add_child(_gas)
+	_kicked = KickedDust.new()
+	_kicked.setup(_play.effects, _map.kicked_dust_tint, _map.kicked_dust_scale)
+	add_child(_kicked)
+	var contact := FigureView.contact_mesh(_play.effects)
 	var sign_font := GameTheme.font(800)
 	var range_materials: Array[Material] = []
 	if practice:
@@ -488,12 +497,14 @@ func _build_views(ui: CanvasLayer) -> void:
 		f.setup(c, _colours.figures.colours[c.team], _tuning.hits, sign_font, realistic, parts,
 				_colours.figures.glow, _play.figures)
 		add_child(f)
+		f.add_contact_shadow(contact, _play.effects)
 		_figures.append(f)
 		_figure_of[c.id] = f
 	_pick_kinds()
 	_figure_lines = _play.figures.lod_high
 	var figure_materials := _build_bodies()
-	var first_use: Array[Material] = [_bbs.drawn_material(), _puffs.drawn_material()]
+	var first_use: Array[Material] = [_bbs.drawn_material(), _puffs.drawn_material(), _gas.drawn_material(),
+			_kicked.drawn_material(), contact.material]
 	if state.round_state.mode == RoundState.Mode.ATTACK_DEFEND:
 		_flag = FlagView.new()
 		_flag.setup(_play.flag, _colours.figures, state.round_state.pole, _tuning.flag.radius)
@@ -678,6 +689,9 @@ func _after_tick() -> void:
 					_hands.on_shot()
 				elif e.actor >= 0 and e.actor < _figure_of.size() and _figure_of[e.actor] != null:
 					_figure_of[e.actor].on_shot()
+				_breathe(e, ears)
+			GameEvent.Kind.FOOTSTEP:
+				_kicked.footfall(e.value, e.position, _eyes.global_position)
 			GameEvent.Kind.BB_IMPACT:
 				impacts += 1
 				if e.target < 0:
@@ -713,6 +727,8 @@ func _after_tick() -> void:
 			GameEvent.Kind.ROUND_START:
 				_input.face(player.spawn_yaw)
 				_puffs.clear()
+				_gas.clear()
+				_kicked.clear()
 				_reset_flinches()
 				if _thrown != null:
 					_thrown.clear()
@@ -725,6 +741,23 @@ func _after_tick() -> void:
 				_hud.open_summary(state, what_got_you_shown(), tip)
 				if counts:
 					_settle()
+
+
+## A gas replica's breath for shot `e` (GasPuffs): from your replica's muzzle through your own eyes, else from the
+## shooter's figure while its replica is drawn in its hand (`ears`: the character the view is through).
+func _breathe(e: GameEvent, ears: Character) -> void:
+	if e.actor < 0 or e.actor >= state.characters.size():
+		return
+	var replicas := state.characters[e.actor].armament.replicas
+	if e.slot < 0 or e.slot >= replicas.size() or not _gas.breathes(replicas[e.slot]):
+		return
+	if e.actor == PLAYER_ID:
+		if ears == player and _hands.visible:
+			_gas.shot(_hands.muzzle_position(), _eyes.global_position, e.direction)
+		return
+	var f := _figure_of[e.actor]
+	if f != null and f.muzzle_shown(e.slot):
+		_gas.shot(f.muzzle_position(e.slot), e.position, e.direction)
 
 
 func _process(delta: float) -> void:
@@ -752,6 +785,8 @@ func _process(delta: float) -> void:
 	_puffs.update(delta)
 	var wind := state.wind.at(state.time)
 	_dust.update(_eyes.global_position, wind, delta)
+	_gas.update(delta, _eyes.global_position)
+	_kicked.update(delta, _eyes.global_position)
 	if _skyline != null:
 		_skyline.update(wind, delta)
 	if _targets_view != null:
@@ -1150,7 +1185,10 @@ func _apply_motion() -> void:
 
 ## The graphics drawn, onto the field: at the start and whenever they change (the settings can open from the pause menu).
 func _apply_graphics(values: GraphicsQuality) -> void:
-	GraphicsApply.apply_field(values, _lighting, _dust, null, _level)
+	GraphicsApply.apply_field(values, _lighting, _dust, null, _level, _kicked)
+	var contact := GraphicsApply.contact_shadows(values)
+	for f in _figures:
+		f.set_contact_shadow(contact)
 	if _skyline != null:
 		_skyline.set_smoke(SkylineView.smokes(values))
 	var lines := _play.figures.lod_lines(values.mesh_detail)

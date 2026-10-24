@@ -310,6 +310,15 @@ flagpole stands in the walled loading bay. Three lanes lead there: **Dock Road**
 - [ ] **Rings and loud ground.** Fire at the skip or a container from close: it rings as a steel impact, and a bot
   idling nearby turns to look but doesn't leave a fight for it. Run on the gravel or up the dock's steel ramps: your
   steps are a little louder, and bots hear you from further off (about a third). Walking there stays silent.
+- [ ] **Gas puffs and kicked dust (DP5).** Fire the GBB pistol: each shot breathes a short pale puff forward from the
+  muzzle and a smaller one out to the right of the slide; the rifle and the Cyber Pistol puff nothing. Watch a bot fire
+  its pistol from a few metres: the same, smaller. Sprint and jump off the dock: a low, faint puff of the yard's dust at
+  each sprinting step and a bigger one on landing, never up past the knees; none walking or running, and none on Low.
+  Are both easy to miss, as they should be, or too faint to notice at all?
+- [ ] **Sunlit dust (DP5).** On High, stand in the Box or the Office and look out of a door: the specks in the air
+  glint where the sun falls and are gone in the shade; none balloons into a blur in front of your eyes.
+- [ ] **Contact shadows (DP5).** On Low (no sun shadows) every other player has a soft dark disc under their feet that
+  stays on the floor when they jump and fades as they leave; on Medium and up the sun's own shadows take its place.
 - [ ] **The east end** (Alpha's start in Elimination): the team leaves past the wall's south end and nobody gets stuck
   in the yard's north corner.
 - [ ] **Balance.** In Attack / Defend, does attacking or defending feel easier, and which lane do the bots pick? In

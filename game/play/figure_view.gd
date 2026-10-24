@@ -9,7 +9,8 @@ extends Node3D
 ## figure leaving the field fades out, its replicas put away. The hit flinch (`hit`, FigureFlinch): the upper body
 ## jolts the way the BB flew, through FigureBend. In a reload (FI4) the left hand carries a copy of the replica model's
 ## magazine, made here once a slot in the replica's paint, and throws the old one into `thrown`. A kind the session
-## couldn't load draws no body, only the sign (the tests catch a missing model, FigureModels warns).
+## couldn't load draws no body, only the sign (the tests catch a missing model, FigureModels warns). Where the sun casts
+## no shadows, a soft dark disc lies on the floor under it (`set_contact_shadow`: the contact shadow, one shared mesh).
 
 ## Where the sign floats and how it is drawn.
 const SIGN_HEIGHT := 2.25
@@ -45,6 +46,12 @@ var _far_frames: int = 0
 var _far_delta: float = 0.0
 ## The hit flinch, eased on every frame's time in `update` (hidden or far all the same).
 var _flinch: FigureFlinch = null
+## Each replica's muzzle in its figure version's space (where a gas replica's breath comes from, GasPuffs).
+var _muzzles: PackedVector3Array = PackedVector3Array()
+## The contact shadow (null until given one), its numbers, and the floor the feet last stood on (y).
+var _contact: MeshInstance3D = null
+var _effects: EffectsConfig = null
+var _floor_y: float = 0.0
 
 
 ## Draws `c` in `team_colour` (the body's Team* paint, set_body, and the sign's outline), glowing with `glow` of it
@@ -54,6 +61,7 @@ var _flinch: FigureFlinch = null
 func setup(c: Character, team_colour: Color, hits: HitConfig, font: Font,
 		realistic: bool = false, parts: Array[Dictionary] = [], glow: float = 0.0, figures: FigureConfig = null) -> void:
 	character_id = c.id
+	_floor_y = c.position.y
 	var cfg := figures if figures != null else FigureConfig.new()
 	_flinch = FigureFlinch.new(cfg)
 	_hits = hits
@@ -64,7 +72,7 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, font: Font,
 	top_level = true
 	for i in c.armament.replicas.size():
 		var held := _held_replica(c.armament.replicas[i], c.team, realistic, parts[i] if i < parts.size() else {},
-				cfg.magazine_node, _magazines)
+				cfg.magazine_node, _magazines, _muzzles)
 		_replicas.append(held)
 		_classes.append(c.armament.replicas[i].site_class)
 		if held != null:
@@ -116,14 +124,17 @@ func set_lod_lines(lines: Vector2) -> void:
 ## The models' figure version of `r` with `parts`' figure versions on it, hidden, painted for `team` (null without a
 ## model). The figure version is one mesh, so a part shows over the standard magazine or flash hider rather than in
 ## its place. A copy of the full model's `magazine_node` mesh for the reloads, in the same paint
-## (null without one), goes on the end of `magazines`.
+## (null without one), goes on the end of `magazines`, and its muzzle point in the model's space (the figure version's,
+## which is drawn at the model's origin) on the end of `muzzles`.
 func _held_replica(r: ReplicaConfig, team: int, realistic: bool, parts: Dictionary, magazine_node: String,
-		magazines: Array[MeshInstance3D]) -> MeshInstance3D:
+		magazines: Array[MeshInstance3D], muzzles: PackedVector3Array) -> MeshInstance3D:
 	var scene := load(MODEL_DIR + r.id + ".glb") as PackedScene
 	if scene == null:
 		magazines.append(null)
+		muzzles.append(Vector3.ZERO)
 		return null
 	var model := scene.instantiate()
+	muzzles.append(_in_model(model.find_child(ReplicaParts.MUZZLE_NODE, true, false) as Node3D, model))
 	var paint := ReplicaPaint.bot_paint(team, r)
 	var mag := model.find_child(magazine_node, true, false) as MeshInstance3D
 	var copy: MeshInstance3D = null
@@ -149,10 +160,79 @@ func _held_replica(r: ReplicaConfig, team: int, realistic: bool, parts: Dictiona
 	return held
 
 
+## Where `node` sits in `model`'s space (the model's origin when null).
+static func _in_model(node: Node3D, model: Node) -> Vector3:
+	var at := Transform3D.IDENTITY
+	var n: Node = node
+	while n != null and n != model:
+		if n is Node3D:
+			at = (n as Node3D).transform * at
+		n = n.get_parent()
+	return at.origin if node != null else Vector3.ZERO
+
+
 ## A shot from this figure (its SHOT event): one trigger press at its next pose.
 func on_shot() -> void:
 	if _body != null:
 		_fired = true
+
+
+## Whether replica `slot` is in the figure's hand and drawn (so its muzzle can be found).
+func muzzle_shown(slot: int) -> bool:
+	return slot >= 0 and slot < _replicas.size() and _replicas[slot] != null and _replicas[slot].is_visible_in_tree()
+
+
+## The muzzle of replica `slot` in the world as last drawn (`muzzle_shown` first).
+func muzzle_position(slot: int) -> Vector3:
+	return _replicas[slot].global_transform * _muzzles[slot]
+
+
+## The soft disc of `cfg`'s contact shadow, flat on the floor at radius 1 (a figure scales it), its material shared:
+## made once a match and given to every figure (`add_contact_shadow`).
+static func contact_mesh(cfg: EffectsConfig) -> PlaneMesh:
+	var g := Gradient.new()
+	g.set_color(0, Color(0.0, 0.0, 0.0, cfg.contact_darkness))
+	g.set_color(1, Color(0.0, 0.0, 0.0, 0.0))
+	g.add_point(cfg.contact_middle, Color(0.0, 0.0, 0.0, cfg.contact_darkness * cfg.contact_middle_shade))
+	var tex := GradientTexture2D.new()
+	tex.gradient = g
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(0.5, 0.0)
+	tex.width = PuffView.DISC_PIXELS
+	tex.height = PuffView.DISC_PIXELS
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_texture = tex
+	var disc := PlaneMesh.new()
+	disc.size = Vector2.ONE * 2.0
+	disc.material = mat
+	return disc
+
+
+## Gives the figure its contact shadow, `disc` (`contact_mesh`, shared), sized and placed by `cfg`; hidden until
+## `set_contact_shadow`.
+func add_contact_shadow(disc: Mesh, cfg: EffectsConfig) -> void:
+	_effects = cfg
+	_contact = MeshInstance3D.new()
+	_contact.name = "ContactShadow"
+	_contact.mesh = disc
+	_contact.top_level = true
+	_contact.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_contact.visible = false
+	add_child(_contact)
+
+
+## Draws the contact shadow (where the sun casts none) or not.
+func set_contact_shadow(on: bool) -> void:
+	if _contact != null:
+		_contact.visible = on
+
+
+## The contact shadow drawn, or null.
+func contact_shadow() -> MeshInstance3D:
+	return _contact
 
 
 ## The "HIT!" sign, hidden until the hit is called.
@@ -234,9 +314,25 @@ func update(c: Character, fraction: float, delta: float = 0.0) -> void:
 		fade = clampf(1.0 - c.status_time / maxf(_hits.vanish_time, 0.001), 0.0, 1.0)
 	visible = fade > 0.0
 	_fade = fade
+	if c.grounded:
+		_floor_y = global_position.y
+	if _contact != null and _contact.visible:
+		_place_contact(c, fraction, fade)
 	if _body != null:
 		# The hands show the replicas as animate poses them; put away as it fades (the paint is shared).
 		_body.set_fade(fade)
 		if fade < 1.0:
 			_body.hands.show_hands(-1, -1, false)
 			_body.hands.show_reload(-1, 0.0, true)
+
+
+## The contact shadow under `c`'s feet at `fraction`: on the floor they last stood on, narrower crouched, fading with
+## the figure and as the feet rise off the floor.
+func _place_contact(c: Character, fraction: float, fade: float) -> void:
+	var feet := global_position
+	var crouch := lerpf(c.prev_crouch_amount, c.crouch_amount, fraction)
+	var radius := lerpf(_effects.contact_radius, _effects.contact_crouched_radius, crouch)
+	var up := clampf(1.0 - (feet.y - _floor_y) / maxf(_effects.contact_fade_height, 0.001), 0.0, 1.0)
+	_contact.global_transform = Transform3D(Basis.from_scale(Vector3(radius, 1.0, radius)),
+			Vector3(feet.x, _floor_y + _effects.contact_lift, feet.z))
+	_contact.transparency = 1.0 - fade * up

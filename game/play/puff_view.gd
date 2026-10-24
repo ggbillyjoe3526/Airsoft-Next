@@ -28,7 +28,7 @@ func setup(cfg: EffectsConfig) -> void:
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	mat.billboard_keep_scale = true
 	mat.vertex_color_use_as_albedo = true
-	mat.albedo_texture = _disc()
+	mat.albedo_texture = disc()
 	quad.material = mat
 	multimesh = MultiMesh.new()
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
@@ -98,7 +98,8 @@ func _spawn(at: Vector3, colour: Color, scale_by: float) -> void:
 	_next = (_next + 1) % _age.size()
 
 
-static func _disc() -> GradientTexture2D:
+## The soft disc every puff is drawn with (DriftPuffs' too): white, fading to nothing at its rim.
+static func disc() -> GradientTexture2D:
 	var g := Gradient.new()
 	g.set_color(0, Color(1.0, 1.0, 1.0, 1.0))
 	g.set_color(1, Color(1.0, 1.0, 1.0, 0.0))

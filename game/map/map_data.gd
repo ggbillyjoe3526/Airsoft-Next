@@ -58,6 +58,10 @@ var baked_light_file: String = ""
 ## The skyline round the field (`dressing.skyline` in the file, its known kinds): scenery out of reach, drawn by
 ## SkylineView; empty on a map without one.
 var skyline: Array[SkylinePiece] = []
+## The dust feet kick up on it (`dressing.kickedDust` in the file: its tint, sRGB, and its size, 1 the usual;
+## KickedDust): white at the usual size on a map naming none.
+var kicked_dust_tint: Color = Color.WHITE
+var kicked_dust_scale: float = 1.0
 ## The floor heights (m) of a map built in storeys, lowest first (Neon Heights' 0, 3 and 6); empty on a map of one.
 var storeys: PackedFloat64Array = PackedFloat64Array()
 ## Why the file was refused; empty when it loaded.
@@ -104,6 +108,7 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m._read_ambience(d.get("ambience"))
 	m._read_baked_light(d.get("bakedLight"))
 	m.skyline = SkylinePiece.read(d.get("dressing"), m.warnings)
+	m._read_kicked_dust(d.get("dressing"))
 	for w in m.warnings:
 		push_warning("MapData: " + w)
 	var pole: Variant = d.get("flag")
@@ -314,6 +319,21 @@ func _read_baked_light(raw: Variant) -> void:
 		baked_light_file = file
 	else:
 		warnings.append("bakedLight is not {\"file\": a file name}; drawn without it")
+
+
+func _read_kicked_dust(dressing: Variant) -> void:
+	var raw: Variant = (dressing as Dictionary).get("kickedDust") if dressing is Dictionary else null
+	if raw == null:
+		return
+	var d: Dictionary = raw if raw is Dictionary else {}
+	var tint: Variant = d.get("tint")
+	var size: Variant = d.get("scale", 1.0)
+	if not (tint is float or tint is int) or not (size is float or size is int) or float(size) <= 0.0:
+		warnings.append("dressing.kickedDust is not {\"tint\": a colour, \"scale\": a size over 0}; white at the usual"
+				+ " size")
+		return
+	kicked_dust_tint = Color.hex((int(tint) << 8) | 0xff)
+	kicked_dust_scale = float(size)
 
 
 static func _spots(list: Variant) -> Array[SpawnPoint]:

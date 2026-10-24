@@ -57,7 +57,9 @@ never stops the game from starting.
   detail. It adds no new effect.
 - **Temporal smoothing** is off on every preset: it smears the thin, fast BB streaks. It and FSR 2 are there for
   players who want them.
-- **Wind dust** is a share of the specks `game/config/effects_config.gd` sets (`dust_count`).
+- **Wind dust** is a share of the specks `game/config/effects_config.gd` sets (`dust_count`), lit by the sun so they
+  glint in its light and vanish in shade. At 0 % feet kick up no dust either (sprinting steps and landings).
+- **Sun shadows** off draws a soft dark disc under every other player instead (a contact shadow, free).
 
 ## Choices only some renderers draw
 
