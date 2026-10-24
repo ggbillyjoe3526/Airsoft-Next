@@ -1,12 +1,12 @@
 # DP2 · Baked light on Depot
 
-**Review:** pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,847 of 2,847 | – | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,847 of 2,847 | Accept 7/8 | – |
 
 ## What was built
 
@@ -121,3 +121,13 @@ range's untiled greybox hash the same as before DP2 (SHA-256 of vertices, normal
 - Figures, the replica and puffs are not lit by the bake; the ground beyond the walls isn't baked; a hidden vertex in
   an abutting block shades up to 0.5 m of the joint; the look on Forward+ is the owner's check (`docs/KNOWN_ISSUES.md`,
   Graphics).
+
+## Advisories left
+
+- Critic's check 7 (map_level.gd grew to 464 lines) was fixed after the verdict: the geometry is in `GreyboxFaces` and
+  map_level.gd is 275 lines.
+- The game's stale-bake check includes the sun, so step 26's night preset must check against the bake's own sun or
+  it will refuse the bake (critic).
+- `test_baked_light`'s 0.001 m cell test asserts wall-clock time under 200 ms (critic).
+- The unit suite took 878 s here, so `tools/unit_tests.sh`'s hang limit is raised from 900 to 1080 s; CI runs it in
+  about ten minutes, inside the job's 20.
