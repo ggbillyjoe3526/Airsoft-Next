@@ -207,6 +207,13 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   colour in the same one draw call; the untiled mesh casts the sun's shadows, so the shadow passes draw no more
   triangles. A Graphics row, Baked light: off on Low (today's untiled mesh), on from Medium. Each bake holds the hash
   of what it was baked from and a test fails a stale one. Figures are not lit by it yet (KNOWN_ISSUES).
+- **The skyline is one greybox mesh beyond the walls, on every map that lists it (2026-10-24: the recommended defaults;
+  DP3).** A map's `dressing.skyline` pieces of the kinds built so far (shed, water tower, crane, containers, chimney,
+  silo, power line, hill, watch tower, fuselage, mast) are drawn as one vertex-coloured mesh, faded toward the sky's
+  horizon by distance, casting no shadow, with no collider; a piece no eye over a lane point, spawn or raised floor
+  sees over the blocks is left out (MS1). Other kinds (Neon Heights' towers, the treelines) wait for their maps'
+  dressing. Site colours and greys only, no red (too near Beta's hue). Chimney smoke is drawn from Medium, read off
+  the mesh detail row rather than a row of its own. The models replace the greybox at step 32.
 - **Every figure keeps its team-colour plate carrier (owner, 2026-10-17, AX1).** The carrier reads like a site's team
   bib and is the strongest team cue at range. A civilian outfit is in `docs/IDEAS.md`.
 

@@ -1,7 +1,7 @@
 extends SceneTree
 ## Renders each match field from a high three-quarter camera, and the practice range from its firing line with its
-## targets and markings standing, to assets/maps/<id>.jpg (the Match page's map cards and the loading screen's
-## backdrop, MN2 and RG4). Needs a display and OpenGL, so under xvfb:
+## targets and markings standing, each with its skyline, to assets/maps/<id>.jpg (the Match page's map cards and the
+## loading screen's backdrop, MN2 and RG4). Needs a display and OpenGL, so under xvfb:
 ##   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 -s res://tools/map_pictures.gd
 ## Arguments after `--`: an output folder (default assets/maps/) and an optional map id to render alone. A map that
 ## can't load is skipped with its reasons.
@@ -71,8 +71,10 @@ func _render(map: MapData, play: PlayTuning) -> Image:
 	root.add_child(port)
 	var level := MapLevel.new()
 	port.add_child(level)
-	level.build(map, play.map_style, SimTuning.load_default().body)
+	var body := SimTuning.load_default().body
+	level.build(map, play.map_style, body)
 	port.add_child(FieldLighting.build(play.lighting))
+	_add_skyline(port, map, play, body)
 	var camera := Camera3D.new()
 	camera.fov = FOV
 	port.add_child(camera)
@@ -96,6 +98,7 @@ func _render_range(map: MapData, play: PlayTuning, tuning: SimTuning) -> Image:
 	port.add_child(level)
 	level.build(map, play.map_style, tuning.body)
 	port.add_child(FieldLighting.build(play.lighting))
+	_add_skyline(port, map, play, tuning.body)
 	var font := GameTheme.font(800)
 	var marks := RangeView.new()
 	port.add_child(marks)
@@ -116,6 +119,14 @@ func _render_range(map: MapData, play: PlayTuning, tuning: SimTuning) -> Image:
 	var image := port.get_texture().get_image()
 	port.queue_free()
 	return image
+
+
+## The map's skyline as a match draws it, smoke and all (SkylineView), if it has one.
+func _add_skyline(port: SubViewport, map: MapData, play: PlayTuning, body: BodyConfig) -> void:
+	var skyline := SkylineView.build(map, play.skyline, play.lighting, body.stand_eye_height)
+	if skyline != null:
+		port.add_child(skyline)
+		skyline.set_smoke(true)
 
 
 ## Places `camera` to look at the middle of the map's blocks from far enough back that every corner of their box
