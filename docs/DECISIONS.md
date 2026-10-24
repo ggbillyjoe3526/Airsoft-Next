@@ -212,6 +212,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **The hit area is fitted to each rigged figure (owner, 2026-10-16, Dev 6 playtest; HV1, IM8).** Head, chest,
   shoulders, hips and legs sit on each figure's own bones, read from the clips as the figures load; a test holds every
   pose of both figures to M85's bar (4 % missed, 3 % thin air). A new figure must pass it.
+- **Until step 32 the hit area stays Hitbox's built-in volume, one for both kinds, measured, not fitted (step 23 plan,
+  default 2; FI7).** `test_figure_hit_area.gd` measures it against the drawn placeholder figures on every kind, head and
+  pose and fails if a share rises 0.5 points over FI7's numbers (`docs/records/FI7.md`); step 32 fits it once to the
+  final figures, to M85's bar (HV1).
 - **Hit calling stays a raised hand and a sign, with no dead rag, night light or shouted "HIT!" for now (owner,
   2026-10-06).**
 - **A hit player calls HIT for 1.4 s, then walks to their team's dead zone along nav routes (2026-09-30).** Once a round

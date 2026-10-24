@@ -1,7 +1,7 @@
 extends GutTest
-## FI1: who is drawn as a robot (game/play/figures/figure_mix.gd), and the rigged figures in a match on Depot behind
-## Dev › Rigged figures (game/play/play_session.gd, figure_view.gd): half of each team robots from the match seed on a
-## stream of its own, the bodies built and freed with the switch, the match's own draws untouched, no orphans left.
+## FI1: who is drawn as a robot (game/play/figures/figure_mix.gd), and the rigged figures in a match on Depot
+## (game/play/play_session.gd, figure_view.gd; every figure since FI7): half of each team robots from the match seed on
+## a stream of its own, a body for each, the match's own draws untouched by building them, no orphans left.
 
 const SALT := 0x5f3759df
 const THREE_V_THREE := [0, 0, 0, 1, 1, 1]
@@ -12,7 +12,6 @@ var s: Settings = null
 
 func before_each() -> void:
 	s = Settings.new(PlayTuning.new())
-	s.dev_enabled = true
 
 
 func after_each() -> void:
@@ -77,8 +76,7 @@ func test_the_mix_draws_from_its_own_stream() -> void:
 	assert_ne(FigureMix.pick(77, _teams(THREE_V_THREE), true, SALT), PackedInt32Array(), "it picked")
 
 
-func _play(rigged: bool) -> PlaySession:
-	s.dev.rigged_figures = rigged
+func _play() -> PlaySession:
 	var p := PlaySession.new()
 	p.settings = s
 	p.map_id = "depot"
@@ -93,8 +91,8 @@ func _bodies(p: PlaySession) -> Array[Node]:
 	return p.find_children("*", "FigureBody", true, false)
 
 
-func test_rigged_figures_draw_bodies_in_place_of_the_capsules_and_go_back() -> void:
-	session = await _play(true)
+func test_every_figure_draws_the_body_of_its_kind() -> void:
+	session = await _play()
 	var figures := session.find_children("Figure_*", "FigureView", true, false)
 	assert_eq(figures.size(), session.state.characters.size() - 1, "everyone but you")
 	assert_eq(_bodies(session).size(), figures.size())
@@ -104,21 +102,10 @@ func test_rigged_figures_draw_bodies_in_place_of_the_capsules_and_go_back() -> v
 		assert_not_null(body)
 		var robot := session.figure_kinds[f.character_id] == FigureMix.ROBOT
 		assert_eq(body.head == &"", robot, "a robot wears its own head")
-		assert_eq(f._capsules.size(), 4)
-		for capsule in f._capsules:
-			assert_false(capsule.visible, "capsules hidden")
-	s.dev.rigged_figures = false
-	s.mark_changed()
-	await wait_process_frames(2)
-	assert_eq(_bodies(session).size(), 0, "freed")
-	for f: FigureView in figures:
-		assert_null(f.body())
-		for capsule in f._capsules:
-			assert_true(capsule.visible, "capsules back")
 
 
 func test_a_figure_leaving_fades_its_body() -> void:
-	session = await _play(true)
+	session = await _play()
 	var f := session.find_children("Figure_*", "FigureView", true, false)[0] as FigureView
 	var c := session.state.characters[f.character_id]
 	c.status = Character.Status.LEAVING
@@ -130,24 +117,22 @@ func test_a_figure_leaving_fades_its_body() -> void:
 	assert_eq(f.body().meshes[0].transparency, 0.0)
 
 
-func test_the_rigged_figures_leave_the_matchs_own_draws_alone() -> void:
-	var on := await _play(true)
-	var off := await _play(false)
-	assert_eq(on.state.rng.state, off.state.rng.state, "the rules' stream")
-	assert_eq(on.state.wind.at(4.0), off.state.wind.at(4.0), "wind")
-	for i in on.state.characters.size():
-		var a := on.state.characters[i].armament.replicas
-		var b := off.state.characters[i].armament.replicas
-		assert_eq(a.size(), b.size())
-		for r in a.size():
-			assert_eq(a[r].id, b[r].id, "bot %d's kit" % i)
-	assert_eq(on.figure_kinds, off.figure_kinds)
+func test_building_the_bodies_leaves_the_matchs_own_draws_alone() -> void:
+	var p := await _play()
+	var rng := p.state.rng.state
+	var wind := p.state.wind.at(4.0)
+	for f: FigureView in p.find_children("Figure_*", "FigureView", true, false):
+		f.set_body(p._figure_models, FigureMix.ROBOT, p._figure_lines)
+		f.set_body(p._figure_models, p.figure_kinds[f.character_id], p._figure_lines)
+	assert_eq(p.state.rng.state, rng, "the rules' stream")
+	assert_eq(p.state.wind.at(4.0), wind, "wind")
+	var again := await _play()
+	assert_eq(again.figure_kinds, p.figure_kinds, "the same seed, the same mix")
 
 
 func test_freeing_a_session_leaves_no_orphan() -> void:
 	await wait_process_frames(2)
 	var orphans := int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
-	s.dev.rigged_figures = true
 	var p := PlaySession.new()
 	p.settings = s
 	p.map_id = "depot"
@@ -155,10 +140,8 @@ func test_freeing_a_session_leaves_no_orphan() -> void:
 	add_child(p)
 	await wait_physics_frames(2)
 	assert_gt(_bodies(p).size(), 0)
-	s.dev.rigged_figures = false
-	s.mark_changed()
-	s.dev.rigged_figures = true
-	s.mark_changed()
+	for f: FigureView in p.find_children("Figure_*", "FigureView", true, false):
+		f.set_body(p._figure_models, FigureMix.HUMAN, p._figure_lines)
 	await wait_process_frames(1)
 	p.free()
 	await wait_process_frames(2)
@@ -200,9 +183,9 @@ func _arms(p: PlaySession) -> ReplicaView:
 
 
 func test_the_setting_off_gives_no_robot_and_a_human_arms_kind() -> void:
-	var p := await _play(false)
+	var p := await _play()
 	s.robots = false
-	var off := await _play(false)
+	var off := await _play()
 	for kind in off.figure_kinds:
 		assert_eq(kind, FigureMix.HUMAN, "no robot figure anywhere")
 	assert_eq(_arms(off).arms_kind, FigureMix.HUMAN)
@@ -211,7 +194,7 @@ func test_the_setting_off_gives_no_robot_and_a_human_arms_kind() -> void:
 
 func test_your_arms_kind_comes_from_the_same_mix() -> void:
 	s.robots = true
-	var p := await _play(false)
+	var p := await _play()
 	assert_eq(_arms(p).arms_kind, p.figure_kinds[PlaySession.PLAYER_ID])
 	var teams := PackedInt32Array()
 	for c in p.state.characters:
@@ -243,7 +226,7 @@ func test_practice_with_humans_only_is_human() -> void:
 
 
 func test_a_rematch_reads_the_looks_setting_again() -> void:
-	var p := await _play(true)
+	var p := await _play()
 	assert_true(p.figure_kinds.has(FigureMix.ROBOT), "Mixed to begin with")
 	var robot_bodies := 0
 	for b: FigureBody in _bodies(p):

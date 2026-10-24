@@ -31,7 +31,7 @@ func _character(ids: Array[StringName], color_team: int = 0) -> Character:
 func _view(c: Character, color: Color) -> FigureView:
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, color, hits, BodyConfig.new(), null)
+	v.setup(c, color, hits, null)
 	v.set_body(models, FigureMix.HUMAN, config.lod_high)
 	return v
 

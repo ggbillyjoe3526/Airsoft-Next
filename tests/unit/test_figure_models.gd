@@ -1,7 +1,7 @@
 extends GutTest
 ## FI1: the rigged figures' files (game/play/figures/figure_models.gd, figure_sidecar.gd): each kind loaded once a
-## session with its typed sidecar, its clips looped as the sidecar says, and a missing or unreadable sidecar falling
-## back to the capsules.
+## session with its typed sidecar, its clips looped as the sidecar says, and a missing or unreadable sidecar leaving
+## its figures with no body.
 
 const BLENDER_ROWS := [[0.0, 1.0, 0.0, 0.5], [-1.0, 0.0, 0.0, 0.25], [0.0, 0.0, 1.0, -0.125], [0.0, 0.0, 0.0, 1.0]]
 
@@ -71,7 +71,30 @@ func test_loading_again_changes_nothing() -> void:
 	assert_same(models.library(FigureMix.ROBOT), lib, "once a session")
 
 
-func test_a_missing_sidecar_leaves_the_capsules() -> void:
+func test_materials_are_every_one_a_figure_wears_made_once() -> void:
+	var config := FigureConfig.new()
+	var models := FigureModels.new(config)
+	models.load_kinds()
+	var colours := PackedColorArray([Color.RED, Color.BLUE])
+	var all := models.materials(colours, 0.3)
+	var made := models.team_material_count()
+	assert_gt(made, 0, "the Team* paints made for both teams")
+	assert_eq(models.materials(colours, 0.3), all, "the same ones again")
+	assert_eq(models.team_material_count(), made, "nothing made twice")
+	for kind: int in [FigureMix.HUMAN, FigureMix.ROBOT]:
+		for team in 2:
+			var b := FigureBody.new()
+			assert_true(b.setup(models, kind, 1, team, colours[team], 0.3, config.lod_high))
+			add_child_autofree(b)
+			for mi in b.meshes:
+				for i in mi.mesh.get_surface_count():
+					var m := mi.get_active_material(i)
+					if m != null:
+						assert_true(all.has(m), "kind %d team %d: %s listed" % [kind, team, m.resource_name])
+	assert_eq(models.team_material_count(), made, "the bodies wear the very ones listed")
+
+
+func test_a_missing_sidecar_leaves_no_body() -> void:
 	var config := FigureConfig.new()
 	config.models_dir = "res://nowhere/"
 	var none := FigureModels.new(config)
@@ -81,9 +104,9 @@ func test_a_missing_sidecar_leaves_the_capsules() -> void:
 	var view := FigureView.new()
 	add_child_autofree(view)
 	view.setup(Character.new(3, 0, Vector3.ZERO, 0.0, ReplicaStats.default_loadout()), Color.RED, HitConfig.new(),
-			BodyConfig.new(), null)
+			null)
 	view.set_body(none, FigureMix.HUMAN, config.lod_high)
-	assert_null(view.body(), "capsules")
+	assert_null(view.body(), "none")
 	assert_eq(view.find_children("*", "FigureBody", true, false).size(), 0)
 
 
@@ -97,7 +120,7 @@ func test_an_unreadable_sidecar_reads_as_null() -> void:
 
 
 func test_an_empty_parts_list_reads_as_null() -> void:
-	assert_null(FigureSidecar.parse(JSON.stringify({"clips": [], "parts": []})), "nothing to draw: capsules")
+	assert_null(FigureSidecar.parse(JSON.stringify({"clips": [], "parts": []})), "nothing to draw")
 
 
 func test_odd_sidecars_read_without_a_script_error() -> void:

@@ -1,6 +1,6 @@
 extends GutTest
 ## FI5: the hit flinch. A figure hit jolts its upper body the way the BB flew (FigureConfig.flinch_lean 0.32 rad, in
-## over 0.05 s, eased back over 0.4 s), on the capsules and through FigureBend on the rigged figures, however its frames
+## over 0.05 s, eased back over 0.4 s), through FigureBend on the figures, however its frames
 ## come (hidden, far); two hits a tick apart never stack past the lean; PlaySession routes each hit to its figure by
 ## character id. Your own hit: the replica jolts and drops 0.5 m below its hip spot over 0.25 s, then hides.
 
@@ -34,22 +34,23 @@ func _character(yaw: float = 0.0) -> Character:
 func _view(c: Character, kind: int = -1) -> FigureView:
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null, false, [], 0.0, config)
+	v.setup(c, Color.RED, hits, null, false, [], 0.0, config)
 	if kind >= 0:
 		v.set_body(models, kind, config.lod_high)
 	return v
 
 
-## The capsules' upper body tilt: where its up goes, in the figure's frame (x right, -z ahead), and by how much.
+## The upper body's tilt as `v` hands it to its body (FigureBend draws it): where its up goes, in the figure's frame
+## (x right, -z ahead).
 static func _upper_up(v: FigureView) -> Vector3:
-	return v._upper.basis.y
+	return FigureFlinch.turn(v._flinch.tilt()) * Vector3.UP
 
 
 static func _angle(up: Vector3) -> float:
 	return up.angle_to(Vector3.UP)
 
 
-# --- the capsules ---
+# --- the tilt each figure eases ---
 
 func test_a_hit_from_the_left_leans_the_figure_right_then_eases_back() -> void:
 	var c := _character()
@@ -79,23 +80,6 @@ func test_a_hit_from_behind_leans_it_forward_whichever_way_it_faces() -> void:
 		assert_almost_eq(_angle(up), 0.32, EPS, "yaw %.2f: the full jolt" % yaw)
 		assert_lt(up.z, -0.25, "yaw %.2f: forward (-z in the figure's frame)" % yaw)
 		assert_almost_eq(up.x, 0.0, EPS, "yaw %.2f: no roll" % yaw)
-
-
-func test_the_flinch_tilts_on_top_of_a_lean() -> void:
-	var c := _character()
-	c.lean = 1.0
-	c.prev_lean = 1.0
-	var v := _view(c)
-	v.update(c, 1.0, 0.0)
-	var leaned := _upper_up(v)
-	var lean_turn := v._upper.basis
-	v.hit(Vector3.FORWARD, 0.0)
-	v.update(c, 1.0, config.flinch_rise)
-	var added := (v._upper.basis * lean_turn.inverse()).get_rotation_quaternion()
-	assert_almost_eq(added.get_angle(), 0.32, EPS, "the jolt added to the lean")
-	assert_almost_eq(added.get_axis(), Vector3.LEFT, Vector3.ONE * EPS, "tipping it forward, about the figure's own x")
-	v.update(c, 1.0, 1.0)
-	assert_almost_eq(_upper_up(v), leaned, Vector3.ONE * EPS, "back to the lean, not to upright")
 
 
 func test_two_hits_a_tick_apart_do_not_stack_past_the_lean() -> void:
@@ -151,7 +135,7 @@ func test_a_reset_stands_it_upright_at_once() -> void:
 	v.update(c, 1.0, config.flinch_rise)
 	v.reset_flinch()
 	v.update(c, 1.0, DT)
-	assert_almost_eq(_upper_up(v), Vector3.UP, Vector3.ONE * EPS, "the capsules upright")
+	assert_almost_eq(_upper_up(v), Vector3.UP, Vector3.ONE * EPS, "upright with no body too")
 
 
 func test_the_flinch_eases_while_the_figure_is_hidden() -> void:
@@ -204,6 +188,35 @@ func test_a_rigged_figure_flinches_through_its_bend() -> void:
 			v.animate(c, 1.0, DT, NEAR)
 		await wait_process_frames(2)
 		assert_lt(_angle(_turned(flinched, plain)), 0.02, "kind %d: eased back by 0.45 s" % kind)
+
+
+func test_the_flinch_tilts_on_top_of_a_lean() -> void:
+	var c := _character()
+	c.lean = 1.0
+	c.prev_lean = 1.0
+	var plain := _view(c, FigureMix.HUMAN)
+	var flinched := _view(c, FigureMix.HUMAN)
+	var standing := _character()
+	var upright := _view(standing, FigureMix.HUMAN)
+	_watch(plain)
+	_watch(flinched)
+	_watch(upright)
+	upright.update(standing, 1.0, 0.0)
+	upright.animate(standing, 1.0, DT, NEAR)
+	flinched.hit(Vector3.FORWARD, 0.0)
+	for v: FigureView in [plain, flinched]:
+		v.update(c, 1.0, config.flinch_rise)
+		v.animate(c, 1.0, DT, NEAR)
+	await wait_process_frames(2)
+	var added := (_spines[flinched] * _spines[plain].inverse()).orthonormalized().get_rotation_quaternion()
+	assert_almost_eq(added.get_angle(), 0.32, 0.01, "the jolt added to the lean")
+	assert_gt((added * Vector3.UP).z, 0.25, "tipping it forward (+Z ahead in the file's frame)")
+	for v: FigureView in [plain, flinched]:
+		v.update(c, 1.0, 1.0)
+		v.animate(c, 1.0, DT, NEAR)
+	await wait_process_frames(2)
+	assert_lt(_angle(_turned(flinched, plain)), 0.01, "back to the lean, not to upright")
+	assert_gt(_angle(_turned(plain, upright)), 0.3, "and the lean is still there")
 
 
 func test_a_far_figure_poses_the_flinch_at_its_gathered_time() -> void:

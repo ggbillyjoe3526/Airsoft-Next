@@ -59,7 +59,7 @@ func _figure(team: int, loadout: Array[ReplicaConfig], realistic: bool) -> Figur
 	var c := Character.new(2, team, Vector3.ZERO, 0.0, loadout)
 	var f := FigureView.new()
 	add_child_autofree(f)
-	f.setup(c, Color.RED, HitConfig.new(), BodyConfig.new(), ThemeDB.fallback_font, realistic)
+	f.setup(c, Color.RED, HitConfig.new(), ThemeDB.fallback_font, realistic)
 	return f
 
 
@@ -148,12 +148,17 @@ func test_a_figure_shows_the_replica_it_has_out() -> void:
 	var c := Character.new(2, 0, Vector3.ZERO, 0.0, loadout)
 	var f := FigureView.new()
 	add_child_autofree(f)
-	f.setup(c, Color.RED, HitConfig.new(), BodyConfig.new(), ThemeDB.fallback_font)
+	f.setup(c, Color.RED, HitConfig.new(), ThemeDB.fallback_font)
+	var models := FigureModels.new(FigureConfig.new())
+	models.load_kinds()
+	f.set_body(models, FigureMix.HUMAN, models.config.lod_high)
 	f.update(c, 1.0)
+	f.animate(c, 1.0, 0.0, Vector3.ZERO)
 	assert_true(f._replicas[0].visible)
 	assert_false(f._replicas[1].visible)
 	c.armament.active = 1
 	f.update(c, 1.0)
+	f.animate(c, 1.0, 0.0, Vector3.ZERO)
 	assert_false(f._replicas[0].visible)
 	assert_true(f._replicas[1].visible)
 
@@ -189,7 +194,7 @@ func test_nothing_is_left_after_free() -> void:
 	view.setup(ViewModelConfig.new(), loadout, BoxWorld.new(), [&"cobalt", &"ghost"] as Array[StringName], false)
 	var c := Character.new(2, 1, Vector3.ZERO, 0.0, loadout)
 	var f := FigureView.new()
-	f.setup(c, Color.RED, HitConfig.new(), BodyConfig.new(), ThemeDB.fallback_font, false)
+	f.setup(c, Color.RED, HitConfig.new(), ThemeDB.fallback_font, false)
 	view.free()
 	f.free()
 	ReplicaPaint.clear()

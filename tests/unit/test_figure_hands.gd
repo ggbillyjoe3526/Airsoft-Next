@@ -2,7 +2,7 @@ extends GutTest
 ## FI3: the upper body (game/play/figures/figure_hands.gd, figure_graph.gd's upper chain, figure_body.gd, figure_bend.gd's
 ## aim, figure_view.gd): the replica in the fist and pointing where the shot goes at 0 and ±45°, the Switch's pistol
 ## only past 0.35, one trigger press a SHOT, the rifle slung on the chest by the sling numbers, the hand up calling the
-## hit with the rifle hanging from the other, the replicas handed back to the capsules. FI4, the reloads: the clip at
+## hit with the rifle hanging from the other, the replicas kept by the figure without a body. FI4, the reloads: the clip at
 ## the reload's share of the replica's reload time (near, far, after hiding and drawn at 240 Hz), the new magazine on
 ## Hand_L over 0.389-0.509 of a 1.8 s reload and the old one where the replica's own clip pulls it, one copy on the hand
 ## at most, the old one thrown at its release and gone after 3 s, nothing more thrown once a switch, the hit call or
@@ -37,7 +37,7 @@ func _character() -> Character:
 func _view(kind: int, c: Character) -> FigureView:
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	v.setup(c, Color.RED, hits, null)
 	v.set_body(models, kind, config.lod_high)
 	var sk := v.body().skeleton
 	var hands := v.body().hands
@@ -269,23 +269,27 @@ func test_calling_the_hit_raises_the_left_hand_and_the_rifle_hangs_from_the_righ
 	assert_almost_eq(held * hands.grip_point(0), grip.origin, Vector3.ONE * 1e-3, "hanging from the right hand's grip")
 
 
-func test_back_to_capsules_the_replicas_go_back_to_the_upper_body() -> void:
+func test_without_a_body_the_replicas_wait_hidden_on_the_figure() -> void:
 	var c := _character()
 	var v := _view(FigureMix.HUMAN, c)
 	await _pose(v, c, 3)
 	v.set_body(null, FigureMix.HUMAN, config.lod_high)
 	assert_null(v.body())
 	for r in v._replicas:
-		assert_eq(r.get_parent(), v._upper, "back on the capsules")
+		assert_eq(r.get_parent(), v, "kept on the figure")
+		assert_false(r.visible, "hidden: nothing to hold it")
 	for m in v._magazines:
-		assert_eq(m.get_parent(), v._upper, "the magazines' copies too")
+		assert_eq(m.get_parent(), v, "the magazines' copies too")
 		assert_false(m.visible)
 	v.update(c, 1.0)
-	assert_true(v._replicas[0].visible, "the one in hand shown")
-	assert_false(v._replicas[1].visible)
-	assert_eq(v._replicas[0].position, FigureView.HOLD_RIFLE)
+	v.animate(c, 1.0, FRAME, NEAR)
+	assert_false(v._replicas[0].visible, "no replica floats where no body holds it")
 	await wait_process_frames(2)
 	assert_true(is_instance_valid(v._replicas[0]), "outlived the body")
+	v.set_body(models, FigureMix.HUMAN, config.lod_high)
+	v.update(c, 1.0)
+	v.animate(c, 1.0, FRAME, NEAR)
+	assert_true(v._replicas[0].visible, "in the hand of the next body")
 
 
 func test_a_fading_figure_puts_its_replicas_away() -> void:
@@ -360,8 +364,6 @@ func test_shots_switches_and_the_holster_allocate_no_objects() -> void:
 
 func test_in_a_match_a_bots_shot_reaches_its_figure_by_id() -> void:
 	var settings := Settings.new(PlayTuning.new())
-	settings.dev_enabled = true
-	settings.dev.rigged_figures = true
 	var p := PlaySession.new()
 	p.settings = settings
 	p.map_id = "depot"
@@ -372,7 +374,7 @@ func test_in_a_match_a_bots_shot_reaches_its_figure_by_id() -> void:
 	assert_null(p._figure_of[PlaySession.PLAYER_ID], "you have no figure")
 	for f in p._figures:
 		assert_eq(p._figure_of[f.character_id], f)
-		assert_not_null(f.body(), "rigged")
+		assert_not_null(f.body(), "drawn")
 	var shooter := p._figures[0]
 	var shot := p.state.events.add(GameEvent.Kind.SHOT)
 	shot.actor = shooter.character_id
@@ -704,8 +706,6 @@ func test_reloads_and_throws_allocate_no_objects() -> void:
 
 func test_in_a_match_the_pool_is_built_once_and_a_new_round_clears_it() -> void:
 	var settings := Settings.new(PlayTuning.new())
-	settings.dev_enabled = true
-	settings.dev.rigged_figures = true
 	var p := PlaySession.new()
 	p.settings = settings
 	p.map_id = "depot"
@@ -714,16 +714,14 @@ func test_in_a_match_the_pool_is_built_once_and_a_new_round_clears_it() -> void:
 	add_child_autofree(p)
 	await wait_physics_frames(2)
 	var t := p._thrown
-	assert_not_null(t, "built with the rigged figures")
+	assert_not_null(t, "built with the figures")
 	for f in p._figures:
 		assert_eq(f.body().hands.thrown, t, "each figure throws into it")
 	assert_eq(t.pool_size(), config.thrown_max, "12 shared by every magazine")
 	var source := p._figures[0].body().hands.magazine(0)
 	assert_true(t.throw(source, Transform3D.IDENTITY, Vector3.ZERO, Vector3.ZERO, 0.0, 9.81, 3.0))
-	p.settings.dev.rigged_figures = false
 	p._apply_dev()
-	p.settings.dev.rigged_figures = true
-	p._apply_dev()
+	p._refresh_kinds()
 	assert_eq(p._thrown, t, "built once a session")
 	assert_true(t.throw(source, Transform3D.IDENTITY, Vector3.ZERO, Vector3.ZERO, 0.0, 9.81, 3.0))
 	p.state.events.add(GameEvent.Kind.ROUND_START)

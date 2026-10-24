@@ -156,12 +156,12 @@ never players.
 - [ ] **Look straight down.** Standing, crouched and in a vault: you see the ground, never your own body (Beta 1
   item 24).
 - [ ] **Hit call.** Hit a bot: the HIT! sign, the hand up, the replica hanging; readable at 20 to 30 m.
-- [ ] **Looks › Robots.** Settings › Looks (between Controls and Audio) shows Mixed in use. Start a match with
-  Dev › Rigged figures on: both teams have humans and robots. In the pause menu's Settings, pick Humans only: the tab
+- [ ] **Looks › Robots.** Settings › Looks (between Controls and Audio) shows Mixed in use. Start a match: both
+  teams have humans and robots. In the pause menu's Settings, pick Humans only: the tab
   says "From the next match." and this match is unchanged; start the next one: everyone is human. Pick Mixed again
   and a third match brings the robots back. Tab to a card and press Enter, and with a screen reader on, hear Mixed
   and Humans only read with which is in use.
-- [ ] **Hit flinch.** Hit a bot side-on, then one from behind (capsules, and Dev › Rigged figures): its upper body
+- [ ] **Hit flinch.** Hit a bot side-on, then one from behind (a human and a robot): its upper body
   snaps the way the BB flew (sideways, then forward) and eases back upright in under half a second while the hand
   goes up; a far bot's flinch is as quick. Get hit yourself: the replica jolts and drops out of view in a quarter of a
   second, the camera still; with Reduced motion on, the same.

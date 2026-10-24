@@ -4,8 +4,8 @@ extends RefCounted
 ## FigureConfig.flinch_lean radians, in over flinch_rise seconds, then eased back over flinch_time. The tilt is a vector
 ## in the figure's frame (x to its right, -z ahead, flat): its way is where the top of the upper body goes, its length
 ## the angle. A second hit before the first has eased back starts from the tilt drawn now, so two hits never stack past
-## flinch_lean. Pure and allocation-free: FigureView feeds it the hit and the frames' time, and draws `tilt()` on the
-## capsules or through FigureBend about the hip pivot. Presentation only: no hit volume or sight line moves.
+## flinch_lean. Pure and allocation-free: FigureView feeds it the hit and the frames' time, and draws `tilt()` through
+## FigureBend about the hip pivot. Presentation only: no hit volume or sight line moves.
 
 var _config: FigureConfig = null
 ## The tilt the rise starts from and the one it reaches (rad, figure frame), and the time since the hit (s); -1: none.

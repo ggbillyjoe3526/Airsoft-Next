@@ -293,7 +293,7 @@ func test_a_cyber_figure_draws_the_pistol_and_goes_plain_under_realistic_colours
 	var c := Character.new(2, 1, Vector3.ZERO, 0.0, loadout)
 	var f := FigureView.new()
 	add_child_autofree(f)
-	f.setup(c, Color.RED, HitConfig.new(), BodyConfig.new(), ThemeDB.fallback_font, true)
+	f.setup(c, Color.RED, HitConfig.new(), ThemeDB.fallback_font, true)
 	var held: MeshInstance3D = f._replicas[0]
 	assert_not_null(held, "the Figure mesh of cyber.glb")
 	var seen := false
