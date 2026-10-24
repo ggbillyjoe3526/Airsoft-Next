@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,919 of 2,919 | – | – |
+| 2026-10-24 | 1, QA fixes | Opus 5.5 (worker) | pass, 2,924 of 2,924 (943 s) | – | QA: the disc at the origin when switched on paused; a disc over feet dropping off a ledge |
 
 ## What was built
 
@@ -20,7 +21,9 @@
   `EffectsConfig.gas_powers` (`gas`): the GBB pistol; never the AEG, the Cyber Pistol or a spring. PlaySession's
   `_breathe` takes the SHOT event: yours from the replica in hand (through your own eyes only), a bot's from its
   figure's replica in hand (`FigureView.muzzle_position`, the model's Muzzle point read once a replica), none from a
-  hidden figure or one you are watching through.
+  hidden figure. Through a bot's eyes (spectating, no replica drawn) its pistol breathes from a point in the view
+  (`gas_view_muzzle`, 0.12 m right, 0.12 m down, 0.5 m ahead). No breath beyond `gas_range` (35 m, the kicked dust's)
+  of the eye: a far puff's least size (0.4 m at 100 m) would cover its shooter.
 - `KickedDust` (`game/play/kicked_dust.gd`, new; criterion 2): the browser's KICKED_DUST (24 puffs, 0.55 s, 11 cm,
   landing 1.5 times, 7 cm over the feet, 0.4 opaque, within 35 m of the eye) at a FOOTSTEP event's SPRINT or LAND (not
   a run or a rattle), its top held under 0.3 m over the feet all its life, in the map's `dressing.kickedDust` tint and
@@ -33,7 +36,9 @@
 - Contact shadows (criterion 4): `FigureView.contact_mesh` (one flat soft disc a match, the browser's CONTACT_SHADOWS:
   0.42 m, 0.36 m crouched, 0.42 dark in the middle, 0.55 of that half-way out, 1.5 cm up) and `add_contact_shadow`,
   shown where the sun casts no shadows (`GraphicsApply.contact_shadows`: Low); it stays on the floor the feet last
-  stood on through a jump, fading out 1.5 m up, and fades with the figure as it leaves.
+  stood on through a jump, fading out 1.5 m up, and fades with the figure as it leaves. It is placed the moment it is
+  switched on (the pause menu's graphics apply with the tree paused, no update) and hidden while the feet are below the
+  floor they left (off a crate or a ledge) until they land.
 - `EffectsConfig` holds every number above (no literals in the views); ShaderPrewarm draws the two pools' material and
   the disc's before the first round.
 - `tests/unit/test_dust_effects.gd` (13 tests, about 1.3 s): only gas breathes; a shot's two puffs (forward, right,
@@ -103,4 +108,5 @@ three).
 
 `tools/check.sh` (2026-10-24, on the final tree): every gate passes (gdlint, changelog notes, the smoke test, the
 licence notices), unit tests 2,919 of 2,919 in 847 s. The first run failed one test, the prewarm's material count in
-`test_play_session.gd`, fixed as above.
+`test_play_session.gd`, fixed as above. After QA's fixes (the disc placed when switched on and hidden below the floor
+the feet left, gas within 35 m, a watched bot's breath from the view): 2,924 of 2,924 in 943 s, every gate passing.

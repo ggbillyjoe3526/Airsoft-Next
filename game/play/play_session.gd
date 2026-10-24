@@ -743,7 +743,8 @@ func _after_tick() -> void:
 					_settle()
 
 
-## A gas replica's breath for shot `e` (GasPuffs): from your replica's muzzle through your own eyes, else from the
+## A gas replica's breath for shot `e` (GasPuffs): from your replica's muzzle through your own eyes, from the view
+## through a bot's eyes you are watching (EffectsConfig.gas_view_muzzle: its replica isn't drawn), else from the
 ## shooter's figure while its replica is drawn in its hand (`ears`: the character the view is through).
 func _breathe(e: GameEvent, ears: Character) -> void:
 	if e.actor < 0 or e.actor >= state.characters.size():
@@ -751,13 +752,16 @@ func _breathe(e: GameEvent, ears: Character) -> void:
 	var replicas := state.characters[e.actor].armament.replicas
 	if e.slot < 0 or e.slot >= replicas.size() or not _gas.breathes(replicas[e.slot]):
 		return
-	if e.actor == PLAYER_ID:
-		if ears == player and _hands.visible:
-			_gas.shot(_hands.muzzle_position(), _eyes.global_position, e.direction)
+	var eye := _eyes.global_position
+	if e.actor == ears.id:
+		if e.actor != PLAYER_ID:
+			_gas.shot(_eyes.global_transform * _play.effects.gas_view_muzzle, eye, e.direction, eye)
+		elif _hands.visible:
+			_gas.shot(_hands.muzzle_position(), eye, e.direction, eye)
 		return
-	var f := _figure_of[e.actor]
+	var f := _figure_of[e.actor] if e.actor != PLAYER_ID else null
 	if f != null and f.muzzle_shown(e.slot):
-		_gas.shot(f.muzzle_position(e.slot), e.position, e.direction)
+		_gas.shot(f.muzzle_position(e.slot), e.position, e.direction, eye)
 
 
 func _process(delta: float) -> void:

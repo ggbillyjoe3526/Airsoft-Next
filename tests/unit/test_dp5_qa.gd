@@ -69,14 +69,14 @@ func test_the_pools_allocate_nothing_after_build() -> void:
 	k.setup(cfg, Color.WHITE, 1.0)
 	var eye := Vector3(0.0, 1.6, 0.0)
 	for i in 50:
-		g.shot(Vector3(0.0, 1.5, -1.0), eye, Vector3.FORWARD)
+		g.shot(Vector3(0.0, 1.5, -1.0), eye, Vector3.FORWARD, eye)
 		k.footfall(GameEvent.Footstep.LAND, Vector3(0.0, 0.0, -3.0), eye)
 		g.update(0.02, eye)
 		k.update(0.02, eye)
 	var objects := Performance.get_monitor(Performance.OBJECT_COUNT)
 	var nodes := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
 	for i in 500:
-		g.shot(Vector3(0.0, 1.5, -1.0), eye, Vector3.FORWARD)
+		g.shot(Vector3(0.0, 1.5, -1.0), eye, Vector3.FORWARD, eye)
 		k.footfall(GameEvent.Footstep.SPRINT, Vector3(0.0, 0.0, -3.0), eye)
 		g.update(0.02, eye)
 		k.update(0.02, eye)

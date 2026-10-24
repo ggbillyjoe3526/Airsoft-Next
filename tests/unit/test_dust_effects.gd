@@ -53,7 +53,7 @@ func test_a_shot_puffs_at_the_muzzle_forward_and_at_the_port_to_the_right() -> v
 	var g := _gas()
 	var muzzle := Vector3(0.0, 1.5, -0.5)
 	var eye := Vector3(0.0, 1.6, 0.0)
-	g.shot(muzzle, eye, Vector3.FORWARD)
+	g.shot(muzzle, eye, Vector3.FORWARD, eye)
 	assert_eq(g.live(), 2, "the muzzle's and the port's")
 	g.update(0.1, eye)
 	var puffs := _drawn(g)
@@ -70,18 +70,21 @@ func test_a_shot_puffs_at_the_muzzle_forward_and_at_the_port_to_the_right() -> v
 func test_the_pool_is_fixed_and_the_oldest_puff_is_reused() -> void:
 	var g := _gas()
 	for i in 20:
-		g.shot(Vector3(i, 1.5, 0.0), Vector3(i, 1.6, 0.5), Vector3.FORWARD)
+		g.shot(Vector3(i, 1.5, 0.0), Vector3(i, 1.6, 0.5), Vector3.FORWARD, EYE)
 	assert_eq(g.multimesh.instance_count, cfg.gas_pool, "never grown: no allocation a shot")
 	assert_eq(g.live(), cfg.gas_pool, "the pool full, the oldest reused")
 
 
 func test_a_far_puff_keeps_its_least_size_on_screen() -> void:
 	var g := _gas()
-	g.shot(Vector3(0.0, 1.5, -40.0), Vector3(0.0, 1.6, -39.5), Vector3.FORWARD)
+	g.shot(Vector3(0.0, 1.5, -30.0), Vector3(0.0, 1.6, -29.5), Vector3.FORWARD, EYE)
 	g.update(TICK, EYE)
 	var far := _drawn(g)[0]
 	var distance := EYE.distance_to(Vector3(far.x, far.y, far.z))
-	assert_almost_eq(far.w, cfg.gas_min_angle * distance, 1e-4, "a hint at 40 m, not nothing")
+	assert_almost_eq(far.w, cfg.gas_min_angle * distance, 1e-4, "a hint at 33 m, not nothing")
+	g.clear()
+	g.shot(Vector3(0.0, 1.5, -cfg.gas_range - 4.0), Vector3(0.0, 1.6, -cfg.gas_range - 3.5), Vector3.FORWARD, EYE)
+	assert_eq(g.live(), 0, "none beyond its range: a far puff would cover its shooter")
 
 
 # --- kicked dust ---
@@ -229,5 +232,15 @@ func test_a_match_draws_them_from_its_events_and_its_graphics() -> void:
 		p._breathe(shot, p.player)
 		assert_eq(p._gas.live(), 2 if replicas[slot].power == &"gas" else 0, "%s, in hand" % replicas[slot].id)
 		p._gas.clear()
+	var bot := p.state.characters[1]
+	var gas_slot := -1
+	for slot in bot.armament.replicas.size():
+		if bot.armament.replicas[slot].power == &"gas":
+			gas_slot = slot
+	shot.actor = bot.id
+	shot.slot = gas_slot
+	p._breathe(shot, bot)
+	assert_eq(p._gas.live(), 2, "through a bot's eyes its pistol breathes from the view")
+	p._gas.clear()
 	p._kicked.footfall(GameEvent.Footstep.SPRINT, p.player.position, p._eyes.global_position)
 	assert_eq(p._kicked.live(), 1, "a sprint by you")

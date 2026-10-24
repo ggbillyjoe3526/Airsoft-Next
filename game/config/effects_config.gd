@@ -60,6 +60,10 @@ extends Resource
 @export var gas_port_scale: float = 0.45
 @export var gas_port_speed: float = 0.7
 @export var gas_port_back: float = 0.15
+## No breath beyond `gas_range` m of the eye (a far puff's least size would cover its shooter). Through a bot's eyes
+## (spectating, no replica drawn) its breath leaves from `gas_view_muzzle` (m: right, up, back in the view's space).
+@export var gas_range: float = 35.0
+@export var gas_view_muzzle: Vector3 = Vector3(0.12, -0.12, -0.5)
 ## Dust kicked up by feet (KickedDust, the browser game's KICKED_DUST): a low, faint puff at a sprinting footfall and a
 ## bigger one (`kick_land` times) on landing, in the map's `dressing.kickedDust` tint and size (MapData), only within
 ## `kick_range` m of the eye. The pool holds `kick_pool`; each lives `kick_life` s, growing from `kick_start_scale` over

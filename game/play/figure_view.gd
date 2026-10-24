@@ -52,6 +52,8 @@ var _muzzles: PackedVector3Array = PackedVector3Array()
 var _contact: MeshInstance3D = null
 var _effects: EffectsConfig = null
 var _floor_y: float = 0.0
+## The disc's radius as last placed (m: narrower crouched).
+var _contact_radius: float = 0.0
 
 
 ## Draws `c` in `team_colour` (the body's Team* paint, set_body, and the sign's outline), glowing with `glow` of it
@@ -215,6 +217,7 @@ static func contact_mesh(cfg: EffectsConfig) -> PlaneMesh:
 ## `set_contact_shadow`.
 func add_contact_shadow(disc: Mesh, cfg: EffectsConfig) -> void:
 	_effects = cfg
+	_contact_radius = cfg.contact_radius
 	_contact = MeshInstance3D.new()
 	_contact.name = "ContactShadow"
 	_contact.mesh = disc
@@ -226,8 +229,12 @@ func add_contact_shadow(disc: Mesh, cfg: EffectsConfig) -> void:
 
 ## Draws the contact shadow (where the sun casts none) or not.
 func set_contact_shadow(on: bool) -> void:
-	if _contact != null:
-		_contact.visible = on
+	if _contact == null:
+		return
+	# Placed at once: switched on from the pause menu, the tree paused, no update comes before it is drawn.
+	if on and not _contact.visible:
+		_place_disc()
+	_contact.visible = on
 
 
 ## The contact shadow drawn, or null.
@@ -317,7 +324,7 @@ func update(c: Character, fraction: float, delta: float = 0.0) -> void:
 	if c.grounded:
 		_floor_y = global_position.y
 	if _contact != null and _contact.visible:
-		_place_contact(c, fraction, fade)
+		_place_contact(c, fraction)
 	if _body != null:
 		# The hands show the replicas as animate poses them; put away as it fades (the paint is shared).
 		_body.set_fade(fade)
@@ -326,13 +333,19 @@ func update(c: Character, fraction: float, delta: float = 0.0) -> void:
 			_body.hands.show_reload(-1, 0.0, true)
 
 
-## The contact shadow under `c`'s feet at `fraction`: on the floor they last stood on, narrower crouched, fading with
-## the figure and as the feet rise off the floor.
-func _place_contact(c: Character, fraction: float, fade: float) -> void:
-	var feet := global_position
+## The contact shadow under `c`'s feet at `fraction`: narrower crouched (`_place_disc`).
+func _place_contact(c: Character, fraction: float) -> void:
 	var crouch := lerpf(c.prev_crouch_amount, c.crouch_amount, fraction)
-	var radius := lerpf(_effects.contact_radius, _effects.contact_crouched_radius, crouch)
-	var up := clampf(1.0 - (feet.y - _floor_y) / maxf(_effects.contact_fade_height, 0.001), 0.0, 1.0)
-	_contact.global_transform = Transform3D(Basis.from_scale(Vector3(radius, 1.0, radius)),
+	_contact_radius = lerpf(_effects.contact_radius, _effects.contact_crouched_radius, crouch)
+	_place_disc()
+
+
+## The contact shadow under the figure as last placed: on the floor its feet last stood on, fading with the figure and
+## as the feet rise off that floor, and gone once they drop below it (off a crate or a ledge, until they land).
+func _place_disc() -> void:
+	var feet := global_position
+	var height := feet.y - _floor_y
+	var up := clampf(1.0 - height / maxf(_effects.contact_fade_height, 0.001), 0.0, 1.0) if height >= 0.0 else 0.0
+	_contact.global_transform = Transform3D(Basis.from_scale(Vector3(_contact_radius, 1.0, _contact_radius)),
 			Vector3(feet.x, _floor_y + _effects.contact_lift, feet.z))
-	_contact.transparency = 1.0 - fade * up
+	_contact.transparency = 1.0 - _fade * up

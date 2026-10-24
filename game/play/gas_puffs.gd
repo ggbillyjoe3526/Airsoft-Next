@@ -19,8 +19,11 @@ func breathes(r: ReplicaConfig) -> bool:
 	return r != null and _cfg.gas_powers.has(r.power)
 
 
-## A shot's breath: from `muzzle`, fired along `way` by someone whose eye is at `eye` (the port sits between them).
-func shot(muzzle: Vector3, eye: Vector3, way: Vector3) -> void:
+## A shot's breath: from `muzzle`, fired along `way` by someone whose eye is at `eye` (the port sits between them),
+## seen from `viewer`: none beyond EffectsConfig.gas_range of it.
+func shot(muzzle: Vector3, eye: Vector3, way: Vector3, viewer: Vector3) -> void:
+	if muzzle.distance_squared_to(viewer) > _cfg.gas_range * _cfg.gas_range:
+		return
 	var right := way.cross(Vector3.UP)
 	right = right.normalized() if right.length_squared() > 0.0 else Vector3.RIGHT
 	_spawn(muzzle, way * _cfg.gas_muzzle_speed, _cfg.gas_radius, _cfg.gas_colour)
