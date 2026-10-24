@@ -33,7 +33,7 @@ func _playing() -> Array[String]:
 
 
 func test_gravel_is_appended_so_no_older_surface_moves() -> void:
-	assert_eq(RayHit.Surface.values(), [0, 1, 2, 3, 4, 5])
+	assert_eq(RayHit.Surface.values().slice(0, 6), [0, 1, 2, 3, 4, 5], "grass and leaves come after it")
 	assert_eq(RayHit.Surface.GRAVEL, 5)
 	assert_eq(RayHit.Surface.EARTH, 4)
 

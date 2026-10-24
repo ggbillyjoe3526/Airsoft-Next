@@ -331,22 +331,18 @@ flagpole stands in the walled loading bay. Three lanes lead there: **Dock Road**
 
 ### Woodland (dev content)
 
-A wide wood at night: 120 × 80 m on a gentle slope up to the Knoll and its log fort, with three lanes (Pine Belt,
-Meadow, Creek with the cabin). 5v5 by default, or 6v6. Turn on Settings › Dev › Dev content, then pick it on Play.
+A wide wood: 120 × 80 m on a gentle slope up to the Knoll and its log fort, with three lanes (Pine Belt, Meadow,
+Creek with the cabin). Turn on Settings › Dev › Dev content, then pick it on Play. Step 26 builds it in greybox: since
+WL1 it loads and plays by day at today's team size (3v3); night, bushes, the torch and 5v5 / 6v6 follow (WL2 to WL10).
 
+- [ ] **Walk the slopes (WL1).** Run up, down and across the Knoll's west face and West Hill: no jump is ever needed,
+  you never slide when you stop or stand crouched on the face, your feet stay on the ground going downhill, and
+  across the steepest face you keep your line.
+- [ ] **Ground you can hear (WL1).** Grass in the meadow, leaf litter under the pines, earth on the paths, the fort
+  and the camps, gravel in the ravine bed: each step sounds like what you see, and a BB into any of them puffs and
+  thuds as earth, never bouncing.
 - [ ] **Hidden starts (M88).** From either camp, and for the first steps out of it, you can't see the other team (the
   West Rise hides the west camp, the Knoll the east). Play both halves.
-- [ ] **The night.** A dark sky under a low moon, flickering camp fires, glowing lanterns; on Medium and up the
-  nearest ones light players too.
-- [ ] **Bushes** hide you from bots when you're deep in or behind one; you walk through them; the minimap draws them.
-- [ ] **Bushes stop BBs (FO1).** A BB into a bush's middle never comes out, with a leafy rustle and falling leaves;
-  through the edge it comes out off its line and slower. Fire from deep inside: "Leaves in the way · step clear to
-  shoot". A Normal bot holds fire until it has a clearer line; an Easy one fires into the leaves.
-- [ ] **Night sight.** Bots see about 40 m into a light pool, 25 m in the open and 10 m under the trees; fires and
-  lanterns give you away.
-- [ ] **The look and sound.** Bark trunks, log walls and log piles, plank fences, a gravel ravine bed; wind in the
-  pines, insects, a distant owl, a crackle at each fire, and footsteps that sound like the ground, as loud as on
-  concrete.
 - [ ] **The meadow and the fort (WL2).** No lone oak in the middle and no boulders anywhere: the meadow has fallen
   trunks and the three climbs to the fort have log piles you can stand behind. The fort's outer walls are chest high
   (1.5 m): stand to shoot over, crouch to hide. The hut is taller, under a grey tin roof like the cabin's, and the flag
@@ -354,6 +350,23 @@ Meadow, Creek with the cabin). 5v5 by default, or 6v6. Turn on Settings › Dev 
 - [ ] **West Hill and the ravine (WL3).** From the Knoll by the east camp you can't see over West Hill into the west
   camp. The meadow has one low swell. The creek lane runs along a dry ravine, deeper from the middle of the field east;
   every slope walks, none needs a jump.
+- [ ] **Bots on the slopes (WL1).** Bots walk all three lanes up to the fort and fight on the hill; none gets stuck on
+  a slope or a log. The minimap draws the whole field as ground with the trees, logs and fence on it.
+
+Once the rest of step 26 lands:
+
+- [ ] **The night (WL3).** A dark sky under a low moon, flickering camp fires, glowing lanterns; on Medium and up the
+  nearest ones light players too.
+- [ ] **Bushes (WL5)** hide you from bots when you're deep in or behind one; you walk through them; the minimap draws
+  them.
+- [ ] **Bushes stop BBs (WL5, FO1).** A BB into a bush's middle never comes out, with a leafy rustle and falling
+  leaves; through the edge it comes out off its line and slower. Fire from deep inside: "Leaves in the way · step
+  clear to shoot". A Normal bot holds fire until it has a clearer line; an Easy one fires into the leaves.
+- [ ] **Night sight (WL6).** Bots see about 40 m into a light pool, 25 m in the open and 10 m under the trees; fires
+  and lanterns give you away.
+- [ ] **The look and sound (the owner's models).** Bark trunks, log walls and log piles, plank fences; wind in the
+  pines, insects, a distant owl, a crackle at each fire.
+- [ ] **5v5 and 6v6 (WL2)**, the torch (WL7) and glowing BBs (WL8): their checks come with them.
 
 ### Neon Heights (the Maps Update)
 

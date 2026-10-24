@@ -96,6 +96,16 @@ class SlopeMover:
 		return -gap if gap <= max_drop else NAN
 
 
+## Pushes every move `push` sideways, as Jolt pushes a body set down into sloping ground out of it.
+class PushMover:
+	extends FlatMover
+
+	var push: Vector3 = Vector3(0.05, 0.0, 0.0)
+
+	func move(c: Character, d: Vector3) -> Vector3:
+		return super(c, d) + push
+
+
 func _character(at: Vector3 = Vector3.ZERO, yaw: float = 0.0) -> Character:
 	return Character.new(0, 0, at, yaw)
 
@@ -326,6 +336,26 @@ func test_never_turns_a_push_out_of_geometry_into_upward_speed() -> void:
 	var c := _character(Vector3(0.0, 1.0, 0.0))
 	_run(c, PlayerCommand.new(), 5, WedgeMover.new())
 	assert_lte(c.velocity.y, 0.0)
+
+
+func test_never_turns_a_push_out_of_geometry_into_speed_along_the_ground() -> void:
+	# Standing still: the push moves the body but leaves it no speed to slide on.
+	var mover := PushMover.new()
+	var c := _character()
+	_run(c, PlayerCommand.new(), 1, mover)
+	assert_almost_eq(c.position.x, 0.05, 1e-6, "pushed out")
+	assert_eq(_speed(c), 0.0, "no speed from the push")
+	mover.push = Vector3.ZERO
+	var rest := c.position
+	_run(c, PlayerCommand.new(), 300, mover)
+	assert_eq(c.position, rest, "still for five seconds after it")
+	# Running: no faster than the run for being pushed.
+	_run(c, _forward(), 60, mover)
+	var run := _speed(c)
+	assert_almost_eq(run, Movement.target_speed(c, cfg, false), 1e-4)
+	mover.push = Vector3(0.05, 0.0, 0.0)
+	_run(c, _forward(), 1, mover)
+	assert_lte(_speed(c), run + 1e-6)
 
 
 func test_stands_again_the_tick_after_the_probe_misses_a_floor_once() -> void:

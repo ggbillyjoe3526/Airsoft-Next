@@ -17,10 +17,18 @@ func after_each() -> void:
 	cfg = null
 
 
-func test_a_map_with_only_ramps_draws_nothing() -> void:
+func test_a_map_with_only_ramps_draws_nothing_and_one_on_terrain_its_ground() -> void:
 	var woodland := MapData.load_map("woodland", MapStyle.new(), 1)
-	assert_true(woodland.problems.has("no floor"), "woodland has ramps but no floor block")
-	assert_false(MinimapField.drawn(woodland), "no floor, no field")
+	assert_true(MinimapField.drawn(woodland), "its terrain is its ground")
+	var drawn := MinimapField.build(woodland, cfg)
+	assert_eq(drawn.layers.size(), 1)
+	var meadow := drawn.layers[0].get_pixelv(Vector2i(drawn.pixel_of(-20.0, 5.0)))
+	var want := cfg.ground_colour
+	# An image keeps a colour in bytes.
+	assert_lt(Vector4(meadow.r - want.r, meadow.g - want.g, meadow.b - want.b, meadow.a - want.a).length(), 0.01,
+			"open meadow draws as ground: %s" % meadow)
+	woodland.terrain = null
+	assert_false(MinimapField.drawn(woodland), "its roof ramps alone are no field")
 	assert_true(MinimapField.build(woodland, cfg).layers.is_empty())
 	var ramp := _field([_blk("ramp", 0, 0.5, 0, 4, 1, 4, "+x")])
 	assert_true(ramp.layers.is_empty(), "a ramp alone is not a floor")

@@ -114,7 +114,8 @@ func in_enemy_half(b: Bot) -> bool:
 ## A walkable spot worth checking for `b`'s team into b.hunt_goal: of a few random walkable spots, the one in the sector
 ## the team checked longest ago (a check older than the skill's hunt_memory counts as never), nearer the middle of the
 ## field first: there the other team, sweeping its own lane the other way, comes back through. A spot the bot sees empty
-## from where it stands is checked there and then, and picked only if every spot drawn was one. False if none turned up.
+## from where it stands is checked there and then, and picked only if every spot drawn was one. Spots in a region of the
+## nav grid the bot's can't reach are drawn again. False if none turned up.
 func hunt_point(b: Bot, w: BotWorld) -> bool:
 	var cfg := w.cfg
 	var team := b.character.team
@@ -124,10 +125,14 @@ func hunt_point(b: Bot, w: BotWorld) -> bool:
 	var in_view := INF
 	var found := 0
 	var tries := 0
+	var home := w.nav.nearest_walkable(b.character.position, w.nav.snap)
 	while found < cfg.hunt_candidates and tries < cfg.hunt_candidates * cfg.hunt_tries_per_candidate:
 		tries += 1
 		var spot := Vector3(b.rng.randf_range(bounds_lo.x, bounds_hi.x), top_y, b.rng.randf_range(bounds_lo.y, bounds_hi.y))
 		if not w.nav.is_walkable_at(spot):
+			continue
+		# A spot no route reaches (a roof): drawn again.
+		if home >= 0 and not w.nav.linked(home, w.nav.node_at(spot), true):
 			continue
 		found += 1
 		spot.y = w.nav.floor_at(spot)

@@ -89,6 +89,10 @@ func test_a_greyed_map_card_ignores_the_keyboard() -> void:
 	var page := MatchPage.new(MatchPicks.new(), settings)
 	add_child_autofree(page)
 	await wait_process_frames(1)
+	# Every map loads at today's team size since WL1; four a side is more than Depot's three spawns an end.
+	page._tuning = SimTuning.load_default().duplicate(true)
+	page._tuning.rounds.team_size = 4
+	page._list_maps()
 	var greyed := ""
 	for id in page.map_ids():
 		if page.is_unloadable(id):
@@ -109,7 +113,7 @@ func test_a_greyed_map_card_ignores_the_keyboard() -> void:
 	# Mode cards that are not built stay dead too.
 	assert_eq(page.picks.bots, "normal")
 	assert_true(page.mode_card("practice").disabled)
-	assert_false(page.mode_card("attack_defend").disabled, "Depot has a pole")
+	assert_false(page.mode_card("attack_defend").disabled, "the playable pick has a pole")
 
 
 func test_dev_content_off_with_a_dev_map_picked_keeps_a_playable_pick_and_play_enabled() -> void:

@@ -89,9 +89,7 @@ const KNOWN_FAILING: Dictionary[String, Array] = {
 }
 
 ## Fields the game refuses today, by field id: each {"reason", "step"}, the step that makes the file load.
-const NOT_YET: Dictionary[String, Dictionary] = {
-	"woodland": {"reason": "refused (\"no floor\"): its ground is terrain, not blocks", "step": "step 26 (Woodland)"},
-}
+const NOT_YET: Dictionary[String, Dictionary] = {}
 
 
 ## The block pairs the owner allows to clash on `field_id`.

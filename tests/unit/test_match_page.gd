@@ -1,7 +1,8 @@
 extends GutTest
 ## The Match page, the loading screen and the seed on the pause menu (MN2): the rules as chips read from the round
-## tuning, the modes a map hosts, the team you really play, a map that can't load greyed, the staged build behind the
-## loading screen, and the picks kept across the menus being freed for a match.
+## tuning, the modes a map hosts, the team you really play, Woodland (dev) listed and picked like Neon Heights, a map
+## that can't load greyed, the staged build behind the loading screen, and the picks kept across the menus being freed
+## for a match.
 
 const MAIN := preload("res://game/main.tscn")
 
@@ -123,21 +124,36 @@ func test_pro_is_offered_without_dev_content_and_named_in_the_summary() -> void:
 
 # --- maps ---
 
-func test_dev_maps_are_tagged_and_a_map_that_cant_load_is_greyed_with_later() -> void:
+func test_dev_maps_are_tagged_and_woodland_plays_like_neon_heights() -> void:
 	var page := _page(true)
-	assert_eq(page.map_ids(), PackedStringArray(["depot", "neonHeights", "range", "woodland"]))
-	assert_true(_labels(page.map_card("neonHeights")).has("DEV"))
+	assert_eq(page.map_ids(), PackedStringArray(["depot", "woodland", "neonHeights", "range"]))
+	for id: String in ["woodland", "neonHeights"]:
+		assert_true(_labels(page.map_card(id)).has("DEV"), id)
+		assert_false(_labels(page.map_card(id)).has("LATER"), id)
+		assert_false(page.is_unloadable(id), id)
 	assert_false(_labels(page.map_card("depot")).has("DEV"))
 	assert_false(page.is_unloadable("depot"))
-	assert_false(page.is_unloadable("neonHeights"))
-	var woodland := page.map_card("woodland")
-	assert_true(page.is_unloadable("woodland"), "MapData refuses it until its step")
-	assert_true(woodland.disabled)
-	assert_lt(woodland.modulate.a, 1.0)
-	var words := _labels(woodland)
-	assert_true(words.has("DEV") and words.has("LATER"))
-	assert_false(MatchOptions.map_problems("woodland", PlayTuning.load_default().map_style, 3).is_empty())
-	assert_true(MatchOptions.map_problems("depot", PlayTuning.load_default().map_style, 3).is_empty())
+	for id: String in ["depot", "woodland"]:
+		assert_true(MatchOptions.map_problems(id, PlayTuning.load_default().map_style, 3).is_empty(), id)
+	page.map_card("woodland").pressed.emit()
+	assert_eq(page.picks.map_id, "woodland")
+	assert_true(page.summary_text().begins_with("Woodland · "))
+
+
+func test_a_map_that_cant_load_is_greyed_with_later_and_listed_last() -> void:
+	var page := _page(true)
+	# Four a side: more than Depot's three spawns an end, so MapData refuses it.
+	page._tuning = SimTuning.load_default().duplicate(true)
+	page._tuning.rounds.team_size = 4
+	page._list_maps()
+	assert_eq(page.map_ids(), PackedStringArray(["woodland", "neonHeights", "range", "depot"]))
+	var depot := page.map_card("depot")
+	assert_true(page.is_unloadable("depot"))
+	assert_true(depot.disabled)
+	assert_lt(depot.modulate.a, 1.0)
+	assert_true(_labels(depot).has("LATER"))
+	assert_false(MatchOptions.map_problems("depot", PlayTuning.load_default().map_style, 4).is_empty())
+	assert_ne(page.picks.map_id, "depot", "the pick moves to a map that can play")
 
 
 func test_no_dev_maps_listed_with_dev_content_off() -> void:
@@ -157,7 +173,7 @@ func test_picking_a_map_lights_its_card_and_the_summary() -> void:
 
 func test_a_picked_map_that_is_no_longer_listed_falls_back_to_a_playable_one() -> void:
 	var picks := MatchPicks.new()
-	picks.map_id = "woodland"
+	picks.map_id = "woodland" # dev content is off: not listed
 	var page := MatchPage.new(picks, Settings.new())
 	add_child_autofree(page)
 	assert_eq(picks.map_id, "depot")
@@ -319,9 +335,31 @@ func test_a_staged_build_reports_every_step_then_starts_once_drawn() -> void:
 	assert_gt(session.ticks(), 0, "the match runs once built")
 
 
-func test_a_staged_refused_map_still_starts_so_the_loading_screen_goes() -> void:
+func test_woodland_builds_staged_at_today_s_team_size_and_runs() -> void:
 	var session := PlaySession.new()
 	session.map_id = "woodland"
+	session.autopilot = true
+	session.staged = true
+	watch_signals(session)
+	add_child_autofree(session)
+	var frames := 0
+	while get_signal_emit_count(session, "started") == 0 and frames < 30:
+		await wait_process_frames(1)
+		frames += 1
+	assert_signal_emit_count(session, "started", 1)
+	assert_not_null(session.state, "Woodland loads and builds")
+	if session.state == null:
+		return
+	assert_eq(session.state.characters.size(), SimTuning.load_default().rounds.team_size * 2)
+	await wait_physics_frames(30)
+	assert_gt(session.ticks(), 0, "the match runs")
+	for c in session.state.characters:
+		assert_true(c.grounded, "%d stands on the ground" % c.id)
+
+
+func test_a_staged_refused_map_still_starts_so_the_loading_screen_goes() -> void:
+	var session := PlaySession.new()
+	session.map_id = "nowhere" # no such file: refused
 	session.staged = true
 	watch_signals(session)
 	add_child_autofree(session)

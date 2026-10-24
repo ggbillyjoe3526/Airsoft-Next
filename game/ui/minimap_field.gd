@@ -1,10 +1,11 @@
 class_name MinimapField
 extends RefCounted
 ## The minimap's field drawing (the browser game's minimap layers, M23 and M34c): made once per match from MapData, one
-## Image per storey (one on a map without storeys) at MinimapConfig.layer_scale px/m over the map's floors, north (-z)
-## up: ground, raised floors (with a dark rim where they drop), ramps, low cover and tall walls. A storey's image leaves
-## out the blocks starting more than storey_cut above its floor and washes everything below its floor darker. Built on
-## the CPU (no renderer needed); nothing on the range. The images go with this object: drop it with the session.
+## Image per storey (one on a map without storeys) at MinimapConfig.layer_scale px/m over the map's floors and sloping
+## ground, north (-z) up: ground (sloping ground all of it), raised floors (with a dark rim where they drop), ramps,
+## low cover and tall walls. A storey's image leaves out the blocks starting more than storey_cut above its floor and
+## washes everything below its floor darker. Built on the CPU (no renderer needed); nothing on the range. The images go
+## with this object: drop it with the session.
 
 ## A pixel's middle, from its corner.
 const HALF := 0.5
@@ -34,7 +35,7 @@ class Piece:
 	var order: int = 0
 
 
-## The drawing of `map` by `cfg`'s rules and colours: no layers on the range or a map with no floor.
+## The drawing of `map` by `cfg`'s rules and colours: no layers on the range or a map with no floor or terrain.
 static func build(map: MapData, cfg: MinimapConfig) -> MinimapField:
 	var f := MinimapField.new()
 	f._pick = cfg.storey_pick
@@ -53,12 +54,15 @@ static func build(map: MapData, cfg: MinimapConfig) -> MinimapField:
 	return f
 
 
-## Whether `map` gets a drawing: a field with a floor or ramp, never the range (its targets).
+## Whether `map` gets a drawing: a field with a floor or terrain, never the range (its targets). Ramps alone (roofs)
+## draw nothing.
 static func drawn(map: MapData) -> bool:
 	if not map.targets.is_empty():
 		return false
+	if map.terrain != null:
+		return true
 	for b in map.blocks:
-		if b.kind == &"floor": # ramps alone (Woodland's terrain until step 26) draw nothing
+		if b.kind == &"floor":
 			return true
 	return false
 
@@ -111,6 +115,11 @@ func _draw(map: MapData, cfg: MinimapConfig, index: int, bases: PackedFloat64Arr
 	var colours := _palette(cfg, false)
 	var washed := _palette(cfg, true)
 	var img := Image.create_empty(side.x, side.y, false, Image.FORMAT_RGBA8)
+	var t := map.terrain
+	if t != null:
+		# Sloping ground is all ground: walkable everywhere, under whatever stands on it.
+		_fill(img, _rect(t.min_x, t.min_z, t.max_x(), t.max_z()), washed[Look.GROUND] if has_below
+				else colours[Look.GROUND])
 	var edge := maxi(roundi(cfg.drop_edge * scale), 1)
 	for p in pieces:
 		_fill(img, _block_rect(p.block), washed[p.look] if p.below else colours[p.look])
@@ -217,10 +226,13 @@ static func _is_floor(b: MapData.Block) -> bool:
 	return b.kind == &"floor" or b.kind == &"ramp"
 
 
-## The plan box (x in x, z in y) holding every floor and ramp of `map`.
+## The plan box (x in x, z in y) holding every floor and ramp of `map` and its terrain.
 static func _floor_bounds(map: MapData) -> Rect2:
 	var lo := Vector2(INF, INF)
 	var hi := Vector2(-INF, -INF)
+	if map.terrain != null:
+		lo = Vector2(map.terrain.min_x, map.terrain.min_z)
+		hi = Vector2(map.terrain.max_x(), map.terrain.max_z())
 	for b in map.blocks:
 		if _is_floor(b):
 			lo = lo.min(Vector2(b.center.x - b.size.x * 0.5, b.center.z - b.size.z * 0.5))
