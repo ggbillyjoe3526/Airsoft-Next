@@ -139,6 +139,9 @@ func test_smoke_from_medium_and_frozen_under_reduced_motion() -> void:
 		return
 	var table := GraphicsTable.shared()
 	assert_false(SkylineView.smokes(table.preset(&"low")), "Low: no smoke")
+	var mats := view.materials()
+	assert_eq(mats.size(), 2, "the pieces' and the smoke's materials, for ShaderPrewarm")
+	assert_false(mats.has(null))
 	for preset: StringName in [&"medium", &"high", &"ultra"]:
 		assert_true(SkylineView.smokes(table.preset(preset)), preset)
 	view.set_smoke(true)

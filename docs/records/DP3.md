@@ -68,12 +68,15 @@ hidden then shown, at three eye-level spots (Crate yard east, Bay north-west, Ma
 | Preset | Triangles added | Draw calls (off → on) | Frame time off → on |
 |---|---|---|---|
 | Low | 4,542 (the mesh) | 1 → 2 | 57.7–64.5 → 62.4–63.6 ms (−3 to +9 %) |
-| Medium | 4,674 (mesh and 66 smoke puffs) | 5 → 7 | 382–421 → 397–450 ms (+4 to +7 %) |
-| High | 4,674 | 5 → 7 | 453–537 → 485–585 ms (+7 to +11 %) |
-| Ultra | 4,674 | 5 → 7 | 549–633 → 586–674 ms (+6 to +8 %) |
+| Medium | 4,626 (mesh and 42 smoke puffs) | 5 → 7 | 382–421 → 397–450 ms (+4 to +7 %) |
+| High | 4,626 | 5 → 7 | 453–537 → 485–585 ms (+7 to +11 %) |
+| Ultra | 4,626 | 5 → 7 | 549–633 → 586–674 ms (+6 to +8 %) |
 
 The software renderer's time is fill and vertex cost on the CPU, not a GPU's: the smoke's large soft puffs are most of
 the added fill. Video memory is unchanged (25.5, 41.4 and 79.8 MB by preset).
+
+Frame times were measured with 22 puffs a chimney up to 8 m; after the performance review the smoke is 14 puffs up to
+6 m (about half the fill), so the Medium-and-up figures above are an upper bound.
 
 ## Pictures
 
@@ -102,6 +105,19 @@ config written in, for `test_saved_configs`), `assets/maps/depot.jpg` and `range
 `tools/check.sh` (2026-10-24, on the final tree): every gate passes (gdlint, changelog notes, unit tests 2,866 of
 2,866, the smoke test, licence notices); `test_skyline` 8/8 in 0.44 s. The field checks (`test_field_rules`,
 `test_field_layout`) pass with Depot's lists empty: the skyline adds no block.
+
+## Follow-up fixes
+
+- **A flag written as text no longer stops the map** (QA, blocking): `turned` and `smoke` are read like the numbers; a
+  value that isn't true or false warns and leaves the piece out (`test_dp3_qa`).
+- **The skyline's materials are warmed** (QA advisory): `SkylineView.materials` (the pieces' and the smoke's) go to
+  ShaderPrewarm, so neither the match open nor a Low to Medium switch compiles them on first sight.
+- **Lighter smoke** (performance): 14 puffs a chimney up to 6 m instead of 22 up to 8; the plumes still read
+  (pictures re-taken). Reduced motion's frozen plumes: the performance review's Xvfb render shows preprocess fills
+  them at speed 0, so no change.
+- `test_play_session`'s prewarm count now counts the skyline's two materials; QA's `test_dp3_qa` loop variable renamed
+  for gdlint. `tools/check.sh` after the fixes (2026-10-24): every gate passes, unit tests 2,876 of 2,876 in 868.4 s
+  (`test_skyline` 8/8, `test_dp3_qa` 10/10, `test_play_session` 14/14).
 
 ## Known issues left
 

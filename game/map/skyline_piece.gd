@@ -40,6 +40,11 @@ static func read(dressing: Variant, warnings: Array[String]) -> Array[SkylinePie
 		var kind := StringName(str(d.get("kind", "")))
 		if not kind in KINDS:
 			continue
+		var turned := _flag(d, "turned")
+		var smokes := _flag(d, "smoke")
+		if turned < 0 or smokes < 0:
+			warnings.append("skyline entry %d (%s): turned and smoke are true or false; left out" % [i, kind])
+			continue
 		var p := SkylinePiece.new()
 		p.kind = kind
 		p.height = _number(d, "height")
@@ -55,7 +60,7 @@ static func read(dressing: Variant, warnings: Array[String]) -> Array[SkylinePie
 			p.at = Vector2(_number(d, "x"), _number(d, "z"))
 			p.width = _number(d, "width")
 			p.depth = _number(d, "depth")
-			if bool(d.get("turned", false)):
+			if turned == 1:
 				var w := p.width
 				p.width = p.depth
 				p.depth = w
@@ -66,7 +71,7 @@ static func read(dressing: Variant, warnings: Array[String]) -> Array[SkylinePie
 		if c is float or c is int:
 			p.colour = Color.hex((int(c) << 8) | 0xff)
 			p.has_colour = true
-		p.smoke = bool(d.get("smoke", false))
+		p.smoke = smokes == 1
 		out.append(p)
 	return out
 
@@ -79,6 +84,14 @@ func colour_or(own: Color) -> Color:
 static func _number(d: Dictionary, key: String) -> float:
 	var v: Variant = d.get(key)
 	return float(v) if v is float or v is int else NAN
+
+
+## A flag in the file: 1 true, 0 false or absent, -1 anything else (text, a number).
+static func _flag(d: Dictionary, key: String) -> int:
+	var v: Variant = d.get(key, false)
+	if v is bool:
+		return 1 if v else 0
+	return -1
 
 
 static func _any_nan(pts: PackedVector2Array) -> bool:

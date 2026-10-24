@@ -112,6 +112,15 @@ func mesh() -> ArrayMesh:
 	return _mesh.mesh as ArrayMesh
 
 
+## The materials it draws, for ShaderPrewarm: the pieces' and, with chimneys seen, the smoke's (drawn only from
+## Medium, so its first draw would otherwise come mid-match).
+func materials() -> Array[Material]:
+	var out: Array[Material] = [_mesh.material_override]
+	if _smoke != null:
+		out.append((_smoke.draw_pass_1 as PrimitiveMesh).material)
+	return out
+
+
 ## The chimneys' smoke, or null on a skyline with none seen.
 func smoke() -> GPUParticles3D:
 	return _smoke

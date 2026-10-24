@@ -147,12 +147,12 @@ extends Resource
 ## `smoke_spread` degrees, growing from `smoke_size_from` to `smoke_size_to` m and fading out; the wind bends them
 ## (`smoke_wind_share` of the match's wind, at least `smoke_breeze` m/s along x), followed every `smoke_refresh` s.
 ## `smoke_night` darkens them under a night light. Drawn from Medium; frozen under Reduced motion.
-@export var smoke_puffs: int = 22
+@export var smoke_puffs: int = 14
 @export var smoke_life: float = 9.0
 @export var smoke_rise: float = 16.0
 @export var smoke_spread: float = 8.0
 @export var smoke_size_from: float = 2.2
-@export var smoke_size_to: float = 8.0
+@export var smoke_size_to: float = 6.0
 @export var smoke_opacity: float = 0.55
 @export var smoke_fade_in: float = 0.08
 @export var smoke_colour: Color = Color("ece9e3")

@@ -501,6 +501,8 @@ func _build_views(ui: CanvasLayer) -> void:
 		first_use.append_array(_flag.materials())
 	first_use.append_array(_hands.prewarm_glass())
 	first_use.append_array(range_materials)
+	if _skyline != null:
+		first_use.append_array(_skyline.materials())
 	var warm := ShaderPrewarm.new()
 	warm.setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE), figure_materials)
 	warm.tree_exited.connect(_on_shaders_warmed, CONNECT_ONE_SHOT)

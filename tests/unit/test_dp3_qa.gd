@@ -35,12 +35,12 @@ func _config_colours(cfg: SkylineConfig) -> Dictionary[String, Color]:
 func _team_like(colours: Dictionary[String, Color], teams: Array[Color]) -> Array[String]:
 	var bad: Array[String] = []
 	var far := play.lighting.sky_horizon.srgb_to_linear()
-	for name_: String in colours:
-		var own := colours[name_].srgb_to_linear()
+	for key: String in colours:
+		var own := colours[key].srgb_to_linear()
 		for step in 8:
 			var c := own.lerp(far, play.skyline.fade_most * step / 7.0).linear_to_srgb()
 			if FieldChecks.reads_as_team(c, teams):
-				bad.append(name_)
+				bad.append(key)
 				break
 	return bad
 
