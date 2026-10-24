@@ -4,31 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## DP2 · Baked light on Depot (Dev)
-when: build order step 25, after DP1
-tier: core
-perf: required
-touches: tools/bake_light.gd, game/map/map_level.gd, game/map/map_data.gd, game/config/, assets/maps/bakes/,
-  game/save/graphics_apply.gd, data/graphics.md, game/ui/text/en.po, tests/unit/test_baked_light.gd,
-  docs/KNOWN_ISSUES.md, docs/DECISIONS.md
-contract: Simulation and presentation (1); Data, not literals (6)
-acceptance:
-  1. `tools/bake_light.gd` (dev, never exported) bakes, for each vertex of the level mesh tiled at 0.5 m, the sky's
-     occlusion and one warm bounce of the sun off the ground and walls into a resource under `assets/maps/bakes/`,
-     named by the map's `bakedLight.file` and holding the hash of the blocks it was baked from. Two runs write the
-     same bytes.
-  2. MapLevel draws the bake as vertex colour on the tiled mesh, still one draw call. A map with no `bakedLight`
-     draws exactly as before (pinned). A test fails when a map's blocks no longer match its bake's hash ("rebake
-     with tools/bake_light.gd").
-  3. Occlusion and bounce are stored apart, so a night preset (step 26) can use the occlusion alone.
-  4. A Graphics row, Baked light (off, on): off on Low, on from Medium. Low keeps today's untiled mesh. Switching it
-     mid-match rebuilds the mesh only.
-  5. The record gives Depot's triangles and frame time with and without it, the bake's time and the file's size
-     against the install budget. Figures are not lit by the bake: a KNOWN_ISSUES row. Pictures of the Box, a port
-     wall and the Office's corners with the bake on and off are posted.
-status: open
-attempts: 0
-
 ## DP3 · Depot's skyline and landmarks (Dev)
 when: build order step 25, after DP1
 tier: core

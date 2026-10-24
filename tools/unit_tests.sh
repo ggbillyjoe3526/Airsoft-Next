@@ -10,9 +10,9 @@ LOG="${UNIT_LOG:-unit.log}"
 # Always import first, so a new class_name or asset is known to the tests whatever ran before.
 "$GODOT" --headless --path . --import > import.log 2>&1
 
-# The whole suite takes about ten minutes on a cloud session (605 s at GR5); the limit only catches a hang, inside the
-# CI job's 20 minutes.
-timeout 900 "$GODOT" --headless --path . -s res://addons/gut/gut_cmdln.gd 2>&1 | tee "$LOG"
+# The whole suite takes about ten minutes in CI and up to 880 s on a busy cloud session (DP2); the limit only catches
+# a hang, inside the CI job's 20 minutes.
+timeout 1080 "$GODOT" --headless --path . -s res://addons/gut/gut_cmdln.gd 2>&1 | tee "$LOG"
 status=${PIPESTATUS[0]}
 if grep -qE "SCRIPT ERROR|Parse Error" "$LOG"; then
   echo "FAIL: script errors during the unit tests (see $LOG)"; exit 1

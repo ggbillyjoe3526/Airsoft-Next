@@ -25,7 +25,7 @@ never stops the game from starting.
   `gl_compatibility` (the simpler one, for older cards), or `all`. A row the renderer in use can't draw is greyed.
 - **Low, Medium, High, Ultra** are each preset's value: one of the row's choices, or a number in its range.
 - **The choices the game knows:** upscaler `bilinear, fsr1, fsr2`; edge smoothing `off, fxaa, smaa, msaa_2x, msaa_4x`;
-  temporal smoothing and sun shadows `off, on`; shadow detail `1024, 2048, 4096, 8192` (the sun's shadow map, in
+  temporal smoothing, sun shadows and baked light `off, on`; shadow detail `1024, 2048, 4096, 8192` (the sun's shadow map, in
   pixels); shadow softness `hard, soft, softer, softest`; ambient occlusion `off, half, full`; texture filtering
   `off, 2x, 4x, 8x, 16x`; mesh detail `low, medium, high, ultra`. Render scale is 10–200 % at most, shadow range 10–500
   m and wind dust 0–100 %.
@@ -43,12 +43,16 @@ never stops the game from starting.
 | shadow_softness | GRAPHICS_SHADOW_SOFTNESS | hard, soft, softer, softest | 1 | all | hard | soft | softer | softest |
 | shadow_range | GRAPHICS_SHADOW_RANGE | 30–120 m | 1 | all | 40 m | 50 m | 70 m | 100 m |
 | ambient_occlusion | GRAPHICS_AMBIENT_OCCLUSION | off, half, full | 3 | forward_plus | off | off | half | full |
+| baked_light | GRAPHICS_BAKED_LIGHT | off, on | 1 | all | off | on | on | on |
 | texture_filtering | GRAPHICS_TEXTURE_FILTERING | off, 2x, 4x, 8x, 16x | 1 | all | 2x | 4x | 16x | 16x |
 | mesh_detail | GRAPHICS_MESH_DETAIL | low, medium, high, ultra | 1 | all | low | medium | high | ultra |
 | wind_dust | GRAPHICS_WIND_DUST | 0–100 % | 0 | all | 0 % | 50 % | 100 % | 100 % |
 
-- **Low** holds 60 FPS on modern low-powered hardware: no sun shadows, ambient occlusion or dust, and an 80 % render
-  scale sharpened back up by FSR 1.
+- **Low** holds 60 FPS on modern low-powered hardware: no sun shadows, ambient occlusion, baked light or dust, and an
+  80 % render scale sharpened back up by FSR 1.
+- **Baked light** is the map's sky shade in corners and under roofs and the sun's warm bounce off the ground and walls,
+  worked out ahead by `tools/bake_light.gd` and drawn on the map's mesh cut into half-metre tiles (more triangles, no
+  other cost). A map with no bake draws the same either way.
 - **Ultra** is High with the sharpest, softest and farthest shadows, full ambient occlusion and the finest mesh
   detail. It adds no new effect.
 - **Temporal smoothing** is off on every preset: it smears the thin, fast BB streaks. It and FSR 2 are there for

@@ -53,6 +53,8 @@ var areas: Array[MapAreas.Area] = []
 ## The field's sound (`ambience` in the file): one of AmbienceConfig.IDS; a map naming none plays the default (the
 ## yard), and one naming an unknown id plays it too, with a warning.
 var ambience: StringName = AmbienceConfig.DEFAULT_ID
+## The bake of its light (`bakedLight.file` in the file: BakeConfig.path_for), or empty for a map drawn without one.
+var baked_light_file: String = ""
 ## The floor heights (m) of a map built in storeys, lowest first (Neon Heights' 0, 3 and 6); empty on a map of one.
 var storeys: PackedFloat64Array = PackedFloat64Array()
 ## Why the file was refused; empty when it loaded.
@@ -97,6 +99,7 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m.areas = MapAreas.read(d.get("areas"), m.warnings)
 	m._read_storeys(d.get("storeys"))
 	m._read_ambience(d.get("ambience"))
+	m._read_baked_light(d.get("bakedLight"))
 	for w in m.warnings:
 		push_warning("MapData: " + w)
 	var pole: Variant = d.get("flag")
@@ -296,6 +299,17 @@ func _read_ambience(raw: Variant) -> void:
 		ambience = named
 	else:
 		warnings.append("ambience %s is not one of %s; playing %s" % [raw, AmbienceConfig.IDS, ambience])
+
+
+## Baked light is optional: a map naming no file is drawn without it.
+func _read_baked_light(raw: Variant) -> void:
+	if raw == null:
+		return
+	var file: Variant = (raw as Dictionary).get("file") if raw is Dictionary else null
+	if file is String and (file as String).is_valid_filename():
+		baked_light_file = file
+	else:
+		warnings.append("bakedLight is not {\"file\": a file name}; drawn without it")
 
 
 static func _spots(list: Variant) -> Array[SpawnPoint]:
