@@ -57,7 +57,7 @@ pull request that builds them.
    view angles. Bots read state and fill commands before the step; nothing else moves a character.
 3. **Events.** The tick's events (shots, hits, calls, round changes) are the only channel from the simulation to
    sound, HUD and effects.
-4. **Physics behind two interfaces.** The simulation asks `WorldQuery` (rays, what is underfoot) and moves characters through
+4. **Physics behind two interfaces.** The simulation asks `WorldQuery` (rays, what is underfoot, what its boxes are) and moves characters through
    `CharacterMover`; only their Jolt implementations call `PhysicsServer3D` or physics nodes. `BoxWorld` answers both headless; on a map
    `JoltQuery` and `JoltMover` (`game/map/`) do.
 5. **Seeded randomness.** Every random draw comes from a seeded stream owned by the match (bots and wind have their

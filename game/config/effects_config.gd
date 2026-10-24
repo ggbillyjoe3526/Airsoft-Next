@@ -21,6 +21,9 @@ extends Resource
 ])
 @export var hit_puff_colour: Color = Color(1.0, 1.0, 1.0, 0.9)
 @export var hit_puff_scale: float = 1.6
+## A run into a noisy prop (PROP_KNOCK, NP1): a puff of the prop's dust (its surface's colour) where it was hit, this
+## many times a BB's (the browser game's PROP_BUMP_DUST), so the knock shows from across the yard. Dust, never debris.
+@export var knock_puff_scale: float = 4.0
 ## Dust in the air round the eye, drifting with the breeze (WindDust): how many specks, how long each lives (s), the box
 ## round the eye they appear in (half extents, m), their size (m) and colour, and how often (s) their drift follows the
 ## wind's gusts.

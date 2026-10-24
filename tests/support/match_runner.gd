@@ -80,6 +80,9 @@ class MatchTally:
 	var friendly_hits: int = 0
 	var self_hits: int = 0
 	var friendly_ricochets: int = 0
+	## Runs into noisy props and BBs ringing off steel (NP1): measured for the record, never asserted.
+	var knocks: int = 0
+	var rings: int = 0
 	## Ticks a character in or out of play spent within a metre above the kill height (falling out of the level; the
 	## simulation puts it back below it).
 	var rescued: int = 0
@@ -265,6 +268,10 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 						round_now.first_hit_range = shooter.position.distance_to(target.position)
 				GameEvent.Kind.RICOCHET_TICK:
 					count_ricochet(state, e, t)
+				GameEvent.Kind.PROP_KNOCK:
+					t.knocks += 1
+				GameEvent.Kind.PROP_RING:
+					t.rings += 1
 				GameEvent.Kind.ROUND_OVER:
 					# In Attack / Defend only the attackers must leave: defenders hold by their pole.
 					for c in state.characters:

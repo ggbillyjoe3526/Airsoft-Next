@@ -51,6 +51,12 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var vault_gain: float = 0.7
 @export var own_vault_gain: float = 0.4
 @export var vault_pitch: float = 0.06
+## A run into a noisy prop (PROP_KNOCK, NP1): its boom, clank, rattle or knock from where it was hit, above a vault's
+## level as it carries further, heard out to prop_reach (m), a little past the furthest a bot hears one (20 m).
+@export var prop_gain: float = 0.85
+@export var prop_pitch: float = 0.08
+@export var prop_spread_db: float = 1.5
+@export var prop_reach: float = 26.0
 ## Attack / Defend's flag rope ratcheting a notch at the pole (FLAG_ROPE), heard from the pole.
 @export var rope_gain: float = 0.8
 @export var rope_pitch: float = 0.04

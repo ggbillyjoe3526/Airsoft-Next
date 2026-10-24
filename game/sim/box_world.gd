@@ -31,6 +31,13 @@ func add_box(center: Vector3, size: Vector3, surface: RayHit.Surface = RayHit.Su
 	box_surface.append(surface)
 
 
+## Adds a solid box of `kind` (a skip, a crate) centred at `center` measuring `size`, made of `surface`, and lists it as
+## that kind (WorldQuery.block_kinds), as a map's block is.
+func add_prop(kind: StringName, center: Vector3, size: Vector3, surface: RayHit.Surface) -> void:
+	add_box(center, size, surface)
+	add_block(kind, center, size, surface)
+
+
 ## A floor whose top is at y = 0, `width` by `depth`, centred on the origin.
 func add_floor(width: float, depth: float, thickness: float = 0.5) -> void:
 	add_box(Vector3(0.0, -thickness * 0.5, 0.0), Vector3(width, thickness, depth), RayHit.Surface.EARTH)

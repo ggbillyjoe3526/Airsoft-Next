@@ -4,7 +4,8 @@ extends RefCounted
 ## as markers round the crosshair (HudSoundCues draws them). PlaySession feeds it each tick's events after the step,
 ## while the cues are on, through the same ears as MinimapHearing: the character the view is through (you, or the
 ## teammate you watch once out). Heard as far as each sound plays (SoundConfig): the other team's footsteps and vaults
-## within step_reach, anyone's shot but the listener's within max_distance × the replica's heard_scale (a silencer
+## within step_reach (a step on loud ground further, by its carry), their runs into noisy props as steps out to each
+## knock's reach, anyone's shot but the listener's within max_distance × the replica's heard_scale (a silencer
 ## halves it), anyone's hit call but the listener's within max_distance. Flat distance; walls are not checked (a muffled
 ## sound is still heard). Each player and kind has one marker, so a burst moves and renews one; the pool
 ## (AccessibilityConfig.cue_markers) is made once and never grows: with every marker up, the oldest makes way. A marker
@@ -67,10 +68,11 @@ func on_tick(state: GameState, listener: Character) -> void:
 				if shooter != null and e.actor != listener_id:
 					var reach := _sound.max_distance * MinimapHearing.heard_scale(shooter, e.slot)
 					_hear(e.actor, Kind.SHOT, e.position, reach, listener)
-			GameEvent.Kind.FOOTSTEP, GameEvent.Kind.VAULT:
+			GameEvent.Kind.FOOTSTEP, GameEvent.Kind.VAULT, GameEvent.Kind.PROP_KNOCK:
 				var walker := state.character(e.actor)
 				if walker != null and walker.team != side and Elimination.is_in_play(walker):
-					_hear(walker.id, Kind.STEP, walker.position, _sound.step_reach, listener)
+					var reach := e.reach if e.kind == GameEvent.Kind.PROP_KNOCK else _sound.step_reach * e.carry
+					_hear(walker.id, Kind.STEP, walker.position, reach, listener)
 			GameEvent.Kind.CHARACTER_HIT:
 				if e.target >= 0 and e.target != listener_id:
 					var caller := state.character(e.target)

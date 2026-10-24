@@ -285,9 +285,13 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **A vault keeps what you press during it; a trigger held through it is the same pull (BP5, 2026-10-16).**
 - **Vaults are loud (owner, 2026-10-13).** Bots hear a vault from 18 m (a sprint 16, a landing 12, a run 11).
 - **Running into a noisy prop gives you away, and a BB ringing off steel draws a look (2026-10-15, NP1; Claude's
-  defaults).** Props, ranges and times: `legacy/browser/docs/records/NP1.md`.
-- **Steps on gravel and steel plate carry 1.35 times as far (2026-10-15, NP1).** The simulation names the ground under
-  a character, so bots hear exactly the ground you hear. Walking stays silent on every ground.
+  defaults; in Godot by DP4, 2026-10-24).** Props, ranges and times are the browser's table as it was, in
+  `game/config/noise_config.gd`; a level's own blocks (walls, barriers, gabions, sandbags, plywood, floors) are silent
+  and nothing is random. Bots hear a knock as a step on whoever made it; a ring only turns an idle bot's head and is
+  never shared.
+- **Steps on gravel and steel plate carry 1.35 times as far (2026-10-15, NP1; DP4).** The simulation names the ground
+  under a character (`WorldQuery.surface_under`) and puts the carry on the step, so bots, the audio, the sound cues and
+  the minimap read one answer. Walking stays silent on every ground.
 
 ## Bots and balance
 

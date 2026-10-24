@@ -693,6 +693,8 @@ func _after_tick() -> void:
 					_figure_of[e.target].hit(e.direction, state.characters[e.target].yaw)
 			GameEvent.Kind.RICOCHET_TICK:
 				_puffs.body_hit(e.position)
+			GameEvent.Kind.PROP_KNOCK:
+				_puffs.knock(e.position, e.value2)
 			GameEvent.Kind.TARGET_HIT:
 				var steel := e.value == RangeTarget.Kind.STEEL
 				_puffs.impact(e.position, RayHit.Surface.METAL if steel else RayHit.Surface.WOOD)

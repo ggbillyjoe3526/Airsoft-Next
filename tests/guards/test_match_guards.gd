@@ -45,6 +45,8 @@ func _guard(map_id: String, level: StringName = &"normal", seeds: int = SEEDS) -
 	var rounds := 0
 	var on_time := 0
 	var ricochets := 0
+	var knocks := 0
+	var rings := 0
 	for seed_value in range(1, seeds + 1):
 		var m := runner.play(seed_value, MAX_MATCH_SECONDS)
 		var at := "%s %s seed %d" % [map_id, level, seed_value]
@@ -52,6 +54,8 @@ func _guard(map_id: String, level: StringName = &"normal", seeds: int = SEEDS) -
 		rounds += m.rounds.size()
 		on_time += m.on_time()
 		ricochets += m.friendly_ricochets
+		knocks += m.knocks
+		rings += m.rings
 		for id in m.farthest.size():
 			assert_gt(m.farthest[id], LEAVES_SPAWN, "%s: character %d leaves its spawn" % [at, id])
 		assert_gte(m.min_y, runner.lowest_floor - BELOW_FLOOR, "%s: nobody falls through the floor" % at)
@@ -61,8 +65,8 @@ func _guard(map_id: String, level: StringName = &"normal", seeds: int = SEEDS) -
 		assert_lte(m.held_up, HELD_UP_MAX, "%s: bots aren't held up on their way" % at)
 		assert_eq(m.friendly_hits, 0, "%s: no bot knocks out a teammate" % at)
 		assert_eq(m.rescued, 0, "%s: nobody leaves the level" % at)
-	gut.p("%s %s: %d rounds over %d seeds, %d on time, %d teammates reached by a bounce" % [map_id, level, rounds,
-			seeds, on_time, ricochets])
+	gut.p("%s %s: %d rounds over %d seeds, %d on time, %d teammates reached by a bounce, %d knocks and %d rings"
+			% [map_id, level, rounds, seeds, on_time, ricochets, knocks, rings])
 	assert_gt(rounds, 0)
 	assert_lt(float(on_time) / maxf(rounds, 1.0), STALLED_ROUNDS_MAX, "%s %s: rounds settle, not stand-offs"
 			% [map_id, level])

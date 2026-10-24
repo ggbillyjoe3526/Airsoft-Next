@@ -302,6 +302,14 @@ flagpole stands in the walled loading bay. Three lanes lead there: **Dock Road**
   you through it. Do the Bay's ports, which look across the gate's mouth, earn their place?
 - [ ] **The gravel** at the Office's west and east doors. Steps on it crunch and BBs on it puff like earth; the 3 cm
   lip never catches your feet.
+- [ ] **Noisy props.** Run or sprint straight into the skip, a container or the Box (a boom), a generator or IBC (a
+  clank), a rack (a rattle), a toilet (a hollow knock) or a crate or wrapped pallet (a wooden knock): each sounds once
+  with a big puff of its dust, and again only after a second or so. Walking or crouching into one, running along one
+  at a shallow angle, or holding against it stays quiet; walls, barriers, gabions, sandbags and the plywood walls are
+  always silent. Does a bot that heard your knock turn up where you were?
+- [ ] **Rings and loud ground.** Fire at the skip or a container from close: it rings as a steel impact, and a bot
+  idling nearby turns to look but doesn't leave a fight for it. Run on the gravel or up the dock's steel ramps: your
+  steps are a little louder, and bots hear you from further off (about a third). Walking there stays silent.
 - [ ] **The east end** (Alpha's start in Elimination): the team leaves past the wall's south end and nobody gets stuck
   in the yard's north corner.
 - [ ] **Balance.** In Attack / Defend, does attacking or defending feel easier, and which lane do the bots pick? In

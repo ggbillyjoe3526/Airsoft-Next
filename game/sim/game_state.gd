@@ -23,6 +23,9 @@ var challenge: RangeChallenge = RangeChallenge.new()
 ## first starts.
 var match_number: int = 0
 var wind: Wind = null
+## Until when each of the level's noisy props (PropNoise, by index) stays quiet after a knock or a ring (s, as `time`):
+## grown to one per prop on the first tick.
+var prop_quiet: PackedFloat64Array = PackedFloat64Array()
 ## The Dev settings that change play (DevCheats.apply writes them); the match is on a map or with content tagged dev;
 ## and the match stays out of the records (dev content, or a cheat on at any time since it started).
 var cheats: DevCheats = DevCheats.new()

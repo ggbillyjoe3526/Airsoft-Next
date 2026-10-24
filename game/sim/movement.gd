@@ -85,6 +85,8 @@ static func step(c: Character, cmd: PlayerCommand, cfg: MovementConfig, accuracy
 	var desired := Vector3(c.velocity.x * dt * climb, c.velocity.y * dt, c.velocity.z * dt * climb)
 	var corrected := mover.move(c, desired)
 	c.position += corrected
+	c.wanted_move = desired
+	c.made_move = corrected
 
 	# Velocity follows what actually happened, so walls absorb speed instead of storing it; a lengthened move never adds
 	# speed.

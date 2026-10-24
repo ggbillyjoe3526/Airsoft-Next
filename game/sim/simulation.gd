@@ -12,7 +12,8 @@ extends RefCounted
 ## spares instead.
 ## Characters without a command keep their view and stand still; hit characters follow the hit-calling routine instead
 ## of their command, and once out and standing in the dead zone they are only timed. A squad order in a command becomes
-## an event for the bots' controller and changes nothing here.
+## an event for the bots' controller and changes nothing here. A run into a noisy prop knocks it, and a BB landing hard
+## on steel rings it (PropNoise, NP1).
 
 var tuning: SimTuning = null
 var query: WorldQuery = null
@@ -24,6 +25,8 @@ var kill_y: float = -10.0
 ## The map's nav grid, for walk-off routes round cover (set once the map is built); null walks them off in a straight
 ## line, as headless BoxWorld tests do.
 var nav: NavGrid = null
+## The level's noisy props (WorldQuery.block_kinds that tuning.noise lists), made with the simulation.
+var noise: PropNoise = null
 ## Followed by characters with no command this tick.
 var _idle: PlayerCommand = PlayerCommand.new()
 ## Followed by characters that have been hit: they take no orders from their controller.
@@ -41,6 +44,7 @@ func _init(sim_tuning: SimTuning, world: WorldQuery, character_mover: CharacterM
 	mover = character_mover
 	ends = map_ends
 	kill_y = level_kill_y
+	noise = PropNoise.new(sim_tuning.noise, world)
 
 
 ## A fresh match: a new breeze, everyone at their end's spawns, round 1 live.
@@ -62,6 +66,9 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	# the air stop on whoever they reach without knocking them out.
 	var live := state.round_state.is_live()
 	Elimination.plan_walk_off_routes(state.characters, nav)
+	var noisy := noise.count() > 0
+	if noisy:
+		noise.prepare(state)
 	for c in state.characters:
 		c.prev_position = c.position
 		c.prev_crouch_amount = c.crouch_amount
@@ -100,6 +107,9 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 			Vault.step(c, cmd, tuning, dt, mover)
 		else:
 			Movement.step(c, cmd, tuning.movement, tuning.accuracy, dt, mover)
+			# Ran into a noisy prop: it knocks. A vault makes its own noise; someone hit and walking off makes none.
+			if in_play and noisy:
+				noise.knock(c, tuning.body, dt, state)
 		c.rescue_if_out_of_world(kill_y)
 		Hitbox.step_walk_cycle(c, tuning.hits) # the legs' swing, for their hit volumes and the drawn figure
 		Lean.step(c, cmd, tuning, query, dt)
@@ -107,14 +117,17 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		if not in_play:
 			Elimination.step(c, tuning.hits, dt)
 			continue
-		Footsteps.step(c, tuning.footsteps, state.events, query)
+		Footsteps.step(c, tuning.footsteps, state.events, query, tuning.noise)
 		# Fired on the run the kick grows, as the spread does (the owner's 0.1 Dev 5 note 9).
 		var kick := tuning.accuracy.sprint_kick if c.sprinting else 1.0
 		# BBs leave from the eyes, wherever a lean puts them; none through a vault or the moment after it.
 		Armament.step(c, cmd, Lean.eye(c, tuning.body, tuning.hits), kick, live and c.fire_lockout <= 0.0, state.bbs,
 				state.rng, state.events, tuning, dt, 0.0 if c.vault.active else c.fire_lockout)
+	var first_bb_event := state.events.count
 	BBStep.step(state.bbs, state.characters, query, tuning, kill_y, not live, ends, state.events, dt,
 			state.wind.at(state.time), state.rng, state.targets)
+	if noisy:
+		noise.ring(state, first_bb_event)
 	if state.round_state.practice:
 		# Practice has no rounds: it's always live, with no clock.
 		RangeTargets.step(state.targets, tuning, dt, state.rng)

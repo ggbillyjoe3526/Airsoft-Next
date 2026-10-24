@@ -55,6 +55,10 @@ var ground_rise: float = 0.0
 var sprinting: bool = false
 ## Walking slowly and quietly (walk held or aiming, not crouched).
 var walking: bool = false
+## This tick's move as Movement wanted it and as the level let it happen (CharacterMover), for a run into a noisy prop
+## (PropNoise); a vault leaves them as they were.
+var wanted_move: Vector3 = Vector3.ZERO
+var made_move: Vector3 = Vector3.ZERO
 ## Ground covered since the last footstep (m).
 var step_distance: float = 0.0
 ## In the air since the last tick on the ground, and the fastest it fell meanwhile (m/s), for the landing's sound.
