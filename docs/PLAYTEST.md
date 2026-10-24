@@ -160,7 +160,7 @@ never players.
   Start a match: everyone is human. Tick the Dev settings box and turn on Settings › Dev › Robots (off at first) in
   the pause menu: this match is unchanged; start the next one: both teams mix humans and robots. Untick the Dev
   settings box (or turn Robots off) and the match after is all human again.
-- [ ] **Hit flinch.** Hit a bot side-on, then one from behind (a human and a robot): its upper body
+- [ ] **Hit flinch.** Hit a bot side-on, then one from behind (with Dev › Robots on, try a robot too): its upper body
   snaps the way the BB flew (sideways, then forward) and eases back upright in under half a second while the hand
   goes up; a far bot's flinch is as quick. Get hit yourself: the replica jolts and drops out of view in a quarter of a
   second, the camera still; with Reduced motion on, the same.
