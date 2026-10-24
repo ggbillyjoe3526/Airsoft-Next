@@ -52,7 +52,8 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
 - **Friendly hits count (2026-09-30).** Custom matches can switch it off.
 - **Public in 0.1: Depot's modes, Easy to Hard, Woodland and Pro (owner, 2026-10-05).** Every public map, mode and
   difficulty multiplies beta's work. Neon Heights stays dev until the Maps Update and Extraction until the Modes Update
-  (`docs/ROADMAP.md`).
+  (`docs/ROADMAP.md`). **Woodland is a Dev-only map (owner, 2026-10-24):** step 26 builds it in full, hidden behind
+  Dev content like Neon Heights and greybox through the Blender step, until the owner makes it public.
 - **Cut features (owner, 2026-10-05).** Supply weekends and dated events; the Tone mapping choice; tracer BBs as an
   option (glowing BBs do it); Bomb and Intel grab; Free-for-all and the overshooting rule; cosmetic gear as its own
   system; a separate progression plan.
@@ -604,7 +605,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   carried by bots only with the switch on. A match counts as using dev content when an opponent's kit could hold dev
   gear (BG1).
 - **Woodland and Neon Heights stay dev content until the owner has playtested them; he makes each public himself (owner,
-  2026-10-05).** Woodland's weapon torch stays dev until Woodland is public.
+  2026-10-05; Woodland confirmed Dev-only 2026-10-24).** Woodland's weapon torch stays dev until Woodland is public.
 - **Dev settings apply only while their box is ticked (owner, 2026-10-04).** Game speed, Bottomless magazines, Ghost
   and Disable levelling keep a match out of the records and give no XP for the rest of that match. Debug info, BB paths
   and Retro pixels change only what you see.

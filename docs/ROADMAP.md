@@ -102,9 +102,9 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 24. **Field checks.** Each field's layout rules as tests (browser `mapChecks.ts`), before fields are reworked.
 25. **Depot's layout reworked to the field checklist.** The layout, baked light, the skyline, noisy props, gas puffs and
     dust, in greybox and today's props (its set dressing models are step 28).
-26. **Woodland.** The field, sloping ground and bushes, night play, the weapon torch, glowing BBs, the Day / Night
-    switch, the practice range moved into Depot and practice on any map, 5v5 and 6v6, on greybox and placeholder
-    models where a new model would need Blender.
+26. **Woodland** (a Dev-only map, owner 2026-10-24). The field, sloping ground and bushes, night play, the weapon
+    torch, glowing BBs, the Day / Night switch, the practice range moved into Depot and practice on any map, 5v5 and
+    6v6, on greybox and placeholder models where a new model would need Blender.
 
 Last, at the owner's word (2026-10-22): the features he named, then everything that needs Blender, which he must be
 at his PC to connect.
