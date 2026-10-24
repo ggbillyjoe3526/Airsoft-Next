@@ -1,7 +1,7 @@
 class_name BotRoutes
-## Walking routes (the browser game's ai/routes.ts): asking the controller for a route (it plans one a tick), following
-## its legs, the last few centimetres onto a lean spot, and the spots a cover search keeps off. Allocates nothing once
-## warm.
+## Walking routes (the browser game's ai/routes.ts): asking for a route and planning it within the tick's search budget
+## (plan), following its legs, the last few centimetres onto a lean spot, and the spots a cover search keeps off.
+## Allocates nothing once warm but the routes found.
 
 ## Teammates' spots for a cover search (teammate_spots), grown once to the most seen, then reused.
 static var _taken: PackedVector3Array = PackedVector3Array()
@@ -17,6 +17,49 @@ static func want(b: Bot, goal: Vector3, cfg: BotConfig) -> void:
 		return
 	b.route_goal = goal
 	b.route_state = Bot.RouteState.WANTED
+
+
+## Plans the routes of the bots that want one, round-robin from `cursor`, while the tick's search budget lasts
+## (NavConfig.search_budget, the browser's planRoutes): a walk-off waiting in `characters` takes the tick's first search
+## (Elimination plans it in the simulation step), and a bot over the budget waits for the next tick. A bot out of play,
+## or failed lately (BotConfig.route_retry_delay), is passed over. Each wanted route is stamped when first seen
+## (Bot.route_asked_at), for its wait. Returns the cursor for the next tick: the bot after the last one served, so no bot
+## waits behind another twice.
+static func plan(w: BotWorld, characters: Array[Character], cursor: int) -> int:
+	var budget := w.tuning.nav.search_budget
+	for c in characters:
+		if c.walk_off_route_pending:
+			budget -= 1
+			break
+	for b in w.bots:
+		if b.route_state != Bot.RouteState.WANTED:
+			b.route_asked_at = -INF
+		elif is_inf(b.route_asked_at):
+			b.route_asked_at = w.time
+	var n := w.bots.size()
+	var next := cursor
+	for i in n:
+		if budget <= 0:
+			break
+		var k := (cursor + i) % n
+		var b := w.bots[k]
+		if b.route_state != Bot.RouteState.WANTED or w.time < b.route_retry_at \
+				or not Elimination.is_in_play(b.character):
+			continue
+		next = (k + 1) % n
+		budget -= 1
+		b.route_asked_at = -INF
+		var from := b.character.position
+		if w.nav.find_route(from, b.route_goal, b.route, w.time >= b.vaults_off_until):
+			b.route_state = Bot.RouteState.OK
+			b.route_from = from
+			b.route_leg = 0
+			b.stuck_for = 0.0
+		else:
+			b.route.clear()
+			b.route_state = Bot.RouteState.FAILED
+			b.route_retry_at = w.time + w.cfg.route_retry_delay
+	return next
 
 
 ## Drops the route: not "arrived" anywhere (the old route was for another goal).

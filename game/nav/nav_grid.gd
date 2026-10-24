@@ -75,6 +75,8 @@ var leg_probe: float = 0.0
 ## Lines are walked in samples this far apart at most (m).
 var sample_step: float = 0.0
 var hunt_tries: int = 0
+## Route searches run so far (find_route calls that reached the search), for the search budget's checks and figures.
+var searches: int = 0
 
 
 ## The grid for `map`: an empty one (every query off the grid, no route) if it has no floor or ramp.
@@ -224,6 +226,8 @@ func find_route(start: Vector3, goal: Vector3, out: PackedVector3Array, vaults: 
 	var off := not vaults and not vault_to.is_empty()
 	if off:
 		_set_vaults(false)
+	if a != b:
+		searches += 1
 	var ids := PackedInt64Array([a]) if a == b else astar.get_id_path(a, b)
 	if off:
 		_set_vaults(true)

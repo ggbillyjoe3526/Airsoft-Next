@@ -77,6 +77,13 @@ class MatchTally:
 	var stayed_home: int = 0
 	## Bots held up on their way (episodes; see HELD_UP_SECONDS).
 	var held_up: int = 0
+	## Route searches (NavGrid.searches, the bots' and the walk-offs') over the match and the most in one tick; the
+	## longest a bot in play waited for a route it wanted (s, from when the planner first saw it wanted, or its retry
+	## time if later: Bot.route_asked_at) and the longest a hit character waited for its walk-off route (s).
+	var searches: int = 0
+	var most_searches_a_tick: int = 0
+	var longest_route_wait: float = 0.0
+	var longest_walk_off_wait: float = 0.0
 	## Lowest and highest feet over the match (m), and the longest a character spent off the ground outside a vault
 	## (s): one figure each for the whole match, all the guards need (BR1 reads rounds and hits, not these).
 	var min_y: float = INF
@@ -263,7 +270,11 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 		gap.resize(CHASE_TICKS)
 		gap.fill(-1.0)
 		chase_gap.append(gap)
+	# Per character, ticks in a row its walk-off route has been waiting.
+	var walk_off_wait := PackedInt32Array()
+	walk_off_wait.resize(n)
 	while t.ticks < limit and not t.finished:
+		var searched := nav.searches
 		bots.think(state, commands, DT)
 		if order_due:
 			commands[follow_leader].squad_order = SquadOrder.Kind.FOLLOW
@@ -271,6 +282,7 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 		sim.step(state, commands, DT)
 		bots.observe(state)
 		t.ticks += 1
+		_watch_routes(state, bots, t, nav.searches - searched, walk_off_wait)
 		_watch(state, t, round_now)
 		if follow_leader >= 0:
 			_watch_follow(state, bots, t, following, chase_at, chase_gap)
@@ -311,6 +323,20 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 				GameEvent.Kind.MATCH_OVER:
 					t.finished = true
 	return t
+
+
+## The tick's route searches (`searched`) and who is waiting for a route, into `t`.
+static func _watch_routes(state: GameState, bots: BotController, t: MatchTally, searched: int,
+		walk_off_wait: PackedInt32Array) -> void:
+	t.searches += searched
+	t.most_searches_a_tick = maxi(t.most_searches_a_tick, searched)
+	for b in bots.world.bots:
+		if b.route_state == Bot.RouteState.WANTED and Elimination.is_in_play(b.character) \
+				and not is_inf(b.route_asked_at):
+			t.longest_route_wait = maxf(t.longest_route_wait, state.time - maxf(b.route_asked_at, b.route_retry_at))
+	for c in state.characters:
+		walk_off_wait[c.id] = walk_off_wait[c.id] + 1 if c.walk_off_route_pending else 0
+		t.longest_walk_off_wait = maxf(t.longest_walk_off_wait, walk_off_wait[c.id] * DT)
 
 
 ## One knock-out (a CHARACTER_HIT) counted: by a teammate's BB, or by the shooter's own bounced BB.

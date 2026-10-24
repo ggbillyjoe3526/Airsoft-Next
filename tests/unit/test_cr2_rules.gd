@@ -94,8 +94,9 @@ func test_the_rows_start_on_the_settings_and_carry_their_blurbs() -> void:
 			"A bounced BB still knocks out whoever it hits, as at fields that count ricochets."]))
 	var words := PackedStringArray()
 	for b in box.team_size_choice().find_children("*", "Button", true, false):
-		words.append((b as Button).text)
-	assert_eq(words, PackedStringArray(["1v1", "2v2", "3v3"]))
+		if (b as Button).visible:
+			words.append((b as Button).text)
+	assert_eq(words, PackedStringArray(["1v1", "2v2", "3v3"]), "Depot's sizes")
 
 
 func test_the_rows_offer_the_browser_games_choices() -> void:
@@ -115,7 +116,7 @@ func test_the_rows_offer_the_browser_games_choices() -> void:
 func test_the_team_size_saves_into_the_settings_and_the_file() -> void:
 	var page := _page()
 	_custom(page)
-	for i in CustomRules.TEAM_SIZES.size():
+	for i in page.rules_box().offered_sizes().size():
 		page.rules_box().team_size_choice().button(i).pressed.emit()
 		assert_eq(_settings.custom_rules.team_size, CustomRules.TEAM_SIZES[i])
 		assert_eq(_saved().team_size, CustomRules.TEAM_SIZES[i], "in the file as soon as it is picked")

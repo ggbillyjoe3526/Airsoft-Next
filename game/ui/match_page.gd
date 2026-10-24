@@ -5,7 +5,8 @@ extends Control
 ## (MatchBotsBox: Opponents and Teammates, docs/records/MN3.md); a one-line summary bottom left and the slanted PLAY
 ## bottom right. A map that can't load (MapData's problems) is greyed with LATER, as a mode that isn't built. Picks go
 ## into the MatchPicks it is given (kept by the entry scene across the menus' being freed). What reads the round tuning
-## (the Elimination card, the maps a team size can't load) reads the Custom switches while Custom is picked.
+## (the Elimination card, the maps a team size can't load) reads the Custom switches while Custom is picked, and the
+## team size the picked map plays (data/maps.md: its standard, or the saved Custom size where it offers it).
 ## `play_pressed` starts the match.
 ## Everything is drawn for 1920x1080 and the window's stretch scales it.
 
@@ -60,6 +61,8 @@ var picks: MatchPicks = null
 
 var _settings: Settings = null
 var _tuning: SimTuning = null
+## The map the round tuning was read for.
+var _tuned_map: String = ""
 ## The mode last picked on a field, given back when a field is picked again after the Range's Practice took over.
 var _field_mode: String = ""
 var _play_tuning: PlayTuning = null
@@ -92,8 +95,8 @@ var _bots: MatchBotsBox = null
 var _mode_blurbs: Dictionary[String, Label] = {}
 ## A mode card's FIELDS ONLY or RANGE ONLY tag, shown while the picked map doesn't host the mode.
 var _only_tags: Dictionary[String, MenuTag] = {}
-## The team size the maps were last checked for.
-var _checked_size: int = 0
+## The Custom size the maps were last checked for (0 under Skirmish): each is checked at the size it would play.
+var _checked_custom: int = -1
 var _summary_map: Label = null
 var _summary_rest: Label = null
 var _play: Button = null
@@ -104,6 +107,7 @@ func _init(picked: MatchPicks = null, settings: Settings = null) -> void:
 	picks = picked if picked != null else MatchPicks.new()
 	_settings = settings if settings != null else Settings.shared()
 	_tuning = _round_tuning()
+	_tuned_map = picks.map_id
 	_play_tuning = PlayTuning.load_default()
 	_follow_team_colours()
 	_catalog = MapCatalog.shared()
@@ -171,9 +175,9 @@ func chip_texts() -> PackedStringArray:
 	return _rules.chip_texts()
 
 
-## The team size the maps were last checked for (the round tuning's: Custom's while Custom is picked).
+## The team size the picked map is played and was checked at (its standard, or Custom's where it offers it).
 func map_check_size() -> int:
-	return _checked_size
+	return _tuning.rounds.team_size
 
 
 ## A mode card's blurb as shown.
@@ -395,16 +399,18 @@ func _list_maps() -> void:
 	var offered := PackedStringArray()
 	for e in fields:
 		offered.append(e.id)
-	if offered == _offered and _checked_size == _tuning.rounds.team_size and not _map_cards.is_empty():
+	var custom := picks.custom_rules(_settings)
+	var custom_size := custom.team_size if custom != null else 0
+	if offered == _offered and _checked_custom == custom_size and not _map_cards.is_empty():
 		return
 	_offered = offered
-	_checked_size = _tuning.rounds.team_size
+	_checked_custom = custom_size
 	# The maps that can play come first, then those greyed with LATER, each in the catalogue's order.
 	var problems: Dictionary[String, bool] = {}
 	var playable: Array[MapCatalog.Entry] = []
 	var later: Array[MapCatalog.Entry] = []
 	for e in fields:
-		var m := MatchOptions.map_check(e.id, _play_tuning.map_style, MatchOptions.check_size(e, _tuning.rounds.team_size))
+		var m := MatchOptions.map_check(e.id, _play_tuning.map_style, MatchOptions.team_size(e, custom))
 		var refused := not m.problems.is_empty()
 		problems[e.id] = refused
 		_poles[e.id] = m.has_pole
@@ -490,11 +496,11 @@ func _picture(map_id: String, height: float) -> Control:
 	return picture
 
 
-## The round tuning the page reads: the loaded one, with the Custom switches in force while Custom is picked.
+## The round tuning the page reads: the loaded one, with the Custom switches in force while Custom is picked, at the
+## team size the picked map plays (MatchOptions.match_tuning).
 func _round_tuning() -> SimTuning:
-	var base := SimTuning.load_default()
-	var custom := picks.custom_rules(_settings)
-	return base if custom == null else custom.applied_to(base)
+	return MatchOptions.match_tuning(SimTuning.load_default(), MapCatalog.shared().find(picks.map_id),
+			picks.custom_rules(_settings))
 
 
 ## Takes the saved team colour set's HUD part when the set changed (or on the first call): whether it did.
@@ -517,12 +523,20 @@ static func _colour_team_card(card: MenuCard, colour: Color) -> void:
 ## The rule set, a Custom switch or any setting changed (Dev content, a reset save): the round tuning is read again,
 ## and what reads it redrawn, the Custom rows included.
 func _on_rules_changed() -> void:
-	_tuning = _round_tuning()
-	_rules.show_tuning(_tuning)
+	_retune()
 	_list_maps()
 	_refresh()
 
 
+## Reads the round tuning again and redraws the rules with it (the Team size row shows the picked map's sizes).
+func _retune() -> void:
+	_tuning = _round_tuning()
+	_tuned_map = picks.map_id
+	_rules.show_tuning(_tuning)
+
+
+## A map picked: its team sizes on the Team size row and its size played (the saved Custom size where it offers it,
+## else its standard).
 func _pick_map(map_id: String) -> void:
 	picks.map_id = map_id
 	_refresh()
@@ -551,6 +565,9 @@ func _mode_height(blurb: String) -> float:
 func _refresh() -> void:
 	if _summary_map == null or _play == null:
 		return
+	# Another map picked (by hand, or the picked one fell back): its own team size.
+	if _tuned_map != picks.map_id:
+		_retune()
 	for id: String in _map_cards:
 		_map_cards[id].set_picked(id == picks.map_id)
 	var entry := _catalog.find(picks.map_id)
@@ -597,4 +614,4 @@ func _refresh() -> void:
 		_mode_cards[mode].custom_minimum_size.y = _mode_height(_mode_blurbs[mode].text)
 	var mates := MatchOptions.teammates_level(picks.bots, picks.teammates) if _tuning.rounds.team_size > 1 else ""
 	_summary_rest.text = " · " + MatchOptions.summary_rest(picks.mode, picks.team, picks.bots,
-			picks.custom_rules(_settings), mates)
+			picks.custom_rules(_settings), mates, _tuning.rounds.team_size)

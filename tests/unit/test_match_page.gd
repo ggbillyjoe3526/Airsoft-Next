@@ -5,6 +5,8 @@ extends GutTest
 ## for a match.
 
 const MAIN := preload("res://game/main.tscn")
+## Seconds a staged build may take (its nav grid builds on a worker thread, so frames are no measure).
+const LOAD_LIMIT := 20.0
 
 
 func _page(dev_content: bool) -> MatchPage:
@@ -142,9 +144,11 @@ func test_dev_maps_are_tagged_and_woodland_plays_like_neon_heights() -> void:
 
 func test_a_map_that_cant_load_is_greyed_with_later_and_listed_last() -> void:
 	var page := _page(true)
-	# Four a side: more than Depot's three spawns an end, so MapData refuses it.
-	page._tuning = SimTuning.load_default().duplicate(true)
-	page._tuning.rounds.team_size = 4
+	# A catalogue giving Depot four a side: more than its three spawns an end, so MapData refuses it.
+	page._catalog = MapCatalog.parse(FileAccess.get_file_as_string(MapCatalog.PATH).replace(
+			"| depot | Depot | field | public | 1 | 3 | 3 |", "| depot | Depot | field | public | 1 | 4 | 4 |"))
+	assert_eq(page._catalog.find("depot").team_standard, 4)
+	page._offered = PackedStringArray()
 	page._list_maps()
 	assert_eq(page.map_ids(), PackedStringArray(["woodland", "neonHeights", "range", "depot"]))
 	var depot := page.map_card("depot")
@@ -317,11 +321,7 @@ func test_a_staged_build_reports_every_step_then_starts_once_drawn() -> void:
 	assert_eq(reports.size(), 1)
 	assert_eq(reports[0].slice(0, 3), [0, 4, "LOAD_MAP"])
 	assert_null(session.state, "nothing built before the first frame")
-	var frames := 0
-	while get_signal_emit_count(session, "started") == 0 and frames < 30:
-		await wait_process_frames(1)
-		frames += 1
-	assert_lt(frames, 30)
+	assert_true(await wait_until(func() -> bool: return get_signal_emit_count(session, "started") > 0, LOAD_LIMIT))
 	assert_signal_emit_count(session, "started", 1)
 	assert_eq(reports.size(), 5, "0 to 4 of 4")
 	var keys: Array = []
@@ -335,22 +335,19 @@ func test_a_staged_build_reports_every_step_then_starts_once_drawn() -> void:
 	assert_gt(session.ticks(), 0, "the match runs once built")
 
 
-func test_woodland_builds_staged_at_today_s_team_size_and_runs() -> void:
+func test_woodland_builds_staged_at_its_standard_size_and_runs() -> void:
 	var session := PlaySession.new()
 	session.map_id = "woodland"
 	session.autopilot = true
 	session.staged = true
 	watch_signals(session)
 	add_child_autofree(session)
-	var frames := 0
-	while get_signal_emit_count(session, "started") == 0 and frames < 30:
-		await wait_process_frames(1)
-		frames += 1
+	await wait_until(func() -> bool: return get_signal_emit_count(session, "started") > 0, LOAD_LIMIT)
 	assert_signal_emit_count(session, "started", 1)
 	assert_not_null(session.state, "Woodland loads and builds")
 	if session.state == null:
 		return
-	assert_eq(session.state.characters.size(), SimTuning.load_default().rounds.team_size * 2)
+	assert_eq(session.state.characters.size(), MapCatalog.shared().find("woodland").team_standard * 2, "5v5")
 	await wait_physics_frames(30)
 	assert_gt(session.ticks(), 0, "the match runs")
 	for c in session.state.characters:
@@ -384,12 +381,8 @@ func test_play_frees_the_menus_shows_loading_and_frees_it_once_the_match_runs() 
 	assert_eq(main._loading.title_text(), "DEPOT")
 	assert_null(main._title, "no title node lives during a match")
 	assert_null(main._menus, "no menu nodes live during a match")
-	var frames := 0
-	while main._loading != null and frames < 60:
-		await wait_process_frames(1)
-		frames += 1
+	assert_true(await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT))
 	assert_null(main._loading, "freed once the match has drawn")
-	assert_lt(frames, 60)
 	var play: PlaySession = main._play
 	assert_eq(play.player_team, PlaySession.TEAM_BETA)
 	await wait_process_frames(2)

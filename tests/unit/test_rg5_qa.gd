@@ -4,6 +4,8 @@ extends GutTest
 ## the challenge's switch and a run dropped, the pause menu's Settings and the building range ignoring the key, the key
 ## rebound (or lost), a locked pick, and several trips there and back from the entry scene.
 
+## Seconds a staged build may take (its nav grid builds on a worker thread, so frames are no measure).
+const LOAD_LIMIT := 20.0
 const MAIN := preload("res://game/main.tscn")
 const LOADOUTS := "user://test_rg5_qa_loadouts.save"
 const SETTINGS := "user://test_rg5_qa_settings.save"
@@ -243,10 +245,7 @@ func test_the_pause_menus_loadout_row_unpauses_the_tree_and_lets_go_of_the_keys(
 	main._picks.map_id = "range"
 	main._picks.mode = MatchOptions.MODE_PRACTICE
 	main._start_play()
-	var frames := 0
-	while main._loading != null and frames < 90:
-		await wait_process_frames(1)
-		frames += 1
+	await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT)
 	var play: PlaySession = main._play
 	play._open_pause()
 	assert_true(get_tree().paused)
@@ -255,10 +254,7 @@ func test_the_pause_menus_loadout_row_unpauses_the_tree_and_lets_go_of_the_keys(
 	assert_null(main._play)
 	await wait_process_frames(2)
 	main._menus.top_bar().back_button().pressed.emit()
-	frames = 0
-	while main._loading != null and frames < 90:
-		await wait_process_frames(1)
-		frames += 1
+	await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT)
 	await wait_process_frames(2)
 	assert_false(get_tree().paused, "and neither is the range built again")
 	assert_false(main._play._pause.visible, "with its pause menu shut")
@@ -361,10 +357,7 @@ func test_three_trips_to_the_loadout_and_back_leave_nothing_behind_and_keep_the_
 	main._picks.map_id = "range"
 	main._picks.mode = MatchOptions.MODE_PRACTICE
 	main._start_play()
-	var frames := 0
-	while main._loading != null and frames < 90:
-		await wait_process_frames(1)
-		frames += 1
+	await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT)
 	var captured_first := Input.mouse_mode
 	main._play.player.position = Vector3(1.0, 0.0, -2.0)
 	var nodes_in_range := -1
@@ -376,10 +369,7 @@ func test_three_trips_to_the_loadout_and_back_leave_nothing_behind_and_keep_the_
 		assert_eq(Input.mouse_mode, Input.MOUSE_MODE_VISIBLE, "trip %d: the mouse is free in the menus" % trip)
 		await wait_process_frames(2)
 		main._menus._unhandled_input(_action(&"loadout"))
-		frames = 0
-		while main._loading != null and frames < 90:
-			await wait_process_frames(1)
-			frames += 1
+		await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT)
 		await wait_process_frames(2)
 		assert_not_null(main._play, "trip %d: the range is back" % trip)
 		assert_null(main._spot, "the spot is used up")

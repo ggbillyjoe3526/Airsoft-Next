@@ -2,6 +2,8 @@ extends GutTest
 ## QA hunt for MN2: staged and unstaged builds give one match, Beta is played everywhere, the menus come back clean
 ## after a match, greyed cards stay dead to the keyboard, and the loading phase ignores Esc and focus loss.
 
+## Seconds a staged build may take (its nav grid builds on a worker thread, so frames are no measure).
+const LOAD_LIMIT := 20.0
 const MAIN := preload("res://game/main.tscn")
 const SNAPSHOT_TICK := 200
 
@@ -89,9 +91,10 @@ func test_a_greyed_map_card_ignores_the_keyboard() -> void:
 	var page := MatchPage.new(MatchPicks.new(), settings)
 	add_child_autofree(page)
 	await wait_process_frames(1)
-	# Every map loads at today's team size since WL1; four a side is more than Depot's three spawns an end.
-	page._tuning = SimTuning.load_default().duplicate(true)
-	page._tuning.rounds.team_size = 4
+	# Every map loads at its own sizes (WL2); a catalogue giving Depot four a side, more than its three spawns an end.
+	page._catalog = MapCatalog.parse(FileAccess.get_file_as_string(MapCatalog.PATH).replace(
+			"| depot | Depot | field | public | 1 | 3 | 3 |", "| depot | Depot | field | public | 1 | 4 | 4 |"))
+	page._offered = PackedStringArray()
 	page._list_maps()
 	var greyed := ""
 	for id in page.map_ids():
@@ -141,10 +144,7 @@ func test_menus_rebuilt_after_a_match_leave_no_orphans_and_keep_picks_and_focus(
 	var nodes_before := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
 	for round_i in 2:
 		main._start_play()
-		var frames := 0
-		while main._loading != null and frames < 90:
-			await wait_process_frames(1)
-			frames += 1
+		await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT)
 		assert_null(main._loading)
 		await wait_physics_frames(5)
 		main._play._open_pause()
@@ -165,10 +165,7 @@ func test_settings_connections_do_not_grow_across_matches() -> void:
 	var base := Settings.shared().changed.get_connections().size()
 	for i in 3:
 		main._start_play()
-		var frames := 0
-		while main._loading != null and frames < 90:
-			await wait_process_frames(1)
-			frames += 1
+		await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT)
 		await wait_physics_frames(3)
 		main._play._leave()
 		await wait_process_frames(3)
@@ -185,11 +182,8 @@ func test_esc_and_focus_loss_during_loading_do_nothing() -> void:
 	session._unhandled_input(esc)
 	session.notification(NOTIFICATION_APPLICATION_FOCUS_OUT)
 	assert_false(get_tree().paused, "the tree is not paused mid-load")
-	var frames := 0
 	watch_signals(session)
-	while get_signal_emit_count(session, "started") == 0 and frames < 60:
-		await wait_process_frames(1)
-		frames += 1
+	await wait_until(func() -> bool: return get_signal_emit_count(session, "started") > 0, LOAD_LIMIT)
 	assert_signal_emit_count(session, "started", 1)
 	assert_false(get_tree().paused)
 

@@ -212,9 +212,11 @@ func test_reset_the_save_in_a_match_turns_the_cheats_off() -> void:
 # --- Maps ---
 
 func test_the_catalogue_reads_what_it_can_and_names_the_rest() -> void:
-	var m := MapCatalog.parse("# Maps\n\n## Maps\n\n| Id | Name | Kind | Tag | Blurb |\n|---|---|---|---|---|\n"
-			+ "| a | A | field | public | x |\n| a | Again | field | public | x |\n| b | B | arena | public | x |\n"
-			+ "| c | C | field | secret | x |\n| d |  | field | dev | x |\n| e | E | range | dev | x |\n")
+	var m := MapCatalog.parse("# Maps\n\n## Maps\n\n| Id | Name | Kind | Tag | Min | Standard | Max | Blurb |\n"
+			+ "|---|---|---|---|---|---|---|---|\n"
+			+ "| a | A | field | public | 1 | 3 | 3 | x |\n| a | Again | field | public | 1 | 3 | 3 | x |\n"
+			+ "| b | B | arena | public | 1 | 3 | 3 | x |\n| c | C | field | secret | 1 | 3 | 3 | x |\n"
+			+ "| d |  | field | dev | 1 | 3 | 3 | x |\n| e | E | range | dev | 1 | 3 | 3 | x |\n")
 	assert_eq(m.entries.size(), 2, "a and e")
 	assert_eq(m.problems.size(), 4)
 	assert_true(m.is_dev("zzz"), "a map with no row is dev")

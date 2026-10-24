@@ -83,6 +83,31 @@ static func check_size(map: MapCatalog.Entry, team_size: int) -> int:
 	return 1 if map != null and map.kind == &"range" else team_size
 
 
+## Players a side in a match on `map`: the Custom switches' size (`custom`, null under Skirmish) where the map offers
+## it, else the map's standard (data/maps.md); the range plays you alone (check_size). A map the catalogue doesn't know
+## (null) plays Custom's size, or the round tuning's.
+static func team_size(map: MapCatalog.Entry, custom: CustomRules) -> int:
+	var picked := custom.team_size if custom != null else 0
+	if map == null:
+		return picked if picked > 0 else SimTuning.load_default().rounds.team_size
+	return check_size(map, map.team_size_for(picked))
+
+
+## The round tuning a match on `map` plays: `base` with the Custom switches in force (`custom`, null under Skirmish) and
+## the team size the map gives (team_size). A copy wherever it differs from `base`, which is never written (the loaded
+## tuning is shared).
+static func match_tuning(base: SimTuning, map: MapCatalog.Entry, custom: CustomRules) -> SimTuning:
+	var t := base if custom == null else custom.applied_to(base)
+	var size := team_size(map, custom)
+	if t.rounds.team_size == size:
+		return t
+	if t == base:
+		t = base.duplicate() as SimTuning
+		t.rounds = base.rounds.duplicate() as RoundConfig
+	t.rounds.team_size = size
+	return t
+
+
 ## `map_id` loaded as the Match page lists it: its problems (empty when it can be played) and whether it has a pole.
 static func map_check(map_id: String, style: MapStyle, team_size: int) -> MapData:
 	return MapData.load_map(map_id, style, team_size)
@@ -160,9 +185,10 @@ static func kicker(mode: String, team_size: int, team: int) -> String:
 
 ## The summary line's tail after the map's name: "Elimination · Alpha · Normal bots", or in Attack / Defend "Attack /
 ## Defend · Alpha attacks first · Normal bots", or in Practice "Practice · No bots, no score"; it names the teammates' level when it differs from the opponents'
-## (`mates`, "" for none), and with Custom rules (`custom`) it ends " · Custom 2v2".
+## (`mates`, "" for none), and with Custom rules (`custom`) it ends " · Custom 2v2": the size played, `team_size` (0:
+## Custom's own).
 static func summary_rest(mode: String, team: int, bots: String, custom: CustomRules = null,
-		mates: String = "") -> String:
+		mates: String = "", team_size: int = 0) -> String:
 	if mode == MODE_PRACTICE:
 		return _tr("MENU_SUMMARY_PRACTICE") % _tr(MODE_NAME[mode])
 	var side := _tr(TEAM_KEYS[team])
@@ -172,7 +198,7 @@ static func summary_rest(mode: String, team: int, bots: String, custom: CustomRu
 	if not mates.is_empty() and mates != bots:
 		rest += _tr("MENU_SUMMARY_MATES") % _tr("BOT_" + mates.to_upper())
 	if custom != null:
-		rest += _tr("MENU_SUMMARY_CUSTOM") % size_short(custom.team_size)
+		rest += _tr("MENU_SUMMARY_CUSTOM") % size_short(team_size if team_size > 0 else custom.team_size)
 	return rest
 
 
