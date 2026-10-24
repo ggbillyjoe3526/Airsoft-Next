@@ -8,6 +8,7 @@
 |---|---|---|---|---|---|
 | 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,919 of 2,919 | – | – |
 | 2026-10-24 | 1, QA fixes | Opus 5.5 (worker) | pass, 2,924 of 2,924 (943 s) | – | QA: the disc at the origin when switched on paused; a disc over feet dropping off a ledge |
+| 2026-10-24 | 2 | Opus 5.5 (worker) | pass, 2,924 of 2,924 (942 s) | 7/8, retry | critic: the kicked dust drawn unshaded in a fixed tint, darker than the sunlit floor it rises from (207,198,183 on 229,216,195) and lost in shade |
 
 ## What was built
 
@@ -28,7 +29,13 @@
   landing 1.5 times, 7 cm over the feet, 0.4 opaque, within 35 m of the eye) at a FOOTSTEP event's SPRINT or LAND (not
   a run or a rattle), its top held under 0.3 m over the feet all its life, in the map's `dressing.kickedDust` tint and
   size (`MapData.kicked_dust_tint`, `kicked_dust_scale`, new; Depot's #b9b7b0). Off, with none left in the air, where
-  the Wind dust row is 0 % (`GraphicsApply.apply_field`'s new `kicked`).
+  the Wind dust row is 0 % (`GraphicsApply.apply_field`'s new `kicked`). Attempt 2: lit as the floor under it is, so
+  it reads lighter than the floor in sun and in shade (its own shader, `KickedDust.SHADER`: the tint as albedo, the
+  sky's ambient light on, each light's colour and shadow taken whichever way the puff faces, `EffectsConfig.kick_lit`
+  of it; the wind specks' billboard, `WindDust.FACING_VERTEX`, shared). Measured in the picture, puff middle against
+  the floor beside it: sun 252,244,230 on 250,237,214 (was 207,198,183 on 229,216,195), shade 109,108,103 on
+  98,98,94. Gas puffs keep PuffView's unshaded material; the quad, MultiMesh and that material are built once, in
+  `PuffView.pool_of` and `flat_material`, for PuffView and DriftPuffs both.
 - `WindDust` (criterion 3): its own shader in place of the unshaded material: a round soft point facing the eye that
   adds only the light falling on it (no ambient light, additive), by the light's colour and shadow but not the way it
   faces, so it glints in the sun whatever the sun's side and gives nothing in shade; it fades out from 1.8 m to gone at
@@ -84,8 +91,8 @@ pool while a puff is in the air (none otherwise), one per contact shadow on Low.
 `screenshots/step25/` in the project files (Xvfb, Compatibility, 1600x900; time slowed for the capture, the shots and
 footfalls handed to the session's own `_breathe` and `KickedDust.footfall`; an inset in the top right magnifies the
 effect): `dp5-gas-first-person.png` (the GBB pistol in hand, Medium: the muzzle's puff ahead, the port's to the
-right), `dp5-gas-figure.png` (a teammate's pistol, 2.3 m off), `dp5-kicked-dust.png` (a landing at a figure's feet in
-the wall's shade, inset, and a sprinting step on the sunlit floor), `dp5-sunlit-dust-box.png` (High, from inside the
+right), `dp5-gas-figure.png` (a teammate's pistol, 2.3 m off), `dp5-kicked-dust.png` (attempt 2: two sprinting steps,
+magnified, on the sunlit floor on the left and in the wall's shade on the right), `dp5-sunlit-dust-box.png` (High, from inside the
 Box out of its west door and port, the specks as many as High draws) and `dp5-sunlit-dust-box-dense.png` (the same
 with 3,000 specks so the rule shows: none in the Box's shade, glinting in the sun outside),
 `dp5-contact-shadows-low.png` and `dp5-contact-shadows-high.png` (two teammates; the discs on Low, the sun's shadows on
@@ -101,8 +108,8 @@ and `kick_opacity` are the knobs.
 
 `game/play/drift_puffs.gd` (the pool both effects share, so neither copies the other), `game/play/puff_view.gd`
 (`disc` made public), `game/map/map_data.gd` (`dressing.kickedDust` read with the rest of the map), the two folder
-READMEs, `docs/KNOWN_ISSUES.md` and `tests/unit/test_play_session.gd` (the prewarm now draws six late materials, not
-three).
+READMEs, `docs/KNOWN_ISSUES.md` and `tests/unit/test_play_session.gd` (the prewarm now draws seven late materials, not
+three: the gas and kicked puffs', the contact disc's and the wind specks').
 
 ## Checks
 
@@ -110,4 +117,6 @@ three).
 licence notices), unit tests 2,919 of 2,919 in 847 s. The first run failed one test, the prewarm's material count in
 `test_play_session.gd`, fixed as above. After QA's fixes (the disc placed when switched on and hidden below the floor
 the feet left, gas within 35 m, a watched bot's breath from the view): 2,924 of 2,924 in 943 s, every gate passing. After the performance review: the wind specks' new shader is drawn by the prewarm too (it compiled
-on first sight: the first round, or Low to Medium mid-match).
+on first sight: the first round, or Low to Medium mid-match). Attempt 2 (the kicked dust lit, the puffs' builder shared): `test_dust_effects`, `test_dp5_qa` and
+`test_play_session` pass (13, 5, 14); `tools/check.sh`: 2,924 of 2,924 in 942 s, every gate passing. The prewarm
+already drew the kicked dust's material, so its count stays seven.

@@ -19,22 +19,7 @@ var _next: int = 0
 func setup(cfg: EffectsConfig) -> void:
 	_cfg = cfg
 	name = "Puffs"
-	top_level = true
-	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var quad := QuadMesh.new()
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	mat.billboard_keep_scale = true
-	mat.vertex_color_use_as_albedo = true
-	mat.albedo_texture = disc()
-	quad.material = mat
-	multimesh = MultiMesh.new()
-	multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	multimesh.use_colors = true
-	multimesh.mesh = quad
-	multimesh.instance_count = cfg.puff_pool
+	pool_of(self, cfg.puff_pool, flat_material())
 	_at.resize(cfg.puff_pool)
 	_age.resize(cfg.puff_pool)
 	_size.resize(cfg.puff_pool)
@@ -96,6 +81,32 @@ func _spawn(at: Vector3, colour: Color, scale_by: float) -> void:
 	_size[_next] = scale_by
 	_colour[_next] = colour
 	_next = (_next + 1) % _age.size()
+
+
+## Makes `view` a pool of `count` puffs drawn with `material`: one MultiMesh of camera-facing quads, each with its own
+## transform and colour, in the world (top level), casting no shadow (PuffView's and DriftPuffs').
+static func pool_of(view: MultiMeshInstance3D, count: int, material: Material) -> void:
+	view.top_level = true
+	view.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var quad := QuadMesh.new()
+	quad.material = material
+	view.multimesh = MultiMesh.new()
+	view.multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	view.multimesh.use_colors = true
+	view.multimesh.mesh = quad
+	view.multimesh.instance_count = count
+
+
+## A puff's own look: the soft disc in each puff's colour, unlit and facing the eye.
+static func flat_material() -> StandardMaterial3D:
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.billboard_keep_scale = true
+	mat.vertex_color_use_as_albedo = true
+	mat.albedo_texture = disc()
+	return mat
 
 
 ## The soft disc every puff is drawn with (DriftPuffs' too): white, fading to nothing at its rim.

@@ -7,6 +7,18 @@ extends GPUParticles3D
 ## near the eye (EffectsConfig.dust_fade_near and _far). The graphics settings set how many (`set_share`), and Reduced
 ## motion takes its share of that (`set_motion`, none today); at none it is hidden and does no work.
 
+## A quad turned to face the eye, keeping its scale (a particle's or a MultiMesh instance's): the vertex stage of the
+## specks' shader and KickedDust's.
+const FACING_VERTEX := """
+void vertex() {
+	mat4 facing = mat4(normalize(INV_VIEW_MATRIX[0]), normalize(INV_VIEW_MATRIX[1]), normalize(INV_VIEW_MATRIX[2]),
+			MODEL_MATRIX[3]);
+	MODELVIEW_MATRIX = VIEW_MATRIX * facing * mat4(vec4(length(MODEL_MATRIX[0].xyz), 0.0, 0.0, 0.0),
+			vec4(0.0, length(MODEL_MATRIX[1].xyz), 0.0, 0.0), vec4(0.0, 0.0, length(MODEL_MATRIX[2].xyz), 0.0),
+			vec4(0.0, 0.0, 0.0, 1.0));
+	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
+}
+"""
 ## A speck: a soft round point facing the eye (the particles' billboard), adding its colour times the light on it (no
 ## ambient light, so shade gives nothing), by the light's colour and shadow alone, not the way it faces, faded out near
 ## the eye.
@@ -18,16 +30,7 @@ uniform vec4 colour : source_color = vec4(1.0);
 uniform float glint = 1.0;
 uniform float fade_near = 0.8;
 uniform float fade_far = 1.8;
-
-void vertex() {
-	mat4 facing = mat4(normalize(INV_VIEW_MATRIX[0]), normalize(INV_VIEW_MATRIX[1]), normalize(INV_VIEW_MATRIX[2]),
-			MODEL_MATRIX[3]);
-	MODELVIEW_MATRIX = VIEW_MATRIX * facing * mat4(vec4(length(MODEL_MATRIX[0].xyz), 0.0, 0.0, 0.0),
-			vec4(0.0, length(MODEL_MATRIX[1].xyz), 0.0, 0.0), vec4(0.0, 0.0, length(MODEL_MATRIX[2].xyz), 0.0),
-			vec4(0.0, 0.0, 0.0, 1.0));
-	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
-}
-
+""" + FACING_VERTEX + """
 void fragment() {
 	ALBEDO = colour.rgb;
 	float round_edge = 1.0 - smoothstep(0.25, 0.5, length(UV - vec2(0.5)));

@@ -125,6 +125,11 @@ func test_it_takes_the_maps_tint_and_switches_off_with_the_wind_dust() -> void:
 	var c := k.drawn_colour(0)
 	assert_eq(c.to_html(false), "b9b7b0", "Depot's dressing.kickedDust")
 	assert_lt(c.a, cfg.kick_opacity + 1e-4, "faint")
+	var look := k.multimesh.mesh.surface_get_material(0) as ShaderMaterial
+	assert_not_null(look, "its own material, not PuffView's unshaded one")
+	assert_false(look.shader.code.contains("unshaded"), "lit by the floor's light")
+	assert_true(look.shader.code.contains("void light()"), "takes each light whichever way it faces")
+	assert_eq(look.get_shader_parameter(&"lit"), cfg.kick_lit)
 	var table := GraphicsTable.shared()
 	GraphicsApply.apply_field(table.preset(&"low"), null, null, GraphicsApply.Server.new(), null, k)
 	assert_false(k.is_on(), "Low's wind dust is 0 %")

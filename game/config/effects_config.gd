@@ -80,6 +80,9 @@ extends Resource
 @export var kick_range: float = 35.0
 @export var kick_lift: float = 0.07
 @export var kick_top: float = 0.3
+## How much of each light (the sun) the kicked dust takes, whichever way it faces: 1 is all of it, so it stands lighter
+## than the floor, which takes the sun at a slant (KickedDust.SHADER); the sky's ambient light it takes as the floor does.
+@export var kick_lit: float = 1.0
 ## Contact shadows (FigureView, the browser game's CONTACT_SHADOWS): where the sun casts no shadows, a soft dark disc on
 ## the floor under every figure, `contact_radius` m across its radius standing and `contact_crouched_radius` fully
 ## crouched, `contact_darkness` at its middle, `contact_middle_shade` of that `contact_middle` of the way out, lifted

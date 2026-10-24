@@ -24,29 +24,16 @@ var _live: int = 0
 
 
 ## A pool of `pool` puffs, each living `life` s, growing from `start_scale` of its radius over `grow_time` s, rising at
-## `drift` m/s, never narrower on screen than `min_angle` radians across its radius (0: no floor).
-func build(pool: int, life: float, grow_time: float, start_scale: float, drift: float, min_angle: float) -> void:
+## `drift` m/s, never narrower on screen than `min_angle` radians across its radius (0: no floor), drawn with `material`
+## (PuffView.flat_material, unlit, when null).
+func build(pool: int, life: float, grow_time: float, start_scale: float, drift: float, min_angle: float,
+		material: Material = null) -> void:
 	_life = maxf(life, 0.001)
 	_grow_time = grow_time
 	_start_scale = clampf(start_scale, 0.0, 1.0)
 	_drift = drift
 	_min_angle = min_angle
-	top_level = true
-	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var quad := QuadMesh.new()
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	mat.billboard_keep_scale = true
-	mat.vertex_color_use_as_albedo = true
-	mat.albedo_texture = PuffView.disc()
-	quad.material = mat
-	multimesh = MultiMesh.new()
-	multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	multimesh.use_colors = true
-	multimesh.mesh = quad
-	multimesh.instance_count = pool
+	PuffView.pool_of(self, pool, material if material != null else PuffView.flat_material())
 	_from.resize(pool)
 	_push.resize(pool)
 	_age.resize(pool)
