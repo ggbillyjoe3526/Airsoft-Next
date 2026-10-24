@@ -1,13 +1,13 @@
 # CI1 · Unit suite headroom
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,924 of 2,924 (parts 349 s and 385 s) | – | – |
-| 2026-10-24 | 1, QA fixes | Opus 5.5 (worker) | pass, 2,924 of 2,924 (parts 325 s and 366 s) | – | QA: a test file that doesn't parse failed the gate without naming it |
+| 2026-10-24 | 1, QA fixes | Opus 5.5 (worker) | pass, 2,924 of 2,924 (parts 325 s and 366 s) | Accept 8/8 | QA: a test file that doesn't parse failed the gate without naming it |
 
 ## What was built
 
@@ -88,3 +88,13 @@ sessions over seeds (`test_figure_mix.gd` builds 24 practice sessions to show a 
 ## Known issues left
 
 - None.
+
+## Advisories left
+
+- With no frame sleep, awaited process frames span fewer physics ticks, so a "nothing happened" assert after
+  `wait_process_frames` could pass vacuously; none found that depend on physics timing. New tests await physics frames
+  for simulation effects (critic).
+- Part 1 is mostly `test_bots.gd` (133 s); growth lands in part 2. Move the boundary or add a part once a part passes
+  about 600 s (critic).
+- The CI job is renamed "Unit tests part 1, smoke test, notices"; main has no branch protection, so no required check
+  breaks (critic).

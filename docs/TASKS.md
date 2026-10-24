@@ -4,21 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## CI1 · Unit suite headroom (Dev)
-when: before step 26's first code task
-tier: core
-perf: none
-touches: tools/unit_tests.sh, tools/check.sh, .github/workflows/ci.yml, tests/unit/, docs/PROCESS.md
-contract: none
-acceptance:
-  1. The record lists the twenty slowest unit test files with their time, measured on the cloud container.
-  2. The unit suite runs in well under `tools/unit_tests.sh`'s 1080 s limit with room for steps 26 to 31: the slowest
-     files made faster where a test does more work than its check needs, or the GUT run split across two CI jobs
-     (and two local runs in `tools/check.sh`) if that is the cleaner fix. No test is skipped, weakened or deleted.
-  3. `tools/check.sh` and CI still report failures and totals only, and a failure names its test file.
-status: open
-attempts: 0
-
 ## RB1 · Robots become a Dev-only Easter egg (Dev)
 when: build order step 26, after CI1 and before WL1 (owner, 2026-10-24)
 tier: core
