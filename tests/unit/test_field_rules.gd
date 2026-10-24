@@ -189,6 +189,9 @@ func test_seams_up_to_the_slack_are_not_clashes() -> void:
 	for b in m.blocks:
 		if b.kind == &"crate":
 			crates.append(b)
+	assert_gt(crates.size(), 1, "Depot has two crates")
+	if crates.size() < 2:
+		return
 	var a := crates[0]
 	var b := crates[1]
 	a.center = b.center + Vector3((a.size.x + b.size.x) * 0.5 - FieldStandard.SEAM_SLACK * 0.8, 0, 0)

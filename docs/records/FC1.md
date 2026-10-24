@@ -1,12 +1,12 @@
 # FC1 · Field checks: the rules every field keeps, run on every field
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | pass | pending | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass | Accept 8/8 | – |
 
 ## What was built
 
@@ -44,3 +44,9 @@ Heights fails field.teamColour.
 - **field.teamColour checks each kind on the field once** (`colour_of(kind, 0)`), and every container colour when the
   field has containers.
 - **A file NOT_YET names that loads fails** ("take it off NOT_YET"), as a passing KNOWN_FAILING check does.
+
+## Advisories left
+
+- The slate container (0.37, 0.43, 0.49) is 2.0° from High contrast Alpha at HSL saturation 0.29, 0.01 under the
+  0.3 bar: it passes, but a slightly brighter container fails field.teamColour (critic).
+- A field on NOT_YET is checked only for being refused, not why, and its KNOWN_FAILING entries aren't checked (QA).
