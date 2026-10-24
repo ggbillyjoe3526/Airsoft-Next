@@ -1,7 +1,7 @@
 # Art bible
 
 The look every visual change is measured against. Read it before changing how anything looks; the owner's art pass
-(`docs/ROADMAP.md` › Build order, step 32) and Depot's rework (steps 25 and 32) build to it.
+(`docs/ROADMAP.md` › Build order, step 28) and Depot's rework (steps 25 and 28) build to it.
 
 ## The target
 
@@ -66,7 +66,7 @@ The props that make a site read as an airsoft site. Each is one of the four mate
   and olive for cases and tarps.
 - **Site colours** (container red, olive, mustard yellow, slate, teal) go on containers, skips, drums and paint. The
   container red is an oxide or brick red, darker and duller than Beta orange, so it never reads as a team; its exact
-  value is tuned side by side with a Beta figure when Depot is dressed (step 32).
+  value is tuned side by side with a Beta figure when Depot is dressed (step 28).
 - **Team colours** (Alpha blue, Beta orange) appear **only** on players and the flag, never on props (owner,
   2026-10-18, on the references). No orange on any prop: cones and safety paint are yellow. A blue prop (a container,
   drum or tarp) is a navy or steel blue, darker and duller than Alpha's. Flags and bunting that aren't the objective
@@ -122,7 +122,7 @@ The owner's arm and hand study, [`arm-hand-anatomy.jpg`](art/references/arm-hand
 the target for every arm and hand in the game: your first-person arms and the figures' (players and bots). They are
 realistic and drawn in the game's own style (owner, 2026-10-18): true anatomy and full detail, with the same clean
 shapes, colour and material treatment as everything else. Matching the style never means a lower-quality model. It
-guides his Blender art pass (step 32) and the shared rig standard that first-person
+guides his Blender art pass (step 28) and the shared rig standard that first-person
 arms, figures and replicas use (steps 23 and 32).
 
 - **Anatomy.** Correct proportions from shoulder to fingertip: humerus, radius and ulna, a wrist that turns from the
@@ -174,7 +174,7 @@ The figures (step 23, FI1-FI7; every bot on every preset, DECISIONS BD1):
 - **Shaders.** `ShaderPrewarm` draws every figure material, solid and fading, as specks in the first frames
   of a match (`FigureModels.materials`).
 - **The hit area.** Hitbox's volume is the same for both kinds and is measured against the drawn figure by
-  `tests/support/hit_area_probe.gd` (FI7, `docs/records/FI7.md`); step 32 fits it to the final figures (HV1).
+  `tests/support/hit_area_probe.gd` (FI7, `docs/records/FI7.md`); step 28 fits it to the final figures (HV1).
 - **The bench.** `tools/figure_bench.gd`: 11 figures on Depot, the animation and skeleton time per figure, and the
   frame time with `--perf` (dev only, never exported).
 

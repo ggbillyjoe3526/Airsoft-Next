@@ -275,7 +275,7 @@ status: open
 attempts: 0
 
 ## AD1 · Adaptive difficulty (Dev)
-when: build order step 31, after the late features (owner, 2026-10-22)
+when: build order step 27, with the other deferred features (owner, 2026-10-24)
 tier: core
 perf: optional
 touches: game/ai/, game/config/, game/save/dev_settings.gd, game/ui/settings_screen.gd, game/play/play_session.gd,

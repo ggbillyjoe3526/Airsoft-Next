@@ -57,11 +57,15 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
   option (glowing BBs do it); Bomb and Intel grab; Free-for-all and the overshooting rule; cosmetic gear as its own
   system; a separate progression plan.
 - **Late features go last (owner, 2026-10-22).** The overtime flag, the tutorial, pings, asking for a magazine, bot
-  callouts and adaptive difficulty are built after Woodland (`docs/ROADMAP.md` › Build order, steps 27 to 31), so the
+  callouts and adaptive difficulty are built after Woodland (`docs/ROADMAP.md` › Build order, step 27, one step since
+  2026-10-24), so the
   core systems (match info, minimap, sound, bots) come first.
 - **Blender work comes last (owner, 2026-10-22).** Anything that needs Blender (figures, first-person arms, Inspect,
-  replica and part remodels, Depot's set dressing, the art pass) is step 32, because the owner must be at his PC to
-  connect Blender. Code-only parts, built against today's placeholder models, may still go earlier.
+  replica and part remodels, Depot's set dressing, the art pass) is step 28 (was 32), because the owner must be at
+  his PC to connect Blender. Code-only parts, built against today's placeholder models, may still go earlier.
+- **Deferred features are one step, then Blender (owner, 2026-10-24).** After Woodland, the overtime flag, the
+  tutorial, pings, the magazine hand-off, bot callouts and adaptive difficulty are one step 27, in the order its plan
+  sets; the owner's Blender work (step 28, formerly 32) starts once step 27 is done.
 - **Kept features (owner, 2026-10-05).** Grenades (Replica Update) and skins (Progression Update), with greyed Loadout
   placeholders; suppressor sounds (Replica Update); Capture the Flag as a possible Modes Update mode.
 - **The Dev 6 playtest's additions and removals stand (owner, 2026-10-16).** Added: an in-match hop-up control, a
@@ -202,7 +206,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   to drop a glTF model into the assets folder (M25a) doesn't carry.
 - **Today's models are temporary placeholders; the owner redesigns them all in Blender at higher quality (owner,
   2026-10-18).** They were built small for a web browser. His art pass covers players, replicas, attachments and
-  other assets, at step 32 of `docs/ROADMAP.md` › Build order (Blender work comes last, owner 2026-10-22); until then every task uses the current models.
+  other assets, at step 28 of `docs/ROADMAP.md` › Build order (Blender work comes last, owner 2026-10-22); until then every task uses the current models.
 - **Baked light is our own per-vertex bake, not LightmapGI or SDFGI (owner, 2026-10-24: take the recommended defaults;
   DP2).** LightmapGI bakes only in the editor on a GPU, so neither a cloud session nor CI could make or check it.
   `tools/bake_light.gd` bakes headless, on the engine's TriangleMesh rays: per vertex of the greybox cut into 0.5 m
@@ -216,7 +220,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   horizon by distance, casting no shadow, with no collider; a piece no eye over a lane point, spawn or raised floor
   sees over the blocks is left out (MS1). Other kinds (Neon Heights' towers, the treelines) wait for their maps'
   dressing. Site colours and greys only, no red (too near Beta's hue). Chimney smoke is drawn from Medium, read off
-  the mesh detail row rather than a row of its own. The models replace the greybox at step 32.
+  the mesh detail row rather than a row of its own. The models replace the greybox at step 28.
 - **Every figure keeps its team-colour plate carrier (owner, 2026-10-17, AX1).** The carrier reads like a site's team
   bib and is the strongest team cue at range. A civilian outfit is in `docs/IDEAS.md`.
 
@@ -229,9 +233,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **The hit area is fitted to each rigged figure (owner, 2026-10-16, Dev 6 playtest; HV1, IM8).** Head, chest,
   shoulders, hips and legs sit on each figure's own bones, read from the clips as the figures load; a test holds every
   pose of both figures to M85's bar (4 % missed, 3 % thin air). A new figure must pass it.
-- **Until step 32 the hit area stays Hitbox's built-in volume, one for both kinds, measured, not fitted (step 23 plan,
+- **Until step 28 the hit area stays Hitbox's built-in volume, one for both kinds, measured, not fitted (step 23 plan,
   default 2; FI7).** `test_figure_hit_area.gd` measures it against the drawn placeholder figures on every kind, head and
-  pose and fails if a share rises 0.5 points over FI7's numbers (`docs/records/FI7.md`); step 32 fits it once to the
+  pose and fails if a share rises 0.5 points over FI7's numbers (`docs/records/FI7.md`); step 28 fits it once to the
   final figures, to M85's bar (HV1).
 - **Hit calling stays a raised hand and a sign, with no dead rag, night light or shouted "HIT!" for now (owner,
   2026-10-06).**
@@ -406,7 +410,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   it fails goes to the owner. Its heightfield reaches Jolt as a trimesh of the very triangles the mesh and the nav
   grid use (HeightMapShape3D splits cells its own way), one body per ground surface: grass, leaves, earth, gravel,
   wood. Its timber stays dull (saturation under 0.3). It has no baked light: under the trees, night sight's canopy
-  does that work. Its placeholders (crowns, bushes, logs, the cabin and fort) wait for the owner's models (step 32).
+  does that work. Its placeholders (crowns, bushes, logs, the cabin and fort) wait for the owner's models (step 28).
 - **Team sizes are each map's row in `data/maps.md` (owner, 2026-10-24: the recommended defaults; WL2).** Depot 1 to
   3, Neon Heights 1 to 5, Woodland 5 or 6 with 5 standard; picking a map sets its standard size.
 - **Day / Night is the presets a map offers, never a map name (owner, 2026-10-24: the recommended defaults; WL3).**

@@ -78,7 +78,7 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 12. **Bot difficulty.** Easy and Hard per team, then Pro; bot names and personalities (`data/bots.md`);
     DF1 (Easy and Hard, a level per team), DF2a and DF2b (Pro's own habits, then its team play), MN3 (Opponents and
     Teammates on the Match screen; concepts first, `concepts/step12-bots/`), BN1 (names and personalities).
-    Adaptive difficulty moved to the end, step 31.
+    Adaptive difficulty moved to the end, step 27.
 13. **Attack / Defend** (browser OT1's mode; the overtime flag moved to the end, step 27). FG1 (the flag's rules),
     FG2 (bots), FG2b (Pro crossfires on defence), FG3 (the pole, HUD and Match card; concepts first).
 14. **Match info.** The hit feed (one feed, placeable) with teammate markers, WON, LOST or DRAW, the scoreboard on
@@ -86,9 +86,9 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
     ammo counter and HUD opacity options, and skipping the round while you are out.
 15. **Custom matches and rule sets.** Rounds, round time, team size, friendly fire, ricochets; Skirmish and Custom.
 16. **The practice range.** Plates, figures, moving targets and the Timed challenge, and the Loadout from practice
-    (the tutorial moved to the end, step 28).
-17. **Squad orders.** Three orders and the wheel (pings and the magazine hand-off moved to the end, step 29).
-18. **The minimap** (bot callouts moved to the end, step 30).
+    (the tutorial moved to the end, step 27).
+17. **Squad orders.** Three orders and the wheel (pings and the magazine hand-off moved to the end, step 27).
+18. **The minimap** (bot callouts moved to the end, step 27).
 19. **Sound pass.** Muffling through walls and while out, ducking on hits and whistles, voice pools with spread
     (katanashotgun), kit rustle, landing thuds, rare ambience calls.
 20. **Graphics presets and desktop basics.** Low to Ultra with Custom rows, a frame-rate limit, the first-run pick,
@@ -98,28 +98,27 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 22. **Save file screen, the crash screen and bug reports.** Restore points, Undo, Delete and start over, the save
     folder; a crash screen with the seed and Report a Bug.
 23. **Figures in code.** The hit flinch, full-body animation and Looks › Robots, built against today's placeholder
-    models and the shared rig standard (the Blender models and arms are step 32).
+    models and the shared rig standard (the Blender models and arms are step 28).
 24. **Field checks.** Each field's layout rules as tests (browser `mapChecks.ts`), before fields are reworked.
 25. **Depot's layout reworked to the field checklist.** The layout, baked light, the skyline, noisy props, gas puffs and
-    dust, in greybox and today's props (its set dressing models are step 32).
+    dust, in greybox and today's props (its set dressing models are step 28).
 26. **Woodland.** The field, sloping ground and bushes, night play, the weapon torch, glowing BBs, the Day / Night
     switch, practice on any map, 5v5 and 6v6, on greybox and placeholder models where a new model would need Blender.
 
 Last, at the owner's word (2026-10-22): the features he named, then everything that needs Blender, which he must be
 at his PC to connect.
 
-27. **The overtime flag** (browser OT1).
-28. **The tutorial,** sixteen steps.
-29. **Pings and the magazine hand-off.** Pings on the middle mouse button; asking for and tossing a magazine.
-30. **Bot callouts.**
-31. **Adaptive difficulty** as a Dev setting (AD1).
-32. **Blender work, at the owner's PC.** The figures (humans and robots with fitted hit areas), your first-person arms
-    (bare or gloved, by figure and skin) and Inspect on Y; Depot's set dressing; then the owner's art pass (owner,
+27. **The deferred features, one step (owner, 2026-10-24).** The overtime flag (browser OT1); the tutorial, sixteen
+    steps; pings on the middle mouse button and the magazine hand-off (asking for and tossing a magazine); bot
+    callouts; adaptive difficulty as a Dev setting (AD1). Built in the order the plan sets.
+28. **Blender work, at the owner's PC** (was step 32; it starts once step 27 is done, owner 2026-10-24). The figures
+    (humans and robots with fitted hit areas), your first-person arms (bare or gloved, by figure and skin) and
+    Inspect on Y; Depot's set dressing; then the owner's art pass (owner,
     2026-10-18): he redesigns players, replicas, attachments and other assets at higher quality, today's models
     being placeholders built small for the browser, and Woodland's models follow at the new quality. Here because
     the rig standard, every replica and part (9 to 11) and the field checklist with Depot's final layout (24, 25)
-    have settled by then, so he models against final requirements once. The coordinator reminds him when step 31 is
-    near.
+    have settled by then, so he models against final requirements once. The thread reminds him, with what is settled
+    to model, when step 27 is done.
 
 ## Builds
 
