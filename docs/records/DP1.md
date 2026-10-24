@@ -1,12 +1,12 @@
 # DP1 · Depot's layout to the field checklist: the Box, port walls and gravel
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,838 of 2,838 | pending | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,838 of 2,838 | Accept 8/8 | – |
 
 ## What was built
 
@@ -132,3 +132,13 @@ the roof, both side ports and the far end).
 
 - A bot that gives up a search walks back to the lane point it left instead of resuming ahead (`docs/KNOWN_ISSUES.md`, Bots, can wait).
 - The Bay ports' angle is a playtest question (PLAYTEST › Depot), not a fault.
+
+## Advisories left
+
+- The held-up guard's definition changed by the lead's ruling, not the owner's: a bot counts when it kept one errand or
+  stayed within 2 m of its spot from 10 s earlier, so a bot walking back 10 m along its lane no longer counts (critic
+  agreed). The owner can overrule it.
+- Depot's west end wins 54.0 % at Normal (45.4 % before): in band, near its top edge (balance report).
+- The `regens` entry and two lane points on the west gravel bed sit 3 cm under its top; whatever reads `regens` must
+  use `floor_top` (QA).
+- The unit suite is near the 900 s limit on a busy machine (807 s measured); CI's timing decides (performance).

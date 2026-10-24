@@ -4,42 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## DP1 · Depot's layout to the field checklist: the Box, port walls and gravel (Dev)
-when: build order step 25, first (plan: project files `plan/step25-depot-layout.md`)
-tier: core
-perf: required
-touches: data/maps/depot.json, game/map/map_data.gd, game/config/map_style.gd, game/sim/ray_hit.gd,
-  game/config/effects_config.gd, game/config/ricochet_config.gd, game/play/sim_audio.gd, assets/maps/depot.jpg,
-  tests/unit/test_map_level.gd, tests/unit/test_map_areas.gd, tests/unit/test_depot_layout.gd, docs/DECISIONS.md,
-  docs/ART.md, docs/PLAYTEST.md
-contract: Physics behind two interfaces (4); Data, not literals (6)
-acceptance:
-  1. Depot is the concept's layout (project files `concepts/step25-depot/depot-proposed.json` and
-     `depot-proposed.png`; that file's `plywood` kind and `group`, `roof` and `gravel` keys are drafting aids, not
-     the format). The Box: the Alley's container opened and roofed, 2.0 m wide inside, 2.4 m headroom, a door and a
-     port in each long side, the west ones in its north half and the east ones in its south half; it is a named
-     area. Four plywood port walls (2.4 m tall and long, 0.3 m thick, a port 0.6 m wide from 1.2 to 1.9 m) in place
-     of today's blocks 40 and 43 (gabions) and 53 and 54 (the Bay's walls). Two gravel beds, 3 cm proud, at the
-     Office's west and east doors. Lanes, spawns, dead zones, the flag and every other block are unchanged. A piece
-     may move up to 0.5 m to pass a check; the record says which and why.
-  2. All fifteen field checks pass with Depot's KNOWN_FAILING list empty and no standard raised. The record lists
-     the figures against FC2's baseline (the concept, 2026-10-24: sightline 33.9 m, middle walks 30.0 and 32.0 m,
-     flag walks 38.4 and 19.5 m).
-  3. `test_depot_layout` (Jolt rays on the built level): through every port a standing eye sees out and a crouched
-     eye does not; no port or Box opening can be vaulted; a BB fired up inside the Box stops on its roof; bots from
-     each end route into the Box by its doors.
-  4. `RayHit.Surface.GRAVEL` is appended (no existing value moves) and a block's `"surface": "gravel"` reads it.
-     Steps on it play `step_gravel_*`; BBs on it puff and ricochet as earth and sound `impact_earth`. MapStyle gains
-     `plywood` (tan, inside the prop hue rule) and a gravel colour, and draws all of one container's blocks in one
-     colour. field.teamColour passes.
-  5. The match guards pass on all 16 seeds, and the balance report's Depot figures stay in their 45 to 55 % bands
-     (BR1: west end 49.0 %). A figure outside goes to the owner, never into a looser band.
-  6. `assets/maps/depot.jpg` is re-rendered with `tools/map_pictures.gd`. DECISIONS gains the layout line and the
-     review of the towers, walkways and fuselage (skyline scenery, DP3); ART.md › The field kit's Landmarks line
-     says so. PLAYTEST › Depot lists the Box, the ports and the gravel.
-status: open
-attempts: 0
-
 ## DP2 · Baked light on Depot (Dev)
 when: build order step 25, after DP1
 tier: core
