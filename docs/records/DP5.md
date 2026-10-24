@@ -109,4 +109,5 @@ three).
 `tools/check.sh` (2026-10-24, on the final tree): every gate passes (gdlint, changelog notes, the smoke test, the
 licence notices), unit tests 2,919 of 2,919 in 847 s. The first run failed one test, the prewarm's material count in
 `test_play_session.gd`, fixed as above. After QA's fixes (the disc placed when switched on and hidden below the floor
-the feet left, gas within 35 m, a watched bot's breath from the view): 2,924 of 2,924 in 943 s, every gate passing.
+the feet left, gas within 35 m, a watched bot's breath from the view): 2,924 of 2,924 in 943 s, every gate passing. After the performance review: the wind specks' new shader is drawn by the prewarm too (it compiled
+on first sight: the first round, or Low to Medium mid-match).

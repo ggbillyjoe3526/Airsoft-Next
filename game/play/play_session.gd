@@ -504,7 +504,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	_figure_lines = _play.figures.lod_high
 	var figure_materials := _build_bodies()
 	var first_use: Array[Material] = [_bbs.drawn_material(), _puffs.drawn_material(), _gas.drawn_material(),
-			_kicked.drawn_material(), contact.material]
+			_kicked.drawn_material(), contact.material, _dust.drawn_material()]
 	if state.round_state.mode == RoundState.Mode.ATTACK_DEFEND:
 		_flag = FlagView.new()
 		_flag.setup(_play.flag, _colours.figures, state.round_state.pole, _tuning.flag.radius)
