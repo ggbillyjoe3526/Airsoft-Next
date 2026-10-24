@@ -6,7 +6,7 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | CHECKS | – | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,894 of 2,894; match guards: Follow me fails seed 3 | – | – |
 
 ## What was built
 
@@ -60,7 +60,25 @@
 
 ## Figures
 
-FIGURES
+**Knocks and rings a round on Depot** (the match guards' seeds, `MatchTally.knocks` and `rings`): Elimination at
+Normal 54 knocks and 973 rings over 124 rounds on 16 seeds, 0.44 and 7.8 a round; Easy 0.77 and 9.6, Hard 0.47 and
+4.2, Pro 0.63 and 3.3 (8 seeds each). Neon Heights at Normal 0.52 and 1.3 a round. The browser measured about 2
+knocks and 6 rings a round on Depot (NP1); Godot's bots run into props less often.
+
+**Balance against main** (`tools/balance.sh`, Normal on 32 seeds, Easy, Hard and Pro on 16, both modes, every map;
+`98fbeb2` against main `0cccc38`, 2026-10-24): both 114 figures, 0 outside their band and 0 outside within noise on
+either; near an edge 16 on DP4, 11 on main. No figure moved two combined standard errors (82 compared, the largest
+1.8: Depot Easy's west end 47.0 → 35.5 % ±4.4 and the Hard flankers' share of hits 27.5 → 32.6 %). Depot Normal: the
+west end 54.0 → 53.5 %, Alpha 49.8 → 54.3 %, the attackers 57.3 → 57.4 %. Reports in the project files,
+`pipeline/runs/DP4/attempt-1/` (`balance-report.md`, `balance-report-main.md`, `balance-vs-main.txt`).
+
+**Cost** (headless, a loaded 4-core cloud container): in a 5v5 Depot match at Normal (2 seeds, 240 s each) the knock
+check costs 7.5 µs a tick on average beside a 405 µs sim step (1.9 %), the ring check 1.4 µs; worst single ticks of
+1.1 and 2.1 ms are scheduling outliers (the check's own worst case is below). Worst case, every character blocked at a
+sprint against a prop's face every tick on Depot's 51 noisy props: 79 µs a tick for 10 characters, 161 for 20, 379 for
+40; running free 0.85 µs a character. A ring is about 5 µs an impact, over the 26 props that ring. Nothing is
+allocated per tick once warm (`test_knocks_and_rings_allocate_nothing_once_warm`, Object count over 240 ticks of
+knocks and rings).
 
 ## Files outside `touches`
 
@@ -79,7 +97,17 @@ steel ramps louder and heard further.
 
 ## Checks
 
-CHECKSDETAIL
+`tools/check.sh` (2026-10-24, on the change): every gate passes (gdlint, changelog notes, unit tests 2,894 of 2,894 in
+904.7 s, the smoke test, licence notices); `test_noisy_props` 18/18 rerun on the final code with `test_simulation`,
+`test_footsteps` and `test_saved_configs`.
+
+The match guards (`tools/match_guards.sh test_match_guards`, `test_flag_guards`): every Elimination and Attack /
+Defend guard passes on every seed at every level, but **Follow me fails on Depot seed 3**: a follower 10.75 m behind
+the leader against the 8 m cap (`catch_up`). Main measures 7.36 m on that seed, near the cap. Traced: the follower
+leaves Follow me for cover (85.5 s), comes back, and is judged 3 s later (`FOLLOW_REJOIN`) while the leader sprints
+at 6.3 m/s, the followers' top speed too, so the gap can't close. DP4 only reshuffles the match (the bots now hear
+knocks and rings); no knock happens near it. Not fixed here: it needs the follow logic (a leader who waits, or
+followers judged once back within `catch_up`) or the guard, both outside `touches` and the latter a criterion.
 
 ## Known issues left
 
