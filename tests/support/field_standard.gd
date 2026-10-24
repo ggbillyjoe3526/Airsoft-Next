@@ -21,7 +21,18 @@ const BLOCKS := "field.blocks"
 const TEAM_COLOUR := "field.teamColour"
 const AREAS := "field.areas"
 const LANES := "field.lanes"
-const CHECKS: Array[String] = [REGISTERED, ROOM, ON_FLOOR, RAMPS, KILL_Y, BLOCKS, TEAM_COLOUR, AREAS, LANES]
+## The layout's, measured (FC2; the browser's mapLayoutChecks.ts).
+const LANE_WALK := "field.laneWalk"
+const ROUTES := "field.routes"
+const SPAWN_SIGHT := "field.spawnSight"
+const SIGHTLINE := "field.sightline"
+const MIDDLE := "field.middle"
+const FLAG := "field.flag"
+## FieldChecks.run's (test_field_rules), FieldChecks.layout's (test_field_layout), and both.
+const RULES: Array[String] = [REGISTERED, ROOM, ON_FLOOR, RAMPS, KILL_Y, BLOCKS, TEAM_COLOUR, AREAS, LANES]
+const LAYOUT: Array[String] = [LANE_WALK, ROUTES, SPAWN_SIGHT, SIGHTLINE, MIDDLE, FLAG]
+const CHECKS: Array[String] = [REGISTERED, ROOM, ON_FLOOR, RAMPS, KILL_Y, BLOCKS, TEAM_COLOUR, AREAS, LANES, LANE_WALK,
+		ROUTES, SPAWN_SIGHT, SIGHTLINE, MIDDLE, FLAG]
 
 ## MAP_STANDARD. Lanes end to end: Depot's three pass, fewer than MIN_LANES fail (no way round), between warns.
 const LANES_STANDARD := 3
@@ -89,10 +100,24 @@ static func allowed_clashes(field_id: String) -> PackedStringArray:
 	return PackedStringArray(e.get("clashes", []))
 
 
-## The check ids `field_id` is known to fail, sorted.
-static func known_failing(field_id: String) -> PackedStringArray:
+## The check ids among `among` that `field_id` is known to fail, sorted.
+static func known_failing(field_id: String, among: Array[String] = CHECKS) -> PackedStringArray:
 	var out := PackedStringArray()
 	for item: Dictionary in KNOWN_FAILING.get(field_id, []):
-		out.append(str(item.get("check", "")))
+		var check := str(item.get("check", ""))
+		if among.has(check):
+			out.append(check)
 	out.sort()
 	return out
+
+
+## The longest standing sightline `field_id` may have (m): its exception's, or Depot's LONGEST_SIGHTLINE.
+static func sightline_limit(field_id: String) -> float:
+	var e: Dictionary = EXCEPTIONS.get(field_id, {})
+	return float(e.get("sightline", LONGEST_SIGHTLINE))
+
+
+## The owner's reason for `field_id`'s longer sightline, or "" where it keeps Depot's.
+static func sightline_reason(field_id: String) -> String:
+	var e: Dictionary = EXCEPTIONS.get(field_id, {})
+	return str(e.get("sightline_reason", ""))
