@@ -129,3 +129,29 @@ func test_the_bots_hunting_field_on_woodland_takes_in_both_camps_not_just_its_ro
 		for s in end.spawns:
 			assert_between(s.position.x, p.bounds_lo.x, p.bounds_hi.x, "hunt bounds hold the spawn at %s" % s.position)
 			assert_between(s.position.z, p.bounds_lo.y, p.bounds_hi.y, "hunt bounds hold the spawn at %s" % s.position)
+
+
+func test_no_pair_the_search_can_join_is_refused_by_regions_on_depot_or_woodland() -> void:
+	var tuning := SimTuning.load_default()
+	var play_style: MapStyle = PlayTuning.load_default().map_style
+	for id: String in ["depot", "woodland"]:
+		var map := MapData.load_map(id, play_style, tuning.rounds.team_size)
+		var level := MapLevel.new()
+		add_child_autofree(level)
+		level.build(map, play_style, tuning.body)
+		var nav := NavGrid.build(map, tuning.nav, tuning.body)
+		NavVaults.link(nav, level.query(), tuning.vault, tuning.body, BotConfig.load_default().vault_price)
+		var walk := PackedInt32Array()
+		for k in nav.node_count():
+			if nav.walkable[k] == 1:
+				walk.append(k)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 5
+		var joined := 0
+		for i in 150:
+			var a := walk[rng.randi() % walk.size()]
+			var b := walk[rng.randi() % walk.size()]
+			if not nav.astar.get_id_path(a, b).is_empty():
+				joined += 1
+				assert_true(nav.linked(a, b, true), "%s: nodes %d and %d have a route, so one region" % [id, a, b])
+		assert_gt(joined, 100, "%s: most pairs join" % id)
