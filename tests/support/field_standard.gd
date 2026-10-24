@@ -70,7 +70,7 @@ const KNOWN_FAILING: Dictionary[String, Array] = {
 	"neonHeights": [
 		{
 			"check": BLOCKS,
-			"reason": "two floors' edges at 2.85 m stand inside the barrier at 11.30, 2.00, 7.63 (the browser's M55 "
+			"reason": "two floors' edges at 2.85 m stand inside the barrier at 11.30, 2.00, 7.62 (the browser's M55 "
 					+ "exception): cutting them changes the nav grid and how the field plays",
 			"step": "0.4 Maps Update (Neon Heights' overlapping blocks, before it goes public)",
 		},

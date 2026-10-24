@@ -25,7 +25,7 @@
 | Field | Fails | Note |
 |---|---|---|
 | Depot | nothing | 32 points on the floor, 2 ramps at 1:2, 84 blocks unclashed, 17 colours (nearest: sandbags, 23.8° at saturation 0.42), 15 areas over 27,363 walkable spots, 3 lanes |
-| Neon Heights | field.blocks | floors at 9.50, 2.85, 5.35 and 12.15, 2.85, -1.50 inside the barrier at 11.30, 2.00, 7.63; 68 points on the floor, 7 ramps, 24 names over 33,587 spots, 4 lanes |
+| Neon Heights | field.blocks | floors at 9.50, 2.85, 5.35 and 12.15, 2.85, -1.50 inside the barrier at 11.30, 2.00, 7.62; 68 points on the floor, 7 ramps, 24 names over 33,587 spots, 4 lanes |
 | Woodland | NOT_YET | refused ("no floor") until step 26 reads its terrain |
 
 **Measured otherwise than the plan: the team colour rule.** The plan's 15° was an sRGB misreading: its figure (crate
