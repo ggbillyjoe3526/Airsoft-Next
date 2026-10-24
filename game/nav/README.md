@@ -17,8 +17,10 @@ docs/ARCHITECTURE.md › Contracts 1).
   floor at it. Neighbouring nodes connect when their floors are at most `BodyConfig.max_step` apart, with no
   squeezing diagonally past a blocked node; drops keep the clearance on both sides, as walls do.
 - **Search.** Godot's `AStar3D` over the walkable nodes, weighted (`NavConfig.search_greed`): GDScript is far too slow
-  for the browser's hand-written A*. The browser's budgeted searches and distance fields aren't needed: a walk-off
-  searches once, at most one a tick (`Elimination.plan_walk_off_routes`).
+  for the browser's hand-written A*. The browser's distance fields aren't needed. Its budget a tick (NAV.searchBudget,
+  8,000 expansions) is `NavConfig.search_budget`, counted in searches since AStar3D runs one whole: one a tick, a
+  walk-off due first (`Elimination.plan_walk_off_routes`), then the bots round-robin (`BotRoutes.plan`). `searches`
+  counts them (WL2: at 6v6 on Woodland 2 to 3 a second, never a second in one tick).
 - **Regions** (WL1). The build labels each walkable node with the lowest node it is linked to on foot, either way
   (`NavGrid.region`, a union-find over the links); `NavVaults.link` joins the regions a vault link crosses
   (`vault_region`). `find_route` refuses a goal in another region at once, before the search: a search that fails
@@ -32,6 +34,13 @@ docs/ARCHITECTURE.md › Contracts 1).
   Depot); 242,591 nodes, 220,146 walkable (Depot 42,075 and 27,593); vault links 16 in 0.64–0.71 s (Depot 10 in 0.10 s);
   100 seeded routes from the west quarter to the east quarter mean 1.8–4.0 ms, max 3.8–6.3 ms where one exists (Depot
   1.1–1.4 ms, max 2.9–4.4 ms). A goal on a roof is refused in about 0.06 ms (182–202 ms before the regions).
+- **Built off the main thread** (WL2). Behind the loading screen `PlaySession` builds the grid on a `WorkerThreadPool`
+  task (it is pure data) and waits for it frame by frame, so the screen keeps drawing: Woodland's longest frame went
+  from 2.2–2.4 s to 0.9–1.1 s, the vault links' 0.7 s of Jolt rays (which stay on the main thread) the most of it.
+- **Memory** (WL2, `OS.get_static_memory_usage` round a build): Woodland 167 MB, 155 MB of it `AStar3D` (737 bytes a
+  walkable node: each point's neighbour maps and the link set); Depot 21 MB. A 0.4 m cell wherever a node's cell is
+  open two cells round (88 % of Woodland's walkable nodes) would save about 100 MB but changes the search graph, so
+  the routes bots walk: left (KNOWN_ISSUES).
 - **Vault links** (`nav_vaults.gd`, browser M102): where `Vault.plan` vaults a body from a standstill on a node, along
   the grid's four axes, a one-way search point between that node and the first walkable one past the obstacle, priced
   at its length plus `BotConfig.vault_price` (3 m). A bot's route may take one (`find_route(..., vaults = true)`); a
