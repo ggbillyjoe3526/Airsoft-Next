@@ -52,16 +52,25 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
 - **Friendly hits count (2026-09-30).** Custom matches can switch it off.
 - **Public in 0.1: Depot's modes, Easy to Hard, Woodland and Pro (owner, 2026-10-05).** Every public map, mode and
   difficulty multiplies beta's work. Neon Heights stays dev until the Maps Update and Extraction until the Modes Update
-  (`docs/ROADMAP.md`).
+  (`docs/ROADMAP.md`). **Woodland is a Dev-only map (owner, 2026-10-24):** step 26 builds it in full, hidden behind
+  Dev content like Neon Heights and greybox through the Blender step, until the owner makes it public.
 - **Cut features (owner, 2026-10-05).** Supply weekends and dated events; the Tone mapping choice; tracer BBs as an
   option (glowing BBs do it); Bomb and Intel grab; Free-for-all and the overshooting rule; cosmetic gear as its own
   system; a separate progression plan.
 - **Late features go last (owner, 2026-10-22).** The overtime flag, the tutorial, pings, asking for a magazine, bot
-  callouts and adaptive difficulty are built after Woodland (`docs/ROADMAP.md` › Build order, steps 27 to 31), so the
+  callouts and adaptive difficulty are built after Woodland (`docs/ROADMAP.md` › Build order, step 27, one step since
+  2026-10-24), so the
   core systems (match info, minimap, sound, bots) come first.
 - **Blender work comes last (owner, 2026-10-22).** Anything that needs Blender (figures, first-person arms, Inspect,
-  replica and part remodels, Depot's set dressing, the art pass) is step 32, because the owner must be at his PC to
-  connect Blender. Code-only parts, built against today's placeholder models, may still go earlier.
+  replica and part remodels, Depot's set dressing, the art pass) is step 28 (was 32), because the owner must be at
+  his PC to connect Blender. Code-only parts, built against today's placeholder models, may still go earlier.
+- **The Blender step covers Depot, human figures and replicas only (owner, 2026-10-24).** Step 28 models Depot's
+  assets (with the range's and the tutorial's, which live in Depot), the human figures with your first-person arms and
+  hands, and the replicas, attachments and accessories. Woodland and Neon Heights stay greybox while they are dev
+  content, and robots (a Dev Easter egg) keep their placeholder.
+- **Deferred features are one step, then Blender (owner, 2026-10-24).** After Woodland, the overtime flag, the
+  tutorial, pings, the magazine hand-off, bot callouts and adaptive difficulty are one step 27, in the order its plan
+  sets; the owner's Blender work (step 28, formerly 32) starts once step 27 is done.
 - **Kept features (owner, 2026-10-05).** Grenades (Replica Update) and skins (Progression Update), with greyed Loadout
   placeholders; suppressor sounds (Replica Update); Capture the Flag as a possible Modes Update mode.
 - **The Dev 6 playtest's additions and removals stand (owner, 2026-10-16).** Added: an in-match hop-up control, a
@@ -169,7 +178,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   (`docs/art/references/arm-hand-anatomy.jpg`) is the target for anatomy, skin and natural grips on replicas, for his
   art pass and the shared rig standard: `docs/ART.md` › Arms and hands.
 - **Look settings (owner, 2026-10-05).** A Robots setting mixes humans and robots on both teams; off makes everyone
-  human. A Realistic colours setting. Eight two-tone replica colour schemes, picked per replica in Customise.
+  human. **Robots are a Dev-only Easter egg (owner, 2026-10-24):** the game is humans only, the public Looks › Robots
+  row goes, and Settings › Dev › Robots (off by default) mixes them in as before (RB1). A Realistic colours setting. Eight two-tone replica colour schemes, picked per replica in Customise.
 - **Torches cast shadows on High and Ultra only; Low keeps its beams (owner, 2026-10-06).** The laser beam stays off on
   every preset (owner, 2026-10-05): a beam with no dot stops short of what it points at.
 - **The Retro look is public (owner, 2026-10-06), then back on the Dev tab since the Dev 6 playtest (owner,
@@ -178,7 +188,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   collision block, so trunks are straight posts. Sloping ground is one heightfield shared by physics, BB rays, nav and
   the mesh.
 - **Night is one lighting preset that every night map shares (2026-10-04).** Earth, wood and faces stay readable under
-  Neutral tone mapping; Neon Heights' neon stays emissive. Under night Medium's shadow map follows the view.
+  the game's AgX tone mapping, held by a night swatch test (2026-10-24, WL3); Neon Heights' neon stays emissive. Under
+  night Medium's shadow map follows the view. A bake keeps the day sun it was baked under in its hash, so night never
+  marks it stale, and draws its sky share alone at night. Fires and lanterns are yellow-white, at least 20° of hue from
+  every team colour; there is no night brightness setting (owner, 2026-10-24: the recommended defaults).
 - **The first start picks a quality preset from the GPU name; only an automatic pick steps down, never a player's choice
   (2026-10-04).** Software rendering starts on Low. A step down happens between rounds and is never saved.
 - **The Blender models are the default everywhere (owner, 2026-10-16, Dev 6 playtest item 1; BD1).** Replicas, parts
@@ -199,7 +212,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   to drop a glTF model into the assets folder (M25a) doesn't carry.
 - **Today's models are temporary placeholders; the owner redesigns them all in Blender at higher quality (owner,
   2026-10-18).** They were built small for a web browser. His art pass covers players, replicas, attachments and
-  other assets, at step 32 of `docs/ROADMAP.md` › Build order (Blender work comes last, owner 2026-10-22); until then every task uses the current models.
+  other assets, at step 28 of `docs/ROADMAP.md` › Build order (Blender work comes last, owner 2026-10-22); until then every task uses the current models.
 - **Baked light is our own per-vertex bake, not LightmapGI or SDFGI (owner, 2026-10-24: take the recommended defaults;
   DP2).** LightmapGI bakes only in the editor on a GPU, so neither a cloud session nor CI could make or check it.
   `tools/bake_light.gd` bakes headless, on the engine's TriangleMesh rays: per vertex of the greybox cut into 0.5 m
@@ -213,7 +226,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   horizon by distance, casting no shadow, with no collider; a piece no eye over a lane point, spawn or raised floor
   sees over the blocks is left out (MS1). Other kinds (Neon Heights' towers, the treelines) wait for their maps'
   dressing. Site colours and greys only, no red (too near Beta's hue). Chimney smoke is drawn from Medium, read off
-  the mesh detail row rather than a row of its own. The models replace the greybox at step 32.
+  the mesh detail row rather than a row of its own. The models replace the greybox at step 28.
 - **Every figure keeps its team-colour plate carrier (owner, 2026-10-17, AX1).** The carrier reads like a site's team
   bib and is the strongest team cue at range. A civilian outfit is in `docs/IDEAS.md`.
 
@@ -226,9 +239,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **The hit area is fitted to each rigged figure (owner, 2026-10-16, Dev 6 playtest; HV1, IM8).** Head, chest,
   shoulders, hips and legs sit on each figure's own bones, read from the clips as the figures load; a test holds every
   pose of both figures to M85's bar (4 % missed, 3 % thin air). A new figure must pass it.
-- **Until step 32 the hit area stays Hitbox's built-in volume, one for both kinds, measured, not fitted (step 23 plan,
+- **Until step 28 the hit area stays Hitbox's built-in volume, one for both kinds, measured, not fitted (step 23 plan,
   default 2; FI7).** `test_figure_hit_area.gd` measures it against the drawn placeholder figures on every kind, head and
-  pose and fails if a share rises 0.5 points over FI7's numbers (`docs/records/FI7.md`); step 32 fits it once to the
+  pose and fails if a share rises 0.5 points over FI7's numbers (`docs/records/FI7.md`); step 28 fits it once to the
   final figures, to M85's bar (HV1).
 - **Hit calling stays a raised hand and a sign, with no dead rag, night light or shouted "HIT!" for now (owner,
   2026-10-06).**
@@ -392,12 +405,29 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Woodland has no boulders, no lone oak, chest-high fort walls and a roofed hut (owner, 2026-10-17, Beta 1 playtest
   item 30 and his tweaks: "completely remove all boulders. I hate them.").** Logs give the cover instead: log piles on
   the fort's climbs, fallen trunks on the meadow. The fort's outer walls are 1.5 m (at 1.2 m Hard attackers won 76 % of
-  Attack / Defend); the hut is 3 m under a grey tin roof (WL2).
+  Attack / Defend); the hut is 3 m under a grey tin roof (the browser's WL2).
 - **Woodland's West Hill, a meadow swell and a dry ravine (owner, 2026-10-17: "a small hill (enough to stop the other
   side immediately seeing them)… one side of the map should have a more significant elevation change").** The West
   Rise's crest is 3.4 m at its middle and 2.2 m at its ends; one 0.6 m swell sits on the meadow. The south creek is a
   dry ravine 2.2 m deep, easing to 1 m by the hill, so no slope passes a ramp's. The stream in its bed is a later step
-  (WL3).
+  (the browser's WL3).
+- **Woodland is built on the browser's layout, unchanged, with its ground one trimesh (owner, 2026-10-24: the
+  recommended defaults; step 26, WL1).** The layout the browser playtested and the owner tuned is kept; a field check
+  it fails goes to the owner. Its heightfield reaches Jolt as a trimesh of the very triangles the mesh and the nav
+  grid use (HeightMapShape3D splits cells its own way), one body per ground surface: grass, leaves, earth, gravel,
+  wood. Its timber stays dull (saturation under 0.3). It has no baked light: under the trees, night sight's canopy
+  does that work. Its placeholders (crowns, bushes, logs, the cabin and fort) wait for the owner's models (step 28).
+- **Team sizes are each map's row in `data/maps.md` (owner, 2026-10-24: the recommended defaults; WL2).** Depot 1 to
+  3, Neon Heights 1 to 5, Woodland 5 or 6 with 5 standard; picking a map sets its standard size.
+- **Day / Night is the presets a map offers, never a map name (owner, 2026-10-24: the recommended defaults; WL3).**
+  Woodland offers Night alone, Neon Heights both, Depot Day; the Match screen shows the row only where there is a
+  choice, and Dev › Time of day plays any map by either. Depot's public night waits for 0.4's Day and Night on every
+  map.
+- **The practice range and the tutorial are set in Depot (owner, 2026-10-24).** Their design and layout stay as they
+  are, but they are dressed as part of the Depot site with Depot's props, materials, light and skyline, so their assets
+  are modelled with Depot's (the range in WL9, step 26; the tutorial in step 27).
+- **Practice on a public map is public (owner, 2026-10-24: the recommended defaults; WL9).** On a dev map it is dev,
+  and Woodland's practice is at night with your weapon torch.
 - **Neon Heights is the third field: a vertical futuristic city with Day and Night (owner, 2026-10-04).** 46 × 30 m,
   three playable floors, roofs not playable, stairs only, open windows with a 1.2 m sill, 4v4, both modes, Night first.
 - **Bushes hide you and stop BBs, but not people (2026-10-15, FO1; Claude's defaults; replaces "Bushes hide but BBs
@@ -575,7 +605,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   carried by bots only with the switch on. A match counts as using dev content when an opponent's kit could hold dev
   gear (BG1).
 - **Woodland and Neon Heights stay dev content until the owner has playtested them; he makes each public himself (owner,
-  2026-10-05).** Woodland's weapon torch stays dev until Woodland is public.
+  2026-10-05; Woodland confirmed Dev-only 2026-10-24).** Woodland's weapon torch stays dev until Woodland is public.
 - **Dev settings apply only while their box is ticked (owner, 2026-10-04).** Game speed, Bottomless magazines, Ghost
   and Disable levelling keep a match out of the records and give no XP for the rest of that match. Debug info, BB paths
   and Retro pixels change only what you see.
