@@ -173,7 +173,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   (`docs/art/references/arm-hand-anatomy.jpg`) is the target for anatomy, skin and natural grips on replicas, for his
   art pass and the shared rig standard: `docs/ART.md` › Arms and hands.
 - **Look settings (owner, 2026-10-05).** A Robots setting mixes humans and robots on both teams; off makes everyone
-  human. A Realistic colours setting. Eight two-tone replica colour schemes, picked per replica in Customise.
+  human. **Robots are a Dev-only Easter egg (owner, 2026-10-24):** the game is humans only, the public Looks › Robots
+  row goes, and Settings › Dev › Robots (off by default) mixes them in as before (RB1). A Realistic colours setting. Eight two-tone replica colour schemes, picked per replica in Customise.
 - **Torches cast shadows on High and Ultra only; Low keeps its beams (owner, 2026-10-06).** The laser beam stays off on
   every preset (owner, 2026-10-05): a beam with no dot stops short of what it points at.
 - **The Retro look is public (owner, 2026-10-06), then back on the Dev tab since the Dev 6 playtest (owner,

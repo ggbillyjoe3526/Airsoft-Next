@@ -19,6 +19,24 @@ acceptance:
 status: open
 attempts: 0
 
+## RB1 · Robots become a Dev-only Easter egg (Dev)
+when: build order step 26, after CI1 and before WL1 (owner, 2026-10-24)
+tier: core
+perf: none
+touches: game/save/settings.gd, game/ui/settings_screen.gd, game/ui/settings_looks_page.gd, game/ui/text/en.po,
+  game/play/ (FigureMix's caller), the Dev tab, tests/unit/, docs/DECISIONS.md, docs/PLAYTEST.md
+contract: Data, not literals (6)
+acceptance:
+  1. Every match is humans only unless Settings › Dev › Robots is on. The Dev row is off by default and, when on,
+     mixes robots in as Settings › Looks › Robots' Mixed did (FigureMix, from the match seed, looks only).
+  2. The public Settings › Looks page is gone, since Robots was its only row; no public menu, card or text names
+     robots. The robot figures and their code stay in the project for the Dev toggle.
+  3. A save that stored `robots` loads without error and starts with robots off (the old public value is ignored);
+     the Dev value saves and loads like other Dev settings.
+  4. Tests cover the default (humans only), the Dev toggle mixing robots in, and the old save field.
+status: open
+attempts: 0
+
 ## WL1 · Sloping ground: Woodland loads and plays (Dev)
 when: build order step 26, first, after CI1 (plan: project files `plan/step26-woodland.md`)
 tier: core
