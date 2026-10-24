@@ -4,27 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## DP3 · Depot's skyline and landmarks (Dev)
-when: build order step 25, after DP1
-tier: core
-perf: required
-touches: game/play/skyline_view.gd, game/play/play_session.gd, game/map/map_data.gd, game/config/,
-  data/maps/depot.json, tools/map_pictures.gd, tests/unit/test_skyline.gd, docs/DECISIONS.md, docs/ART.md
-contract: Simulation and presentation (1); Data, not literals (6)
-acceptance:
-  1. SkylineView builds the map's `dressing.skyline` entries (shed, waterTower, crane, containers, chimney, silo,
-     powerLine, hill) as greybox in one merged vertex-coloured mesh, each piece faded toward the sky's horizon
-     colour by distance; chimneys marked `smoke` smoke from Medium. No collider, no nav cell, no effect on any check.
-  2. New kinds `watchTower`, `fuselage` and `mast` in the same data: a concrete watch tower beyond the north wall,
-     the fuselage beyond the east wall, four masts outside the corners (their lights wait for step 26). Site colours
-     only, never a team colour (ART.md).
-  3. What no player can see is not built (owner, 2026-10-16, MS1): a piece no stand point on a lane, a spawn or a
-     raised floor sees over the walls is left out, and a test fails if a landmark is.
-  4. A map with no skyline draws as before. The record gives the triangles, draw calls and frame time added on each
-     preset, and posts pictures from the Crate yard and the Bay (as the concept's `depot-eye-level.png`).
-status: open
-attempts: 0
-
 ## DP4 · Noisy props and loud ground (Dev)
 when: build order step 25, after DP1
 tier: core

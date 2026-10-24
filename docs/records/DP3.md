@@ -1,12 +1,12 @@
 # DP3 · Depot's skyline and landmarks
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,866 of 2,866 | pending | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,876 of 2,876 (after QA fixes) | Accept 8/8 | – |
 
 ## What was built
 
@@ -124,3 +124,15 @@ config written in, for `test_saved_configs`), `assets/maps/depot.jpg` and `range
 - The sight check lets no piece hide another; the range's treelines and Neon Heights' towers aren't built; Depot's far
   pieces stand past the ground quad's 120 m edge; the look on Forward+ is the owner's check (`docs/KNOWN_ISSUES.md`,
   Graphics).
+
+## Advisories left
+
+- QA failed attempt 1 on one blocker (a `turned` or `smoke` flag written as text stopped the map loading); fixed in
+  the follow-up round and pinned by `test_dp3_qa`.
+- About 20 shape ratios are inline in `skyline_shapes.gd`, as in `range_targets_view.gd`; move them into
+  `SkylineConfig` when the models replace the greybox at step 32 (critic).
+- The prewarm warms the smoke's material on a plain mesh, so the GPU-particles version may still compile once on a
+  Low to Medium switch (critic).
+- From the Main Gate the fuselage shows as a grey wedge; whether it reads as an aircraft is the owner's call (critic).
+- A night or dusk horizon in step 26 must re-run the skyline hue test, which covers today's horizon only (QA).
+- The build (about 48 ms once a session) could be cached if a bigger map gets a skyline (performance).
