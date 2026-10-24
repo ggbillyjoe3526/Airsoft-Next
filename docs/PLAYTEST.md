@@ -294,6 +294,14 @@ flagpole stands in the walled loading bay. Three lanes lead there: **Dock Road**
   see the other team's spawn from yours, standing or crouched.
 - [ ] **Cover.** A pallet rack, a gabion barrier and a portable toilet are full cover; crouched behind an IBC tank, a
   generator or sandbags you're hidden, standing you can shoot over.
+- [ ] **The Box** (the roofed container in the middle of the Alley). The west end's door and port are in its north
+  half, the east end's in its south half: you never see straight through it. Both teams race for it; fighting inside
+  2 m of steel reads, and a BB fired up stops on the roof.
+- [ ] **The port walls** (plywood, two in the Crate yard for the attackers, two in the Bay covering the Main Gate for
+  the defenders). Standing you see and shoot through the port, crouched behind it you're hidden, and Jump never takes
+  you through it. Do the Bay's ports, which look across the gate's mouth, earn their place?
+- [ ] **The gravel** at the Office's west and east doors. Steps on it crunch and BBs on it puff like earth; the 3 cm
+  lip never catches your feet.
 - [ ] **The east end** (Alpha's start in Elimination): the team leaves past the wall's south end and nobody gets stuck
   in the yard's north corner.
 - [ ] **Balance.** In Attack / Defend, does attacking or defending feel easier, and which lane do the bots pick? In

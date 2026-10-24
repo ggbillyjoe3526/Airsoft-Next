@@ -318,8 +318,9 @@ func test_depot_has_one_floor_a_cell_and_the_browsers_walkable_area() -> void:
 	var walk := 0
 	for k in depot.node_count():
 		walk += depot.walkable[k]
-	# The browser's grid had 27,380; the map's numbers are single precision here, which moves a few edge cells.
-	assert_almost_eq(walk, 27380, 50)
+	# The browser's grid had 27,380; the map's numbers are single precision here, which moves a few edge cells. DP1 adds
+	# the Box's inside and the port walls, thinner than the gabions and walls they replaced: 27,363 became 27,593.
+	assert_almost_eq(walk, 27593, 50)
 
 
 func test_every_depot_spawn_reaches_every_dead_zone_spot_and_the_other_ends_spawns() -> void:
