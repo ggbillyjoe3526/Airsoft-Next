@@ -1,26 +1,20 @@
 extends GutTest
 ## Named areas and storeys (MM1; the browser game's map/areas.test.ts and content/mapAreas.test.ts, CL1): area_at's
 ## rules, the shipped maps' areas read and named shortly, a malformed area warned of and left out, spots on Depot and on
-## Neon Heights by storey, every walkable cell of Depot's nav grid in an area, area_at allocating nothing, and the
-## minimap's numbers in play_tuning.tres.
-
-## How many of the cells in no area a failure lists.
-const LISTED := 8
+## Neon Heights by storey, area_at allocating nothing, and the minimap's numbers in play_tuning.tres. Every field's
+## walkable cells in an area is the field rule field.areas (test_field_rules.gd).
 
 var maps: Dictionary[String, MapData] = {}
-var depot_nav: NavGrid = null
 
 
 func before_all() -> void:
 	var tuning := SimTuning.load_default()
 	for id: String in ["depot", "woodland", "neonHeights", "range"]:
 		maps[id] = MapData.load_map(id, MapStyle.new(), tuning.rounds.team_size if id != "range" else 1)
-	depot_nav = NavGrid.build(maps["depot"], tuning.nav, tuning.body)
 
 
 func after_all() -> void:
 	maps.clear()
-	depot_nav = null
 
 
 ## Areas as the browser's test has them: Dock inside Yard, and a Roof with a floor band.
@@ -148,41 +142,6 @@ func test_neon_heights_names_one_spot_by_its_storey() -> void:
 		assert_eq(MapAreas.area_at(m.areas, Vector3(10, m.storeys[s], 0)), names[s], "storey %d" % s)
 	assert_eq(MapAreas.area_at(m.areas, Vector3(0, m.storeys[2], 7)), "Sky Bridge")
 	assert_eq(MapAreas.area_at(m.areas, Vector3(0, m.storeys[0], 7)), "Neon Avenue")
-
-
-## The browser's map.areas rule on Depot: every walkable spot named, and every name somewhere walkable.
-func test_every_walkable_cell_of_depot_lies_in_an_area_and_every_area_holds_one() -> void:
-	var m := maps["depot"]
-	var unnamed: Array[String] = []
-	var unnamed_count := 0
-	var used: Dictionary[String, bool] = {}
-	var walkable := 0
-	for k in depot_nav.node_count():
-		if depot_nav.walkable[k] != 1:
-			continue
-		walkable += 1
-		var p := depot_nav.node_position(k)
-		var area := MapAreas.area_at(m.areas, p)
-		if area.is_empty():
-			unnamed_count += 1
-			if unnamed.size() < LISTED:
-				unnamed.append("(%.1f, %.1f, %.1f)" % [p.x, p.y, p.z])
-		else:
-			used[area] = true
-	assert_gt(walkable, 0, "Depot has walkable cells")
-	assert_eq(unnamed, [] as Array[String], "%d walkable cells in no area" % unnamed_count)
-	var names: Dictionary[String, bool] = {}
-	for a in m.areas:
-		names[a.name] = true # two boxes may share a name (Neon Heights' Walkway)
-	assert_eq(used.size(), names.size(), "areas nobody can stand in: %s" % str(_unused(m.areas, used)))
-
-
-static func _unused(areas: Array[MapAreas.Area], used: Dictionary[String, bool]) -> Array[String]:
-	var out: Array[String] = []
-	for a in areas:
-		if not used.has(a.name):
-			out.append(a.name)
-	return out
 
 
 func test_area_at_allocates_nothing() -> void:
