@@ -178,7 +178,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   collision block, so trunks are straight posts. Sloping ground is one heightfield shared by physics, BB rays, nav and
   the mesh.
 - **Night is one lighting preset that every night map shares (2026-10-04).** Earth, wood and faces stay readable under
-  Neutral tone mapping; Neon Heights' neon stays emissive. Under night Medium's shadow map follows the view.
+  the game's AgX tone mapping, held by a night swatch test (2026-10-24, WL3); Neon Heights' neon stays emissive. Under
+  night Medium's shadow map follows the view. A bake keeps the day sun it was baked under in its hash, so night never
+  marks it stale, and draws its sky share alone at night. Fires and lanterns are yellow-white, at least 20° of hue from
+  every team colour; there is no night brightness setting (owner, 2026-10-24: the recommended defaults).
 - **The first start picks a quality preset from the GPU name; only an automatic pick steps down, never a player's choice
   (2026-10-04).** Software rendering starts on Low. A step down happens between rounds and is never saved.
 - **The Blender models are the default everywhere (owner, 2026-10-16, Dev 6 playtest item 1; BD1).** Replicas, parts
@@ -392,12 +395,26 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Woodland has no boulders, no lone oak, chest-high fort walls and a roofed hut (owner, 2026-10-17, Beta 1 playtest
   item 30 and his tweaks: "completely remove all boulders. I hate them.").** Logs give the cover instead: log piles on
   the fort's climbs, fallen trunks on the meadow. The fort's outer walls are 1.5 m (at 1.2 m Hard attackers won 76 % of
-  Attack / Defend); the hut is 3 m under a grey tin roof (WL2).
+  Attack / Defend); the hut is 3 m under a grey tin roof (the browser's WL2).
 - **Woodland's West Hill, a meadow swell and a dry ravine (owner, 2026-10-17: "a small hill (enough to stop the other
   side immediately seeing them)… one side of the map should have a more significant elevation change").** The West
   Rise's crest is 3.4 m at its middle and 2.2 m at its ends; one 0.6 m swell sits on the meadow. The south creek is a
   dry ravine 2.2 m deep, easing to 1 m by the hill, so no slope passes a ramp's. The stream in its bed is a later step
-  (WL3).
+  (the browser's WL3).
+- **Woodland is built on the browser's layout, unchanged, with its ground one trimesh (owner, 2026-10-24: the
+  recommended defaults; step 26, WL1).** The layout the browser playtested and the owner tuned is kept; a field check
+  it fails goes to the owner. Its heightfield reaches Jolt as a trimesh of the very triangles the mesh and the nav
+  grid use (HeightMapShape3D splits cells its own way), one body per ground surface: grass, leaves, earth, gravel,
+  wood. Its timber stays dull (saturation under 0.3). It has no baked light: under the trees, night sight's canopy
+  does that work. Its placeholders (crowns, bushes, logs, the cabin and fort) wait for the owner's models (step 32).
+- **Team sizes are each map's row in `data/maps.md` (owner, 2026-10-24: the recommended defaults; WL2).** Depot 1 to
+  3, Neon Heights 1 to 5, Woodland 5 or 6 with 5 standard; picking a map sets its standard size.
+- **Day / Night is the presets a map offers, never a map name (owner, 2026-10-24: the recommended defaults; WL3).**
+  Woodland offers Night alone, Neon Heights both, Depot Day; the Match screen shows the row only where there is a
+  choice, and Dev › Time of day plays any map by either. Depot's public night waits for 0.4's Day and Night on every
+  map.
+- **Practice on a public map is public (owner, 2026-10-24: the recommended defaults; WL9).** On a dev map it is dev,
+  and Woodland's practice is at night with your weapon torch.
 - **Neon Heights is the third field: a vertical futuristic city with Day and Night (owner, 2026-10-04).** 46 × 30 m,
   three playable floors, roofs not playable, stairs only, open windows with a 1.2 m sill, 4v4, both modes, Night first.
 - **Bushes hide you and stop BBs, but not people (2026-10-15, FO1; Claude's defaults; replaces "Bushes hide but BBs
