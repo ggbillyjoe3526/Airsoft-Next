@@ -1,11 +1,11 @@
 class_name MapData
 extends RefCounted
 ## A map's layout as plain data, read from data/maps/<id>.json (the browser game's map/mapTypes.ts, exported by the
-## salvage): its blocks, its two ends, its kill height, its named areas and storeys, its ambience and, on the range, its
-## targets. MapLevel builds the greybox and the Jolt colliders from it; the simulation reads its ends and targets. A
-## file that can't be played (no floor, a missing end, too few spawns for a team) is refused with the reasons in
-## `problems`; a target that can't stand, a malformed area or an unknown ambience is left out with a warning
-## (`warnings`).
+## salvage): its blocks, its two ends, its kill height, its named areas and storeys, its ambience, its skyline and, on
+## the range, its targets. MapLevel builds the greybox and the Jolt colliders from it; the simulation reads its ends
+## and targets; SkylineView draws its skyline. A file that can't be played (no floor, a missing end, too few spawns for
+## a team) is refused with the reasons in `problems`; a target that can't stand, a malformed area or skyline piece or
+## an unknown ambience is left out with a warning (`warnings`).
 
 const DIR := "res://data/maps/"
 ## How far apart (m) two blocks' faces may be and still meet, for rounding in the file.
@@ -55,6 +55,9 @@ var areas: Array[MapAreas.Area] = []
 var ambience: StringName = AmbienceConfig.DEFAULT_ID
 ## The bake of its light (`bakedLight.file` in the file: BakeConfig.path_for), or empty for a map drawn without one.
 var baked_light_file: String = ""
+## The skyline round the field (`dressing.skyline` in the file, its known kinds): scenery out of reach, drawn by
+## SkylineView; empty on a map without one.
+var skyline: Array[SkylinePiece] = []
 ## The floor heights (m) of a map built in storeys, lowest first (Neon Heights' 0, 3 and 6); empty on a map of one.
 var storeys: PackedFloat64Array = PackedFloat64Array()
 ## Why the file was refused; empty when it loaded.
@@ -100,6 +103,7 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m._read_storeys(d.get("storeys"))
 	m._read_ambience(d.get("ambience"))
 	m._read_baked_light(d.get("bakedLight"))
+	m.skyline = SkylinePiece.read(d.get("dressing"), m.warnings)
 	for w in m.warnings:
 		push_warning("MapData: " + w)
 	var pole: Variant = d.get("flag")

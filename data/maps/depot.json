@@ -2594,6 +2594,54 @@
     "depth": 50,
     "height": 12,
     "colour": 6715482
+   },
+   {
+    "kind": "watchTower",
+    "x": 4,
+    "z": -23,
+    "width": 5.2,
+    "depth": 5.2,
+    "height": 12.4
+   },
+   {
+    "kind": "fuselage",
+    "x": 34,
+    "z": 2,
+    "width": 4.4,
+    "depth": 24,
+    "height": 9
+   },
+   {
+    "kind": "mast",
+    "x": -27.5,
+    "z": -18.5,
+    "width": 2.4,
+    "depth": 0.5,
+    "height": 14
+   },
+   {
+    "kind": "mast",
+    "x": -27.5,
+    "z": 18.5,
+    "width": 2.4,
+    "depth": 0.5,
+    "height": 14
+   },
+   {
+    "kind": "mast",
+    "x": 27.5,
+    "z": -18.5,
+    "width": 2.4,
+    "depth": 0.5,
+    "height": 14
+   },
+   {
+    "kind": "mast",
+    "x": 27.5,
+    "z": 18.5,
+    "width": 2.4,
+    "depth": 0.5,
+    "height": 14
    }
   ],
   "motes": {

@@ -106,6 +106,8 @@ var _bbs: BBView = null
 var _puffs: PuffView = null
 var _dust: WindDust = null
 var _lighting: FieldLighting = null
+## The skyline round the field, or null on a map without one (SkylineView).
+var _skyline: SkylineView = null
 ## Scratch for the vault prompt's look ahead each tick.
 var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
@@ -253,6 +255,9 @@ func _build_level() -> void:
 	_level.build(_map, _play.map_style, _tuning.body, _play.baked_light, _play.lighting)
 	_lighting = FieldLighting.build(_play.lighting)
 	add_child(_lighting)
+	_skyline = SkylineView.build(_map, _play.skyline, _play.lighting, _tuning.body.stand_eye_height)
+	if _skyline != null:
+		add_child(_skyline)
 
 
 func _build_teams() -> void:
@@ -741,7 +746,10 @@ func _process(delta: float) -> void:
 	_hands.visible = _hands.visible and watched == player
 	_bbs.update(state.bbs, PLAYER_ID, _hands.muzzle_position() - _eyes.global_position, fraction, TICK)
 	_puffs.update(delta)
-	_dust.update(_eyes.global_position, state.wind.at(state.time), delta)
+	var wind := state.wind.at(state.time)
+	_dust.update(_eyes.global_position, wind, delta)
+	if _skyline != null:
+		_skyline.update(wind, delta)
 	if _targets_view != null:
 		_targets_view.update(state.targets, fraction, delta)
 	var eye := _eyes.global_position
@@ -1131,12 +1139,16 @@ func _apply_motion() -> void:
 	_eyes.set_motion(motion)
 	_hands.set_motion(motion)
 	_dust.set_motion(motion)
+	if _skyline != null:
+		_skyline.set_motion(motion)
 	_hud.set_motion(motion)
 
 
 ## The graphics drawn, onto the field: at the start and whenever they change (the settings can open from the pause menu).
 func _apply_graphics(values: GraphicsQuality) -> void:
 	GraphicsApply.apply_field(values, _lighting, _dust, null, _level)
+	if _skyline != null:
+		_skyline.set_smoke(SkylineView.smokes(values))
 	var lines := _play.figures.lod_lines(values.mesh_detail)
 	if lines != _figure_lines:
 		_figure_lines = lines
