@@ -2,13 +2,13 @@ class_name MapStyle
 extends Resource
 ## How a map's blocks are drawn and what they are made of, by block kind (the browser game's config/materials.ts for the
 ## surfaces; the colours follow docs/ART.md: warm concrete and cream for the field, site colours on containers and
-## plant, plywood for crates and port walls, dull timber for Woodland's trees, logs and fence, never a team colour). Read
-## by MapData (surfaces) and MapLevel (the greybox). A block's own `surface` in the map data wins over its kind's, and a
-## surface with a colour of its own (gravel) is drawn in it. Sloping ground (TerrainGrid) is drawn in its surfaces'
-## `terrain_colours`.
+## plant, plywood for crates and port walls, dull timber for Woodland's trees, logs and fence, never a team colour).
+## Read by MapData (surfaces) and MapLevel (the greybox). A block's own `surface` in the map data wins over its kind's,
+## and a surface with a colour of its own (gravel) is drawn in it. Sloping ground (TerrainGrid) is drawn in its
+## surfaces' `terrain_colours`.
 
-## What a BB or a footstep meets on each kind (RayHit.Surface). Moulded plastic ticks hollow, nearest to wood; sand-filled
-## bags and gabions soak BBs up like wood. Kinds not listed are concrete.
+## What a BB or a footstep meets on each kind (RayHit.Surface). Moulded plastic ticks hollow, nearest to wood;
+## sand-filled bags and gabions soak BBs up like wood. Kinds not listed are concrete.
 @export var surfaces: Dictionary[StringName, int] = {
 	&"floor": RayHit.Surface.CONCRETE,
 	&"ramp": RayHit.Surface.CONCRETE,
@@ -75,8 +75,9 @@ extends Resource
 	RayHit.Surface.WOOD: Color(0.58, 0.53, 0.45),
 }
 ## Sloping ground's surfaces come in squares this size (m; half the browser game's 1 m, so a 2 m path keeps its
-## width), a whole number to a terrain cell's side. Its under-trees surface goes where at least `canopy_trees` trunks stand within `canopy_radius`
-## m of the middle of the `canopy_cell` square holding a square's middle (the browser's NIGHT_SIGHT canopy rule).
+## width), a whole number to a terrain cell's side. Its under-trees surface goes where at least `canopy_trees` trunks
+## stand within `canopy_radius` m of the middle of the `canopy_cell` square holding a square's middle (the browser's
+## NIGHT_SIGHT canopy rule).
 @export var ground_cell: float = 0.5
 @export var canopy_trees: int = 3
 @export var canopy_radius: float = 4.0

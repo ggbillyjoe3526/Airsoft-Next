@@ -1,6 +1,6 @@
 # WL1 · Sloping ground: Woodland loads and plays
 
-**Review:** pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|
 | 2026-10-24 | 1 | worker | 2958 / 2958 (second run; the first lost one to `test_voice_pool.gd`'s timing) | – | – |
 | 2026-10-24 | 2 | worker | 2959 / 2959 | – | Thread: a body must stand still on the steepest face; the voice-pool test must hold on a busy runner |
-| 2026-10-24 | 3 | worker | 2970 / 2970 | – | QA and performance failed: hunt bounds left out the terrain; failed searches to roofs hitched 134–202 ms; bad ground numbers raised errors |
+| 2026-10-24 | 3 | worker | 2970 / 2970 | Accept 7/8 | QA and performance failed: hunt bounds left out the terrain; failed searches to roofs hitched 134–202 ms; bad ground numbers raised errors |
 
 ## Goal
 
@@ -224,3 +224,15 @@ else passing; `test_wl1_qa.gd` 7 of 7, `test_terrain.gd` 28, `test_bot_vaults.gd
 `test_nav_grid.gd` 21 pass alone. Before and after on one tree, Depot, Neon Heights and the range build the same mesh,
 colliders and nav grid (above). Not verified: how the slopes feel to walk and how the woodland reads on Forward+
 (PLAYTEST › Woodland).
+
+QA's test of the regions (`test_wl1_qa.gd`, c92d8ee) came after attempt 3's gate; the gate re-run on that head passes
+every step, 2,971 of 2,971.
+
+## Advisories left
+
+- Critic (check 8, non-blocking): the load freeze, the nav memory, the untiled terrain mesh and `lowest_floor` were
+  written only here; each now has a KNOWN_ISSUES row naming its later task.
+- QA: hunt spots are drawn at `top_y`, so a spot over the hut or the cabin snaps to its roof and is redrawn; bots may
+  never hunt inside them (as before this task). WL6 (bots by night) looks at it.
+- Neon Heights seed 7 plays out differently from round 5 after the Movement push change (1-2 mm/s pushes from its
+  stairs and barriers now dropped); Depot's whole matches are identical.
