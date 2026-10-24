@@ -1,0 +1,222 @@
+extends GutTest
+## Baked light (DP2): tools/bake_light.gd's per-vertex sky and sun bounce on the tiled mesh (MapLevel.tile), each map's
+## bake matching the blocks it was baked from, MapLevel drawing it as vertex colour in one draw call and switching it
+## (Settings › Graphics › Baked light) by rebuilding the mesh alone, and a map with no bake drawn as before.
+
+const BakeTool := preload("res://tools/bake_light.gd")
+const DIR := "user://test_baked_light"
+## Neon Heights names no bake: its greybox as before DP2 (a change to its blocks or MapStyle's colours updates these).
+const NEON_VERTICES := 10578
+const NEON_HASH := "b171a361a2cd74c2e976c5680769368387020ef46b16c1b29ee1496891a63411"
+## Depot's untiled greybox (Low): the faces before DP2.
+const DEPOT_UNTILED_VERTICES := 3942
+## A small yard: a 30 m slab, a wall 4 m tall across it and a 1 m cube; two ends of one spawn each.
+const YARD := """{"name": "Yard", "blocks": [
+	{"kind": "floor", "center": {"x": 0, "y": -0.25, "z": 0}, "size": {"x": 30, "y": 0.5, "z": 30}},
+	{"kind": "wall", "center": {"x": 0, "y": 2, "z": 0}, "size": {"x": 0.4, "y": 4, "z": 8}},
+	{"kind": "crate", "center": {"x": -8, "y": 0.5, "z": -8}, "size": {"x": 1, "y": 1, "z": 1}}],
+	"spawns": [[{"position": {"x": -10, "y": 0, "z": 10}}], [{"position": {"x": 10, "y": 0, "z": 10}}]],
+	"deadZones": [[{"position": {"x": -12, "y": 0, "z": 12}}], [{"position": {"x": 12, "y": 0, "z": 12}}]],
+	"bakedLight": {"file": "yard"}}"""
+
+var play: PlayTuning = PlayTuning.load_default()
+var body: BodyConfig = BodyConfig.new()
+
+
+func _yard() -> MapData:
+	var m := MapData.parse(YARD, play.map_style, 1)
+	m.id = "yard"
+	assert_true(m.ok(), "the yard loads: %s" % [m.problems])
+	return m
+
+
+## A quick bake's settings: whole-metre tiles.
+func _coarse() -> BakeConfig:
+	var cfg := BakeConfig.new()
+	cfg.cell = 1.0
+	return cfg
+
+
+## The index of the tiles' vertex at `at` facing `normal`, or -1.
+func _vertex(t: MapLevel.Tiles, at: Vector3, normal: Vector3) -> int:
+	for v in t.positions.size():
+		if t.positions[v].is_equal_approx(at) and t.normals[v].is_equal_approx(normal):
+			return v
+	return -1
+
+
+func _mesh_hash(mesh: Mesh) -> String:
+	var a := mesh.surface_get_arrays(0)
+	var ctx := HashingContext.new()
+	ctx.start(HashingContext.HASH_SHA256)
+	ctx.update((a[Mesh.ARRAY_VERTEX] as PackedVector3Array).to_byte_array())
+	ctx.update((a[Mesh.ARRAY_NORMAL] as PackedVector3Array).to_byte_array())
+	ctx.update((a[Mesh.ARRAY_COLOR] as PackedColorArray).to_byte_array())
+	return ctx.finish().hex_encode()
+
+
+func _level(map_id: String) -> MapLevel:
+	var m := MapData.load_map(map_id, play.map_style, 1)
+	assert_true(m.ok(), "%s loads: %s" % [map_id, m.problems])
+	var level := MapLevel.new()
+	add_child_autofree(level)
+	level.build(m, play.map_style, body, play.baked_light)
+	return level
+
+
+func _greybox(level: MapLevel) -> MeshInstance3D:
+	return level.get_node("Greybox") as MeshInstance3D
+
+
+func test_every_bake_matches_the_blocks_it_was_baked_from() -> void:
+	var baked := 0
+	for file in DirAccess.get_files_at(MapData.DIR):
+		if file.get_extension() != "json":
+			continue
+		var m := MapData.load_map(file.get_basename(), play.map_style, 1)
+		if m.baked_light_file.is_empty():
+			continue
+		baked += 1
+		var bake := BakedLight.load_for(m)
+		assert_not_null(bake, "%s's bake %s is there" % [m.id, m.baked_light_file])
+		if bake == null:
+			continue
+		assert_eq(bake.source_hash, BakedLight.hash_of(m, play.map_style, play.lighting, play.baked_light),
+				"%s's blocks changed since its bake: rebake with tools/bake_light.gd" % m.id)
+		assert_eq(bake.vertex_count, MapLevel.tile(m, play.baked_light.cell, play.baked_light.ground_y).positions.size(),
+				"%s's bake covers its tiles: rebake with tools/bake_light.gd" % m.id)
+	assert_gte(baked, 1, "Depot names a bake")
+
+
+func test_a_moved_block_or_a_new_setting_changes_the_hash() -> void:
+	var m := _yard()
+	var before := BakedLight.hash_of(m, play.map_style, play.lighting, play.baked_light)
+	m.blocks[2].center.x += 0.1
+	assert_ne(BakedLight.hash_of(m, play.map_style, play.lighting, play.baked_light), before, "a moved crate")
+	m.blocks[2].center.x -= 0.1
+	assert_eq(BakedLight.hash_of(m, play.map_style, play.lighting, play.baked_light), before)
+	var cfg := BakeConfig.new()
+	cfg.rays += 1
+	assert_ne(BakedLight.hash_of(m, play.map_style, play.lighting, cfg), before, "a bake setting")
+	cfg = BakeConfig.new()
+	cfg.bounce_gain *= 2.0
+	assert_eq(BakedLight.hash_of(m, play.map_style, play.lighting, cfg), before, "the look needs no rebake")
+
+
+func test_two_runs_write_the_same_bytes() -> void:
+	DirAccess.make_dir_recursive_absolute(DIR)
+	var path := DIR.path_join("yard.res")
+	var m := _yard()
+	var cfg := _coarse()
+	assert_eq(BakeTool.save(BakeTool.bake_map(m, play.map_style, play.lighting, cfg), path), OK)
+	var first := FileAccess.get_file_as_bytes(path)
+	assert_eq(BakeTool.save(BakeTool.bake_map(m, play.map_style, play.lighting, cfg), path), OK)
+	assert_gt(first.size(), 0)
+	assert_eq(FileAccess.get_file_as_bytes(path), first)
+	var back := load(path) as BakedLight
+	assert_true(back != null and back.whole(), "it loads back whole")
+	DirAccess.remove_absolute(path)
+
+
+func test_open_ground_sees_the_sky_and_a_sunlit_wall_warms_the_ground_beside_it() -> void:
+	var m := _yard()
+	var cfg := _coarse()
+	var bake: BakedLight = BakeTool.bake_map(m, play.map_style, play.lighting, cfg)
+	var t := MapLevel.tile(m, cfg.cell, cfg.ground_y)
+	assert_eq(bake.vertex_count, t.positions.size())
+	assert_true(bake.whole())
+	# The sun's side of the wall (its light travels away from the sun).
+	var sun := Basis.from_euler(Vector3(deg_to_rad(-play.lighting.sun_elevation),
+			deg_to_rad(play.lighting.sun_heading), 0.0)).z
+	var lit := signf(sun.x)
+	var open := _vertex(t, Vector3(-14.0 * lit, 0.0, 14.0), Vector3.UP)
+	var beside := _vertex(t, Vector3(1.0 * lit, 0.0, 0.0), Vector3.UP)
+	var under := _vertex(t, Vector3(-8.0, 0.0, -8.0), Vector3.UP)
+	assert_true(open >= 0 and beside >= 0 and under >= 0, "the vertices are on the slab's top")
+	assert_eq(bake.sky[open], 255, "open ground sees all the sky")
+	assert_eq(bake.bounce[open * 3], 0, "and nothing to bounce off")
+	assert_lt(bake.sky[beside], 255, "the wall hides some sky from the ground beside it")
+	assert_gt(bake.sky[beside], 0)
+	assert_gt(bake.bounce[beside * 3], 0, "the sunlit wall bounces light onto it")
+	assert_gt(bake.bounce[beside * 3], bake.bounce[beside * 3 + 2], "warm: more red than blue")
+	assert_eq(bake.sky[under], 0, "under the crate is dark")
+	var shade := _vertex(t, Vector3(-1.0 * lit, 0.0, 0.0), Vector3.UP)
+	assert_eq(bake.bounce[shade * 3], 0, "the wall's shaded side sends no sun back")
+
+
+func test_depot_draws_its_bake_as_vertex_colour_in_one_draw_call() -> void:
+	var level := _level("depot")
+	var untiled := _greybox(level).mesh
+	assert_eq(untiled.surface_get_array_len(0), DEPOT_UNTILED_VERTICES, "off (as on Low): the untiled faces")
+	var bodies := level.get_children().filter(func(n: Node) -> bool: return n is StaticBody3D)
+	level.set_baked_light(true)
+	assert_true(level.baked_light_drawn())
+	var mi := _greybox(level)
+	assert_eq(mi.mesh.get_surface_count(), 1, "one surface, one material: one draw call")
+	var tiles := MapLevel.tile(level.map, play.baked_light.cell, play.baked_light.ground_y)
+	assert_eq(mi.mesh.surface_get_array_len(0), tiles.positions.size() + 4, "the tiles and the ground")
+	assert_ne(mi.mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_COLOR, 0)
+	assert_eq(mi.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "the tiles cast no shadow")
+	var caster := mi.get_node("ShadowCaster") as MeshInstance3D
+	assert_eq(caster.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY, "the untiled faces do")
+	assert_eq(caster.mesh.surface_get_array_len(0), DEPOT_UNTILED_VERTICES)
+	# The Box's floor under its roof is drawn darker than the open floor of the Main Gate.
+	var colours: PackedColorArray = mi.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+	var inside := _vertex(tiles, Vector3(-0.5, 0.0, -1.0), Vector3.UP)
+	var outside := _vertex(tiles, Vector3(3.5, 0.0, 0.0), Vector3.UP)
+	assert_true(inside >= 0 and outside >= 0, "the floor's vertices")
+	assert_lt(colours[inside].get_luminance(), colours[outside].get_luminance() * 0.9, "the Box is in the shade")
+	var after := level.get_children().filter(func(n: Node) -> bool: return n is StaticBody3D)
+	assert_eq(after, bodies, "the colliders are the same bodies: the mesh alone was rebuilt")
+	level.set_baked_light(false)
+	assert_false(level.baked_light_drawn())
+	assert_eq(_greybox(level).mesh.surface_get_array_len(0), DEPOT_UNTILED_VERTICES, "off again: untiled")
+
+
+func test_a_map_with_no_bake_draws_as_before_with_it_on() -> void:
+	var level := _level("neonHeights")
+	assert_eq(level.map.baked_light_file, "")
+	level.set_baked_light(true)
+	assert_false(level.baked_light_drawn())
+	var mi := _greybox(level)
+	assert_eq(mi.mesh.surface_get_array_len(0), NEON_VERTICES)
+	assert_eq(_mesh_hash(mi.mesh), NEON_HASH, "the greybox drawn before DP2, byte for byte")
+	assert_eq(mi.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_ON)
+
+
+func test_a_bake_that_doesnt_fit_its_tiles_is_left_out() -> void:
+	var level := _level("depot")
+	var cfg := play.baked_light.duplicate() as BakeConfig
+	cfg.cell = 0.25
+	var other := MapLevel.new()
+	add_child_autofree(other)
+	other.build(level.map, play.map_style, body, cfg)
+	other.set_baked_light(true)
+	assert_false(other.baked_light_drawn(), "a bake of other tiles is not drawn")
+	assert_eq(_greybox(other).mesh.surface_get_array_len(0), DEPOT_UNTILED_VERTICES)
+	assert_push_warning("vertices")
+
+
+func test_the_graphics_row_is_off_on_low_and_on_from_medium() -> void:
+	var table := GraphicsTable.shared()
+	assert_false(table.preset(&"low").baked_light)
+	for p: StringName in [&"medium", &"high", &"ultra"]:
+		assert_true(table.preset(p).baked_light, String(p))
+	var level := _level("depot")
+	var rs := GraphicsApply.Server.new()
+	GraphicsApply.apply_field(table.preset(&"medium"), null, null, rs, level)
+	assert_true(level.baked_light_drawn(), "Medium draws it")
+	var drawn := _greybox(level)
+	GraphicsApply.apply_field(table.preset(&"high"), null, null, rs, level)
+	assert_eq(_greybox(level), drawn, "no change, no new mesh")
+	GraphicsApply.apply_field(table.preset(&"low"), null, null, rs, level)
+	assert_false(level.baked_light_drawn(), "Low doesn't")
+
+
+func test_a_map_names_its_bake_or_none() -> void:
+	assert_eq(MapData.load_map("depot", play.map_style, 1).baked_light_file, "depot")
+	var bad := MapData.parse(YARD.replace("{\"file\": \"yard\"}", "{\"file\": 3}"), play.map_style, 1)
+	assert_eq(bad.baked_light_file, "")
+	assert_eq(bad.warnings.size(), 1, "a warning, and the map still loads")
+	assert_true(bad.ok())
+	assert_push_warning("bakedLight")

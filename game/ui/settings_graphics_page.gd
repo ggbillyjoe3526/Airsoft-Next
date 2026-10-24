@@ -37,8 +37,8 @@ const LEFT_SECTIONS: Dictionary[String, Array] = {
 const RIGHT_SECTIONS: Dictionary[String, Array] = {
 	"GRAPHICS_SHADOWS": [GraphicsQuality.SUN_SHADOWS, GraphicsQuality.SHADOW_DETAIL, GraphicsQuality.SHADOW_SOFTNESS,
 			GraphicsQuality.SHADOW_RANGE],
-	"GRAPHICS_LIGHT_AND_DETAIL": [GraphicsQuality.AMBIENT_OCCLUSION, GraphicsQuality.TEXTURE_FILTERING,
-			GraphicsQuality.MESH_DETAIL, GraphicsQuality.WIND_DUST],
+	"GRAPHICS_LIGHT_AND_DETAIL": [GraphicsQuality.AMBIENT_OCCLUSION, GraphicsQuality.BAKED_LIGHT,
+			GraphicsQuality.TEXTURE_FILTERING, GraphicsQuality.MESH_DETAIL, GraphicsQuality.WIND_DUST],
 }
 ## A range row's figure, and the note beside a row (none for the others).
 const RANGE_FORMATS: Dictionary[StringName, String] = {

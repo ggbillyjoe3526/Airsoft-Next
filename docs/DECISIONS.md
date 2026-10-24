@@ -200,6 +200,13 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Today's models are temporary placeholders; the owner redesigns them all in Blender at higher quality (owner,
   2026-10-18).** They were built small for a web browser. His art pass covers players, replicas, attachments and
   other assets, at step 32 of `docs/ROADMAP.md` › Build order (Blender work comes last, owner 2026-10-22); until then every task uses the current models.
+- **Baked light is our own per-vertex bake, not LightmapGI or SDFGI (owner, 2026-10-24: take the recommended defaults;
+  DP2).** LightmapGI bakes only in the editor on a GPU, so neither a cloud session nor CI could make or check it.
+  `tools/bake_light.gd` bakes headless, on the engine's TriangleMesh rays: per vertex of the greybox cut into 0.5 m
+  tiles, the sky it sees and one warm bounce of the sun, kept apart for step 26's night. MapLevel draws it as vertex
+  colour in the same one draw call; the untiled mesh casts the sun's shadows, so the shadow passes draw no more
+  triangles. A Graphics row, Baked light: off on Low (today's untiled mesh), on from Medium. Each bake holds the hash
+  of what it was baked from and a test fails a stale one. Figures are not lit by it yet (KNOWN_ISSUES).
 - **Every figure keeps its team-colour plate carrier (owner, 2026-10-17, AX1).** The carrier reads like a site's team
   bib and is the strongest team cue at range. A civilian outfit is in `docs/IDEAS.md`.
 

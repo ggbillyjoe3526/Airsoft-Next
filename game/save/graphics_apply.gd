@@ -2,7 +2,7 @@ class_name GraphicsApply
 ## Puts GraphicsQuality values into the game (data/graphics.md, Settings › Graphics). `apply` sets the root viewport's
 ## knobs (render scale and upscaler, edge and temporal smoothing, texture filtering, mesh detail) and the
 ## RenderingServer's sun-shadow map and filter; `apply_field` sets the match's sun, its environment's ambient occlusion
-## and the wind dust, without rebuilding them. `apply_settings` (SettingsApply.apply_graphics: at start and on a change
+## and the wind dust, without rebuilding them, and the level's baked light (its mesh alone). `apply_settings` (SettingsApply.apply_graphics: at start and on a change
 ## in Settings › Graphics, in the menus or from the pause menu) draws only values that differ from those drawn
 ## (`equals`), never per frame, and tells the match through the Server's `applied`: a new shadow map is a hitch, so the
 ## tab's sliders apply on release.
@@ -193,9 +193,11 @@ static func apply_picture(values: GraphicsQuality, viewport: Viewport) -> void:
 		viewport.screen_space_aa = screen_aa
 
 
-## The match's sun (shadows on, their range), its ambient occlusion (on, and half or full size) and the wind dust's
-## share, from `values` (already drawable). Either of `lighting` and `dust` may be null.
-static func apply_field(values: GraphicsQuality, lighting: FieldLighting, dust: WindDust, rs: Server = null) -> void:
+## The match's sun (shadows on, their range), its ambient occlusion (on, and half or full size), the wind dust's share
+## and the level's baked light (a new mesh only when it changes), from `values` (already drawable). Any of `lighting`,
+## `dust` and `level` may be null.
+static func apply_field(values: GraphicsQuality, lighting: FieldLighting, dust: WindDust, rs: Server = null,
+		level: MapLevel = null) -> void:
 	var to := rs if rs != null else server()
 	if lighting != null:
 		lighting.sun.shadow_enabled = values.sun_shadows
@@ -206,3 +208,5 @@ static func apply_field(values: GraphicsQuality, lighting: FieldLighting, dust: 
 			to.set_ssao_half(values.ambient_occlusion == GraphicsQuality.AmbientOcclusion.HALF)
 	if dust != null:
 		dust.set_share(values.wind_dust / PERCENT)
+	if level != null:
+		level.set_baked_light(values.baked_light)

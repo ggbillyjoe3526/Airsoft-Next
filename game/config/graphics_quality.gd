@@ -29,12 +29,14 @@ const SHADOW_DETAIL := &"shadow_detail"
 const SHADOW_SOFTNESS := &"shadow_softness"
 const SHADOW_RANGE := &"shadow_range"
 const AMBIENT_OCCLUSION := &"ambient_occlusion"
+const BAKED_LIGHT := &"baked_light"
 const TEXTURE_FILTERING := &"texture_filtering"
 const MESH_DETAIL := &"mesh_detail"
 const WIND_DUST := &"wind_dust"
 ## Every row, in the Graphics tab's order (data/graphics.md's).
 const ROWS: Array[StringName] = [RENDER_SCALE, UPSCALER, EDGE_SMOOTHING, TEMPORAL_SMOOTHING, SUN_SHADOWS,
-		SHADOW_DETAIL, SHADOW_SOFTNESS, SHADOW_RANGE, AMBIENT_OCCLUSION, TEXTURE_FILTERING, MESH_DETAIL, WIND_DUST]
+		SHADOW_DETAIL, SHADOW_SOFTNESS, SHADOW_RANGE, AMBIENT_OCCLUSION, BAKED_LIGHT, TEXTURE_FILTERING, MESH_DETAIL,
+		WIND_DUST]
 ## Every choice the game knows for each choice row, by level. The file offers these, or some of them. (Values are Arrays:
 ## Godot 4.7 keeps a const typed dictionary's array values as Arrays, so a PackedStringArray value type misreads them.)
 const CHOICES: Dictionary[StringName, Array] = {
@@ -45,6 +47,7 @@ const CHOICES: Dictionary[StringName, Array] = {
 	SHADOW_DETAIL: ["1024", "2048", "4096", "8192"],
 	SHADOW_SOFTNESS: ["hard", "soft", "softer", "softest"],
 	AMBIENT_OCCLUSION: ["off", "half", "full"],
+	BAKED_LIGHT: ["off", "on"],
 	TEXTURE_FILTERING: ["off", "2x", "4x", "8x", "16x"],
 	MESH_DETAIL: ["low", "medium", "high", "ultra"],
 }
@@ -68,6 +71,8 @@ var shadow_softness: ShadowSoftness = ShadowSoftness.HARD
 ## How far from the eye the sun's shadows reach, in metres.
 var shadow_range: int = 0
 var ambient_occlusion: AmbientOcclusion = AmbientOcclusion.OFF
+## The map's baked sky shade and sun bounce drawn on its tiled mesh (MapLevel.set_baked_light).
+var baked_light: bool = false
 var texture_filtering: TextureFiltering = TextureFiltering.OFF
 var mesh_detail: MeshDetail = MeshDetail.LOW
 ## The wind dust's specks, in percent of EffectsConfig.dust_count.
@@ -140,6 +145,8 @@ func level(row: StringName) -> int:
 			return shadow_range
 		AMBIENT_OCCLUSION:
 			return ambient_occlusion
+		BAKED_LIGHT:
+			return int(baked_light)
 		TEXTURE_FILTERING:
 			return texture_filtering
 		MESH_DETAIL:
@@ -171,6 +178,8 @@ func set_level(row: StringName, value: int) -> void:
 			shadow_range = value
 		AMBIENT_OCCLUSION:
 			ambient_occlusion = value as AmbientOcclusion
+		BAKED_LIGHT:
+			baked_light = value != 0
 		TEXTURE_FILTERING:
 			texture_filtering = value as TextureFiltering
 		MESH_DETAIL:

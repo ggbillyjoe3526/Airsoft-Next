@@ -1970,10 +1970,10 @@ msgid "GRAPHICS_FOR_YOUR_CARD"
 msgstr "FOR YOUR CARD"
 
 msgid "GRAPHICS_BLURB_LOW"
-msgstr "No sun shadows, ambient occlusion or wind dust, and an 80 % render scale sharpened by FSR 1: holds 60 FPS on low-powered hardware."
+msgstr "No sun shadows, ambient occlusion, baked light or wind dust, and an 80 % render scale sharpened by FSR 1: holds 60 FPS on low-powered hardware."
 
 msgid "GRAPHICS_BLURB_MEDIUM"
-msgstr "Sun shadows on, no ambient occlusion, MSAA 2× and half the wind dust."
+msgstr "Sun shadows and baked light on, no ambient occlusion, MSAA 2× and half the wind dust."
 
 msgid "GRAPHICS_BLURB_HIGH"
 msgstr "The game as it was made to look: 70 m sun shadows, ambient occlusion at half size and MSAA 4×."
@@ -2034,6 +2034,9 @@ msgstr "SHADOW RANGE"
 
 msgid "GRAPHICS_AMBIENT_OCCLUSION"
 msgstr "AMBIENT OCCLUSION"
+
+msgid "GRAPHICS_BAKED_LIGHT"
+msgstr "BAKED LIGHT"
 
 msgid "GRAPHICS_TEXTURE_FILTERING"
 msgstr "TEXTURE FILTERING"

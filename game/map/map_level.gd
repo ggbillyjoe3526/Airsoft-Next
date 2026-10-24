@@ -5,6 +5,10 @@ extends Node3D
 ## static colliders, one body per surface so a ray knows what it met. It hands the simulation its two views of the level:
 ## `query()` (WorldQuery: BB rays, what is underfoot) and `mover()` (CharacterMover), the only code that asks Jolt
 ## (docs/ARCHITECTURE.md › Contracts 4). Add it to the tree, then call `build`.
+##
+## Baked light (DP2, Settings › Graphics › Baked light): with it on, a map naming a bake (BakedLight) is drawn as the same
+## faces cut into tiles (`tile`), each vertex's colour darkened by the sky it can't see and warmed by the sun's bounce.
+## Switching it rebuilds the mesh alone; a map with no bake draws as without it.
 
 ## The physics layer the level's colliders are on, and the one the movers' bodies are on (nothing collides with them).
 const WORLD_LAYER := 1
@@ -14,8 +18,30 @@ const PROBE_THICKNESS := 0.02
 ## The floor grid texture's size (px) and line width (px).
 const GRID_PIXELS := 128
 const GRID_LINE := 2
+## A length this close under a whole number of tiles (m) takes that number, not one more.
+const TILE_SLACK := 1e-4
+
+
+## The level's faces cut into tiles for the baked light (`tile`): each block's faces in the greybox's order, a grid of
+## vertices on each face (shared within the face), then the triangles as indices.
+class Tiles:
+	extends RefCounted
+	var positions: PackedVector3Array = PackedVector3Array()
+	var normals: PackedVector3Array = PackedVector3Array()
+	## Each vertex's block, an index into MapData.blocks.
+	var blocks: PackedInt32Array = PackedInt32Array()
+	var indices: PackedInt32Array = PackedInt32Array()
+
 
 var map: MapData = null
+var _style: MapStyle = null
+var _light: BakeConfig = null
+var _material: StandardMaterial3D = null
+var _mesh: MeshInstance3D = null
+## Whether the mesh drawn is the baked one; the map's bake, loaded when first drawn (`_bake_looked`).
+var _baked: bool = false
+var _bake: BakedLight = null
+var _bake_looked: bool = false
 var _bodies: Array[StaticBody3D] = []
 var _cast: RayCast3D = null
 var _query: JoltQuery = null
@@ -25,12 +51,17 @@ var _mover_body: RID
 var _probe_body: RID
 
 
-## Builds `m`'s greybox and colliders with `style`, for characters shaped as `body`. Call once, inside the tree.
-func build(m: MapData, style: MapStyle, body: BodyConfig) -> void:
+## Builds `m`'s greybox and colliders with `style`, for characters shaped as `body`, its baked light (off until
+## `set_baked_light`) drawn with `light` (null: the built-in look). Call once, inside the tree.
+func build(m: MapData, style: MapStyle, body: BodyConfig, light: BakeConfig = null) -> void:
 	assert(is_inside_tree(), "MapLevel.build needs the level in the tree (its physics space)")
 	map = m
+	_style = style
+	_light = light if light != null else BakeConfig.new()
 	name = "Map_%s" % m.id
-	add_child(_build_mesh(m, style))
+	_material = _greybox_material(style)
+	_mesh = _make_mesh()
+	add_child(_mesh)
 	for s in RayHit.Surface.size():
 		var sb := StaticBody3D.new()
 		sb.name = "Colliders_%s" % RayHit.Surface.keys()[s]
@@ -61,6 +92,25 @@ func build(m: MapData, style: MapStyle, body: BodyConfig) -> void:
 		surface_rids.append(sb.get_rid())
 	_query = JoltQuery.new(_cast, surface_rids, body)
 	_make_mover_bodies(body)
+
+
+## Draws the map's baked light, or not (Settings › Graphics › Baked light), rebuilding the greybox mesh alone and only
+## when what is drawn changes. A map with no bake, or a bake that doesn't fit its mesh, draws as without it.
+func set_baked_light(on: bool) -> void:
+	var draw := on and _bake_or_null() != null
+	if draw == _baked:
+		return
+	_baked = draw
+	var old := _mesh
+	remove_child(old)
+	old.queue_free()
+	_mesh = _make_mesh()
+	add_child(_mesh)
+
+
+## Whether the baked light is drawn.
+func baked_light_drawn() -> bool:
+	return _baked
 
 
 ## The level as the simulation's WorldQuery.
@@ -105,26 +155,89 @@ func _kinematic(space: RID, shape: RID) -> RID:
 	return rid
 
 
+## The greybox: the untiled mesh, or with the bake the tiled one, which casts no shadow, and the untiled one under it
+## casting the shadows alone, so the sun's shadow passes draw as many triangles as without the bake.
+func _make_mesh() -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.name = "Greybox"
+	mi.material_override = _material
+	var baked := _baked_mesh() if _baked else null
+	if baked == null:
+		_baked = false
+		mi.mesh = _greybox_mesh(map, _style)
+		return mi
+	mi.mesh = baked
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var caster := MeshInstance3D.new()
+	caster.name = "ShadowCaster"
+	caster.mesh = _greybox_mesh(map, _style)
+	caster.material_override = _material
+	caster.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+	mi.add_child(caster)
+	return mi
+
+
+func _bake_or_null() -> BakedLight:
+	if not _bake_looked:
+		_bake_looked = true
+		_bake = BakedLight.load_for(map)
+	return _bake
+
+
 ## Every block, and the ground beyond the walls, as one mesh in one material: vertex colours carry each block's colour,
 ## a world-space grid texture the metre lines, so the whole field is a single draw call.
-func _build_mesh(m: MapData, style: MapStyle) -> MeshInstance3D:
+static func _greybox_mesh(m: MapData, style: MapStyle) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for b in m.blocks:
 		st.set_color(style.block_colour(b))
-		if b.rise == MapData.Rise.NONE:
-			_add_box(st, b.center - b.size * 0.5, b.center + b.size * 0.5)
-		else:
-			_add_wedge(st, b)
-	var e := style.ground_extent
-	var y := -style.ground_drop
+		for f in faces_of(b):
+			_add_face(st, f)
 	st.set_color(style.ground_colour)
-	_add_quad(st, Vector3(-e, y, e), Vector3(e, y, e), Vector3(e, y, -e), Vector3(-e, y, -e))
-	var mi := MeshInstance3D.new()
-	mi.name = "Greybox"
-	mi.mesh = st.commit()
-	mi.material_override = _greybox_material(style)
-	return mi
+	_add_face(st, ground_face(style))
+	return st.commit()
+
+
+## The same faces cut into tiles, each vertex's colour lit by the bake, and the ground; null (with a warning, and the
+## bake dropped) when the bake doesn't fit the tiles.
+func _baked_mesh() -> ArrayMesh:
+	var t := tile(map, _light.cell, _light.ground_y)
+	var n := t.positions.size()
+	if n != _bake.vertex_count:
+		push_warning(("MapLevel: %s's baked light has %d vertices for %d; drawn without it (rebake with "
+				+ "tools/bake_light.gd)") % [map.id, _bake.vertex_count, n])
+		_bake = null
+		return null
+	var colours := PackedColorArray()
+	colours.resize(n)
+	var block_linear: Array[Color] = []
+	for b in map.blocks:
+		block_linear.append(_style.block_colour(b).srgb_to_linear())
+	var dark := _light.sky_share / BakedLight.FULL
+	var warm := _light.bounce_gain / BakedLight.FULL
+	var sky := _bake.sky
+	var bounce := _bake.bounce
+	for v in n:
+		var c := block_linear[t.blocks[v]]
+		var lit := 1.0 - _light.sky_share + dark * sky[v]
+		var k := v * 3
+		colours[v] = Color(c.r * (lit + warm * bounce[k]), c.g * (lit + warm * bounce[k + 1]),
+				c.b * (lit + warm * bounce[k + 2])).linear_to_srgb()
+	for p in ground_face(_style):
+		t.positions.append(p)
+		t.normals.append(Vector3.UP)
+		colours.append(_style.ground_colour)
+	for i: int in [0, 2, 1, 0, 3, 2]:
+		t.indices.append(n + i)
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = t.positions
+	arrays[Mesh.ARRAY_NORMAL] = t.normals
+	arrays[Mesh.ARRAY_COLOR] = colours
+	arrays[Mesh.ARRAY_INDEX] = t.indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
 
 
 func _greybox_material(style: MapStyle) -> StandardMaterial3D:
@@ -148,24 +261,30 @@ func _greybox_material(style: MapStyle) -> StandardMaterial3D:
 	return mat
 
 
-## A box from `lo` to `hi`, six faces facing out.
-func _add_box(st: SurfaceTool, lo: Vector3, hi: Vector3) -> void:
-	var c := [
+## Block `b`'s faces, each a convex polygon given anticlockwise as seen from outside: a box's top, bottom, +z, -z, +x and
+## -x; a ramp's bottom, tall end, slope and two sides. The greybox, the tiles and the bake all take them in this order.
+static func faces_of(b: MapData.Block) -> Array[PackedVector3Array]:
+	if b.rise != MapData.Rise.NONE:
+		return _wedge_faces(b)
+	var lo := b.center - b.size * 0.5
+	var hi := b.center + b.size * 0.5
+	var c := PackedVector3Array([
 		Vector3(lo.x, lo.y, lo.z), Vector3(hi.x, lo.y, lo.z), Vector3(hi.x, lo.y, hi.z), Vector3(lo.x, lo.y, hi.z),
 		Vector3(lo.x, hi.y, lo.z), Vector3(hi.x, hi.y, lo.z), Vector3(hi.x, hi.y, hi.z), Vector3(lo.x, hi.y, hi.z),
+	])
+	return [
+		PackedVector3Array([c[7], c[6], c[5], c[4]]), # top
+		PackedVector3Array([c[0], c[1], c[2], c[3]]), # bottom
+		PackedVector3Array([c[3], c[2], c[6], c[7]]), # +z
+		PackedVector3Array([c[1], c[0], c[4], c[5]]), # -z
+		PackedVector3Array([c[2], c[1], c[5], c[6]]), # +x
+		PackedVector3Array([c[0], c[3], c[7], c[4]]), # -x
 	]
-	_add_quad(st, c[7], c[6], c[5], c[4]) # top
-	_add_quad(st, c[0], c[1], c[2], c[3]) # bottom
-	_add_quad(st, c[3], c[2], c[6], c[7]) # +z
-	_add_quad(st, c[1], c[0], c[4], c[5]) # -z
-	_add_quad(st, c[2], c[1], c[5], c[6]) # +x
-	_add_quad(st, c[0], c[3], c[7], c[4]) # -x
 
 
-## A ramp: its sloped top, the tall end, the two sides and the bottom.
-func _add_wedge(st: SurfaceTool, b: MapData.Block) -> void:
+## A ramp's faces: its bottom, the tall end, the slope and the two sides.
+static func _wedge_faces(b: MapData.Block) -> Array[PackedVector3Array]:
 	var p := _wedge_points(b, b.center)
-	_add_quad(st, p[0], p[1], p[2], p[3])
 	var tall := _tall_end(b.rise)
 	var along_x := b.rise == MapData.Rise.POS_X or b.rise == MapData.Rise.NEG_X
 	var a := p[tall[0]]
@@ -174,10 +293,99 @@ func _add_wedge(st: SurfaceTool, b: MapData.Block) -> void:
 	var low_d := p[_low_partner(tall[1], along_x)]
 	var top_a := p[4]
 	var top_d := p[5]
-	_add_face(st, [a, d, top_d, top_a]) # tall end
-	_add_face(st, [top_a, top_d, low_d, low_a]) # slope
-	_add_face(st, [a, top_a, low_a]) # side
-	_add_face(st, [d, low_d, top_d]) # side
+	return [
+		PackedVector3Array([p[0], p[1], p[2], p[3]]), # bottom
+		PackedVector3Array([a, d, top_d, top_a]), # tall end
+		PackedVector3Array([top_a, top_d, low_d, low_a]), # slope
+		PackedVector3Array([a, top_a, low_a]), # side
+		PackedVector3Array([d, low_d, top_d]), # side
+	]
+
+
+## The ground beyond the walls, one face up.
+static func ground_face(style: MapStyle) -> PackedVector3Array:
+	var e := style.ground_extent
+	var y := -style.ground_drop
+	return PackedVector3Array([Vector3(-e, y, e), Vector3(e, y, e), Vector3(e, y, -e), Vector3(-e, y, -e)])
+
+
+## A face's outward normal, from its winding.
+static func face_normal(f: PackedVector3Array) -> Vector3:
+	return (f[1] - f[0]).cross(f[2] - f[0]).normalized()
+
+
+## `m`'s block faces (`faces_of`) cut into tiles no larger than `cell` m a side, each face a grid of its own vertices;
+## a face lying on the ground (no higher than `ground_y`) facing down, which no one sees, stays one tile.
+static func tile(m: MapData, cell: float, ground_y: float) -> Tiles:
+	var t := Tiles.new()
+	for i in m.blocks.size():
+		for f in faces_of(m.blocks[i]):
+			var n := face_normal(f)
+			var hidden := n.y < -0.5 and f[0].y <= ground_y
+			if f.size() == 4:
+				_tile_quad(t, f, n, i, INF if hidden else cell)
+			else:
+				_tile_triangle(t, f, n, i, cell)
+	return t
+
+
+## A parallelogram face (a, b, c, d) as a grid of cells, each two triangles wound as `_add_face` winds the whole face.
+static func _tile_quad(t: Tiles, f: PackedVector3Array, n: Vector3, block: int, cell: float) -> void:
+	var a := f[0]
+	var u := f[1] - a
+	var v := f[3] - a
+	var nu := _cuts(u.length(), cell)
+	var nv := _cuts(v.length(), cell)
+	var base := t.positions.size()
+	for j in nv + 1:
+		for i in nu + 1:
+			t.positions.append(a + u * (float(i) / nu) + v * (float(j) / nv))
+			t.normals.append(n)
+			t.blocks.append(block)
+	var row := nu + 1
+	for j in nv:
+		for i in nu:
+			var q00 := base + j * row + i
+			var q01 := q00 + row
+			t.indices.append(q00)
+			t.indices.append(q01 + 1)
+			t.indices.append(q00 + 1)
+			t.indices.append(q00)
+			t.indices.append(q01)
+			t.indices.append(q01 + 1)
+
+
+## A triangle face (a, b, c) as rows of small triangles, k to a side, wound as the whole face.
+static func _tile_triangle(t: Tiles, f: PackedVector3Array, n: Vector3, block: int, cell: float) -> void:
+	var a := f[0]
+	var u := f[1] - a
+	var v := f[2] - a
+	var k := _cuts(maxf(u.length(), v.length()), cell)
+	var base := t.positions.size()
+	var row_start := PackedInt32Array()
+	for j in k + 1:
+		row_start.append(t.positions.size())
+		for i in k + 1 - j:
+			t.positions.append(a + u * (float(i) / k) + v * (float(j) / k))
+			t.normals.append(n)
+			t.blocks.append(block)
+	for j in k:
+		for i in k - j:
+			var p := row_start[j] + i
+			var up := row_start[j + 1] + i
+			t.indices.append(p)
+			t.indices.append(up)
+			t.indices.append(p + 1)
+			if i < k - j - 1:
+				t.indices.append(p + 1)
+				t.indices.append(up)
+				t.indices.append(up + 1)
+	assert(t.positions.size() - base == (k + 1) * (k + 2) / 2)
+
+
+## How many tiles a side `length` m long takes, none larger than `cell`.
+static func _cuts(length: float, cell: float) -> int:
+	return 1 if is_inf(cell) else maxi(1, ceili(length / cell - TILE_SLACK))
 
 
 ## The tall end's bottom corners, as indices into a wedge's bottom corners (lo-x lo-z, hi-x lo-z, hi-x hi-z, lo-x hi-z),
@@ -213,17 +421,11 @@ static func _wedge_points(b: MapData.Block, origin: Vector3) -> PackedVector3Arr
 
 
 ## A convex face given anticlockwise as seen from outside, its normal worked out from its winding.
-func _add_face(st: SurfaceTool, pts: Array) -> void:
-	var p0: Vector3 = pts[0]
-	var p1: Vector3 = pts[1]
-	var p2: Vector3 = pts[2]
-	var n := (p1 - p0).cross(p2 - p0).normalized()
-	st.set_normal(n)
+static func _add_face(st: SurfaceTool, pts: PackedVector3Array) -> void:
+	var p0 := pts[0]
+	st.set_normal(face_normal(pts))
 	for i in range(1, pts.size() - 1):
 		st.add_vertex(p0)
 		st.add_vertex(pts[i + 1])
 		st.add_vertex(pts[i])
 
-
-func _add_quad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> void:
-	_add_face(st, [a, b, c, d])

@@ -44,6 +44,7 @@ const BUILT_IN: Dictionary[StringName, Array] = {
 	GraphicsQuality.SHADOW_RANGE: ["GRAPHICS_SHADOW_RANGE", "30–120 m", "1", "all", "40 m", "50 m", "70 m", "100 m"],
 	GraphicsQuality.AMBIENT_OCCLUSION: ["GRAPHICS_AMBIENT_OCCLUSION", "off, half, full", "3", "forward_plus", "off",
 			"off", "half", "full"],
+	GraphicsQuality.BAKED_LIGHT: ["GRAPHICS_BAKED_LIGHT", "off, on", "1", "all", "off", "on", "on", "on"],
 	GraphicsQuality.TEXTURE_FILTERING: ["GRAPHICS_TEXTURE_FILTERING", "off, 2x, 4x, 8x, 16x", "1", "all", "2x", "4x",
 			"16x", "16x"],
 	GraphicsQuality.MESH_DETAIL: ["GRAPHICS_MESH_DETAIL", "low, medium, high, ultra", "1", "all", "low", "medium",

@@ -14,6 +14,7 @@ const DEFAULT_PATH := "res://game/config/play_tuning.tres"
 @export var hud: HudConfig = HudConfig.new()
 @export var map_style: MapStyle = MapStyle.new()
 @export var lighting: LightingConfig = LightingConfig.new()
+@export var baked_light: BakeConfig = BakeConfig.new()
 @export var teams: TeamConfig = TeamConfig.new()
 @export var debug_view: DebugViewConfig = DebugViewConfig.new()
 @export var flag: FlagViewConfig = FlagViewConfig.new()

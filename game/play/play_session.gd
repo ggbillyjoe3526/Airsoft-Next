@@ -250,7 +250,7 @@ func _build_level() -> void:
 		return
 	_level = MapLevel.new()
 	add_child(_level)
-	_level.build(_map, _play.map_style, _tuning.body)
+	_level.build(_map, _play.map_style, _tuning.body, _play.baked_light)
 	_lighting = FieldLighting.build(_play.lighting)
 	add_child(_lighting)
 
@@ -1136,7 +1136,7 @@ func _apply_motion() -> void:
 
 ## The graphics drawn, onto the field: at the start and whenever they change (the settings can open from the pause menu).
 func _apply_graphics(values: GraphicsQuality) -> void:
-	GraphicsApply.apply_field(values, _lighting, _dust)
+	GraphicsApply.apply_field(values, _lighting, _dust, null, _level)
 	var lines := _play.figures.lod_lines(values.mesh_detail)
 	if lines != _figure_lines:
 		_figure_lines = lines
