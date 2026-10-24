@@ -2,9 +2,10 @@ class_name MapStyle
 extends Resource
 ## How a map's blocks are drawn and what they are made of, by block kind (the browser game's config/materials.ts for the
 ## surfaces; the colours follow docs/ART.md: warm concrete and cream for the field, site colours on containers and
-## plant, plywood for crates and port walls, never a team colour). Read by MapData (surfaces) and MapLevel (the
-## greybox). A block's own `surface` in the map data wins over its kind's, and a surface with a colour of its own
-## (gravel) is drawn in it.
+## plant, plywood for crates and port walls, dull timber for Woodland's trees, logs and fence, never a team colour). Read
+## by MapData (surfaces) and MapLevel (the greybox). A block's own `surface` in the map data wins over its kind's, and a
+## surface with a colour of its own (gravel) is drawn in it. Sloping ground (TerrainGrid) is drawn in its surfaces'
+## `terrain_colours`.
 
 ## What a BB or a footstep meets on each kind (RayHit.Surface). Moulded plastic ticks hollow, nearest to wood; sand-filled
 ## bags and gabions soak BBs up like wood. Kinds not listed are concrete.
@@ -24,6 +25,9 @@ extends Resource
 	&"generator": RayHit.Surface.METAL,
 	&"skip": RayHit.Surface.METAL,
 	&"plywood": RayHit.Surface.WOOD,
+	&"tree": RayHit.Surface.WOOD,
+	&"log": RayHit.Surface.WOOD,
+	&"fence": RayHit.Surface.WOOD,
 }
 ## Each kind's greybox colour (sRGB). Kinds not listed take `default_colour`.
 @export var colours: Dictionary[StringName, Color] = {
@@ -41,6 +45,11 @@ extends Resource
 	&"generator": Color(0.81, 0.70, 0.20),
 	&"skip": Color(0.81, 0.70, 0.20),
 	&"plywood": Color(0.82, 0.75, 0.56),
+	# Woodland's timber, dull (HSL saturation under 0.3 on linear RGB) so none reads as a team: grey-brown bark, weathered
+	# logs, paler fence boards.
+	&"tree": Color(0.37, 0.34, 0.29),
+	&"log": Color(0.50, 0.46, 0.40),
+	&"fence": Color(0.58, 0.53, 0.45),
 }
 ## Surfaces drawn in their own colour whatever their block's kind (RayHit.Surface to sRGB): a gravel bed on the slab.
 @export var surface_colours: Dictionary[int, Color] = {
@@ -56,6 +65,22 @@ extends Resource
 @export var ground_colour: Color = Color(0.47, 0.49, 0.34)
 @export var ground_extent: float = 120.0
 @export var ground_drop: float = 0.02
+## Sloping ground's colour on each of its surfaces (RayHit.Surface to sRGB), each dull enough to read as no team; a
+## surface not listed is drawn in `ground_colour`.
+@export var terrain_colours: Dictionary[int, Color] = {
+	RayHit.Surface.GRASS: Color(0.40, 0.45, 0.30),
+	RayHit.Surface.LEAVES: Color(0.40, 0.36, 0.31),
+	RayHit.Surface.EARTH: Color(0.44, 0.40, 0.35),
+	RayHit.Surface.GRAVEL: Color(0.50, 0.49, 0.46),
+	RayHit.Surface.WOOD: Color(0.58, 0.53, 0.45),
+}
+## Sloping ground's surfaces come in squares this size (m; half the browser game's 1 m, so a 2 m path keeps its
+## width), a whole number to a terrain cell's side. Its under-trees surface goes where at least `canopy_trees` trunks stand within `canopy_radius`
+## m of the middle of the `canopy_cell` square holding a square's middle (the browser's NIGHT_SIGHT canopy rule).
+@export var ground_cell: float = 0.5
+@export var canopy_trees: int = 3
+@export var canopy_radius: float = 4.0
+@export var canopy_cell: float = 1.0
 ## Greybox roughness, and the floor grid: one darker line every `grid_size` metres, `grid_shade` of the colour.
 @export var roughness: float = 0.85
 @export var grid_size: float = 1.0
@@ -72,6 +97,11 @@ func colour_of(kind: StringName, index: int) -> Color:
 	if kind == &"container" and not container_colours.is_empty():
 		return container_colours[index % container_colours.size()]
 	return colours.get(kind, default_colour)
+
+
+## The colour sloping ground of `surface` (RayHit.Surface) is drawn in.
+func terrain_colour(surface: int) -> Color:
+	return terrain_colours.get(surface, ground_colour)
 
 
 ## The colour block `b` is drawn in: its surface's own, else its piece's of its kind.

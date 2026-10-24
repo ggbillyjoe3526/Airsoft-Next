@@ -109,17 +109,23 @@ static func points(map: MapData) -> Dictionary[String, Vector3]:
 	return out
 
 
-## Every point within FieldStandard.ON_FLOOR_SLACK of the nav floor under it, on walkable ground.
+## Every point within FieldStandard.ON_FLOOR_SLACK of the nav floor under it, on walkable ground. On sloping ground a
+## node's floor is the ground at its cell's middle, so a point whose node is on the ground (within a 1:2 slope's rise
+## across the cell) is measured against the ground right under it instead.
 static func on_floor(map: MapData, nav: NavGrid) -> Result:
 	var all := points(map)
 	var off := PackedStringArray()
 	for what in all:
 		var p := all[what]
 		var k := nav.node_at(p)
+		var floor := nav.floor_y[k] if k >= 0 else NAN
+		var ground := map.terrain.height_at(p.x, p.z) if map.terrain != null else NAN
+		if not is_nan(ground) and absf(floor - ground) <= FieldStandard.MAX_RAMP_SLOPE * nav.cell:
+			floor = ground
 		if k < 0:
 			off.append("%s at %s is off the map" % [what, at(p)])
-		elif absf(p.y - nav.floor_y[k]) > FieldStandard.ON_FLOOR_SLACK:
-			off.append("%s at %s is %s m off the floor" % [what, at(p), num(p.y - nav.floor_y[k])])
+		elif absf(p.y - floor) > FieldStandard.ON_FLOOR_SLACK:
+			off.append("%s at %s is %s m off the floor" % [what, at(p), num(p.y - floor)])
 		elif nav.walkable[k] != 1:
 			off.append("%s at %s is where nobody can stand" % [what, at(p)])
 	if not off.is_empty():

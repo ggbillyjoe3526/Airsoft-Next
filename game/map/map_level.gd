@@ -1,8 +1,9 @@
 class_name MapLevel
 extends Node3D
 ## A map in the world (the browser game's render/field/mapMeshes.ts and physics/physicsWorld.ts, greybox for now): the
-## blocks drawn as one vertex-coloured mesh under a floor grid, the ground beyond the walls, and the blocks as Jolt
-## static colliders, one body per surface so a ray knows what it met. It hands the simulation its two views of the level:
+## blocks and any sloping ground drawn as one vertex-coloured mesh under a floor grid, the ground beyond the walls, and
+## the blocks and the sloping ground's very triangles (a trimesh) as Jolt static colliders, one body per surface so a
+## ray knows what it met. It hands the simulation its two views of the level:
 ## `query()` (WorldQuery: BB rays, what is underfoot) and `mover()` (CharacterMover), the only code that asks Jolt
 ## (docs/ARCHITECTURE.md › Contracts 4). Add it to the tree, then call `build`.
 ##
@@ -74,6 +75,8 @@ func build(m: MapData, style: MapStyle, body: BodyConfig, light: BakeConfig = nu
 			wedge.points = GreyboxFaces.wedge_points(b, Vector3.ZERO)
 			shape.shape = wedge
 		_bodies[b.surface].add_child(shape)
+	if m.terrain != null:
+		_add_terrain_shapes(m.terrain)
 	_cast = RayCast3D.new()
 	_cast.name = "LevelRay"
 	_cast.top_level = true
@@ -126,6 +129,20 @@ func _notification(what: int) -> void:
 		for rid in _rids:
 			PhysicsServer3D.free_rid(rid)
 		_rids.clear()
+
+
+## The sloping ground's triangles as one trimesh per ground surface, each on that surface's body.
+func _add_terrain_shapes(t: TerrainGrid) -> void:
+	var faces := t.surface_faces(_bodies.size())
+	for s in faces.size():
+		if faces[s].is_empty():
+			continue
+		var trimesh := ConcavePolygonShape3D.new()
+		trimesh.set_faces(faces[s])
+		var shape := CollisionShape3D.new()
+		shape.name = "Terrain"
+		shape.shape = trimesh
+		_bodies[s].add_child(shape)
 
 
 func _make_mover_bodies(body: BodyConfig) -> void:
@@ -195,8 +212,9 @@ func _bake_or_null() -> BakedLight:
 	return _bake
 
 
-## Every block, and the ground beyond the walls, as one mesh in one material: vertex colours carry each block's colour,
-## a world-space grid texture the metre lines, so the whole field is a single draw call.
+## Every block, the ground beyond the walls and any sloping ground as one mesh in one material: vertex colours carry
+## each block's and ground square's colour, a world-space grid texture the metre lines, so the whole field is a single
+## draw call.
 static func _greybox_mesh(m: MapData, style: MapStyle) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -205,12 +223,18 @@ static func _greybox_mesh(m: MapData, style: MapStyle) -> ArrayMesh:
 		for f in GreyboxFaces.faces_of(b):
 			_add_face(st, f)
 	st.set_color(style.ground_colour)
-	_add_face(st, GreyboxFaces.ground_face(style))
-	return st.commit()
+	_add_face(st, GreyboxFaces.ground_face(style, GreyboxFaces.ground_top(m)))
+	if m.terrain == null:
+		return st.commit()
+	var arrays := st.commit_to_arrays()
+	GreyboxFaces.add_terrain(arrays, m.terrain, style)
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
 
 
-## The same faces cut into tiles, each vertex's colour lit by the bake (`_bake_or_null` has checked it fits), and the
-## ground.
+## The same faces cut into tiles, each vertex's colour lit by the bake (`_bake_or_null` has checked it fits), the
+## ground, and any sloping ground unlit.
 func _baked_mesh() -> ArrayMesh:
 	var t := GreyboxFaces.tile(map, _light.cell, _light.ground_y)
 	var n := t.positions.size()
@@ -230,7 +254,7 @@ func _baked_mesh() -> ArrayMesh:
 		var k := v * 3
 		colours[v] = Color(c.r * (lit + warm * bounce[k]), c.g * (lit + warm * bounce[k + 1]),
 				c.b * (lit + warm * bounce[k + 2])).linear_to_srgb()
-	for p in GreyboxFaces.ground_face(_style):
+	for p in GreyboxFaces.ground_face(_style, GreyboxFaces.ground_top(map)):
 		t.positions.append(p)
 		t.normals.append(Vector3.UP)
 		colours.append(_style.ground_colour)
@@ -242,6 +266,8 @@ func _baked_mesh() -> ArrayMesh:
 	arrays[Mesh.ARRAY_NORMAL] = t.normals
 	arrays[Mesh.ARRAY_COLOR] = colours
 	arrays[Mesh.ARRAY_INDEX] = t.indices
+	if map.terrain != null:
+		GreyboxFaces.add_terrain(arrays, map.terrain, _style)
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	return mesh

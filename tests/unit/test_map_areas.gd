@@ -73,9 +73,7 @@ func test_the_fields_load_their_areas_each_named_shortly_and_the_range_none() ->
 	var counts: Dictionary[String, int] = {"depot": 16, "woodland": 14, "neonHeights": 25, "range": 0}
 	for id: String in counts:
 		var m := maps[id]
-		# Woodland's ground is its terrain, which MapData doesn't read yet (step 26): refused for "no floor", not its areas.
-		if id != "woodland":
-			assert_true(m.ok(), "%s: %s" % [id, m.problems])
+		assert_true(m.ok(), "%s: %s" % [id, m.problems])
 		assert_eq(m.warnings, [] as Array[String], id)
 		assert_eq(m.areas.size(), counts[id], id)
 		for a in m.areas:
