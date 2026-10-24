@@ -2,8 +2,45 @@ class_name WindDust
 extends GPUParticles3D
 ## Specks of dust in the air round the eye, drifting with the match's breeze (the browser game's M30 dust), so the wind
 ## that moves your BBs can be seen. The specks stay where they are in the world while the eye moves; their drift is
-## refreshed a few times a second, never per frame. The graphics settings set how many (`set_share`), and Reduced motion
-## takes its share of that (`set_motion`, none today); at none it is hidden and does no work.
+## refreshed a few times a second, never per frame. They take the light and the sun's shadow (`SHADER`): each adds only
+## the light falling on it, so it glints in sunlight and is gone in shade, whichever way the sun is, and it fades out
+## near the eye (EffectsConfig.dust_fade_near and _far). The graphics settings set how many (`set_share`), and Reduced
+## motion takes its share of that (`set_motion`, none today); at none it is hidden and does no work.
+
+## A quad turned to face the eye, keeping its scale (a particle's or a MultiMesh instance's): the vertex stage of the
+## specks' shader and KickedDust's.
+const FACING_VERTEX := """
+void vertex() {
+	mat4 facing = mat4(normalize(INV_VIEW_MATRIX[0]), normalize(INV_VIEW_MATRIX[1]), normalize(INV_VIEW_MATRIX[2]),
+			MODEL_MATRIX[3]);
+	MODELVIEW_MATRIX = VIEW_MATRIX * facing * mat4(vec4(length(MODEL_MATRIX[0].xyz), 0.0, 0.0, 0.0),
+			vec4(0.0, length(MODEL_MATRIX[1].xyz), 0.0, 0.0), vec4(0.0, 0.0, length(MODEL_MATRIX[2].xyz), 0.0),
+			vec4(0.0, 0.0, 0.0, 1.0));
+	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
+}
+"""
+## A speck: a soft round point facing the eye (the particles' billboard), adding its colour times the light on it (no
+## ambient light, so shade gives nothing), by the light's colour and shadow alone, not the way it faces, faded out near
+## the eye.
+const SHADER := """
+shader_type spatial;
+render_mode blend_add, depth_draw_never, cull_disabled, ambient_light_disabled, specular_disabled, fog_disabled;
+
+uniform vec4 colour : source_color = vec4(1.0);
+uniform float glint = 1.0;
+uniform float fade_near = 0.8;
+uniform float fade_far = 1.8;
+""" + FACING_VERTEX + """
+void fragment() {
+	ALBEDO = colour.rgb;
+	float round_edge = 1.0 - smoothstep(0.25, 0.5, length(UV - vec2(0.5)));
+	ALPHA = colour.a * round_edge * smoothstep(fade_near, fade_far, length(VERTEX));
+}
+
+void light() {
+	DIFFUSE_LIGHT += LIGHT_COLOR * ATTENUATION * glint / PI;
+}
+"""
 
 var _cfg: EffectsConfig = null
 var _motion: ParticleProcessMaterial = null
@@ -32,13 +69,20 @@ func setup(cfg: EffectsConfig) -> void:
 	process_material = _motion
 	var quad := QuadMesh.new()
 	quad.size = Vector2.ONE * cfg.dust_size
-	var look := StandardMaterial3D.new()
-	look.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	look.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	look.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
-	look.albedo_color = cfg.dust_colour
+	var look := ShaderMaterial.new()
+	look.shader = Shader.new()
+	look.shader.code = SHADER
+	look.set_shader_parameter(&"colour", cfg.dust_colour)
+	look.set_shader_parameter(&"glint", cfg.dust_glint)
+	look.set_shader_parameter(&"fade_near", cfg.dust_fade_near)
+	look.set_shader_parameter(&"fade_far", cfg.dust_fade_far)
 	quad.material = look
 	draw_pass_1 = quad
+
+
+## The material the specks draw with.
+func drawn_material() -> Material:
+	return (draw_pass_1 as PrimitiveMesh).material
 
 
 ## Draws `share` (0..1) of the config's specks (the graphics settings'); none hides it. A new count rebuilds the specks,
