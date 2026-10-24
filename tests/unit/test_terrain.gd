@@ -6,6 +6,8 @@ extends GutTest
 ## puffs and ricochets.
 
 const DT := 1.0 / 60.0
+## Five seconds of standing still.
+const STILL_TICKS := 300
 ## A height over every floor of the one-storey terrain maps: queries take the cell's only floor.
 const ABOVE := 50.0
 ## Half the sloped yard's width (m): its terrain covers [-15, 15] in x and z.
@@ -423,25 +425,39 @@ func test_a_body_walks_up_down_and_across_the_knoll_s_steepest_face_and_stands_s
 	assert_gt((c.position - top).dot(down), 6.0, "walked down the face")
 	assert_lt(off, lift, "kept to the ground walking down")
 	assert_true(c.grounded)
-	# Across, from the middle of the face: along the slope, not down it.
+	# Across, from the middle of the face, set down still: along the slope, not down it.
 	c.position = Vector3(at.x, at.y + tuning.body.rest_gap, at.z)
+	c.velocity = Vector3.ZERO
+	cmd.forward = 0.0
+	_walk(level, t, c, cmd, 1)
+	var set_down := c.position
 	var across := Vector3(-down.z, 0.0, down.x)
+	cmd.forward = 1.0
 	cmd.yaw = _yaw_to(across)
 	off = _walk(level, t, c, cmd, 60)
-	var gone := (c.position - at).dot(across)
-	var slid := (c.position - at).dot(down)
-	gut.p("across the face: %.2f m, %.2f m down it" % [gone, slid])
+	var gone := (c.position - set_down).dot(across)
+	var slid := (c.position - set_down).dot(down)
+	gut.p("across the face: %.3f m, %.4f m down it" % [gone, slid])
 	assert_gt(gone, 3.0, "walked across the face")
-	# The body sheds a little downhill off each 1 m facet it crosses (KNOWN_ISSUES: JoltMover on facets).
-	assert_lt(absf(slid), gone * 0.2, "kept across the face, not down it")
+	assert_lt(absf(slid), 0.01, "kept across the face, not down it")
 	assert_lt(off, lift)
-	# Still.
+	# Still, standing and crouched, from where it stopped and from being set down.
 	cmd.forward = 0.0
-	_walk(level, t, c, cmd, 30)
-	var rest := c.position
-	off = _walk(level, t, c, cmd, 120)
-	assert_lt(c.position.distance_to(rest), 0.01, "stands still on the face")
-	assert_true(c.grounded)
+	for crouch: bool in [false, true]:
+		cmd.crouch = crouch
+		_walk(level, t, c, cmd, 60)
+		var rest := c.position
+		_walk(level, t, c, cmd, STILL_TICKS)
+		assert_lt(c.position.distance_to(rest), 0.01, "stands still on the face for 5 s (crouched %s)" % crouch)
+		assert_true(c.grounded)
+	# A body spawned on the face, its rim in the slope: Jolt pops it out downhill once, and it stays there.
+	var spawned := Character.new(1, 0, Vector3(at.x, at.y + tuning.body.rest_gap, at.z), 0.0,
+			ReplicaStats.default_loadout())
+	_walk(level, t, spawned, cmd, 1)
+	assert_eq(Vector2(spawned.velocity.x, spawned.velocity.z), Vector2.ZERO, "popped out with no speed")
+	var rest := spawned.position
+	_walk(level, t, spawned, cmd, STILL_TICKS)
+	assert_lt(spawned.position.distance_to(rest), 0.01, "spawned on the face, it stays")
 
 
 # --- the nav grid ---

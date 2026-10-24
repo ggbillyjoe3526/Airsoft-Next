@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | worker | 2958 / 2958 (second run; the first lost one to the voice-pool flake, KNOWN_ISSUES) | – | – |
+| 2026-10-24 | 1 | worker | 2958 / 2958 (second run; the first lost one to `test_voice_pool.gd`'s timing) | – | – |
+| 2026-10-24 | 2 | worker | 2959 / 2959 | – | Thread: a body must stand still on the steepest face; the voice-pool test must hold on a busy runner |
 
 ## Goal
 
@@ -43,7 +44,6 @@ Neon Heights build exactly as before; Woodland stays Dev-only (DECISIONS › Woo
 
 - A 242,591-node nav grid takes about 2 s to build (Depot 0.23 s) in the loading screen's teams step; one route to an
   unreachable roof node searches the whole grid (182 to 202 ms). WL2 budgets route searches.
-- The JoltMover's cylinder sheds a little downhill off each 1 m facet when walking across a steep slope (KNOWN_ISSUES).
 - 80,458 triangles in the greybox's one draw (Depot 1,314); the trimesh is 76,800 triangles over five bodies.
 
 ## Defaults taken
@@ -105,8 +105,9 @@ The build runs in the loading screen's teams step, once a match.
   `height_at`, each on its square's surface.
 - Woodland's 38,400 squares: grass 28,627, leaves 6,217, gravel 1,691, earth 1,640, boards 225.
 - The Knoll's steepest face (0.473 at 32.5, 3.8, 4.5): a body runs 6 m and more up it and back down, its middle never
-  more than the rim's lift (radius x slope, 0.15 m) off the ground; across it 3.89 m, drifting 0.48 m downhill; it
-  stands still within 1 cm for two seconds.
+  more than the rim's lift (radius x slope, 0.15 m) off the ground; across it 4.04 m, 0.0000 m downhill; standing
+  and crouched it moves under 1 cm in five seconds; spawned with its rim in the slope it is popped out 3 to 4 cm once,
+  with no speed, and stays.
 - Level build: Woodland 206 to 221 ms (the squares' mesh 53 ms, the trimesh's triangles 35 ms), Depot 5 to 7 ms; the
   map file reads in 21 to 36 ms (its ground painted), Depot 3 to 5 ms.
 
@@ -139,12 +140,34 @@ face just outside the fort's west gap, west over the meadow to West Hill, which 
 
 `game/config/play_tuning.tres` (two more puff colours, so grass and leaves puff as earth by their own entries),
 `tests/support/field_checks.gd` (field.onFloor against the ground under a point), `game/map/README.md`,
-`docs/KNOWN_ISSUES.md` (three rows), `assets/maps/woodland.jpg.import`, and tests that held Woodland refused:
-`test_dp2_qa.gd`, `test_mm3_qa.gd`, `test_hud_minimap.gd`, `test_map_areas.gd`, `test_fg2b_qa.gd` (Woodland's crossfire
-spots now checked), `test_mn2_qa.gd` (greys Depot at four a side, as no map is greyed at three) and `test_gravel.gd`
-(the surfaces after gravel). Three `docs/KNOWN_ISSUES.md` rows lose their "Woodland is refused" notes. Unchanged in
-`touches`: `game/map/jolt_query.gd` (a body per surface needed nothing new), `tests/support/field_measure.gd`,
-`tools/map_pictures.gd`.
+`docs/KNOWN_ISSUES.md` (one row: the roof nodes; three stale Woodland notes fixed), `game/sim/movement.gd` and
+`tests/unit/test_movement.gd` and `tests/unit/test_voice_pool.gd` (attempt 2), `assets/maps/woodland.jpg.import`, and
+tests that held Woodland refused: `test_dp2_qa.gd`, `test_mm3_qa.gd`, `test_hud_minimap.gd`, `test_map_areas.gd`,
+`test_fg2b_qa.gd` (Woodland's crossfire spots now checked), `test_mn2_qa.gd` (greys Depot at four a side, as no map is
+greyed at three) and `test_gravel.gd` (the surfaces after gravel). Three `docs/KNOWN_ISSUES.md` rows lose their
+"Woodland is refused" notes. Unchanged in `touches`: `game/map/jolt_query.gd` (a body per surface needed nothing new),
+`tests/support/field_measure.gd`, `tools/map_pictures.gd`.
+
+## Fix round (attempt 2)
+
+- **Standing still on the steepest face.** Attempt 1's "0.48 m downhill across the face" was the test's: it set the
+  body down mid-face without clearing the velocity of its run downhill. From rest the walk across goes 4.04 m and
+  0.0000 m down it, before the fix as after; `JoltMover` slides level, and the vertical moves and the ground probe move
+  only up and down. The real slide was elsewhere: a body set down with its rim in the slope (a spawn) is pushed out
+  downhill by Jolt's recovery on its first tick, and `Movement.step` took that push (3 to 4 cm) as speed, 2 m/s, and
+  coasted 4.4 cm more. Movement now lets no push out of geometry add speed, as it already let no lengthened ramp move
+  (a pace more than `Movement.PUSH_PACE`, 1 mm/s, over the asked one is a push, not rounding). The KNOWN_ISSUES row
+  goes. A mover change was tried (sliding up the ground on the walk's heading) and taken out: it changed nothing on the
+  Knoll.
+- **Depot and Neon Heights.** `test_movement.gd` and the mover tests pass. Whole matches before and after: Depot
+  Elimination seeds 3 and 7 and Attack / Defend seed 11 are identical (7, 7 and 6 rounds; 29, 29 and 19 hits; none
+  held up or stayed home). Neon Heights seed 7 parts at round 5 (8 rounds, 31 hits before; 9 and 39 after; none held
+  up either time): its stairs and barriers push a body out 7 times a match, each 1 to 2 mm/s, and the match runs
+  differently from there.
+- **`test_voice_pool.gd`.** It read the n-th play off voice n, but a voice whose short beep ended in real time is free,
+  and the pool rightly gives the next play to it. The vault and interface-cue checks now read the voice the pool
+  gave the play (its newest), and the beep check stops every other beep, as a busy runner does; the old reading fails
+  that exactly as CI did. Its KNOWN_ISSUES row goes.
 
 ## For later tasks
 
@@ -153,9 +176,11 @@ spots now checked), `test_mn2_qa.gd` (greys Depot at four a side, as no map is g
 
 ## Checks
 
-`tools/check.sh`, 2026-10-24: gdlint, the changelog notes, the unit tests (2,958 of 2,958; part 1 321 s, part 2
-409 s), the smoke test and the licence notices all pass. The first full run lost one test to `test_voice_pool.gd`'s
-timing (a beep's voice freed in real time under load; it passed alone three times and in the run before), recorded in
-KNOWN_ISSUES. `test_terrain.gd` 26 and `test_woodland_layout.gd` 17 pass alone. Before and after on one tree, Depot,
-Neon Heights and the range build the same mesh, colliders and nav grid (above). Not verified: how the slopes feel to
-walk and how the woodland reads on Forward+ (PLAYTEST › Woodland).
+`tools/check.sh`, 2026-10-24: gdlint, the changelog notes, the unit tests (2,958 of 2,958; part 1 321 s, part 2 409 s),
+the smoke test and the licence notices all pass. The first full run lost one test to `test_voice_pool.gd`'s timing (a
+beep's voice freed in real time under load; it passed alone three times and in the run before), recorded in
+KNOWN_ISSUES. `test_terrain.gd` 26 and `test_woodland_layout.gd` 17 pass alone. Attempt 2's gate: 2,959 of 2,959, part 1
+328 s, part 2 428 s, everything else passing; `test_movement.gd`, `test_terrain.gd` and `test_voice_pool.gd` pass alone,
+and the latter two fail without their fixes. Before and after on one tree, Depot, Neon Heights and the range build the
+same mesh, colliders and nav grid (above). Not verified: how the slopes feel to walk and how the woodland reads on
+Forward+ (PLAYTEST › Woodland).

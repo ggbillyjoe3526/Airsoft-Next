@@ -336,8 +336,8 @@ Creek with the cabin). Turn on Settings › Dev › Dev content, then pick it on
 WL1 it loads and plays by day at today's team size (3v3); night, bushes, the torch and 5v5 / 6v6 follow (WL2 to WL10).
 
 - [ ] **Walk the slopes (WL1).** Run up, down and across the Knoll's west face and West Hill: no jump is ever needed,
-  you never slide when you stop, and your feet stay on the ground going downhill. Across the steepest face you drift
-  a little downhill (about 0.5 m in 4 m): say if it feels like sliding.
+  you never slide when you stop or stand crouched on the face, your feet stay on the ground going downhill, and
+  across the steepest face you keep your line.
 - [ ] **Ground you can hear (WL1).** Grass in the meadow, leaf litter under the pines, earth on the paths, the fort
   and the camps, gravel in the ravine bed: each step sounds like what you see, and a BB into any of them puffs and
   thuds as earth, never bouncing.

@@ -3,6 +3,10 @@ class_name Movement
 ## gravity, then collision through CharacterMover and the ground probe. Pure apart from the mover.
 
 
+## Pace (m/s) a move may make beyond the one asked for before it counts as a push out of geometry, not rounding.
+const PUSH_PACE := 1e-3
+
+
 ## Moves `current` towards `target` by at most `max_delta`.
 static func approach(current: float, target: float, max_delta: float) -> float:
 	if current < target:
@@ -88,16 +92,15 @@ static func step(c: Character, cmd: PlayerCommand, cfg: MovementConfig, accuracy
 	c.wanted_move = desired
 	c.made_move = corrected
 
-	# Velocity follows what actually happened, so walls absorb speed instead of storing it; a lengthened move never adds
-	# speed.
+	# Velocity follows what actually happened, so walls absorb speed instead of storing it; neither a lengthened move nor
+	# a push out of geometry (a body set down into sloping ground, popped out downhill) ever adds speed.
 	var pace_before := sqrt(c.velocity.x * c.velocity.x + c.velocity.z * c.velocity.z)
 	c.velocity.x = corrected.x / dt
 	c.velocity.z = corrected.z / dt
-	if climb > 1.0:
-		var pace := sqrt(c.velocity.x * c.velocity.x + c.velocity.z * c.velocity.z)
-		if pace > pace_before:
-			c.velocity.x *= pace_before / pace
-			c.velocity.z *= pace_before / pace
+	var pace := sqrt(c.velocity.x * c.velocity.x + c.velocity.z * c.velocity.z)
+	if pace > pace_before and (climb > 1.0 or pace - pace_before > PUSH_PACE):
+		c.velocity.x *= pace_before / pace
+		c.velocity.z *= pace_before / pace
 
 	# Only the ground probe decides whether we stand: a capsule touching the top edge of cover must not count as ground
 	# (players would hang on barriers). It also lands us exactly at rest height.
