@@ -21,7 +21,7 @@
   sun, the ground and each block's kind, centre, size, rise, surface and colour) and `load_for` (a missing or broken
   file warns and draws without it). `BakeConfig` (`game/config/bake_config.gd`, on PlayTuning): the bake's settings (in
   the hash) and the look's `sky_share` 0.45 and `bounce_gain` 0.9 (free to tune, no rebake).
-- MapLevel: `faces_of` (one face list for the greybox, the tiles and the bake, so their orders can't drift), `tile`,
+- MapLevel (the geometry later in GreyboxFaces): `faces_of` (one face list for the greybox, the tiles and the bake, so their orders can't drift), `tile`,
   `set_baked_light(on)`. With it on, a map with a fitting bake is drawn as the tiled mesh, colour = block colour × (1 −
   0.45 × (1 − sky) + 0.9 × bounce) in linear, in the same material: one surface, one draw call. The tiled mesh casts
   no shadow; the untiled mesh under it casts shadows only, so the shadow passes draw what they drew before. Switching
@@ -108,6 +108,13 @@ range's untiled greybox hash the same as before DP2 (SHA-256 of vertices, normal
   `tile`'s on three maps at three cell sizes; a 0.001 m cell returns at once.
 - `tools/check.sh` after the fixes (2026-10-24): every gate passes, unit tests 2,857 of 2,857 in 834.3 s
   (`test_baked_light` 11/11, `test_dp2_qa` 8/8, `test_map_level` 15/15, `test_graphics_apply` 15/15).
+
+- **The greybox's geometry in its own script** (critic): the faces, ramp corners, ground face and tiles moved from
+  MapLevel (464 lines) to `GreyboxFaces` (`game/map/greybox_faces.gd`, 197 lines, static functions only), which MapLevel
+  and `tools/bake_light.gd` both use; MapLevel is 275 lines. No change in output: the bakes rebake to the same bytes and
+  the four untiled meshes hash as on the base. `set_baked_light` asserts `build` came first. A QA test now reaches the
+  vertex-count check alone (the right hash, one vertex short). `tools/check.sh`: every gate passes, 2,858 of 2,858 in
+  878.1 s, 22 s under the 900 s limit on this machine.
 
 ## Known issues left
 

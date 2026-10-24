@@ -5,6 +5,7 @@ extends GutTest
 
 const BROKEN := "qa_broken"
 const SHORT := "qa_short"
+const MISCOUNT := "qa_miscount"
 const SWITCHES := 12
 ## The meshes the base (origin/main 79969e6) drew, as SHA-256 of vertices, normals and colours (first 16 hex).
 const BASE_HASHES: Dictionary[String, String] = {
@@ -19,7 +20,7 @@ var body: BodyConfig = BodyConfig.new()
 
 
 func after_all() -> void:
-	for f: String in [BROKEN, SHORT]:
+	for f: String in [BROKEN, SHORT, MISCOUNT]:
 		var path := BakeConfig.path_for(f)
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(path)
@@ -84,7 +85,7 @@ func test_maps_without_a_bake_and_every_untiled_mesh_draw_as_the_base_did() -> v
 
 func test_the_tiles_wind_with_their_normals_and_cover_each_face_exactly() -> void:
 	var m := MapData.load_map("depot", play.map_style, 1)
-	var t := MapLevel.tile(m, play.baked_light.cell, play.baked_light.ground_y)
+	var t := GreyboxFaces.tile(m, play.baked_light.cell, play.baked_light.ground_y)
 	var tiled := 0.0
 	var wrong := 0
 	for i in range(0, t.indices.size(), 3):
@@ -98,7 +99,7 @@ func test_the_tiles_wind_with_their_normals_and_cover_each_face_exactly() -> voi
 	assert_eq(wrong, 0, "triangles wound the wrong way round (they'd be culled)")
 	var whole := 0.0
 	for b in m.blocks:
-		for f in MapLevel.faces_of(b):
+		for f in GreyboxFaces.faces_of(b):
 			for k in range(1, f.size() - 1):
 				whole += (f[k] - f[0]).cross(f[k + 1] - f[0]).length() * 0.5
 	assert_almost_eq(tiled, whole, whole * 1e-4, "no gap and no overlap: the tiles' area is the faces'")
@@ -142,7 +143,7 @@ func test_a_stale_bake_of_the_right_size_draws_untiled_with_one_warning() -> voi
 	var m := MapData.load_map("depot", play.map_style, 1)
 	var level := _level_of(m)
 	var real := BakedLight.load_for(m)
-	var n := MapLevel.tile(m, play.baked_light.cell, play.baked_light.ground_y).positions.size()
+	var n := GreyboxFaces.tile(m, play.baked_light.cell, play.baked_light.ground_y).positions.size()
 	assert_eq(real.vertex_count, n)
 	var good := real.source_hash
 	real.source_hash = "stale" # the cached copy the level loads
@@ -154,6 +155,24 @@ func test_a_stale_bake_of_the_right_size_draws_untiled_with_one_warning() -> voi
 	level.set_baked_light(false)
 	level.set_baked_light(true)
 	assert_push_warning_count(1, "warned once")
+
+
+func test_a_bake_of_the_right_hash_but_another_vertex_count_draws_untiled() -> void:
+	var real := BakedLight.load_for(_fake_map("depot"))
+	var n := real.vertex_count - 1
+	var bad := BakedLight.new()
+	bad.source_hash = real.source_hash
+	bad.vertex_count = n
+	bad.sky = real.sky.slice(0, n)
+	bad.bounce = real.bounce.slice(0, n * 3)
+	assert_true(bad.whole(), "a whole bake, one vertex short of the tiles")
+	assert_eq(ResourceSaver.save(bad, BakeConfig.path_for(MISCOUNT)), OK)
+	var level := _level_of(_fake_map(MISCOUNT))
+	level.set_baked_light(true)
+	assert_false(level.baked_light_drawn(), "the count is checked even when the hash matches")
+	assert_eq(_mesh_hash(_greybox(level).mesh), BASE_HASHES["depot"])
+	assert_push_warning("vertices for")
+	assert_push_warning_count(1)
 
 
 func test_switching_the_row_over_and_over_leaks_nothing_and_leaves_the_colliders() -> void:

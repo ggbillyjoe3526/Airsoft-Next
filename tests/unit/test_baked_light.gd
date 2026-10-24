@@ -1,5 +1,5 @@
 extends GutTest
-## Baked light (DP2): tools/bake_light.gd's per-vertex sky and sun bounce on the tiled mesh (MapLevel.tile), each map's
+## Baked light (DP2): tools/bake_light.gd's per-vertex sky and sun bounce on the tiled mesh (GreyboxFaces.tile), each map's
 ## bake matching the blocks it was baked from, MapLevel drawing it as vertex colour in one draw call and switching it
 ## (Settings › Graphics › Baked light) by rebuilding the mesh alone, and a map with no bake drawn as before.
 
@@ -38,7 +38,7 @@ func _coarse() -> BakeConfig:
 
 
 ## The index of the tiles' vertex at `at` facing `normal`, or -1.
-func _vertex(t: MapLevel.Tiles, at: Vector3, normal: Vector3) -> int:
+func _vertex(t: GreyboxFaces.Tiles, at: Vector3, normal: Vector3) -> int:
 	for v in t.positions.size():
 		if t.positions[v].is_equal_approx(at) and t.normals[v].is_equal_approx(normal):
 			return v
@@ -83,7 +83,7 @@ func test_every_bake_matches_the_blocks_it_was_baked_from() -> void:
 			continue
 		assert_eq(bake.source_hash, BakedLight.hash_of(m, play.map_style, play.lighting, play.baked_light),
 				"%s's blocks changed since its bake: rebake with tools/bake_light.gd" % m.id)
-		assert_eq(bake.vertex_count, MapLevel.tile(m, play.baked_light.cell, play.baked_light.ground_y).positions.size(),
+		assert_eq(bake.vertex_count, GreyboxFaces.tile(m, play.baked_light.cell, play.baked_light.ground_y).positions.size(),
 				"%s's bake covers its tiles: rebake with tools/bake_light.gd" % m.id)
 	assert_gte(baked, 1, "Depot names a bake")
 
@@ -122,7 +122,7 @@ func test_open_ground_sees_the_sky_and_a_sunlit_wall_warms_the_ground_beside_it(
 	var m := _yard()
 	var cfg := _coarse()
 	var bake: BakedLight = BakeTool.bake_map(m, play.map_style, play.lighting, cfg)
-	var t := MapLevel.tile(m, cfg.cell, cfg.ground_y)
+	var t := GreyboxFaces.tile(m, cfg.cell, cfg.ground_y)
 	assert_eq(bake.vertex_count, t.positions.size())
 	assert_true(bake.whole())
 	# The sun's side of the wall (its light travels away from the sun).
@@ -153,7 +153,7 @@ func test_depot_draws_its_bake_as_vertex_colour_in_one_draw_call() -> void:
 	assert_true(level.baked_light_drawn())
 	var mi := _greybox(level)
 	assert_eq(mi.mesh.get_surface_count(), 1, "one surface, one material: one draw call")
-	var tiles := MapLevel.tile(level.map, play.baked_light.cell, play.baked_light.ground_y)
+	var tiles := GreyboxFaces.tile(level.map, play.baked_light.cell, play.baked_light.ground_y)
 	assert_eq(mi.mesh.surface_get_array_len(0), tiles.positions.size() + 4, "the tiles and the ground")
 	assert_ne(mi.mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_COLOR, 0)
 	assert_eq(mi.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "the tiles cast no shadow")
@@ -226,7 +226,7 @@ func test_the_tile_count_is_known_before_any_tile_is_made() -> void:
 	for id: String in ["depot", "range", "neonHeights"]:
 		var m := MapData.load_map(id, play.map_style, 1)
 		for cell: float in [0.5, 0.25, 1.0]:
-			assert_eq(MapLevel.tile_count(m, cell, 0.06), MapLevel.tile(m, cell, 0.06).positions.size(),
+			assert_eq(GreyboxFaces.tile_count(m, cell, 0.06), GreyboxFaces.tile(m, cell, 0.06).positions.size(),
 					"%s at %.2f m" % [id, cell])
 
 

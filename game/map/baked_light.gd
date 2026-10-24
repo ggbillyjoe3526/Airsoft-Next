@@ -1,7 +1,7 @@
 class_name BakedLight
 extends Resource
 ## One map's baked light (DP2), written by `tools/bake_light.gd` to BakeConfig.DIR and drawn by MapLevel: for each vertex
-## of the map's tiled mesh (MapLevel.tile), in its order, the share of the sky it sees and the sun's one bounce reaching
+## of the map's tiled mesh (GreyboxFaces.tile), in its order, the share of the sky it sees and the sun's one bounce reaching
 ## it, kept apart so a night can draw the sky's share alone. `source_hash` is the hash of what it was baked from
 ## (`hash_of`); a test fails a bake whose map has changed since.
 

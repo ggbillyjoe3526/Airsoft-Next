@@ -5,7 +5,7 @@ extends SceneTree
 ## Run it after changing a map's blocks, its style's colours or the sun (tests/unit/test_baked_light.gd fails a stale
 ## bake). A dev tool: never exported (export_presets.cfg leaves tools/ out).
 ##
-## For each vertex of the map's tiled mesh (MapLevel.tile) it casts BakeConfig.rays over its face's half of the sky,
+## For each vertex of the map's tiled mesh (GreyboxFaces.tile) it casts BakeConfig.rays over its face's half of the sky,
 ## cosine-weighted, against the level's faces (a TriangleMesh: the engine's own ray tree, no physics frame needed).
 ## A ray that meets nothing within `reach`, or meets the open ground where the ground sees the sky straight up, counts as
 ## sky; a ray that meets a face the sun reaches brings back that face's colour times the sun's slant on it: the sun's
@@ -58,15 +58,15 @@ static func save(bake: BakedLight, path: String) -> Error:
 
 ## `m`'s baked light: for each vertex of its tiled mesh, the sky it sees and the sun's bounce reaching it.
 static func bake_map(m: MapData, style: MapStyle, lighting: LightingConfig, cfg: BakeConfig) -> BakedLight:
-	var t := MapLevel.tile(m, cfg.cell, cfg.ground_y)
+	var t := GreyboxFaces.tile(m, cfg.cell, cfg.ground_y)
 	var faces := PackedVector3Array()
 	var face_normals := PackedVector3Array()
 	var face_albedo := PackedColorArray()
 	for b in m.blocks:
 		var albedo := style.block_colour(b).srgb_to_linear()
-		for f in MapLevel.faces_of(b):
+		for f in GreyboxFaces.faces_of(b):
 			_add_triangles(f, albedo, faces, face_normals, face_albedo)
-	_add_triangles(MapLevel.ground_face(style), style.ground_colour.srgb_to_linear(), faces, face_normals, face_albedo)
+	_add_triangles(GreyboxFaces.ground_face(style), style.ground_colour.srgb_to_linear(), faces, face_normals, face_albedo)
 	var world := TriangleMesh.new()
 	world.create_from_faces(faces)
 	var sun := Basis.from_euler(Vector3(deg_to_rad(-lighting.sun_elevation), deg_to_rad(lighting.sun_heading), 0.0)).z
@@ -117,7 +117,7 @@ static func bake_map(m: MapData, style: MapStyle, lighting: LightingConfig, cfg:
 ## Face `f` (a convex polygon, anticlockwise from outside) as triangles, each with its outward normal and colour.
 static func _add_triangles(f: PackedVector3Array, albedo: Color, faces: PackedVector3Array,
 		normals: PackedVector3Array, colours: PackedColorArray) -> void:
-	var n := MapLevel.face_normal(f)
+	var n := GreyboxFaces.face_normal(f)
 	for i in range(1, f.size() - 1):
 		faces.append(f[0])
 		faces.append(f[i])

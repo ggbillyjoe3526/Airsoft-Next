@@ -2,10 +2,10 @@ class_name GraphicsApply
 ## Puts GraphicsQuality values into the game (data/graphics.md, Settings › Graphics). `apply` sets the root viewport's
 ## knobs (render scale and upscaler, edge and temporal smoothing, texture filtering, mesh detail) and the
 ## RenderingServer's sun-shadow map and filter; `apply_field` sets the match's sun, its environment's ambient occlusion
-## and the wind dust, without rebuilding them, and the level's baked light (its mesh alone). `apply_settings` (SettingsApply.apply_graphics: at start and on a change
-## in Settings › Graphics, in the menus or from the pause menu) draws only values that differ from those drawn
-## (`equals`), never per frame, and tells the match through the Server's `applied`: a new shadow map is a hitch, so the
-## tab's sliders apply on release.
+## and the wind dust, without rebuilding them, and the level's baked light (its mesh alone). `apply_settings`
+## (SettingsApply.apply_graphics: at start and on a change in Settings › Graphics, in the menus or from the pause menu)
+## draws only values that differ from those drawn (`equals`), never per frame, and tells the match through the Server's
+## `applied`: a new shadow map is a hitch, so the tab's sliders apply on release.
 ##
 ## `values_for` gives the values to draw: the settings' in force, each choice the renderer in use can't draw (the
 ## table's Renderers) moved to the nearest it can, so Low's FSR 1 draws bilinear on the simpler renderer.
