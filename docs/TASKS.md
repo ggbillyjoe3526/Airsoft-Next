@@ -4,6 +4,136 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
+## DP1 · Depot's layout to the field checklist: the Box, port walls and gravel (Dev)
+when: build order step 25, first (plan: project files `plan/step25-depot-layout.md`)
+tier: core
+perf: required
+touches: data/maps/depot.json, game/map/map_data.gd, game/config/map_style.gd, game/sim/ray_hit.gd,
+  game/config/effects_config.gd, game/config/ricochet_config.gd, game/play/sim_audio.gd, assets/maps/depot.jpg,
+  tests/unit/test_map_level.gd, tests/unit/test_map_areas.gd, tests/unit/test_depot_layout.gd, docs/DECISIONS.md,
+  docs/ART.md, docs/PLAYTEST.md
+contract: Physics behind two interfaces (4); Data, not literals (6)
+acceptance:
+  1. Depot is the concept's layout (project files `concepts/step25-depot/depot-proposed.json` and
+     `depot-proposed.png`; that file's `plywood` kind and `group`, `roof` and `gravel` keys are drafting aids, not
+     the format). The Box: the Alley's container opened and roofed, 2.0 m wide inside, 2.4 m headroom, a door and a
+     port in each long side, the west ones in its north half and the east ones in its south half; it is a named
+     area. Four plywood port walls (2.4 m tall and long, 0.3 m thick, a port 0.6 m wide from 1.2 to 1.9 m) in place
+     of today's blocks 40 and 43 (gabions) and 53 and 54 (the Bay's walls). Two gravel beds, 3 cm proud, at the
+     Office's west and east doors. Lanes, spawns, dead zones, the flag and every other block are unchanged. A piece
+     may move up to 0.5 m to pass a check; the record says which and why.
+  2. All fifteen field checks pass with Depot's KNOWN_FAILING list empty and no standard raised. The record lists
+     the figures against FC2's baseline (the concept, 2026-10-24: sightline 33.9 m, middle walks 30.0 and 32.0 m,
+     flag walks 38.4 and 19.5 m).
+  3. `test_depot_layout` (Jolt rays on the built level): through every port a standing eye sees out and a crouched
+     eye does not; no port or Box opening can be vaulted; a BB fired up inside the Box stops on its roof; bots from
+     each end route into the Box by its doors.
+  4. `RayHit.Surface.GRAVEL` is appended (no existing value moves) and a block's `"surface": "gravel"` reads it.
+     Steps on it play `step_gravel_*`; BBs on it puff and ricochet as earth and sound `impact_earth`. MapStyle gains
+     `plywood` (tan, inside the prop hue rule) and a gravel colour, and draws all of one container's blocks in one
+     colour. field.teamColour passes.
+  5. The match guards pass on all 16 seeds, and the balance report's Depot figures stay in their 45 to 55 % bands
+     (BR1: west end 49.0 %). A figure outside goes to the owner, never into a looser band.
+  6. `assets/maps/depot.jpg` is re-rendered with `tools/map_pictures.gd`. DECISIONS gains the layout line and the
+     review of the towers, walkways and fuselage (skyline scenery, DP3); ART.md › The field kit's Landmarks line
+     says so. PLAYTEST › Depot lists the Box, the ports and the gravel.
+status: open
+attempts: 0
+
+## DP2 · Baked light on Depot (Dev)
+when: build order step 25, after DP1
+tier: core
+perf: required
+touches: tools/bake_light.gd, game/map/map_level.gd, game/map/map_data.gd, game/config/, assets/maps/bakes/,
+  game/save/graphics_apply.gd, data/graphics.md, game/ui/text/en.po, tests/unit/test_baked_light.gd,
+  docs/KNOWN_ISSUES.md, docs/DECISIONS.md
+contract: Simulation and presentation (1); Data, not literals (6)
+acceptance:
+  1. `tools/bake_light.gd` (dev, never exported) bakes, for each vertex of the level mesh tiled at 0.5 m, the sky's
+     occlusion and one warm bounce of the sun off the ground and walls into a resource under `assets/maps/bakes/`,
+     named by the map's `bakedLight.file` and holding the hash of the blocks it was baked from. Two runs write the
+     same bytes.
+  2. MapLevel draws the bake as vertex colour on the tiled mesh, still one draw call. A map with no `bakedLight`
+     draws exactly as before (pinned). A test fails when a map's blocks no longer match its bake's hash ("rebake
+     with tools/bake_light.gd").
+  3. Occlusion and bounce are stored apart, so a night preset (step 26) can use the occlusion alone.
+  4. A Graphics row, Baked light (off, on): off on Low, on from Medium. Low keeps today's untiled mesh. Switching it
+     mid-match rebuilds the mesh only.
+  5. The record gives Depot's triangles and frame time with and without it, the bake's time and the file's size
+     against the install budget. Figures are not lit by the bake: a KNOWN_ISSUES row. Pictures of the Box, a port
+     wall and the Office's corners with the bake on and off are posted.
+status: open
+attempts: 0
+
+## DP3 · Depot's skyline and landmarks (Dev)
+when: build order step 25, after DP1
+tier: core
+perf: required
+touches: game/play/skyline_view.gd, game/play/play_session.gd, game/map/map_data.gd, game/config/,
+  data/maps/depot.json, tools/map_pictures.gd, tests/unit/test_skyline.gd, docs/DECISIONS.md, docs/ART.md
+contract: Simulation and presentation (1); Data, not literals (6)
+acceptance:
+  1. SkylineView builds the map's `dressing.skyline` entries (shed, waterTower, crane, containers, chimney, silo,
+     powerLine, hill) as greybox in one merged vertex-coloured mesh, each piece faded toward the sky's horizon
+     colour by distance; chimneys marked `smoke` smoke from Medium. No collider, no nav cell, no effect on any check.
+  2. New kinds `watchTower`, `fuselage` and `mast` in the same data: a concrete watch tower beyond the north wall,
+     the fuselage beyond the east wall, four masts outside the corners (their lights wait for step 26). Site colours
+     only, never a team colour (ART.md).
+  3. What no player can see is not built (owner, 2026-10-16, MS1): a piece no stand point on a lane, a spawn or a
+     raised floor sees over the walls is left out, and a test fails if a landmark is.
+  4. A map with no skyline draws as before. The record gives the triangles, draw calls and frame time added on each
+     preset, and posts pictures from the Crate yard and the Bay (as the concept's `depot-eye-level.png`).
+status: open
+attempts: 0
+
+## DP4 · Noisy props and loud ground (Dev)
+when: build order step 25, after DP1
+tier: core
+perf: required
+touches: game/sim/, game/ai/bot_hearing.gd, game/config/, game/play/sim_audio.gd, game/play/puff_view.gd,
+  game/play/sound_cues.gd, game/play/minimap_hearing.gd, tests/unit/test_noisy_props.gd, docs/DECISIONS.md,
+  docs/PLAYTEST.md
+contract: Physics behind two interfaces (4); Seeded randomness (5); Data, not literals (6)
+acceptance:
+  1. The browser's NP1 (`legacy/browser/docs/records/NP1.md`, `config/noise.ts`) in a typed config. Running or
+     sprinting into a noisy prop at 3 m/s or more knocks it: steel (skip, container) 20 m, clank (generator, IBC)
+     17 m, rattle (rack) 16 m, plastic (toilet) 14 m, wood (crate, wrapped) 13 m. A BB landing hard on steel rings it
+     (12 m, clank 10 m). One quiet time of 1.2 s a prop. Walls, barriers, gabions, sandbags, plywood and floors are
+     silent. No randomness.
+  2. Bots hear a knock as a step on whoever made it, walls muffling it; a ring is faint and only turns an idle bot's
+     head. The Sound cues ring and the minimap show an enemy's knock as a step.
+  3. Run, sprint and landing steps on gravel and steel plate carry 1.35 times as far, read from
+     `WorldQuery.surface_under`. Walking stays silent everywhere.
+  4. A knock plays its `prop_<kind>_*` cue and a puff of the prop's dust (the browser's PROP_BUMP_DUST); a ring plays
+     as the BB's impact.
+  5. The match guards pass. The record gives knocks and rings a round on Depot over the guards' seeds, and the
+     balance report against main (no figure leaves its band).
+status: open
+attempts: 0
+
+## DP5 · Gas puffs, kicked dust, sunlit dust and contact shadows (Dev)
+when: build order step 25, after DP1
+tier: core
+perf: required
+touches: game/play/gas_puffs.gd, game/play/kicked_dust.gd, game/play/wind_dust.gd, game/play/figure_view.gd,
+  game/play/first_person_view.gd, game/play/play_session.gd, game/config/effects_config.gd,
+  game/save/graphics_apply.gd, data/graphics.md, tests/unit/test_dust_effects.gd, docs/PLAYTEST.md
+contract: Simulation and presentation (1); Data, not literals (6)
+acceptance:
+  1. Gas puffs (the browser's GAS_PUFFS): each shot of a gas replica puffs a cool, short breath from its muzzle and
+     a smaller one from its port, in first person and on figures; never on electric or spring replicas. A pool of
+     16, no allocation a shot.
+  2. Kicked dust (KICKED_DUST): a low, faint puff at a sprinting footfall and a bigger one on landing, tinted by the
+     map's `dressing.kickedDust`, only within its range of the camera, its top under 0.3 m so it never hides
+     anyone. None where the Wind dust row is 0 %.
+  3. The wind's specks take the sun's light and shadow, so they glint in sunlight and fade in shade, and fade out
+     near the eye. Reduced motion keeps its share.
+  4. Contact shadows (moved here from step 20): a soft shadow under every figure where sun shadows are off.
+  5. The record gives the frame time added on Low and High in a full 3v3 firefight, and posts a picture of each
+     effect.
+status: open
+attempts: 0
+
 ## AD1 · Adaptive difficulty (Dev)
 when: build order step 31, after the late features (owner, 2026-10-22)
 tier: core
