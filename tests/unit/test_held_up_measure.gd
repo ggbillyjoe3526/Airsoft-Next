@@ -1,6 +1,6 @@
 extends GutTest
 ## The match guards' held-up measure (tests/support/match_runner.gd): a bot on its way that stays put or goes round in
-## a loop counts; one that gets somewhere, fights in between or holds on purpose does not.
+## a loop on one errand counts; one that gets somewhere, fights in between, changes errand or holds on purpose does not.
 
 const SECONDS := MatchRunner.HELD_UP_SECONDS
 
@@ -8,18 +8,26 @@ var config: BotConfig = BotConfig.load_default()
 
 
 func _ring() -> PackedVector3Array:
+	errands = PackedInt32Array()
+	errands.resize(SECONDS)
 	var ring := PackedVector3Array()
 	ring.resize(SECONDS)
 	ring.fill(Vector3.INF)
 	return ring
 
 
-## Feeds one sample a second from `places` (looping over them) for `seconds`; true if held up at the last.
+## Each sample's errand ring, beside `_ring()`'s positions.
+var errands: PackedInt32Array = PackedInt32Array()
+
+
+## Feeds one sample a second from `places` (looping over them) for `seconds`, on errand `errand` (ADVANCE unless it
+## says otherwise); true if held up at the last.
 func _feed(ring: PackedVector3Array, places: Array[Vector3], seconds: int, on_way: Callable = func(_s: int) -> bool:
-		return true) -> bool:
+		return true, errand: Callable = func(_s: int) -> int: return Bot.Mode.ADVANCE) -> bool:
 	var held := false
 	for s in seconds:
-		held = MatchRunner.held_up_sample(ring, s % SECONDS, places[s % places.size()], on_way.call(s))
+		held = MatchRunner.held_up_sample(ring, errands, s % SECONDS, places[s % places.size()], errand.call(s),
+				on_way.call(s))
 	return held
 
 
@@ -41,6 +49,51 @@ func test_a_bot_going_round_in_a_loop_counts() -> void:
 	for s in SECONDS:
 		places.append(Vector3(0.0, 0.0, 8.0 * sin(PI * s / SECONDS)))
 	assert_true(_feed(ring, places, SECONDS * 2 + 1), "back where it was ten seconds ago")
+
+
+## The loop above, hunting the whole time: one errand throughout, so it still counts.
+func test_a_bot_looping_on_one_search_counts() -> void:
+	var ring := _ring()
+	var places: Array[Vector3] = []
+	for s in SECONDS:
+		places.append(Vector3(10.0 * sin(PI * s / SECONDS), 0.0, 0.0))
+	assert_true(_feed(ring, places, SECONDS * 2 + 1, func(_s: int) -> bool: return true,
+			func(_s: int) -> int: return Bot.Mode.SEARCH), "searching out and back to the same spot, again and again")
+
+
+## Frozen in a doorway while its mode flips between its lane and a search every few seconds, jittering a few
+## centimetres: never far from where it was, so held up whatever the errand.
+func test_a_frozen_bot_whose_errand_flips_counts() -> void:
+	var ring := _ring()
+	var jitter: Array[Vector3] = [Vector3.ZERO, Vector3(0.05, 0.0, 0.0), Vector3(0.0, 0.0, 0.05)]
+	var flips := func(s: int) -> int: return Bot.Mode.ADVANCE if (s / 3) % 2 == 0 else Bot.Mode.SEARCH
+	assert_true(_feed(ring, jitter, SECONDS * 2 + 1, func(_s: int) -> bool: return true, flips),
+			"stuck on the spot, flipping between lane and search")
+
+
+## Pacing ±0.5 m across a doorway every second while its mode flips: 5 to 10 m of path over the window, but never more
+## than a metre from where it was, so held up whatever the errand.
+func test_a_bot_dithering_in_a_doorway_whose_errand_flips_counts() -> void:
+	var ring := _ring()
+	var pacing: Array[Vector3] = [Vector3(-0.5, 0.0, 0.0), Vector3(0.5, 0.0, 0.0)]
+	var flips := func(s: int) -> int: return Bot.Mode.ADVANCE if (s / 3) % 2 == 0 else Bot.Mode.SEARCH
+	assert_true(_feed(ring, pacing, SECONDS * 2 + 1, func(_s: int) -> bool: return true, flips),
+			"pacing the doorway, flipping between lane and search")
+
+
+## A search given up for its lane, walking back the way it came (DP1, Depot seed 7 at Pro): out 10 m searching, back
+## advancing, at the same place ten seconds apart. Not held up; a whole window on the lane errand on the spot is.
+func test_a_search_given_up_for_the_lane_walking_back_does_not_count() -> void:
+	var ring := _ring()
+	var places: Array[Vector3] = []
+	for s in SECONDS:
+		places.append(Vector3(10.0 * sin(PI * s / SECONDS), 0.0, 0.0))
+	var search_then_lane := func(s: int) -> int: return Bot.Mode.SEARCH if s < SECONDS + SECONDS / 2 else Bot.Mode.ADVANCE
+	assert_false(_feed(ring, places, SECONDS * 2 + 1, func(_s: int) -> bool: return true, search_then_lane),
+			"back where it was, but on another errand since")
+	var spot: Array[Vector3] = [Vector3.ZERO]
+	assert_true(_feed(ring, spot, SECONDS * 2 + 1, func(_s: int) -> bool: return true,
+			func(_s: int) -> int: return Bot.Mode.ADVANCE), "a whole window on its lane on the spot")
 
 
 func test_a_bot_that_gets_somewhere_does_not_count() -> void:

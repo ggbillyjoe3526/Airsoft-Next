@@ -352,6 +352,16 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Depot is asymmetric (owner, 2026-10-03).** Attackers' yard west, defenders' spawn north-east, one flagpole in a
   walled loading bay, three lanes: Dock Road, Container Alley, the Office. Its west end stays at 48 % of decided
   Elimination rounds (owner, 2026-10-05); the ends are not evened further.
+- **Depot gains the Box, four port walls and two gravel beds; the towers, walkways and fuselage stay scenery (owner,
+  2026-10-24: the recommended defaults; DP1).** The Alley's container is opened and roofed as the Box (2.0 m inside,
+  2.4 m headroom, a door and a port in each long side, the west ones in its north half and the east ones in its south
+  half, so no line runs through it); it is the middle now. Plywood port walls (2.4 m tall and long, a port 0.6 m wide
+  from 1.2 to 1.9 m: standing you see and shoot through, crouched you are hidden, nobody vaults it) replace the Crate
+  yard's two gabions and the Bay's two walls. Gravel beds, 3 cm floor blocks with their own surface, lie at the
+  Office's outer doors. Lanes, spawns, dead zones, the flag and every other block are unchanged. A tower over a 50 x
+  32 m field sees most of it and breaks the 34 m cap and the spawn sight rule, and the dock is Depot's walkway
+  already, so a concrete watch tower beyond the north wall, the fuselage beyond the east wall and four floodlight masts
+  join the skyline (DP3), out of reach.
 - **Woodland is the second field: night only, much more open and larger than Depot, with a free weapon torch and glowing
   BBs (owner, 2026-10-04).** No prone, a gentle slope, one much higher end with the flag. It plays 5v5 by default and
   allows 6v6 (owner, 2026-10-06). Its long open lines are intended (the longest clear line stays under 141 m). Its

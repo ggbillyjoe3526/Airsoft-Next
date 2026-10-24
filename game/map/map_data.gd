@@ -8,6 +8,8 @@ extends RefCounted
 ## (`warnings`).
 
 const DIR := "res://data/maps/"
+## How far apart (m) two blocks' faces may be and still meet, for rounding in the file.
+const PART_SLACK := 0.001
 
 ## Which way a ramp's top slopes up.
 enum Rise { NONE, POS_X, NEG_X, POS_Z, NEG_Z }
@@ -15,7 +17,7 @@ enum Rise { NONE, POS_X, NEG_X, POS_Z, NEG_Z }
 const RISES: Dictionary[String, Rise] = {"+x": Rise.POS_X, "-x": Rise.NEG_X, "+z": Rise.POS_Z, "-z": Rise.NEG_Z}
 const SURFACES: Dictionary[String, RayHit.Surface] = {
 	"concrete": RayHit.Surface.CONCRETE, "metal": RayHit.Surface.METAL, "wood": RayHit.Surface.WOOD,
-	"earth": RayHit.Surface.EARTH,
+	"earth": RayHit.Surface.EARTH, "gravel": RayHit.Surface.GRAVEL,
 }
 
 
@@ -27,6 +29,9 @@ class Block:
 	var size: Vector3 = Vector3.ONE
 	var rise: Rise = Rise.NONE
 	var surface: RayHit.Surface = RayHit.Surface.CONCRETE
+	## Which piece of its kind it is (0 first, in file order): blocks that build one thing, such as a container's walls
+	## under its roof, share their piece (MapStyle draws a piece in one colour).
+	var piece: int = 0
 
 
 var id: String = ""
@@ -163,6 +168,63 @@ func _read_blocks(list: Variant, style: MapStyle) -> void:
 		blocks.append(b)
 	if floors == 0:
 		problems.append("no floor")
+	_number_pieces()
+
+
+## Numbers each block's piece within its kind in file order; a block that is part of another (`_part_of`) takes the
+## piece of the first such block in the file. Only blocks of its kind with a larger footprint can hold it, so each kind
+## is sorted once, largest footprint first, and a block tries only those ahead of it.
+func _number_pieces() -> void:
+	var n := blocks.size()
+	var whole := PackedInt32Array()
+	whole.resize(n)
+	var area := PackedFloat64Array()
+	area.resize(n)
+	var kind_list: Dictionary[StringName, int] = {}
+	var lists: Array[Array] = []
+	for i in n:
+		whole[i] = i
+		area[i] = blocks[i].size.x * blocks[i].size.z
+		var k := blocks[i].kind
+		if not kind_list.has(k):
+			kind_list[k] = lists.size()
+			lists.append([])
+		lists[kind_list[k]].append(i)
+	for list: Array in lists:
+		list.sort_custom(func(x: int, y: int) -> bool: return area[x] > area[y])
+		for i: int in list:
+			var first := n
+			for j: int in list:
+				if area[j] <= area[i]:
+					break
+				if j < first and _part_of(blocks[i], blocks[j]):
+					first = j
+			if first < n:
+				whole[i] = first
+	var count: Dictionary[StringName, int] = {}
+	var piece_of: Dictionary[int, int] = {}
+	for i in blocks.size():
+		var top := i
+		while whole[top] != top:
+			top = whole[top]
+		if not piece_of.has(top):
+			var next: int = count.get(blocks[i].kind, 0)
+			piece_of[top] = next
+			count[blocks[i].kind] = next + 1
+		blocks[i].piece = piece_of[top]
+
+
+## Whether `a` is part of `b`: the same kind, under b's larger footprint and no higher than its top (a container's
+## walls and sills under its roof). A larger footprint each step up, so no block is part of itself.
+static func _part_of(a: Block, b: Block) -> bool:
+	if a.kind != b.kind or a.size.x * a.size.z >= b.size.x * b.size.z:
+		return false
+	var a_lo := a.center - a.size * 0.5
+	var a_hi := a.center + a.size * 0.5
+	var b_lo := b.center - b.size * 0.5
+	var b_hi := b.center + b.size * 0.5
+	return a_lo.x >= b_lo.x - PART_SLACK and a_hi.x <= b_hi.x + PART_SLACK and a_lo.z >= b_lo.z - PART_SLACK \
+			and a_hi.z <= b_hi.z + PART_SLACK and a_hi.y <= b_hi.y + PART_SLACK
 
 
 func _read_ends(spawns: Variant, dead_zones: Variant, team_size: int) -> void:

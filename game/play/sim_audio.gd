@@ -30,8 +30,10 @@ const BUS_INTERFACE := &"Interface"
 const BUS_POWER := &"Power"
 ## A silenced shot plays through this bus's low-pass filter (its first effect), under Effects.
 const BUS_MUFFLED := &"Muffled"
-## Cue names by RayHit.Surface (none sounds as concrete) and by GameEvent.Footstep.
-const SURFACE_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth"]
+## Cue names by RayHit.Surface (none sounds as concrete; a BB on gravel as earth, a step on it as gravel) and by
+## GameEvent.Footstep.
+const SURFACE_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth", "gravel"]
+const IMPACT_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth", "earth"]
 const STEP_NAMES: PackedStringArray = ["run", "sprint", "land"]
 ## What a play is, for its pitch and level spread, its priority in the field's pool and how many of its cue may sound.
 enum Kind { SHOT, MECHANISM, STEP, VAULT, ROPE, IMPACT, HIT, STEEL, INTERFACE, RADIO, FOLEY, CALL }
@@ -109,8 +111,9 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 		_dry[p] = _load("dryFire_%s" % p)
 		_mag_out[p] = _load("magOut_%s" % p)
 		_mag_in[p] = _load("magIn_%s" % p)
-	for s in SURFACE_NAMES:
+	for s in IMPACT_NAMES:
 		_impact.append(_load("impact_%s" % s))
+	for s in SURFACE_NAMES:
 		for k in STEP_NAMES:
 			_step.append(_load("step_%s_%s" % [s, k]))
 	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault",

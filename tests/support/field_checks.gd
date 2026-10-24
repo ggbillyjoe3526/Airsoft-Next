@@ -238,12 +238,15 @@ static func reads_as_team(c: Color, teams: Array[Color]) -> bool:
 	return hue_saturation(c).y >= FieldStandard.MIN_SATURATION and hue_gap(c, teams) <= FieldStandard.HUE_MARGIN_DEG
 
 
-## The colours the field is drawn in, by name: MapStyle.colour_of for each kind on it, every container colour.
+## The colours the field is drawn in, by name: MapStyle.colour_of for each kind on it, every container colour, and each
+## surface drawn in its own colour (gravel).
 static func drawn_colours(map: MapData, style: MapStyle) -> Dictionary[String, Color]:
 	var out: Dictionary[String, Color] = {}
 	for b in map.blocks:
 		var kind := String(b.kind)
-		if b.kind == &"container":
+		if style.surface_colours.has(b.surface):
+			out[str(RayHit.Surface.find_key(b.surface)).to_lower()] = style.block_colour(b)
+		elif b.kind == &"container":
 			for i in style.container_colours.size():
 				out["container %d" % (i + 1)] = style.colour_of(b.kind, i)
 		elif not out.has(kind):

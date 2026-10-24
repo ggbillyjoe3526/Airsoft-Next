@@ -53,8 +53,9 @@ The props that make a site read as an airsoft site. Each is one of the four mate
 - **Structures.** Floodlight masts (four or six heads on a steel pole), a concrete watch tower and a timber one,
   yellow-railed steel walkways and stairs, an open steel-framed warehouse roof.
 - **Landmarks.** The aircraft fuselage, the watch towers and the city skyline are the kind of landmark that lets a
-  player say where they are from anywhere on the field. For now they are scenery out of reach, not part of a field's
-  layout; Depot's rework (step 25) reviews whether any joins it (owner, 2026-10-18).
+  player say where they are from anywhere on the field. They are scenery out of reach, not part of a field's layout
+  (owner, 2026-10-18). Depot's rework kept them out (DP1, 2026-10-24): a concrete watch tower beyond the north wall,
+  the fuselage beyond the east wall and four floodlight masts join its skyline (DP3).
 - **Ground and safety paint.** A concrete slab with expansion joints, yellow floor lines and bay markings,
   yellow-black hazard stripes on posts and edges, yellow traffic cones, coiled hose, a little grass in the joints.
 
