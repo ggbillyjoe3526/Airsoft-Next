@@ -6,7 +6,7 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,829 of 2,829 | pending | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,838 of 2,838 | pending | – |
 
 ## What was built
 
@@ -86,7 +86,6 @@ Attack / Defend: Depot 123 rounds, 26 captures, the flag raised in 12 matches, 0
 - **A piece is found from the blocks, not a `group` key:** a block under a larger block's footprint of its kind and
   no higher than its top is part of it. Nothing on the other fields changes colour (no container on them sits under
   another).
-- **Pieces are found within each kind, sorted once by footprint** (performance review): Depot's `load_map` went from 7.8 to 2.8 ms (mean of 50, cloud container; 2.2 ms before DP1 by the review's measure); the numbers are identical to the all-pairs rule on all four maps.
 - **The new blocks take their old blocks' places in the file,** so every other block's index and container colour is
   as before; the gravel beds are appended.
 - **Gravel's colour is a dark warm grey** (`#7F7D75`), darker than the slab, below the team colour rule's saturation.
@@ -101,12 +100,26 @@ Attack / Defend: Depot 123 rounds, 26 captures, the flag raised in 12 matches, 0
 
 ## Checks
 
-`tools/check.sh` (2026-10-24): every gate passes, unit tests 2,829 of 2,829 (`test_df2_qa` 10/10, `test_df2b_qa` 7/7,
-`test_held_up_measure` 9/9). `test_field_rules` 17/17, `test_field_layout` 11/11, `test_depot_layout` 5/5, `test_gravel` 3/3,
-`test_map_level` 15/15, `test_map_areas` 11/11, `test_nav_grid` 21/21 (Depot's walkable cells 27,363 became 27,593:
-the Box's inside and the thinner port walls; the expectation is updated).
+`tools/check.sh` (2026-10-24, on the final tree): every gate passes, unit tests 2,838 of 2,838. `test_held_up_measure` 10/10, `test_df2_qa` 10/10,
+`test_df2b_qa` 7/7, `test_dp1_qa` 7/7, `test_field_rules` 17/17, `test_field_layout` 11/11, `test_depot_layout` 5/5,
+`test_gravel` 3/3, `test_map_level` 15/15, `test_map_areas` 11/11, `test_nav_grid` 21/21 (Depot's walkable cells
+27,363 became 27,593: the Box's inside and the thinner port walls; the expectation is updated). The match guards,
+both CI jobs, on the final tree: Elimination 5/5 (Depot 121 rounds at Normal, 0 on time) and
+Attack / Defend 2/2 (Depot 123 rounds, 26 captures), both PASS.
 
-- **The held-up window keeps one errand** (coordinator, 2026-10-24): `test_df2_qa`'s Pro seed 7 counted a bot that gave up a search near the dock and walked 10 m back to its lane point, passing its spot of 10 s before; the criterion is no bot stays stuck and it wasn't, so `MatchRunner.held_up_sample` now counts a bot back at its spot only if it kept one errand (Bot mode) or walked under `HELD_UP_PATH` (2 m) over the window (QA: a bot frozen in a doorway while its mode flips must still count); `test_held_up_measure` checks a loop on one search and a frozen bot whose mode flips count, and the walk-back doesn't. The walk-back itself is a KNOWN_ISSUES row (Bots, can wait).
+## Follow-up fixes
+
+- **Held up means stuck, not back at a spot** (coordinator, QA and critic, 2026-10-24): `test_df2_qa`'s Pro seed 7
+  counted a bot that gave up a search and walked 10 m back to its lane point, passing its spot of 10 s before; it was
+  not stuck, so `MatchRunner.held_up_sample` now counts a bot back within 0.5 m of that spot only if it kept one
+  errand (Bot mode) throughout, or never strayed more than `HELD_UP_REACH` (2 m) from it (frozen, jittering or pacing
+  a doorway while its mode flips; a summed path missed a bot pacing ±0.5 m). `test_held_up_measure` checks a loop on
+  one search, a frozen bot and a doorway-pacing bot whose modes flip all count, and the walk-back doesn't. The
+  walk-back itself is a KNOWN_ISSUES row (Bots, can wait).
+- **Pieces in one pass a kind** (performance review): `_number_pieces` compares only blocks of one kind, sorted once
+  by footprint, largest first. Depot's `load_map`: 2.2 ms before DP1 and 8.9 ms with the all-pairs rule (the review's
+  figures); 7.8 ms all-pairs and 2.8 ms now here (mean of 50 loads, cloud container). The numbers are identical to the
+  all-pairs rule on all four maps.
 
 ## Screenshots
 

@@ -62,13 +62,23 @@ func test_a_bot_looping_on_one_search_counts() -> void:
 
 
 ## Frozen in a doorway while its mode flips between its lane and a search every few seconds, jittering a few
-## centimetres: a short path, so held up whatever the errand.
+## centimetres: never far from where it was, so held up whatever the errand.
 func test_a_frozen_bot_whose_errand_flips_counts() -> void:
 	var ring := _ring()
 	var jitter: Array[Vector3] = [Vector3.ZERO, Vector3(0.05, 0.0, 0.0), Vector3(0.0, 0.0, 0.05)]
 	var flips := func(s: int) -> int: return Bot.Mode.ADVANCE if (s / 3) % 2 == 0 else Bot.Mode.SEARCH
 	assert_true(_feed(ring, jitter, SECONDS * 2 + 1, func(_s: int) -> bool: return true, flips),
 			"stuck on the spot, flipping between lane and search")
+
+
+## Pacing ±0.5 m across a doorway every second while its mode flips: 5 to 10 m of path over the window, but never more
+## than a metre from where it was, so held up whatever the errand.
+func test_a_bot_dithering_in_a_doorway_whose_errand_flips_counts() -> void:
+	var ring := _ring()
+	var pacing: Array[Vector3] = [Vector3(-0.5, 0.0, 0.0), Vector3(0.5, 0.0, 0.0)]
+	var flips := func(s: int) -> int: return Bot.Mode.ADVANCE if (s / 3) % 2 == 0 else Bot.Mode.SEARCH
+	assert_true(_feed(ring, pacing, SECONDS * 2 + 1, func(_s: int) -> bool: return true, flips),
+			"pacing the doorway, flipping between lane and search")
 
 
 ## A search given up for its lane, walking back the way it came (DP1, Depot seed 7 at Pro): out 10 m searching, back
