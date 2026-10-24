@@ -1,8 +1,9 @@
 class_name NavGridBuilder
-## Fills a NavGrid from a map's blocks (the browser game's buildNavGrid, without its terrain: no map here has any yet).
-## Each cell gets a node per floor over it, each node is blocked within the clearance of a block standing in the way on
-## its floor or of a drop off its floor, and the walkable nodes are linked for the route search by the step rules: the
-## eight neighbouring cells, floors at most max_step apart, no squeezing diagonally past a blocked node or a drop.
+## Fills a NavGrid from a map's blocks and sloping ground (the browser game's buildNavGrid). Each cell gets a node per
+## floor over it (the terrain's ground at its centre, with nothing under it, and each floor or ramp top), each node is
+## blocked within the clearance of a block standing in the way on its floor or of a drop off its floor, and the walkable
+## nodes are linked for the route search by the step rules: the eight neighbouring cells, floors at most max_step apart,
+## no squeezing diagonally past a blocked node or a drop.
 
 ## The eight steps to a neighbouring cell (x, z): the four straight ones, then the diagonals. Step d's way back is
 ## OPPOSITE[d]; a diagonal step d passes the straight steps SIDE_A[d] and SIDE_B[d].
@@ -18,7 +19,8 @@ const DIRECTIONS := 8
 const OPEN_MAX := 255
 
 
-## Fills `g` (a new grid) from `map`; false, with the grid left empty, when the map has no floor or ramp to stand on.
+## Fills `g` (a new grid) from `map`; false, with the grid left empty, when the map has no floor, ramp or terrain to
+## stand on.
 static func fill(g: NavGrid, map: MapData, cfg: NavConfig, body: BodyConfig) -> bool:
 	if not _frame(g, map, cfg):
 		return false
@@ -46,13 +48,14 @@ static func surface_height_at(b: MapData.Block, x: float, z: float) -> float:
 	return b.center.y + h.y
 
 
-## The grid's bounds (the surfaces' footprints) and cell counts.
+## The grid's bounds (the surfaces' footprints and the terrain's) and cell counts.
 static func _frame(g: NavGrid, map: MapData, cfg: NavConfig) -> bool:
 	# Plain floats, not a Vector2: its components are single precision.
-	var lo_x := INF
-	var lo_z := INF
-	var hi_x := -INF
-	var hi_z := -INF
+	var t := map.terrain
+	var lo_x := t.min_x if t != null else INF
+	var lo_z := t.min_z if t != null else INF
+	var hi_x := t.max_x() if t != null else -INF
+	var hi_z := t.max_z() if t != null else -INF
 	for b in map.blocks:
 		if not is_surface(b):
 			continue
@@ -83,8 +86,9 @@ static func _cells_under(g: NavGrid, b: MapData.Block, grow: float) -> Vector4i:
 		mini(g.rows - 1, floori((b.center.z + hz - g.min_z) / g.cell - 0.5)))
 
 
-## Every cell's floors: each surface over its centre with headroom above it (no other surface's solid within a body's
-## height over it), lowest first; of two floors closer than a body's height, the higher.
+## Every cell's floors: each surface over its centre (the terrain's ground first, with nothing under it) with headroom
+## above it (no other surface's solid within a body's height over it), lowest first; of two floors closer than a body's
+## height, the higher.
 static func _floors(g: NavGrid, map: MapData, body: BodyConfig) -> void:
 	var n := g.cols * g.rows
 	# The surfaces over each cell's centre as (height there, the bottom of the solid under it), packed per cell.
@@ -96,6 +100,7 @@ static func _floors(g: NavGrid, map: MapData, body: BodyConfig) -> void:
 	for b in map.blocks:
 		if is_surface(b):
 			surfaces.append(b)
+	var ground := _ground(g, map.terrain)
 	for pass_fill in 2:
 		var fill := PackedInt32Array()
 		if pass_fill == 1:
@@ -104,6 +109,15 @@ static func _floors(g: NavGrid, map: MapData, body: BodyConfig) -> void:
 			fill = surf_start.slice(0, n)
 			surf_y.resize(surf_start[n])
 			surf_bottom.resize(surf_start[n])
+		for c in ground.size():
+			if is_nan(ground[c]):
+				continue
+			if pass_fill == 0:
+				surf_start[c + 1] += 1
+			else:
+				surf_y[fill[c]] = ground[c]
+				surf_bottom[fill[c]] = -INF
+				fill[c] += 1
 		for b in surfaces:
 			var box := _cells_under(g, b, 0.0)
 			var bottom := b.center.y - b.size.y * 0.5
@@ -174,6 +188,19 @@ static func _floors(g: NavGrid, map: MapData, body: BodyConfig) -> void:
 	g.walkable = PackedByteArray()
 	g.walkable.resize(count)
 	g.walkable.fill(1)
+
+
+## The terrain's height at each cell's centre (NAN off it), row by row; empty without terrain.
+static func _ground(g: NavGrid, t: TerrainGrid) -> PackedFloat64Array:
+	var out := PackedFloat64Array()
+	if t == null:
+		return out
+	out.resize(g.cols * g.rows)
+	for j in g.rows:
+		var z := g.cell_z(j)
+		for i in g.cols:
+			out[j * g.cols + i] = t.height_at(g.cell_x(i), z)
+	return out
 
 
 ## Blocks every node a block stands in the way on, grown by the clearance `r`: one whose floor it stands on or above
@@ -263,8 +290,8 @@ static func _stamp_outer_edge(g: NavGrid, r: float) -> void:
 
 
 ## Each walkable node's eight steps (the node each neighbouring cell steps onto, walkable or not, or -1), which of them
-## land on a walkable node (`step_mask`), and the route search's points and links, each
-## point weighted `weight` (below 1 the search's estimate counts for more than the steps it has taken: NavConfig).
+## land on a walkable node (`step_mask`), the route search's points and links, each point weighted `weight` (below 1 the
+## search's estimate counts for more than the steps it has taken: NavConfig), and each node's region (NavGrid.region).
 static func _link(g: NavGrid, weight: float) -> void:
 	var count := g.floor_y.size()
 	var cols := g.cols
@@ -314,6 +341,11 @@ static func _link(g: NavGrid, weight: float) -> void:
 	for k in count:
 		if walkable[k] == 1:
 			astar.add_point(k, g.node_position(k), weight)
+	# Union-find over the links, taken either way: a node's parent is never above it, so one pass in order flattens it.
+	var parent := PackedInt32Array()
+	parent.resize(count)
+	for k in count:
+		parent[k] = k
 	# The links: each walkable node's four forward steps (east, south and the two diagonals ahead), both ways where a
 	# step's way back can be taken too. A diagonal needs both straight steps it passes walkable, from where it starts.
 	for k in count:
@@ -332,7 +364,24 @@ static func _link(g: NavGrid, weight: float) -> void:
 				astar.connect_points(k, n, back)
 			elif back:
 				astar.connect_points(n, k, false)
+			else:
+				continue
+			var ra := k
+			while parent[ra] != ra:
+				parent[ra] = parent[parent[ra]]
+				ra = parent[ra]
+			var rb := n
+			while parent[rb] != rb:
+				parent[rb] = parent[parent[rb]]
+				rb = parent[rb]
+			if ra < rb:
+				parent[rb] = ra
+			elif rb < ra:
+				parent[ra] = rb
 	g.astar = astar
+	for k in count:
+		parent[k] = parent[parent[k]] if walkable[k] == 1 else -1
+	g.region = parent
 
 
 ## Each cell's distance to the nearest cell that isn't open (NavGrid.open), in two sweeps (a chamfer transform with

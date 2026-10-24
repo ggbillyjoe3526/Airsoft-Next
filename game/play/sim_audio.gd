@@ -31,10 +31,10 @@ const BUS_INTERFACE := &"Interface"
 const BUS_POWER := &"Power"
 ## A silenced shot plays through this bus's low-pass filter (its first effect), under Effects.
 const BUS_MUFFLED := &"Muffled"
-## Cue names by RayHit.Surface (none sounds as concrete; a BB on gravel as earth, a step on it as gravel) and by
-## GameEvent.Footstep.
-const SURFACE_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth", "gravel"]
-const IMPACT_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth", "earth"]
+## Cue names by RayHit.Surface (none sounds as concrete; a BB on gravel, grass or leaves as earth, a step on each as
+## its own) and by GameEvent.Footstep.
+const SURFACE_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth", "gravel", "grass", "leaves"]
+const IMPACT_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth", "earth", "earth", "earth"]
 const STEP_NAMES: PackedStringArray = ["run", "sprint", "land"]
 ## What a play is, for its pitch and level spread, its priority in the field's pool and how many of its cue may sound.
 enum Kind { SHOT, MECHANISM, STEP, VAULT, ROPE, IMPACT, HIT, STEEL, INTERFACE, RADIO, FOLEY, CALL, PROP }

@@ -238,10 +238,11 @@ func test_your_hold_is_a_diamond_while_it_is_in_force() -> void:
 
 func test_a_field_with_no_layers_still_gets_a_panel() -> void:
 	var woodland := MapData.load_map("woodland", MapStyle.new(), 1)
+	woodland.terrain = null # its roof ramps alone: nothing to draw
 	_panel(woodland, "Woodland")
 	_follow()
 	var view := mm.view()
-	assert_eq(view.layers(), 0, "Woodland draws nothing until step 26")
+	assert_eq(view.layers(), 0, "a field of ramps alone draws nothing")
 	assert_eq(view._layer, -1)
 	assert_eq(view._dot_count, 2, "teammates still show")
 	_patch(enemy, Vector3(3.0, 0.0, -4.0))

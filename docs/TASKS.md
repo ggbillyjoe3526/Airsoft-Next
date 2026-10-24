@@ -4,45 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## WL1 · Sloping ground: Woodland loads and plays (Dev)
-when: build order step 26, first, after CI1 (plan: project files `plan/step26-woodland.md`)
-tier: core
-perf: required
-touches: game/map/terrain_grid.gd, game/map/map_data.gd, game/map/map_level.gd, game/map/jolt_query.gd,
-  game/map/greybox_faces.gd, game/nav/nav_grid_builder.gd, game/nav/README.md, game/config/map_style.gd,
-  game/sim/ray_hit.gd, game/play/sim_audio.gd, game/config/effects_config.gd, game/config/ricochet_config.gd,
-  game/ui/minimap_field.gd, tests/support/field_standard.gd, tests/support/field_measure.gd,
-  tests/unit/test_terrain.gd, tests/unit/test_woodland_layout.gd, tests/unit/test_match_page.gd,
-  tools/map_pictures.gd, assets/maps/woodland.jpg, docs/DECISIONS.md, docs/PLAYTEST.md
-contract: Physics behind two interfaces (4); Data, not literals (6)
-acceptance:
-  1. MapData reads `terrain` into a TerrainGrid (minX, minZ, cell, cols, rows, heights row by row; `height_at` on
-     each cell's two triangles split along its (x0, z0) to (x1, z1) diagonal, the browser's `map/terrain.ts`) and
-     loads a map whose ground is terrain alone; a map with neither floor nor terrain is still refused. The browser's
-     `terrain.test.ts` cases pass in `test_terrain.gd`.
-  2. MapLevel draws the terrain's triangles and gives Jolt the same ones as a trimesh, one body per ground surface.
-     At 1,000 seeded points a ray straight down meets the ground within 1 cm of `height_at`; a body walks up, down
-     and across the Knoll's steepest face and stands still on it. Depot and Neon Heights build exactly as before.
-  3. `RayHit.Surface` gains GRASS and LEAVES, appended. `ground` (base, underTrees, patches) gives each 0.5 m of
-     terrain its surface for `surface_under` and BB rays: steps play its `step_<surface>_*` cue; BBs on grass and
-     leaves puff and sound as earth and don't ricochet. MapStyle gains `tree`, `log` and `fence` (wood, saturation
-     under 0.3 on linear RGB); field.teamColour passes.
-  4. NavGridBuilder takes each cell's ground from the terrain (the browser's `nav/navGrid.ts`); bots walk every
-     Woodland lane end to end. The record gives Woodland's grid build time, nodes and 100 cross-map `find_route`
-     times beside Depot's (`game/nav/README.md`).
-  5. Woodland leaves FieldStandard.NOT_YET and passes all fifteen field checks with only its 141 m sightline
-     exception and no standard raised, or each failing check goes to the owner before the pull request is ready. The
-     record lists its figures beside the plan's estimate (middle walks 56.6 and 61.2 m, flag walks 99.0 and 19.7 m).
-  6. `test_woodland_layout.gd` ports the browser's `map/woodland.test.ts`: no slope steeper than a ramp, the east
-     camp at most 2 m above the west, no boulder, six spawns and dead-zone spots an end, nobody within 8 m of a spawn
-     sees the head or chest of anyone within 8 m of the other end's, three or more ways into the fort and no spot
-     inside seeing more than two, a log within 2.5 m every 2 m along the last 20 m of each lane.
-  7. Woodland (dev) plays a whole match from the Match page at today's team size and light; the minimap draws its
-     ground; `assets/maps/woodland.jpg` is rendered by `tools/map_pictures.gd`. Pictures from West Hill and the Knoll
-     are posted.
-status: open
-attempts: 0
-
 ## WL2 · 5v5 and 6v6: team sizes per map (Dev)
 when: build order step 26, after WL1
 tier: core

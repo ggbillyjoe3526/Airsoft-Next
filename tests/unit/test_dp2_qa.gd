@@ -7,11 +7,11 @@ const BROKEN := "qa_broken"
 const SHORT := "qa_short"
 const MISCOUNT := "qa_miscount"
 const SWITCHES := 12
-## The meshes the base (origin/main 79969e6) drew, as SHA-256 of vertices, normals and colours (first 16 hex).
+## The meshes the base (origin/main 79969e6) drew, as SHA-256 of vertices, normals and colours (first 16 hex). Woodland
+## left it in WL1, its ground drawn at last.
 const BASE_HASHES: Dictionary[String, String] = {
 	"depot": "3c3d06c7d4c874e9",
 	"range": "b0e002855c8e8370",
-	"woodland": "b541fc9abcc5ee3b",
 	"neonHeights": "b171a361a2cd74c2",
 }
 
@@ -78,9 +78,10 @@ func test_maps_without_a_bake_and_every_untiled_mesh_draw_as_the_base_did() -> v
 		assert_eq(_greybox(level).get_child_count(), 0, "%s: no shadow caster child when off" % id)
 	for id: String in ["neonHeights", "woodland"]:
 		var level := _level(id)
+		var off := _mesh_hash(_greybox(level).mesh)
 		level.set_baked_light(true)
 		assert_false(level.baked_light_drawn(), "%s names no bake" % id)
-		assert_eq(_mesh_hash(_greybox(level).mesh), BASE_HASHES[id], "%s with the row on: the base's mesh" % id)
+		assert_eq(_mesh_hash(_greybox(level).mesh), off, "%s with the row on: the mesh drawn without it" % id)
 
 
 func test_the_tiles_wind_with_their_normals_and_cover_each_face_exactly() -> void:

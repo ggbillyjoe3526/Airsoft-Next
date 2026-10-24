@@ -62,7 +62,28 @@ static func link(g: NavGrid, query: WorldQuery, vault: VaultConfig, body: BodyCo
 	for k in nodes:
 		for l in range(start[k], start[k + 1]):
 			_add_point(g, k, to[l], nodes + l, weight, price)
+			_join(g.vault_region, g.region[k], g.region[to[l]])
+	for r: int in g.vault_region:
+		g.vault_region[r] = _root(g.vault_region, r)
 	return to.size()
+
+
+## The region `r` is joined to, lowest first, in `joins` (a union-find over the few regions vault links touch).
+static func _root(joins: Dictionary[int, int], r: int) -> int:
+	var at := r
+	while joins.get(at, at) != at:
+		at = joins[at]
+	return at
+
+
+## Joins regions `a` and `b`, the lower one the root.
+static func _join(joins: Dictionary[int, int], a: int, b: int) -> void:
+	var ra := _root(joins, a)
+	var rb := _root(joins, b)
+	if ra == rb:
+		return
+	joins[ra] = mini(ra, rb)
+	joins[rb] = mini(ra, rb)
 
 
 ## The link from node `k` to node `m` as search point `id`, between them, so the step on and the step off together cost

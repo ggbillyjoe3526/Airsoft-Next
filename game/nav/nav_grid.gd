@@ -52,6 +52,13 @@ var astar: AStar3D = null
 var vault_start: PackedInt32Array = PackedInt32Array()
 var vault_to: PackedInt32Array = PackedInt32Array()
 var vault_base: int = -1
+## Each node's region: the lowest node it is linked to on foot, either way, or -1 for a blocked node. Two nodes in
+## different regions have no route on foot, so a search between them is refused before it starts (a whole-grid search
+## that fails took 182 to 202 ms on Woodland).
+var region: PackedInt32Array = PackedInt32Array()
+## Regions joined by vault links (NavVaults.link): a region's own entry is the lowest region it reaches by foot and
+## vaults, either way; a region no link touches has none.
+var vault_region: Dictionary[int, int] = {}
 ## Most floors any one cell has: 1 on a map with no floor over another.
 var layers: int = 0
 ## From NavConfig and BodyConfig when built. The largest floor height difference between neighbouring nodes a body
@@ -211,6 +218,9 @@ func find_route(start: Vector3, goal: Vector3, out: PackedVector3Array, vaults: 
 	if a < 0 or b < 0:
 		out.clear()
 		return false
+	if not linked(a, b, vaults):
+		out.clear()
+		return false
 	var off := not vaults and not vault_to.is_empty()
 	if off:
 		_set_vaults(false)
@@ -222,6 +232,16 @@ func find_route(start: Vector3, goal: Vector3, out: PackedVector3Array, vaults: 
 		return false
 	NavRoute.pull(self, ids, start, goal, out)
 	return true
+
+
+## False if nodes `a` and `b` lie in regions no route joins (on foot, or with `vaults` by vault links too). True
+## doesn't promise a route: a region may be joined only by a one-way step.
+func linked(a: int, b: int, vaults: bool = false) -> bool:
+	var ra := region[a]
+	var rb := region[b]
+	if ra == rb:
+		return true
+	return vaults and vault_region.get(ra, ra) == vault_region.get(rb, rb)
 
 
 ## True if the leg from `a` to `b` (waypoints on node centres) is a vault link: over a low obstacle, not on foot.

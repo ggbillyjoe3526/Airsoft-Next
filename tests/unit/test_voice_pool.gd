@@ -100,12 +100,13 @@ func test_a_cue_never_plays_the_same_variant_twice_running() -> void:
 		last = k
 		seen[k] = true
 	assert_eq(seen.size(), 5, "every variant still plays")
-	# End to end: your vaults, one cue on at most cue_voices voices, each play on the next of them.
+	# End to end: your vaults, each play a vault variant other than the last. Which voice a play takes depends on which
+	# finished in real time (a free one before the cue's oldest), so the play is read off the voice it was given.
 	var streams: Array = audio._streams[&"vault"]
 	var was: AudioStream = null
 	for i in 12:
 		_tick_with(GameEvent.Kind.VAULT, 0, Vector3.ZERO)
-		var now := audio._own[i % cfg.cue_voices].stream
+		var now := _newest_own().stream
 		assert_true(streams.has(now))
 		assert_ne(now, was, "play %d" % i)
 		was = now
@@ -118,7 +119,7 @@ func test_pitch_and_level_spread_by_kind_and_none_on_interface_cues() -> void:
 	var base := linear_to_db(cfg.own_vault_gain)
 	for i in 40:
 		_tick_with(GameEvent.Kind.VAULT, 0, Vector3.ZERO)
-		var v := audio._own[i % cfg.cue_voices]
+		var v := _newest_own()
 		assert_between(v.pitch_scale, 1.0 - cfg.vault_pitch, 1.0 + cfg.vault_pitch)
 		assert_between(v.volume_db, base - cfg.vault_spread_db, base + cfg.vault_spread_db)
 		pitches[v.pitch_scale] = true
@@ -128,10 +129,13 @@ func test_pitch_and_level_spread_by_kind_and_none_on_interface_cues() -> void:
 	_stop_all()
 	for i in 6:
 		_tick_with(GameEvent.Kind.CHALLENGE, 0, Vector3.ZERO) # the challenge's countdown beep
-		var beep := audio._own[i % cfg.cue_voices]
+		var beep := _newest_own()
+		assert_true((audio._streams[&"count_beep"] as Array).has(beep.stream), "the beep's own voice")
 		assert_almost_eq(beep.volume_db, linear_to_db(cfg.beep_gain), 1e-4, "an interface cue's level is not spread")
 		assert_eq(beep.pitch_scale, 1.0)
 		assert_eq(beep.bus, SimAudio.BUS_INTERFACE)
+		if i % 2 == 1:
+			beep.stop() # as a short beep ends in real time on a busy machine, its voice free for the next
 
 
 func test_your_own_hits_tick_plays_clear_of_the_field_and_others_from_them() -> void:
@@ -301,6 +305,16 @@ func _field_playing() -> int:
 	for v in audio._field:
 		n += int(v.playing)
 	return n
+
+
+## The own voice the last play was given (the pool's newest), whichever it was.
+func _newest_own() -> AudioStreamPlayer:
+	var started := audio._own_pool._started
+	var newest := 0
+	for k in started.size():
+		if started[k] > started[newest]:
+			newest = k
+	return audio._own[newest]
 
 
 func _own_playing() -> int:

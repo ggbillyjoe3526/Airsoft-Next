@@ -1,10 +1,11 @@
 class_name MapData
 extends RefCounted
 ## A map's layout as plain data, read from data/maps/<id>.json (the browser game's map/mapTypes.ts, exported by the
-## salvage): its blocks, its two ends, its kill height, its named areas and storeys, its ambience, its skyline and, on
-## the range, its targets. MapLevel builds the greybox and the Jolt colliders from it; the simulation reads its ends
-## and targets; SkylineView draws its skyline. A file that can't be played (no floor, a missing end, too few spawns for
-## a team) is refused with the reasons in `problems`; a target that can't stand, a malformed area or skyline piece or
+## salvage): its blocks, its sloping ground (`terrain`, with what its ground is made of), its two ends, its kill height,
+## its named areas and storeys, its ambience, its skyline and, on the range, its targets. MapLevel builds the greybox and
+## the Jolt colliders from it; the simulation reads its ends and targets; SkylineView draws its skyline. A file that
+## can't be played (neither a floor block nor terrain, malformed terrain, a missing end, too few spawns for a team) is
+## refused with the reasons in `problems`; a target that can't stand, a malformed area, skyline piece or ground patch or
 ## an unknown ambience is left out with a warning (`warnings`).
 
 const DIR := "res://data/maps/"
@@ -17,7 +18,8 @@ enum Rise { NONE, POS_X, NEG_X, POS_Z, NEG_Z }
 const RISES: Dictionary[String, Rise] = {"+x": Rise.POS_X, "-x": Rise.NEG_X, "+z": Rise.POS_Z, "-z": Rise.NEG_Z}
 const SURFACES: Dictionary[String, RayHit.Surface] = {
 	"concrete": RayHit.Surface.CONCRETE, "metal": RayHit.Surface.METAL, "wood": RayHit.Surface.WOOD,
-	"earth": RayHit.Surface.EARTH, "gravel": RayHit.Surface.GRAVEL,
+	"earth": RayHit.Surface.EARTH, "gravel": RayHit.Surface.GRAVEL, "grass": RayHit.Surface.GRASS,
+	"leaves": RayHit.Surface.LEAVES,
 }
 
 
@@ -37,6 +39,9 @@ class Block:
 var id: String = ""
 var display_name: String = ""
 var blocks: Array[Block] = []
+## The ground that rises and falls (`terrain` in the file, its surfaces from `ground`), or null on a map whose ground is
+## its floor blocks.
+var terrain: TerrainGrid = null
 ## The map's two ends (spawns and dead zones), end 0 first.
 var ends: Array[MapEnd] = []
 var kill_y: float = -10.0
@@ -99,7 +104,11 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	var d: Dictionary = root
 	m.display_name = str(d.get("name", ""))
 	m.kill_y = float(d.get("killY", m.kill_y))
+	if d.has("terrain"):
+		m.terrain = TerrainGrid.read(d["terrain"], m.problems)
 	m._read_blocks(d.get("blocks"), style)
+	if m.terrain != null:
+		m._paint_ground(d.get("ground"), style)
 	m._read_ends(d.get("spawns"), d.get("deadZones"), team_size)
 	m._read_lanes(d.get("lanes"))
 	m._read_targets(d.get("targets"))
@@ -121,9 +130,13 @@ func ok() -> bool:
 	return problems.is_empty()
 
 
-## The top of the highest floor or ramp under (x, z), or -INF off them all (for tools and tests).
+## The top of the highest floor or ramp or the terrain under (x, z), or -INF off them all (for tools and tests).
 func floor_top(x: float, z: float) -> float:
 	var best := -INF
+	if terrain != null:
+		var ground := terrain.height_at(x, z)
+		if not is_nan(ground):
+			best = ground
 	for b in blocks:
 		if b.kind != &"floor" and b.kind != &"ramp":
 			continue
@@ -178,7 +191,7 @@ func _read_blocks(list: Variant, style: MapStyle) -> void:
 		if b.kind == &"floor":
 			floors += 1
 		blocks.append(b)
-	if floors == 0:
+	if floors == 0 and terrain == null:
 		problems.append("no floor")
 	_number_pieces()
 
@@ -237,6 +250,20 @@ static func _part_of(a: Block, b: Block) -> bool:
 	var b_hi := b.center + b.size * 0.5
 	return a_lo.x >= b_lo.x - PART_SLACK and a_hi.x <= b_hi.x + PART_SLACK and a_lo.z >= b_lo.z - PART_SLACK \
 			and a_hi.z <= b_hi.z + PART_SLACK and a_hi.y <= b_hi.y + PART_SLACK
+
+
+## The terrain's ground surfaces from `ground`, its under-trees surface by the trunks of the blocks of kind tree, on
+## canopy squares from the blocks' corner (as the browser game's night field lays them).
+func _paint_ground(ground: Variant, style: MapStyle) -> void:
+	var trees := PackedVector2Array()
+	var corner := Vector2(INF, INF)
+	for b in blocks:
+		corner = corner.min(Vector2(b.center.x - b.size.x * 0.5, b.center.z - b.size.z * 0.5))
+		if b.kind == &"tree":
+			trees.append(Vector2(b.center.x, b.center.z))
+	if not is_finite(corner.x):
+		corner = Vector2(terrain.min_x, terrain.min_z)
+	terrain.paint(ground, SURFACES, trees, corner, style, warnings)
 
 
 func _read_ends(spawns: Variant, dead_zones: Variant, team_size: int) -> void:

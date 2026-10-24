@@ -1,8 +1,7 @@
 extends GutTest
 ## QA for FG2b (Pro crossfires on defence): on every map with lanes, from either end, the crossfire spot a Pro defender
 ## picks beside a teammate at its hold point is reachable on foot from that point, on its floor, and seen from another
-## angle (game/ai/bot_movement.gd _stagger_hold, _crossfire_spot). Woodland has no nav grid yet (no terrain), so it is
-## left out.
+## angle (game/ai/bot_movement.gd _stagger_hold, _crossfire_spot), Woodland's sloping ground too.
 
 var tuning: SimTuning = SimTuning.load_default()
 var config: BotConfig = BotConfig.load_default()
@@ -67,7 +66,7 @@ func _at_hold(s: Setup, b: Bot, mates: Array[Bot], lane: int, dir: int) -> Vecto
 
 func test_crossfire_spots_are_reachable_on_foot_from_the_hold_point_on_every_map() -> void:
 	var crossed := 0
-	for map_id: String in ["depot", "neonHeights"]:
+	for map_id: String in ["depot", "neonHeights", "woodland"]:
 		var s := _setup(map_id, &"pro")
 		var b := _bot(s, 3)
 		var mate := _bot(s, 4)

@@ -112,6 +112,24 @@ func test_a_bots_route_goes_over_where_that_saves_the_walk_and_a_walk_off_never_
 	assert_true(went_round)
 
 
+func test_a_low_wall_across_the_whole_field_parts_it_on_foot_and_vault_links_join_it() -> void:
+	var f := _field(0.85)
+	var map: MapData = f[0]
+	var w: BoxWorld = f[1]
+	# Close the gap at the wall's north end with more of the same wall.
+	map.blocks.append(_block(&"wall", Vector3(0.0, 0.425, 11.75), Vector3(0.4, 0.85, 2.5)))
+	w.add_box(Vector3(0.0, 0.425, 11.75), Vector3(0.4, 0.85, 2.5))
+	var nav := _linked(map, w)
+	var east := nav.node_at(Vector3(6.0, 0.0, -6.0))
+	var west := nav.node_at(Vector3(-6.0, 0.0, -6.0))
+	assert_false(nav.linked(east, west), "two regions on foot")
+	assert_true(nav.linked(east, west, true), "one with the vault links")
+	var route := PackedVector3Array()
+	assert_false(nav.find_route(Vector3(6.0, 0.0, -6.0), Vector3(-6.0, 0.0, -6.0), route), "no walk-off across")
+	assert_true(nav.find_route(Vector3(6.0, 0.0, -6.0), Vector3(-6.0, 0.0, -6.0), route, true), "a bot vaults it")
+	assert_eq(_vaults(nav, Vector3(6.0, 0.0, -6.0), route), 1)
+
+
 func test_a_route_starting_at_the_wall_begins_on_the_takeoff() -> void:
 	var f := _field(0.85)
 	var nav := _linked(f[0], f[1])

@@ -1,9 +1,10 @@
 class_name GreyboxFaces
 extends RefCounted
 ## The greybox's geometry as plain data (DP2): each block's faces in one order (`faces_of`), the ground beyond the walls,
-## and the faces cut into tiles for the baked light (`tile`, and `tile_count` without making them). MapLevel builds its
-## meshes and ramp colliders from it; tools/bake_light.gd casts its rays at the same faces and bakes the same tiles, so
-## their orders can't drift. Static functions only.
+## the faces cut into tiles for the baked light (`tile`, and `tile_count` without making them), and sloping ground's
+## squares in their surfaces' colours (`add_terrain`). MapLevel builds its meshes and ramp colliders from it;
+## tools/bake_light.gd casts its rays at the same faces and bakes the same tiles, so their orders can't drift. Static
+## functions only.
 
 ## A length this close under a whole number of tiles (m) takes that number, not one more.
 const TILE_SLACK := 1e-4
@@ -61,11 +62,93 @@ static func _wedge_faces(b: MapData.Block) -> Array[PackedVector3Array]:
 	]
 
 
-## The ground beyond the walls, one face up.
-static func ground_face(style: MapStyle) -> PackedVector3Array:
+## The ground beyond the walls, one face up, just under `top` (m: a floor at 0, or sloping ground's lowest point).
+static func ground_face(style: MapStyle, top: float = 0.0) -> PackedVector3Array:
 	var e := style.ground_extent
-	var y := -style.ground_drop
+	var y := top - style.ground_drop
 	return PackedVector3Array([Vector3(-e, y, e), Vector3(e, y, e), Vector3(e, y, -e), Vector3(-e, y, -e)])
+
+
+## The top of the ground beyond the walls on `m`: 0, or under sloping ground its lowest point (so the terrain's dips
+## don't sink under it).
+static func ground_top(m: MapData) -> float:
+	return minf(0.0, m.terrain.height_range().x) if m.terrain != null else 0.0
+
+
+## Appends sloping ground `t` to mesh arrays `arrays` (Mesh.ARRAY_MAX long, holding vertices, normals and colours, and
+## indices or none for a plain list): each ground square its four corners in its surface's colour (`style`), lit as the
+## ground slopes there (smooth across squares), and its two triangles split and wound as TerrainGrid's.
+static func add_terrain(arrays: Array, t: TerrainGrid, style: MapStyle) -> void:
+	var positions: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var colours: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	var base := positions.size()
+	var indices := PackedInt32Array()
+	if arrays[Mesh.ARRAY_INDEX] != null:
+		indices = arrays[Mesh.ARRAY_INDEX]
+	else:
+		indices.resize(base)
+		for i in base:
+			indices[i] = i
+	var lattice := t.ground_lattice()
+	var vx := t.ground_cols + 1
+	var vz := t.ground_rows + 1
+	var gc := t.ground_cell
+	# Each lattice corner's normal, from the heights a square either side of it (the edge's own past the edge).
+	var lattice_normals := PackedVector3Array()
+	lattice_normals.resize(lattice.size())
+	for j in vz:
+		var up := (j - 1 if j > 0 else j) * vx
+		var down := (j + 1 if j + 1 < vz else j) * vx
+		for i in vx:
+			var west := i - 1 if i > 0 else i
+			var east := i + 1 if i + 1 < vx else i
+			lattice_normals[j * vx + i] = Vector3(lattice[j * vx + west] - lattice[j * vx + east], 2.0 * gc,
+					lattice[up + i] - lattice[down + i]).normalized()
+	var squares := t.ground_cols * t.ground_rows
+	positions.resize(base + squares * 4)
+	normals.resize(base + squares * 4)
+	colours.resize(base + squares * 4)
+	var first := indices.size()
+	indices.resize(first + squares * 6)
+	var palette := PackedColorArray()
+	for surface in RayHit.Surface.size():
+		palette.append(style.terrain_colour(surface))
+	for j in t.ground_rows:
+		var z0 := t.min_z + j * gc
+		var z1 := z0 + gc
+		for i in t.ground_cols:
+			var q := j * t.ground_cols + i
+			var colour := palette[t.surfaces[q]]
+			var x0 := t.min_x + i * gc
+			var x1 := x0 + gc
+			var k := j * vx + i
+			var v := base + q * 4
+			# a (x0, z0), b (x1, z0), c (x0, z1), d (x1, z1).
+			positions[v] = Vector3(x0, lattice[k], z0)
+			positions[v + 1] = Vector3(x1, lattice[k + 1], z0)
+			positions[v + 2] = Vector3(x0, lattice[k + vx], z1)
+			positions[v + 3] = Vector3(x1, lattice[k + vx + 1], z1)
+			normals[v] = lattice_normals[k]
+			normals[v + 1] = lattice_normals[k + 1]
+			normals[v + 2] = lattice_normals[k + vx]
+			normals[v + 3] = lattice_normals[k + vx + 1]
+			colours[v] = colour
+			colours[v + 1] = colour
+			colours[v + 2] = colour
+			colours[v + 3] = colour
+			# a b d and a d c, as TerrainGrid._quad_indices.
+			var n := first + q * 6
+			indices[n] = v
+			indices[n + 1] = v + 1
+			indices[n + 2] = v + 3
+			indices[n + 3] = v
+			indices[n + 4] = v + 3
+			indices[n + 5] = v + 2
+	arrays[Mesh.ARRAY_VERTEX] = positions
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_COLOR] = colours
+	arrays[Mesh.ARRAY_INDEX] = indices
 
 
 ## A face's outward normal, from its winding.

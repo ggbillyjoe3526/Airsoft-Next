@@ -447,6 +447,13 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **A skin's checks (2026-10-11, CT4; Claude's defaults).** A skin is a replica colour scheme. Its rules cover coverage,
   distance legibility, the orange tip's contrast and blending into a map; a colour reading as a team's needs a reason.
   Nothing that decides play reads a skin (proved over the imports).
+- **Sloping ground is one set of triangles, its surfaces in 0.5 m squares (2026-10-24, WL1).** A map's `terrain` is
+  drawn, collided (a Jolt trimesh per ground surface), walked by the nav grid and read by `height_at` on the same two
+  triangles a cell; its `ground` is painted once at load into 0.5 m squares that the mesh's colours, BB rays and
+  footsteps all read. Ground under the trees is night sight's canopy rule (3 trunks within 4 m, on 1 m squares from
+  the blocks' corner, `MapStyle`), which bots by night (WL6) share. Grass and leaves are `RayHit.Surface` 6 and 7: BBs
+  on them puff and sound as earth and never ricochet. A point on sloping ground is checked against the ground under it
+  (field.onFloor), not its nav cell's middle.
 
 ## Replicas, Loadout and levels
 
