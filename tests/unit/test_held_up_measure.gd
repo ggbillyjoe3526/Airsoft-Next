@@ -61,6 +61,16 @@ func test_a_bot_looping_on_one_search_counts() -> void:
 			func(_s: int) -> int: return Bot.Mode.SEARCH), "searching out and back to the same spot, again and again")
 
 
+## Frozen in a doorway while its mode flips between its lane and a search every few seconds, jittering a few
+## centimetres: a short path, so held up whatever the errand.
+func test_a_frozen_bot_whose_errand_flips_counts() -> void:
+	var ring := _ring()
+	var jitter: Array[Vector3] = [Vector3.ZERO, Vector3(0.05, 0.0, 0.0), Vector3(0.0, 0.0, 0.05)]
+	var flips := func(s: int) -> int: return Bot.Mode.ADVANCE if (s / 3) % 2 == 0 else Bot.Mode.SEARCH
+	assert_true(_feed(ring, jitter, SECONDS * 2 + 1, func(_s: int) -> bool: return true, flips),
+			"stuck on the spot, flipping between lane and search")
+
+
 ## A search given up for its lane, walking back the way it came (DP1, Depot seed 7 at Pro): out 10 m searching, back
 ## advancing, at the same place ten seconds apart. Not held up; a whole window on the lane errand on the spot is.
 func test_a_search_given_up_for_the_lane_walking_back_does_not_count() -> void:

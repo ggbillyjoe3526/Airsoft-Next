@@ -171,17 +171,36 @@ func _read_blocks(list: Variant, style: MapStyle) -> void:
 	_number_pieces()
 
 
-## Numbers each block's piece within its kind in file order; a block that is part of another (`_part_of`) takes that
-## block's piece.
+## Numbers each block's piece within its kind in file order; a block that is part of another (`_part_of`) takes the
+## piece of the first such block in the file. Only blocks of its kind with a larger footprint can hold it, so each kind
+## is sorted once, largest footprint first, and a block tries only those ahead of it.
 func _number_pieces() -> void:
+	var n := blocks.size()
 	var whole := PackedInt32Array()
-	whole.resize(blocks.size())
-	for i in blocks.size():
+	whole.resize(n)
+	var area := PackedFloat64Array()
+	area.resize(n)
+	var kind_list: Dictionary[StringName, int] = {}
+	var lists: Array[Array] = []
+	for i in n:
 		whole[i] = i
-		for j in blocks.size():
-			if j != i and _part_of(blocks[i], blocks[j]):
-				whole[i] = j
-				break
+		area[i] = blocks[i].size.x * blocks[i].size.z
+		var k := blocks[i].kind
+		if not kind_list.has(k):
+			kind_list[k] = lists.size()
+			lists.append([])
+		lists[kind_list[k]].append(i)
+	for list: Array in lists:
+		list.sort_custom(func(x: int, y: int) -> bool: return area[x] > area[y])
+		for i: int in list:
+			var first := n
+			for j: int in list:
+				if area[j] <= area[i]:
+					break
+				if j < first and _part_of(blocks[i], blocks[j]):
+					first = j
+			if first < n:
+				whole[i] = first
 	var count: Dictionary[StringName, int] = {}
 	var piece_of: Dictionary[int, int] = {}
 	for i in blocks.size():

@@ -8,12 +8,16 @@ extends RefCounted
 const DT := 1.0 / 60.0
 const TICKS_PER_SECOND := 60
 ## Held up: a bot that has been walking its lane, hunting or making for the pole (Bot.Mode ADVANCE, SEARCH or FLAG) at
-## every sample of the last HELD_UP_SECONDS (once a second), on the same errand (mode) at each, and is back within
-## HELD_UP_DISTANCE (m) of where it was then, frozen or going round in a loop, counts one episode until it moves on. A
-## fight, a hold on purpose or a change of errand in between (a search given up for its lane, walking back the way it
-## came) is not held up.
+## every sample of the last HELD_UP_SECONDS (once a second) and is back within HELD_UP_DISTANCE (m) of where it was
+## then, counts one episode until it moves on, if either it kept one errand (mode) throughout (going round in a loop)
+## or its path over the window is under HELD_UP_PATH (frozen or jittering, whatever its mode flips between). A fight or
+## a hold on purpose in between is not held up, nor a change of errand on a long walk (a search given up for its lane,
+## walking back the way it came).
 const HELD_UP_SECONDS := 10
 const HELD_UP_DISTANCE := 0.5
+## The longest path (m, sample to sample over the window) a bot that changed errand may walk and still be held up: well
+## under the 10 m a given-up search walks back (DP1, Depot seed 7 at Pro), well over a frozen bot's jitter.
+const HELD_UP_PATH := 2.0
 ## A character that ends a round in play without ever getting this far from its spawn (m) stayed home that round.
 const LEAVES_SPAWN := 8.0
 ## Follow me (follow_leader): a follower is judged once it has carried out the order FOLLOW_REJOIN seconds in a row
@@ -332,8 +336,8 @@ func _watch_held_up(state: GameState, bots: BotController, t: MatchTally, trail:
 
 
 ## Records this second's sample in `ring` (one a second for HELD_UP_SECONDS; INF for a second it wasn't on its way) and
-## its errand in `errands`, both at `slot`, and whether it is held up now: on its way on this one errand at every
-## sample and back within HELD_UP_DISTANCE of the place HELD_UP_SECONDS ago.
+## its errand in `errands`, both at `slot`, and whether it is held up now: on its way at every sample, back within
+## HELD_UP_DISTANCE of the place HELD_UP_SECONDS ago, and on this one errand throughout or under HELD_UP_PATH walked.
 static func held_up_sample(ring: PackedVector3Array, errands: PackedInt32Array, slot: int, position: Vector3,
 		errand: int, on_way: bool) -> bool:
 	var then := ring[slot]
@@ -341,10 +345,23 @@ static func held_up_sample(ring: PackedVector3Array, errands: PackedInt32Array, 
 	errands[slot] = errand
 	if not on_way or then == Vector3.INF:
 		return false
+	var one_errand := true
 	for i in ring.size():
-		if ring[i] == Vector3.INF or errands[i] != errand:
+		if ring[i] == Vector3.INF:
 			return false
-	return position.distance_to(then) < HELD_UP_DISTANCE
+		one_errand = one_errand and errands[i] == errand
+	if position.distance_to(then) >= HELD_UP_DISTANCE:
+		return false
+	if one_errand:
+		return true
+	# The path from the place HELD_UP_SECONDS ago through each sample since, oldest first, to this one.
+	var walked := 0.0
+	var last := then
+	for k in range(1, ring.size() + 1):
+		var p := ring[(slot + k) % ring.size()]
+		walked += last.distance_to(p)
+		last = p
+	return walked < HELD_UP_PATH
 
 
 ## The tick's heights, air time and distances from spawn, for everyone still in play. Distances only while the round
