@@ -123,7 +123,7 @@ the target for every arm and hand in the game: your first-person arms and the fi
 realistic and drawn in the game's own style (owner, 2026-10-18): true anatomy and full detail, with the same clean
 shapes, colour and material treatment as everything else. Matching the style never means a lower-quality model. It
 guides his Blender art pass (step 28) and the shared rig standard that first-person
-arms, figures and replicas use (steps 23 and 32).
+arms, figures and replicas use (steps 23 and 28).
 
 - **Anatomy.** Correct proportions from shoulder to fingertip: humerus, radius and ulna, a wrist that turns from the
   forearm, not the hand, and three finger joints plus a thumb that opposes from the palm. Muscle masses (deltoid,
