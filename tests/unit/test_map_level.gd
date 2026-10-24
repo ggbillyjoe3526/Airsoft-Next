@@ -34,7 +34,7 @@ func _walk(c: Character, cmd: PlayerCommand, ticks: int) -> void:
 func test_depot_reads_its_blocks_ends_and_kill_height() -> void:
 	var m := level.map
 	assert_eq(m.display_name, "Depot")
-	assert_eq(m.blocks.size(), 84)
+	assert_eq(m.blocks.size(), 110)
 	assert_eq(m.ends.size(), 2)
 	assert_eq(m.ends[0].spawns.size(), 3)
 	assert_eq(m.ends[1].dead_zone.size(), 3)
@@ -57,6 +57,43 @@ func test_a_ray_meets_a_container_as_metal_and_a_crate_as_wood() -> void:
 	assert_eq(hit.surface, RayHit.Surface.METAL)
 	assert_true(q.ray(Vector3(-6.0, 0.6, 11.0), Vector3(-6.0, 0.6, 8.0), hit))
 	assert_eq(hit.surface, RayHit.Surface.WOOD)
+
+
+func test_a_port_wall_is_plywood_and_a_gravel_bed_is_gravel_underfoot() -> void:
+	var q := level.query()
+	# The Crate yard's north port wall (x = -7.6, 0.3 thick) beside its port, from the west at chest height.
+	assert_true(q.ray(Vector3(-10.0, 1.5, -3.6), Vector3(-6.2, 1.5, -3.6), hit))
+	assert_eq(hit.surface, RayHit.Surface.WOOD)
+	assert_almost_eq(hit.position.x, -7.75, 1e-3)
+	# The Office's west door's gravel bed, 3 cm proud of the slab, and the slab beside it.
+	assert_eq(q.surface_under(Vector3(-10.1, 0.03 + tuning.body.rest_gap, 12.2)), RayHit.Surface.GRAVEL)
+	assert_almost_eq(level.map.floor_top(-10.1, 12.2), 0.03, 1e-4)
+	assert_eq(q.surface_under(Vector3(-7.0, 0.04, 12.2)), RayHit.Surface.CONCRETE)
+
+
+func test_a_block_reads_gravel_and_the_box_is_one_container_in_one_colour() -> void:
+	var plain := '{"kind": "floor", "center": {"x": 0, "y": -0.25, "z": 0}, "size": {"x": 9, "y": 0.5, "z": 9}}'
+	var bed := '{"kind": "floor", "surface": "gravel", "center": {"x": 0, "y": 0.015, "z": 0}, ' \
+			+ '"size": {"x": 2, "y": 0.03, "z": 2}}'
+	var m := MapData.parse('{"blocks": [%s, %s], "spawns": [[], []], "deadZones": [[], []]}' % [plain, bed], style, 0)
+	assert_eq(m.blocks[1].surface, RayHit.Surface.GRAVEL)
+	assert_eq(style.block_colour(m.blocks[1]), style.surface_colours[RayHit.Surface.GRAVEL])
+	assert_ne(style.block_colour(m.blocks[1]), style.block_colour(m.blocks[0]))
+	# Every block of the Box (under its roof, x -1.4..1.0, z -4.2..2.6) is one piece; the containers either side keep
+	# their own, as they did before it was opened.
+	var pieces: Dictionary[int, bool] = {}
+	var colours: Dictionary[Color, bool] = {}
+	var all_pieces: Dictionary[int, bool] = {}
+	for b in level.map.blocks:
+		if b.kind != &"container":
+			continue
+		all_pieces[b.piece] = true
+		if b.center.x > -1.5 and b.center.x < 1.1 and b.center.z > -4.3 and b.center.z < 2.7:
+			pieces[b.piece] = true
+			colours[style.block_colour(b)] = true
+	assert_eq(pieces.keys(), [5], "the Box is the sixth container, where the Alley's stood")
+	assert_eq(colours.size(), 1)
+	assert_eq(all_pieces.size(), 11, "eleven containers, as before the Box")
 
 
 func test_a_ray_through_open_air_meets_nothing() -> void:

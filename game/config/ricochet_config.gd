@@ -7,7 +7,7 @@ extends Resource
 
 ## Share of the speed into the surface that comes back out, by material (0: the BB stops there). Concrete gives back
 ## under a third, steel containers more; crates and the ground soak a BB up (owner's G12 ruling: three quarters of
-## M20's 0.4 and 0.55, so fewer bounced BBs knock players out).
+## M20's 0.4 and 0.55, so fewer bounced BBs knock players out). Gravel takes `earth`'s.
 @export var concrete: float = 0.3
 @export var metal: float = 0.41
 @export var wood: float = 0.0
@@ -35,6 +35,6 @@ func restitution(surface: RayHit.Surface) -> float:
 			return metal
 		RayHit.Surface.WOOD:
 			return wood
-		RayHit.Surface.EARTH:
+		RayHit.Surface.EARTH, RayHit.Surface.GRAVEL:
 			return earth
 	return 0.0

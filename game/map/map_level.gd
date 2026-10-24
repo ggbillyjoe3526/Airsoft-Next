@@ -110,11 +110,8 @@ func _kinematic(space: RID, shape: RID) -> RID:
 func _build_mesh(m: MapData, style: MapStyle) -> MeshInstance3D:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var count: Dictionary[StringName, int] = {}
 	for b in m.blocks:
-		var index: int = count.get(b.kind, 0)
-		count[b.kind] = index + 1
-		st.set_color(style.colour_of(b.kind, index))
+		st.set_color(style.block_colour(b))
 		if b.rise == MapData.Rise.NONE:
 			_add_box(st, b.center - b.size * 0.5, b.center + b.size * 0.5)
 		else:

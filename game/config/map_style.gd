@@ -2,8 +2,9 @@ class_name MapStyle
 extends Resource
 ## How a map's blocks are drawn and what they are made of, by block kind (the browser game's config/materials.ts for the
 ## surfaces; the colours follow docs/ART.md: warm concrete and cream for the field, site colours on containers and
-## plant, plywood for crates, never a team colour). Read by MapData (surfaces) and MapLevel (the greybox). A block's own
-## `surface` in the map data wins over its kind's.
+## plant, plywood for crates and port walls, never a team colour). Read by MapData (surfaces) and MapLevel (the
+## greybox). A block's own `surface` in the map data wins over its kind's, and a surface with a colour of its own
+## (gravel) is drawn in it.
 
 ## What a BB or a footstep meets on each kind (RayHit.Surface). Moulded plastic ticks hollow, nearest to wood; sand-filled
 ## bags and gabions soak BBs up like wood. Kinds not listed are concrete.
@@ -22,6 +23,7 @@ extends Resource
 	&"sandbags": RayHit.Surface.WOOD,
 	&"generator": RayHit.Surface.METAL,
 	&"skip": RayHit.Surface.METAL,
+	&"plywood": RayHit.Surface.WOOD,
 }
 ## Each kind's greybox colour (sRGB). Kinds not listed take `default_colour`.
 @export var colours: Dictionary[StringName, Color] = {
@@ -38,8 +40,14 @@ extends Resource
 	&"sandbags": Color(0.71, 0.64, 0.47),
 	&"generator": Color(0.81, 0.70, 0.20),
 	&"skip": Color(0.81, 0.70, 0.20),
+	&"plywood": Color(0.82, 0.75, 0.56),
 }
-## Containers take the site colours in turn (bottle green, mustard, slate, teal), so a row of them never reads as one.
+## Surfaces drawn in their own colour whatever their block's kind (RayHit.Surface to sRGB): a gravel bed on the slab.
+@export var surface_colours: Dictionary[int, Color] = {
+	RayHit.Surface.GRAVEL: Color(0.50, 0.49, 0.46),
+}
+## Containers take the site colours in turn (bottle green, mustard, slate, teal), so a row of them never reads as one;
+## every block of one container (MapData.Block.piece) takes the same.
 @export var container_colours: Array[Color] = [
 	Color(0.22, 0.40, 0.29), Color(0.79, 0.68, 0.19), Color(0.37, 0.43, 0.49), Color(0.18, 0.48, 0.48),
 ]
@@ -59,8 +67,13 @@ func surface_of(kind: StringName) -> RayHit.Surface:
 	return surfaces.get(kind, RayHit.Surface.CONCRETE) as RayHit.Surface
 
 
-## The colour of the `index`-th block of `kind` on its map.
+## The colour of the `index`-th piece of `kind` on its map.
 func colour_of(kind: StringName, index: int) -> Color:
 	if kind == &"container" and not container_colours.is_empty():
 		return container_colours[index % container_colours.size()]
 	return colours.get(kind, default_colour)
+
+
+## The colour block `b` is drawn in: its surface's own, else its piece's of its kind.
+func block_colour(b: MapData.Block) -> Color:
+	return surface_colours.get(b.surface, colour_of(b.kind, b.piece))

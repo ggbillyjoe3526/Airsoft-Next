@@ -70,7 +70,7 @@ func test_is_empty_outside_every_area_and_with_none() -> void:
 
 
 func test_the_fields_load_their_areas_each_named_shortly_and_the_range_none() -> void:
-	var counts: Dictionary[String, int] = {"depot": 15, "woodland": 14, "neonHeights": 25, "range": 0}
+	var counts: Dictionary[String, int] = {"depot": 16, "woodland": 14, "neonHeights": 25, "range": 0}
 	for id: String in counts:
 		var m := maps[id]
 		# Woodland's ground is its terrain, which MapData doesn't read yet (step 26): refused for "no floor", not its areas.
@@ -127,7 +127,7 @@ func test_spots_on_depot_are_named_as_players_call_them() -> void:
 	var m := maps["depot"]
 	var spots: Dictionary[String, Vector2] = {
 		"Dock": Vector2(5, -14.5), "Crate yard": Vector2(-12, 0), "Main Gate": Vector2(3.5, 0),
-		"Car park": Vector2(-15, 12),
+		"Car park": Vector2(-15, 12), "Box": Vector2(-0.2, -0.8), "Alley": Vector2(-3, -0.8),
 	}
 	for want: String in spots:
 		var at := spots[want]
