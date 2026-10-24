@@ -250,7 +250,7 @@ func _build_level() -> void:
 		return
 	_level = MapLevel.new()
 	add_child(_level)
-	_level.build(_map, _play.map_style, _tuning.body, _play.baked_light)
+	_level.build(_map, _play.map_style, _tuning.body, _play.baked_light, _play.lighting)
 	_lighting = FieldLighting.build(_play.lighting)
 	add_child(_lighting)
 

@@ -34,7 +34,7 @@ func _level(map_id: String) -> MapLevel:
 func _level_of(m: MapData) -> MapLevel:
 	var level := MapLevel.new()
 	add_child_autofree(level)
-	level.build(m, play.map_style, body, play.baked_light)
+	level.build(m, play.map_style, body, play.baked_light, play.lighting)
 	return level
 
 
@@ -138,16 +138,22 @@ func test_a_garbage_or_truncated_bake_draws_untiled_with_a_warning() -> void:
 	assert_push_warning_count(2)
 
 
-func test_a_stale_bake_of_the_right_size_draws_without_crashing() -> void:
+func test_a_stale_bake_of_the_right_size_draws_untiled_with_one_warning() -> void:
 	var m := MapData.load_map("depot", play.map_style, 1)
 	var level := _level_of(m)
 	var real := BakedLight.load_for(m)
 	var n := MapLevel.tile(m, play.baked_light.cell, play.baked_light.ground_y).positions.size()
 	assert_eq(real.vertex_count, n)
-	real.source_hash = "stale"
+	var good := real.source_hash
+	real.source_hash = "stale" # the cached copy the level loads
 	level.set_baked_light(true)
-	assert_true(level.baked_light_drawn(), "the runtime trusts the vertex count; the test suite checks the hash")
-	assert_eq(_greybox(level).mesh.surface_get_array_len(0), n + 4)
+	real.source_hash = good
+	assert_false(level.baked_light_drawn(), "a stale hash draws untiled, whatever the vertex count")
+	assert_eq(_mesh_hash(_greybox(level).mesh), BASE_HASHES["depot"])
+	assert_push_warning("rebake with tools/bake_light.gd")
+	level.set_baked_light(false)
+	level.set_baked_light(true)
+	assert_push_warning_count(1, "warned once")
 
 
 func test_switching_the_row_over_and_over_leaks_nothing_and_leaves_the_colliders() -> void:

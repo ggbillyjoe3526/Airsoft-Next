@@ -20,6 +20,8 @@ const GRID_PIXELS := 128
 const GRID_LINE := 2
 ## A length this close under a whole number of tiles (m) takes that number, not one more.
 const TILE_SLACK := 1e-4
+## What a warning about a bake tells you to do.
+const REBAKE := "rebake with tools/bake_light.gd"
 
 
 ## The level's faces cut into tiles for the baked light (`tile`): each block's faces in the greybox's order, a grid of
@@ -36,6 +38,7 @@ class Tiles:
 var map: MapData = null
 var _style: MapStyle = null
 var _light: BakeConfig = null
+var _lighting: LightingConfig = null
 var _material: StandardMaterial3D = null
 var _mesh: MeshInstance3D = null
 ## Whether the mesh drawn is the baked one; the map's bake, loaded when first drawn (`_bake_looked`).
@@ -52,12 +55,15 @@ var _probe_body: RID
 
 
 ## Builds `m`'s greybox and colliders with `style`, for characters shaped as `body`, its baked light (off until
-## `set_baked_light`) drawn with `light` (null: the built-in look). Call once, inside the tree.
-func build(m: MapData, style: MapStyle, body: BodyConfig, light: BakeConfig = null) -> void:
+## `set_baked_light`) drawn with `light` and checked against the sun in `lighting` (null: the built-in ones). Call
+## once, inside the tree.
+func build(m: MapData, style: MapStyle, body: BodyConfig, light: BakeConfig = null,
+		lighting: LightingConfig = null) -> void:
 	assert(is_inside_tree(), "MapLevel.build needs the level in the tree (its physics space)")
 	map = m
 	_style = style
 	_light = light if light != null else BakeConfig.new()
+	_lighting = lighting if lighting != null else LightingConfig.new()
 	name = "Map_%s" % m.id
 	_material = _greybox_material(style)
 	_mesh = _make_mesh()
@@ -177,10 +183,23 @@ func _make_mesh() -> MeshInstance3D:
 	return mi
 
 
+## The map's bake, looked for once: null (with one warning) when it is missing or broken, was baked from other blocks,
+## colours, sun or bake settings (its hash), or covers another number of tiles, checked before any tile is made.
 func _bake_or_null() -> BakedLight:
-	if not _bake_looked:
-		_bake_looked = true
-		_bake = BakedLight.load_for(map)
+	if _bake_looked:
+		return _bake
+	_bake_looked = true
+	_bake = BakedLight.load_for(map)
+	if _bake == null:
+		return null
+	if _bake.source_hash != BakedLight.hash_of(map, _style, _lighting, _light):
+		push_warning("MapLevel: %s's baked light was baked from other blocks or settings; drawn without it (%s)"
+				% [map.id, REBAKE])
+		_bake = null
+	elif _bake.vertex_count != tile_count(map, _light.cell, _light.ground_y):
+		push_warning("MapLevel: %s's baked light has %d vertices for %d; drawn without it (%s)"
+				% [map.id, _bake.vertex_count, tile_count(map, _light.cell, _light.ground_y), REBAKE])
+		_bake = null
 	return _bake
 
 
@@ -198,16 +217,12 @@ static func _greybox_mesh(m: MapData, style: MapStyle) -> ArrayMesh:
 	return st.commit()
 
 
-## The same faces cut into tiles, each vertex's colour lit by the bake, and the ground; null (with a warning, and the
-## bake dropped) when the bake doesn't fit the tiles.
+## The same faces cut into tiles, each vertex's colour lit by the bake (`_bake_or_null` has checked it fits), and the
+## ground.
 func _baked_mesh() -> ArrayMesh:
 	var t := tile(map, _light.cell, _light.ground_y)
 	var n := t.positions.size()
-	if n != _bake.vertex_count:
-		push_warning(("MapLevel: %s's baked light has %d vertices for %d; drawn without it (rebake with "
-				+ "tools/bake_light.gd)") % [map.id, _bake.vertex_count, n])
-		_bake = null
-		return null
+	assert(n == _bake.vertex_count, "tile_count and tile agree")
 	var colours := PackedColorArray()
 	colours.resize(n)
 	var block_linear: Array[Color] = []
@@ -321,12 +336,30 @@ static func tile(m: MapData, cell: float, ground_y: float) -> Tiles:
 	for i in m.blocks.size():
 		for f in faces_of(m.blocks[i]):
 			var n := face_normal(f)
-			var hidden := n.y < -0.5 and f[0].y <= ground_y
 			if f.size() == 4:
-				_tile_quad(t, f, n, i, INF if hidden else cell)
+				_tile_quad(t, f, n, i, INF if _hidden(f, n, ground_y) else cell)
 			else:
 				_tile_triangle(t, f, n, i, cell)
 	return t
+
+
+## How many vertices `tile` makes, worked out without making them (so a bake is checked before a mesh is built).
+static func tile_count(m: MapData, cell: float, ground_y: float) -> int:
+	var count := 0
+	for b in m.blocks:
+		for f in faces_of(b):
+			if f.size() == 4:
+				var c := INF if _hidden(f, face_normal(f), ground_y) else cell
+				count += (_cuts((f[1] - f[0]).length(), c) + 1) * (_cuts((f[3] - f[0]).length(), c) + 1)
+			else:
+				var k := _cuts(maxf((f[1] - f[0]).length(), (f[2] - f[0]).length()), cell)
+				count += (k + 1) * (k + 2) / 2
+	return count
+
+
+## A face lying on the ground facing down, which no one sees: one tile.
+static func _hidden(f: PackedVector3Array, normal: Vector3, ground_y: float) -> bool:
+	return normal.y < -0.5 and f[0].y <= ground_y
 
 
 ## A parallelogram face (a, b, c, d) as a grid of cells, each two triangles wound as `_add_face` winds the whole face.

@@ -60,7 +60,7 @@ func _level(map_id: String) -> MapLevel:
 	assert_true(m.ok(), "%s loads: %s" % [map_id, m.problems])
 	var level := MapLevel.new()
 	add_child_autofree(level)
-	level.build(m, play.map_style, body, play.baked_light)
+	level.build(m, play.map_style, body, play.baked_light, play.lighting)
 	return level
 
 
@@ -194,7 +194,7 @@ func test_a_bake_that_doesnt_fit_its_tiles_is_left_out() -> void:
 	other.set_baked_light(true)
 	assert_false(other.baked_light_drawn(), "a bake of other tiles is not drawn")
 	assert_eq(_greybox(other).mesh.surface_get_array_len(0), DEPOT_UNTILED_VERTICES)
-	assert_push_warning("vertices")
+	assert_push_warning("baked from other blocks or settings")
 
 
 func test_the_graphics_row_is_off_on_low_and_on_from_medium() -> void:
@@ -220,3 +220,25 @@ func test_a_map_names_its_bake_or_none() -> void:
 	assert_eq(bad.warnings.size(), 1, "a warning, and the map still loads")
 	assert_true(bad.ok())
 	assert_push_warning("bakedLight")
+
+
+func test_the_tile_count_is_known_before_any_tile_is_made() -> void:
+	for id: String in ["depot", "range", "neonHeights"]:
+		var m := MapData.load_map(id, play.map_style, 1)
+		for cell: float in [0.5, 0.25, 1.0]:
+			assert_eq(MapLevel.tile_count(m, cell, 0.06), MapLevel.tile(m, cell, 0.06).positions.size(),
+					"%s at %.2f m" % [id, cell])
+
+
+func test_a_tiny_tile_size_is_turned_away_before_tiling() -> void:
+	var m := MapData.load_map("depot", play.map_style, 1)
+	var cfg := play.baked_light.duplicate() as BakeConfig
+	cfg.cell = 0.001
+	var level := MapLevel.new()
+	add_child_autofree(level)
+	level.build(m, play.map_style, body, cfg, play.lighting)
+	var started := Time.get_ticks_msec()
+	level.set_baked_light(true)
+	assert_lt(Time.get_ticks_msec() - started, 200, "no millions of vertices made")
+	assert_false(level.baked_light_drawn())
+	assert_push_warning("rebake with tools/bake_light.gd")

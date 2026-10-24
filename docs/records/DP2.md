@@ -96,6 +96,19 @@ with the built-in values. `test_map_level` 15/15, `test_graphics_table` 15/15, `
 `test_graphics_apply` 15/15, `test_gr2_qa` 14/14, `test_gr4_qa` 12/12, `test_settings` 152/152. Depot's and the
 range's untiled greybox hash the same as before DP2 (SHA-256 of vertices, normals and colours, measured on the base).
 
+## Follow-up fixes
+
+- **A stale bake draws untiled** (QA advisory): MapLevel checks the bake's `source_hash` against `hash_of` when it
+  first looks for the bake (the sun now comes in through `build`'s `lighting`); a mismatch warns once ("rebake with
+  tools/bake_light.gd") and draws the untiled mesh. QA's stale-bake test now expects untiled and one warning. Cost at
+  load, Depot: 0.57 ms for the hash, once a level (mean of 50, headless).
+- **The tile count is checked before any tile is made** (QA advisory): `MapLevel.tile_count` works out `tile`'s vertex
+  count without making them (0.82 ms on Depot); a bake covering another count warns and draws untiled, so a tiny
+  `cell` never builds millions of vertices (a 0.001 m cell is turned away by the hash first). Tests: the count equals
+  `tile`'s on three maps at three cell sizes; a 0.001 m cell returns at once.
+- `tools/check.sh` after the fixes (2026-10-24): every gate passes, unit tests 2,857 of 2,857 in 834.3 s
+  (`test_baked_light` 11/11, `test_dp2_qa` 8/8, `test_map_level` 15/15, `test_graphics_apply` 15/15).
+
 ## Known issues left
 
 - Figures, the replica and puffs are not lit by the bake; the ground beyond the walls isn't baked; a hidden vertex in
