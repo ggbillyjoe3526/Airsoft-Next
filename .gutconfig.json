@@ -6,5 +6,6 @@
   "log_level": 1,
   "disable_colors": true,
   "should_exit": true,
-  "ignore_pause": true
+  "ignore_pause": true,
+  "pre_run_script": "res://tests/support/unit_pre_run.gd"
 }
