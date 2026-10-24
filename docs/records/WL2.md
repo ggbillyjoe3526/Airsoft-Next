@@ -6,7 +6,7 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | worker | GATE_TOTALS | – | – |
+| 2026-10-24 | 1 | worker | 2987 / 2987 (second run; the first lost 2 to field.room) | – | – |
 
 ## Goal
 
@@ -162,7 +162,11 @@ for eleven bots).
 
 ## Checks
 
-GATE_LINE
+`tools/check.sh`, 2026-10-24: gdlint, the changelog notes, the unit tests (2,987 of 2,987; part 1 316 s, part 2
+456 s), the smoke test and the licence notices all pass. The first run failed `test_field_rules.gd` twice: field.room
+asked every field for room for 6 a side, now each map's own Max. `test_team_sizes.gd` 16 of 16 passes alone, and the
+touched files (`test_match_page`, `test_cr1_qa`, `test_cr2_qa`, `test_cr2_rules`, `test_custom_rules`, `test_dev_hunt`,
+`test_dev_settings`, `test_mn2_qa`, `test_rg5_qa`, `test_rg5_loadout`, `test_field_rules`) pass.
 
 Not verified here: how 5v5 and 6v6 feel on Woodland, Forward+ frame times on Low and High, and the load on the owner's
 PC (PLAYTEST › Woodland, › Custom matches and rules).
