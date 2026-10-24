@@ -4,7 +4,8 @@ extends RefCounted
 ## teammates, and the other team only as patches where they were last heard). PlaySession feeds it each tick's events
 ## after the step, heard through one character's ears: the one the view is through (you, or the teammate you watch once
 ## out); its side is that character's team. An enemy in play is heard when a footstep or vault of theirs lands within
-## step_reach of the listener, or a shot within shot_reach × the replica's heard_scale (flat distance; walls are not
+## step_reach of the listener (a step on loud ground further, by its carry), a run of theirs into a noisy prop within
+## the knock's reach (as a step), or a shot within shot_reach × the replica's heard_scale (flat distance; walls are not
 ## checked, as the browser). Each enemy has one patch, the last thing heard: a circle off their real position by a blur
 ## drawn from the match's own minimap stream (Seeds), with them always inside it, fading out after patch_life. A sound
 ## from inside a live patch renews it where it is; from outside, it moves. A hit call removes that player's patch and a
@@ -65,10 +66,11 @@ func on_tick(state: GameState, listener: Character) -> void:
 				var shooter := state.character(e.actor)
 				if shooter != null:
 					_hear(shooter, e.position, _cfg.shot_reach * heard_scale(shooter, e.slot), Sound.SHOT, listener)
-			GameEvent.Kind.FOOTSTEP, GameEvent.Kind.VAULT:
+			GameEvent.Kind.FOOTSTEP, GameEvent.Kind.VAULT, GameEvent.Kind.PROP_KNOCK:
 				var walker := state.character(e.actor)
 				if walker != null:
-					_hear(walker, walker.position, _cfg.step_reach, Sound.STEP, listener)
+					var reach := e.reach if e.kind == GameEvent.Kind.PROP_KNOCK else _cfg.step_reach * e.carry
+					_hear(walker, walker.position, reach, Sound.STEP, listener)
 			GameEvent.Kind.CHARACTER_HIT:
 				var p := patch_of(e.target)
 				if p != null:

@@ -4,31 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## DP4 · Noisy props and loud ground (Dev)
-when: build order step 25, after DP1
-tier: core
-perf: required
-touches: game/sim/, game/ai/bot_hearing.gd, game/config/, game/play/sim_audio.gd, game/play/puff_view.gd,
-  game/play/sound_cues.gd, game/play/minimap_hearing.gd, tests/unit/test_noisy_props.gd, docs/DECISIONS.md,
-  docs/PLAYTEST.md
-contract: Physics behind two interfaces (4); Seeded randomness (5); Data, not literals (6)
-acceptance:
-  1. The browser's NP1 (`legacy/browser/docs/records/NP1.md`, `config/noise.ts`) in a typed config. Running or
-     sprinting into a noisy prop at 3 m/s or more knocks it: steel (skip, container) 20 m, clank (generator, IBC)
-     17 m, rattle (rack) 16 m, plastic (toilet) 14 m, wood (crate, wrapped) 13 m. A BB landing hard on steel rings it
-     (12 m, clank 10 m). One quiet time of 1.2 s a prop. Walls, barriers, gabions, sandbags, plywood and floors are
-     silent. No randomness.
-  2. Bots hear a knock as a step on whoever made it, walls muffling it; a ring is faint and only turns an idle bot's
-     head. The Sound cues ring and the minimap show an enemy's knock as a step.
-  3. Run, sprint and landing steps on gravel and steel plate carry 1.35 times as far, read from
-     `WorldQuery.surface_under`. Walking stays silent everywhere.
-  4. A knock plays its `prop_<kind>_*` cue and a puff of the prop's dust (the browser's PROP_BUMP_DUST); a ring plays
-     as the BB's impact.
-  5. The match guards pass. The record gives knocks and rings a round on Depot over the guards' seeds, and the
-     balance report against main (no figure leaves its band).
-status: open
-attempts: 0
-
 ## DP5 · Gas puffs, kicked dust, sunlit dust and contact shadows (Dev)
 when: build order step 25, after DP1
 tier: core

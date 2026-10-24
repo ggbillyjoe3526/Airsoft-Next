@@ -1,7 +1,9 @@
 class_name BotHearing
-## What the bots hear and feel of a tick (the browser game's ai/hearing.ts, without props and cases): gunfire
-## (as far as the shooter's replica is heard: a silencer halves it), a teammate's hit call, running, sprinting, landing
-## and vaulting feet, a rattling magazine, and enemy BBs landing close. Each gives a rough guess of where the enemy
+## What the bots hear and feel of a tick (the browser game's ai/hearing.ts, without cases): gunfire (as far as the
+## shooter's replica is heard: a silencer halves it), a teammate's hit call, running, sprinting, landing and vaulting
+## feet (further on loud ground: the event's carry), a rattling magazine, a run into a noisy prop (heard as a step on
+## whoever knocked it, out to the prop's reach), a BB ringing off steel (faint: see _hear), and enemy BBs landing
+## close. Each gives a rough guess of where the enemy
 ## is, off by up to hearing_error of the distance; walls between muffle a sound to wall_hearing of its range, judged by
 ## SoundPath's rays, as the player's muffling is. Hearing never counts as sight: a bot still reacts when the enemy then
 ## appears. Reads the tick's events after the step; writes only the bots' memory. Allocates nothing.
@@ -26,13 +28,22 @@ static func observe(state: GameState, w: BotWorld) -> void:
 			GameEvent.Kind.FOOTSTEP:
 				var walker := _character(w, e.actor)
 				if walker != null and Elimination.is_in_play(walker):
-					_hear(w, walker, walker.position, walker.position, _footstep_range(e.value, w.cfg), null)
+					_hear(w, walker, walker.position, walker.position, _footstep_range(e.value, w.cfg) * e.carry, null)
 			GameEvent.Kind.VAULT:
 				var vaulter := _character(w, e.actor)
 				if vaulter != null and Elimination.is_in_play(vaulter):
 					_hear(w, vaulter, vaulter.position, vaulter.position, w.cfg.footstep_hearing_vault, null)
 			GameEvent.Kind.BB_IMPACT:
 				_near_miss(e, w)
+			GameEvent.Kind.PROP_KNOCK:
+				var knocker := _character(w, e.actor)
+				if knocker != null and Elimination.is_in_play(knocker):
+					_hear(w, knocker, e.position, knocker.position, e.reach, null)
+			GameEvent.Kind.PROP_RING:
+				# Heard where it rang, as a guess there, and faintly.
+				var shooter := _character(w, e.actor)
+				if shooter != null and Elimination.is_in_play(shooter):
+					_hear(w, shooter, e.position, e.position, e.reach, null, e.position, false, true)
 
 
 static func _footstep_range(kind: int, cfg: BotConfig) -> float:
@@ -82,9 +93,11 @@ static func _near_miss(e: GameEvent, w: BotWorld) -> void:
 ## Bots not on `source`'s team within `range_m` of `heard_at` learn roughly where `source` is (or `at` when given: a hit
 ## call's guess); `only` limits it to one bot. A bot already watching the source learns nothing; one fighting someone
 ## else keeps it for later. Gunfire from about the same place keeps the same guess. A bot that plays as a team goes to
-## trade a teammate's `hit_call`, and tells its teammates where it heard someone.
+## trade a teammate's `hit_call`, and tells its teammates where it heard someone. A `faint` sound (a BB ringing off a
+## prop) is heard only by a bot with nobody in sight and nothing seen or heard within hearing_contact_time, and is not
+## shared: it turns an idle bot's head, never pulls one off a fight.
 static func _hear(w: BotWorld, source: Character, heard_at: Vector3, source_feet: Vector3, range_m: float, only: Bot,
-		at: Vector3 = Vector3.INF, hit_call: bool = false) -> void:
+		at: Vector3 = Vector3.INF, hit_call: bool = false, faint: bool = false) -> void:
 	var cfg := w.cfg
 	var where := source.position if at == Vector3.INF else at
 	for b in w.bots:
@@ -92,6 +105,8 @@ static func _hear(w: BotWorld, source: Character, heard_at: Vector3, source_feet
 			continue
 		var c := b.character
 		if c.team == source.team or not Elimination.is_in_play(c) or (b.target_visible and b.target_id == source.id):
+			continue
+		if faint and (b.target_visible or w.time - maxf(b.last_seen_at(), b.heard_at) < cfg.hearing_contact_time):
 			continue
 		var heard := Vector2(heard_at.x - c.position.x, heard_at.z - c.position.z).length()
 		if heard > range_m:
@@ -116,7 +131,7 @@ static func _hear(w: BotWorld, source: Character, heard_at: Vector3, source_feet
 		b.has_last_known = true
 		b.heard_at = w.time
 		b.last_threat_at = w.time
-		if not b.skill.team_play:
+		if not b.skill.team_play or faint:
 			continue
 		if hit_call:
 			b.trade_at = w.time

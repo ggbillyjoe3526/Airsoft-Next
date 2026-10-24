@@ -12,10 +12,10 @@ enum Kind {
 	RELOAD_REFUSED, ## actor pressed reload with no spare fuller than the loaded magazine (slot).
 	DRAW, ## actor started bringing up the replica in slot.
 	FIRE_MODE, ## actor's selector on slot moved to value (ReplicaConfig.FireMode).
-	BB_IMPACT, ## actor's BB stopped at position: on the level (target -1, value2 the RayHit.Surface) or a body not knocked out.
+	BB_IMPACT, ## actor's BB stopped at position: on the level (target -1, value2 the RayHit.Surface; direction its velocity as it landed) or a body not knocked out.
 	BB_LOST, ## actor's BB fell out of the level or flew past its lifetime at position.
 	CHARACTER_HIT, ## actor's BB hit target at position, flying along direction: target is out and calls the hit.
-	FOOTSTEP, ## actor's footstep (value: Footstep) on surface (value2: RayHit.Surface); LAND: direction, down at its speed.
+	FOOTSTEP, ## actor's footstep (value: Footstep) on surface (value2: RayHit.Surface), carrying carry × as far; LAND: direction, down at its speed.
 	VAULT, ## actor started a vault at position: hands and boots on the obstacle, loud (bots hear it far).
 	ROUND_START, ## round number value is live.
 	ROUND_OVER, ## value won the round (-1: a draw), for reason.
@@ -28,6 +28,8 @@ enum Kind {
 	CHALLENGE, ## the timed challenge's cue value (RangeChallenge.Cue) for actor (the player); value2: a count's seconds left.
 	SQUAD_ORDER, ## actor (in play, the round live) gave squad order value (SquadOrder.Kind); value2 1: from the order wheel.
 	SQUAD_ORDER_REFUSED, ## actor's squad order value came while it was out or between rounds; value2 1: from the wheel.
+	PROP_KNOCK, ## actor ran into noisy prop target (WorldQuery block index) at position: value its NoiseConfig.Sound, value2 its RayHit.Surface, heard out to reach.
+	PROP_RING, ## actor's BB rang noisy prop target at position, landing hard on steel: value its NoiseConfig.Sound, heard faintly out to reach.
 }
 
 ## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.
@@ -49,6 +51,11 @@ var value2: int = 0
 var position: Vector3 = Vector3.ZERO
 ## Which way: a shot's or a hit's flight; a landing's fall, its length the touchdown speed (m/s).
 var direction: Vector3 = Vector3.ZERO
+## How far a footstep carries as a share of its kind's usual reach (NoiseConfig.ground: run, sprint and landing steps on
+## gravel and steel plate 1.35; anything else 1).
+var carry: float = 1.0
+## How far a prop's knock or ring is heard (m).
+var reach: float = 0.0
 
 
 func reset(new_kind: Kind) -> void:
@@ -60,3 +67,5 @@ func reset(new_kind: Kind) -> void:
 	value2 = 0
 	position = Vector3.ZERO
 	direction = Vector3.ZERO
+	carry = 1.0
+	reach = 0.0

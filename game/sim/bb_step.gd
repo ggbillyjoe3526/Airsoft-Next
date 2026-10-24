@@ -87,6 +87,7 @@ static func step(pool: BBPool, characters: Array[Character], query: WorldQuery, 
 				impact.actor = bb.owner_id
 				impact.position = bb.position
 				impact.value2 = _ray_hit.surface
+				impact.direction = bb.velocity # how hard it landed, before any bounce turns it (PropNoise.ring)
 				# A bounce flies on from the surface next tick: the rest of this tick's travel is dropped, so a ricochet
 				# arrives at most a tick late, which nobody can see at these speeds.
 				if not Ricochet.bounce(bb, _ray_hit, tuning.ricochet, rng):

@@ -2,8 +2,9 @@ class_name SimAudio
 extends Node
 ## The match's sound, from the tick's events (docs/ARCHITECTURE.md › Contracts 3): shots with their power part (a
 ## silenced one's shot duller and quieter; its power part and clicks as they are), dry clicks, magazines, the selector,
-## the hop-up dial and draws, BB impacts by surface, footsteps by surface and pace, vaults, the flag's rope ratcheting
-## up or down, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
+## the hop-up dial and draws, BB impacts by surface, footsteps by surface and pace (louder and further on loud ground,
+## by the event's carry), vaults, a run into a noisy prop (its prop_<sound> cue; a BB's ring is its impact), the
+## flag's rope ratcheting up or down, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
 ## yours, the thump when it's you. On the practice range steel rings and a figure knocks, heard down its whole length,
 ## your own target hit plays the confirmation, and the timed challenge's countdown and Go beep. A squad order of yours
 ## that a teammate took plays a radio's double click in your ear (on_order). Kit rustles as a crouch, a stand or a lean
@@ -36,7 +37,7 @@ const SURFACE_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood
 const IMPACT_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth", "earth"]
 const STEP_NAMES: PackedStringArray = ["run", "sprint", "land"]
 ## What a play is, for its pitch and level spread, its priority in the field's pool and how many of its cue may sound.
-enum Kind { SHOT, MECHANISM, STEP, VAULT, ROPE, IMPACT, HIT, STEEL, INTERFACE, RADIO, FOLEY, CALL }
+enum Kind { SHOT, MECHANISM, STEP, VAULT, ROPE, IMPACT, HIT, STEEL, INTERFACE, RADIO, FOLEY, CALL, PROP }
 ## How far past the ears' distance a call's voice still carries, so the far edge of its ring is never cut off.
 const CALL_SLACK := 1.0
 
@@ -70,6 +71,8 @@ var _mag_out: Dictionary[StringName, StringName] = {}
 var _mag_in: Dictionary[StringName, StringName] = {}
 var _impact: Array[StringName] = []
 var _step: Array[StringName] = []
+## A noisy prop's cue by NoiseConfig.Sound.
+var _prop: Array[StringName] = []
 var _body: BodyConfig = null
 ## The slowest landing that thuds (m/s; FootstepConfig.land_min_speed): a landing's level and pitch grow from it.
 var _land_min: float = 0.0
@@ -116,6 +119,8 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 	for s in SURFACE_NAMES:
 		for k in STEP_NAMES:
 			_step.append(_load("step_%s_%s" % [s, k]))
+	for s in NoiseConfig.SOUND_NAMES:
+		_prop.append(_load("prop_%s" % s))
 	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault",
 			"foley_holster", "magRattle", "rope_up", "rope_down", "steelRing", "radio_ack", "foley_crouch", "foley_stand",
 			"foley_lean", "whistle_short", "whistle_long"]:
@@ -200,9 +205,10 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 			GameEvent.Kind.FOOTSTEP:
 				var c := state.character(e.actor)
 				var at := c.position if c != null else e.position
-				if not own and not (_in_reach(at, _cfg.step_reach) and _steps.take(now)):
+				var reach := _cfg.step_reach * e.carry
+				if not own and not (_in_reach(at, reach) and _steps.take(now)):
 					continue
-				var gain := _cfg.own_step_gain if own else _cfg.step_gain
+				var gain := (_cfg.own_step_gain if own else _cfg.step_gain) * e.carry
 				var pitch := 1.0
 				var cue := &"magRattle"
 				if e.value != GameEvent.Footstep.RATTLE:
@@ -211,15 +217,19 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 				var speed := e.direction.length()
 				if e.value == GameEvent.Footstep.LAND:
 					var hard := land_hardness(_cfg, _land_min, speed)
-					gain = (_cfg.own_land_gain if own else _cfg.step_gain) * lerpf(1.0, _cfg.land_hard_gain, hard)
+					gain = (_cfg.own_land_gain if own else _cfg.step_gain) * lerpf(1.0, _cfg.land_hard_gain, hard) * e.carry
 					pitch = lerpf(1.0, _cfg.land_hard_pitch, hard)
-				_play(cue, at, own, gain, Kind.STEP, BUS_FOOTSTEPS, pitch, _cfg.step_reach, c)
+				_play(cue, at, own, gain, Kind.STEP, BUS_FOOTSTEPS, pitch, reach, c)
 				# A hard landing rustles the kit under its thud.
 				if e.value == GameEvent.Footstep.LAND and speed >= _cfg.hard_land_speed and c != null:
 					_kit(&"foley_crouch", c, own, now)
 			GameEvent.Kind.VAULT:
 				var gain := _cfg.own_vault_gain if own else _cfg.vault_gain
 				_play(&"vault", e.position, own, gain, Kind.VAULT, BUS_FOOTSTEPS, 1.0, 0.0, state.character(e.actor))
+			# From the prop where it was hit, yours too, muffled by the walls between it and your ears.
+			GameEvent.Kind.PROP_KNOCK:
+				_play(_prop[clampi(e.value, 0, _prop.size() - 1)], e.position, false, _cfg.prop_gain, Kind.PROP,
+						BUS_EFFECTS, 1.0, _cfg.prop_reach, null, true)
 			GameEvent.Kind.FLAG_ROPE:
 				_play(&"rope_up" if e.value == 1 else &"rope_down", e.position, false, _cfg.rope_gain, Kind.ROPE,
 						BUS_EFFECTS)
@@ -449,12 +459,13 @@ func _kinds(cfg: SoundConfig) -> void:
 		Kind.VAULT: cfg.vault_pitch, Kind.ROPE: cfg.rope_pitch, Kind.IMPACT: cfg.impact_pitch, Kind.HIT: 0.0,
 		Kind.STEEL: cfg.steel_ring_pitch, Kind.INTERFACE: 0.0, Kind.RADIO: cfg.radio_ack_pitch,
 		Kind.FOLEY: cfg.foley_pitch, Kind.CALL: 0.0, # a call's spread is its own (AmbienceCall.pitch)
+		Kind.PROP: cfg.prop_pitch,
 	}
 	var level: Dictionary[Kind, float] = {
 		Kind.SHOT: cfg.shot_spread_db, Kind.MECHANISM: cfg.mechanism_spread_db, Kind.STEP: cfg.step_spread_db,
 		Kind.VAULT: cfg.vault_spread_db, Kind.ROPE: cfg.rope_spread_db, Kind.IMPACT: cfg.impact_spread_db,
 		Kind.HIT: cfg.hit_spread_db, Kind.STEEL: cfg.steel_ring_spread_db, Kind.INTERFACE: 0.0, Kind.RADIO: 0.0,
-		Kind.FOLEY: cfg.foley_spread_db, Kind.CALL: 0.0,
+		Kind.FOLEY: cfg.foley_spread_db, Kind.CALL: 0.0, Kind.PROP: cfg.prop_spread_db,
 	}
 	for k: Kind in pitch:
 		_pitch_spread[k] = pitch[k]

@@ -8,9 +8,10 @@ tests ported to `tests/unit/`. Tuning comes from `game/config/` (`SimTuning`).
 
 `Simulation.step(state, commands, dt)` advances a `GameState` by one 60 Hz tick. Per character: move (a Jump press at a
 low obstacle vaults it instead; a vault under way follows its path), swing the legs, lean, settle the aim, then use the
-replica (BBs leave from this tick's leaned eyes); then every BB flies; then the round flow, or in practice the range's
-targets. A hit character follows the hit-calling routine instead of its command. Nothing is allocated per tick once
-warm (checked by `test_simulation.gd` and, on the range, `test_range_map.gd`).
+replica (BBs leave from this tick's leaned eyes); a run into a noisy prop knocks it; then every BB flies, and one
+landing hard on steel rings it; then the round flow, or in practice the range's targets. A hit character follows the
+hit-calling routine instead of its command. Nothing is allocated per tick once warm (checked by `test_simulation.gd`
+and, on the range, `test_range_map.gd`).
 
 | File | What |
 |---|---|
@@ -20,11 +21,12 @@ warm (checked by `test_simulation.gd` and, on the range, `test_range_map.gd`).
 | `dev_cheats.gd` | `DevCheats`: the Dev settings that change play (ghost, bottomless magazines, bots hold fire, game speed), End the round now, and the match's record mark |
 | `game_event.gd`, `sim_events.gd` | The tick's events (shots, hits, footsteps, rounds), pooled: the only channel to sound, HUD and effects |
 | `seeds.gd` | Seeded streams: every random draw comes from the match's `RandomNumberGenerator` or one derived from its seed |
-| `world_query.gd`, `ray_hit.gd`, `character_mover.gd` | What the rules ask the level, behind two interfaces (Contracts 4) |
+| `world_query.gd`, `ray_hit.gd`, `character_mover.gd` | What the rules ask the level, behind two interfaces (Contracts 4): rays, what is underfoot, and what each of its boxes is (a skip, a crate) |
+| `prop_noise.gd` | `PropNoise`: noisy props (NP1): a run or sprint into one knocks it (PROP_KNOCK), a BB landing hard on steel rings it (PROP_RING), one quiet time a prop (`GameState.prop_quiet`), nothing random; the table is `NoiseConfig` |
 | `sound_path.gd` | `SoundPath`: the share of rays from an ear to a character's knees and head that the level blocks, and a line stopping short of a surface; the bots' hearing and the player's muffling hear through the same walls |
 | `box_world.gd` | A level of boxes answering both interfaces without a physics engine, for headless tests and tools |
 | `map_end.gd`, `spawn_point.gd` | A map's two ends: spawns and dead-zone spots |
-| `movement.gd`, `accuracy.gd`, `aiming.gd`, `footsteps.gd` | Paces, crouch and jump; spread by stance and motion; aiming down sights; footsteps and landings |
+| `movement.gd`, `accuracy.gd`, `aiming.gd`, `footsteps.gd` | Paces, crouch and jump; spread by stance and motion; aiming down sights; footsteps and landings (further on gravel and steel plate: the event's carry) |
 | `lean.gd` | Q / E held: the one lean geometry (eyes, BB origin, hit volume, camera, figure, bot vision), stopped short of walls |
 | `vault.gd`, `vault_state.gd` | Jump at a low obstacle: finding one with level rays, the path through the mover, fire held after, presses kept |
 | `armament.gd` | Magazines, the fire selector, the hop-up dial, the holster, trigger, reloads, draws, recoil and seeded spread |

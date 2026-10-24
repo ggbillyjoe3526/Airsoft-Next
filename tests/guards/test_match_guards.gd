@@ -27,8 +27,10 @@ const ABOVE_TOP := 2.0
 const LONGEST_AIR := 1.0
 ## Follow me on Depot (the browser's depotMatch.test.ts, M22): seeds 1 to FOLLOW_SEEDS of FOLLOW_SECONDS each, a leader
 ## bot giving it at each round start. Each seed judges more than FOLLOW_TICKS ticks, with more than FOLLOW_NEAR of them
-## near the leader (MatchRunner.FOLLOW_NEAR_SLACK) and the farthest under catch_up; standing still while the leader
-## moves, under FOLLOW_STANDING of the ticks over all four (one seed's share swings with a single long wait).
+## near the leader (MatchRunner.FOLLOW_NEAR_SLACK) and the farthest under catch_up, a follower sprinting for the leader
+## beyond it counting as chasing, not left behind (MatchRunner.CHASE_PACE; lead ruling, DP4); standing still
+## while the leader moves, under FOLLOW_STANDING of the ticks over all four (one seed's share swings with a single long
+## wait).
 const FOLLOW_SEEDS := 4
 const FOLLOW_SECONDS := 90.0
 const FOLLOW_TICKS := 1000
@@ -45,6 +47,8 @@ func _guard(map_id: String, level: StringName = &"normal", seeds: int = SEEDS) -
 	var rounds := 0
 	var on_time := 0
 	var ricochets := 0
+	var knocks := 0
+	var rings := 0
 	for seed_value in range(1, seeds + 1):
 		var m := runner.play(seed_value, MAX_MATCH_SECONDS)
 		var at := "%s %s seed %d" % [map_id, level, seed_value]
@@ -52,6 +56,8 @@ func _guard(map_id: String, level: StringName = &"normal", seeds: int = SEEDS) -
 		rounds += m.rounds.size()
 		on_time += m.on_time()
 		ricochets += m.friendly_ricochets
+		knocks += m.knocks
+		rings += m.rings
 		for id in m.farthest.size():
 			assert_gt(m.farthest[id], LEAVES_SPAWN, "%s: character %d leaves its spawn" % [at, id])
 		assert_gte(m.min_y, runner.lowest_floor - BELOW_FLOOR, "%s: nobody falls through the floor" % at)
@@ -61,8 +67,8 @@ func _guard(map_id: String, level: StringName = &"normal", seeds: int = SEEDS) -
 		assert_lte(m.held_up, HELD_UP_MAX, "%s: bots aren't held up on their way" % at)
 		assert_eq(m.friendly_hits, 0, "%s: no bot knocks out a teammate" % at)
 		assert_eq(m.rescued, 0, "%s: nobody leaves the level" % at)
-	gut.p("%s %s: %d rounds over %d seeds, %d on time, %d teammates reached by a bounce" % [map_id, level, rounds,
-			seeds, on_time, ricochets])
+	gut.p("%s %s: %d rounds over %d seeds, %d on time, %d teammates reached by a bounce, %d knocks and %d rings"
+			% [map_id, level, rounds, seeds, on_time, ricochets, knocks, rings])
 	assert_gt(rounds, 0)
 	assert_lt(float(on_time) / maxf(rounds, 1.0), STALLED_ROUNDS_MAX, "%s %s: rounds settle, not stand-offs"
 			% [map_id, level])
@@ -98,8 +104,9 @@ func test_bot_teammates_follow_a_leader_round_depot_without_being_left_behind() 
 		var m := runner.play(seed_value, FOLLOW_SECONDS)
 		var at := "depot follow seed %d" % seed_value
 		var near := float(m.follow_near) / maxf(m.follow_counted, 1.0)
-		gut.p("%s: %d ticks judged, %.1f %% near, worst %.2f m, standing %.1f %%" % [at, m.follow_counted, near * 100.0,
-				m.follow_worst, 100.0 * m.follow_standing / maxf(m.follow_counted, 1.0)])
+		gut.p("%s: %d ticks judged, %.1f %% near, worst %.2f m, standing %.1f %%, chasing %d ticks" % [at,
+				m.follow_counted, near * 100.0, m.follow_worst, 100.0 * m.follow_standing / maxf(m.follow_counted, 1.0),
+				m.follow_chasing])
 		assert_gt(m.follow_counted, FOLLOW_TICKS, "%s: enough ticks judged" % at)
 		assert_gt(near, FOLLOW_NEAR, "%s: followers keep near the leader" % at)
 		assert_lt(m.follow_worst, catch_up, "%s: never left behind" % at)

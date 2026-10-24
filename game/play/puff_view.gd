@@ -1,8 +1,9 @@
 class_name PuffView
 extends MultiMeshInstance3D
 ## The puffs where BBs land (the browser game's render/effects/impacts.ts): a soft dust puff in the surface's colour where
-## a BB stops on the level, a brighter, bigger one where it hits a body. No blood, ever. A fixed pool drawn as one
-## MultiMesh of camera-facing quads; the oldest puff is reused when it is full.
+## a BB stops on the level, a brighter, bigger one where it hits a body, a big one of a noisy prop's dust where someone
+## runs into it (PROP_KNOCK). No blood, ever. A fixed pool drawn as one MultiMesh of camera-facing quads; the oldest
+## puff is reused when it is full.
 
 ## The soft disc's texture size (px).
 const DISC_PIXELS := 64
@@ -52,6 +53,12 @@ func drawn_material() -> Material:
 func impact(at: Vector3, surface: int) -> void:
 	var colours := _cfg.puff_colours
 	_spawn(at, colours[clampi(surface, 0, colours.size() - 1)], 1.0)
+
+
+## A puff of a noisy prop's dust where someone ran into it, at `at` on its `surface` (RayHit.Surface).
+func knock(at: Vector3, surface: int) -> void:
+	var colours := _cfg.puff_colours
+	_spawn(at, colours[clampi(surface, 0, colours.size() - 1)], _cfg.knock_puff_scale)
 
 
 ## A puff where a BB hit a body.
