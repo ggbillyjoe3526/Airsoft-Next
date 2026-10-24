@@ -26,6 +26,14 @@ const LEAVES_SPAWN := 8.0
 const FOLLOW_REJOIN := 3.0
 const FOLLOW_NEAR_SLACK := 2.0
 const STILL_SPEED := 0.5
+## Beyond catch_up a follower is chasing, not left behind, while over the last CHASE_TICKS it covered ground at
+## CHASE_PACE or more of its sprint speed (straight-line, so a corner's slow-down and a route bending round cover still
+## count) and the gap to the leader grew by no more than CHASE_SLACK (m): one back from cover can't gain on a leader
+## sprinting at its own top speed, and bots never outrun the player's sprint (lead ruling, DP4). A follower stuck,
+## standing, lost (the gap grows) or slower than it could be is left behind.
+const CHASE_TICKS := 30
+const CHASE_PACE := 0.8
+const CHASE_SLACK := 0.25
 
 
 ## One round, as it ended.
@@ -86,12 +94,13 @@ class MatchTally:
 	## Ticks a character in or out of play spent within a metre above the kill height (falling out of the level; the
 	## simulation puts it back below it).
 	var rescued: int = 0
-	## With a follow_leader: follower ticks judged, those near the leader and those standing still while it moved, and
-	## the farthest a judged follower was from it (m).
+	## With a follow_leader: follower ticks judged, those near the leader and those standing still while it moved, the
+	## farthest a judged follower was from it (m) while not chasing it (CHASE_PACE), and the ticks spent chasing.
 	var follow_counted: int = 0
 	var follow_near: int = 0
 	var follow_standing: int = 0
 	var follow_worst: float = 0.0
+	var follow_chasing: int = 0
 
 	## Rounds that ran out the clock.
 	func on_time() -> int:
@@ -243,6 +252,17 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 	# Per character, seconds in a row spent carrying out Follow me (a fight or cover resets it).
 	var following := PackedFloat32Array()
 	following.resize(n)
+	# Per character, where it was and its gap to the leader over the last CHASE_TICKS (a ring; the gap -1: not known).
+	var chase_at: Array[PackedVector3Array] = []
+	var chase_gap: Array[PackedFloat32Array] = []
+	for i in n:
+		var at := PackedVector3Array()
+		at.resize(CHASE_TICKS)
+		chase_at.append(at)
+		var gap := PackedFloat32Array()
+		gap.resize(CHASE_TICKS)
+		gap.fill(-1.0)
+		chase_gap.append(gap)
 	while t.ticks < limit and not t.finished:
 		bots.think(state, commands, DT)
 		if order_due:
@@ -253,7 +273,7 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 		t.ticks += 1
 		_watch(state, t, round_now)
 		if follow_leader >= 0:
-			_watch_follow(state, bots, t, following)
+			_watch_follow(state, bots, t, following, chase_at, chase_gap)
 		if t.ticks % TICKS_PER_SECOND == 0:
 			_watch_held_up(state, bots, t, trail, errands, held, (t.ticks / TICKS_PER_SECOND) % HELD_UP_SECONDS)
 		for i in state.events.count:
@@ -390,7 +410,8 @@ func _watch(state: GameState, t: MatchTally, r: RoundTally) -> void:
 
 
 ## Follow me's tally for the tick (see FOLLOW_REJOIN), while the round is live and the leader in play.
-func _watch_follow(state: GameState, bots: BotController, t: MatchTally, following: PackedFloat32Array) -> void:
+func _watch_follow(state: GameState, bots: BotController, t: MatchTally, following: PackedFloat32Array,
+		chase_at: Array[PackedVector3Array], chase_gap: Array[PackedFloat32Array]) -> void:
 	var leader := state.character(follow_leader)
 	if not state.round_state.is_live() or leader == null or not Elimination.is_in_play(leader):
 		return
@@ -402,15 +423,43 @@ func _watch_follow(state: GameState, bots: BotController, t: MatchTally, followi
 			continue
 		var carried := b.order == SquadOrder.Kind.FOLLOW and b.mode == Bot.Mode.ORDER
 		following[c.id] = following[c.id] + DT if carried else 0.0
+		# The ring's oldest entry, CHASE_TICKS ago, is the one this tick overwrites.
+		var slot := t.ticks % CHASE_TICKS
+		var then_at := chase_at[c.id][slot]
+		var then_gap := chase_gap[c.id][slot]
+		chase_at[c.id][slot] = c.position
+		chase_gap[c.id][slot] = Vector2(c.position.x - leader.position.x, c.position.z - leader.position.z).length()
 		if following[c.id] < FOLLOW_REJOIN:
 			continue
-		var d := Vector2(c.position.x - leader.position.x, c.position.z - leader.position.z).length()
-		t.follow_counted += 1
-		if d < squad.follow_distance + squad.catch_up_gap + FOLLOW_NEAR_SLACK:
-			t.follow_near += 1
-		if leader_moving and Vector2(c.velocity.x, c.velocity.z).length() < STILL_SPEED:
-			t.follow_standing += 1
+		judge_follower(t, c, leader, leader_moving, squad, tuning.movement.sprint_speed, then_at, then_gap)
+
+
+## One judged tick of follower `c` behind `leader` (moving or not) into `t`: near, standing, chasing or how far behind.
+## `then_at` and `then_gap` are where `c` was and its gap to the leader CHASE_TICKS ago (the gap -1: not known).
+static func judge_follower(t: MatchTally, c: Character, leader: Character, leader_moving: bool, squad: SquadConfig,
+		sprint_speed: float, then_at: Vector3, then_gap: float) -> void:
+	var d := Vector2(c.position.x - leader.position.x, c.position.z - leader.position.z).length()
+	t.follow_counted += 1
+	if d < squad.follow_distance + squad.catch_up_gap + FOLLOW_NEAR_SLACK:
+		t.follow_near += 1
+	if leader_moving and Vector2(c.velocity.x, c.velocity.z).length() < STILL_SPEED:
+		t.follow_standing += 1
+	if chasing(c, leader, squad.catch_up, sprint_speed, then_at, then_gap):
+		t.follow_chasing += 1
+	else:
 		t.follow_worst = maxf(t.follow_worst, d)
+
+
+## Whether follower `c` is chasing `leader` rather than left behind: further than `catch_up` (m) from it, and since
+## CHASE_TICKS ago (when it stood at `then_at`, `then_gap` m from the leader; -1: not known) it covered ground at
+## CHASE_PACE of `sprint_speed` (m/s) or more and the gap grew by CHASE_SLACK at most. Flat distances.
+static func chasing(c: Character, leader: Character, catch_up: float, sprint_speed: float, then_at: Vector3,
+		then_gap: float) -> bool:
+	var d := Vector2(leader.position.x - c.position.x, leader.position.z - c.position.z).length()
+	if d <= catch_up or then_gap < 0.0:
+		return false
+	var covered := Vector2(c.position.x - then_at.x, c.position.z - then_at.z).length()
+	return covered >= CHASE_PACE * sprint_speed * CHASE_TICKS * DT and d <= then_gap + CHASE_SLACK
 
 
 ## Standing still on purpose, not held up: an anchor settled at its post (bots.md › Holds until), a bot watching where

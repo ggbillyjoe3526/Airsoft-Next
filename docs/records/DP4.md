@@ -6,7 +6,7 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,894 of 2,894; match guards: Follow me fails seed 3 | – | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,905 of 2,905; match guards pass (Follow me measure by lead ruling) | – | – |
 
 ## What was built
 
@@ -85,7 +85,8 @@ knocks and rings).
 `game/map/map_level.gd` (four lines: the blocks' kinds into the query), `game/play/play_session.gd` (two lines: the
 knock's puff), `game/config/sim_tuning.tres` (the new config written in, for `test_saved_configs`),
 `game/config/effects_config.gd` and `sound_config.gd` (the puff's size, the knock's level and reach),
-`tests/support/match_runner.gd` and `tests/guards/test_match_guards.gd` (the knocks and rings counted),
+`tests/support/match_runner.gd` and `tests/guards/test_match_guards.gd` (the knocks and rings counted; Follow me's
+chasing measure),
 `docs/ARCHITECTURE.md` (Contracts 4 names the boxes), `docs/KNOWN_ISSUES.md` and the `game/sim/`, `game/ai/`,
 `game/play/` and `game/config/` READMEs.
 
@@ -97,17 +98,29 @@ steel ramps louder and heard further.
 
 ## Checks
 
-`tools/check.sh` (2026-10-24, on the change): every gate passes (gdlint, changelog notes, unit tests 2,894 of 2,894 in
-904.7 s, the smoke test, licence notices); `test_noisy_props` 18/18 rerun on the final code with `test_simulation`,
+`tools/check.sh` (2026-10-24, after the Follow me ruling): every gate passes (gdlint, changelog notes, unit tests
+2,905 of 2,905 in 830.5 s, the smoke test, licence notices); on 98fbeb2 2,894 of 2,894 in 904.7 s; `test_noisy_props` 18/18 rerun on the final code with `test_simulation`,
 `test_footsteps` and `test_saved_configs`.
 
-The match guards (`tools/match_guards.sh test_match_guards`, `test_flag_guards`): every Elimination and Attack /
-Defend guard passes on every seed at every level, but **Follow me fails on Depot seed 3**: a follower 10.75 m behind
-the leader against the 8 m cap (`catch_up`). Main measures 7.36 m on that seed, near the cap. Traced: the follower
-leaves Follow me for cover (85.5 s), comes back, and is judged 3 s later (`FOLLOW_REJOIN`) while the leader sprints
-at 6.3 m/s, the followers' top speed too, so the gap can't close. DP4 only reshuffles the match (the bots now hear
-knocks and rings); no knock happens near it. Not fixed here: it needs the follow logic (a leader who waits, or
-followers judged once back within `catch_up`) or the guard, both outside `touches` and the latter a criterion.
+The match guards (`tools/match_guards.sh test_match_guards`, `test_flag_guards`): both files pass, 5 of 5 and 2 of 2
+(Elimination at every level on Depot and Neon Heights, Attack / Defend, Follow me's 4 seeds: seed 3 7.99 m).
+
+**Follow me on Depot seed 3: a measure changed by the lead's ruling, not the owner's (the owner can overrule it).**
+On 98fbeb2 the guard failed seed 3: a follower 10.75 m behind the leader against the 8 m cap (`catch_up`); main
+measured 7.36 m on that seed. Traced: the follower leaves Follow me for cover, comes back, and is judged 3 s later
+(`FOLLOW_REJOIN`) while the leader sprints at 6.3 m/s, the followers' top speed too, so the gap can't close; DP4 only
+reshuffles the match (the bots now hear knocks and rings). The lead ruled to change the guard's measure, not the
+follow logic: in play the leader is the player, bots must not outrun the player's sprint, and a leader that waits
+would be a guard artifact. Now beyond `catch_up` a follower is **chasing**, not left behind, when over the last 0.5 s
+(`MatchRunner.CHASE_TICKS`) it covered ground at 80 % or more of its sprint speed (`CHASE_PACE`, straight-line, so a
+corner's slow-down or a route round cover still counts) and the gap grew by 0.25 m at most (`CHASE_SLACK`); chasing
+ticks don't count toward `follow_worst`. An instantaneous form (speed 90 % and heading within 60°) was tried first and
+still failed seed 3 on a corner's slow-down (5.56 m/s for three ticks) and on the follow spot's 40° offset. Stuck,
+standing, lost or slower followers still fail: `tests/unit/test_follow_measure.gd` (3 tests, 0.35 s) holds a
+follower sprinting after a sprinting leader passing, and stuck, wrong-way, sideways, circling and running ones
+failing. The near share and standing checks are unchanged. Re-measured over all 16 seeds (the guard keeps 4): worst
+4.48 to 8.00 m (seed 3 7.99 m with 41 ticks chasing, seed 8 8.00 m with 7, 0 on the rest), near 97.1 to 100 %,
+standing 1.29 % of 58,131 ticks. DECISIONS › Bots and balance; the KNOWN_ISSUES row is now "can wait".
 
 ## Known issues left
 

@@ -338,6 +338,11 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Routes are searched one a tick, bots and walk-offs sharing the turn (2026-10-18, BE1).** The search is Godot's
   `AStar3D` on the nav grid's nodes, weighted (`NavConfig.search_greed` 1.5: about six times faster for routes about 3 %
   longer), then string-pulled. A bot that wants a route waits its turn, walking its old one meanwhile.
+- **Follow me's guard judges a follower left behind only when it isn't chasing (lead ruling, 2026-10-24, DP4; the
+  owner can overrule it).** Beyond `catch_up` (8 m) a follower that covered ground at 80 % or more of its sprint
+  speed over the last 0.5 s, with the gap to the leader grown by 0.25 m at most, is chasing, not left behind: one back
+  from cover can't gain on a leader sprinting at its own top speed, and bots never outrun the player's sprint. Stuck,
+  standing, lost or slower followers still fail it (`MatchRunner.chasing`).
 
 ## Maps and modes
 
