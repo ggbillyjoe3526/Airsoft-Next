@@ -423,9 +423,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   Woodland offers Night alone, Neon Heights both, Depot Day; the Match screen shows the row only where there is a
   choice, and Dev › Time of day plays any map by either. Depot's public night waits for 0.4's Day and Night on every
   map.
-- **The practice range and the tutorial are set in Depot (owner, 2026-10-24).** So their assets are modelled with
-  Depot's. The range's targets and timed challenge move onto Depot's lanes and the standalone range map retires
-  (WL9, step 26); the tutorial (step 27) is built in Depot.
+- **The practice range and the tutorial are set in Depot (owner, 2026-10-24).** Their design and layout stay as they
+  are, but they are dressed as part of the Depot site with Depot's props, materials, light and skyline, so their assets
+  are modelled with Depot's (the range in WL9, step 26; the tutorial in step 27).
 - **Practice on a public map is public (owner, 2026-10-24: the recommended defaults; WL9).** On a dev map it is dev,
   and Woodland's practice is at night with your weapon torch.
 - **Neon Heights is the third field: a vertical futuristic city with Day and Night (owner, 2026-10-04).** 46 × 30 m,

@@ -249,15 +249,14 @@ acceptance:
 status: open
 attempts: 0
 
-## WL9 · The practice range moves into Depot, and practice on any map (Dev)
+## WL9 · The practice range set in Depot, and practice on any map (Dev)
 when: build order step 26, after WL1 (Woodland's at night after WL7)
 tier: core
 perf: required
-touches: data/maps/range.json, game/map/practice_spots.gd, game/config/range_config.gd, game/ui/match_options.gd,
-  game/ui/match_page.gd,
-  game/play/practice_spot.gd, game/play/play_session.gd, game/sim/range_targets.gd, game/sim/range_challenge.gd,
-  game/save/run_record.gd, game/ui/pause_menu.gd, game/ui/text/en.po, tests/unit/test_practice_spots.gd,
-  tests/unit/test_match_page.gd, docs/PLAYTEST.md
+touches: data/maps/range.json, data/maps/depot.json, game/map/practice_spots.gd, game/config/range_config.gd,
+  game/ui/match_options.gd, game/ui/match_page.gd, game/play/practice_spot.gd, game/play/play_session.gd,
+  game/sim/range_targets.gd, game/sim/range_challenge.gd, game/save/run_record.gd, game/ui/pause_menu.gd,
+  game/ui/text/en.po, tests/unit/test_practice_spots.gd, tests/unit/test_match_page.gd, docs/PLAYTEST.md
 contract: Data, not literals (6); Saves (8)
 acceptance:
   1. Practice is offered on every field (dev fields under Dev content): no bots, no score, you start at end 0's
@@ -269,11 +268,10 @@ acceptance:
   3. The timed challenge's START plate stands ahead of your start where it fits; each map keeps its own best, and a
      run with a play-changing Dev setting is never a best.
   4. Practice on Woodland plays at night with your torch fitted. Pictures on Depot and Woodland are posted.
-  5. The practice range is set in Depot (owner, 2026-10-24): Practice on the Match screen, the title and the pause
-     menu opens Depot, with the range's plates, figures, movers and swingers and the timed challenge placed on
-     Depot's lanes (its longest sightlines for the far plates). The standalone range map (`data/maps/range.json`)
-     and its skyline are retired; Loadout from practice, the readout and the challenge's best carry over (an old
-     range best is kept as Depot's), and nothing else names the old range.
+  5. The practice range is set in Depot (owner, 2026-10-24): its design and layout stay exactly as they are (lanes,
+     plate distances, figures, movers and swingers, the timed challenge), but it is dressed as part of the Depot site
+     with Depot's props, materials, light, sky and skyline instead of its own, so the Blender models serve both.
+     Practice, Loadout from practice, the readout and the challenge's best work as before. A picture is posted.
 status: open
 attempts: 0
 
