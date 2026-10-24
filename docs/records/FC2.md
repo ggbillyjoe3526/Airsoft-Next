@@ -1,12 +1,12 @@
 # FC2 · Field checks: sightlines, walks, routes and the flag
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | pass | pending | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass | Accept 8/8 | – |
 
 ## What was built
 
@@ -33,7 +33,7 @@
 
 Both fields: every lane walks end to end, every route is whole, the spawn yards don't see each other standing or
 crouched (265 and 286 stand points in end 0's yard), and the flag is out of sight of the attackers' yard. Stand point
-spacing 0.5 m on both (their areas are under 6,000 x 0.25 m²).
+spacing 0.5 m on both (their areas are under 6,000 x 0.25 m²), taken as 0.6 m squares of the nav grid (Decisions).
 
 **Measured otherwise than the plan.** The plan's figures were BoxWorld with ramps left out. On Jolt (ramps as wedges)
 Depot's middle and flag walks match the plan's to the decimetre; its sightline is 33.5 m on the stand points, as the
@@ -65,3 +65,12 @@ found, nearly all of them blocked (a KNOWN_ISSUES row).
 
 - The sightline search's cost: about 8 s of the unit suite, and about 4 s for each field added
   (`docs/KNOWN_ISSUES.md`).
+
+## Advisories left
+
+- The sightline search tries about 1M Jolt rays a field (about 2.5 to 4 s each); the suite is about 730 s against
+  900 s. If it nears the limit, look at other slow tests first; a 2x search grid matched on both fields but only
+  by luck (performance).
+- `stretch` packs a pair index under 2^24: now asserted, reachable near 61,000 m² walkable (critic, QA).
+- Two mean walks of 0 give NaN, which passes `middle` and `flag`; it can't happen on a real field (QA).
+- Routes check end 0 to end 1 only, as the browser did (QA).

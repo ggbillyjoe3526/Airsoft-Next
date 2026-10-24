@@ -180,6 +180,7 @@ func stretch(line: Sightline, reach: float, rounds: int) -> Sightline:
 		var near_b := _cells_near(best.to, reach)
 		var pairs := PackedInt64Array()
 		var nb := near_b.size()
+		assert(near_a.size() * nb < SORT_SLOTS, "stretch: too many pairs to pack in a sort key")
 		for i in near_a.size():
 			for j in nb:
 				var d := Vector2(near_a[i].x - near_b[j].x, near_a[i].z - near_b[j].z).length()
