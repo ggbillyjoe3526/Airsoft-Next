@@ -4,26 +4,18 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## DP5 · Gas puffs, kicked dust, sunlit dust and contact shadows (Dev)
-when: build order step 25, after DP1
+## CI1 · Unit suite headroom (Dev)
+when: before step 26's first code task
 tier: core
-perf: required
-touches: game/play/gas_puffs.gd, game/play/kicked_dust.gd, game/play/wind_dust.gd, game/play/figure_view.gd,
-  game/play/first_person_view.gd, game/play/play_session.gd, game/config/effects_config.gd,
-  game/save/graphics_apply.gd, data/graphics.md, tests/unit/test_dust_effects.gd, docs/PLAYTEST.md
-contract: Simulation and presentation (1); Data, not literals (6)
+perf: none
+touches: tools/unit_tests.sh, tools/check.sh, .github/workflows/ci.yml, tests/unit/, docs/PROCESS.md
+contract: none
 acceptance:
-  1. Gas puffs (the browser's GAS_PUFFS): each shot of a gas replica puffs a cool, short breath from its muzzle and
-     a smaller one from its port, in first person and on figures; never on electric or spring replicas. A pool of
-     16, no allocation a shot.
-  2. Kicked dust (KICKED_DUST): a low, faint puff at a sprinting footfall and a bigger one on landing, tinted by the
-     map's `dressing.kickedDust`, only within its range of the camera, its top under 0.3 m so it never hides
-     anyone. None where the Wind dust row is 0 %.
-  3. The wind's specks take the sun's light and shadow, so they glint in sunlight and fade in shade, and fade out
-     near the eye. Reduced motion keeps its share.
-  4. Contact shadows (moved here from step 20): a soft shadow under every figure where sun shadows are off.
-  5. The record gives the frame time added on Low and High in a full 3v3 firefight, and posts a picture of each
-     effect.
+  1. The record lists the twenty slowest unit test files with their time, measured on the cloud container.
+  2. The unit suite runs in well under `tools/unit_tests.sh`'s 1080 s limit with room for steps 26 to 31: the slowest
+     files made faster where a test does more work than its check needs, or the GUT run split across two CI jobs
+     (and two local runs in `tools/check.sh`) if that is the cleaner fix. No test is skipped, weakened or deleted.
+  3. `tools/check.sh` and CI still report failures and totals only, and a failure names its test file.
 status: open
 attempts: 0
 

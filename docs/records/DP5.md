@@ -1,14 +1,14 @@
 # DP5 · Gas puffs, kicked dust, sunlit dust and contact shadows
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,919 of 2,919 | – | – |
-| 2026-10-24 | 1, QA fixes | Opus 5.5 (worker) | pass, 2,924 of 2,924 (943 s) | – | QA: the disc at the origin when switched on paused; a disc over feet dropping off a ledge |
-| 2026-10-24 | 2 | Opus 5.5 (worker) | pass, 2,924 of 2,924 (942 s) | 7/8, retry | critic: the kicked dust drawn unshaded in a fixed tint, darker than the sunlit floor it rises from (207,198,183 on 229,216,195) and lost in shade |
+| 2026-10-24 | 1, QA fixes | Opus 5.5 (worker) | pass, 2,924 of 2,924 (943 s) | 7/8, retry | QA: the disc at the origin when switched on paused; a disc over feet dropping off a ledge |
+| 2026-10-24 | 2 | Opus 5.5 (worker) | pass, 2,924 of 2,924 (942 s) | Accept 8/8 | critic: the kicked dust drawn unshaded in a fixed tint, darker than the sunlit floor it rises from (207,198,183 on 229,216,195) and lost in shade |
 
 ## What was built
 
@@ -120,3 +120,12 @@ the feet left, gas within 35 m, a watched bot's breath from the view): 2,924 of 
 on first sight: the first round, or Low to Medium mid-match). Attempt 2 (the kicked dust lit, the puffs' builder shared): `test_dust_effects`, `test_dp5_qa` and
 `test_play_session` pass (13, 5, 14); `tools/check.sh`: 2,924 of 2,924 in 942 s, every gate passing. The prewarm
 already drew the kicked dust's material, so its count stays seven.
+
+## Advisories left
+
+- QA failed attempt 1 on two contact-shadow bugs (a disc at the origin when switched on from the paused menu, a disc
+  over feet dropping off a ledge) and performance on the wind specks missing from the prewarm; all fixed and pinned.
+- The lit kicked-dust shader wasn't measured by performance; it draws at most 24 small quads, Medium and up (critic).
+- Gas puffs and kicked dust ignore Reduced motion; only the wind specks scale with it (performance).
+- The unit suite takes 895 to 943 s against `tools/unit_tests.sh`'s 1080 s and CI's 20-minute job; task CI1 profiles
+  or splits it before step 26 grows it (critic).
