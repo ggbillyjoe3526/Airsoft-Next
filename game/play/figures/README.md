@@ -2,12 +2,13 @@
 
 The rigged figures (step 23, `/mnt/project-files/plan/step23-figures.md`): `human.glb` and `robot.glb` from
 `assets/models/characters/` drawn for the other players. Presentation only: the figures read the state and never
-write it (docs/ARCHITECTURE.md › Contracts 1). Until FI7 they show only with Dev › Rigged figures ticked; the capsules
-(`FigureView`) stay the default. Tuning: `FigureConfig` (`game/config/figure_config.gd`, on PlayTuning).
+write it (docs/ARCHITECTURE.md › Contracts 1). Since FI7 every bot is drawn as one on every preset, with no switch
+(DECISIONS BD1); the capsules are gone. PlaySession loads the models as it builds the views, behind the loading
+screen. Tuning: `FigureConfig` (`game/config/figure_config.gd`, on PlayTuning).
 
 | File | What |
 |---|---|
-| `figure_models.gd` | `FigureModels`: each kind loaded once a session (scene, sidecar, clips looped as the sidecar says, the fire clips' additive copies, the grip places turned from Blender's axes, the sling on the chest); the team-painted materials and the shadow twins' meshes, made once and shared. A kind it can't read warns and stays capsules |
+| `figure_models.gd` | `FigureModels`: each kind loaded once a session (scene, sidecar, clips looped as the sidecar says, the fire clips' additive copies, the grip places turned from Blender's axes, the sling on the chest); the team-painted materials and the shadow twins' meshes, made once and shared. A kind it can't read warns and draws no body; `materials` lists every one the kinds wear, for ShaderPrewarm |
 | `figure_sidecar.gd` | `FigureSidecar`: a sidecar json, typed (clips, parts, `replicaOnGrip`, `magazineInHand`); the matrices as the file gives them, in Blender's axes |
 | `figure_body.gd` | `FigureBody`: one character's figure: one head by id, a level of detail by distance (visibility ranges on the Mesh detail's lines), one shadow twin, the Team* paint, bones by name, the fade through `transparency`; its legs' AnimationTree (the kind's graph, advanced by hand in `animate`) and its FigureBend |
 | `figure_pose.gd` | `FigurePose`: a character between two ticks as the legs' targets (the step in the figure's frame, crouch, backwards, jump, vault, the hit call, the walk-off, the lean) and the upper body's (pitch, hold, holster, a switch, what is in the hand, slung or hanging, a reload's share from reload_left), eased at the browser's settle times; pure, one per figure, no allocation |
@@ -20,4 +21,6 @@ write it (docs/ARCHITECTURE.md › Contracts 1). Until FI7 they show only with D
 
 Tests: `tests/unit/test_figure_models.gd`, `test_figure_body.gd`, `test_figure_mix.gd`, `test_figure_view.gd`,
 `test_figure_pose.gd`, `test_figure_animator.gd`, `test_figure_flinch.gd`, `test_figure_legs_qa.gd`, `test_figure_hands.gd`,
-`test_figure_hands_qa.gd`, `test_figure_flinch_qa.gd`, `test_thrown_magazines.gd`.
+`test_figure_hands_qa.gd`, `test_figure_flinch_qa.gd`, `test_thrown_magazines.gd`; the hit area against the drawn figure
+`test_figure_hit_area.gd` (`tests/support/hit_area_probe.gd`, FI7). The bench: `tools/figure_bench.gd` (11 figures on
+Depot for 30 s; dev only).

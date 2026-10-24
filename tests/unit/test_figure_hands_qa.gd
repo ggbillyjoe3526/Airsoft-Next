@@ -1,7 +1,7 @@
 extends GutTest
 ## FI3 QA: the upper body under the situations a match makes (rapid and cut-short switches, switching or firing while
 ## holstered or sprinting, pistol-only and rifle-less kits, parts and paint through the rigged figure, set_body swaps
-## and rematches, a figure hidden or far then shown, the hit call then a round reset, extreme pitch, capsule mode).
+## and rematches, a figure hidden or far then shown, the hit call then a round reset, extreme pitch, no body).
 ## Rigged poses are read as the skeleton finishes updating (modifiers have run).
 
 const NEAR := Vector3(0.0, 1.6, 3.0)
@@ -38,7 +38,7 @@ func _loadout(ids: Array[StringName]) -> Array[ReplicaConfig]:
 func _view(kind: int, c: Character, realistic: bool = false) -> FigureView:
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null, realistic)
+	v.setup(c, Color.RED, hits, null, realistic)
 	v.set_body(models, kind, config.lod_high)
 	_watch(v)
 	return v
@@ -227,7 +227,7 @@ func test_a_kit_without_a_rifle_or_a_rifle_alone_works_in_every_state() -> void:
 	assert_eq(v.body().hands.slung, 0, "still slung for the first half of the draw from the holster")
 
 
-func test_parts_and_paint_read_through_the_rigged_figure_as_through_the_capsules() -> void:
+func test_parts_and_paint_read_through_the_figure_as_without_a_body() -> void:
 	var rifle := ReplicaStats.load_replica(&"aeg")
 	var pistol := ReplicaStats.load_replica(&"pistol")
 	var loadout: Array[ReplicaConfig] = [rifle, pistol]
@@ -235,10 +235,10 @@ func test_parts_and_paint_read_through_the_rigged_figure_as_through_the_capsules
 	var parts: Array[Dictionary] = [{&"optic": &"redDot", &"magazine": &"hiCap"}, {&"laser": &"redLaser"}]
 	var plain := FigureView.new()
 	add_child_autofree(plain)
-	plain.setup(c, Color.RED, hits, BodyConfig.new(), null, false, parts)
+	plain.setup(c, Color.RED, hits, null, false, parts)
 	var rigged := FigureView.new()
 	add_child_autofree(rigged)
-	rigged.setup(c, Color.RED, hits, BodyConfig.new(), null, false, parts)
+	rigged.setup(c, Color.RED, hits, null, false, parts)
 	rigged.set_body(models, FigureMix.HUMAN, config.lod_high)
 	assert_not_null(rigged.body())
 	assert_eq(rigged._replicas.size(), plain._replicas.size())
@@ -276,15 +276,15 @@ func test_set_body_swaps_leave_the_replicas_attached_once_and_no_orphans() -> vo
 		assert_eq(_shown(v), 1)
 	v.set_body(null, FigureMix.HUMAN, config.lod_high)
 	await wait_process_frames(3)
-	assert_eq(first.get_parent(), v._upper)
+	assert_eq(first.get_parent(), v)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT), orphans, "no orphans")
 
 
-func test_a_cycle_of_rigged_on_off_returns_to_the_same_node_count() -> void:
+func test_a_cycle_of_bodies_and_none_returns_to_the_same_node_count() -> void:
 	var c := _character()
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	v.setup(c, Color.RED, hits, null)
 	await wait_process_frames(2)
 	var before := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
 	for i in 4:
@@ -294,46 +294,33 @@ func test_a_cycle_of_rigged_on_off_returns_to_the_same_node_count() -> void:
 		v.animate(c, 1.0, FRAME, NEAR)
 		v.set_body(null, FigureMix.HUMAN, config.lod_high)
 		await wait_process_frames(2)
-	assert_eq(Performance.get_monitor(Performance.OBJECT_NODE_COUNT), before, "back to the capsules' node count")
+	assert_eq(Performance.get_monitor(Performance.OBJECT_NODE_COUNT), before, "back to the bodiless node count")
 	assert_eq(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT), 0.0)
 
 
-func test_capsule_mode_replicas_are_where_they_were_after_a_rigged_round_trip() -> void:
+func test_without_a_body_shots_are_ignored_and_no_replica_shows() -> void:
 	var c := _character()
-	var plain := FigureView.new()
-	add_child_autofree(plain)
-	plain.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	var v := FigureView.new()
+	add_child_autofree(v)
+	v.setup(c, Color.RED, hits, null)
+	v.on_shot()
+	assert_false(v._fired, "no press queued without a body")
+	v.update(c, 1.0)
+	v.animate(c, 1.0, FRAME, NEAR)
+	c.armament.active = 1
+	v.update(c, 1.0)
+	for r in v._replicas:
+		assert_false(r.visible, "nothing to hold it")
 	var round_trip := FigureView.new()
 	add_child_autofree(round_trip)
-	round_trip.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	round_trip.setup(c, Color.RED, hits, null)
 	round_trip.set_body(models, FigureMix.HUMAN, config.lod_high)
 	_watch(round_trip)
 	await _pose(round_trip, c, 5)
 	round_trip.set_body(null, FigureMix.HUMAN, config.lod_high)
-	plain.update(c, 1.0)
 	round_trip.update(c, 1.0)
-	for i in plain._replicas.size():
-		var a := plain._replicas[i]
-		var b := round_trip._replicas[i]
-		assert_true(a.transform.is_equal_approx(b.transform), "slot %d: the capsules' replica transform is restored" % i)
-		assert_eq(a.visible, b.visible, "slot %d: shown alike" % i)
-
-
-func test_capsule_mode_ignores_shots_and_animates_nothing() -> void:
-	var c := _character()
-	var v := FigureView.new()
-	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null)
-	v.on_shot()
-	assert_false(v._fired, "no press queued without a rigged body")
-	v.update(c, 1.0)
-	v.animate(c, 1.0, FRAME, NEAR)
-	assert_true(v._replicas[0].visible)
-	assert_false(v._replicas[1].visible)
-	c.armament.active = 1
-	v.update(c, 1.0)
-	assert_true(v._replicas[1].visible)
-	assert_false(v._replicas[0].visible)
+	for r in round_trip._replicas:
+		assert_false(r.visible, "put away with the body")
 
 
 func test_a_figure_hidden_while_it_holsters_has_the_rifle_on_the_sling_when_shown_again() -> void:
@@ -448,10 +435,8 @@ func test_a_pistol_at_the_extremes_points_where_the_shot_goes() -> void:
 			assert_lt(_grip_gap(v, d), 0.03)
 
 
-func _rigged_session() -> PlaySession:
+func _session() -> PlaySession:
 	var settings := Settings.new(PlayTuning.new())
-	settings.dev_enabled = true
-	settings.dev.rigged_figures = true
 	var p := PlaySession.new()
 	p.settings = settings
 	p.map_id = "depot"
@@ -461,18 +446,20 @@ func _rigged_session() -> PlaySession:
 	return p
 
 
-func test_toggling_rigged_figures_mid_match_keeps_every_replica_on_one_parent_and_one_shown() -> void:
-	var p := _rigged_session()
+func test_bodies_swapped_mid_match_keep_every_replica_on_one_parent_and_one_shown() -> void:
+	var p := _session()
 	await wait_physics_frames(120)
 	for i in 3:
-		p._set_rigged(false)
+		for f in p._figures:
+			f.set_body(null, 0, p._figure_lines)
 		await wait_physics_frames(20)
 		for f in p._figures:
 			assert_null(f.body())
 			for r in f._replicas:
 				if r != null:
-					assert_eq(r.get_parent(), f._upper, "back on the capsules")
-		p._set_rigged(true)
+					assert_eq(r.get_parent(), f, "kept on the figure")
+		for f in p._figures:
+			f.set_body(p._figure_models, p.figure_kinds[f.character_id], p._figure_lines)
 		await wait_physics_frames(60)
 		for f in p._figures:
 			assert_not_null(f.body())
@@ -484,10 +471,10 @@ func test_toggling_rigged_figures_mid_match_keeps_every_replica_on_one_parent_an
 			assert_lte(shown, 2)
 
 
-func test_a_rematch_of_rigged_sessions_leaves_no_orphans() -> void:
+func test_a_run_of_sessions_leaves_no_orphans() -> void:
 	var before := Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)
 	for i in 3:
-		var p := _rigged_session()
+		var p := _session()
 		await wait_physics_frames(90)
 		remove_child(p)
 		p.free()
@@ -503,7 +490,7 @@ func test_a_shot_beyond_the_far_line_with_far_stride_0_does_not_play_when_the_fi
 	var c := _character()
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	v.setup(c, Color.RED, hits, null)
 	v.set_body(own, FigureMix.HUMAN, held_still.lod_high)
 	for i in 5:
 		v.update(c, 1.0)

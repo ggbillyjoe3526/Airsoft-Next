@@ -115,7 +115,10 @@ func test_the_late_materials_are_drawn_once_at_the_start_and_then_freed() -> voi
 	add_child_autofree(fresh)
 	var prewarm := fresh.find_child("ShaderPrewarm", true, false) as ShaderPrewarm
 	assert_not_null(prewarm, "the specks hang under the camera from the first frame")
-	assert_eq(prewarm.get_child_count(), 4, "a fading figure, a BB, a puff and the sign")
+	var figures := fresh._figure_models.materials(fresh.team_colours().figures.colours,
+			fresh.team_colours().figures.glow).size()
+	assert_gt(figures, 0)
+	assert_eq(prewarm.get_child_count(), 3 + 2 * figures, "a BB, a puff, the sign and each figure material solid and fading")
 	await wait_process_frames(ShaderPrewarm.FRAMES + 1)
 	assert_false(is_instance_valid(prewarm), "gone once its frames are drawn")
 

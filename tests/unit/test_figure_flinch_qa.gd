@@ -33,14 +33,15 @@ func _character(yaw: float = 0.0) -> Character:
 func _view(c: Character, kind: int = -1) -> FigureView:
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null, false, [], 0.0, config)
+	v.setup(c, Color.RED, hits, null, false, [], 0.0, config)
 	if kind >= 0:
 		v.set_body(models, kind, config.lod_high)
 	return v
 
 
+## The upper body's tilt (rad) as `v` hands it to its body.
 func _tilt_angle(v: FigureView) -> float:
-	return v._upper.basis.y.angle_to(Vector3.UP)
+	return (FigureFlinch.turn(v._flinch.tilt()) * Vector3.UP).angle_to(Vector3.UP)
 
 
 # --- no flat way, and hits a tick apart ---
@@ -84,13 +85,16 @@ func test_a_hit_in_the_hit_call_and_the_walk_off_flinches_with_the_hand_up() -> 
 	for status: int in [Character.Status.CALLING, Character.Status.WALKING_OFF]:
 		var c := _character()
 		c.status = status
-		var v := _view(c)
+		var v := _view(c, FigureMix.HUMAN)
 		v.update(c, 1.0, 0.0)
-		var arm := v._arm.rotation
+		v.animate(c, 1.0, DT, NEAR)
+		var call := v.body().tree.get(FigureGraph.P_CALL) as float
 		v.hit(Vector3.RIGHT, 0.0)
 		v.update(c, 1.0, config.flinch_rise)
+		v.animate(c, 1.0, DT, NEAR)
 		assert_almost_eq(_tilt_angle(v), 0.32, EPS, "status %d: jolted" % status)
-		assert_eq(v._arm.rotation, arm, "status %d: the hand stays as the call has it" % status)
+		assert_eq(v.body().tree.get(FigureGraph.P_CALL) as float, call, "status %d: the hand stays as the call has it"
+				% status)
 		assert_true(v._sign.visible, "status %d: HIT! still shown" % status)
 
 
@@ -116,7 +120,7 @@ func test_a_rigged_figure_hit_in_the_call_flinches_beside_an_unhit_one() -> void
 
 # --- hidden, then shown ---
 
-func test_a_hidden_capsule_figure_shown_again_is_at_the_true_time_of_its_flinch() -> void:
+func test_a_hidden_figure_shown_again_is_at_the_true_time_of_its_flinch() -> void:
 	var c := _character()
 	var v := _view(c)
 	var reference := FigureFlinch.new(config)
@@ -151,7 +155,7 @@ func test_set_body_mid_flinch_carries_the_flinch_to_the_new_body_and_back() -> v
 	v.set_body(null, FigureMix.HUMAN, config.lod_high)
 	assert_null(v.body())
 	v.update(c, 1.0, DT)
-	assert_almost_eq(_tilt_angle(v), v._flinch.tilt().length(), EPS, "the capsules carry on")
+	assert_almost_eq(_tilt_angle(v), v._flinch.tilt().length(), EPS, "the flinch carries on with no body")
 	v.update(c, 1.0, 1.0)
 	assert_almost_eq(_tilt_angle(v), 0.0, EPS)
 

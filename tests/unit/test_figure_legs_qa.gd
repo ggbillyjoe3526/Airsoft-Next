@@ -28,7 +28,7 @@ func _character(velocity: Vector3 = Vector3.ZERO) -> Character:
 func _view(kind: int, c: Character, cfg_models: FigureModels = null) -> FigureView:
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	v.setup(c, Color.RED, hits, null)
 	v.set_body(cfg_models if cfg_models != null else models, kind, config.lod_high)
 	return v
 
@@ -163,7 +163,7 @@ func _make_and_free_a_figure() -> void:
 		var c := _character(Vector3(0.0, 0.0, -moves.run_speed))
 		var v := FigureView.new()
 		add_child(v)
-		v.setup(c, Color.RED, hits, BodyConfig.new(), null)
+		v.setup(c, Color.RED, hits, null)
 		v.set_body(models, FigureMix.HUMAN, config.lod_high)
 		for i in 5:
 			v.animate(c, 0.5, 0.016, NEAR)
@@ -221,23 +221,21 @@ func test_a_huge_hitch_delta_settles_to_the_targets_without_nan() -> void:
 	assert_true(is_finite(_head(v).x) and is_finite(_head(v).y) and is_finite(_head(v).z))
 
 
-func test_lean_right_goes_to_the_same_side_the_capsule_figure_leans() -> void:
+func test_lean_right_goes_to_the_same_side_the_hit_volume_leans() -> void:
 	for lean: float in [-1.0, 1.0]:
 		var c := _character()
 		c.lean = lean
 		c.prev_lean = lean
-		var capsule := FigureView.new()
-		add_child_autofree(capsule)
-		capsule.setup(c, Color.RED, hits, BodyConfig.new(), null)
-		capsule.update(c, 1.0)
-		var top := capsule._upper.global_transform * Vector3(0.0, 0.5, 0.0)
+		var volume := Hitbox.Volume.new()
+		Hitbox.build_volume(c, hits, volume)
+		var top := volume.head.a
 		var v := _view(FigureMix.HUMAN, c)
 		_watch(v)
 		v.update(c, 1.0)
 		v.animate(c, 1.0, 0.016, NEAR)
 		await wait_process_frames(2)
 		var head := v.body().skeleton.global_transform * _head(v)
-		assert_eq(signf(head.x), signf(top.x), "lean %.0f: the rigged head is on the capsule upper body's side" % lean)
+		assert_eq(signf(head.x), signf(top.x), "lean %.0f: the drawn head is on the hit volume's side" % lean)
 		assert_gt(absf(head.x), 0.25)
 
 

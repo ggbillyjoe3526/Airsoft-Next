@@ -5,7 +5,7 @@ extends RefCounted
 ## on the Grip_R bone; and where the magazines go in the reloads. The matrices are kept as the file gives them, in
 ## Blender's axes in the bone's frame (X right, Y forward, Z up, origin at the bone head): the code that places a
 ## replica or a magazine turns them (FI3, FI4). `read` warns and gives null for a missing or unreadable file, and the
-## figures fall back to the capsules.
+## kind draws no body.
 
 ## One clip: its name in the AnimationPlayer's library, length (s), whether it loops, the speed (m/s) its steps were
 ## made at (0 when it isn't a gait), whether it is authored over a still pelvis for the upper body only, and the replica
@@ -54,7 +54,7 @@ var magazine_in_hand: Dictionary[StringName, Magazine] = {}
 ## The sidecar at `path`, or null with a warning when it is missing or unreadable.
 static func read(path: String) -> FigureSidecar:
 	if not FileAccess.file_exists(path):
-		push_warning("FigureSidecar: %s is missing; the figures stay capsules" % path)
+		push_warning("FigureSidecar: %s is missing; its figures draw no body" % path)
 		return null
 	return parse(FileAccess.get_file_as_string(path), path)
 
@@ -65,28 +65,28 @@ static func parse(text: String, source: String = "sidecar") -> FigureSidecar:
 	var json := JSON.new()
 	var data: Variant = json.data if json.parse(text) == OK else null
 	if not data is Dictionary:
-		push_warning("FigureSidecar: %s is not a JSON object; the figures stay capsules" % source)
+		push_warning("FigureSidecar: %s is not a JSON object; its figures draw no body" % source)
 		return null
 	var d := data as Dictionary
 	var s := FigureSidecar.new()
 	var clip_list: Variant = d.get("clips")
 	var part_list: Variant = d.get("parts")
 	if not clip_list is Array or not part_list is Array:
-		push_warning("FigureSidecar: %s has no clips or parts; the figures stay capsules" % source)
+		push_warning("FigureSidecar: %s has no clips or parts; its figures draw no body" % source)
 		return null
 	for entry: Variant in clip_list:
 		var clip := _clip(entry)
 		if clip == null:
-			push_warning("FigureSidecar: %s has a clip without a name and length; the figures stay capsules" % source)
+			push_warning("FigureSidecar: %s has a clip without a name and length; its figures draw no body" % source)
 			return null
 		s.clips.append(clip)
 	for part: Variant in part_list:
 		if not part is String:
-			push_warning("FigureSidecar: %s has a part that isn't a name; the figures stay capsules" % source)
+			push_warning("FigureSidecar: %s has a part that isn't a name; its figures draw no body" % source)
 			return null
 		s.parts.append(part as String)
 	if s.parts.is_empty():
-		push_warning("FigureSidecar: %s lists no parts; the figures stay capsules" % source)
+		push_warning("FigureSidecar: %s lists no parts; its figures draw no body" % source)
 		return null
 	var grip: Variant = d.get("replicaOnGrip")
 	if grip is Dictionary:

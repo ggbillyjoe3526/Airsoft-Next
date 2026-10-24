@@ -113,10 +113,9 @@ var _figures: Array[FigureView] = []
 var _figure_of: Array[FigureView] = []
 ## Each character's figure kind (FigureMix: human or robot), by character id; the player's too (ReplicaView.arms_kind).
 var figure_kinds: PackedInt32Array = PackedInt32Array()
-## The rigged figures (FigureModels), loaded the first time Dev › Rigged figures is on, then kept for the session;
-## whether they are drawn, and the lines (m) their levels of detail change at (the graphics' Mesh detail).
+## The figures' models (FigureModels), loaded once a session as the views are built (behind the loading screen; none on
+## the range, which has no figures), and the lines (m) their levels of detail change at (the graphics' Mesh detail).
 var _figure_models: FigureModels = null
-var _rigged: bool = false
 var _figure_lines: Vector2 = Vector2.ZERO
 ## The magazines the rigged figures throw in their reloads (FI4): a fixed pool built with the models, cleared each
 ## round.
@@ -481,19 +480,15 @@ func _build_views(ui: CanvasLayer) -> void:
 		var f := FigureView.new()
 		var parts: Array[Dictionary] = []
 		parts.assign(_bot_parts.get(c.id, []))
-		f.setup(c, _colours.figures.colours[c.team], _tuning.hits, _tuning.body, sign_font, realistic, parts,
+		f.setup(c, _colours.figures.colours[c.team], _tuning.hits, sign_font, realistic, parts,
 				_colours.figures.glow, _play.figures)
 		add_child(f)
 		_figures.append(f)
 		_figure_of[c.id] = f
 	_pick_kinds()
 	_figure_lines = _play.figures.lod_high
-	var first_use: Array[Material] = [
-		_bbs.drawn_material(), _puffs.drawn_material(), FigureView.material(Color.WHITE, true, _colours.figures.glow)
-	]
-	if _colours.figures.glow > 0.0:
-		# a glowing figure is drawn opaque first: its own shader, not the plain one the field's props warm (performance)
-		first_use.append(FigureView.material(Color.WHITE, false, _colours.figures.glow))
+	var figure_materials := _build_bodies()
+	var first_use: Array[Material] = [_bbs.drawn_material(), _puffs.drawn_material()]
 	if state.round_state.mode == RoundState.Mode.ATTACK_DEFEND:
 		_flag = FlagView.new()
 		_flag.setup(_play.flag, _colours.figures, state.round_state.pole, _tuning.flag.radius)
@@ -502,7 +497,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	first_use.append_array(_hands.prewarm_glass())
 	first_use.append_array(range_materials)
 	var warm := ShaderPrewarm.new()
-	warm.setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE))
+	warm.setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE), figure_materials)
 	warm.tree_exited.connect(_on_shaders_warmed, CONNECT_ONE_SHOT)
 	var profiles: Array[StringName] = []
 	for c in state.characters:
@@ -1229,7 +1224,6 @@ func _apply_dev() -> void:
 		_intents.queue_free()
 		_intents = null
 	_pretend_slow = dev.pretend_slow_frames
-	_set_rigged(dev.rigged_figures)
 	if dev.retro_pixels and _retro == null:
 		_retro = RetroPixels.new()
 		add_child(_retro)
@@ -1262,32 +1256,28 @@ func _pick_kinds() -> Array[int]:
 	return changed_ids
 
 
-## A rematch: the Looks setting read again, and a figure whose kind changed is drawn as its new kind (when rigged).
+## A rematch: the Looks setting read again, and a figure whose kind changed is drawn as its new kind.
 func _refresh_kinds() -> void:
 	var changed_ids := _pick_kinds()
-	if not _rigged:
+	if _figure_models == null:
 		return
 	for f in _figures:
 		if changed_ids.has(f.character_id):
 			f.set_body(_figure_models, figure_kinds[f.character_id], _figure_lines)
 
 
-## Dev › Rigged figures: every figure drawn as its rigged kind (the models loaded the first time), or as capsules again.
-func _set_rigged(on: bool) -> void:
-	if on == _rigged:
-		return
-	_rigged = on
-	# No figures (the range): nothing to load.
+## Every figure drawn as its kind (DECISIONS BD1, FI7): the models loaded once, here behind the loading screen, the
+## thrown magazines' pool built with them, each figure given its body. Returns every material the figures can draw
+## with (both kinds, both teams), for ShaderPrewarm. No figures (the range): nothing loaded.
+func _build_bodies() -> Array[Material]:
 	if _figures.is_empty():
-		return
-	if on and _figure_models == null:
-		_figure_models = FigureModels.new(_play.figures)
-		_figure_models.load_kinds()
-		_build_thrown()
-	if not on and _thrown != null:
-		_thrown.clear()
+		return []
+	_figure_models = FigureModels.new(_play.figures)
+	_figure_models.load_kinds()
+	_build_thrown()
 	for f in _figures:
-		f.set_body(_figure_models if on else null, figure_kinds[f.character_id], _figure_lines)
+		f.set_body(_figure_models, figure_kinds[f.character_id], _figure_lines)
+	return _figure_models.materials(_colours.figures.colours, _colours.figures.glow)
 
 
 ## The thrown magazines' pool, once a session with the models: FigureConfig.thrown_max copies, each taking the

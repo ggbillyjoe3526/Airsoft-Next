@@ -224,7 +224,7 @@ func test_the_crouched_head_top_stays_at_or_under_the_line() -> void:
 func _view(kind: int, c: Character) -> FigureView:
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	v.setup(c, Color.RED, hits, null)
 	v.set_body(models, kind, config.lod_high)
 	return v
 
@@ -260,17 +260,15 @@ func test_a_hidden_figures_legs_stay_still_and_a_far_ones_move_every_far_stride_
 	assert_eq(moved, 3, "beyond the far line, one frame in far_stride")
 
 
-func test_a_capsule_figure_is_unchanged_by_animate() -> void:
+func test_a_figure_with_no_body_is_unchanged_by_animate() -> void:
 	var c := _character(Vector3(0.0, 0.0, -moves.run_speed))
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	v.setup(c, Color.RED, hits, null)
 	v.update(c, 1.0)
 	v.animate(c, 1.0, 0.016, Vector3.ZERO)
 	assert_null(v.body())
 	assert_eq(v.find_children("*", "AnimationTree", true, false).size(), 0)
-	for m in v._capsules:
-		assert_true(m.visible)
 
 
 func test_120_frames_of_updates_allocate_no_objects() -> void:

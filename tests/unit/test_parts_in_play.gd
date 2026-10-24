@@ -154,7 +154,7 @@ func test_a_figure_holds_its_replica_with_its_parts() -> void:
 	var c := Character.new(3, 1, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
 	var f := FigureView.new()
 	add_child_autofree(f)
-	f.setup(c, Color.ORANGE, HitConfig.new(), BodyConfig.new(), GameTheme.font(800), false, kit.parts)
+	f.setup(c, Color.ORANGE, HitConfig.new(), GameTheme.font(800), false, kit.parts)
 	var held := f._replicas[1]
 	assert_not_null(held.get_node_or_null("laser_redLaser_Figure"), "the laser module shows on the pistol")
 

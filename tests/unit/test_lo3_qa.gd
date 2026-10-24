@@ -112,18 +112,27 @@ func test_a_figure_puts_its_replica_away_while_fading_and_shows_it_again_after_a
 	var c := Character.new(2, 0, Vector3.ZERO, 0.0, loadout)
 	var f := FigureView.new()
 	add_child_autofree(f)
-	f.setup(c, Color.RED, HitConfig.new(), BodyConfig.new(), ThemeDB.fallback_font)
-	f.update(c, 1.0)
+	f.setup(c, Color.RED, HitConfig.new(), ThemeDB.fallback_font)
+	var models := FigureModels.new(FigureConfig.new())
+	models.load_kinds()
+	f.set_body(models, FigureMix.HUMAN, models.config.lod_high)
+	_pose(f, c)
 	assert_true(f._replicas[0].visible)
 	c.status = Character.Status.LEAVING
 	c.status_time = 0.5 * HitConfig.new().vanish_time
-	f.update(c, 1.0)
+	_pose(f, c)
 	assert_false(f._replicas[0].visible, "no shared-material replica hangs in the air while the body fades")
 	c.status = Character.Status.ALIVE
 	c.armament.active = 1
-	f.update(c, 1.0)
+	_pose(f, c)
 	assert_true(f._replicas[1].visible)
 	assert_false(f._replicas[0].visible)
+
+
+## `f` placed and posed from `c`, as a frame draws it.
+func _pose(f: FigureView, c: Character) -> void:
+	f.update(c, 1.0)
+	f.animate(c, 1.0, 0.0, Vector3.ZERO)
 
 
 func test_the_cyber_pistol_stays_unpainted_even_when_a_bad_paint_is_passed() -> void:

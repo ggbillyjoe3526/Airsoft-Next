@@ -27,6 +27,17 @@ func _session(colour_set: TeamColours.Set) -> PlaySession:
 	return session
 
 
+## The figure's team paint: the first Team* surface's shared material that doesn't glow as modelled (the robot's
+## TeamGlow keeps its own glow, FI1).
+static func _paint(f: FigureView) -> BaseMaterial3D:
+	for mi in f.body().meshes:
+		for i in mi.get_surface_override_material_count():
+			var m := mi.get_surface_override_material(i) as BaseMaterial3D
+			if m != null and not m.resource_name.to_lower().contains("glow"):
+				return m
+	return null
+
+
 func _assert_colour(got: Color, want: Color, what: String) -> void:
 	for i in 3:
 		assert_almost_eq(got[i], want[i], SAME, "%s, channel %d" % [what, i])
@@ -37,13 +48,14 @@ func _assert_drawn(figures: Array[Color], hud: Array[Color], glow: float) -> voi
 	assert_false(session._figures.is_empty())
 	for f in session._figures:
 		var team := session.state.character(f.character_id).team
-		_assert_colour(f._mat.albedo_color, figures[team], "figure %d" % f.character_id)
+		var paint := _paint(f)
+		_assert_colour(paint.albedo_color, figures[team], "figure %d" % f.character_id)
 		_assert_colour(f._sign.outline_modulate, figures[team].darkened(FigureView.SIGN_OUTLINE_DARKEN),
 				"sign %d" % f.character_id)
-		assert_eq(f._mat.emission_enabled, glow > 0.0, "glows only with a glow")
+		assert_eq(paint.emission_enabled, glow > 0.0, "glows only with a glow")
 		if glow > 0.0:
-			assert_almost_eq(f._mat.emission_energy_multiplier, glow, 0.001)
-			_assert_colour(f._mat.emission, figures[team], "the glow is the paint's own colour")
+			assert_almost_eq(paint.emission_energy_multiplier, glow, 0.001)
+			_assert_colour(paint.emission, figures[team], "the glow is the paint's own colour")
 	var flag := session.flag_view()
 	assert_not_null(flag)
 	for side in 2:
@@ -101,7 +113,11 @@ func test_the_glow_is_0_on_a_night_preset() -> void:
 	var night := PlaySession.team_colours_for(s, lighting, base)
 	assert_eq(night.figures.glow, 0.0)
 	_assert_colour(night.figures.colours[0], HC_FIGURES[0], "the same paint at night")
-	assert_false(FigureView.material(HC_FIGURES[0], false, night.figures.glow).emission_enabled)
+	var source := StandardMaterial3D.new()
+	source.resource_name = "Team"
+	var models := FigureModels.new(FigureConfig.new())
+	assert_false((models.team_material(FigureMix.HUMAN, source, 0, HC_FIGURES[0], night.figures.glow)
+			as BaseMaterial3D).emission_enabled)
 
 
 func test_ink_is_dark_only_on_a_light_team_colour() -> void:
@@ -131,8 +147,8 @@ func test_the_match_page_s_team_picks_follow_the_saved_set_at_once() -> void:
 	await wait_process_frames(1) # the rules' chips the change rebuilt go
 
 
-## The glowing figure materials the prewarm draws for `colour_set`, as [faded, opaque] counts.
-func _glowing_warmed(colour_set: TeamColours.Set) -> Array[int]:
+## The prewarm's specks for `colour_set`: [solid, see-through] by material, and the session's figures.
+func _warmed(colour_set: TeamColours.Set) -> Array:
 	var s := Settings.new(PlayTuning.new())
 	s.team_colours = colour_set
 	var fresh := PlaySession.new()
@@ -140,15 +156,33 @@ func _glowing_warmed(colour_set: TeamColours.Set) -> Array[int]:
 	fresh.bots_active = false
 	add_child_autofree(fresh)
 	var warm := fresh.find_child("ShaderPrewarm", true, false) as ShaderPrewarm
-	var counts: Array[int] = [0, 0]
+	var solid: Dictionary[Material, bool] = {}
+	var faded: Dictionary[Material, bool] = {}
 	for speck in warm.find_children("*", "MeshInstance3D", true, false):
-		var m := (speck as MeshInstance3D).material_override as StandardMaterial3D
-		if m != null and m.emission_enabled:
-			counts[0 if m.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA else 1] += 1
-	return counts
+		var mi := speck as MeshInstance3D
+		if mi.material_override != null:
+			(faded if mi.transparency > 0.0 else solid)[mi.material_override] = true
+	return [solid, faded, fresh._figures]
 
 
-func test_the_prewarm_draws_a_glowing_figure_both_ways_and_standard_none() -> void:
-	assert_eq(_glowing_warmed(TeamColours.Set.HIGH_CONTRAST), [1, 1] as Array[int],
-			"faded and opaque: the first bot seen is drawn opaque (performance)")
-	assert_eq(_glowing_warmed(TeamColours.Set.STANDARD), [0, 0] as Array[int])
+func test_the_prewarm_draws_every_figure_material_solid_and_fading() -> void:
+	for colour_set: TeamColours.Set in [TeamColours.Set.HIGH_CONTRAST, TeamColours.Set.STANDARD]:
+		var got := _warmed(colour_set)
+		var solid: Dictionary[Material, bool] = got[0]
+		var faded: Dictionary[Material, bool] = got[1]
+		var figures: Array[FigureView] = got[2]
+		assert_false(figures.is_empty())
+		var glowing := 0
+		for f in figures:
+			for mi in f.body().meshes:
+				for i in mi.mesh.get_surface_count():
+					var m := mi.get_active_material(i)
+					if m == null:
+						continue
+					assert_true(solid.has(m), "set %d: %s warmed solid" % [colour_set, m.resource_name])
+					assert_true(faded.has(m), "set %d: %s warmed fading" % [colour_set, m.resource_name])
+					var paint := m as BaseMaterial3D
+					if paint != null and paint.emission_enabled and is_equal_approx(paint.emission_energy_multiplier, 0.3):
+						glowing += 1
+		if colour_set == TeamColours.Set.HIGH_CONTRAST:
+			assert_gt(glowing, 0, "the team paint glowing by day (0.3) is among them")

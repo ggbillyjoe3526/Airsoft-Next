@@ -5,9 +5,9 @@ extends RefCounted
 ## additive copies, its animation graph (FigureGraph, the stepping clips' offsets measured once here), where each replica
 ## class sits on the grip bone (the sidecar's replicaOnGrip turned from Blender's axes once) and where the slung rifle
 ## rides on the chest, and, made once and shared by every figure that asks, the team-painted materials and the shadow
-## twins' meshes. A kind whose model or
-## sidecar can't be read warns once and is not drawn (its figures stay capsules). Held by PlaySession; freeing it frees
-## all of it.
+## twins' meshes; and every material its parts wear (`materials`, for ShaderPrewarm). Loaded at the session's build,
+## behind the loading screen (FI7). A kind whose model or sidecar can't be read warns once and is not drawn (its
+## figures draw no body). Held by PlaySession; freeing it frees all of it.
 
 ## One loaded kind.
 class Kind:
@@ -19,6 +19,8 @@ class Kind:
 	var grip: Dictionary[StringName, Transform3D] = {}
 	## The slung rifle's butt frame (its long axis -Z, the muzzle's way) in the chest bone's frame.
 	var sling: Transform3D = Transform3D.IDENTITY
+	## Every material the kind's parts wear, as modelled (each once).
+	var sources: Array[Material] = []
 
 
 var config: FigureConfig = null
@@ -129,6 +131,22 @@ func team_material(kind: int, source: Material, team: int, colour: Color, glow: 
 	return m
 
 
+## Every material the loaded kinds draw with: each modelled one, and each Team* one painted for each team, `colours[team]`
+## lit with `glow` (team_material: the very ones the figures will wear), for ShaderPrewarm.
+func materials(colours: PackedColorArray, glow: float) -> Array[Material]:
+	var out: Array[Material] = []
+	for kind in _kinds.size():
+		if _kinds[kind] == null:
+			continue
+		for source in _kinds[kind].sources:
+			if not source.resource_name.to_lower().begins_with(config.team_material_prefix):
+				out.append(source)
+				continue
+			for team in colours.size():
+				out.append(team_material(kind, source, team, colours[team], glow))
+	return out
+
+
 ## How many team materials have been made (tests).
 func team_material_count() -> int:
 	return _team_materials.size()
@@ -178,7 +196,7 @@ func _load(kind: int) -> Kind:
 	if ResourceLoader.exists(base + ".glb"):
 		packed = load(base + ".glb") as PackedScene
 	if packed == null:
-		push_warning("FigureModels: %s.glb could not be loaded; its figures stay capsules" % base)
+		push_warning("FigureModels: %s.glb could not be loaded; its figures draw no body" % base)
 		return null
 	var k := Kind.new()
 	k.scene = packed
@@ -189,8 +207,14 @@ func _load(kind: int) -> Kind:
 	var players := probe.find_children("*", "AnimationPlayer", true, false)
 	var named := 0
 	for part in side.parts:
-		if probe.find_child(part, true, false) is MeshInstance3D:
-			named += 1
+		var mi := probe.find_child(part, true, false) as MeshInstance3D
+		if mi == null:
+			continue
+		named += 1
+		for i in mi.mesh.get_surface_count():
+			var m := mi.mesh.surface_get_material(i)
+			if m != null and not k.sources.has(m):
+				k.sources.append(m)
 	var skeletons := probe.find_children("*", "Skeleton3D", true, false)
 	if not players.is_empty():
 		var player := players[0] as AnimationPlayer
@@ -212,10 +236,10 @@ func _load(kind: int) -> Kind:
 		k.grip[site_class] = grip_from_blender(side.replica_on_grip[site_class])
 	probe.free()
 	if named == 0:
-		push_warning("FigureModels: %s.glb has none of its sidecar's parts; its figures stay capsules" % base)
+		push_warning("FigureModels: %s.glb has none of its sidecar's parts; its figures draw no body" % base)
 		return null
 	if k.library == null:
-		push_warning("FigureModels: %s.glb has no clips; its figures stay capsules" % base)
+		push_warning("FigureModels: %s.glb has no clips; its figures draw no body" % base)
 		return null
 	return k
 

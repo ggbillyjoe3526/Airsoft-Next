@@ -155,6 +155,25 @@ arms, figures and replicas use (steps 23 and 32).
 
 ## Where it lives in the code
 
-Rewritten once the Godot renderer and materials exist.
+The figures (step 23, FI1-FI7; every bot on every preset, DECISIONS BD1):
+
+- **Models.** `assets/models/characters/human.glb` and `robot.glb` with their sidecars (`human.json`, `robot.json`:
+  clips, parts, grips, the magazine in hand), built by `tools/blender/bot-figure/`. `FigureModels`
+  (`game/play/figures/figure_models.gd`) loads both once a session, as PlaySession builds its views behind the loading
+  screen, and makes each team's paint once a kind, team and glow.
+- **One figure.** `FigureBody` (`figure_body.gd`): one head by id (the human's four, RM9), the levels of detail by
+  distance on the Mesh detail's lines, one shadow twin from LOD2, the Team* paint, the fade through
+  `GeometryInstance3D.transparency`. `FigureView` (`game/play/figure_view.gd`) places it, holds its replicas (the
+  models' figure versions, ReplicaPaint and ReplicaParts) and its "HIT!" sign.
+- **Motion.** `FigurePose` reads the Character between ticks; `FigureGraph` is the kind's AnimationTree graph (gait,
+  crouch, jump, vault, the hit call, the walk-off, the upper body's aim, holster, switch, reload and fire);
+  `FigureBend` lowers the crouch, leans, flinches and pitches the aim after it; `FigureHands` puts the replicas and a
+  reload's magazines on the bones; `ThrownMagazines` throws the old ones.
+- **Shaders.** `ShaderPrewarm` draws every figure material, solid and fading, behind the loading screen
+  (`FigureModels.materials`).
+- **The hit area.** Hitbox's volume is the same for both kinds and is measured against the drawn figure by
+  `tests/support/hit_area_probe.gd` (FI7, `docs/records/FI7.md`); step 32 fits it to the final figures (HV1).
+- **The bench.** `tools/figure_bench.gd`: 11 figures on Depot, the animation and skeleton time per figure, and the
+  frame time with `--perf` (dev only, never exported).
 
 The browser game's version is in `legacy/browser/docs/ART.md`.

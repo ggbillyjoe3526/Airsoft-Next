@@ -1,7 +1,7 @@
 extends GutTest
 ## FI4 QA: the reloads under the situations a match makes (a reload cut by the hit, the dead zone or a round end, drawn
-## at 30 to 240 Hz, two figures in one tick, more than 12 throws, the pool across set_body swaps, the Dev toggle and a
-## rematch, pistol-only and two-pistol kits, a replica with no model, capsule mode, RELOAD_END early or in the same
+## at 30 to 240 Hz, two figures in one tick, more than 12 throws, the pool across set_body swaps and a rematch,
+## pistol-only and two-pistol kits, a replica with no model, no body, RELOAD_END early or in the same
 ## frame as a new reload). Rigged poses are read as the skeleton finishes updating.
 
 const NEAR := Vector3(0.0, 1.6, 3.0)
@@ -39,7 +39,7 @@ func _character(kit: Array[ReplicaConfig] = [], at: Vector3 = Vector3.ZERO) -> C
 func _view(c: Character, kind: int = FigureMix.HUMAN) -> FigureView:
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	v.setup(c, Color.RED, hits, null)
 	v.set_body(models, kind, config.lod_high)
 	return v
 
@@ -409,21 +409,21 @@ func test_set_body_swaps_mid_reload_leave_no_orphans_and_every_copy_has_one_pare
 	assert_eq(Performance.get_monitor(Performance.OBJECT_NODE_COUNT), nodes_before, "no nodes gained")
 	assert_eq(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT), orphans_before, "no orphans")
 	assert_eq(t.pool_size(), config.thrown_max, "the pool untouched")
-	# Back to capsules: the copies are on the upper body, hidden.
+	# No body: the copies wait on the figure, hidden.
 	v.set_body(null, 0, config.lod_high)
 	await wait_process_frames(2)
 	var found := 0
 	for ch in v.find_children("Magazine_*", "MeshInstance3D", true, false):
 		found += 1
 		assert_false((ch as MeshInstance3D).visible)
-	assert_eq(found, 2, "a copy a replica, back on the capsule figure")
+	assert_eq(found, 2, "a copy a replica, kept by the figure")
 
 
-func test_capsule_mode_shows_no_magazine_through_a_reload() -> void:
+func test_without_a_body_no_magazine_shows_through_a_reload() -> void:
 	var c := _character()
 	var v := FigureView.new()
 	add_child_autofree(v)
-	v.setup(c, Color.RED, hits, BodyConfig.new(), null)
+	v.setup(c, Color.RED, hits, null)
 	var a := c.armament
 	a.reload_left = a.replicas[0].reload_time
 	for i in 100:
@@ -450,32 +450,24 @@ func test_release_resets_hanging_and_the_magazine_state() -> void:
 	assert_eq(hands.mag_slot, -1)
 
 
-## Dev › Rigged figures: off and on again with magazines in the air, a late first turn-on, and a rematch.
-func test_the_dev_toggle_and_a_rematch_keep_one_pool_and_leave_no_nodes_behind() -> void:
-	var settings := Settings.new(PlayTuning.new())
-	settings.dev_enabled = true
-	settings.dev.rigged_figures = false
+## The pool built with the session, kept through new bodies with magazines in the air and a rematch.
+func test_new_bodies_and_a_rematch_keep_one_pool_and_leave_no_nodes_behind() -> void:
 	var p := PlaySession.new()
-	p.settings = settings
+	p.settings = Settings.new(PlayTuning.new())
 	p.map_id = "depot"
 	p.autopilot = true
 	p.match_seed = 11
 	add_child_autofree(p)
 	await wait_physics_frames(2)
-	assert_null(p._thrown, "no pool before the figures are rigged")
-	p.settings.dev.rigged_figures = true
-	p._apply_dev()
 	var t := p._thrown
-	assert_not_null(t)
+	assert_not_null(t, "built with the session")
 	var size := t.pool_size()
 	var source := p._figures[0].body().hands.magazine(0)
 	for cycle in 6:
 		assert_true(t.throw(source, Transform3D.IDENTITY, Vector3.ZERO, Vector3.ZERO, 0.0, 9.81, 3.0))
-		p.settings.dev.rigged_figures = false
-		p._apply_dev()
-		assert_eq(t.count(), 0, "cleared when the rigged figures go off")
-		p.settings.dev.rigged_figures = true
-		p._apply_dev()
+		var f := p._figures[1 + cycle % (p._figures.size() - 1)]
+		f.set_body(p._figure_models, FigureMix.ROBOT if cycle % 2 == 0 else FigureMix.HUMAN, p._figure_lines)
+		assert_eq(f.body().hands.thrown, t, "a new body throws into the same pool")
 	assert_eq(p._thrown, t)
 	assert_eq(t.pool_size(), size)
 	var nodes := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)

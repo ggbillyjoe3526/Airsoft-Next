@@ -6,9 +6,8 @@ extends RefCounted
 ## out of the records and give it no XP (DevCheats); Dev content lists maps tagged dev and keeps a match on one out
 ## too; Retro pixels changes only the look. Disable levelling unlocks every item to carry; your own level and unlocks
 ## stay as they are and come back when it is off. Pretend slow frames counts every frame of a live round slow for the
-## automatic graphics step-down (FrameWatch), to check it on a fast machine; it changes nothing else. Rigged figures
-## draws the other players as the rigged models in place of the capsules (step 23, until FI7 makes them the only
-## figures); it changes only the look.
+## automatic graphics step-down (FrameWatch), to check it on a fast machine; it changes nothing else. A saved key
+## no switch reads any more (Rigged figures, gone with FI7) is passed over.
 
 const SPEED_STEP := 0.25
 
@@ -22,7 +21,6 @@ var spectate_bots: bool = false
 var bot_intent: bool = false
 var retro_pixels: bool = false
 var pretend_slow_frames: bool = false
-var rigged_figures: bool = false
 
 
 ## The cheats among them, as the simulation takes them.
@@ -42,7 +40,7 @@ func to_dict() -> Dictionary:
 		"dev_content": dev_content, "disable_levelling": disable_levelling, "game_speed": game_speed,
 		"bottomless": bottomless, "ghost": ghost,
 		"bots_hold_fire": bots_hold_fire, "spectate_bots": spectate_bots, "bot_intent": bot_intent,
-		"retro_pixels": retro_pixels, "pretend_slow_frames": pretend_slow_frames, "rigged_figures": rigged_figures,
+		"retro_pixels": retro_pixels, "pretend_slow_frames": pretend_slow_frames,
 	}
 
 
@@ -61,7 +59,6 @@ func from_dict(data: Dictionary) -> void:
 	bot_intent = _flag(data, "bot_intent")
 	retro_pixels = _flag(data, "retro_pixels")
 	pretend_slow_frames = _flag(data, "pretend_slow_frames")
-	rigged_figures = _flag(data, "rigged_figures")
 
 
 static func _flag(data: Dictionary, key: String) -> bool:

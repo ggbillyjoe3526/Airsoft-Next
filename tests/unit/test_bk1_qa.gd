@@ -188,7 +188,7 @@ func test_a_bots_figure_gets_its_parts_and_a_single_replica_kit_does_not_break()
 	var f := FigureView.new()
 	var c := Character.new(50, 1, Vector3.ZERO, 0.0, [BotKits.kit_of(_parse("| L | Cyber Pistol | | | | | 1 | 1 | 1 | 1 |\n").kits[0], rules).replicas[0]] as Array[ReplicaConfig])
 	var parts: Array[Dictionary] = [{}]
-	f.setup(c, Color.RED, s._tuning.hits, s._tuning.body, null, false, parts)
+	f.setup(c, Color.RED, s._tuning.hits, null, false, parts)
 	add_child_autofree(f)
 	await wait_physics_frames(2)
 	assert_not_null(f)

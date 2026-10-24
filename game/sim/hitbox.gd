@@ -3,8 +3,10 @@ class_name Hitbox
 ## volume, M85): a head sphere, a chest capsule, two hip capsules side by side, and each leg's thigh, shin and boot,
 ## swinging about the hip on the walk cycle and squashed towards it when crouching. The head, chest and hips tilt with a
 ## lean about the hip pivot (Lean), as the drawn upper body does, so only what pokes out past cover can be hit; the legs
-## stay put. Arms and replicas aren't part of it (owner, DECISIONS 2026-10-01). No rigged figures' joints yet. A
-## practice range figure is the same volume, upright and still (build_figure). Every ray test returns the distance along
+## stay put. Arms and replicas aren't part of it (owner, DECISIONS 2026-10-01). One volume for both kinds of figure:
+## the drawn figure is measured against it (FI7, tests/support/hit_area_probe.gd, docs/records/FI7.md) and fitting it
+## to the figures' joints waits for step 32 (HV1). A practice range figure is the same volume, upright and still
+## (build_figure). Every ray test returns the distance along
 ## a unit ray to where it first touches, or INF for a miss; a ray that starts inside touches at 0.
 
 ## Where each part sits in Volume.parts.

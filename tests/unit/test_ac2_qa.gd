@@ -98,7 +98,19 @@ func test_a_match_built_after_a_change_draws_the_new_set_and_the_old_one_keeps_i
 	assert_eq(first.team_colours().figures.glow, 0.0)
 	assert_almost_eq(second.team_colours().figures.glow, 0.3, 0.001)
 	for f in first._figures:
-		assert_false(f._mat.emission_enabled, "the running match's figures stay unlit")
+		assert_false(_paint(f).emission_enabled, "the running match's figures stay unlit")
 	for f in second._figures:
-		assert_true(f._mat.emission_enabled)
-		assert_eq(f._mat.albedo_color.r, second.team_colours().figures.colours[second.state.character(f.character_id).team].r)
+		var paint := _paint(f)
+		assert_true(paint.emission_enabled)
+		assert_eq(paint.albedo_color.r, second.team_colours().figures.colours[second.state.character(f.character_id).team].r)
+
+
+## The figure's team paint: the first Team* surface's shared material that doesn't glow as modelled (the robot's
+## TeamGlow keeps its own glow, FI1).
+static func _paint(f: FigureView) -> BaseMaterial3D:
+	for mi in f.body().meshes:
+		for i in mi.get_surface_override_material_count():
+			var m := mi.get_surface_override_material(i) as BaseMaterial3D
+			if m != null and not m.resource_name.to_lower().contains("glow"):
+				return m
+	return null

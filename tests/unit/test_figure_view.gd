@@ -1,23 +1,22 @@
 extends GutTest
-## FI1: a FigureView with Dev › Rigged figures (game/play/figure_view.gd, play_session.gd): one body at a time, never
-## beside the capsules, even in the frame of a toggle; no leak over many toggles, a rematch or a session freed with
-## frees pending; nothing loaded on the range; a kind that couldn't load keeps capsules; the levels' lines follow the
-## graphics; the sign, the fade and the replica on a body (QA's FI1 probes).
+## FI1, FI7: every other player drawn as its rigged figure (game/play/figure_view.gd, play_session.gd), with no switch:
+## the models loaded as the session is built (before its first frame), one body a figure; no leak over a rematch or a
+## session freed with frees pending; nothing loaded on the range; a kind that couldn't load draws no body; the levels'
+## lines follow the graphics; the sign, the fade and the replica on a body; an old save's Rigged figures key still
+## loads.
 
 var s: Settings = null
-
-
-func before_each() -> void:
-	s = Settings.new(PlayTuning.new())
-	s.dev_enabled = true
 
 
 func after_each() -> void:
 	get_tree().paused = false
 
 
-func _play(rigged: bool, practice: bool = false) -> PlaySession:
-	s.dev.rigged_figures = rigged
+func before_each() -> void:
+	s = Settings.new(PlayTuning.new())
+
+
+func _play(practice: bool = false) -> PlaySession:
 	var p := PlaySession.new()
 	p.settings = s
 	p.map_id = "depot"
@@ -27,11 +26,6 @@ func _play(rigged: bool, practice: bool = false) -> PlaySession:
 	add_child_autofree(p)
 	await wait_physics_frames(2)
 	return p
-
-
-func _toggle(on: bool) -> void:
-	s.dev.rigged_figures = on
-	s.mark_changed()
 
 
 static func _bodies_of(f: FigureView) -> int:
@@ -46,45 +40,42 @@ func _view() -> FigureView:
 	var view := FigureView.new()
 	add_child_autofree(view)
 	view.setup(Character.new(3, 0, Vector3.ZERO, 0.0, ReplicaStats.default_loadout()), Color.RED, HitConfig.new(),
-			BodyConfig.new(), null)
+			null)
 	return view
 
 
-func test_off_and_on_in_one_frame_holds_one_body() -> void:
-	var f := _first(await _play(true))
-	_toggle(false)
-	_toggle(true)
-	assert_eq(_bodies_of(f), 1, "no double body in the frame of the toggle")
-	await wait_process_frames(2)
-	assert_eq(_bodies_of(f), 1, "settled")
+func test_every_figure_has_its_body_as_the_session_is_built() -> void:
+	var p := PlaySession.new()
+	p.settings = s
+	p.map_id = "depot"
+	add_child_autofree(p)
+	# Built in _ready (not staged): the models are in before the first frame is drawn.
+	assert_not_null(p._figure_models, "loaded with the views")
+	assert_not_null(p._thrown, "the thrown magazines' pool with them")
+	var figures := p.find_children("Figure_*", "FigureView", true, false)
+	assert_eq(figures.size(), p.state.characters.size() - 1, "everyone but you")
+	for f: FigureView in figures:
+		assert_eq(_bodies_of(f), 1, "%s: one body" % f.name)
+		assert_eq(f.body().name, "Body")
+		for mi: MeshInstance3D in f.find_children("*", "MeshInstance3D", true, false):
+			assert_false(mi.mesh is CapsuleMesh or mi.mesh is SphereMesh, "%s: no capsule left" % mi.name)
 
 
-func test_off_never_draws_the_body_beside_the_capsules() -> void:
-	var f := _first(await _play(true))
-	_toggle(false)
-	assert_eq(_bodies_of(f), 0, "out of the tree at once")
-	assert_true(f._capsules[0].visible)
-
-
-func test_many_toggles_leave_no_node_behind() -> void:
-	var p := await _play(true)
-	await wait_process_frames(3)
-	var nodes := int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
-	var orphans := int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
-	for i in 6:
-		_toggle(i % 2 == 1)
-		await wait_process_frames(2)
-	_toggle(true)
-	await wait_process_frames(3)
-	assert_eq(int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), nodes, "nodes")
-	assert_eq(int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)), orphans, "orphans")
-	for f: FigureView in p.find_children("Figure_*", "FigureView", true, false):
-		assert_eq(_bodies_of(f), 1)
-		assert_false(f._capsules[0].visible)
+func test_the_settings_no_longer_carry_rigged_figures_and_an_old_save_still_loads() -> void:
+	var dev := DevSettings.new()
+	assert_false("rigged_figures" in dev, "the switch is gone")
+	assert_false(dev.to_dict().has("rigged_figures"), "and never saved")
+	var old := dev.to_dict()
+	old["rigged_figures"] = true
+	old["retro_pixels"] = true
+	dev.from_dict(old)
+	assert_true(dev.retro_pixels, "the rest of an old save reads as saved")
+	assert_false(SettingsScreen.DEV_SWITCHES.has(&"rigged_figures"), "no Dev row")
+	assert_eq(tr("DEV_RIGGED_FIGURES"), "DEV_RIGGED_FIGURES", "its words gone")
 
 
 func test_a_rematch_keeps_one_body_a_figure() -> void:
-	var p := await _play(true)
+	var p := await _play()
 	p._rematch_left = 0.0
 	await wait_physics_frames(3)
 	for f: FigureView in p.find_children("Figure_*", "FigureView", true, false):
@@ -94,15 +85,13 @@ func test_a_rematch_keeps_one_body_a_figure() -> void:
 func test_freeing_a_session_with_frees_pending_leaves_no_orphan() -> void:
 	await wait_process_frames(2)
 	var orphans := int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
-	s.dev.rigged_figures = true
 	var p := PlaySession.new()
 	p.settings = s
 	p.map_id = "depot"
 	p.autopilot = true
 	add_child(p)
 	await wait_physics_frames(2)
-	_toggle(false)
-	_toggle(true)
+	_first(p).set_body(p._figure_models, FigureMix.ROBOT, p._figure_lines)
 	p.free()
 	await wait_process_frames(3)
 	assert_eq(int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)), orphans)
@@ -110,13 +99,14 @@ func test_freeing_a_session_with_frees_pending_leaves_no_orphan() -> void:
 
 
 func test_the_range_loads_no_models() -> void:
-	var p := await _play(true, true)
+	var p := await _play(true)
 	assert_eq(p.find_children("Figure_*", "FigureView", true, false).size(), 0, "no figures on the range")
 	assert_null(p._figure_models, "nothing loaded for nobody")
+	assert_null(p._thrown, "no pool either")
 	assert_eq(p.figure_kinds.size(), p.state.characters.size(), "you still have a kind")
 
 
-func test_a_kind_that_could_not_load_keeps_its_capsules() -> void:
+func test_a_kind_that_could_not_load_draws_no_body() -> void:
 	var c := FigureConfig.new()
 	c.kinds = PackedStringArray(["human", "robot_nope"])
 	var m := FigureModels.new(c)
@@ -124,15 +114,15 @@ func test_a_kind_that_could_not_load_keeps_its_capsules() -> void:
 	var v := _view()
 	v.set_body(m, FigureMix.ROBOT, c.lod_high)
 	assert_null(v.body())
-	assert_true(v._capsules[0].visible)
 	v.set_body(m, FigureMix.HUMAN, c.lod_high)
 	assert_not_null(v.body(), "the human still loads")
-	assert_false(v._capsules[0].visible)
 	v.set_body(m, 7, c.lod_high)
-	assert_null(v.body(), "an unknown kind: capsules")
-	assert_true(v._capsules[0].visible)
+	assert_null(v.body(), "an unknown kind: none")
+	assert_eq(_bodies_of(v), 0, "the old one out of the tree at once")
 	v.set_body(m, -1, c.lod_high)
 	assert_null(v.body())
+	assert_eq(v.find_children("*", "MeshInstance3D", true, false).filter(
+			func(n: Node) -> bool: return (n as MeshInstance3D).visible).size(), 0, "nothing drawn but the sign")
 
 
 func _detail(detail: GraphicsQuality.MeshDetail) -> void:
@@ -142,24 +132,20 @@ func _detail(detail: GraphicsQuality.MeshDetail) -> void:
 
 
 func test_the_lines_follow_the_graphics_while_playing() -> void:
-	var f := _first(await _play(true))
+	var p := await _play()
+	var f := _first(p)
 	_detail(GraphicsQuality.MeshDetail.HIGH)
 	assert_eq(f.body().meshes[0].visibility_range_end, 12.0)
 	_detail(GraphicsQuality.MeshDetail.MEDIUM)
 	assert_eq(f.body().meshes[0].visibility_range_end, 6.0)
-	_toggle(false)
-	await wait_process_frames(2)
-	_toggle(true)
+	# A rematch's new kind: a new body on the lines in force.
+	f.set_body(p._figure_models, FigureMix.ROBOT if p.figure_kinds[f.character_id] == FigureMix.HUMAN else
+			FigureMix.HUMAN, p._figure_lines)
 	assert_eq(f.body().meshes[0].visibility_range_end, 6.0, "a new body on the lines in force")
-	_toggle(false)
-	await wait_process_frames(2)
-	_detail(GraphicsQuality.MeshDetail.ULTRA)
-	_toggle(true)
-	assert_eq(f.body().meshes[0].visibility_range_end, 12.0, "lines changed while the capsules were drawn")
 
 
 func test_the_sign_and_the_fade_on_a_body() -> void:
-	var p := await _play(true)
+	var p := await _play()
 	var f := _first(p)
 	var c := p.state.characters[f.character_id]
 	for st: Character.Status in [Character.Status.CALLING, Character.Status.WALKING_OFF]:
@@ -177,21 +163,20 @@ func test_the_sign_and_the_fade_on_a_body() -> void:
 	assert_false(f.visible)
 	assert_eq(f.body().meshes[0].transparency, 1.0)
 	c.status_time = HitConfig.new().vanish_time * 0.5
-	_toggle(false)
-	_toggle(true)
-	await wait_process_frames(2)
 	f.update(c, 1.0)
+	f.set_body(p._figure_models, p.figure_kinds[f.character_id], p._figure_lines)
 	var vanish := HitConfig.new().vanish_time
 	assert_almost_eq(f.body().meshes[0].transparency, clampf(c.status_time / vanish, 0.0, 1.0), 0.01,
 			"a new body mid-fade")
 
 
 func test_the_replica_out_shows_on_a_body() -> void:
-	var p := await _play(true)
+	var p := await _play()
 	var f := _first(p)
 	var c := p.state.characters[f.character_id]
 	c.status = Character.Status.ALIVE
 	f.update(c, 1.0)
+	f.animate(c, 1.0, 0.0, f.global_position)
 	var shown := 0
 	for r in f._replicas:
 		if r != null and r.visible:
