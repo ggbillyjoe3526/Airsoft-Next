@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,924 of 2,924 (parts 349 s and 385 s) | – | – |
+| 2026-10-24 | 1, QA fixes | Opus 5.5 (worker) | pass, 2,924 of 2,924 (parts 325 s and 366 s) | – | QA: a test file that doesn't parse failed the gate without naming it |
 
 ## What was built
 
@@ -17,7 +18,8 @@
   come at 60 a second of real time and `wait_seconds` still waits real seconds, so nothing a test checks changes; all
   2,924 tests pass as before. The four figure files that step frames lost 90 s (table below). A sleep of 1 ms was no
   faster than none on the session files (`test_range_play`, `test_play_session_state`), and 2 s slower on
-  `test_figure_hands_qa`.
+  `test_figure_hands_qa`. `tools/match_guards.sh` reads the same `.gutconfig.json`, so the guards get the hook too:
+  safe, they only await physics frames and pure simulation, so at most they run a little faster.
 - **Two parts** (`tools/unit_tests.sh [1|2]`): part 1 is every `tests/unit/test_*.gd` sorted before `test_f` (72
   files, test_bots.gd's whole bot matches among them), part 2 the rest (171 files), each a Godot run of its own with
   its own 1,080 s limit; without a part the script runs both in turn. `tools/check.sh` runs them as two gates and
@@ -25,10 +27,14 @@
   notices ("Unit tests part 1, smoke test, notices", job id `godot` kept) and part 2 in a job of its own ("Unit tests
   part 2", `unit-2`), side by side, each keeping its log.
 - **Failures name their file**: the script now prints only `FAIL: <file> <test>: <message>` for each failed test
-  (GUT's run summary), `FAIL: <file>: SCRIPT ERROR ...` for a script error with the file that was running, `FAIL: the
-  run stopped in <file>` when a run never reached its totals (a hang or a crash), and a totals line; the whole output
-  stays in the log (CI printed every test's name before). Checked with a failing assert and a null call in a throwaway
-  file.
+  (GUT's run summary; `FAIL: <file>: <message>` for a failed `before_all` or `after_all`), `FAIL: <file>: SCRIPT ERROR
+  ...` for a script error with the file that was running (or, for a test file that doesn't parse, which errors before
+  any file starts, the file its `at:` line names, and `FAIL: <file>: failed to load (Parse error)`), `FAIL: the run
+  stopped in <file>` and `part N: no totals, the run never finished` when a run never reached its totals (a hang or a
+  crash), and a totals line; the whole output stays in the log (CI printed every test's name before). Checked with
+  throwaway files (deleted): a failing assert, a null call, a failed `before_all` assert, a parse error and a hang.
+- **The split is byte by byte**: the names are sorted and compared with the boundary under `LC_ALL=C`, so a name with
+  a capital (`test_F*`, part 1) lands in the same part on every machine.
 
 ## Timings (cloud container, 4 cores, 2026-10-24)
 
@@ -69,8 +75,10 @@ sessions over seeds (`test_figure_mix.gd` builds 24 practice sessions to show a 
 ## Decisions
 
 - **Split by name, not by measured time.** A boundary at `test_f` balanced the parts within 50 s (335 against 380 s)
-  with nothing to keep up to date; a new file goes where its name sorts. If one part grows well past the other, move
-  the boundary in `tools/unit_tests.sh`.
+  with nothing to keep up to date; a new file goes where its name sorts. If part 2 passes about 600 s, move the
+  boundary in `tools/unit_tests.sh` or add a third part.
+- **The binding limit is CI's.** Each CI job has 20 minutes for its setup, import and part (part 1's job also the smoke
+  test and the notices); the script's 1,080 s `timeout` only catches a hang inside that.
 - **The whole-match tests stay unit tests.** Each checks a rate over its seeds (friendly hits, bounces, robots about
   half the time), so fewer seeds or shorter matches would check less; moving them to `tests/guards` would drop them
   from the local gate. The split gives them room instead.

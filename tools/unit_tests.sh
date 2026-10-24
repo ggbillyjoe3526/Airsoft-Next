@@ -21,13 +21,14 @@ if [ "$part" != 1 ] && [ "$part" != 2 ]; then
 fi
 LOG="unit-$part.log"
 
-# This part's files by name: part 1 sorts before test_f, part 2 from it on.
+# This part's files by name, byte by byte whatever the locale: part 1 sorts before test_f, part 2 from it on.
 files=()
 while IFS= read -r f; do
-  name="$(basename "$f")"
-  if [[ "$name" < test_f ]]; then in_part=1; else in_part=2; fi
-  if [ "$in_part" = "$part" ]; then files+=("res://$f"); fi
-done < <(find tests/unit -name 'test_*.gd' | LC_ALL=C sort)
+  files+=("res://$f")
+done < <(find tests/unit -name 'test_*.gd' | LC_ALL=C sort | LC_ALL=C awk -v part="$part" '{
+  name = $0; sub(/.*\//, "", name)
+  if ((name < "test_f") == (part == 1)) print
+}')
 if [ "${#files[@]}" -eq 0 ]; then
   echo "FAIL: no test files in unit test part $part"; exit 1
 fi
@@ -41,18 +42,26 @@ list="$(IFS=,; echo "${files[*]}")"
 timeout 1080 "$GODOT" --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir= -gtest="$list" > "$LOG" 2>&1
 status=$?
 
-# Each failed test with its file (GUT's run summary), each script error with the file that was running, and the file a
-# run stopped in if it never reached its totals.
+# Each failed test with its file (GUT's run summary; a failed before_all or after_all has no test name), each script
+# error with the file that was running or, before the first file starts (a test file that doesn't parse), the file its
+# "at:" line names, each script that failed to load, and the file a run stopped in if it never reached its totals.
 awk '
-  /^res:\/\/tests\// { file = $0 }
+  /^res:\/\/tests\// { file = $0; test = "" }
   /^= Run Summary/ { summary = 1 }
   summary && /^- / { test = substr($0, 3) }
-  summary && /\[Failed\]/ { sub(/^ *\[Failed\]: */, ""); print "FAIL: " file " " test ": " $0 }
-  !summary && /SCRIPT ERROR|Parse Error/ { print "FAIL: " file ": " $0 }
+  summary && /\[Failed\]/ {
+    sub(/^ *\[Failed\]: */, ""); print "FAIL: " file (test == "" ? "" : " " test) ": " $0
+  }
+  !summary && /SCRIPT ERROR|Parse Error/ { if (file != "") print "FAIL: " file ": " $0; else error = $0 }
+  error != "" && /^ *at: / && match($0, /res:\/\/[^:)]*/) {
+    print "FAIL: " substr($0, RSTART, RLENGTH) ": " error; error = ""
+  }
+  /Failed to load script "/ { split($0, q, "\""); print "FAIL: " q[2] ": failed to load (" q[4] ")" }
   /^Totals/ { totals = 1 }
   END { if (!totals) print "FAIL: the run stopped in " (file ? file : "its start") }
 ' "$LOG" | head -40
-grep -E "^(Tests|Passing Tests|Failing Tests)" "$LOG" | tr -s ' ' | paste -sd ' ' - | sed "s/^/part $part: /"
+totals="$(grep -E "^(Tests|Passing Tests|Failing Tests)" "$LOG" | tr -s ' ' | paste -sd ' ' -)"
+echo "part $part: ${totals:-no totals, the run never finished}"
 if grep -qE "SCRIPT ERROR|Parse Error" "$LOG"; then
   echo "FAIL: script errors during the unit tests (see $LOG)"; exit 1
 fi
