@@ -1,12 +1,12 @@
 # DP4 · Noisy props and loud ground
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,905 of 2,905; match guards pass (Follow me measure by lead ruling) | – | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,905 of 2,905; match guards pass (Follow me measure by lead ruling) | Accept 8/8 | – |
 
 ## What was built
 
@@ -131,3 +131,16 @@ standing 1.29 % of 58,131 ticks. DECISIONS › Bots and balance; the KNOWN_ISSUE
 ## Known issues left
 
 - Noisy props, rings and loud ground are NP1's first guesses, to tune in play (`docs/KNOWN_ISSUES.md`, Bots).
+
+## Advisories left
+
+- The Follow me guard's measure changed on a lead ruling (a follower sprinting after a leader at its own top speed is
+  chasing, not left behind), which the owner can overrule; seeds 3 and 8 read about 8.00 m by how the measure works
+  (critic).
+- Performance found the match guards' wall time up 12 % (1,212 s against 1,081 s) while a balance run shared the
+  machine, with the per-tick cost unchanged; called noise, not re-run.
+- A knock just before a round ends can hold that prop quiet for up to 1.2 s of the next; the spawn freeze covers it
+  (QA).
+- A knock's reach is measured from the knocker for the minimap and cues and from the prop face for bots and audio,
+  under 0.4 m apart (QA).
+- The knock gate could skip characters whose `wanted_move` equals `made_move` if it ever matters (performance).
