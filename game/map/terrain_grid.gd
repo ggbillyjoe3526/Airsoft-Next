@@ -52,6 +52,10 @@ static func read(raw: Variant, problems: Array[String]) -> TerrainGrid:
 		if not (d.get(key) is float or d.get(key) is int):
 			problems.append("terrain's %s is not a number" % key)
 			return null
+	for key: String in ["cols", "rows"]:
+		if float(d[key]) != floorf(float(d[key])):
+			problems.append("terrain's %s is not a whole number" % key)
+			return null
 	var t := TerrainGrid.new()
 	t.min_x = float(d["minX"])
 	t.min_z = float(d["minZ"])
@@ -312,22 +316,44 @@ func _paint_patch(raw: Variant, names: Dictionary[String, RayHit.Surface], warni
 	if s == RayHit.Surface.NONE:
 		return
 	var box: Variant = p.get("box")
-	if box is Array and (box as Array).size() == 4:
+	if box != null:
+		if not (box is Array and (box as Array).size() == 4 and _all_numbers(box as Array)):
+			warnings.append("a ground patch's box is not four numbers")
+			return
 		var b: Array = box
 		_paint_box(s, minf(float(b[0]), float(b[1])), maxf(float(b[0]), float(b[1])), minf(float(b[2]), float(b[3])),
 				maxf(float(b[2]), float(b[3])))
 	var path: Variant = p.get("path")
+	if path == null:
+		return
 	if not path is Array or (path as Array).is_empty():
+		warnings.append("a ground patch's path is not a list of points")
+		return
+	var width: Variant = p.get("width", 0.0)
+	if not (width is float or width is int):
+		warnings.append("a ground patch's width is not a number")
 		return
 	var points := PackedVector2Array()
 	for q: Variant in path:
-		if q is Dictionary:
-			points.append(Vector2(float((q as Dictionary).get("x", 0.0)), float((q as Dictionary).get("z", 0.0))))
-	var half := float(p.get("width", 0.0)) * 0.5
+		var x: Variant = (q as Dictionary).get("x") if q is Dictionary else null
+		var z: Variant = (q as Dictionary).get("z") if q is Dictionary else null
+		if not ((x is float or x is int) and (z is float or z is int)):
+			warnings.append("a ground patch's path point is not an x and z")
+			return
+		points.append(Vector2(float(x), float(z)))
+	var half := float(width) * 0.5
 	if points.size() == 1:
 		points.append(points[0])
 	for k in range(1, points.size()):
 		_paint_segment(s, points[k - 1], points[k], half)
+
+
+## True if every entry of `list` is a number.
+static func _all_numbers(list: Array) -> bool:
+	for v: Variant in list:
+		if not (v is float or v is int):
+			return false
+	return true
 
 
 ## Squares whose middle lies in the box [x0, x1] x [z0, z1].

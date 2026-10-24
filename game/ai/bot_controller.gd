@@ -223,12 +223,18 @@ func _plan_one_route(state: GameState) -> void:
 		return
 
 
-## The field's walkable extent (its floors and ramps) and a height over all of it, for drawing hunt spots.
+## The field's walkable extent (its sloping ground, floors and ramps) and a height over all of it, for drawing hunt
+## spots.
 func _measure_field(map: MapData) -> void:
 	var p := world.planner
 	var lo := Vector2(INF, INF)
 	var hi := Vector2(-INF, -INF)
 	var top := -INF
+	var t := map.terrain
+	if t != null:
+		lo = Vector2(t.min_x, t.min_z)
+		hi = Vector2(t.max_x(), t.max_z())
+		top = t.height_range().y
 	for b in map.blocks:
 		top = maxf(top, b.center.y + b.size.y * 0.5)
 		if b.kind != &"floor" and b.rise == MapData.Rise.NONE:

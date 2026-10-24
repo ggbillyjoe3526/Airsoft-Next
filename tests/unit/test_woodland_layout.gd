@@ -379,3 +379,34 @@ func test_bots_play_a_whole_match_at_today_s_team_size() -> void:
 	assert_true(t.finished, "the match is won")
 	assert_gt(t.hits, 0, "BBs land")
 	assert_eq(t.held_up, 0, "no bot held up")
+
+
+func test_bots_hunt_over_the_whole_field_and_never_draw_a_spot_no_route_reaches() -> void:
+	var tuning := SimTuning.load_default()
+	var play_style: MapStyle = PlayTuning.load_default().map_style
+	var map := MapData.load_map("woodland", play_style, tuning.rounds.team_size)
+	var level := MapLevel.new()
+	add_child_autofree(level)
+	level.build(map, play_style, tuning.body)
+	var nav := NavGrid.build(map, tuning.nav, tuning.body)
+	var state := GameState.new(3, tuning)
+	var size := tuning.rounds.team_size
+	for i in size * 2:
+		var at := map.ends[0 if i < size else 1].spawns[i % size].position
+		state.characters.append(Character.new(i, 0 if i < size else 1, at, 0.0, ReplicaStats.default_loadout()))
+	var bots := BotController.new(state, -1, map, nav, level.query(), tuning, BotConfig.load_default(), {}, {})
+	var w := bots.world
+	var b := w.bots[0]
+	var home := nav.nearest_walkable(b.character.position, nav.snap)
+	var roof := nav.node_at(Vector3(5.0, 10.0, 15.5))
+	assert_false(nav.linked(home, roof, true), "the hut's roof is out of reach")
+	var west := 0
+	var east := 0
+	for i in 40:
+		if not w.planner.hunt_point(b, w):
+			continue
+		assert_true(nav.linked(home, nav.node_at(b.hunt_goal + Vector3(0.0, 0.1, 0.0)), true), "%s" % b.hunt_goal)
+		west += int(b.hunt_goal.x < -20.0)
+		east += int(b.hunt_goal.x > 20.0)
+	assert_gt(west, 0, "spots on the west side")
+	assert_gt(east, 0, "and on the east")

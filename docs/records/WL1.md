@@ -8,6 +8,7 @@
 |---|---|---|---|---|---|
 | 2026-10-24 | 1 | worker | 2958 / 2958 (second run; the first lost one to `test_voice_pool.gd`'s timing) | – | – |
 | 2026-10-24 | 2 | worker | 2959 / 2959 | – | Thread: a body must stand still on the steepest face; the voice-pool test must hold on a busy runner |
+| 2026-10-24 | 3 | worker | 2970 / 2970 | – | QA and performance failed: hunt bounds left out the terrain; failed searches to roofs hitched 134–202 ms; bad ground numbers raised errors |
 
 ## Goal
 
@@ -42,8 +43,8 @@ Neon Heights build exactly as before; Woodland stays Dev-only (DECISIONS › Woo
 
 ## Risks
 
-- A 242,591-node nav grid takes about 2 s to build (Depot 0.23 s) in the loading screen's teams step; one route to an
-  unreachable roof node searches the whole grid (182 to 202 ms). WL2 budgets route searches.
+- A 242,591-node nav grid takes about 2 s to build (Depot 0.23 s) in the loading screen's teams step, which freezes
+  the loading screen (advisories below).
 - 80,458 triangles in the greybox's one draw (Depot 1,314); the trimesh is 76,800 triangles over five bodies.
 
 ## Defaults taken
@@ -95,7 +96,7 @@ quarter, without and with vault links.
 | Routes found | 99 of 100 | 100 of 100 |
 | Route mean | 3.4 to 4.0 ms | 1.3 ms |
 | Route max, where one exists | 3.8 ms | 3.2 to 3.9 ms |
-| The one with none (a roof node) | 182 to 202 ms, the whole grid searched | – |
+| The one with none (a roof node) | 182 to 202 ms, the whole grid searched; refused in 0.06 ms since attempt 3 | – |
 
 The build runs in the loading screen's teams step, once a match.
 
@@ -141,12 +142,13 @@ face just outside the fort's west gap, west over the meadow to West Hill, which 
 `game/config/play_tuning.tres` (two more puff colours, so grass and leaves puff as earth by their own entries),
 `tests/support/field_checks.gd` (field.onFloor against the ground under a point), `game/map/README.md`,
 `docs/KNOWN_ISSUES.md` (one row: the roof nodes; three stale Woodland notes fixed), `game/sim/movement.gd` and
-`tests/unit/test_movement.gd` and `tests/unit/test_voice_pool.gd` (attempt 2), `assets/maps/woodland.jpg.import`, and
-tests that held Woodland refused: `test_dp2_qa.gd`, `test_mm3_qa.gd`, `test_hud_minimap.gd`, `test_map_areas.gd`,
-`test_fg2b_qa.gd` (Woodland's crossfire spots now checked), `test_mn2_qa.gd` (greys Depot at four a side, as no map is
-greyed at three) and `test_gravel.gd` (the surfaces after gravel). Three `docs/KNOWN_ISSUES.md` rows lose their
-"Woodland is refused" notes. Unchanged in `touches`: `game/map/jolt_query.gd` (a body per surface needed nothing new),
-`tests/support/field_measure.gd`, `tools/map_pictures.gd`.
+`tests/unit/test_movement.gd` and `tests/unit/test_voice_pool.gd` (attempt 2), `game/ai/bot_controller.gd`,
+`game/ai/round_planner.gd`, `game/nav/nav_grid.gd`, `game/nav/nav_vaults.gd`, `tests/unit/test_bot_vaults.gd` (attempt
+3), `assets/maps/woodland.jpg.import`, and tests that held Woodland refused: `test_dp2_qa.gd`, `test_mm3_qa.gd`,
+`test_hud_minimap.gd`, `test_map_areas.gd`, `test_fg2b_qa.gd` (Woodland's crossfire spots now checked), `test_mn2_qa.gd`
+(greys Depot at four a side, as no map is greyed at three) and `test_gravel.gd` (the surfaces after gravel). Three
+`docs/KNOWN_ISSUES.md` rows lose their "Woodland is refused" notes. Unchanged in `touches`: `game/map/jolt_query.gd` (a
+body per surface needed nothing new), `tests/support/field_measure.gd`, `tools/map_pictures.gd`.
 
 ## Fix round (attempt 2)
 
@@ -169,6 +171,42 @@ greyed at three) and `test_gravel.gd` (the surfaces after gravel). Three `docs/K
   gave the play (its newest), and the beep check stops every other beep, as a busy runner does; the old reading fails
   that exactly as CI did. Its KNOWN_ISSUES row goes.
 
+## Fix round (attempt 3)
+
+QA (`pipeline/out/qa-report.md`) and performance (`pipeline/out/performance.md`) failed attempt 2 on one blocker.
+
+- **Hunt bounds.** `BotController._measure_field` took the hunt field from floor blocks and ramps only: on Woodland the
+  hut's and cabin's roof ramps, x 1.55 to 47.45 and z -9.95 to 22.45, both camps outside. It now starts from the
+  terrain's extent and highest point. QA's `test_wl1_qa.gd` checks every spawn is inside.
+- **Failed searches.** A hunt spot drawn from over the hut landed on its roof ramp (about 5, 5.7, 15: walkable, no way
+  up) and `find_route` searched all 242,591 nodes before failing, 134 to 202 ms of a think tick, 4 to 7 times a match.
+  The root fix: the build labels each node's region (a union-find over the links, either way, about 0.2 s of Woodland's
+  build, within the noise on Depot's), `NavVaults.link` joins the regions a vault crosses, and `find_route` refuses a
+  goal in another region before searching (`NavGrid.linked`): 0.06 ms. The roof is no place to hunt or hide, so
+  `RoundPlanner.hunt_point` also draws a spot in another region again; cover spots already stand at the searcher's own
+  height, under the roofs.
+- **Worst think tick**, 150 s of 3v3 Woodland, timed round `BotController.think` in a scratch copy of MatchRunner:
+
+| Seed | QA, attempt 2 | Bounds and regions | Regions alone (old bounds, no hunt check) |
+|---|---|---|---|
+| 7 | 163 ms, 4 failed searches | 2.6 ms, none failed | 3.3 ms, none failed |
+| 11 | 134 ms, 3 failed searches | 5.0 ms, none failed | 3.8 ms, none failed, 3 refused at once |
+
+- **Ground data.** A ground patch's `box` of anything but four numbers, a `width` that isn't a number, or a path point
+  without a number x and z is left out with a warning, as `MapData` promised; it raised script errors and stopped the
+  painting. A terrain whose `cols` or `rows` isn't a whole number (2.5) is refused, as its other malformed fields are.
+- **Depot and Neon Heights.** Their whole matches (Depot seeds 3, 7 and 11, Neon Heights seed 7) are identical to
+  attempt 2's; their builds are unchanged.
+- KNOWN_ISSUES: the roof row goes; a row says what the regions can't refuse (a region joined only by a one-way step).
+
+## Advisories for later tasks (performance review, attempt 2)
+
+- WL2 or WL10: Woodland's nav build (about 2 s) freezes the loading screen in the teams step: build it on a
+  WorkerThreadPool task, or cache it.
+- WL2: Woodland's nav grid uses about 145 MB.
+- WL4: the terrain is one 80,458-triangle piece in the greybox's mesh, so it is never culled and is drawn in every
+  shadow cascade: tile it (about 32 x 32 m).
+
 ## For later tasks
 
 - WL10: `MatchRunner.lowest_floor` takes floors and ramps only, so on Woodland it is its roofs' bottom; the height
@@ -181,6 +219,8 @@ the smoke test and the licence notices all pass. The first full run lost one tes
 beep's voice freed in real time under load; it passed alone three times and in the run before), recorded in
 KNOWN_ISSUES. `test_terrain.gd` 26 and `test_woodland_layout.gd` 17 pass alone. Attempt 2's gate: 2,959 of 2,959, part 1
 328 s, part 2 428 s, everything else passing; `test_movement.gd`, `test_terrain.gd` and `test_voice_pool.gd` pass alone,
-and the latter two fail without their fixes. Before and after on one tree, Depot, Neon Heights and the range build the
-same mesh, colliders and nav grid (above). Not verified: how the slopes feel to walk and how the woodland reads on
-Forward+ (PLAYTEST › Woodland).
+and the latter two fail without their fixes. Attempt 3's gate: 2,970 of 2,970, part 1 326 s, part 2 428 s, everything
+else passing; `test_wl1_qa.gd` 7 of 7, `test_terrain.gd` 28, `test_bot_vaults.gd` 8, `test_woodland_layout.gd` 18,
+`test_nav_grid.gd` 21 pass alone. Before and after on one tree, Depot, Neon Heights and the range build the same mesh,
+colliders and nav grid (above). Not verified: how the slopes feel to walk and how the woodland reads on Forward+
+(PLAYTEST › Woodland).

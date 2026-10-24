@@ -1,8 +1,9 @@
 class_name NavGridBuilder
 ## Fills a NavGrid from a map's blocks and sloping ground (the browser game's buildNavGrid). Each cell gets a node per
-## floor over it (the terrain's ground at its centre, with nothing under it, and each floor or ramp top), each node is blocked within the clearance of a block standing in the way on
-## its floor or of a drop off its floor, and the walkable nodes are linked for the route search by the step rules: the
-## eight neighbouring cells, floors at most max_step apart, no squeezing diagonally past a blocked node or a drop.
+## floor over it (the terrain's ground at its centre, with nothing under it, and each floor or ramp top), each node is
+## blocked within the clearance of a block standing in the way on its floor or of a drop off its floor, and the walkable
+## nodes are linked for the route search by the step rules: the eight neighbouring cells, floors at most max_step apart,
+## no squeezing diagonally past a blocked node or a drop.
 
 ## The eight steps to a neighbouring cell (x, z): the four straight ones, then the diagonals. Step d's way back is
 ## OPPOSITE[d]; a diagonal step d passes the straight steps SIDE_A[d] and SIDE_B[d].
@@ -289,8 +290,8 @@ static func _stamp_outer_edge(g: NavGrid, r: float) -> void:
 
 
 ## Each walkable node's eight steps (the node each neighbouring cell steps onto, walkable or not, or -1), which of them
-## land on a walkable node (`step_mask`), and the route search's points and links, each
-## point weighted `weight` (below 1 the search's estimate counts for more than the steps it has taken: NavConfig).
+## land on a walkable node (`step_mask`), the route search's points and links, each point weighted `weight` (below 1 the
+## search's estimate counts for more than the steps it has taken: NavConfig), and each node's region (NavGrid.region).
 static func _link(g: NavGrid, weight: float) -> void:
 	var count := g.floor_y.size()
 	var cols := g.cols
@@ -340,6 +341,11 @@ static func _link(g: NavGrid, weight: float) -> void:
 	for k in count:
 		if walkable[k] == 1:
 			astar.add_point(k, g.node_position(k), weight)
+	# Union-find over the links, taken either way: a node's parent is never above it, so one pass in order flattens it.
+	var parent := PackedInt32Array()
+	parent.resize(count)
+	for k in count:
+		parent[k] = k
 	# The links: each walkable node's four forward steps (east, south and the two diagonals ahead), both ways where a
 	# step's way back can be taken too. A diagonal needs both straight steps it passes walkable, from where it starts.
 	for k in count:
@@ -358,7 +364,24 @@ static func _link(g: NavGrid, weight: float) -> void:
 				astar.connect_points(k, n, back)
 			elif back:
 				astar.connect_points(n, k, false)
+			else:
+				continue
+			var ra := k
+			while parent[ra] != ra:
+				parent[ra] = parent[parent[ra]]
+				ra = parent[ra]
+			var rb := n
+			while parent[rb] != rb:
+				parent[rb] = parent[parent[rb]]
+				rb = parent[rb]
+			if ra < rb:
+				parent[rb] = ra
+			elif rb < ra:
+				parent[ra] = rb
 	g.astar = astar
+	for k in count:
+		parent[k] = parent[parent[k]] if walkable[k] == 1 else -1
+	g.region = parent
 
 
 ## Each cell's distance to the nearest cell that isn't open (NavGrid.open), in two sweeps (a chamfer transform with

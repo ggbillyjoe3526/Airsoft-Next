@@ -19,14 +19,19 @@ docs/ARCHITECTURE.md › Contracts 1).
 - **Search.** Godot's `AStar3D` over the walkable nodes, weighted (`NavConfig.search_greed`): GDScript is far too slow
   for the browser's hand-written A*. The browser's budgeted searches and distance fields aren't needed: a walk-off
   searches once, at most one a tick (`Elimination.plan_walk_off_routes`).
+- **Regions** (WL1). The build labels each walkable node with the lowest node it is linked to on foot, either way
+  (`NavGrid.region`, a union-find over the links); `NavVaults.link` joins the regions a vault link crosses
+  (`vault_region`). `find_route` refuses a goal in another region at once, before the search: a search that fails
+  explores the whole grid (182–202 ms on Woodland, its hut and cabin roofs walkable but out of reach). A region joined
+  only by a one-way step still gets the full search. Bots' hunt spots skip other regions (`RoundPlanner.hunt_point`).
 - **Measured** on Depot headless, 2026-10-18, 4-core container: build 205–240 ms; 42,075 nodes, 27,363 walkable
   (the browser's 27,380: the map's numbers are single precision here); 100 random cross-map `find_route` calls mean
   1.2–1.5 ms, max 6.4 ms (the search about 0.7 ms of it), 100 random pairs anywhere mean 0.7 ms.
-- **Woodland beside Depot** (WL1, 2026-10-24, the same container, `docs/records/WL1.md`): build 1.7–2.1 s against
-  Depot's 213–234 ms (the links 1.4 s of it); 242,591 nodes, 220,146 walkable (Depot 42,075 and 27,593); vault links
-  16 in 0.64–0.71 s (Depot 10 in 0.10 s); 100 seeded routes from the west quarter to the east quarter mean
-  3.4–4.0 ms, max 3.8 ms where one exists (Depot 1.3 ms, max 3.9 ms). A goal on a roof, walkable but unreachable,
-  searches the whole grid: 182–202 ms (WL2 budgets route searches).
+- **Woodland beside Depot** (WL1, 2026-10-24, the same container, `docs/records/WL1.md`): build 1.9–2.1 s against
+  Depot's 223–247 ms (the links and regions 1.6 s of it; the regions about 0.2 s on Woodland, within the noise on
+  Depot); 242,591 nodes, 220,146 walkable (Depot 42,075 and 27,593); vault links 16 in 0.64–0.71 s (Depot 10 in 0.10 s);
+  100 seeded routes from the west quarter to the east quarter mean 1.8–4.0 ms, max 3.8–6.3 ms where one exists (Depot
+  1.1–1.4 ms, max 2.9–4.4 ms). A goal on a roof is refused in about 0.06 ms (182–202 ms before the regions).
 - **Vault links** (`nav_vaults.gd`, browser M102): where `Vault.plan` vaults a body from a standstill on a node, along
   the grid's four axes, a one-way search point between that node and the first walkable one past the obstacle, priced
   at its length plus `BotConfig.vault_price` (3 m). A bot's route may take one (`find_route(..., vaults = true)`); a
@@ -36,5 +41,7 @@ Tuning: `NavConfig` (`game/config/nav_config.gd`, `SimTuning.nav`); the body's r
 `BodyConfig`. Tests: `tests/unit/test_nav_grid.gd` (the browser's grid tests, a two-storey map, Depot's dock, spawns
 and dead zones), `tests/unit/test_nav_walk_off.gd` (a walk-off round a wall through `Simulation`),
 `tests/unit/test_terrain.gd` (the browser's sloping-ground grid tests: floors from the ground, blocks on a slope, a
-floor over the ground, routes up a 1:2 slope, none up a cliff), `tests/unit/test_woodland_layout.gd` (Woodland's
-fort routes and a body walking every lane on the bots' routes).
+floor over the ground, routes up a 1:2 slope, none up a cliff, a platform out of reach its own region),
+`tests/unit/test_bot_vaults.gd` (a wall across the field: two regions on foot, one by vault),
+`tests/unit/test_woodland_layout.gd` (Woodland's fort routes, a body walking every lane on the bots' routes, hunt spots
+over the whole field and never on a roof).

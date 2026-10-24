@@ -542,6 +542,37 @@ func test_no_route_climbs_a_cliff_but_each_side_stays_connected() -> void:
 	assert_true(g.find_route(Vector3(4, 1, -6), Vector3(10, 1, 0), route))
 
 
+func test_a_platform_no_step_reaches_is_its_own_region_and_a_route_to_it_is_refused_at_once() -> void:
+	var blocks: Array[MapData.Block] = [_block(&"floor", Vector3(5, 2.5, 5), Vector3(4, 1, 4))]
+	var g := NavGrid.build(_terrain_map(_plane(0.0), blocks), tuning.nav, tuning.body)
+	var ground := g.node_at(Vector3(-5, 0.5, -5))
+	var top := g.node_at(Vector3(5, ABOVE, 5))
+	assert_eq(g.walkable[top], 1, "the platform's middle is walkable")
+	assert_false(g.linked(ground, top), "no step up 3 m")
+	assert_false(g.linked(ground, top, true), "no vault either")
+	assert_true(g.linked(ground, g.node_at(Vector3(10, 0.5, -10))), "the ground is one region")
+	var route := PackedVector3Array([Vector3.ONE])
+	var t0 := Time.get_ticks_usec()
+	assert_false(g.find_route(Vector3(-5, 0, -5), Vector3(5, 3, 5), route))
+	gut.p("refused in %d us" % (Time.get_ticks_usec() - t0))
+	assert_true(route.is_empty())
+	assert_eq(g.region[g.node_at(Vector3(5, ABOVE, 5))], g.region[g.node_at(Vector3(6, ABOVE, 6))])
+	# Every walkable node has a region no higher than itself; every blocked one has none.
+	for k in g.node_count():
+		assert_true(g.region[k] <= k and (g.region[k] >= 0) == (g.walkable[k] == 1), "node %d" % k)
+		if g.region[k] > k or (g.region[k] >= 0) != (g.walkable[k] == 1):
+			break
+
+
+func test_a_terrain_whose_cols_or_rows_are_not_whole_is_refused() -> void:
+	for key: String in ["cols", "rows"]:
+		var problems: Array[String] = []
+		var raw := {"minX": 0, "minZ": 0, "cell": 1, "cols": 2, "rows": 2, "heights": [0, 0, 0, 0, 0, 0, 0, 0, 0]}
+		raw[key] = 2.5
+		assert_null(TerrainGrid.read(raw, problems))
+		assert_eq(problems, ["terrain's %s is not a whole number" % key] as Array[String])
+
+
 # --- the new surfaces and timber ---
 
 func test_grass_and_leaves_are_appended_and_sound_puff_and_stop_bbs_as_earth() -> void:
