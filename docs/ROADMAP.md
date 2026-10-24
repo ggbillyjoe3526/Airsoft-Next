@@ -103,22 +103,24 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 25. **Depot's layout reworked to the field checklist.** The layout, baked light, the skyline, noisy props, gas puffs and
     dust, in greybox and today's props (its set dressing models are step 28).
 26. **Woodland.** The field, sloping ground and bushes, night play, the weapon torch, glowing BBs, the Day / Night
-    switch, practice on any map, 5v5 and 6v6, on greybox and placeholder models where a new model would need Blender.
+    switch, the practice range moved into Depot and practice on any map, 5v5 and 6v6, on greybox and placeholder
+    models where a new model would need Blender.
 
 Last, at the owner's word (2026-10-22): the features he named, then everything that needs Blender, which he must be
 at his PC to connect.
 
 27. **The deferred features, one step (owner, 2026-10-24).** The overtime flag (browser OT1); the tutorial, sixteen
     steps; pings on the middle mouse button and the magazine hand-off (asking for and tossing a magazine); bot
-    callouts; adaptive difficulty as a Dev setting (AD1). Built in the order the plan sets.
-28. **Blender work, at the owner's PC** (was step 32; it starts once step 27 is done, owner 2026-10-24). The figures
-    (humans and robots with fitted hit areas), your first-person arms (bare or gloved, by figure and skin) and
-    Inspect on Y; Depot's set dressing; then the owner's art pass (owner,
-    2026-10-18): he redesigns players, replicas, attachments and other assets at higher quality, today's models
-    being placeholders built small for the browser, and Woodland's models follow at the new quality. Here because
-    the rig standard, every replica and part (9 to 11) and the field checklist with Depot's final layout (24, 25)
-    have settled by then, so he models against final requirements once. The thread reminds him, with what is settled
-    to model, when step 27 is done.
+    callouts; adaptive difficulty as a Dev setting (AD1). The tutorial is set in Depot. Built in the order the plan
+    sets.
+28. **Blender work, at the owner's PC** (was step 32; it starts once step 27 is done, owner 2026-10-24). His models
+    for Depot's assets, including the practice range's and the tutorial's, which are set in Depot; the human figures
+    with your first-person arms and hands (bare or gloved, by figure and skin), fitted hit areas and Inspect on Y;
+    and every replica, attachment and accessory, at higher quality than today's placeholders, built small for the
+    browser (owner, 2026-10-18 and 2026-10-24). Woodland and Neon Heights stay greybox while they are dev content.
+    Here because the rig standard, every replica and part (9 to 11) and the field checklist with Depot's final
+    layout (24, 25) have settled by then, so he models against final requirements once. The thread reminds him,
+    with what is settled to model, when step 27 is done.
 
 ## Builds
 
