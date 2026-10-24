@@ -64,7 +64,7 @@ func test_every_field_fails_exactly_its_known_failing_checks() -> void:
 			continue
 		assert_false(FieldStandard.NOT_YET.has(id), "%s loads now: take it off NOT_YET" % id)
 		var failing := FieldChecks.failing(list)
-		var known := FieldStandard.known_failing(id)
+		var known := FieldStandard.known_failing(id, FieldStandard.RULES)
 		for check in failing:
 			assert_true(known.has(check), "%s newly fails %s: %s" % [id, check, _only(list, check).text])
 		for check in known:
@@ -93,7 +93,7 @@ func test_the_lists_name_fields_and_checks_with_reasons_and_steps() -> void:
 func test_depot_passes_every_rule_its_faults_break() -> void:
 	var list: Array[FieldChecks.Result] = []
 	list.assign(results["depot"])
-	for id in FieldStandard.CHECKS:
+	for id in FieldStandard.RULES:
 		var r := _only(list, id)
 		assert_not_null(r, id)
 		if r != null:

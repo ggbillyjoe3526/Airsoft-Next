@@ -1,9 +1,10 @@
 class_name FieldChecks
 extends RefCounted
 ## The rules every field keeps (FC1; the browser game's content/mapRules.ts and mapLayoutChecks.ts laneChecks), as pure
-## checks over one field's MapData and NavGrid: each gives a check id (FieldStandard.CHECKS), pass, warn or fail, and a
-## sentence with its figure and place. Numbers from FieldStandard. Test-only (tests/ never ships); test_field_rules.gd
-## runs them on every field in data/maps.md.
+## checks over one field's MapData and NavGrid, and its layout (FC2; mapLayoutChecks.ts), judged on a FieldMeasure's
+## figures: each gives a check id (FieldStandard.CHECKS), pass, warn or fail, and a sentence with its figure and place.
+## Numbers from FieldStandard. Test-only (tests/ never ships); test_field_rules.gd runs `run` and test_field_layout.gd
+## `layout` on every field in data/maps.md.
 
 enum Status { PASS, WARN, FAIL }
 
@@ -318,6 +319,144 @@ static func lanes(map: MapData) -> Result:
 			FieldStandard.LANES_STANDARD])
 
 
+## The layout's checks on one field (FC2; the browser's mapLayoutChecks.ts), judged on `m`'s figures: its lanes walk,
+## its routes are whole, the spawn yards unseen, the longest sightline within `limit` (FieldStandard.sightline_limit;
+## `reason` the exception's, "" for Depot's standard), the middle fair, and on a field with a flag the head start.
+static func layout(m: FieldMeasure, limit: float, reason: String) -> Array[Result]:
+	var out: Array[Result] = [lane_walk(m), routes(m), spawn_sight(m), sightline(m, limit, reason), middle(m)]
+	if m.map.has_pole:
+		out.append(flag(m))
+	return out
+
+
+## Each lane walks point to point on foot, ending within the route snap, from end 0's half towards end 1's.
+static func lane_walk(m: FieldMeasure) -> Result:
+	var map := m.map
+	var c0 := _spawn_centre(map.ends[0])
+	var c1 := _spawn_centre(map.ends[1])
+	var broken := PackedStringArray()
+	for l in map.lanes.size():
+		var lane := map.lanes[l]
+		for i in range(1, lane.size()):
+			if not is_finite(m.walk(lane[i - 1], lane[i])):
+				broken.append("lane %d can't be walked from point %d to %d (%s to %s)" % [l + 1, i, i + 1,
+						at(lane[i - 1]), at(lane[i])])
+		if lane.size() < 2:
+			broken.append("lane %d has fewer than two points" % (l + 1))
+		elif _across(lane[0], c0) > _across(lane[0], c1) \
+				or not _across(lane[lane.size() - 1], c0) > _across(lane[0], c0):
+			broken.append("lane %d does not run from end 0 towards end 1" % (l + 1))
+	if not broken.is_empty():
+		return Result.new(FieldStandard.LANE_WALK, Status.FAIL, _list(broken) + ".")
+	return Result.new(FieldStandard.LANE_WALK, Status.PASS, "Every lane of %d walks end to end, from end 0 towards end 1."
+			% map.lanes.size())
+
+
+## Every spawn reaches the middle and the flag on foot, and every end 0 spawn every end 1 spawn.
+static func routes(m: FieldMeasure) -> Result:
+	var map := m.map
+	var cut := PackedStringArray()
+	var mw := m.middle_walks()
+	var fw := m.flag_walks()
+	for e in map.ends.size():
+		for i in map.ends[e].spawns.size():
+			if not is_finite(mw[e][i]):
+				cut.append("end %d spawn %d can't reach the middle (%s)" % [e, i + 1, at(m.middle())])
+			if map.has_pole and not is_finite(fw[e][i]):
+				cut.append("end %d spawn %d can't reach the flag" % [e, i + 1])
+	for i in map.ends[0].spawns.size():
+		for j in map.ends[1].spawns.size():
+			if not is_finite(m.walk(map.ends[0].spawns[i].position, map.ends[1].spawns[j].position)):
+				cut.append("end 0 spawn %d can't reach end 1 spawn %d" % [i + 1, j + 1])
+	if not cut.is_empty():
+		return Result.new(FieldStandard.ROUTES, Status.FAIL, _list(cut) + ".")
+	return Result.new(FieldStandard.ROUTES, Status.PASS, "Every spawn reaches the other end%s and the middle on foot."
+			% (", the flag" if map.has_pole else ""))
+
+
+## Nobody within FieldStandard.SPAWN_YARD_RADIUS of one end's spawns sees anyone within it of the other's, standing or
+## crouched.
+static func spawn_sight(m: FieldMeasure) -> Result:
+	var r := num(FieldStandard.SPAWN_YARD_RADIUS)
+	var seen := m.spawns_seen()
+	if seen != null:
+		return Result.new(FieldStandard.SPAWN_SIGHT, Status.FAIL, "The spawns see each other: someone %s at %s sees %s (each within %s m of a spawn)."
+				% [seen.eye, at(seen.from), at(seen.to), r])
+	return Result.new(FieldStandard.SPAWN_SIGHT, Status.PASS, "Nobody within %s m of one end's spawns sees anyone within %s m of the other's, standing or crouched."
+			% [r, r])
+
+
+## The longest clear standing eye line, across the ground, at most `limit` (m); `reason` the owner's, if it is not
+## Depot's standard.
+static func sightline(m: FieldMeasure, limit: float, reason: String) -> Result:
+	var s := m.sightline()
+	if s == null:
+		return Result.new(FieldStandard.SIGHTLINE, Status.FAIL, "No two places to stand see each other: the field has no walkable ground.")
+	var says := "The longest clear line is %s m, from %s to %s" % [num(s.metres, 1), at(s.from), at(s.to)]
+	var against := "allowed up to %s m: %s" % [num(limit, 1), reason] if not reason.is_empty() \
+			else "Depot's standard is %s m" % num(limit, 1)
+	if s.metres > limit:
+		return Result.new(FieldStandard.SIGHTLINE, Status.FAIL, "%s; %s. Break it with cover, or write down why it stays."
+				% [says, against])
+	return Result.new(FieldStandard.SIGHTLINE, Status.PASS, "%s (%s)." % [says, against])
+
+
+## Each end's mean walk from its spawns to the middle: the longer within FieldStandard.WALK_SPREAD of the shorter
+## passes, within WALK_SPREAD_WARN warns, more fails.
+static func middle(m: FieldMeasure) -> Result:
+	var mw := m.middle_walks()
+	var a := FieldMeasure.mean(mw[0])
+	var b := FieldMeasure.mean(mw[1])
+	if not is_finite(a) or not is_finite(b):
+		return Result.new(FieldStandard.MIDDLE, Status.FAIL, "An end can't walk to the middle of the field (%s)." %
+				at(m.middle()))
+	var spread := maxf(a, b) / minf(a, b) - 1.0
+	var says := "From its spawns, end 0 walks %s m to the middle (%s) and end 1 %s m: %s %% apart" % [num(a, 1),
+			at(m.middle()), num(b, 1), num(spread * 100.0, 0)]
+	if spread > FieldStandard.WALK_SPREAD_WARN:
+		return Result.new(FieldStandard.MIDDLE, Status.FAIL, "%s, more than %s %%. One end gets there first." % [says,
+				num(FieldStandard.WALK_SPREAD_WARN * 100.0, 0)])
+	if spread > FieldStandard.WALK_SPREAD:
+		return Result.new(FieldStandard.MIDDLE, Status.WARN, "%s, past the standard %s %%. Worth a look in play." % [
+				says, num(FieldStandard.WALK_SPREAD * 100.0, 0)])
+	return Result.new(FieldStandard.MIDDLE, Status.PASS, "%s (within the standard %s %%)." % [says,
+			num(FieldStandard.WALK_SPREAD * 100.0, 0)])
+
+
+## Attack / Defend: the attackers' (end 0) mean walk to the flag at least FieldStandard.FLAG_HEAD_START times the
+## defenders', and the flag out of sight of the attackers' spawn yard.
+static func flag(m: FieldMeasure) -> Result:
+	var fw := m.flag_walks()
+	var attack := FieldMeasure.mean(fw[0])
+	var defend := FieldMeasure.mean(fw[1])
+	if not is_finite(attack) or not is_finite(defend):
+		return Result.new(FieldStandard.FLAG, Status.FAIL, "An end can't walk to the flag at %s." % at(m.map.pole))
+	var ratio := attack / defend
+	var says := "The attackers (end 0) walk %s m to the flag, the defenders %s m: %s times as far" % [num(attack, 1),
+			num(defend, 1), num(ratio)]
+	if ratio < FieldStandard.FLAG_HEAD_START:
+		return Result.new(FieldStandard.FLAG, Status.FAIL, "%s. The defenders need a head start: at least %s times." % [
+				says, num(FieldStandard.FLAG_HEAD_START)])
+	if m.flag_seen():
+		return Result.new(FieldStandard.FLAG, Status.FAIL, "%s, but the flag at %s can be seen from the attackers' spawn."
+				% [says, at(m.map.pole)])
+	return Result.new(FieldStandard.FLAG, Status.PASS, "%s (at least %s), and it is out of sight of the attackers' spawn."
+			% [says, num(FieldStandard.FLAG_HEAD_START)])
+
+
+## The middle of an end's spawns, on the ground plane.
+static func _spawn_centre(end: MapEnd) -> Vector2:
+	var sum := Vector2.ZERO
+	for s in end.spawns:
+		sum += Vector2(s.position.x, s.position.z)
+	return sum / maxi(1, end.spawns.size())
+
+
+## How far `p` is from `c` across the ground (m).
+static func _across(p: Vector3, c: Vector2) -> float:
+	return Vector2(p.x, p.z).distance_to(c)
+
+
 ## A point in a sentence, to the decimetre (the browser's at()).
 static func at(p: Vector3) -> String:
 	return "%s, %s, %s" % [num(p.x, 1), num(p.y, 1), num(p.z, 1)]
@@ -325,8 +464,8 @@ static func at(p: Vector3) -> String:
 
 ## `x` to `digits` places, trailing zeros dropped (the browser's num()).
 static func num(x: float, digits: int = 2) -> String:
-	var s := String.num(x, digits)
-	return s.trim_suffix(".0")
+	var s := String.num(x, digits).trim_suffix(".0")
+	return "0" if s == "-0" else s
 
 
 ## `n` and `one`, made plural ("s") unless n is 1.
