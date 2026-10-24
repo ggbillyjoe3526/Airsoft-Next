@@ -551,8 +551,8 @@ XP ×2.
 
 ## Settings and controls
 
-Settings opens on Display, with groups down the left (Display, Graphics, Gameplay, Audio, Controls, Accessibility,
-Save file) and a "Dev settings" box that shows the Dev group.
+Settings opens on Controls, with tabs across the top (Controls, Audio, Display, Graphics, HUD, Accessibility, Save
+file) and a "Dev settings" box that shows the Dev tab.
 
 - [ ] **Search and notes.** Typing "shadow" shows only matching rows with "N settings found"; pointing at a row says
   what it does, and in Graphics what it costs.

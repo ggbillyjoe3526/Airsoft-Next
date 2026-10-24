@@ -1,12 +1,12 @@
 # RB1 · Robots become a Dev-only Easter egg
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | worker | pass, 2,913 of 2,913 (802 s) | – | – |
+| 2026-10-24 | 1 | worker | pass, 2,913 of 2,913 (802 s) | Accept 8/8 | – |
 
 ## Goal
 
@@ -75,4 +75,14 @@ Robots on (with the Dev box ticked) mixes robots in from the next match.
   `test_settings_screen`, `test_settings_save_page`): 150 of 150.
 - `tools/check.sh` (cloud container, 2026-10-24): gdlint, changelog notes, unit tests parts 1 and 2, smoke test and
   licence notices all pass; 2,913 of 2,913 tests (the deleted Looks page test took its 14 with it); 802 s in all.
-- Not checked here: how the Dev tab's new row looks on screen (no headless screenshot tool for menus).
+- Screenshots (Compatibility renderer): the public tabs with no Looks tab,
+  `/mnt/project-files/screenshots/step26/rb1-settings-public.png`, and the Dev tab's Robots row,
+  `/mnt/project-files/screenshots/step26/rb1-settings-dev-robots.png`.
+
+## Advisories left
+
+- QA's changelog advisory is fixed: `looks-robots.md` is gone, `human-figures.md` says everyone is human, and the
+  rigged-figures notes no longer name robots, so the release notes don't give the Easter egg away.
+- The robot model still loads once a session although robots are off by default; loading it on first use is a later
+  saving (performance).
+- ROADMAP step 23 still names "Looks › Robots"; it is history (QA).
