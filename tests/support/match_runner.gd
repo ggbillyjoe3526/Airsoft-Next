@@ -452,14 +452,18 @@ static func judge_follower(t: MatchTally, c: Character, leader: Character, leade
 
 ## Whether follower `c` is chasing `leader` rather than left behind: further than `catch_up` (m) from it, and since
 ## CHASE_TICKS ago (when it stood at `then_at`, `then_gap` m from the leader; -1: not known) it covered ground at
-## CHASE_PACE of `sprint_speed` (m/s) or more and the gap grew by CHASE_SLACK at most. Flat distances.
+## CHASE_PACE of `sprint_speed` (m/s) or more and the gap grew by CHASE_SLACK at most, only while the leader moves at
+## CHASE_PACE of it or faster (otherwise the gap must shrink). Flat distances.
 static func chasing(c: Character, leader: Character, catch_up: float, sprint_speed: float, then_at: Vector3,
 		then_gap: float) -> bool:
 	var d := Vector2(leader.position.x - c.position.x, leader.position.z - c.position.z).length()
 	if d <= catch_up or then_gap < 0.0:
 		return false
 	var covered := Vector2(c.position.x - then_at.x, c.position.z - then_at.z).length()
-	return covered >= CHASE_PACE * sprint_speed * CHASE_TICKS * DT and d <= then_gap + CHASE_SLACK
+	if covered < CHASE_PACE * sprint_speed * CHASE_TICKS * DT:
+		return false
+	var leader_fast := Vector2(leader.velocity.x, leader.velocity.z).length() >= CHASE_PACE * sprint_speed
+	return d <= then_gap + CHASE_SLACK if leader_fast else d < then_gap
 
 
 ## Standing still on purpose, not held up: an anchor settled at its post (bots.md › Holds until), a bot watching where

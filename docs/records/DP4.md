@@ -122,6 +122,12 @@ failing. The near share and standing checks are unchanged. Re-measured over all 
 4.48 to 8.00 m (seed 3 7.99 m with 41 ticks chasing, seed 8 8.00 m with 7, 0 on the rest), near 97.1 to 100 %,
 standing 1.29 % of 58,131 ticks. DECISIONS › Bots and balance; the KNOWN_ISSUES row is now "can wait".
 
+## Follow-up fixes
+
+- After the critic (8/8): a chasing follower's gap may grow by `CHASE_SLACK` only while the leader moves at
+  `CHASE_PACE` of sprint or faster, otherwise it must shrink, so one sprinting round a standing or walking leader
+  fails (`test_follow_measure`, 4/4; the follow guard unchanged on its 4 seeds).
+
 ## Known issues left
 
 - Noisy props, rings and loud ground are NP1's first guesses, to tune in play (`docs/KNOWN_ISSUES.md`, Bots).

@@ -8,9 +8,10 @@ tests ported to `tests/unit/`. Tuning comes from `game/config/` (`SimTuning`).
 
 `Simulation.step(state, commands, dt)` advances a `GameState` by one 60 Hz tick. Per character: move (a Jump press at a
 low obstacle vaults it instead; a vault under way follows its path), swing the legs, lean, settle the aim, then use the
-replica (BBs leave from this tick's leaned eyes); a run into a noisy prop knocks it; then every BB flies, and one landing
-hard on steel rings it; then the round flow, or in practice the range's targets. A hit character follows the hit-calling routine instead of its command. Nothing is allocated per tick once
-warm (checked by `test_simulation.gd` and, on the range, `test_range_map.gd`).
+replica (BBs leave from this tick's leaned eyes); a run into a noisy prop knocks it; then every BB flies, and one
+landing hard on steel rings it; then the round flow, or in practice the range's targets. A hit character follows the
+hit-calling routine instead of its command. Nothing is allocated per tick once warm (checked by `test_simulation.gd`
+and, on the range, `test_range_map.gd`).
 
 | File | What |
 |---|---|
