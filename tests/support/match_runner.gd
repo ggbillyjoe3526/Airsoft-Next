@@ -8,9 +8,10 @@ extends RefCounted
 const DT := 1.0 / 60.0
 const TICKS_PER_SECOND := 60
 ## Held up: a bot that has been walking its lane, hunting or making for the pole (Bot.Mode ADVANCE, SEARCH or FLAG) at
-## every sample of the last HELD_UP_SECONDS (once a second) and is back within HELD_UP_DISTANCE (m) of where it was
-## then, frozen or going round in a loop, counts one episode until it moves on. A fight or a hold on purpose in between
-## is not held up.
+## every sample of the last HELD_UP_SECONDS (once a second), on the same errand (mode) at each, and is back within
+## HELD_UP_DISTANCE (m) of where it was then, frozen or going round in a loop, counts one episode until it moves on. A
+## fight, a hold on purpose or a change of errand in between (a search given up for its lane, walking back the way it
+## came) is not held up.
 const HELD_UP_SECONDS := 10
 const HELD_UP_DISTANCE := 0.5
 ## A character that ends a round in play without ever getting this far from its spawn (m) stayed home that round.
@@ -217,9 +218,10 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 	var round_start := state.time
 	var limit := roundi(max_seconds / DT)
 	var n := state.characters.size()
-	# Each character's position once a second for the last HELD_UP_SECONDS (INF where it wasn't on its way), and
-	# whether it is held up now.
+	# Each character's position and errand once a second for the last HELD_UP_SECONDS (INF where it wasn't on its way),
+	# and whether it is held up now.
 	var trail: Array[PackedVector3Array] = []
+	var errands: Array[PackedInt32Array] = []
 	var held := PackedByteArray()
 	held.resize(n)
 	for i in n:
@@ -227,6 +229,9 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 		ring.resize(HELD_UP_SECONDS)
 		ring.fill(Vector3.INF)
 		trail.append(ring)
+		var kinds := PackedInt32Array()
+		kinds.resize(HELD_UP_SECONDS)
+		errands.append(kinds)
 	var order_due := follow_leader >= 0
 	# Per character, seconds in a row spent carrying out Follow me (a fight or cover resets it).
 	var following := PackedFloat32Array()
@@ -243,7 +248,7 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 		if follow_leader >= 0:
 			_watch_follow(state, bots, t, following)
 		if t.ticks % TICKS_PER_SECOND == 0:
-			_watch_held_up(state, bots, t, trail, held, (t.ticks / TICKS_PER_SECOND) % HELD_UP_SECONDS)
+			_watch_held_up(state, bots, t, trail, errands, held, (t.ticks / TICKS_PER_SECOND) % HELD_UP_SECONDS)
 		for i in state.events.count:
 			var e := state.events.items[i]
 			match e.kind:
@@ -313,29 +318,31 @@ func _new_round(state: GameState) -> RoundTally:
 
 ## Once a second: a bot held up (held_up_sample) starts a held-up episode, which lasts until it moves on.
 func _watch_held_up(state: GameState, bots: BotController, t: MatchTally, trail: Array[PackedVector3Array],
-		held: PackedByteArray, slot: int) -> void:
+		errands: Array[PackedInt32Array], held: PackedByteArray, slot: int) -> void:
 	for c in state.characters:
 		var b := _bot_of(bots, c.id)
 		var bot_mode := bots.mode_of(c.id)
 		var walking := (bot_mode == Bot.Mode.ADVANCE or bot_mode == Bot.Mode.SEARCH or bot_mode == Bot.Mode.FLAG) \
 				and not (b != null and holding_on_purpose(b, bots.world.time))
 		var on_way := Elimination.is_in_play(c) and state.round_state.is_live() and walking
-		var now := 1 if held_up_sample(trail[c.id], slot, c.position, on_way) else 0
+		var now := 1 if held_up_sample(trail[c.id], errands[c.id], slot, c.position, bot_mode, on_way) else 0
 		if now == 1 and held[c.id] == 0:
 			t.held_up += 1
 		held[c.id] = now
 
 
-## Records this second's sample in `ring` (one a second for HELD_UP_SECONDS; INF for a second it wasn't on its way) at
-## `slot`, and whether it is held up now: on its way at every sample and back within HELD_UP_DISTANCE of the place
-## HELD_UP_SECONDS ago.
-static func held_up_sample(ring: PackedVector3Array, slot: int, position: Vector3, on_way: bool) -> bool:
+## Records this second's sample in `ring` (one a second for HELD_UP_SECONDS; INF for a second it wasn't on its way) and
+## its errand in `errands`, both at `slot`, and whether it is held up now: on its way on this one errand at every
+## sample and back within HELD_UP_DISTANCE of the place HELD_UP_SECONDS ago.
+static func held_up_sample(ring: PackedVector3Array, errands: PackedInt32Array, slot: int, position: Vector3,
+		errand: int, on_way: bool) -> bool:
 	var then := ring[slot]
 	ring[slot] = position if on_way else Vector3.INF
+	errands[slot] = errand
 	if not on_way or then == Vector3.INF:
 		return false
-	for p: Vector3 in ring:
-		if p == Vector3.INF:
+	for i in ring.size():
+		if ring[i] == Vector3.INF or errands[i] != errand:
 			return false
 	return position.distance_to(then) < HELD_UP_DISTANCE
 

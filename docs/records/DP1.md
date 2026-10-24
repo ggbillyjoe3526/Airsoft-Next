@@ -6,7 +6,7 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | 2826 of 2827 | pending | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass, 2,829 of 2,829 | pending | – |
 
 ## What was built
 
@@ -100,19 +100,12 @@ Attack / Defend: Depot 123 rounds, 26 captures, the flag raised in 12 matches, 0
 
 ## Checks
 
-`tools/check.sh` (2026-10-24): gdlint, the changelog notes, the smoke test and the licence notices pass; unit tests
-2,826 of 2,827. `test_field_rules` 17/17, `test_field_layout` 11/11, `test_depot_layout` 5/5, `test_gravel` 3/3,
+`tools/check.sh` (2026-10-24): every gate passes, unit tests 2,829 of 2,829 (`test_df2_qa` 10/10, `test_df2b_qa` 7/7,
+`test_held_up_measure` 8/8). `test_field_rules` 17/17, `test_field_layout` 11/11, `test_depot_layout` 5/5, `test_gravel` 3/3,
 `test_map_level` 15/15, `test_map_areas` 11/11, `test_nav_grid` 21/21 (Depot's walkable cells 27,363 became 27,593:
 the Box's inside and the thinner port walls; the expectation is updated).
 
-**Open, needs a call: `test_df2_qa` › `test_a_pro_match_plays_the_same_twice_and_no_bot_stays_stuck`** counts one
-held-up episode on seed 7 (it asserts none). Traced: bot 0 searched from 3.7, -1.6 north-west to the dock's west
-ramp, gave the search up at -6.9, -11.2 and resumed its Alley lane at the lane point 2.6, 0 it had left, walking
-back the same 10 m; 10 s apart it passed 0.24 m from where it had been, at 2.3 m/s, so the measure (back within
-0.5 m after 10 s on its way) counts it as a loop. It was not stuck, and nowhere near the new blocks (the Box's
-north end is 0.7 m away). Not changed here: the measure, the bot's lane resume and the seed are outside DP1. Options:
-a held-up window that must keep one errand (a search given up for the lane breaks it, as a fight does), or bots
-resuming their lane at the nearest point ahead (a bot fix), or the owner accepts the episode.
+- **The held-up window keeps one errand** (coordinator, 2026-10-24): `test_df2_qa`'s Pro seed 7 counted a bot that gave up a search near the dock and walked 10 m back to its lane point, passing its spot of 10 s before; the criterion is no bot stays stuck and it wasn't, so `MatchRunner.held_up_sample` now counts only a window on one errand (Bot mode), and `test_held_up_measure` checks a loop on one search still counts and that walk-back doesn't. The walk-back itself is a KNOWN_ISSUES row (Bots, can wait).
 
 ## Screenshots
 
@@ -123,4 +116,5 @@ the roof, both side ports and the far end).
 
 ## Known issues left
 
-- None new. The Bay ports' angle is a playtest question (PLAYTEST › Depot), not a fault.
+- A bot that gives up a search walks back to the lane point it left instead of resuming ahead (`docs/KNOWN_ISSUES.md`, Bots, can wait).
+- The Bay ports' angle is a playtest question (PLAYTEST › Depot), not a fault.

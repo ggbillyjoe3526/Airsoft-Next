@@ -12,6 +12,7 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 | Area | Issue | Class | Found |
 |---|---|---|---|
 | Bots | A bot can come off a vault standing on top of a low wall and walk across it (0.85 m wall in `test_bot_vaults.gd`: seen for 6 ticks once lane points moved; staggering every bot's lane points, as the browser game did, was left out for this) | playtest | 2026-10-22 |
+| Bots | A bot that gives up a search walks back to the lane point it left, up to about 10 m, instead of resuming its lane at the next point ahead (Depot, seed 7 at Pro; DP1) | can wait | 2026-10-24 |
 | Bots | Bots have no callouts, pings or magazine sharing. Each is its own later task (`docs/DECISIONS.md` › Bots and balance) | can wait | 2026-10-18 |
 | Bots | `data/bots.md`'s Watches the flag first column is read and checked but plays no part yet: the overtime flag comes with step 27. Names show on the Dev tab's bot intentions and the spectating line only, never over heads (owner, 2026-10-20) | can wait | 2026-10-20 |
 | Bots | A cross-map route on Depot costs 1.2–1.5 ms on average and up to 6.4 ms (`NavGrid.find_route`, measured headless), over the 1 ms aim: about half the native search, half the string-pulling in GDScript. Plan at most one route a tick | can wait | 2026-10-18 |
