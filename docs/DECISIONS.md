@@ -501,8 +501,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 
 ## Menus, HUD, settings and accessibility
 
-- **Settings after the Dev 6 playtest (owner, 2026-10-16; ST1).** Groups: Display, Graphics, Gameplay, Looks, Audio,
-  Controls, Accessibility, Save file, Dev. Defaults: sound cues red, scoreboard 100 %, aim
+- **Settings after the Dev 6 playtest (owner, 2026-10-16; ST1).** Groups: Display, Graphics, Gameplay, Audio,
+  Controls, Accessibility, Save file, Dev (Looks went with its only row, Robots, now a Dev Easter egg: 2026-10-24, RB1).
+  Defaults: sound cues red, scoreboard 100 %, aim
   Toggle (now Hold: the 2026-10-18 ruling above), crouch Hold, volumes master 100 %, effects 80 %, power source 100 %, ambience 60 %, interface 50 %. The Retro
   look is a Dev setting again, Realistic colours moved to the Loadout's Colour tab (MR1), and the Voices placeholder is
   gone. The top bar's level reads "LVL 3".

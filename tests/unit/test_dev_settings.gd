@@ -157,6 +157,59 @@ func test_the_dev_tab_writes_its_switches_and_game_speed() -> void:
 	assert_true(again.dev.bots_hold_fire)
 
 
+## RB1: robots are a hidden Easter egg. Dev › Robots is off by default, a look and no cheat, saved and read back; the
+## settings show robots only on the Dev tab, and the game's text names them only in its Dev rows.
+func test_dev_robots_is_off_by_default_and_saved_as_the_other_switches() -> void:
+	assert_false(s.dev.robots, "off by default")
+	assert_true(SettingsScreen.DEV_SWITCHES.has(&"robots"), "a Dev tab switch")
+	s.dev.robots = true
+	assert_false(s.active_dev().robots, "box off: humans only")
+	assert_false(s.dev.cheats().any(), "a look: the match still counts")
+	s.dev_enabled = true
+	assert_true(s.active_dev().robots)
+	assert_true(s.save(path))
+	var again := Settings.new(PlayTuning.new())
+	again.load_file(path)
+	assert_true(again.dev.robots)
+	again.dev.robots = false
+	assert_true(again.save(path))
+	var off := Settings.new(PlayTuning.new())
+	off.load_file(path)
+	assert_false(off.dev.robots)
+
+
+func test_the_dev_tab_s_robots_row_reads_and_writes_the_switch() -> void:
+	s.dev_enabled = true
+	var screen := _screen()
+	var check: CheckButton = screen._dev_checks[&"robots"]
+	assert_false(check.button_pressed, "off to begin with")
+	assert_eq(tr("DEV_ROBOTS"), "ROBOTS")
+	check.button_pressed = true
+	assert_true(s.dev.robots)
+	screen.close()
+	var again := Settings.new(PlayTuning.new())
+	again.load_file(path)
+	assert_true(again.dev.robots, "saved")
+
+
+func test_no_public_tab_or_text_names_robots() -> void:
+	var screen := _screen()
+	for i in screen._tabs.get_tab_count():
+		var page := screen._tabs.get_tab_control(i)
+		if page == screen._dev_page.get_parent():
+			continue
+		assert_false(screen._tabs.get_tab_title(i).to_lower().contains("robot"), "tab %d" % i)
+		for label: Label in page.find_children("*", "Label", true, false):
+			assert_false(label.text.to_lower().contains("robot"), "%s on tab %d" % [label.text, i])
+	var po := FileAccess.get_file_as_string("res://game/ui/text/en.po")
+	var key := ""
+	for line: String in po.split("\n"):
+		if line.begins_with("msgid "):
+			key = line
+		elif line.begins_with("msgstr ") and line.to_lower().contains("robot"):
+			assert_true(key.begins_with("msgid \"DEV_"), "only Dev rows name robots: %s" % key)
+
+
 func test_end_the_round_needs_a_match() -> void:
 	s.dev_enabled = true
 	var screen := _screen()

@@ -139,7 +139,7 @@ extends Resource
 ## Calling the hit (the left hand up), the replica hangs from the right hand's grip, its long axis this far (rad) off
 ## straight down with the muzzle forward.
 @export var hang_tilt: float = 0.25
-## Robots (Settings › Looks › Robots, Mixed by default as the browser's) are picked from the match seed XOR this salt so
+## Robots (Settings › Dev › Robots, the Easter egg, off by default; RB1) are picked from the match seed XOR this salt so
 ## no gameplay stream moves (the browser's ROBOT_SEED_SALT).
 @export var robot_salt: int = 0x5f3759df
 

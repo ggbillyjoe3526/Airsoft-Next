@@ -4,10 +4,11 @@ extends RefCounted
 ## settings box is ticked (owner, 2026-10-04): `Settings.active_dev()` is these then, else the defaults. Game speed,
 ## bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions and Disable levelling keep a match
 ## out of the records and give it no XP (DevCheats); Dev content lists maps tagged dev and keeps a match on one out
-## too; Retro pixels changes only the look. Disable levelling unlocks every item to carry; your own level and unlocks
-## stay as they are and come back when it is off. Pretend slow frames counts every frame of a live round slow for the
-## automatic graphics step-down (FrameWatch), to check it on a fast machine; it changes nothing else. A saved key
-## no switch reads any more (Rigged figures, gone with FI7) is passed over.
+## too; Retro pixels changes only the look, and Robots (the hidden Easter egg, owner 2026-10-24) only who is drawn as
+## a robot from the next match (FigureMix; everyone is human while it is off). Disable levelling unlocks every item to
+## carry; your own level and unlocks stay as they are and come back when it is off. Pretend slow frames counts every
+## frame of a live round slow for the automatic graphics step-down (FrameWatch), to check it on a fast machine; it
+## changes nothing else. A saved key no switch reads any more (Rigged figures, gone with FI7) is passed over.
 
 const SPEED_STEP := 0.25
 
@@ -20,6 +21,7 @@ var bots_hold_fire: bool = false
 var spectate_bots: bool = false
 var bot_intent: bool = false
 var retro_pixels: bool = false
+var robots: bool = false
 var pretend_slow_frames: bool = false
 
 
@@ -40,7 +42,7 @@ func to_dict() -> Dictionary:
 		"dev_content": dev_content, "disable_levelling": disable_levelling, "game_speed": game_speed,
 		"bottomless": bottomless, "ghost": ghost,
 		"bots_hold_fire": bots_hold_fire, "spectate_bots": spectate_bots, "bot_intent": bot_intent,
-		"retro_pixels": retro_pixels, "pretend_slow_frames": pretend_slow_frames,
+		"retro_pixels": retro_pixels, "robots": robots, "pretend_slow_frames": pretend_slow_frames,
 	}
 
 
@@ -58,6 +60,7 @@ func from_dict(data: Dictionary) -> void:
 	spectate_bots = _flag(data, "spectate_bots")
 	bot_intent = _flag(data, "bot_intent")
 	retro_pixels = _flag(data, "retro_pixels")
+	robots = _flag(data, "robots")
 	pretend_slow_frames = _flag(data, "pretend_slow_frames")
 
 

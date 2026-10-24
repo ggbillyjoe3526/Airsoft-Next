@@ -496,30 +496,17 @@ func test_each_bad_accessibility_value_keeps_its_own_default() -> void:
 	assert_eq(t.sound_cue_colour, AccessibilityConfig.CUE_COLOUR_DEFAULT)
 
 
-func test_robots_start_mixed_and_round_trip_through_the_save_file() -> void:
-	assert_true(s.robots, "Mixed is the default")
-	assert_eq(s.to_dict().get("robots"), true, "saved under robots")
-	s.robots = false
-	assert_true(s.save(path))
-	assert_false(_again().robots, "Humans only is kept")
-	s.robots = true
-	assert_true(s.save(path))
-	assert_true(_again().robots)
-
-
-func test_a_file_from_before_looks_reads_mixed_with_the_version_unchanged() -> void:
-	SaveFile.write(path, Settings.KIND, Settings.VERSION, {"sensitivity": 1.5, "read_out": false})
-	var t := _again()
-	assert_eq(Settings.VERSION, 1, "no migration for a new key with a default")
-	assert_eq(t.load_message, "")
-	assert_true(t.robots, "an older save reads Mixed")
-	assert_false(t.read_out, "the rest of the file is kept")
-
-
-func test_a_bad_robots_value_reads_mixed() -> void:
-	for bad: Variant in [1, 0, 1.0, "false", "true", null, [], {}, [false]]:
-		SaveFile.write(path, Settings.KIND, Settings.VERSION, {"robots": bad, "fov": 95.0})
+## RB1: robots are the Dev tab's Easter egg. A save from before (the public Looks › Robots, `robots` at the top) loads
+## cleanly with robots off, whatever it held, and is not written back.
+func test_a_save_with_the_old_public_robots_loads_with_robots_off() -> void:
+	assert_false(s.to_dict().has("robots"), "no public robots key is written")
+	for old: Variant in [true, false, 1, "true", null, {}]:
+		SaveFile.write(path, Settings.KIND, Settings.VERSION, {"robots": old, "fov": 95.0, "read_out": false,
+				"dev_enabled": true})
 		var t := _again()
-		assert_eq(t.load_message, "", "a good file with a bad value is not a damaged file (%s)" % str(bad))
-		assert_true(t.robots, "%s reads Mixed" % str(bad))
-		assert_almost_eq(t.fov, 95.0, 1e-6)
+		assert_eq(t.load_message, "", "an old file is not a damaged file (%s)" % str(old))
+		assert_false(t.dev.robots, "the old public value is ignored (%s)" % str(old))
+		assert_false(t.active_dev().robots, "robots off in play, the Dev box ticked or not (%s)" % str(old))
+		assert_almost_eq(t.fov, 95.0, 1e-6, "the rest of the file is kept")
+		assert_false(t.read_out)
+		assert_false(t.to_dict().has("robots"), "dropped on the next save")
