@@ -597,6 +597,12 @@ msgstr "RETRO PIXELS"
 msgid "DEV_RETRO_PIXELS_HELP"
 msgstr "The 3D view in chunky pixels and a small dithered palette. Changes only what you see."
 
+msgid "DEV_ROBOTS"
+msgstr "ROBOTS"
+
+msgid "DEV_ROBOTS_HELP"
+msgstr "Mixes robots in among the humans on both teams, from the next match. Changes only what you see."
+
 msgid "DEV_PRETEND_SLOW_FRAMES"
 msgstr "PRETEND SLOW FRAMES"
 
@@ -2703,30 +2709,6 @@ msgstr "High contrast"
 
 msgid "SETTINGS_IN_USE"
 msgstr "IN USE"
-
-msgid "SETTINGS_LOOKS"
-msgstr "Looks"
-
-msgid "SETTINGS_HUMANS_ROBOTS"
-msgstr "Humans and robots"
-
-msgid "SETTINGS_ROBOTS"
-msgstr "Robots"
-
-msgid "SETTINGS_ROBOTS_MIXED"
-msgstr "Mixed"
-
-msgid "SETTINGS_ROBOTS_MIXED_NOTE"
-msgstr "Each match mixes humans and robots on both teams."
-
-msgid "SETTINGS_ROBOTS_HUMANS"
-msgstr "Humans only"
-
-msgid "SETTINGS_ROBOTS_HUMANS_NOTE"
-msgstr "Every player is human."
-
-msgid "SETTINGS_FROM_NEXT_MATCH"
-msgstr "From the next match."
 
 msgid "SETTINGS_SET_STANDARD_LEAD"
 msgstr "Blue and orange:"

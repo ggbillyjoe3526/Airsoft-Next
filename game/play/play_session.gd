@@ -1296,14 +1296,15 @@ func _reset_flinches() -> void:
 		f.reset_flinch()
 
 
-## Settings › Looks › Robots, read at the start of every match (a rematch too, so a change made while paused shows from
-## the next match) and a practice: each character's kind from the match seed, your own going to the arms (step 32 draws
-## them). Returns the characters whose kind changed.
+## Settings › Dev › Robots (the Easter egg, RB1; everyone is human while it or the Dev settings box is off), read at the
+## start of every match (a rematch too, so a change made while paused shows from the next match) and a practice: each
+## character's kind from the match seed, your own going to the arms (step 32 draws them). Returns the characters whose
+## kind changed.
 func _pick_kinds() -> Array[int]:
 	var teams := PackedInt32Array()
 	for c in state.characters:
 		teams.append(c.team)
-	var robots := (settings if settings != null else Settings.shared()).robots
+	var robots := (settings if settings != null else Settings.shared()).active_dev().robots
 	var before := figure_kinds
 	figure_kinds = FigureMix.pick(state.match_seed, teams, robots, _play.figures.robot_salt)
 	_hands.arms_kind = figure_kinds[PLAYER_ID]

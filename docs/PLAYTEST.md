@@ -147,7 +147,7 @@ never players.
 ## Players and replicas
 
 - [ ] **Players.** Teammates and opponents are masked humans (never a bare face) in team camo with a plate carrier in
-  the team colour, or robots in a light or dark shell by team.
+  the team colour; with Settings › Dev › Robots on, some are robots in a light or dark shell by team.
 - [ ] **Team camo** (Medium and up). Clear dark and light blotches in the team's colour, crisp up close and blending
   far off without shimmering; Low keeps plain clothes.
 - [ ] **Your hands.** Dark gloves, sleeves in your team's camo (Hand detail High) and the team armband on the left
@@ -156,12 +156,11 @@ never players.
 - [ ] **Look straight down.** Standing, crouched and in a vault: you see the ground, never your own body (Beta 1
   item 24).
 - [ ] **Hit call.** Hit a bot: the HIT! sign, the hand up, the replica hanging; readable at 20 to 30 m.
-- [ ] **Looks › Robots.** Settings › Looks (between Controls and Audio) shows Mixed in use. Start a match: both
-  teams have humans and robots. In the pause menu's Settings, pick Humans only: the tab
-  says "From the next match." and this match is unchanged; start the next one: everyone is human. Pick Mixed again
-  and a third match brings the robots back. Tab to a card and press Enter, and with a screen reader on, hear Mixed
-  and Humans only read with which is in use.
-- [ ] **Hit flinch.** Hit a bot side-on, then one from behind (a human and a robot): its upper body
+- [ ] **Robots, the Dev Easter egg** (RB1). Settings has no Looks tab and nothing outside the Dev tab names robots.
+  Start a match: everyone is human. Tick the Dev settings box and turn on Settings › Dev › Robots (off at first) in
+  the pause menu: this match is unchanged; start the next one: both teams mix humans and robots. Untick the Dev
+  settings box (or turn Robots off) and the match after is all human again.
+- [ ] **Hit flinch.** Hit a bot side-on, then one from behind (with Dev › Robots on, try a robot too): its upper body
   snaps the way the BB flew (sideways, then forward) and eases back upright in under half a second while the hand
   goes up; a far bot's flinch is as quick. Get hit yourself: the replica jolts and drops out of view in a quarter of a
   second, the camera still; with Reduced motion on, the same.
@@ -552,8 +551,8 @@ XP ×2.
 
 ## Settings and controls
 
-Settings opens on Display, with groups down the left (Display, Graphics, Gameplay, Looks, Audio, Controls,
-Accessibility, Save file) and a "Dev settings" box that shows the Dev group.
+Settings opens on Controls, with tabs across the top (Controls, Audio, Display, Graphics, HUD, Accessibility, Save
+file) and a "Dev settings" box that shows the Dev tab.
 
 - [ ] **Search and notes.** Typing "shadow" shows only matching rows with "N settings found"; pointing at a row says
   what it does, and in Graphics what it costs.
