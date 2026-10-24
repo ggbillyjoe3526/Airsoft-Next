@@ -1,12 +1,12 @@
 # FI7 · Rigged figures for everyone: capsules gone, the hit area measured, eleven figures timed
 
-**Review:** pending (critic, QA, performance)
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-24 | 1 | Opus 5.5 (worker) | pass | – | – |
+| 2026-10-24 | 1 | Opus 5.5 (worker) | pass | Accept 8/8 | – |
 
 ## Decisions
 
@@ -127,4 +127,7 @@ line beyond the far_stride that is there (the plan's "if the bench asks"; it doe
 
 - The unit suite now takes 717 s here against `tools/unit_tests.sh`'s 900 s hang limit (the hit area test adds 18 s).
 - The bench drives FigureViews from scripted Characters, not a 6v6 match: Depot has 3 spawns an end, so no 6v6 runs yet.
+- `ShaderPrewarm` draws each material on a quad, so the skinned and shadow variants of the figure shaders are not
+  prewarmed and may still hitch the first time a figure is seen; check on the owner's PC.
+- The suite's 717 s is near the 900 s limit: the next big test file should raise it (the CI job allows 20 minutes).
 - The changelog note (`changelog.d/`) is the changelog agent's.

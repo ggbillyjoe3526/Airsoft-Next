@@ -169,8 +169,8 @@ The figures (step 23, FI1-FI7; every bot on every preset, DECISIONS BD1):
   crouch, jump, vault, the hit call, the walk-off, the upper body's aim, holster, switch, reload and fire);
   `FigureBend` lowers the crouch, leans, flinches and pitches the aim after it; `FigureHands` puts the replicas and a
   reload's magazines on the bones; `ThrownMagazines` throws the old ones.
-- **Shaders.** `ShaderPrewarm` draws every figure material, solid and fading, behind the loading screen
-  (`FigureModels.materials`).
+- **Shaders.** `ShaderPrewarm` draws every figure material, solid and fading, as specks in the first frames
+  of a match (`FigureModels.materials`).
 - **The hit area.** Hitbox's volume is the same for both kinds and is measured against the drawn figure by
   `tests/support/hit_area_probe.gd` (FI7, `docs/records/FI7.md`); step 32 fits it to the final figures (HV1).
 - **The bench.** `tools/figure_bench.gd`: 11 figures on Depot, the animation and skeleton time per figure, and the

@@ -2,7 +2,7 @@ extends GutTest
 ## FI7: the hit area against the drawn figure (tests/support/hit_area_probe.gd, M85's measure): every kind, head and
 ## pose, its level 0 triangles baked with FigureBend's bend in and the arms left out, against Hitbox's volume on a
 ## 1 cm grid from 8 sides. The shares measured (docs/records/FI7.md) are the gate: none may rise more than RISE points.
-## Most are over M85's bar (4 % missed, 3 % thin air): KNOWN_ISSUES › BBs and hits, can wait to step 32 (HV1).
+## Most are over M85's bar (4 % missed, 3 % thin air): KNOWN_ISSUES › Play, the hit area row, can wait to step 32 (HV1).
 
 ## Points (of 100) a share may rise over what FI7 measured.
 const RISE := 0.5
