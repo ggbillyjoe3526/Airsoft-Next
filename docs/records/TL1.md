@@ -1,12 +1,13 @@
 # TL1 · Three bot levels: each moved up a name, and Pro became Hard
 
-**Review:** not yet
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | see Gate | – | – |
+| 2026-10-25 | 1, fix round | worker | pass, 3,211 of 3,211 (parts 331 s, 336 s and 333 s) | Accept 8/8 | QA and performance advisories; Attack / Defend records |
 
 ## Goal
 
@@ -150,6 +151,15 @@ these seeds at 8, and their captures (Depot 12, Woodland 4) clear the floors.
   records land under Easy too.
 - **Gate:** `tools/check.sh` with these fixes on `92b5fa2` passed in 1,126 s: part 1 744 tests in 331 s, part 2 1,570
   in 336 s, part 3 897 in 333 s (3,211, all passing), the smoke test and the licence notices.
+
+## Advisories left
+
+- **"Normal is the baseline" (DECISIONS, 2026-10-06) now reads as today's Easy**, while the tightest band stays on
+  Normal (critic): which level later tuning starts from is the owner's call when he next tunes.
+- **Guard coverage of the old Normal bots (now Easy) halves to 8 seeds a field, and the old Easy bots go unguarded**
+  (QA): thresholds are untouched.
+- **Two Normal end figures sit outside 45–55 % within noise** (Balance): the old Hard bots, for the owner.
+- **`records.gd` compares the version with a bare 2** (critic nit): left as is.
 
 ## Gate
 
