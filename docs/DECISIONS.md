@@ -397,11 +397,13 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   seeds made pass/fail bands cost re-measure loops. The report never fails a build; the bug pass reads it. The match
   guards keep what must never happen (rounds settled, nobody stuck, falling or hit by a teammate). The Normal figures
   are judged at 45 to 55 %, the Pro ones at 40 to 60 % (M73).
-- **Bot callouts are text and a radio click, never voices, and never change play (2026-10-13, CL1).** Shown bottom left,
-  panned to where the teammate is; an enemy's is only its click, within 15 m. One call at a time per team, 1.5 s apart,
-  a bot its own 4 s apart. Hit players never talk. Every line is in `callouts.md`.
+- **Bot callouts are text and a radio click, never voices, and never change play (2026-10-13, CL1).** A call is a line
+  in the one hit feed, with its timing (owner, 2026-10-24: the recommended defaults; step 27 plan), and a click panned
+  to where the teammate is; an enemy's is only its click, within 15 m. One call at a time per team, 1.5 s apart, a bot
+  its own 4 s apart. Hit players never talk. Every line is in `data/callouts.md`.
 - **A ping marks a spot or an enemy for your team, and your bot teammates play it their way (2026-10-15, PG1; Claude's
-  defaults).** An enemy counts only if the bots' own sight rules let you see them. One teammate answers each ping.
+  defaults).** An enemy counts only if the bots' own sight rules let you see them, and the mark stays over where they
+  were seen, never following them, on screen and on the minimap (step 27 plan). One teammate answers each ping.
   Numbers: `legacy/browser/docs/records/PG1.md`.
 - **Bots ask the nearest teammate within 30 m for a magazine, and bring one when asked (2026-10-15, MG1).** Fights and
   cover come first. Dev settings › Bots run low on BBs (a cheat, off) shows the bot side.
@@ -444,8 +446,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   attackers, a time-out for the defenders; overtime lasts at most 15 s if attackers are on the rope at the buzzer. The
   pole is visual only: no collider, and BBs pass through.
 - **Elimination's overtime flag: a time-out with nobody ahead puts a flag up near the middle, and the first team to
-  touch it wins the round (2026-10-15, OT1; Claude's defaults).** Untouched after 30 s, the time-out rule decides.
-  Never in Attack / Defend or Extraction. Spots and timings: `legacy/browser/docs/records/OT1.md`.
+  touch it wins the round (2026-10-15, OT1; Claude's defaults).** Untouched after 30 s, the round is a draw, played
+  again. Always on in Elimination, with no rules row (step 27 plan); never in Attack / Defend, Extraction or practice.
+  Its cloth is chequered off-white and dark until touched. Spots and timings: `legacy/browser/docs/records/OT1.md`.
 - **Rule sets: Skirmish, Tournament, Pro CQB and Custom (owner, 2026-10-04).** Skirmish is today's rules, the default. A
   match counts for the records only as its ruleset's standard match; Custom pays at most ×1.5. Tournament and Pro CQB
   are dev and fold into the field rule presets (owner, 2026-10-05).
@@ -623,9 +626,12 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Ping is the middle mouse button, and Settings › HUD › Ping markers is On by default (2026-10-15, PG1).** One ping
   each, 8 s on screen with its distance, on the minimap too. Off hides the markers only.
 - **Asking for a magazine is H and the order wheel's fifth item, Need a Mag (2026-10-15, MG1).** One press does what
-  fits now: toss one to the nearest teammate asking you in reach, else ask if you are low, else say why not.
-- **Settings › HUD › Mag hand-off is On by default (2026-10-15, MG1).** One line under the crosshair and a "· mag" tag
-  on the teammate's name; Off hides them only.
+  fits now: toss one to the nearest teammate asking you in reach, else ask if you are low, else say why not. Ping and
+  Need a Mag are dead on the range and while you are out, as the order keys are (step 27 plan).
+- **Settings › HUD › Mag hand-off is On by default (2026-10-15, MG1).** One line under the crosshair and a magazine
+  glyph by the teammate's chevron, since names never show over heads; Off hides them only. The line says what the
+  hand-off is doing and why not, never which key to press (owner, 2026-10-24: the recommended defaults; step 27 plan).
+  A refusal picked on the order wheel shows in its middle, as order notices do.
 - **Settings › Gameplay › HUD › Ammo counter is On by default; Off hides the BB counts, not the magazines (2026-10-15,
   AC1).** Each spare magazine keeps its bar, full while it holds any BBs and hollow once empty, with no fill level. No
   mag-check key (owner, 2026-10-06).

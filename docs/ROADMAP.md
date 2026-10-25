@@ -110,10 +110,14 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 Last, at the owner's word (2026-10-22): the features he named, then everything that needs Blender, which he must be
 at his PC to connect.
 
-27. **The deferred features, one step (owner, 2026-10-24).** The overtime flag (browser OT1); pings on the middle
-    mouse button and the magazine hand-off (asking for and tossing a magazine); bot callouts. Built in the order the
-    plan sets. The tutorial and adaptive difficulty were dropped (owner, 2026-10-25): players learn at their own pace
-    in practice, and the preset levels stay.
+27. **The deferred features, one step (owner, 2026-10-24).** Bot callouts in the one feed, Elimination's overtime
+    flag (browser OT1), pings on the middle mouse button and the magazine hand-off (asking for and tossing a magazine,
+    Need a Mag on the wheel), in that order (plan: project files `plan/step27-deferred.md`, concepts
+    `concepts/step27/`): CO1 (who calls what), CO2 (calls in the feed, the radio click), OV1 (the flag's rules and the
+    maps' spots), OV2 (bots), OV3 (the flag on screen and in sound), PN1 (the ping and bots' answer), PN2 (markers,
+    minimap, pip), MH1 (the hand-off's rules), MH2 (bots ask and bring), MH3 (H, the wheel, the line, the toss). The
+    tutorial and adaptive difficulty were dropped (owner, 2026-10-25): players learn at their own pace in practice,
+    and the preset levels stay.
 28. **Blender work, at the owner's PC** (was step 32; it starts once step 27 is done, owner 2026-10-24). His models
     for Depot's assets, including the practice range's, which is set in Depot; the human figures
     with your first-person arms and hands (bare or gloved, by figure and skin), fitted hit areas and Inspect on Y;
