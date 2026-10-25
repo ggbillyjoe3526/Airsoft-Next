@@ -5,9 +5,9 @@ licences. No real brand names or trademarked replica designs.
 
 ## External assets
 
-The menus' fonts are the only external files. The game's own models and sounds (made for it, listed below) are the
-only other asset files; there are no external models, textures or sounds yet. The rest is greybox geometry and
-materials made in Godot.
+The menus' fonts and Depot's two photo texture sets (its temporary site dress, DD1) are the only external files. The
+game's own models and sounds (made for it, listed below) are the only other asset files; there are no external models
+or sounds yet. The rest is greybox geometry and materials made in Godot.
 
 CC0 models and textures can replace parts of this later. Record each one here, one row per file, in the format below
 ([CC0_ASSETS.md](CC0_ASSETS.md) is the how-to). A player model goes in `assets/models/characters/`, a replica's in
@@ -16,6 +16,8 @@ CC0 models and textures can replace parts of this later. Record each one here, o
 | File | Asset | Source URL | Licence | Author |
 |---|---|---|---|---|
 | `assets/fonts/Inter-500.woff2`, `Inter-600.woff2`, `Inter-700.woff2`, `Inter-800.woff2` | Inter (Medium, SemiBold, Bold, ExtraBold; latin subset, from @fontsource/inter 5.3.0), the menus' and the HUD's face for all text and numbers (M100; replaces Barlow and Barlow Condensed, owner 2026-10-07) | https://github.com/rsms/inter | SIL OFL 1.1 (`assets/fonts/OFL.txt`) | Rasmus Andersson, The Inter Project Authors |
+| `assets/textures/site/concrete_floor_02_diff_1k.jpg`, `concrete_floor_02_nor_gl_1k.jpg` | Concrete Floor 02, 1K colour and OpenGL normal: the photo in Depot's slab and loading dock (DD1; VRAM compressed with mipmaps, 2.1 MB imported). Fetched from a GitHub mirror (github.com/hakyong-tae/game-asset-library-3d, `packs/ph`) as the cloud can't reach the site; noted in `assets/textures/site/LICENSE.txt` | https://polyhaven.com/a/concrete_floor_02 | CC0 1.0 | Poly Haven |
+| `assets/textures/site/plywood_diff_1k.jpg`, `plywood_nor_gl_1k.jpg` | Plywood, 1K colour and OpenGL normal: the grain in Depot's plywood walls (DD1; as above, 2.1 MB imported) | https://polyhaven.com/a/plywood | CC0 1.0 | Poly Haven |
 | `assets/fonts/Inter-marks-500.woff2`, `Inter-marks-600.woff2`, `Inter-marks-700.woff2`, `Inter-marks-800.woff2` | Inter's three symbols the latin subset lacks, ← → ✓ (about 0.6 KB a weight; cut from the same four weights of Inter 4.1.1 in the `inter-ui` npm package, because `@fontsource/inter` 5.3.0 has no subset with them), a fallback for the four weights above (M100) | https://github.com/rsms/inter | SIL OFL 1.1 (`assets/fonts/OFL.txt`) | Rasmus Andersson, The Inter Project Authors |
 
 **Made for the game** (original work, no external source; licensed with the game's code):

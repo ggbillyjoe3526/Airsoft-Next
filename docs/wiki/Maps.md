@@ -15,7 +15,13 @@ finished models coming later ([Roadmap](Roadmap)).
 **An abandoned warehouse yard**, played in the sun. Alpha starts at the east end and Beta in the west in
 Elimination, and the teams swap ends at half time.
 
-![Depot's Main Gate, with the aircraft fuselage and chimneys beyond the wall](images/depot-main-gate.jpg)
+![Depot's Main Gate, looking east into the Bay](images/depot-main-gate.jpg)
+
+- **The look:** Depot is dressed as an airsoft site: a concrete slab with joints, puddles and yellow bay lines,
+  painted breeze-block walls, shipping containers with the site's white chevron, plywood walls, crates with battens,
+  sandbags, a hazard-striped lip on the loading dock, a shade sail over it and each area's name stencilled on a wall,
+  under a sky with soft clouds. It's a stand-in until the
+  final models arrive; every piece is exactly where the cover always was, so nothing about how Depot plays changed.
 
 - **The Box** sits in the middle: a roofed shipping container you can fight inside, with offset doors and ports.
 - **The Office** has a hall with a low wall you can vault in both directions, and a west room. Gravel beds at its

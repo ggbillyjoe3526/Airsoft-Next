@@ -1,0 +1,11 @@
+### Depot looks like an airsoft site
+- Depot now looks like a real airsoft site instead of grey boxes, with temporary stand-ins until the final models arrive.
+- Painted shipping containers, plywood barricades, breeze-block walls, gabions and sandbag stacks fill the site.
+- Zone names are stencilled on the walls: HALL, STORES, WEST ROOM, DOCK, BOX, EAST YARD and CAR PARK.
+- The loading dock has a hazard-striped lip and a shade sail, and the watch tower has a camo net and flag.
+- Wrapped pallets, crates, gravel beds and a concrete slab with yellow bay lines make up the yards.
+- Container paints stay clear of the team colours, so they never read as a side.
+- By day the sky has cumulus clouds drifting over a soft haze.
+- The practice range in Depot gets the same look, with its layout unchanged.
+- Cover and paths are as before, and Low keeps the look, dropping only the fine surface relief.
+- Woodland and Neon Heights look the same as before. At night only the new surfaces change.

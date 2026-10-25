@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://game/config/bake_config.gd" id="13_bk2lt"]
 [ext_resource type="Script" path="res://game/config/skyline_config.gd" id="14_sk3ln"]
 [ext_resource type="Script" path="res://game/config/woods_config.gd" id="16_wd4cf"]
+[ext_resource type="Script" path="res://game/config/site_look.gd" id="17_st5lk"]
 [ext_resource type="Script" path="res://game/config/play_tuning.gd" id="6_q2qxh"]
 [ext_resource type="Script" path="res://game/config/sound_config.gd" id="7_2hh1h"]
 [ext_resource type="Script" path="res://game/config/range_view_config.gd" id="8_q2qxh"]
@@ -276,6 +277,9 @@ script = ExtResource("14_sk3ln")
 [sub_resource type="Resource" id="Resource_wd4cf"]
 script = ExtResource("16_wd4cf")
 
+[sub_resource type="Resource" id="Resource_st5lk"]
+script = ExtResource("17_st5lk")
+
 [resource]
 script = ExtResource("6_q2qxh")
 controls = SubResource("Resource_01h5l")
@@ -296,3 +300,4 @@ flag = SubResource("Resource_s0wu6")
 range_view = SubResource("Resource_3isbp")
 minimap = SubResource("Resource_mm1cf")
 figures = SubResource("Resource_fi1fc")
+site_look = SubResource("Resource_st5lk")

@@ -72,8 +72,10 @@ func _render(map: MapData, play: PlayTuning) -> Image:
 	var level := MapLevel.new()
 	port.add_child(level)
 	var body := SimTuning.load_default().body
-	level.build(map, play.map_style, body)
-	port.add_child(FieldLighting.build(play.lighting))
+	level.build(map, play.map_style, body, null, null, false, play.site_look)
+	var lighting := FieldLighting.build(play.lighting)
+	port.add_child(lighting)
+	_add_site(port, map, play, level, lighting)
 	_add_skyline(port, map, play, body)
 	_add_woods(port, map, play)
 	var camera := Camera3D.new()
@@ -97,8 +99,10 @@ func _render_range(map: MapData, play: PlayTuning, tuning: SimTuning) -> Image:
 	root.add_child(port)
 	var level := MapLevel.new()
 	port.add_child(level)
-	level.build(map, play.map_style, tuning.body)
-	port.add_child(FieldLighting.build(play.lighting))
+	level.build(map, play.map_style, tuning.body, null, null, false, play.site_look)
+	var lighting := FieldLighting.build(play.lighting)
+	port.add_child(lighting)
+	_add_site(port, map, play, level, lighting)
 	_add_skyline(port, map, play, tuning.body)
 	var font := GameTheme.font(800)
 	var marks := RangeView.new()
@@ -120,6 +124,15 @@ func _render_range(map: MapData, play: PlayTuning, tuning: SimTuning) -> Image:
 	var image := port.get_texture().get_image()
 	port.queue_free()
 	return image
+
+
+## The map's site dress as a match draws it on High by day (SiteDress: details, bags, stencils, its sky), if it has one.
+func _add_site(port: SubViewport, map: MapData, play: PlayTuning, level: MapLevel, lighting: FieldLighting) -> void:
+	var site := SiteDress.build(map, play.site_look, level.site_material())
+	if site != null:
+		port.add_child(site)
+		level.set_detail(GraphicsQuality.MeshDetail.HIGH)
+		SiteDress.dress_sky(lighting, play.site_look)
 
 
 ## The map's skyline as a match draws it, smoke and all (SkylineView), if it has one.
