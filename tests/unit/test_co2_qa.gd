@@ -41,7 +41,9 @@ func test_on_keep_a_call_never_drops_a_hit_from_a_feed_full_of_hits() -> void:
 	for i in feed.count():
 		if not feed.line(i).call:
 			hits += 1
-	assert_eq(hits, 3, "Keep holds every hit; a call finds no room and does not push one out")
+	assert_eq(hits, 3, "Keep holds every hit; a call does not push one out")
+	assert_true(feed.line(0).call, "the call still shows, the newest line")
+	assert_eq(feed.shown(), 3, "the oldest hit is hidden below the fold, not dropped")
 
 
 func test_a_ring_that_wrapped_between_looks_shows_only_what_it_still_holds_and_none_twice() -> void:

@@ -57,6 +57,11 @@ func fit(room: float) -> void:
 		_version = -1
 
 
+## Whether the feed is up and has room for its newest line (not hidden, nor held to none under What got you).
+func newest_shows() -> bool:
+	return visible and _cap != 0
+
+
 ## The height of the lines showing (px).
 func lines_height() -> float:
 	var n := shown()
@@ -76,7 +81,7 @@ func refresh(feed: HitFeed, now: float, characters: Array[Character], you: Chara
 	if feed.version != _version:
 		_version = feed.version
 		_fill(feed, characters, you)
-	for i in feed.count():
+	for i in feed.shown():
 		_row_for(i).modulate.a = feed.alpha(i, now)
 
 
@@ -98,7 +103,7 @@ func _fill(feed: HitFeed, characters: Array[Character], you: Character) -> void:
 	var mate_colour := _teams.colours[you.team]
 	for i in _rows.size():
 		var row := _row_for(i)
-		row.visible = i < feed.count() and (_cap < 0 or i < _cap)
+		row.visible = i < feed.shown() and (_cap < 0 or i < _cap)
 		if not row.visible:
 			continue
 		var line := feed.line(i)

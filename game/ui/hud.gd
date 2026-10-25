@@ -666,9 +666,9 @@ func on_tick(state: GameState) -> void:
 
 
 ## Your team's calls said in `said` (CalloutLog) since the last look: each a line in the feed with the hits' time and
-## fade, and with Screen reader messages on a polite message ("Brick: Two, Crate yard!"). The other team's words never
-## show. While Settings › HUD › Callouts is off they are passed over, never shown late. Allocates nothing but the
-## message's text.
+## fade, and with Screen reader messages on and the feed showing a polite message ("Brick: Two, Crate yard!"). The
+## other team's words never show. While Settings › HUD › Callouts is off they are passed over, never shown late.
+## Allocates nothing but the message's text.
 func on_calls(said: CalloutLog, state: GameState) -> void:
 	if said != _call_log or _call_serial > said.total:
 		_call_log = said
@@ -683,7 +683,9 @@ func on_calls(said: CalloutLog, state: GameState) -> void:
 		if call.team != _player.team or call.speaker_id < 0 or call.speaker_id >= speakers.size():
 			continue
 		_hits.add_call(call.speaker_id, call.line, call.time)
-		_announce.announcer().add_call(speakers[call.speaker_id], call.line)
+		# The newest line, so read whenever the feed is up to show it.
+		if _feed.newest_shows():
+			_announce.announcer().add_call(speakers[call.speaker_id], call.line)
 
 
 ## The finished match's XP under the banner (`settled`, at the bots' `difficulty`, `progress` as it stands now), until the

@@ -91,18 +91,66 @@ func test_on_keep_the_hits_stay_and_the_calls_still_go() -> void:
 	assert_false(feed.line(1).call)
 
 
-func test_a_full_kept_feed_loses_its_oldest_call_before_a_hit() -> void:
+func test_on_keep_a_call_shows_over_a_full_feed_and_the_hit_it_hid_comes_back() -> void:
+	var feed := HitFeed.new()
+	feed.setup(HudPrefs.KEPT_LINES, 6.0, 1.0)
+	feed.stay = true
+	for i in HudPrefs.KEPT_LINES:
+		feed.add(2, 1, float(i))
+	feed.add_call(1, LINE, 20.0)
+	assert_true(feed.line(0).call, "the call shows, newest")
+	assert_eq(feed.shown(), HudPrefs.KEPT_LINES)
+	assert_eq(feed.count(), HudPrefs.KEPT_LINES + 1, "no hit dropped")
+	assert_eq(feed.line(HudPrefs.KEPT_LINES).time, 0.0, "the oldest hit is held below the fold")
+	feed.prune(26.5)
+	assert_eq(feed.count(), HudPrefs.KEPT_LINES, "the call aged out")
+	assert_eq(feed.line(HudPrefs.KEPT_LINES - 1).time, 0.0, "the tenth hit shows again")
+
+
+func test_on_keep_a_call_takes_the_oldest_call_s_place_never_a_hit_s() -> void:
 	var feed := HitFeed.new()
 	feed.setup(3, 6.0, 1.0)
 	feed.stay = true
-	feed.add(2, 1, 0.0)
-	feed.add_call(1, LINE, 1.0)
-	feed.add(3, 0, 2.0)
-	feed.add(2, 0, 3.0)
-	assert_eq(feed.count(), 3)
+	for i in 3:
+		feed.add(2, 1, float(i))
+	for i in 4:
+		feed.add_call(1, "Call %d" % i, 10.0 + i)
+	var hits := 0
 	for i in feed.count():
-		assert_false(feed.line(i).call, "the call made way")
-	assert_eq(feed.line(2).time, 0.0, "the oldest hit stays")
+		if not feed.line(i).call:
+			hits += 1
+	assert_eq(hits, 3, "every hit held")
+	assert_eq(feed.count(), 6, "three hits and the three newest calls")
+	assert_eq(feed.line(0).words, "Call 3")
+	assert_eq(feed.line(2).words, "Call 1", "the oldest call went")
+	feed.add(3, 0, 20.0)
+	assert_eq(feed.count(), 6, "a hit takes the oldest hit's place, not a call's")
+	assert_eq(feed.line(1).words, "Call 3")
+
+
+func test_a_kept_hud_feed_shows_the_call_then_its_tenth_hit_again() -> void:
+	var hud := _hud()
+	var p := HudPrefs.new()
+	p.feed_lines = HudPrefs.FeedLines.KEEP
+	hud.apply_prefs(p)
+	for i in HudPrefs.KEPT_LINES:
+		var hit := _state.events.add(GameEvent.Kind.CHARACTER_HIT)
+		hit.actor = ROOK
+		hit.target = BRICK
+		hud.on_tick(_state)
+		_state.events.clear()
+		_state.time += 1.0
+	var tenth := hud.hit_lines().line(HudPrefs.KEPT_LINES - 1)
+	_say(BRICK)
+	_show(hud)
+	assert_eq(hud.feed().shown(), HudPrefs.KEPT_LINES)
+	assert_true(hud.feed().row_of(0).is_call(), "the call shows on top")
+	assert_false(hud.feed().row_of(HudPrefs.KEPT_LINES - 1).is_call())
+	_state.time += 7.0
+	hud.update(_state, 1.0, 0.0)
+	assert_eq(hud.feed().shown(), HudPrefs.KEPT_LINES)
+	assert_false(hud.feed().row_of(0).is_call(), "the call went")
+	assert_eq(hud.hit_lines().line(HudPrefs.KEPT_LINES - 1), tenth, "the tenth hit is back in the last row")
 
 
 func test_dropping_the_calls_keeps_the_hits_in_order() -> void:

@@ -1,12 +1,14 @@
 class_name HitFeed
 extends RefCounted
 ## The hit feed's lines (the browser game's HIT_FEED): who fired, who was hit and called it, and when (simulation time),
-## newest first. At most `max_lines`; a line lasts `line_time`, fading over its last `fade_time`, unless it is kept (the
-## line you were hit in stays up until the round ends: `release_kept`), or all lines stay when `stay` (the HUD tab's
-## Keep: only the newest `max_lines` go on, for the whole match). Your team's callouts share it (CO2): a call line is
-## the speaker and the words, with a hit line's time and fade, counted among the lines, but never kept, so on Keep the
-## hits stay and the calls still go: a full Keep feed loses its oldest call first, and a call finds no room in one full
-## of hits (a call never pushes a hit out). Plain data: the HUD draws it (HudFeed). The lines are made once and reused.
+## newest first. A line lasts `line_time`, fading over its last `fade_time`, unless it is kept (the line you were hit
+## in stays up until the round ends: `release_kept`), or all hits stay when `stay` (the HUD tab's Keep: the newest
+## `max_lines` hits, for the whole match). Your team's callouts share it (CO2): a call line is the speaker and the
+## words, with a hit line's time and fade, but never kept, so on Keep the hits stay and the calls still go. At most
+## `max_lines` lines are held, the oldest not kept going first; on Keep, `max_lines` hits and up to `max_lines` calls
+## beside them, so a call never pushes a hit out: the newest `max_lines` lines show (`shown`) and a hit a call moved
+## past them is hidden until the call ages out. Plain data: the HUD draws it (HudFeed). The lines are made once (room
+## for both on Keep) and reused.
 
 class Line:
 	## The shooter, or a call's speaker.
@@ -36,15 +38,17 @@ func setup(lines: int, show_for: float, fade_for: float) -> void:
 	line_time = show_for
 	fade_time = clampf(fade_for, 0.0, show_for)
 	_lines.clear()
-	for i in max_lines:
+	# Room for max_lines hits and max_lines calls, so Keep can hold both (stay may be set after setup).
+	for i in max_lines * 2:
 		_lines.append(Line.new())
 	_count = 0
 	version += 1
 
 
 ## A hit: `shooter`'s BB hit `victim`, who called it, at simulation time `at`; `kept` lines stay up until
-## release_kept. When full the oldest line not kept goes.
+## release_kept. When full the oldest line not kept goes (on Keep, the oldest hit not kept: never a call's place).
 func add(shooter: int, victim: int, at: float, kept: bool = false) -> void:
+	_make_room(false)
 	var line := _front()
 	line.shooter = shooter
 	line.victim = victim
@@ -54,11 +58,11 @@ func add(shooter: int, victim: int, at: float, kept: bool = false) -> void:
 	line.words = ""
 
 
-## A teammate's callout: `speaker` said `words` at simulation time `at`. It ages and fades as a hit line, even on Keep;
-## on Keep with the feed full of hits it is left out, as a call never pushes a hit out.
+## A teammate's callout: `speaker` said `words` at simulation time `at`, the newest line, so it always shows. It ages
+## and fades as a hit line, even on Keep, where it takes the place of the oldest call once max_lines calls are held and
+## never a hit's: the hits it moves past the newest max_lines are hidden, not dropped.
 func add_call(speaker: int, words: String, at: float) -> void:
-	if stay and _count == max_lines and _oldest_call() < 0:
-		return
+	_make_room(true)
 	var line := _front()
 	line.shooter = speaker
 	line.victim = -1
@@ -68,12 +72,46 @@ func add_call(speaker: int, words: String, at: float) -> void:
 	line.words = words
 
 
-## The index of the oldest call line, or -1 when no line is a call.
-func _oldest_call() -> int:
-	var i := _count - 1
-	while i >= 0 and not _lines[i].call:
-		i -= 1
-	return i
+## How many lines show: the newest max_lines (on Keep the feed may hold more, hits a call moved past them).
+func shown() -> int:
+	return mini(_count, max_lines)
+
+
+## Frees a place for a new line, a call's (`call`) or a hit's: on Keep, once max_lines of its kind are held, the oldest
+## of its kind not kept goes; otherwise, once max_lines lines are held, the oldest line not kept goes (the newest when
+## every line is kept).
+func _make_room(call: bool) -> void:
+	if stay:
+		var held := 0
+		for i in _count:
+			if _lines[i].call == call:
+				held += 1
+		if held < max_lines:
+			return
+		var oldest := _count - 1
+		while oldest >= 0 and (_lines[oldest].call != call or _lines[oldest].keep):
+			oldest -= 1
+		if oldest < 0: # every hit kept: the oldest of its kind goes
+			oldest = _count - 1
+			while _lines[oldest].call != call:
+				oldest -= 1
+		_remove(oldest)
+		return
+	while _count >= max_lines:
+		var oldest := _count - 1
+		while oldest > 0 and _lines[oldest].keep:
+			oldest -= 1
+		_remove(oldest)
+
+
+## Takes line `i` out, the lines after it moving up; its place goes back to the free ones.
+func _remove(i: int) -> void:
+	var line := _lines[i]
+	for k in range(i, _count - 1):
+		_lines[k] = _lines[k + 1]
+	_count -= 1
+	_lines[_count] = line
+	version += 1
 
 
 ## Drops every call line (a new round, or Settings › HUD › Callouts switched off); the hits keep their order.
@@ -90,24 +128,13 @@ func drop_calls() -> void:
 		version += 1
 
 
-## The line to fill as the newest, moved to the front: a free slot, or when full the oldest line not kept (on Keep the
-## oldest call, if there is one, before any hit).
+## The first free line, moved to the front as the newest (_make_room has made sure there is one).
 func _front() -> Line:
-	var slot := max_lines - 1
-	if _count == max_lines:
-		while slot > 0 and _lines[slot].keep:
-			slot -= 1
-		if stay:
-			var oldest_call := _oldest_call()
-			if oldest_call >= 0:
-				slot = oldest_call
-	else:
-		slot = _count
-	var line := _lines[slot]
-	for i in range(slot, 0, -1):
+	var line := _lines[_count]
+	for i in range(_count, 0, -1):
 		_lines[i] = _lines[i - 1]
 	_lines[0] = line
-	_count = mini(_count + 1, max_lines)
+	_count += 1
 	version += 1
 	return line
 
@@ -141,6 +168,7 @@ func clear() -> void:
 		version += 1
 
 
+## How many lines are held (on Keep more than show: `shown`).
 func count() -> int:
 	return _count
 
