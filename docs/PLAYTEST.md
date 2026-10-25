@@ -347,6 +347,17 @@ WL1 it loads and plays by day, since WL2 at 5v5 (6v6 under Custom); night, bushe
   trunks and the three climbs to the fort have log piles you can stand behind. The fort's outer walls are chest high
   (1.5 m): stand to shoot over, crouch to hide. The hut is taller, under a grey tin roof like the cabin's, and the flag
   still shows over the walls from the meadow.
+- [ ] **The night (WL3).** Woodland plays at night only: a navy sky with stars, the moon low over the Knoll, haze
+  from about 20 m. Is it dark and moody but readable: can you pick out a figure and the cover between the pools, in
+  the open meadow and under the pines, on Low and on High? The camp fires flicker (still with Reduced motion on) and
+  the lanterns at the fort and the cabin glow yellow-white, never orange; walk up to one on Medium or High and it
+  lights you and the figures by it. Do the pale greybox walls facing the moon read too bright beside the dark ground
+  (the moon is low, so it lights walls three times as much as the ground)? Note the frame time (`--perf`) on Low and High at night, and in the same spot on
+  Depot by Settings › Dev › Time of day › Night: the cloud can't measure your GPU (`docs/records/WL3.md`).
+- [ ] **Depot by night and Neon Heights' Day / Night (WL3).** Settings › Dev › Time of day › Night: Depot's four
+  floodlight masts glow over the walls, its baked shade in corners stays, no warning. Back to Map's own, pick Neon
+  Heights on Play: a Day / Night row under the rules, Night lit; pick Day and the match plays by day. Woodland and
+  Depot show no row.
 - [ ] **West Hill and the ravine (WL3).** From the Knoll by the east camp you can't see over West Hill into the west
   camp. The meadow has one low swell. The creek lane runs along a dry ravine, deeper from the middle of the field east;
   every slope walks, none needs a jump.
@@ -365,8 +376,6 @@ WL1 it loads and plays by day, since WL2 at 5v5 (6v6 under Custom); night, bushe
 
 Once the rest of step 26 lands:
 
-- [ ] **The night (WL3).** A dark sky under a low moon, flickering camp fires, glowing lanterns; on Medium and up the
-  nearest ones light players too.
 - [ ] **Bushes (WL5)** hide you from bots when you're deep in or behind one; you walk through them; the minimap draws
   them.
 - [ ] **Bushes stop BBs (WL5, FO1).** A BB into a bush's middle never comes out, with a leafy rustle and falling

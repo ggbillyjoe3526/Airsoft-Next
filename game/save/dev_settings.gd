@@ -8,7 +8,10 @@ extends RefCounted
 ## a robot from the next match (FigureMix; everyone is human while it is off). Disable levelling unlocks every item to
 ## carry; your own level and unlocks stay as they are and come back when it is off. Pretend slow frames counts every
 ## frame of a live round slow for the automatic graphics step-down (FrameWatch), to check it on a fast machine; it
-## changes nothing else. A saved key no switch reads any more (Rigged figures, gone with FI7) is passed over.
+## changes nothing else. Time of day plays every map from the next match by Day or Night whatever it offers (the
+## browser's M90; LightingConfig.PRESETS), or as the map and the Match page pick (""); forcing one keeps the match out
+## of the records, as the browser's cheat did (DevCheats.watching: it changes only what you see). A saved key no
+## switch reads any more (Rigged figures, gone with FI7) is passed over.
 
 const SPEED_STEP := 0.25
 
@@ -23,6 +26,8 @@ var bot_intent: bool = false
 var retro_pixels: bool = false
 var robots: bool = false
 var pretend_slow_frames: bool = false
+## A preset id (LightingConfig.PRESETS), or &"" for the map's own.
+var time_of_day: StringName = &""
 
 
 ## The cheats among them, as the simulation takes them.
@@ -32,7 +37,7 @@ func cheats() -> DevCheats:
 	c.bottomless = bottomless
 	c.ghost = ghost
 	c.bots_hold_fire = bots_hold_fire
-	c.watching = spectate_bots or bot_intent
+	c.watching = spectate_bots or bot_intent or not time_of_day.is_empty()
 	c.levelling_off = disable_levelling
 	return c
 
@@ -43,6 +48,7 @@ func to_dict() -> Dictionary:
 		"bottomless": bottomless, "ghost": ghost,
 		"bots_hold_fire": bots_hold_fire, "spectate_bots": spectate_bots, "bot_intent": bot_intent,
 		"retro_pixels": retro_pixels, "robots": robots, "pretend_slow_frames": pretend_slow_frames,
+		"time_of_day": String(time_of_day),
 	}
 
 
@@ -62,6 +68,8 @@ func from_dict(data: Dictionary) -> void:
 	retro_pixels = _flag(data, "retro_pixels")
 	robots = _flag(data, "robots")
 	pretend_slow_frames = _flag(data, "pretend_slow_frames")
+	var time: Variant = data.get("time_of_day")
+	time_of_day = StringName(time) if time is String and LightingConfig.PRESETS.has(StringName(time)) else &""
 
 
 static func _flag(data: Dictionary, key: String) -> bool:

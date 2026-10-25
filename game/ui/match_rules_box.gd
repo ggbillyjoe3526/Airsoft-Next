@@ -6,6 +6,8 @@ extends VBoxContainer
 ## CustomRules and is saved at once; `changed` tells the page, which re-reads the round tuning. The pick itself goes
 ## into the MatchPicks. The Team size row offers only the picked map's sizes (data/maps.md) and lights the size played:
 ## the saved one where the map offers it, else the map's standard; the saved size changes only when one is picked.
+## Under the rules, for either rule set, a map offering both Day and Night (MapData.lighting_presets) shows a Day / Night
+## row lighting the one it plays (MapData.preset_played); a pick goes into the MatchPicks, for this session only.
 
 ## The rule set or a Custom switch changed.
 signal changed
@@ -53,6 +55,11 @@ var _friendly_fire: MenuChoice = null
 var _ricochets: MenuChoice = null
 ## Each choice row's line under its buttons.
 var _subs: Dictionary[String, Label] = {}
+## The Day / Night row (shown on a map offering both) and the presets each map offers, read once a map.
+var _time_rows: VBoxContainer = null
+var _time: MenuChoice = null
+var _time_sub: Label = null
+var _presets: Dictionary[String, Array] = {}
 
 
 ## `picked` holds the rule set; `settings` the Custom switches; `tuning` is the round tuning the page plays now.
@@ -81,6 +88,10 @@ func _init(picked: MatchPicks, settings: Settings, tuning: SimTuning) -> void:
 	_rows.add_theme_constant_override("separation", ROW_GAP)
 	add_child(_rows)
 	_build_rows()
+	_time_rows = VBoxContainer.new()
+	_time_rows.add_theme_constant_override("separation", ROW_GAP)
+	add_child(_time_rows)
+	_build_time_of_day()
 	show_tuning(tuning)
 
 
@@ -107,6 +118,20 @@ func friendly_fire_choice() -> MenuChoice:
 
 func ricochets_choice() -> MenuChoice:
 	return _ricochets
+
+
+## The Day / Night row's buttons (LightingConfig.PRESETS' order), and whether the row shows.
+func time_of_day_choice() -> MenuChoice:
+	return _time
+
+
+func time_of_day_visible() -> bool:
+	return _time_rows.visible
+
+
+## The line under the Day / Night row.
+func time_of_day_blurb() -> String:
+	return _time_sub.text
 
 
 ## The blurb under the picker as shown.
@@ -173,6 +198,7 @@ func show_tuning(tuning: SimTuning) -> void:
 	_rows.visible = custom and not _unused
 	_under.visible = not _unused
 	_show_switches()
+	_show_time_of_day()
 
 
 func _blurb_text(custom: bool) -> String:
@@ -290,7 +316,49 @@ func _build_time_row() -> void:
 	_add_row(tr("RULES_ROUND_TIME"), line)
 
 
-func _add_row(label: String, right: Control) -> void:
+## The Day / Night row: a button a preset, its blurb under them.
+func _build_time_of_day() -> void:
+	var words := PackedStringArray()
+	for preset in LightingConfig.PRESETS:
+		words.append(tr("RULE_%s" % String(preset).to_upper()).to_upper())
+	var right := VBoxContainer.new()
+	right.add_theme_constant_override("separation", SUB_GAP)
+	_time = MenuChoice.new(words, true)
+	_time.name = "TimeOfDay"
+	right.add_child(_time)
+	_time_sub = MenuParts.text("", SUB_SIZE, 500, GameTheme.MUTED)
+	_time_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	right.add_child(_time_sub)
+	_add_row(tr("RULES_TIME_OF_DAY"), right, _time_rows)
+	_time.picked.connect(_on_time_of_day)
+
+
+## The presets the picked map offers (read from its file once).
+func _offered_presets() -> Array:
+	if not _presets.has(_picks.map_id):
+		_presets[_picks.map_id] = MapData.presets_in(_picks.map_id)
+	return _presets[_picks.map_id]
+
+
+## Shows the row on a map offering a choice (Practice too has none), lighting the preset it plays.
+func _show_time_of_day() -> void:
+	var offered := _offered_presets()
+	_time_rows.visible = offered.size() > 1 and not _unused
+	if not _time_rows.visible:
+		return
+	var played: StringName = _picks.lighting if offered.has(_picks.lighting) else offered[0]
+	for i in LightingConfig.PRESETS.size():
+		_time.button(i).visible = offered.has(LightingConfig.PRESETS[i])
+	_time.put(LightingConfig.PRESETS.find(played))
+	_time_sub.text = tr("RULE_TIME_BLURB_%s" % String(played).to_upper())
+
+
+func _on_time_of_day(index: int) -> void:
+	_picks.lighting = LightingConfig.PRESETS[index]
+	_show_time_of_day()
+
+
+func _add_row(label: String, right: Control, under: VBoxContainer = null) -> void:
 	var row := HBoxContainer.new()
 	var side := MenuParts.padded(0.0, ROW_LABEL_TOP, 0.0, 0.0)
 	side.custom_minimum_size = Vector2(ROW_LABEL_WIDTH, 0.0)
@@ -299,7 +367,7 @@ func _add_row(label: String, right: Control) -> void:
 	row.add_child(side)
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(right)
-	_rows.add_child(row)
+	(under if under != null else _rows).add_child(row)
 
 
 func _pick_rules(rules: String) -> void:

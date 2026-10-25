@@ -9,6 +9,9 @@ extends Node3D
 ## (game speed, bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions, Retro pixels, End the
 ## round now): the cheats through the simulation (DevCheats), the views built only while on. The graphics drawn follow
 ## too (GraphicsApply's `applied`: the sun's shadows, ambient occlusion and the wind dust), without rebuilding the field.
+## Day or night (WL3): the map's first lighting preset unless the Match screen's pick (`lighting_pick`) or Dev › Time
+## of day picks the other (`lighting_for`); that one preset's `night` flag drives the sky, the light pools (LightPools,
+## real lights by Mesh detail), the ambience's night set, the figures' glow and the skyline's mast lamps.
 ## Practice (`practice`, M21) plays the range instead: you alone with its targets (RangeTargetsView, its markings
 ## RangeView), no bots and no rounds, a breeze, spare magazines kept full, no XP and no match records; the timed
 ## challenge (off unless switched on) keeps its best.
@@ -50,6 +53,9 @@ const TICK := 1.0 / 60.0
 ## The map to play (data/maps/<id>.json) and the match's seed.
 @export var map_id: String = "depot"
 @export var match_seed: int = 1
+## The Match page's Day or Night (MatchPicks.lighting); &"" plays the map's first preset. Dev › Time of day overrides
+## it on any map (MapData.preset_played).
+var lighting_pick: StringName = &""
 ## The team you play (TEAM_ALPHA or TEAM_BETA); the bots play the other and your teammates are on yours.
 @export var player_team: int = TEAM_ALPHA
 ## True: build a step a frame (the loading screen follows it); false: all at once in `_ready`.
@@ -110,6 +116,10 @@ var _dust: WindDust = null
 var _gas: GasPuffs = null
 var _kicked: KickedDust = null
 var _lighting: FieldLighting = null
+## The preset the match is lit by (LightingConfig.for_map): its night flag drives every night system.
+var _light: LightingConfig = null
+## A night field's pools of light, or null by day or on a map without lights (LightPools).
+var _pools: LightPools = null
 ## The skyline round the field, or null on a map without one (SkylineView).
 var _skyline: SkylineView = null
 ## Scratch for the vault prompt's look ahead each tick.
@@ -252,6 +262,8 @@ func _load_map() -> void:
 		_tuning = MatchOptions.match_tuning(_tuning, MapCatalog.shared().find(map_id), custom_rules)
 	_play = PlayTuning.load_default()
 	_map = MapData.load_map(map_id, _play.map_style, _tuning.rounds.team_size)
+	var dev := (settings if settings != null else Settings.shared()).active_dev()
+	_light = lighting_for(_map, _play, lighting_pick, dev.time_of_day)
 	_ui = CanvasLayer.new()
 	_ui.name = "Interface"
 	add_child(_ui)
@@ -266,12 +278,16 @@ func _build_level() -> void:
 		return
 	_level = MapLevel.new()
 	add_child(_level)
-	_level.build(_map, _play.map_style, _tuning.body, _play.baked_light, _play.lighting)
-	_lighting = FieldLighting.build(_play.lighting)
+	# a bake is checked against the day sun it was baked under, whatever preset plays
+	_level.build(_map, _play.map_style, _tuning.body, _play.baked_light, _play.lighting, _light.night)
+	_lighting = FieldLighting.build(_light)
 	add_child(_lighting)
-	_skyline = SkylineView.build(_map, _play.skyline, _play.lighting, _tuning.body.stand_eye_height)
+	_skyline = SkylineView.build(_map, _play.skyline, _light, _tuning.body.stand_eye_height)
 	if _skyline != null:
 		add_child(_skyline)
+	_pools = LightPools.build(_map, _light)
+	if _pools != null:
+		add_child(_pools)
 
 
 func _build_teams() -> void:
@@ -496,7 +512,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	# Replica and team colours are read once a match: a change in Settings applies from the next.
 	var chosen := settings if settings != null else Settings.shared()
 	var realistic := chosen.realistic_colours
-	_colours = team_colours_for(chosen, _play.lighting, _play.teams)
+	_colours = team_colours_for(chosen, _light, _play.teams)
 	_hands.setup(_play.viewmodel, player.armament.replicas, _level.query(), kit.paints, realistic, kit.parts, _play.view,
 			_eyes.camera)
 	_bbs = BBView.new()
@@ -552,6 +568,8 @@ func _build_views(ui: CanvasLayer) -> void:
 	first_use.append_array(range_materials)
 	if _skyline != null:
 		first_use.append_array(_skyline.materials())
+	if _pools != null:
+		first_use.append_array(_pools.materials())
 	var warm := ShaderPrewarm.new()
 	warm.setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE), figure_materials)
 	warm.tree_exited.connect(_on_shaders_warmed, CONNECT_ONE_SHOT)
@@ -561,6 +579,7 @@ func _build_views(ui: CanvasLayer) -> void:
 			if not profiles.has(r.sound_profile()):
 				profiles.append(r.sound_profile())
 	_audio = SimAudio.new()
+	_audio.night = _light.night
 	add_child(_audio)
 	_audio.setup(_play.sound, profiles, _tuning.body, _level.query(), _map, _tuning.footsteps)
 	_mix = SoundMix.new()
@@ -651,6 +670,22 @@ func match_stats() -> MatchStats:
 ## The last hit on you, for the "What got you" card (time -INF until the first).
 func last_hit() -> HitFacts:
 	return _bots.last_hit if _bots != null else null
+
+
+## The preset `map` plays under `play`'s day and night presets: the match's `pick` where the map offers it, or Dev ›
+## Time of day's `forced` on any map (MapData.preset_played), with the map's overrides (LightingConfig.for_map).
+static func lighting_for(map: MapData, play: PlayTuning, pick: StringName, forced: StringName) -> LightingConfig:
+	return LightingConfig.for_map(play.lighting, play.night_lighting, map, map.preset_played(pick, forced))
+
+
+## The light the match is lit by (null before its map is read).
+func lighting() -> LightingConfig:
+	return _light
+
+
+## A night field's pools of light (null by day, on a map without lights, or before the level is built).
+func light_pools() -> LightPools:
+	return _pools
 
 
 ## `s`'s team colour set for a field lit by `lighting` (its night flag), with `base`'s team names: the figures' part
@@ -831,6 +866,8 @@ func _process(delta: float) -> void:
 	_kicked.update(delta, _eyes.global_position)
 	if _skyline != null:
 		_skyline.update(wind, delta)
+	if _pools != null:
+		_pools.update(_eyes.global_position, delta)
 	if _targets_view != null:
 		_targets_view.update(state.targets, fraction, delta)
 	var eye := _eyes.global_position
@@ -1227,6 +1264,8 @@ func _apply_motion() -> void:
 	_dust.set_motion(motion)
 	if _skyline != null:
 		_skyline.set_motion(motion)
+	if _pools != null:
+		_pools.set_motion(motion)
 	_hud.set_motion(motion)
 
 
@@ -1238,6 +1277,8 @@ func _apply_graphics(values: GraphicsQuality) -> void:
 		f.set_contact_shadow(contact)
 	if _skyline != null:
 		_skyline.set_smoke(SkylineView.smokes(values))
+	if _pools != null:
+		_pools.set_real_count(_light.real_lights_for(values.mesh_detail))
 	var lines := _play.figures.lod_lines(values.mesh_detail)
 	if lines != _figure_lines:
 		_figure_lines = lines

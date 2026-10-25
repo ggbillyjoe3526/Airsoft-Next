@@ -3,8 +3,9 @@ extends Node3D
 ## The map's skyline (`MapData.skyline`; DP3): every piece some player can see over the walls (SkylineSight) built in
 ## greybox by SkylineShapes as one vertex-coloured mesh in one material (one draw call, casting no shadow), each vertex
 ## faded toward the sky's horizon colour by its distance from the field's middle, and the smoke of the chimneys marked
-## `smoke` as one particle system, drawn from Medium (`set_smoke`) and frozen under Reduced motion. Scenery out of
-## reach: no collider, no nav cell, nothing the simulation reads.
+## `smoke` as one particle system, drawn from Medium (`set_smoke`) and frozen under Reduced motion. Under a night preset
+## the masts' lamps are a second surface, self-lit (SkylineConfig.mast_lamp_glow) through the haze, with no real light;
+## by day they are part of the one mesh. Scenery out of reach: no collider, no nav cell, nothing the simulation reads.
 
 ## The pieces built, and those no player can see (left out).
 var kept: Array[SkylinePiece] = []
@@ -16,8 +17,9 @@ var _smoke_motion: ParticleProcessMaterial = null
 var _since: float = INF
 
 
-## The skyline of `map` seen from an eye `eye_height` m over its stand points, faded toward `lighting`'s horizon; null
-## when the map has none or no player could see any of it (the map then draws as before).
+## The skyline of `map` seen from an eye `eye_height` m over its stand points, faded toward `lighting`'s horizon (the
+## playing preset's), its lamps lit when that is a night; null when the map has none or no player could see any of it
+## (the map then draws as before).
 static func build(map: MapData, cfg: SkylineConfig, lighting: LightingConfig, eye_height: float) -> SkylineView:
 	if map.skyline.is_empty():
 		return null
@@ -42,13 +44,22 @@ static func build(map: MapData, cfg: SkylineConfig, lighting: LightingConfig, ey
 		return null
 	view._mesh = MeshInstance3D.new()
 	view._mesh.name = "Pieces"
-	view._mesh.mesh = mesh_of(parts, cfg, lighting.sky_horizon, middle)
+	view._mesh.mesh = mesh_of(parts, cfg, lighting.sky_horizon, middle, lighting.night)
 	view._mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var mat := StandardMaterial3D.new()
 	mat.vertex_color_use_as_albedo = true
 	mat.vertex_color_is_srgb = true
 	mat.roughness = cfg.roughness
-	view._mesh.material_override = mat
+	view._mesh.mesh.surface_set_material(0, mat)
+	if view._mesh.mesh.get_surface_count() > 1:
+		var glow := StandardMaterial3D.new()
+		glow.albedo_color = Color.BLACK
+		glow.metallic_specular = 0.0
+		glow.emission_enabled = true
+		glow.emission = cfg.mast_lamp_glow
+		glow.emission_energy_multiplier = cfg.mast_lamp_energy
+		glow.disable_fog = true
+		view._mesh.mesh.surface_set_material(1, glow)
 	view.add_child(view._mesh)
 	if not chimneys.is_empty():
 		view._make_smoke(chimneys, lighting)
@@ -57,21 +68,28 @@ static func build(map: MapData, cfg: SkylineConfig, lighting: LightingConfig, ey
 
 ## The middle of the map's blocks (x, z), where the skyline faces and fades from.
 static func middle_of(map: MapData) -> Vector2:
-	var lo := Vector2(INF, INF)
-	var hi := Vector2(-INF, -INF)
-	for b in map.blocks:
-		lo = lo.min(Vector2(b.center.x - b.size.x * 0.5, b.center.z - b.size.z * 0.5))
-		hi = hi.max(Vector2(b.center.x + b.size.x * 0.5, b.center.z + b.size.z * 0.5))
-	return (lo + hi) * 0.5 if lo.x <= hi.x else Vector2.ZERO
+	return map.middle()
 
 
 ## `parts` as one flat-shaded mesh, each face turned outward from its part's middle, each vertex's colour faded toward
-## `horizon` by its distance from `middle`.
-static func mesh_of(parts: Array[SkylineShapes.Part], cfg: SkylineConfig, horizon: Color, middle: Vector2) -> ArrayMesh:
+## `horizon` by its distance from `middle`; with `lamps_apart`, the lamps as a second surface (none without lamps).
+static func mesh_of(parts: Array[SkylineShapes.Part], cfg: SkylineConfig, horizon: Color, middle: Vector2,
+		lamps_apart: bool = false) -> ArrayMesh:
+	var mesh := ArrayMesh.new()
+	var lamps: Array[SkylineShapes.Part] = []
+	var rest: Array[SkylineShapes.Part] = []
+	for part in parts:
+		(lamps if lamps_apart and part.lamp else rest).append(part)
+	_add_surface(mesh, rest, cfg, horizon.srgb_to_linear(), middle)
+	_add_surface(mesh, lamps, cfg, horizon.srgb_to_linear(), middle)
+	return mesh
+
+
+static func _add_surface(mesh: ArrayMesh, parts: Array[SkylineShapes.Part], cfg: SkylineConfig, far: Color,
+		middle: Vector2) -> void:
 	var pos := PackedVector3Array()
 	var nor := PackedVector3Array()
 	var col := PackedColorArray()
-	var far := horizon.srgb_to_linear()
 	for part in parts:
 		var centre := Vector3.ZERO
 		for q in part.a:
@@ -93,18 +111,19 @@ static func mesh_of(parts: Array[SkylineShapes.Part], cfg: SkylineConfig, horizo
 	arrays[Mesh.ARRAY_VERTEX] = pos
 	arrays[Mesh.ARRAY_NORMAL] = nor
 	arrays[Mesh.ARRAY_COLOR] = col
-	var mesh := ArrayMesh.new()
 	if not pos.is_empty():
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	return mesh
 
 
-## The triangles drawn (0 with nothing built).
+## The triangles drawn, every surface's (0 with nothing built).
 func triangle_count() -> int:
 	var mesh := _mesh.mesh as ArrayMesh if _mesh != null else null
-	if mesh == null or mesh.get_surface_count() == 0:
+	if mesh == null:
 		return 0
-	return (mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() / 3
+	var n := 0
+	for i in mesh.get_surface_count():
+		n += (mesh.surface_get_arrays(i)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() / 3
+	return n
 
 
 ## The pieces' mesh.
@@ -115,7 +134,9 @@ func mesh() -> ArrayMesh:
 ## The materials it draws, for ShaderPrewarm: the pieces' and, with chimneys seen, the smoke's (drawn only from
 ## Medium, so its first draw would otherwise come mid-match).
 func materials() -> Array[Material]:
-	var out: Array[Material] = [_mesh.material_override]
+	var out: Array[Material] = []
+	for i in _mesh.mesh.get_surface_count():
+		out.append(_mesh.mesh.surface_get_material(i))
 	if _smoke != null:
 		out.append((_smoke.draw_pass_1 as PrimitiveMesh).material)
 	return out

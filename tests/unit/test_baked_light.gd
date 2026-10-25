@@ -173,6 +173,41 @@ func test_depot_draws_its_bake_as_vertex_colour_in_one_draw_call() -> void:
 	assert_eq(_greybox(level).mesh.surface_get_array_len(0), DEPOT_UNTILED_VERTICES, "off again: untiled")
 
 
+func test_depot_at_night_keeps_its_bake_with_no_warning_drawn_by_its_sky_share_alone() -> void:
+	var day := _level("depot")
+	var m := MapData.load_map("depot", play.map_style, 1)
+	var night := MapLevel.new()
+	add_child_autofree(night)
+	# as PlaySession builds it under the night preset: the day's sun for the hash, the night flag for the drawing
+	night.build(m, play.map_style, body, play.baked_light, play.lighting, true)
+	night.set_baked_light(true)
+	assert_true(night.baked_light_drawn(), "the bake fits: no stale hash, no warning")
+	var night_hash := BakedLight.hash_of(m, play.map_style, play.lighting, play.baked_light)
+	assert_eq(BakedLight.load_for(m).source_hash, night_hash, "hashed with the day sun it was baked under")
+	assert_ne(BakedLight.hash_of(m, play.map_style, play.night_lighting, play.baked_light), night_hash,
+			"the moon's sun would mark it stale: never passed")
+	day.set_baked_light(true)
+	var lit: PackedColorArray = _greybox(day).mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+	var dark: PackedColorArray = _greybox(night).mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+	assert_eq(dark.size(), lit.size())
+	var warmer := 0
+	var brighter := 0
+	for i in lit.size():
+		if dark[i].get_luminance() > lit[i].get_luminance() + 1e-4:
+			brighter += 1
+		if lit[i].get_luminance() > dark[i].get_luminance() + 1e-3:
+			warmer += 1
+	assert_eq(brighter, 0, "no vertex brighter at night")
+	assert_gt(warmer, lit.size() / 10, "the sun's bounce is gone at night")
+	# what is left is the sky share alone: an open floor vertex as the sky's share says
+	var tiles := GreyboxFaces.tile(m, play.baked_light.cell, play.baked_light.ground_y)
+	var open := _vertex(tiles, Vector3(3.5, 0.0, 0.0), Vector3.UP)
+	var bake := BakedLight.load_for(m)
+	var own := play.map_style.block_colour(m.blocks[tiles.blocks[open]]).srgb_to_linear()
+	var share := 1.0 - play.baked_light.sky_share + play.baked_light.sky_share / BakedLight.FULL * bake.sky[open]
+	assert_almost_eq(dark[open].srgb_to_linear().g, own.g * share, 0.003, "sky share alone")
+
+
 func test_a_map_with_no_bake_draws_as_before_with_it_on() -> void:
 	var level := _level("neonHeights")
 	assert_eq(level.map.baked_light_file, "")

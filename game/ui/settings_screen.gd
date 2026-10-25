@@ -29,6 +29,8 @@ const CM_STEP := 0.01
 const DPI_STEP := 50.0
 const PERCENT_STEP := 1.0
 ## The Dev tab's switches, each a DevSettings field with a label DEV_<FIELD> and a help line DEV_<FIELD>_HELP.
+## Dev › Time of day's choices in order: the map's own (&""), then LightingConfig's presets.
+const DEV_TIMES: Array[StringName] = [&"", LightingConfig.DAY, LightingConfig.NIGHT]
 const DEV_SWITCHES: Array[StringName] = [&"dev_content", &"disable_levelling", &"bottomless", &"ghost",
 		&"bots_hold_fire", &"spectate_bots", &"bot_intent", &"retro_pixels", &"robots", &"pretend_slow_frames"]
 ## Dev › Actions' error and crash, in the log (English: the log is read by the developer).
@@ -78,6 +80,8 @@ var _save_page: SettingsSavePage = null
 var _dev_box: CheckButton = null
 var _dev_page: Control = null
 var _dev_checks: Dictionary[StringName, CheckButton] = {}
+## Dev › Time of day: the map's own, then each preset (DEV_TIMES).
+var _time_of_day: MenuChoice = null
 var _speed: HSlider = null
 var _end_round: Button = null
 var _confirm_level: ConfirmationDialog = null
@@ -402,6 +406,7 @@ func _build_dev() -> void:
 		check.toggled.connect(_on_dev_switch.bind(field))
 		_dev_checks[field] = check
 		add_help(page, key + "_HELP")
+	_build_time_of_day(page)
 	add_section(page, tr("DEV_ACTIONS"))
 	var end_row := add_row(page, "DEV_END_ROUND")
 	_end_round = Button.new()
@@ -422,6 +427,23 @@ func _build_dev() -> void:
 	add_child(_confirm_level)
 	reset_level.pressed.connect(_confirm_level.popup_centered)
 	_build_dev_checks(page)
+
+
+## Dev › Time of day (WL3): the map's own light, or Day or Night on any map, from the next match.
+func _build_time_of_day(page: VBoxContainer) -> void:
+	var row := add_row(page, "DEV_TIME_OF_DAY")
+	_time_of_day = MenuChoice.new(PackedStringArray([tr("DEV_TIME_MAP"), tr("DEV_TIME_DAY"), tr("DEV_TIME_NIGHT")]))
+	_time_of_day.name = "TimeOfDay"
+	row.add_child(_time_of_day)
+	_time_of_day.picked.connect(func(i: int) -> void:
+		settings.dev.time_of_day = DEV_TIMES[i]
+		_changed(true))
+	add_help(page, "DEV_TIME_OF_DAY_HELP")
+
+
+## Dev › Time of day's choice.
+func time_of_day_choice() -> MenuChoice:
+	return _time_of_day
 
 
 ## Dev › Actions' checks of the crash screen and the pause menu's error line (SV6).
@@ -533,6 +555,7 @@ func _refresh() -> void:
 	set_slider(_speed, settings.dev.game_speed * 100.0)
 	for field: StringName in DEV_SWITCHES:
 		set_check(_dev_checks[field], settings.dev.get(field) as bool)
+	_time_of_day.put(maxi(0, DEV_TIMES.find(settings.dev.time_of_day)))
 	_end_round.disabled = not end_round.is_valid()
 
 

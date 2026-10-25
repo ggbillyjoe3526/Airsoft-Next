@@ -44,6 +44,7 @@ static func run(entry: MapCatalog.Entry, map: MapData, nav: NavGrid, style: MapS
 	out.append(team_colour(map, style, teams))
 	out.append(areas(map, nav))
 	out.append(lanes(map))
+	out.append(night(map))
 	return out
 
 
@@ -285,6 +286,25 @@ static func team_colour(map: MapData, style: MapStyle, teams: Array[Color]) -> R
 	var closest := "; the nearest saturated one is %s" % nearest if not nearest.is_empty() else ""
 	return Result.new(FieldStandard.TEAM_COLOUR, Status.PASS, "None of its %d drawn colours reads as a team's%s." % [
 			drawn.size(), closest])
+
+
+## Night and lights agree (the browser's map.night): `night` in the file is its first preset's, and a map with pools of
+## light plays at night under some preset it offers, where they light anyone.
+static func night(map: MapData) -> Result:
+	var choices := map.lighting_presets
+	var by_default := choices[0] == LightingConfig.NIGHT
+	var names := PackedStringArray()
+	for c in choices:
+		names.append(String(c))
+	if map.night != by_default:
+		return Result.new(FieldStandard.NIGHT, Status.FAIL, "It says night is %s, but its first lighting (%s) is %s." % [
+				"on" if map.night else "off", names[0], "night" if by_default else "day"])
+	if not map.lights.is_empty() and not choices.has(LightingConfig.NIGHT):
+		return Result.new(FieldStandard.NIGHT, Status.FAIL, "It has %s but is never played at night, where they light "
+				% plural(map.lights.size(), "light pool") + "anyone.")
+	var lights := " with %s" % plural(map.lights.size(), "light pool") if not map.lights.is_empty() else ""
+	return Result.new(FieldStandard.NIGHT, Status.PASS, "Played by %s%s; night and lights agree." % [
+			" or ".join(names), lights])
 
 
 ## Every walkable nav cell in a named area (MapAreas), and every name holding one.
