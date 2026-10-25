@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-25 | 1 | worker | see Gate | – | – |
+| 2026-10-25 | 1 | worker | 3310 / 3310 | – | – |
+| 2026-10-25 | 2 | worker | see Gate | – | fix round 1: QA blocking 1 fixed (on Keep a call pushed a hit out of a feed full of hits) |
 
 ## Goal
 
@@ -52,6 +53,9 @@ through walls; Settings › HUD › Callouts to switch them off; the screen read
 
 - The teammate's click is panned by Godot's 3D panner (the camera's frame), not the browser's stereo formula: its
   strength is the field's times 0.6 and it follows where the speaker stands, above or below included.
+- A callout's click is not cut at a round's end: it is a short click, and its voice is freed with SimAudio.
+- An enemy's click shares the field's voice pool with steps and shots (field priority), so in a busy firefight one can
+  be dropped or take a step's voice; PLAYTEST › Callouts asks to listen for it in a firefight.
 - Settings › HUD now scrolls at 1080p: the page is 763 px in a 734 px box, the minimap's note under the fold
   (`docs/KNOWN_ISSUES.md` row).
 - While skipping a round (fast forward after you're out), calls and their clicks come at the skip's speed, as hits do.
@@ -60,7 +64,8 @@ through walls; Settings › HUD › Callouts to switch them off; the screen read
 
 - **A round's start drops the calls only:** the hits keep their rules (Keep holds them all match, Fade ages them), so
   "the feed is cleared at a round's start" is read as the call lines; last round's calls are stale.
-- **On Keep a full feed drops its oldest call before a hit:** Keep promises the hits stay; calls go anyway.
+- **On Keep a full feed drops its oldest call, and with no call in it the new call is left out:** Keep promises the
+  hits stay, so a call never pushes one out (fix round 1); a hit still pushes out the oldest hit as before.
 - **The teammate's click uses its own two 3D voices** on Interface, not the plain pool: a plain voice has no pan, and
   the bus layout is not touched (no panner bus).
 - **Callouts said while Off are skipped, not queued:** switching On shows only calls made after it.
@@ -107,10 +112,21 @@ In `screenshots/step27/` (project files), each a real match on Depot with bots p
 - Not verified: how the clicks sound and pan on speakers or headphones, and a screen reader reading the calls; the
   owner's PLAYTEST › Callouts (CO2).
 
+## Fix round 1 (attempt 2)
+
+- QA blocking 1: on Keep a call took the oldest hit's line when the feed was full of hits. `HitFeed.add_call` now
+  leaves the call out on a full Keep feed with no call in it (`_oldest_call`, shared with `_front`); QA's
+  `test_co2_qa.gd` pins it.
+- Advisories taken: every Settings tab's ScrollContainer follows focus (`SettingsScreen._page`, `follow_focus`), so the
+  keyboard or a pad scrolls Settings › HUD to the row it reaches; the long comment lines QA listed are wrapped to the
+  usual width; `SimAudio.stop_calls` no longer builds a throwaway default array; the Risks above note the click at a
+  round's end and the enemy's click in the field's pool.
+
 ## Files outside `touches`
 
 - `game/config/callouts_file.gd`, `game/ai/callouts.gd`, `tests/guards/test_callout_guards.gd`,
   `.github/workflows/ci.yml` (comment): CO1's review advisories, as the coordinator asked.
+- `game/ui/settings_screen.gd` (fix round 1: `follow_focus` on every tab's page, the QA advisory).
 - `game/play/README.md`, `game/config/README.md`, `docs/KNOWN_ISSUES.md`, `docs/wiki/Roadmap.md`,
   `docs/wiki/Accessibility.md`, `changelog.d/bot-callouts.md` (its "in a coming update" sentence): docs.
 
@@ -121,3 +137,8 @@ passed in about 1,080 s: gdlint, the changelog notes and the wiki; unit tests pa
 in 337 s, part 3 911 in 318 s (3,310, all passing); the smoke test (a whole match on Depot with callouts on, no script
 errors); the licence notices. The match guards were not run: the director's only changes are an area's capital and a shared line filter (the
 same lines and the same draws), held by `test_callouts.gd` and `test_callouts_file.gd`.
+
+Fix round 1: `tools/check.sh` on the fix (on `0c54a6a`, QA's tests over CO2 rebased onto `a334f81`; this record's
+edit uncommitted), on the 4-core container, passed in about 1,125 s: gdlint, the changelog notes and the wiki; unit
+tests part 1 844 tests in 348 s, part 2 1,570 in 334 s, part 3 911 in 331 s (3,325, all passing, `test_co2_qa.gd` 4 of
+4 among them); the smoke test; the licence notices.

@@ -568,7 +568,8 @@ pays XP ×1.5.
   the hits out? About 10 to 12 a team a minute: too chatty, or too quiet?
 - [ ] **The radio click.** Each call clicks, panned toward the teammate who made it (at most 60 % to one side). An
   enemy within 15 m clicks from where they stand, muffled behind a wall. Can you tell a teammate's click from an
-  enemy's, and does the enemy's give away where they are without feeling unfair?
+  enemy's, and does the enemy's give away where they are without feeling unfair? Listen in a busy firefight too: an
+  enemy's click shares the field's voices with steps and shots, so one may go missing there.
 - [ ] **Keep and the corner.** On Feed lines › Keep the hits stay all match and the calls still fade; bottom left puts
   the newest call at the bottom. A new round starts with no calls in the feed.
 - [ ] **Off.** Settings › HUD › Callouts Off mid-match (from the pause menu) takes the calls out of the feed and stops

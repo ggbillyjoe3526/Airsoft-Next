@@ -1,12 +1,12 @@
 class_name HitFeed
 extends RefCounted
-## The hit feed's lines (the browser game's HIT_FEED): who fired, who was hit and called it, and when (simulation
-## time), newest first. At most `max_lines`; a line lasts `line_time`, fading over its last `fade_time`, unless it is
-## kept (the line you were hit in stays up until the round ends: `release_kept`), or all lines stay when `stay` (the
-## HUD tab's Keep: only the newest `max_lines` go on, for the whole match). Your team's callouts share it (CO2): a
-## call line is the speaker and the words, with a hit line's time and fade, counted among the lines, but never kept, so
-## on Keep the hits stay and the calls still go (and a full feed loses its oldest call first). Plain data: the HUD
-## draws it (HudFeed). The lines are made once and reused.
+## The hit feed's lines (the browser game's HIT_FEED): who fired, who was hit and called it, and when (simulation time),
+## newest first. At most `max_lines`; a line lasts `line_time`, fading over its last `fade_time`, unless it is kept (the
+## line you were hit in stays up until the round ends: `release_kept`), or all lines stay when `stay` (the HUD tab's
+## Keep: only the newest `max_lines` go on, for the whole match). Your team's callouts share it (CO2): a call line is
+## the speaker and the words, with a hit line's time and fade, counted among the lines, but never kept, so on Keep the
+## hits stay and the calls still go: a full Keep feed loses its oldest call first, and a call finds no room in one full
+## of hits (a call never pushes a hit out). Plain data: the HUD draws it (HudFeed). The lines are made once and reused.
 
 class Line:
 	## The shooter, or a call's speaker.
@@ -54,8 +54,11 @@ func add(shooter: int, victim: int, at: float, kept: bool = false) -> void:
 	line.words = ""
 
 
-## A teammate's callout: `speaker` said `words` at simulation time `at`. It ages and fades as a hit line, even on Keep.
+## A teammate's callout: `speaker` said `words` at simulation time `at`. It ages and fades as a hit line, even on Keep;
+## on Keep with the feed full of hits it is left out, as a call never pushes a hit out.
 func add_call(speaker: int, words: String, at: float) -> void:
+	if stay and _count == max_lines and _oldest_call() < 0:
+		return
 	var line := _front()
 	line.shooter = speaker
 	line.victim = -1
@@ -63,6 +66,14 @@ func add_call(speaker: int, words: String, at: float) -> void:
 	line.keep = false
 	line.call = true
 	line.words = words
+
+
+## The index of the oldest call line, or -1 when no line is a call.
+func _oldest_call() -> int:
+	var i := _count - 1
+	while i >= 0 and not _lines[i].call:
+		i -= 1
+	return i
 
 
 ## Drops every call line (a new round, or Settings › HUD › Callouts switched off); the hits keep their order.
@@ -87,9 +98,7 @@ func _front() -> Line:
 		while slot > 0 and _lines[slot].keep:
 			slot -= 1
 		if stay:
-			var oldest_call := _count - 1
-			while oldest_call >= 0 and not _lines[oldest_call].call:
-				oldest_call -= 1
+			var oldest_call := _oldest_call()
 			if oldest_call >= 0:
 				slot = oldest_call
 	else:

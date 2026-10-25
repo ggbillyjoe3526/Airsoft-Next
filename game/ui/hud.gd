@@ -3,23 +3,23 @@ extends Control
 ## The heads-up display (the browser game's ui/hud.ts) in the menus' look (HudStyle): the crosshair sized from the
 ## replica's real spread, the hit marker when your BB knocks someone out, the replica panel (ReplicaPanel: count, spare,
 ## fire modes, a box per magazine, reloading, the hop-up dial while you turn it), the score bar and "First to N"
-## (HudScore), the round's banners (HudBanner), a ricochet that only ticks you, the big "HIT!" when you're hit, and under
-## the match's WON / LOST stamp its summary (MatchSummary) round the XP the match gave (XpCard), up until the next match
-## starts, and whose eyes you watch through once
-## you are out (or with the Dev settings' Spectate any bot) at the bottom. In Attack / Defend (concepts `hud-attack.png`,
-## `hud-defend.png`, `round-end.png`): the ATK / DEF tags and the overtime clock on the score bar, the flag gauge under
-## it (HudFlagGauge), the warning while the other team's flag goes up, the marker over the pole with its distance, and
-## the rounds' own banners. On the practice range (`setup_range`, concepts `step16-range/`): no score bar, rounds or hit
-## feed; the last BB's readout bottom left (HudRangeReadout) and the timed challenge's bar, ready line and banners
-## (HudRangeChallenge). Under the crosshair, when a bush's leaves stop your own BB close in front of you, the line saying
-## so (`leaves_notice_shown`). Under the score bar, for a few seconds after a round's end, the automatic graphics step-down's
-## line (concept `graphics-step-down.png`, `show_graphics_step`). With Settings › Accessibility's sound cues on, the
-## ring of markers round the crosshair for the sounds heard (HudSoundCues). The HUD tab's HUD size scales every part
-## about its anchor but the crosshair, the hit marker and the cue ring (`set_hud_size`); Reduced motion holds the flag
-## warning steady (`set_motion`). Your team's callouts share the hit feed, each with its speaker and words, gone at a
-## round's start, while Settings › HUD › Callouts is on (`on_calls`). Screen reader messages read the hit feed, the
-## calls, your hit and the rounds' turns through a live region that is never drawn (HudAnnounce, `set_read_out`). Text is only rebuilt when what it shows changes. No
-## hints teaching the controls (owner, 2026-10-16).
+## (HudScore), the round's banners (HudBanner), a ricochet that only ticks you, the big "HIT!" when you're hit, and
+## under the match's WON / LOST stamp its summary (MatchSummary) round the XP the match gave (XpCard), up until the next
+## match starts, and whose eyes you watch through once you are out (or with the Dev settings' Spectate any bot) at the
+## bottom. In Attack / Defend (concepts `hud-attack.png`, `hud-defend.png`, `round-end.png`): the ATK / DEF tags and the
+## overtime clock on the score bar, the flag gauge under it (HudFlagGauge), the warning while the other team's flag goes
+## up, the marker over the pole with its distance, and the rounds' own banners. On the practice range (`setup_range`,
+## concepts `step16-range/`): no score bar, rounds or hit feed; the last BB's readout bottom left (HudRangeReadout) and
+## the timed challenge's bar, ready line and banners (HudRangeChallenge). Under the crosshair, when a bush's leaves stop
+## your own BB close in front of you, the line saying so (`leaves_notice_shown`). Under the score bar, for a few seconds
+## after a round's end, the automatic graphics step-down's line (concept `graphics-step-down.png`,
+## `show_graphics_step`). With Settings › Accessibility's sound cues on, the ring of markers round the crosshair for the
+## sounds heard (HudSoundCues). The HUD tab's HUD size scales every part about its anchor but the crosshair, the hit
+## marker and the cue ring (`set_hud_size`); Reduced motion holds the flag warning steady (`set_motion`). Your team's
+## callouts share the hit feed, each with its speaker and words, gone at a round's start, while Settings › HUD ›
+## Callouts is on (`on_calls`). Screen reader messages read the hit feed, the calls, your hit and the rounds' turns
+## through a live region that is never drawn (HudAnnounce, `set_read_out`). Text is only rebuilt when what it shows
+## changes. No hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 32.0
 ## The replica panel's lane, bottom right: as wide as its hop-up note, as tall as its notes and panel.

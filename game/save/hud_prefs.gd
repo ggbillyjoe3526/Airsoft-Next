@@ -66,8 +66,8 @@ func to_dict() -> Dictionary:
 		"shape": int(shape), "colour": colour, "size": size, "thickness": thickness, "gap": gap, "opacity": opacity,
 		"dynamic": dynamic, "outline": outline, "marker": marker, "marker_colour": marker_colour,
 		"marker_size": marker_size, "ammo_counter": ammo_counter, "feed_corner": int(feed_corner),
-		"feed_lines": int(feed_lines), "callouts": callouts, "panel_opacity": panel_opacity, "minimap_turn": int(minimap_turn),
-		"hud_size": hud_size,
+		"feed_lines": int(feed_lines), "callouts": callouts, "panel_opacity": panel_opacity,
+		"minimap_turn": int(minimap_turn), "hud_size": hud_size,
 	}
 
 

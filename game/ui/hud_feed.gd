@@ -1,8 +1,9 @@
 class_name HudFeed
 extends VBoxContainer
 ## The hit feed on screen (concept `hud-feed.png`): HitFeed's lines as HudFeedRows, hits and your team's callouts
-## (concept `step27/callouts.png`), top right with the newest on top, or bottom left with the newest at the bottom. Rows are made once (one per line the feed can hold) and refilled only
-## when the lines change; each frame only the fading lines' opacity moves.
+## (concept `step27/callouts.png`), top right with the newest on top, or bottom left with the newest at the bottom. Rows
+## are made once (one per line the feed can hold) and refilled only when the lines change; each frame only the fading
+## lines' opacity moves.
 
 enum Place { TOP_RIGHT, BOTTOM_LEFT }
 
