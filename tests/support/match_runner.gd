@@ -151,6 +151,10 @@ var mode: RoundState.Mode = RoundState.Mode.ELIMINATION
 ## Called after every tick's step with the state and the bots (a test's own watch, such as what each bot sees through
 ## bushes, WL5); none by default.
 var each_tick: Callable = Callable()
+## Played at night (WL6): the bots see by the map's NightField, built once each match. On by default for a map that
+## offers no day (Woodland); a map that offers both (Neon Heights) stays on its day guards until night guards come
+## (WL10).
+var night: bool = false
 var _kits: BotKits = null
 var _kit_rules: LoadoutRules = null
 var config: BotConfig = null
@@ -175,6 +179,7 @@ func _init(parent: Node, map_id: String, sim_tuning: SimTuning = null, bot_confi
 	parent.add_child(level)
 	level.build(map, style, tuning.body)
 	nav = NavGrid.build(map, tuning.nav, tuning.body)
+	night = map.ok() and not map.lighting_presets.has(LightingConfig.DAY)
 	for b in map.blocks:
 		var top := b.center.y + b.size.y * 0.5
 		highest_top = maxf(highest_top, top)
@@ -231,6 +236,7 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 					kit.bb_weights))
 		commands.append(PlayerCommand.new())
 	var bots := BotController.new(state, -1, map, nav, level.query(), tuning, config, levels, identities)
+	bots.world.night = NightField.build(map, config, night)
 	t.kits = kit_names
 	t.hits_by.resize(state.characters.size())
 	t.map_id = map.id

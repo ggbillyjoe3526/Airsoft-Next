@@ -2,8 +2,9 @@ class_name BotSenses
 ## What a bot sees (the browser game's ai/perception.ts and botSenses.ts), by the same rules as anyone: a 120° view out
 ## to view_distance, anyone very close whichever way it faces, and a clear line from its eyes (lean included) to the
 ## part of the target it looks for, through no wall, no body of someone already hit and no more than
-## foliage_see_through of bush (WL5; within close_awareness a bush hides no one). Hearing is BotHearing. A bot
-## knows only what these give it: no wall-hacks, ever (DECISIONS 2026-09-30). Allocates nothing.
+## foliage_see_through of bush (WL5; within close_awareness a bush hides no one); at night no further than the light
+## round the target lets it be made out (WL6, NightField). Hearing is BotHearing. A bot knows only what these give it:
+## no wall-hacks, ever (DECISIONS 2026-09-30). Allocates nothing.
 
 ## Lines shorter than this (m) are clear.
 const EPSILON := 1e-6
@@ -42,12 +43,19 @@ static func in_view(viewer: Character, at: Vector3, cfg: BotConfig) -> bool:
 	return facing >= cos(deg_to_rad(cfg.fov_deg) * 0.5)
 
 
+## Whether someone with feet at `at`, `flat` m away (level), can be made out in the light there: always by day; on a
+## field played at night within its NightField.sight_range (lit, moonlit open, under the trees or indoors).
+static func in_dark_range(flat: float, at: Vector3, w: BotWorld) -> bool:
+	return w.night == null or flat <= w.night.sight_range(at)
+
+
 ## Which part of `target` `viewer` can see now, as a share of its height: the chest (aim_height_fraction) if it shows,
 ## else the head (head_height_fraction), else 0.
 static func visible_part(viewer: Character, target: Character, w: BotWorld) -> float:
 	var cfg := w.cfg
 	var flat := Vector2(target.position.x - viewer.position.x, target.position.z - viewer.position.z).length()
-	if flat > cfg.view_distance or not in_view(viewer, target.position, cfg):
+	if flat > cfg.view_distance or not in_dark_range(flat, target.position, w) \
+			or not in_view(viewer, target.position, cfg):
 		return 0.0
 	var eye := eye_of(viewer, w.tuning)
 	var leafy := flat > cfg.close_awareness
@@ -65,7 +73,7 @@ static func visible_part(viewer: Character, target: Character, w: BotWorld) -> f
 ## could be hiding in one). Hunting by eye: a spot seen empty isn't walked to.
 static func sees_spot(viewer: Character, spot: Vector3, range_m: float, w: BotWorld) -> bool:
 	var flat := Vector2(spot.x - viewer.position.x, spot.z - viewer.position.z).length()
-	if flat > range_m or not in_view(viewer, spot, w.cfg):
+	if flat > range_m or not in_dark_range(flat, spot, w) or not in_view(viewer, spot, w.cfg):
 		return false
 	var chest := spot + Vector3(0.0, Hitbox.hit_top(0.0, w.tuning.hits) * w.cfg.aim_height_fraction, 0.0)
 	var eye := eye_of(viewer, w.tuning)

@@ -37,6 +37,8 @@ class _Search:
 	var taken: PackedVector3Array = PackedVector3Array()
 	var taken_gap: float = 0.0
 	var best: float = INF
+	## The night field to keep out of the light of (BotSkill.keeps_dark), or null.
+	var dark: NightField = null
 
 
 static var _s: _Search = _Search.new()
@@ -100,9 +102,10 @@ static func hides_from(spot: Vector3, threat_eye: Vector3, w: BotWorld) -> bool:
 
 ## Looks for a spot within `radius` of `from` hidden from `threat_eye` (see the class comment), trying `candidates`
 ## random spots too; `peekable` keeps only spots to fight from. `taken` are spots teammates hold or head for (the first
-## `taken_count`). Writes the best into `out`; false if nothing works.
+## `taken_count`). With `keep_dark` (BotSkill.keeps_dark, holding), on a field played at night no spot in a light pool
+## counts. Writes the best into `out`; false if nothing works.
 static func find(from: Vector3, threat_eye: Vector3, w: BotWorld, rng: RandomNumberGenerator, out: Spot, radius: float,
-		candidates: int, peekable: bool, taken: PackedVector3Array, taken_count: int) -> bool:
+		candidates: int, peekable: bool, taken: PackedVector3Array, taken_count: int, keep_dark: bool = false) -> bool:
 	var cfg := w.cfg
 	var s := _s
 	s.from = from
@@ -115,6 +118,7 @@ static func find(from: Vector3, threat_eye: Vector3, w: BotWorld, rng: RandomNum
 	s.taken_gap = 2.0 * w.tuning.body.radius + cfg.cover_spacing_margin
 	s.threat_dist = Vector2(threat_eye.x - from.x, threat_eye.z - from.z).length()
 	s.best = INF
+	s.dark = w.night if keep_dark else null
 	_taken_count = taken_count
 	for i in candidates:
 		var angle := rng.randf() * TAU
@@ -149,7 +153,7 @@ static var _taken_count: int = 0
 
 
 ## Tests the spot (x, z) and keeps it in `out` if it beats the best so far: walkable, in reach, clear of teammates'
-## spots, not towards the threat, and hiding a crouched player. It stands on its cell's floor, as high above it as the
+## spots, not towards the threat, out of the light when the search keeps dark, and hiding a crouched player. It stands on its cell's floor, as high above it as the
 ## searcher stands above its own.
 static func _consider(w: BotWorld, out: Spot, x: float, z: float) -> void:
 	var cfg := w.cfg
@@ -167,7 +171,10 @@ static func _consider(w: BotWorld, out: Spot, x: float, z: float) -> void:
 	var to_threat := Vector2(s.threat_eye.x - x, s.threat_eye.z - z).length()
 	if to_threat < minf(s.threat_dist * cfg.cover_toward_threat_fraction, s.threat_dist - cfg.cover_toward_threat_metres):
 		return
-	var spot := Vector3(x, w.nav.floor_at(probe) + s.above_floor, z)
+	var floor_y := w.nav.floor_at(probe)
+	if s.dark != null and s.dark.in_light(Vector3(x, floor_y, z)):
+		return
+	var spot := Vector3(x, floor_y + s.above_floor, z)
 	var body := w.tuning.body
 	if BotSenses.line_clear(w.query, s.threat_eye, spot + Vector3(0.0, body.crouch_eye_height, 0.0)):
 		return # not cover at all

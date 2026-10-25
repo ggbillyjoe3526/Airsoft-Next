@@ -60,3 +60,7 @@ extends Resource
 ## (BallisticsConfig.leaf_stop_depth), however far off they come out. Otherwise it holds fire through more than
 ## BotConfig.foliage_fire_through of them.
 @export var fires_into_leaves: bool = false
+## Keeping out of the light (WL6; Normal and up, the browser game's keepsDark): on a field played at night it never
+## holds a lane point, hunts a spot or takes hold cover in a light pool when a dark spot is near (BotConfig.dark_spot_*).
+## Easy stands where its lane says: a learning level whose defenders may stand in the light.
+@export var keeps_dark: bool = true

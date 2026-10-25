@@ -115,7 +115,8 @@ func in_enemy_half(b: Bot) -> bool:
 ## the team checked longest ago (a check older than the skill's hunt_memory counts as never), nearer the middle of the
 ## field first: there the other team, sweeping its own lane the other way, comes back through. A spot the bot sees empty
 ## from where it stands is checked there and then, and picked only if every spot drawn was one. Spots in a region of the
-## nav grid the bot's can't reach are drawn again. False if none turned up.
+## nav grid the bot's can't reach are drawn again. At night a bot that keeps dark moves its pick out of the light. False
+## if none turned up.
 func hunt_point(b: Bot, w: BotWorld) -> bool:
 	var cfg := w.cfg
 	var team := b.character.team
@@ -147,7 +148,12 @@ func hunt_point(b: Bot, w: BotWorld) -> bool:
 		if score < best:
 			best = score
 			b.hunt_goal = spot
-	return best < INF or in_view < INF
+	if best == INF and in_view == INF:
+		return false
+	# At night Normal and up hunt out of the light pools (BotWorld.out_of_light).
+	if b.skill.keeps_dark:
+		b.hunt_goal = w.out_of_light(b.hunt_goal)
+	return true
 
 
 func _pick_plan(cfg: BotConfig) -> Plan:

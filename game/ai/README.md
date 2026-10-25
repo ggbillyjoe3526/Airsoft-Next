@@ -7,12 +7,13 @@ and its `BotSkill` (`game/config/bot_tuning.tres`).
 
 ## What a bot knows
 
-Only what it could: who it sees (a 120° view, 40 m, through no wall, BB or body of someone already out), anyone within
-2.5 m, and what it hears (gunfire, running and sprinting feet, landings, vaults, a hit called; walls muffle it; a heard
-spot is a guess off by a little). Walking and moving crouched are silent. It never reads a position it hasn't
-perceived. It reacts after a reaction time per new contact, its aim error settles over a second and wanders, and it
-fires in bursts only on aim, never with a teammate (or someone out) in the line of fire, a miss's flight past the target
-included. Hit calls are the simulation's: a bot that is hit calls it like anyone.
+Only what it could: who it sees (a 120° view, 40 m, through no wall, BB or body of someone already out; at night no
+further than the light round them lets them be made out: 40 m lit, 25 m in the open, 10 m under the trees, 15 m
+indoors, `NightField`), anyone within 2.5 m, and what it hears (gunfire, running and sprinting feet, landings, vaults,
+a hit called; walls muffle it; a heard spot is a guess off by a little). Walking and moving crouched are silent. It
+never reads a position it hasn't perceived. It reacts after a reaction time per new contact, its aim error settles
+over a second and wanders, and it fires in bursts only on aim, never with a teammate (or someone out) in the line of
+fire, a miss's flight past the target included. Hit calls are the simulation's: a bot that is hit calls it like anyone.
 
 ## How it plays
 
@@ -20,7 +21,8 @@ Each round the `RoundPlanner` gives each team a plan (split over the map's lanes
 each bot a lane to walk from its end, holding at its points and keeping with its team; past the lane it hunts the
 sectors its team checked longest ago. In sight of an enemy it fights (strafing), or first gets behind close crouch cover
 and peeks over it, or round a tall corner by leaning. Shot at, reloading or empty, it takes cover. With the enemy gone
-it searches where it was last seen or heard, sometimes flanking.
+it searches where it was last seen or heard, sometimes flanking. At night Normal and up hold their lane points, hunt
+and take hold cover out of the light pools (`BotSkill.keeps_dark`); Easy stands where its lane says.
 
 In Attack / Defend (`BotFlag`) the attackers walk their lanes just past the middle, then make for the pole: the nearest
 raises the flag, crouched at the rope, while the others guard it from crouch cover near by. The defenders hold their
@@ -54,10 +56,11 @@ at its level, never how well (`BotPersonality`).
 | File | What |
 |---|---|
 | `bot_controller.gd` | `BotController`: owns the bots; before each step one route search, then each bot's command; after it, hearing and the round's plan |
-| `bot_world.gd` | `BotWorld`: what every bot thinks with (tuning, rays, nav grid, lanes, cover, everyone, the plan, the time, each team's hunt memory) |
+| `bot_world.gd` | `BotWorld`: what every bot thinks with (tuning, rays, nav grid, lanes, cover, everyone, the plan, the time, each team's hunt memory, the night field); moving a spot out of the light |
 | `bot.gd` | `Bot`: one bot's own state (mode, contacts, aim, route, lane, cover, timers) and its seeded stream |
 | `bot_brain.gd` | The tick: look, pick a mode (advance, fight, cover, search, flag, order), move, aim, fire, reload |
-| `bot_senses.gd`, `bot_hearing.gd` | Sight (view cone, walls, bodies, no more than 0.6 m of bush beyond close awareness, which part shows) and hearing (gunfire, feet and further on loud ground, hit calls, near misses, a knock on a noisy prop as a step, a ring off steel faintly; walls judged by `SoundPath`) |
+| `night_field.gd` | `NightField`: the dark on a field played at night (light pools by floor, the canopy grid, roofs), from the map's data once a match; how far someone at a point is made out |
+| `bot_senses.gd`, `bot_hearing.gd` | Sight (view cone, walls, bodies, no more than 0.6 m of bush beyond close awareness, the night's range, which part shows) and hearing (gunfire, feet and further on loud ground, hit calls, near misses, a knock on a noisy prop as a step, a ring off steel faintly; walls judged by `SoundPath`) |
 | `bot_aim.gd`, `bot_combat.gd` | Turning, aim error that settles, lead; bursts, line-of-fire checks (no fire through more than 0.25 m of bush, Easy through what a BB crosses), reloads |
 | `bot_holster.gd` | Holstering on a long, calm sprint through its own half, drawing again on a threat |
 | `bot_angles.gd` | Held angles: the corners and doorways in view where someone would step out, from the level's walls alone |
