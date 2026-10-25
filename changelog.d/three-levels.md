@@ -5,4 +5,4 @@
 - XP stays with the names: Easy ×0.5, Normal ×1, Hard ×1.5. A new player still starts on Normal.
 - The Pro tips on the scoreboard and the What got you card on Auto now come with Hard bots.
 - Your teammates follow the opponents' level at every level, Easy included.
-- Your records keep the bots they were won against: the old Normal's show under Easy, the old Hard's under Normal and the old Pro's under Hard.
+- Your records keep the bots they were won against: the old Easy's and the old Normal's both show under Easy, the old Hard's under Normal and the old Pro's under Hard.

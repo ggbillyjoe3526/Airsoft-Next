@@ -65,6 +65,9 @@ dropped two minutes earlier, is another commit's docs change; nothing is built f
 
 ## Defaults taken
 
+- **A new player, and every fresh session, starts on Normal, which is the old Hard's bots, at ×1 XP**
+  (`MatchOptions.DEFAULT_LEVEL`, `MatchPicks`, `PlaySession.difficulty`). Reason: the owner's mapping keeps the name
+  Normal as the default; the bots behind it moved up with the names.
 - **A level no one names plays Easy** (the baseline): `BotController` with no level for a team, `skill_for` of an
   unknown id. Reason: every bot built without a level, in the tests and tools, keeps its exact tuning.
 - **Teammates follow at every level.** Reason: Easy opponents had Normal teammates; those bots are today's Easy, so
@@ -135,6 +138,18 @@ these seeds at 8, and their captures (Depot 12, Woodland 4) clear the floors.
 - The picture: the Match page's Bots rows with three levels, Hard opponents and Easy teammates
   (`screenshots/step26/tl1-levels.png`, Compatibility under Xvfb).
 - `python3 tools/wiki.py check` passes; gdlint clean.
+
+## Fix round (QA and performance passed)
+
+- **Attack / Defend records survive a restart.** `Records.RESULT_KEY_PATTERN` allowed no `_` in the mode, so every
+  `<level>.attack_defend` record was left out on load (found here, older than TL1); it now allows `_` after the dot.
+  The version 1 move covers those keys too (`pro.attack_defend` reads as `hard.attack_defend`), and
+  `test_three_levels.gd` saves and loads one. The KNOWN_ISSUES row is gone.
+- **Defaults:** the new player's start on Normal (the old Hard's bots, ×1) is named above.
+- **Stale text:** `pipeline/README.md`'s balance line (Easy and Hard on 16); the changelog note says the old Easy's
+  records land under Easy too.
+- **Gate:** `tools/check.sh` with these fixes on `92b5fa2` passed in 1,126 s: part 1 744 tests in 331 s, part 2 1,570
+  in 336 s, part 3 897 in 333 s (3,211, all passing), the smoke test and the licence notices.
 
 ## Gate
 

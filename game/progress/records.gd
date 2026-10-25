@@ -17,8 +17,8 @@ const KNOWN_KEYS: Array[String] = ["results", "best_accuracy", "streak", "best_s
 ## A match counts towards best accuracy only with at least this many BBs fired, so three lucky shots aren't a record
 ## (the browser game's minBBsForAccuracyRecord).
 const ACCURACY_MIN_BBS := 30
-## "normal.elimination": a difficulty and a mode id.
-const RESULT_KEY_PATTERN := "^[a-z][a-zA-Z0-9]*\\.[a-z][a-zA-Z0-9]*$"
+## "normal.elimination" or "hard.attack_defend": a difficulty and a mode id (MatchOptions.MODES, "_" and all).
+const RESULT_KEY_PATTERN := "^[a-z][a-zA-Z0-9]*\\.[a-z][a-zA-Z0-9_]*$"
 ## "range": a timed challenge course (RangeChallenge.course, a map's id).
 const COURSE_PATTERN := "^[a-z][a-zA-Z0-9]*\\z"
 

@@ -17,14 +17,16 @@ func _old_file(results: Dictionary) -> void:
 
 func test_a_version_1_file_reads_each_record_against_the_same_bots() -> void:
 	_old_file({"easy.elimination": [1, 2], "normal.elimination": [3, 4], "hard.elimination": [5, 6],
-			"pro.elimination": [7, 8], "pro.range": [1, 0], "custom.elimination": [2, 2]})
+			"pro.elimination": [7, 8], "pro.attack_defend": [1, 0], "hard.attack_defend": [0, 3],
+			"custom.elimination": [2, 2]})
 	var r := Records.new()
 	r.load_file(RECORDS)
 	assert_eq(r.load_message, "", "no warning: nothing was lost")
 	assert_eq(r.win_loss(&"easy", "elimination"), PackedInt32Array([4, 6]), "old Easy and old Normal both now Easy's")
 	assert_eq(r.win_loss(&"normal", "elimination"), PackedInt32Array([5, 6]), "old Hard is Normal")
 	assert_eq(r.win_loss(&"hard", "elimination"), PackedInt32Array([7, 8]), "old Pro is Hard")
-	assert_eq(r.win_loss(&"hard", "range"), PackedInt32Array([1, 0]), "every mode")
+	assert_eq(r.win_loss(&"hard", "attack_defend"), PackedInt32Array([1, 0]), "Attack / Defend moves too")
+	assert_eq(r.win_loss(&"normal", "attack_defend"), PackedInt32Array([0, 3]))
 	assert_eq(r.win_loss(&"custom", "elimination"), PackedInt32Array([2, 2]), "an id it doesn't move is kept")
 	assert_false(r.results.has("pro.elimination"))
 	assert_eq([r.streak, r.best_streak, r.challenge_best("range")], [2, 4, 9], "the rest as it was")
@@ -82,3 +84,20 @@ func test_every_level_keeps_out_of_the_light_and_holds_fire_through_leaves() -> 
 		var s := cfg.skill_for(StringName(level))
 		assert_false("keeps_dark" in s or "fires_into_leaves" in s, "%s: the old Easy's habits are gone" % level)
 	assert_eq(MatchOptions.TIPS_LEVEL, &"hard", "the Pro tips and What got you's Auto follow Pro to Hard")
+
+
+func test_an_attack_defend_record_survives_a_save_and_a_load() -> void:
+	var r := Records.new()
+	var m := Records.Result.new()
+	m.difficulty = &"hard"
+	m.mode = MatchOptions.MODE_ATTACK_DEFEND
+	m.won = true
+	r.add(m)
+	m.mode = MatchOptions.MODE_ELIMINATION
+	r.add(m)
+	assert_true(r.save(RECORDS))
+	var again := Records.new()
+	again.load_file(RECORDS)
+	assert_eq(again.load_message, "")
+	assert_eq(again.win_loss(&"hard", MatchOptions.MODE_ATTACK_DEFEND), PackedInt32Array([1, 0]), "kept, \"_\" and all")
+	assert_eq(again.win_loss(&"hard", MatchOptions.MODE_ELIMINATION), PackedInt32Array([1, 0]))
