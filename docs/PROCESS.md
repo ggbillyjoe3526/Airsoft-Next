@@ -72,8 +72,11 @@ ends, time passes or small improvements pile up.
 ## Releases
 
 **A release is the owner's tag.** He pushes it (such as `0.1-dev.1`); `.github/workflows/release.yml` writes that
-version into the build, exports Windows and Linux, builds the Windows installer and publishes a GitHub pre-release
-titled "Airsoft <name>" with notes from the changelog. Sessions never create tags.
+version into the build, exports Windows and Linux, plays the headless smoke match on the Linux build, builds the
+Windows installer, installs it on a Windows runner, plays the same smoke match on the installed game, uninstalls it,
+and publishes a GitHub pre-release titled "Airsoft <name>" with notes from the changelog. Sessions never create tags.
+A pull request that touches the release pipeline, or Actions › Release › Run workflow, runs it all as a dry run that
+publishes nothing (the downloads are in the run's Artifacts).
 
 **After the owner tags a release** (owner, 2026-10-03), the docs move to the new tag without being asked. The first
 pull request after a new tag (or a small docs-only one, if no other work is open) updates, to match the owner's
