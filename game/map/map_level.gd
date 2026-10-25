@@ -12,6 +12,10 @@ extends Node3D
 ## faces cut into tiles (GreyboxFaces.tile), each vertex's colour darkened by the sky it can't see and warmed by the sun's bounce.
 ## Switching it rebuilds the mesh alone; a map with no bake draws as without it. A bake is checked against the day sun it
 ## was baked under, whatever preset plays; at night it draws its sky share alone (no sun to bounce; WL3).
+##
+## Site dress (DD1): a map naming one (`dressing.site`) built with a SiteLook draws the very same faces, baked or not,
+## in the site's one material (SiteSurface) instead of the greybox's: each vertex tells the shader its box and finish,
+## its colour the bake's light alone. Colliders, the nav and the shadow caster are the greybox's, unchanged.
 
 ## The physics layer the level's colliders are on, and the one the movers' bodies are on (nothing collides with them).
 const WORLD_LAYER := 1
@@ -34,6 +38,9 @@ var _lighting: LightingConfig = null
 var _night: bool = false
 var _material: StandardMaterial3D = null
 var _mesh: MeshInstance3D = null
+## The site dress's look and its material (DD1); null for a greybox map.
+var _site: SiteLook = null
+var _site_material: ShaderMaterial = null
 ## Sloping ground's tiles, under one node; empty on a map without it.
 var _tiles: Array[MeshInstance3D] = []
 ## Whether the mesh drawn is the baked one; the map's bake, loaded when first drawn (`_bake_looked`).
@@ -51,10 +58,10 @@ var _probe_body: RID
 
 ## Builds `m`'s greybox and colliders with `style`, for characters shaped as `body`, its baked light (off until
 ## `set_baked_light`) drawn with `light` and checked against the sun in `lighting` (null: the built-in ones), the
-## preset bakes are made under (the day's), not the one playing; `night` draws it with its sky share alone. Call once,
-## inside the tree.
+## preset bakes are made under (the day's), not the one playing; `night` draws it with its sky share alone; `site` dresses
+## a map that names a site dress (null: greybox). Call once, inside the tree.
 func build(m: MapData, style: MapStyle, body: BodyConfig, light: BakeConfig = null,
-		lighting: LightingConfig = null, night: bool = false) -> void:
+		lighting: LightingConfig = null, night: bool = false, site: SiteLook = null) -> void:
 	assert(is_inside_tree(), "MapLevel.build needs the level in the tree (its physics space)")
 	map = m
 	_style = style
@@ -63,6 +70,9 @@ func build(m: MapData, style: MapStyle, body: BodyConfig, light: BakeConfig = nu
 	_night = night
 	name = "Map_%s" % m.id
 	_material = _greybox_material(style)
+	if m.site != null and site != null:
+		_site = site
+		_site_material = SiteSurface.material(site, m)
 	_mesh = _make_mesh()
 	add_child(_mesh)
 	if m.terrain != null:
@@ -125,6 +135,18 @@ func set_baked_light(on: bool) -> void:
 ## Whether the baked light is drawn.
 func baked_light_drawn() -> bool:
 	return _baked
+
+
+## The site dress's material, which SiteDress draws its details in too; null for a greybox map.
+func site_material() -> ShaderMaterial:
+	return _site_material
+
+
+## Draws the site dress as Mesh detail step `detail` (GraphicsQuality.MeshDetail) asks: on Low without the photo
+## textures' relief and the finer marks (SiteSurface). Nothing on a greybox map.
+func set_detail(detail: GraphicsQuality.MeshDetail) -> void:
+	if _site_material != null:
+		_site_material.set_shader_parameter(&"low", detail == GraphicsQuality.MeshDetail.LOW)
 
 
 ## Sloping ground's tiles (WL4), row by row; empty on a map without sloping ground.
@@ -205,15 +227,16 @@ func _kinematic(space: RID, shape: RID) -> RID:
 
 
 ## The greybox: the untiled mesh, or with the bake the tiled one, which casts no shadow, and the untiled one under it
-## casting the shadows alone, so the sun's shadow passes draw as many triangles as without the bake.
+## casting the shadows alone, so the sun's shadow passes draw as many triangles as without the bake. A site-dressed map
+## draws either in the site's material; its shadow caster stays the greybox's.
 func _make_mesh() -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
-	mi.name = "Greybox"
-	mi.material_override = _material
+	mi.name = "Greybox" if _site == null else "Site"
+	mi.material_override = _material if _site == null else _site_material
 	var baked := _baked_mesh() if _baked else null
 	if baked == null:
 		_baked = false
-		mi.mesh = _greybox_mesh(map, _style)
+		mi.mesh = _greybox_mesh(map, _style) if _site == null else _site_mesh(map, _style, _site)
 		return mi
 	mi.mesh = baked
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -260,8 +283,29 @@ static func _greybox_mesh(m: MapData, style: MapStyle) -> ArrayMesh:
 	return st.commit()
 
 
+## The greybox's faces for the site's material: white, each vertex carrying its block's box and finish
+## (SiteSurface.block_customs), and the ground beyond the walls as the site's ground.
+static func _site_mesh(m: MapData, style: MapStyle, site: SiteLook) -> ArrayMesh:
+	var st := SiteSurface.begin()
+	st.set_color(Color.WHITE)
+	for b in m.blocks:
+		var c := SiteSurface.block_customs(site, b)
+		st.set_custom(0, c[0])
+		st.set_custom(1, c[1])
+		var core := SiteSurface.core_of(site, b)
+		for f in GreyboxFaces.faces_of(b):
+			_add_face(st, core * f)
+	var top := GreyboxFaces.ground_top(m)
+	var g := SiteSurface.ground_customs(site, top)
+	st.set_custom(0, g[0])
+	st.set_custom(1, g[1])
+	_add_face(st, GreyboxFaces.ground_face(style, top))
+	return st.commit()
+
+
 ## The same faces cut into tiles, each vertex's colour lit by the bake (`_bake_or_null` has checked it fits), and the
-## ground unlit.
+## ground unlit. On a site-dressed map the colour is the light alone (linear, for the site's material) and each vertex
+## carries its block's box and finish.
 func _baked_mesh() -> ArrayMesh:
 	var t := GreyboxFaces.tile(map, _light.cell, _light.ground_y)
 	var n := t.positions.size()
@@ -270,7 +314,7 @@ func _baked_mesh() -> ArrayMesh:
 	colours.resize(n)
 	var block_linear: Array[Color] = []
 	for b in map.blocks:
-		block_linear.append(_style.block_colour(b).srgb_to_linear())
+		block_linear.append(_style.block_colour(b).srgb_to_linear() if _site == null else Color.WHITE)
 	var dark := _light.sky_share / BakedLight.FULL
 	var warm := 0.0 if _night else _light.bounce_gain / BakedLight.FULL
 	var sky := _bake.sky
@@ -279,12 +323,13 @@ func _baked_mesh() -> ArrayMesh:
 		var c := block_linear[t.blocks[v]]
 		var lit := 1.0 - _light.sky_share + dark * sky[v]
 		var k := v * 3
-		colours[v] = Color(c.r * (lit + warm * bounce[k]), c.g * (lit + warm * bounce[k + 1]),
-				c.b * (lit + warm * bounce[k + 2])).linear_to_srgb()
+		var lin := Color(c.r * (lit + warm * bounce[k]), c.g * (lit + warm * bounce[k + 1]),
+				c.b * (lit + warm * bounce[k + 2]))
+		colours[v] = lin.linear_to_srgb() if _site == null else lin
 	for p in GreyboxFaces.ground_face(_style, GreyboxFaces.ground_top(map)):
 		t.positions.append(p)
 		t.normals.append(Vector3.UP)
-		colours.append(_style.ground_colour)
+		colours.append(_style.ground_colour if _site == null else Color.WHITE)
 	for i: int in [0, 2, 1, 0, 3, 2]:
 		t.indices.append(n + i)
 	var arrays := []
@@ -293,9 +338,53 @@ func _baked_mesh() -> ArrayMesh:
 	arrays[Mesh.ARRAY_NORMAL] = t.normals
 	arrays[Mesh.ARRAY_COLOR] = colours
 	arrays[Mesh.ARRAY_INDEX] = t.indices
+	var format := 0
+	if _site != null:
+		_site_customs(t.blocks, n, arrays)
+		_site_cores(t)
+		format = SiteSurface.CUSTOM_FORMAT
 	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, format)
 	return mesh
+
+
+## The baked tiles where SiteSurface.core_of draws them (a sandbag stack's own box inside its bags).
+func _site_cores(t: GreyboxFaces.Tiles) -> void:
+	for i in map.blocks.size():
+		var core := SiteSurface.core_of(_site, map.blocks[i])
+		if core == Transform3D.IDENTITY:
+			continue
+		for v in t.blocks.size():
+			if t.blocks[v] == i:
+				t.positions[v] = core * t.positions[v]
+
+
+## The baked tiles' custom channels: each of the `n` tile vertices its block's (`blocks`), then the ground's four.
+func _site_customs(blocks: PackedInt32Array, n: int, arrays: Array) -> void:
+	var per_block: Array[Array] = []
+	for b in map.blocks:
+		per_block.append(SiteSurface.block_customs(_site, b))
+	per_block.append(SiteSurface.ground_customs(_site, GreyboxFaces.ground_top(map)))
+	var ground := per_block.size() - 1
+	var c0 := PackedFloat32Array()
+	var c1 := PackedFloat32Array()
+	c0.resize((n + 4) * 4)
+	c1.resize((n + 4) * 4)
+	for v in n + 4:
+		var c: Array = per_block[blocks[v] if v < n else ground]
+		var a: Color = c[0]
+		var h: Color = c[1]
+		var k := v * 4
+		c0[k] = a.r
+		c0[k + 1] = a.g
+		c0[k + 2] = a.b
+		c0[k + 3] = a.a
+		c1[k] = h.r
+		c1[k + 1] = h.g
+		c1[k + 2] = h.b
+		c1[k + 3] = h.a
+	arrays[Mesh.ARRAY_CUSTOM0] = c0
+	arrays[Mesh.ARRAY_CUSTOM1] = c1
 
 
 func _greybox_material(style: MapStyle) -> StandardMaterial3D:

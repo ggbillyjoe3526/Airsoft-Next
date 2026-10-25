@@ -32,6 +32,7 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `part_stats.gd` | Read `data/stats.md`'s part tables: optics, grips, lasers, magazines, barrels and muzzle parts (a part with no row changes nothing) |
 | `replica_schemes.gd` | Replica colours: the eight bold schemes and four plain colours, each class's default, the bots' team colours, Realistic colours |
 | `play_tuning.gd`, `play_tuning.tres` | Bundles the play screen's configs below, and the rematch delay |
+| `site_look.gd` | `SiteLook`: how a site-dressed map is drawn (DD1): each finish's canvas, paint, accent, band, roughness and metalness, picked by block kind and shape; the container paints and split; the slab and plywood photo sets; the day's clouds and haze; the details', sandbags' and stencils' sizes and paint |
 | `controls_config.gd` | Mouse turn, sensitivity (hip, and a multiplier aimed), invert, slower while zoomed, crouch and aim toggle or hold; the order wheel's orders, keys, names, pointer and Hover or Click; the settings screen writes its values over these |
 | `view_config.gd` | Field of view, the sight's zoom, near and far, the view's roll in a lean, a cut lean's easing, a vault's dip and tip |
 | `viewmodel_config.gd` | The replica in hand: hip and sight positions, sway, kick, sprint carry, draw, the holster, reload cant, wall pull-back, each optic's glass and eye distance |

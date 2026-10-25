@@ -189,6 +189,22 @@ arms, figures and replicas use (steps 23 and 28).
 
 ## Where it lives in the code
 
+Depot's temporary site dress (DD1, until the owner's models; Depot and the range, by day):
+
+- **Data.** A map opts in with `dressing.site` (`SiteDressing`, `game/map/site_dressing.gd`): its zone stencils (an
+  area's name on a wall face), shade sails and the slab's bay lines (up to 16 rectangles, painted by the shader).
+  `SiteLook` (`game/config/site_look.gd`, in `play_tuning.tres`) holds
+  every finish (canvas, paint, accent, band, roughness), the container paints and split, the photo sets, the sky and
+  haze, and the details' sizes.
+- **Blocks.** `MapLevel` draws the greybox's faces, baked or not, in `SiteSurface`'s one material
+  (`game/play/site/site_surface.gdshader`): each vertex carries its box and finish, its colour the bake's light alone.
+  Canvases are procedural in world space with two tiling noise textures; the slab and plywood mix in Poly Haven
+  photos. Low drops the photo relief, corrugation and tread.
+- **Details.** `SiteDress` (`game/play/site/site_dress.gd`): container frames, crate battens, caps and coping, the
+  skip's rim, the watch tower's net and flag, the sails, as one mesh in the same material; the sandbags as one
+  MultiMesh within 60 m; the stencils as Label3D, charcoal, or light on a dark wall. `dress_sky` gives the day its
+  cumulus and haze. Re-render the map cards with `tools/map_pictures.gd`.
+
 The figures (step 23, FI1-FI7; every bot on every preset, DECISIONS BD1):
 
 - **Models.** `assets/models/characters/human.glb` and `robot.glb` with their sidecars (`human.json`, `robot.json`:

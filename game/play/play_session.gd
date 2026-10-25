@@ -133,6 +133,8 @@ var _skyline: SkylineView = null
 var _woods: WoodsView = null
 ## The map's bushes, or null on a map with none (BushView, WL5).
 var _bushes: BushView = null
+## The site dress's details, or null on a greybox map (SiteDress, DD1).
+var _site: SiteDress = null
 ## Scratch for the vault prompt's look ahead each tick.
 var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
@@ -292,9 +294,14 @@ func _build_level() -> void:
 	_level = MapLevel.new()
 	add_child(_level)
 	# a bake is checked against the day sun it was baked under, whatever preset plays
-	_level.build(_map, _play.map_style, _tuning.body, _play.baked_light, _play.lighting, _light.night)
+	_level.build(_map, _play.map_style, _tuning.body, _play.baked_light, _play.lighting, _light.night, _play.site_look)
 	_lighting = FieldLighting.build(_light)
 	add_child(_lighting)
+	_site = SiteDress.build(_map, _play.site_look, _level.site_material())
+	if _site != null:
+		add_child(_site)
+		if not _light.night:
+			SiteDress.dress_sky(_lighting, _play.site_look)
 	_skyline = SkylineView.build(_map, _play.skyline, _light, _tuning.body.stand_eye_height)
 	if _skyline != null:
 		add_child(_skyline)
@@ -653,6 +660,8 @@ func _build_views(ui: CanvasLayer) -> void:
 		first_use.append_array(_woods.materials())
 	if _bushes != null:
 		first_use.append_array(_bushes.materials())
+	if _site != null:
+		first_use.append_array(_site.materials())
 	if _torches != null:
 		first_use.append_array(_torches.materials())
 	# the sky (by night its own shader) is no speck: it is the background of the prewarm's frames, so it compiles there
@@ -1382,6 +1391,8 @@ func _apply_motion() -> void:
 ## The graphics drawn, onto the field: at the start and whenever they change (the settings can open from the pause menu).
 func _apply_graphics(values: GraphicsQuality) -> void:
 	GraphicsApply.apply_field(values, _lighting, _dust, null, _level, _kicked, _woods)
+	if _level != null:
+		_level.set_detail(values.mesh_detail)
 	var contact := GraphicsApply.contact_shadows(values)
 	for f in _figures:
 		f.set_contact_shadow(contact)

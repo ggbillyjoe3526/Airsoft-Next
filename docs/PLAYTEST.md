@@ -331,6 +331,11 @@ flagpole stands in the walled loading bay. Three lanes lead there: **Dock Road**
   nothing new to hide behind and no new long sightline.
 - [ ] **Dust and signs.** Sprinting and landing kick up a little dust. Bay numbers, hazard chevrons and SAFE ZONE by
   each dead zone read properly, never mirrored or half inside a prop.
+- [ ] **The site dress (DD1).** Depot and the range look like an airsoft site: concrete slab with joints, breeze-block
+  walls, containers with chevrons, plywood, crates with battens, sandbags, yellow bay lines round the Box and along
+  the west yard, a hazard-striped lip on the dock, a shade sail over it, area names on the walls, clouds in the sky. Shoot the edges of a container, a crate and a sandbag stack: a BB hits where the
+  picture says, never in the air beside it or through it. Nothing new to hide behind. Compare Low with Medium (Low:
+  flatter surfaces, same shapes) and say if the frame rate drops anywhere.
 
 ### Woodland (dev content)
 

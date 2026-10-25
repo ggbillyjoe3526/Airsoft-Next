@@ -241,6 +241,17 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   sees over the blocks is left out (MS1). Treelines join them in WL4; Neon Heights' towers wait for its
   dressing. Site colours and greys only, no red (too near Beta's hue). Chimney smoke is drawn from Medium, read off
   the mesh detail row rather than a row of its own. The models replace the greybox at step 28.
+- **Depot wears a temporary site dress until the owner's models (owner, 2026-10-25: "Go ahead with the depot dressing";
+  DD1).** Built as the concept pictures showed, by day only. Every stand-in is drawn on its block's very box, so cover,
+  collision, the nav grid and the bake are the greybox's: the blocks keep their faces (and their bake) in one site
+  shader (`SiteSurface`: a finish per kind, picked by shape, photo concrete and plywood from Poly Haven, CC0), and the
+  details stand at most 1.5 cm proud (container frames, crate battens, caps, coping, the skip's rim; sandbags bulge
+  3 cm round a box drawn 8 cm inside them). A map opts in with `dressing.site` (Depot and the range today; Woodland
+  and Neon Heights stay greybox): its zone stencils, shade sails and bay lines. Free-standing props (cones, drums, pallets, hard
+  cases) are left out: each would need a collider and would change the layout. A sail is overhead scenery BBs pass
+  through, like the skyline. The day gets the dress's cumulus sky and a depth haze from 45 m; the night is unchanged.
+  Low draws the same without the photo relief and fine marks. No paint within 20° of a team's hue unless dull
+  (tested), so the concept's oxide red became crimson and its navy a greyed navy.
 - **Every figure keeps its team-colour plate carrier (owner, 2026-10-17, AX1).** The carrier reads like a site's team
   bib and is the strongest team cue at range. A civilian outfit is in `docs/IDEAS.md`.
 

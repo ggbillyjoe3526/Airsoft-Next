@@ -13,6 +13,7 @@ const RULE := "=================================================================
 ## [name, licence file] for each third-party asset inside the game.
 const SHIPPED: Array = [
 	["Inter (the HUD and menu font)", "res://assets/fonts/OFL.txt"],
+	["Poly Haven textures (Depot's concrete and plywood; CC0, credited by choice)", "res://assets/textures/site/LICENSE.txt"],
 ]
 
 
