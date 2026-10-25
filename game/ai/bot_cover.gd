@@ -153,8 +153,8 @@ static var _taken_count: int = 0
 
 
 ## Tests the spot (x, z) and keeps it in `out` if it beats the best so far: walkable, in reach, clear of teammates'
-## spots, not towards the threat, out of the light when the search keeps dark, and hiding a crouched player. It stands on its cell's floor, as high above it as the
-## searcher stands above its own.
+## spots, not towards the threat, out of the light when the search keeps dark, and hiding a crouched player. It
+## stands on its cell's floor, as high above it as the searcher stands above its own.
 static func _consider(w: BotWorld, out: Spot, x: float, z: float) -> void:
 	var cfg := w.cfg
 	var s := _s

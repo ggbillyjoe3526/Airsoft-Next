@@ -123,6 +123,18 @@ stays.
   0.39 m.
 - `tools/match_guards.sh`: 7 of 7 in 25 min 31 s (Depot and Neon Heights by day, as on WL5).
 
+## Advisories left
+
+- `out_of_light` is up to 128 probes (about 450 µs) a call; at a round start up to 6 bots searched in one tick
+  (performance). If WL10 adds lit lane points or many pools, spread the picks or cache each pool's dark spot.
+- By day `out_of_light` still runs and returns early (1.4 µs); a `night != null` guard at its callers is free tidiness
+  (performance).
+- BotCover's static search keeps the last NightField until the next `find` (one RefCounted, no leak; QA).
+- 120 of Woodland's 2,731 lit walkable spots (4 %) have no dark spot within 8 m, so a bot holds there; no bot stalled
+  over 6 seeds on Easy, Normal and Pro (QA).
+- Neon Heights at night: QA's 40 seeded 3v3 night matches (Normal 1-20, Hard and Pro 1-10) had no friendly hit; the
+  match guards still run by day only until WL10 adds the night guards.
+
 ## For the owner to test
 
 - On Woodland (Dev) at night, stand in the open 20 m from a bot, then 30 m: it should see you at 20 and not at 30.
