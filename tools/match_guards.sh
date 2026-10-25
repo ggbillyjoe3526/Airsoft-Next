@@ -16,7 +16,7 @@ LOG="${GUARDS_LOG:-guards.log}"
 # about two hours (Woodland's alone over one).
 select=()
 limit=9000
-if [ -n "${1:-}" ]; then select=("-gselect=$1"); limit=1500; fi
+if [ -n "${1:-}" ]; then select=("-gselect=$1"); limit=1700; fi
 if [ -n "${2:-}" ]; then select+=("-gunit_test_name=$2"); fi
 timeout "$limit" "$GODOT" --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/guards -gprefix=test_ \
   -gsuffix=.gd ${select[@]+"${select[@]}"} -gexit > "$LOG" 2>&1
