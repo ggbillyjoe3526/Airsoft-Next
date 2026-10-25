@@ -189,11 +189,34 @@ static func kit_of(plan: Plan, rules: LoadoutRules) -> Kit:
 		kit.bb_weights.resize(plan.slots.size())
 		kit.paints.resize(plan.slots.size())
 		kit.parts.resize(plan.slots.size())
+		kit.lights.resize(plan.slots.size())
 		kit.capped.resize(plan.slots.size())
 	for r in kit.replicas:
 		if r.fire_modes.has(ReplicaConfig.FireMode.AUTO):
 			r.default_fire_mode = ReplicaConfig.FireMode.AUTO
 	return kit
+
+
+## The light every bot carries on a field played at night (the browser's botLight, M33h): the first light `rules` offers
+## (a dev torch only with Dev content on) with a Lights row in stats.md, or null. By rule, at every difficulty and on
+## both teams, never part of a kit (a kit naming one is refused).
+static func night_light(rules: LoadoutRules) -> Pool.Item:
+	for pt in rules.pool.parts:
+		if pt.slot == Pool.LIGHT_SLOT and (rules.dev_content or not pt.is_dev()) and rules.stats.parts.has(pt.slot,
+				pt.key):
+			return pt
+	return null
+
+
+## The lights a bot carrying `replicas` has at night: `light` (night_light) on each replica it fits by the pool's tags,
+## none on a replica the pool doesn't list. A match build's step, never a tick's.
+static func lights_for(replicas: Array[ReplicaConfig], rules: LoadoutRules, light: Pool.Item) -> Array[Torch.Light]:
+	var out: Array[Torch.Light] = []
+	for r in replicas:
+		var item := rules.pool.replica_by_key(r.id)
+		var fits := light != null and item != null and rules.pool.fits(light, item)
+		out.append(Torch.Light.of(light.key, rules.stats.parts.part(light.slot, light.key)) if fits else null)
+	return out
 
 
 ## Reads one row into `kits`; what is wrong with it otherwise ("" when it was read).
@@ -251,7 +274,7 @@ static func _read_slot(slot: Slot, pool: Pool, column: String, replica_cell: Str
 		var part := pool.named(part_name)
 		if part == null:
 			return "%s part \"%s\" isn't a Name or ID in pool.md" % [column, part_name]
-		if pool.waiting.has(part):
+		if part.kind == Pool.Kind.PART and part.slot == Pool.LIGHT_SLOT:
 			return "%s part \"%s\": weapon torches are fitted by rule on night fields" % [column, part_name]
 		if part.kind == Pool.Kind.REPLICA:
 			return "%s part \"%s\" isn't a part or a power source" % [column, part_name]

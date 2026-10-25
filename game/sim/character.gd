@@ -82,6 +82,10 @@ var vault: VaultState = VaultState.new()
 ## Seconds until the replica can fire again after a vault (0: ready): carried through it, up a moment after.
 var fire_lockout: float = 0.0
 var armament: Armament = null
+## The weapon torch switched on (Torch: lit only on a replica in hand that has one, in play), and the seconds since it
+## was last switched (a bot holds a state BotConfig.torch_min_hold at least).
+var torch_on: bool = false
+var torch_time: float = 0.0
 ## BBs pass straight through: the Dev settings' Ghost, the player's only, kept between rounds (DevCheats).
 var ghost: bool = false
 
@@ -131,7 +135,8 @@ func rescue_if_out_of_world(kill_y: float) -> bool:
 	return true
 
 
-## Back at its spawn for a new round: in play, standing, full magazines; fire selectors and hop-up dials kept.
+## Back at its spawn for a new round: in play, standing, full magazines, the torch off; fire selectors and hop-up dials
+## kept.
 func respawn() -> void:
 	position = spawn_position
 	prev_position = spawn_position
@@ -170,4 +175,6 @@ func respawn() -> void:
 	walk_off_route_pending = false
 	walk_off_route.clear()
 	walk_off_leg = 0
+	torch_on = false
+	torch_time = 0.0
 	armament.refill()

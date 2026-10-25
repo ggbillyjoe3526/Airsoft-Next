@@ -4,35 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## WL7 · The weapon torch (Dev)
-when: build order step 26, after WL6
-tier: core
-perf: required
-touches: game/sim/torch.gd, game/sim/armament.gd, game/sim/character.gd, game/sim/player_command.gd,
-  game/sim/sim_events.gd, game/sim/simulation.gd, game/ai/bot_torch.gd, game/ai/bot_senses.gd,
-  game/ai/night_field.gd, game/config/bot_config.gd, game/loadout/, game/pool/pool.gd, game/ui/customise_view.gd,
-  game/ui/part_options.gd, game/ui/part_page.gd, game/ui/key_binding_list.gd, game/config/controls_config.gd,
-  game/config/part_stats.gd, game/input/, project.godot, game/play/torch_beams.gd, game/play/first_person_view.gd,
-  game/play/figure_view.gd, game/play/sim_audio.gd, game/save/graphics_apply.gd, data/graphics.md,
-  game/ui/text/en.po, tests/unit/test_torch.gd, docs/DECISIONS.md, docs/PLAYTEST.md
-contract: Simulation and presentation (1); Commands (2); Data, not literals (6); Saves (8)
-acceptance:
-  1. Customise offers a Light slot with the Weapon Torch (`pool.md` › Lights, `stats.md` › Lights) on the replicas
-     it fits, dev while Woodland is dev, saved with the loadout; by day it is not fitted.
-  2. Weapon torch (T, rebindable) switches it through the command, with an event and `torchClick`. It goes out when
-     holstered, on a replica without one, when hit and at each round start.
-  3. Every bot carries one on a night field and switches it by what it is doing (the browser's `ai/botTorch.ts`,
-     with its minimum hold): no strobing, out when hit, off at round start. On Depot by day a kit with a torch plays
-     exactly as one without.
-  4. Bots see anyone inside a lit beam's spill within its reach from the lit range (40 m), and anyone with a lit
-     torch pointed within 60° of them from as far.
-  5. Your own torch is a real spot from the rail on Medium and up (one of the preset's real lights; shadows on High
-     and Ultra) and a haze on Low; everyone else's is a cone, a lens glare and a lit spot, three instanced draws for
-     the match. Pictures by your torch and of another's beam are posted.
-  6. The record gives frame time on Low and High in a 5v5 night firefight with every torch on.
-status: open
-attempts: 0
-
 ## WL8 · Glowing BBs (Dev)
 when: build order step 26, after WL3
 tier: ui

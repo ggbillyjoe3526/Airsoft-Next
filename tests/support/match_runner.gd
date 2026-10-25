@@ -155,6 +155,10 @@ var each_tick: Callable = Callable()
 ## offers no day (Woodland); a map that offers both (Neon Heights) stays on its day guards until night guards come
 ## (WL10).
 var night: bool = false
+## Who carries a weapon torch (WL7): by rule every bot at night and none by day (BY_RULE, the game's), nobody, or every
+## bot even by day (ALWAYS: a day match with torches fitted must play exactly as one without).
+enum Lights { BY_RULE, NONE, ALWAYS }
+var lights: Lights = Lights.BY_RULE
 var _kits: BotKits = null
 var _kit_rules: LoadoutRules = null
 var config: BotConfig = null
@@ -235,6 +239,13 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 			state.characters.append(Character.new(i, 0 if i < size else 1, Vector3.ZERO, 0.0, kit.replicas,
 					kit.bb_weights))
 		commands.append(PlayerCommand.new())
+	if lights == Lights.ALWAYS or (lights == Lights.BY_RULE and night):
+		# A night map is dev content (Woodland): its rules offer the dev torch, as a match there does.
+		var light_rules := LoadoutRules.standard()
+		light_rules.dev_content = true
+		var light := BotKits.night_light(light_rules)
+		for c in state.characters:
+			c.armament.lights = BotKits.lights_for(c.armament.replicas, light_rules, light)
 	var bots := BotController.new(state, -1, map, nav, level.query(), tuning, config, levels, identities)
 	bots.world.night = NightField.build(map, config, night)
 	t.kits = kit_names

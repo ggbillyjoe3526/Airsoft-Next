@@ -16,7 +16,7 @@ const NONE := 0
 const ACTIONS: Array[StringName] = [
 	&"move_forward", &"move_back", &"move_left", &"move_right", &"walk", &"sprint", &"crouch", &"jump",
 	&"lean_left", &"lean_right", &"fire", &"aim", &"reload", &"fire_mode", &"slot_1", &"slot_2", &"holster",
-	&"slot_next", &"slot_previous", &"hop_up_less", &"hop_up_more", &"scoreboard", &"order_follow", &"order_hold",
+	&"torch", &"slot_next", &"slot_previous", &"hop_up_less", &"hop_up_more", &"scoreboard", &"order_follow", &"order_hold",
 	&"order_regroup", &"order_wheel", &"loadout",
 ]
 ## Actions that can never be left keyless (owner rule, DECISIONS › Menus, HUD, settings and accessibility).
@@ -40,6 +40,7 @@ const DEFAULTS: Dictionary = {
 	&"slot_1": [KEY_1],
 	&"slot_2": [KEY_2],
 	&"holster": [KEY_3],
+	&"torch": [KEY_T],
 	&"slot_next": [-MOUSE_BUTTON_WHEEL_DOWN],
 	&"slot_previous": [-MOUSE_BUTTON_WHEEL_UP],
 	&"hop_up_less": [KEY_4, KEY_PAGEDOWN],

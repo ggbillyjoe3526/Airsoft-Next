@@ -12,13 +12,15 @@ const POWER_TABLE := "Power sources"
 const ACCESS: Array[StringName] = [&"public", &"dev"]
 const POWER_TYPES: Array[StringName] = [&"battery", &"gas", &"spring"]
 ## The part tables and the loadout slot each fills (a replica's standard magazine, barrel and iron sights are built in;
-## these are the alternatives). Lights wait for night fields: read into `waiting`, never offered.
+## these are the alternatives). A light (the weapon torch, WL7) is fitted only on a night field (Kit.lights_for).
 const PART_TABLES: Dictionary[String, StringName] = {
 	"Optics": &"optic", "Grips": &"grip", "Lasers": &"laser", "Magazines": &"magazine", "Barrels": &"barrel",
-	"Muzzle parts": &"muzzle",
+	"Muzzle parts": &"muzzle", "Lights": &"light",
 }
-## The tables read but not offered yet, and the slot each will fill.
-const WAITING_TABLES: Dictionary[String, StringName] = {"Lights": &"light"}
+## The slot of a weapon light: never part of a bot kit (every bot carries one on a night field by rule, BotKits).
+const LIGHT_SLOT := &"light"
+## The tables read but not offered yet, and the slot each will fill (none now: the Lights came into play in WL7).
+const WAITING_TABLES: Dictionary[String, StringName] = {}
 ## A replica tag that means its power source is built in: nothing fits its power slot and it needs nothing.
 const BUILT_IN_POWER := "built-in-power"
 ## Six digits, as pool.md › Identifiers has them.

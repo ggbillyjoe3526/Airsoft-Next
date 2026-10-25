@@ -329,6 +329,16 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## under a floor or roof: unlit, they are made out from night_indoor.
 @export var night_roof_from: float = 1.9
 @export var night_roof_to: float = 9.5
+## A lit weapon torch (WL7, the browser's NIGHT_SIGHT.torchSeenFromDeg) gives its holder away from night_lit to anyone
+## within this angle (degrees, across the ground) of where it points: its lens and spill. Anyone inside a lit beam's
+## spill, within its reach, is made out from night_lit too (NightField's torch light).
+@export var night_torch_seen_from_deg: float = 60.0
+## How bots work their weapon torch at night (BotTorch, the browser's BOT_TORCH): on fighting someone within
+## torch_fight_reach (m; or the torch's own reach if shorter) and on the last stretch of a search; off advancing, in
+## cover, at the pole, on orders and between rounds (Easy, which doesn't keep out of the light either, keeps it on while
+## advancing and searching). A state is held torch_min_hold s at least: no strobing.
+@export var torch_min_hold: float = 1.5
+@export var torch_fight_reach: float = 20.0
 ## Keeping out of the light (BotSkill.keeps_dark): a lane point or hunt spot in a light pool moves to the nearest dark
 ## spot on its floor within dark_spot_radius (m), tried in rings dark_spot_step (m) apart, dark_spot_directions round
 ## each; unmoved if there is none.

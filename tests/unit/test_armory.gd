@@ -80,7 +80,7 @@ func test_level_3_lists_nine_of_nineteen_with_the_silencer_next() -> void:
 	var page := _page(920)
 	var facts := page.facts()
 	assert_eq(facts.level, 3)
-	assert_eq([facts.unlocked_count, facts.item_count], [9, 19], "the torch waiting for night fields isn't listed")
+	assert_eq([facts.unlocked_count, facts.item_count], [9, 19], "the dev Weapon Torch isn't listed without Dev content")
 	assert_eq(facts.next_row().number, 4)
 	assert_eq(facts.next_row().items[0].id, SILENCER)
 	var states: Array[ArmoryFacts.State] = []

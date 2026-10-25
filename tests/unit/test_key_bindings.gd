@@ -35,10 +35,10 @@ func test_rebinding_the_main_key_keeps_the_second() -> void:
 
 
 func test_a_second_key_goes_in_slot_1_and_an_own_second_key_swaps_places() -> void:
-	assert_eq(b.rebind(&"reload", KEY_T, 1), KeyBindings.Result.BOUND)
-	assert_eq(_codes(&"reload"), [KEY_R, KEY_T])
-	b.rebind(&"reload", KEY_T, 0)
-	assert_eq(_codes(&"reload"), [KEY_T, KEY_R])
+	assert_eq(b.rebind(&"reload", KEY_U, 1), KeyBindings.Result.BOUND)
+	assert_eq(_codes(&"reload"), [KEY_R, KEY_U])
+	b.rebind(&"reload", KEY_U, 0)
+	assert_eq(_codes(&"reload"), [KEY_U, KEY_R])
 	assert_eq(b.rebind(&"reload", KEY_Y, 2), KeyBindings.Result.REFUSED_KEY, "two slots only")
 
 

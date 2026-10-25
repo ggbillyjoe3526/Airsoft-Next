@@ -1,8 +1,9 @@
 class_name CustomiseView
 extends Control
 ## The Customise page body (concepts `colour.png`, `bbs.png`, `optic.png` and `magazine.png`): the way back, the replica's
-## name and slot, the parts down the left (COLOUR, BBs, POWER, then OPTIC, GRIP, BARREL, MUZZLE, MAGAZINE and LASER, each
-## greyed with the mount it needs on a replica that can't take one, and LIGHT greyed LATER), the replica's picture with the
+## name and slot, the parts down the left (COLOUR, BBs, POWER, then OPTIC, GRIP, BARREL, MUZZLE, MAGAZINE, LASER and LIGHT,
+## each greyed with the mount it needs on a replica that can't take one; LIGHT greyed LATER while no light is on offer:
+## the Weapon Torch is dev while Woodland is, WL7), the replica's picture with the
 ## tab's controls under it and the Performance sheet on the right. COLOUR: the eight bold schemes, the four plain colours and
 ## the Realistic colours switch. BBs: the weight and hop-up sliders with the hop-up's flight. POWER: the power sources that
 ## fit. A part tab (PartPage): the slot as it comes and each part that fits, with its figures. The picture shows the parts
@@ -20,7 +21,7 @@ signal realistic_toggled(on: bool)
 ## A part's tab was shown: the page refreshes what that tab draws.
 signal tab_shown(tab: Tab)
 
-enum Tab { COLOUR, BBS, POWER, OPTIC, GRIP, BARREL, MUZZLE, MAGAZINE, LASER }
+enum Tab { COLOUR, BBS, POWER, OPTIC, GRIP, BARREL, MUZZLE, MAGAZINE, LASER, LIGHT }
 
 const TAB_KEYS: Dictionary[Tab, String] = {
 	Tab.COLOUR: "CUSTOMISE_COLOUR",
@@ -32,6 +33,7 @@ const TAB_KEYS: Dictionary[Tab, String] = {
 	Tab.MUZZLE: "PART_MUZZLE",
 	Tab.MAGAZINE: "PART_MAGAZINE",
 	Tab.LASER: "PART_LASER",
+	Tab.LIGHT: "PART_LIGHT",
 }
 ## The part tabs and the part slot each edits (Pool.PART_TABLES).
 const PART_SLOTS: Dictionary[Tab, StringName] = {
@@ -41,6 +43,7 @@ const PART_SLOTS: Dictionary[Tab, StringName] = {
 	Tab.MUZZLE: &"muzzle",
 	Tab.MAGAZINE: &"magazine",
 	Tab.LASER: &"laser",
+	Tab.LIGHT: &"light",
 }
 ## The Performance sheet's tab-only rows each part tab adds (LoadoutPerformance.TAB_ROWS).
 const TAB_SHEET_ROWS: Dictionary[Tab, Array] = {
@@ -49,8 +52,9 @@ const TAB_SHEET_ROWS: Dictionary[Tab, Array] = {
 	Tab.BARREL: [&"aim"],
 	Tab.MUZZLE: [&"aim"],
 }
-## The part that comes later, in the concept's place.
-const LATER_KEYS: Array[String] = ["PART_LIGHT"]
+## The part tabs shown greyed LATER in the concept's place while no part of their slot is on offer (PartOptions.offered),
+## by their name's key.
+const LATER_TABS: Dictionary[String, Tab] = {"PART_LIGHT": Tab.LIGHT}
 const MARGIN_X := 56
 const CRUMB_TOP := 28
 const BODY_TOP := 96
@@ -125,6 +129,7 @@ var _crumb_name: Label = null
 var _crumb_sub: Label = null
 var _parts_column: VBoxContainer = null
 var _parts: Dictionary[Tab, MenuCard] = {}
+var _later: Dictionary[Tab, MenuCard] = {}
 var _part_sub: Dictionary[Tab, Label] = {}
 var _part_name: Dictionary[Tab, Label] = {}
 var _part_mount: Dictionary[Tab, Label] = {}
@@ -243,13 +248,18 @@ func crumb_text() -> String:
 	return _crumb_name.text + " " + _crumb_sub.text
 
 
-## The parts listed as greyed with LATER.
+## The parts listed greyed: with the mount they need, or LATER.
 func later_count() -> int:
 	var n := 0
 	for child in _parts_column.get_children():
-		if child is MenuCard and (child as MenuCard).disabled:
+		if child is MenuCard and (child as MenuCard).disabled and (child as MenuCard).visible:
 			n += 1
 	return n
+
+
+## True while part tab `t` shows greyed LATER in place of its card (none of its parts on offer).
+func part_later(t: Tab) -> bool:
+	return _later.has(t) and _later[t].visible
 
 
 ## Shows tab `t`: its controls and its part lit.
@@ -351,6 +361,10 @@ func _refresh_part_tab(t: Tab, slot: Loadout.Slot) -> void:
 	var part_slot := PART_SLOTS[t]
 	var on := _options.takes(slot, part_slot)
 	var card := _parts[t]
+	if _later.has(t):
+		var offered := _options.offered(part_slot)
+		_later[t].visible = not offered
+		card.visible = offered
 	card.set_greyed(not on)
 	card.focus_mode = Control.FOCUS_ALL if on else Control.FOCUS_NONE
 	_part_sub[t].visible = on
@@ -448,7 +462,7 @@ func _build_parts() -> Control:
 		_parts_column.add_child(card)
 		_parts[t] = card
 		_part_sub[t] = sub
-	for key in LATER_KEYS:
+	for key: String in LATER_TABS:
 		var card := MenuCard.new()
 		card.name = "Later_%s" % key.trim_prefix("PART_").capitalize()
 		card.custom_minimum_size = Vector2(0.0, PART_LATER_HEIGHT)
@@ -464,6 +478,7 @@ func _build_parts() -> Control:
 		card.set_greyed(true)
 		card.focus_mode = Control.FOCUS_NONE
 		_parts_column.add_child(card)
+		_later[LATER_TABS[key]] = card
 	return _parts_column
 
 

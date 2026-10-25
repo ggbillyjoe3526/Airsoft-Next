@@ -198,7 +198,9 @@ parts. To try every part before you have levelled, turn on Settings › Dev › 
 - [ ] **The 11.1 V LiPo battery** on the rifle: rate of fire +15 %, energy unchanged; it empties faster.
 - [ ] **Glowing BBs** (per replica): At Night (the default), Always or Off. A glowing BB is green, a little larger at
   range, with a longer streak.
-- [ ] **Light** (dev content, night fields). Every replica has the Weapon Torch from level 0, switched with **T**.
+- [ ] **Light (WL7; dev content, night fields).** Customise › Light offers None and the Weapon Torch on every replica,
+  the Cyber Pistol too. Without Dev content the slot shows LATER. Fit it, quit, start again: still fitted. On Depot by
+  day it does nothing and your replica in hand shows no torch.
 - [ ] **Your setup is kept.** Quit and start the game again: every pick is still
   there. Teammates carry replicas as they come;
   opponents carry kits of their own ([Bots](#bots)).
@@ -334,7 +336,8 @@ flagpole stands in the walled loading bay. Three lanes lead there: **Dock Road**
 A wide wood: 120 × 80 m on a gentle slope up to the Knoll and its log fort, with three lanes (Pine Belt, Meadow,
 Creek with the cabin). Turn on Settings › Dev › Dev content, then pick it on Play. Step 26 builds it in greybox: since
 WL1 it loads and plays, since WL2 at 5v5 (6v6 under Custom), since WL3 at night, since WL4 with crowns, a forest,
-grass, puddles and fireflies; bushes and the torch follow (WL5 to WL10).
+grass, puddles and fireflies, since WL5 with bushes, since WL6 with bots by night, since WL7 with the weapon torch; the
+rest follows (WL8 to WL10).
 
 - [ ] **Walk the slopes (WL1).** Run up, down and across the Knoll's west face and West Hill: no jump is ever needed,
   you never slide when you stop or stand crouched on the face, your feet stay on the ground going downhill, and
@@ -396,7 +399,19 @@ Once the rest of step 26 lands:
   and lanterns give you away.
 - [ ] **The look and sound (the owner's models).** Bark trunks, log walls and log piles, plank fences; wind in the
   pines, insects, a distant owl, a crackle at each fire.
-- [ ] **The torch (WL7) and glowing BBs (WL8):** their checks come with them.
+- [ ] **The weapon torch (WL7).** Fit it (Customise › Light) and play Woodland. **T** clicks it on and off (rebind it
+  under Settings › Controls › Keys); it goes out when you holster, switch to a replica without one, are hit, and at
+  each round start. On Medium and up it is a real light from the rail lighting the ground and the people ahead (with
+  shadows on High and Ultra while Sun shadows are on); on Low a soft haze. Does it help you see without washing the view out?
+- [ ] **Others' torches (WL7).** A bot's lit torch is a pale beam, a glare at its lens (brightest looking straight down
+  it) and a lit spot where it lands, starting just behind its muzzle; it reads from the side and across the meadow,
+  never in a team's hue. Bots switch
+  theirs on in a close fight and at the end of a search (Easy ones while moving too), never flicker, and turn them off
+  when hit and between rounds. Walk into a bot's beam: it sees you from about 40 m. Stand with your own torch on
+  pointed near a bot: it sees you from as far.
+- [ ] **Frame time with every torch on (WL7).** With `--perf`, a 5v5 firefight on Woodland at night with torches on, on
+  Low and on High: the overlay's frame time (ms and max). High draws your torch with a shadow: is it within budget?
+- [ ] **Glowing BBs (WL8):** their checks come with them.
 
 ### Neon Heights (the Maps Update)
 

@@ -11,7 +11,8 @@ extends Node3D
 ## too (GraphicsApply's `applied`: the sun's shadows, ambient occlusion and the wind dust), without rebuilding the field.
 ## Day or night (WL3): the map's first lighting preset unless the Match screen's pick (`lighting_pick`) or Dev › Time
 ## of day picks the other (`lighting_for`); that one preset's `night` flag drives the sky, the light pools (LightPools,
-## real lights by Mesh detail), the ambience's night set, the figures' glow and the skyline's mast lamps.
+## real lights by Mesh detail), the ambience's night set, the figures' glow, the skyline's mast lamps and the weapon
+## torches (WL7: fitted only at night, every bot carrying one; drawn by TorchBeams, your own a real spot on Medium up).
 ## Practice (`practice`, M21) plays the range instead: you alone with its targets (RangeTargetsView, its markings
 ## RangeView), no bots and no rounds, a breeze, spare magazines kept full, no XP and no match records; the timed
 ## challenge (off unless switched on) keeps its best.
@@ -120,6 +121,11 @@ var _lighting: FieldLighting = null
 var _light: LightingConfig = null
 ## A night field's pools of light, or null by day or on a map without lights (LightPools).
 var _pools: LightPools = null
+## The weapon torches drawn at night (TorchBeams; null by day).
+var _torches: TorchBeams = null
+## Whether your kit carries a weapon light this match (fitted at night): only then does the view's torch take one of
+## the light pools' real lights (GraphicsApply.pool_lights).
+var _own_light: bool = false
 ## The skyline round the field, or null on a map without one (SkylineView).
 var _skyline: SkylineView = null
 ## A wood's crowns and dressing, or null on a map with neither (WoodsView, WL4).
@@ -417,8 +423,13 @@ func _start_simulation(map: MapData) -> void:
 		saved.rules.follow_progress(Progress.shared(), s.active_dev().disable_levelling)
 		kit = saved.carried_kit(s.active_dev().dev_content)
 		_kit_unlocked_all = s.active_dev().disable_levelling
-	state.dev_content = state.dev_content or kit.dev
+	state.dev_content = state.dev_content or kit.dev_under(_light.night)
 	player = Character.new(PLAYER_ID, player_team, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
+	# Your weapon light is fitted only at night (WL7): by day the kit plays exactly as one without.
+	player.armament.lights = kit.lights_for(_light.night)
+	_own_light = false
+	for l in player.armament.lights:
+		_own_light = _own_light or l != null
 	state.characters.append(player)
 	# Attack / Defend on a map with a pole, your team attacking first; on a map without one, Elimination.
 	if mode == MatchOptions.MODE_ATTACK_DEFEND and map.has_pole:
@@ -454,6 +465,13 @@ func _start_simulation(map: MapData) -> void:
 		state.characters.append(Character.new(id, team, Vector3.ZERO, 0.0, bot_kit.replicas, bot_kit.bb_weights))
 		_bot_parts[id] = bot_kit.parts
 		state.dev_content = state.dev_content or bot_kit.dev
+	# On a night field every bot carries the weapon torch the pool offers (WL7, BotKits.night_light), on both teams.
+	var light := BotKits.night_light(kit_rules) if _light.night else null
+	if light != null:
+		state.dev_content = state.dev_content or light.is_dev()
+		for c in state.characters:
+			if c != player:
+				c.armament.lights = BotKits.lights_for(c.armament.replicas, kit_rules, light)
 	for c in state.characters:
 		_commands.append(PlayerCommand.new())
 
@@ -525,8 +543,8 @@ func _build_views(ui: CanvasLayer) -> void:
 	var chosen := settings if settings != null else Settings.shared()
 	var realistic := chosen.realistic_colours
 	_colours = team_colours_for(chosen, _light, _play.teams)
-	_hands.setup(_play.viewmodel, player.armament.replicas, _level.query(), kit.paints, realistic, kit.parts, _play.view,
-			_eyes.camera)
+	_hands.setup(_play.viewmodel, player.armament.replicas, _level.query(), kit.paints, realistic,
+			kit.parts_under(_light.night), _play.view, _eyes.camera)
 	_bbs = BBView.new()
 	_bbs.setup(_play.effects, state.bbs.bbs.size())
 	add_child(_bbs)
@@ -566,6 +584,10 @@ func _build_views(ui: CanvasLayer) -> void:
 		f.add_contact_shadow(contact, _play.effects)
 		_figures.append(f)
 		_figure_of[c.id] = f
+	if _light.night:
+		_torches = TorchBeams.new()
+		_torches.setup(state.characters.size(), _level.query(), _tuning.body)
+		add_child(_torches)
 	_pick_kinds()
 	_figure_lines = _play.figures.lod_high
 	var figure_materials := _build_bodies()
@@ -586,6 +608,8 @@ func _build_views(ui: CanvasLayer) -> void:
 		first_use.append_array(_woods.materials())
 	if _bushes != null:
 		first_use.append_array(_bushes.materials())
+	if _torches != null:
+		first_use.append_array(_torches.materials())
 	# the sky (by night its own shader) is no speck: it is the background of the prewarm's frames, so it compiles there
 	var warm := ShaderPrewarm.new()
 	warm.setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE), figure_materials)
@@ -903,6 +927,9 @@ func _process(delta: float) -> void:
 		if f.character_id == watched.id:
 			f.visible = false
 		f.animate(c, fraction, delta, eye)
+	# After the figures: a torch hangs from the muzzle as just drawn.
+	if _torches != null:
+		_torches.update(state.characters, watched, fraction, _figure_of, _eyes.camera)
 	_hud.show_board(_input.scoreboard_held())
 	_hud.update(state, _input.zoom, delta)
 	_hud.place_team_markers(_eyes.camera, state.characters, watched, fraction)
@@ -1302,8 +1329,12 @@ func _apply_graphics(values: GraphicsQuality) -> void:
 		f.set_contact_shadow(contact)
 	if _skyline != null:
 		_skyline.set_smoke(SkylineView.smokes(values))
+	if _torches != null:
+		var torch := GraphicsApply.torch_mode(values, _light, _own_light)
+		_eyes.set_torch(torch)
+		_torches.set_own_haze(torch == TorchBeams.Mode.HAZE)
 	if _pools != null:
-		_pools.set_real_count(_light.real_lights_for(values.mesh_detail))
+		_pools.set_real_count(GraphicsApply.pool_lights(values, _light, _torches != null and _own_light))
 	var lines := _play.figures.lod_lines(values.mesh_detail)
 	if lines != _figure_lines:
 		_figure_lines = lines

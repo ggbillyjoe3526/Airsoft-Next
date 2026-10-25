@@ -245,8 +245,8 @@ func clean(loadout: Loadout) -> Array[String]:
 
 
 ## What `loadout` plays as: each slot's replica (the slot's default if it isn't on offer or unlocked now) with its power
-## source (the default one if it isn't), its parts (as it comes where a part isn't) and dial, and its
-## BB weight and paint. A slot whose replica the game can't play is left out.
+## source (the default one if it isn't), its parts (as it comes where a part isn't) and dial, its weapon light (fitted
+## only at night, Kit.lights_for), and its BB weight and paint. A slot whose replica the game can't play is left out.
 func carried(loadout: Loadout) -> Kit:
 	var kit := Kit.new()
 	var used := PackedStringArray()
@@ -275,13 +275,21 @@ func carried(loadout: Loadout) -> Kit:
 		r.recoil_deg = base.recoil_deg * (1.0 + p.recoil)
 		r.hop_up_dial = t.hop_up
 		var keys: Dictionary[StringName, StringName] = {}
+		var light: Torch.Light = null
 		for part_slot: StringName in fitted:
-			keys[part_slot] = fitted[part_slot].key
-			kit.dev = kit.dev or fitted[part_slot].is_dev()
+			var pt := fitted[part_slot]
+			keys[part_slot] = pt.key
+			if part_slot == Pool.LIGHT_SLOT:
+				# Fitted only at night (Kit.lights_for): a dev torch makes only a night match dev.
+				light = Torch.Light.of(pt.key, stats.parts.part(part_slot, pt.key))
+				kit.light_dev = kit.light_dev or pt.is_dev()
+			else:
+				kit.dev = kit.dev or pt.is_dev()
 		kit.replicas.append(r)
 		kit.bb_weights.append(t.bb_weight)
 		kit.paints.append(t.paint)
 		kit.parts.append(keys)
+		kit.lights.append(light)
 		kit.capped.append(energy > limit)
 		kit.dev = kit.dev or it.is_dev() or (pw != null and pw.is_dev())
 	return kit

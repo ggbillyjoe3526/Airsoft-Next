@@ -346,6 +346,18 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   nearest dark spot on its floor within 8 m, its edge, no margin, and passes over hold and flag-guard cover in a pool;
   a fight's cover, the raiser's spot at the pole and squad orders ignore the light. The headless runner plays a
   night-only map (Woodland) at night; Neon Heights keeps its day guards until WL10's night guards.
+- **The weapon torch is a part in the Light slot, fitted at night only and switched through the command (2026-10-25,
+  WL7; the browser's M33h and botTorch.ts; owner's defaults of 2026-10-24, the rest Claude's).** It fits every replica
+  (RM8 modelled each one's), is dev while Woodland is (a dev light marks only night matches as dev), and by day isn't
+  fitted, its model included, so a kit with one plays as one without. T switches it (`toggle_torch`, a `TORCH`
+  event, torchClick); it goes out when holstered or on a replica without one (a click), when hit (silent) and at each
+  round start. Every bot carries the pool's first light on a night field and switches it by what it is doing: on in a
+  fight within 20 m and at the end of a search, Easy (no `keeps_dark`) while moving too, a state held 1.5 s at least.
+  Bots see anyone inside a lit beam's spill within its reach from the lit range, and anyone whose lit torch points
+  within 60° of them from as far (`BotConfig` night sight). When your kit carries a torch, the view's (yours, or a
+  spectated bot's) is a real spot from the rail on Medium and up, taking one of Mesh detail's real lights for the whole
+  match (the pools never flicker), with shadows from High while Sun shadows are on; else a haze. Everyone else's is a cone, a lens glare and a lit spot: three instanced draws; the bots' figures show no torch
+  model (20 models cost some 60 draws). Its light is warm white, off every team hue.
 - **Hunting bots check by eye, and a team shares what its bots checked (M87, owner, 2026-10-06).** A checked spot counts
   for the level's `huntMemory` (Easy 20 s, Normal 40, Hard 50, Pro 60), then as never checked.
 - **Balance is measured by headless bot matches against bands, as a report (owner, 2026-10-06; TE4).** Noise across

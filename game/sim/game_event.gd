@@ -31,6 +31,7 @@ enum Kind {
 	PROP_KNOCK, ## actor ran into noisy prop target (WorldQuery block index) at position: value its NoiseConfig.Sound, value2 its RayHit.Surface, heard out to reach.
 	PROP_RING, ## actor's BB rang noisy prop target at position, landing hard on steel: value its NoiseConfig.Sound, heard faintly out to reach.
 	BB_LEAVES, ## actor's BB came out of a bush's edge at position, flying along direction (before the leaves turned it), and flies on.
+	TORCH, ## actor switched the weapon torch on the replica in slot on (value 1) or off (value 0); off too as the replica goes away.
 }
 
 ## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.

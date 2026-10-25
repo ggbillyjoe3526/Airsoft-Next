@@ -63,6 +63,10 @@ never stops the game from starting.
   beyond the fence (a share of it each step, all on Ultra), the grass tufts (denser and farther each step), the
   puddles and mud, and the leaves, fallen wood and moss. **Wind dust** is also the share of its fireflies and motes
   by night (`game/config/woods_config.gd`).
+- **Your weapon torch** (WL7, night fields), when your kit carries one, is one of Mesh detail's real lights from Medium
+  up for the whole match, a spot from the rail, with a shadow from High while **Sun shadows** are on
+  (`GraphicsApply.TORCH_SHADOWS_FROM`); on Low, with none, a haze. Everyone else's torch is a
+  drawn beam on every preset: a cone, a lens glare and a lit spot.
 - **Sun shadows** off draws a soft dark disc under every other player instead (a contact shadow, free).
 
 ## Choices only some renderers draw

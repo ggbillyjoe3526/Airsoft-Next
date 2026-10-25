@@ -519,6 +519,9 @@ msgstr "REPLICA 2"
 msgid "ACT_HOLSTER"
 msgstr "HOLSTER"
 
+msgid "ACT_TORCH"
+msgstr "WEAPON TORCH"
+
 msgid "ACT_SLOT_NEXT"
 msgstr "NEXT REPLICA"
 
@@ -1290,6 +1293,9 @@ msgstr "How many BBs, in how many changes."
 msgid "PART_NOTE_LASER"
 msgstr "On the pistol rail. Tightens the spread."
 
+msgid "PART_NOTE_LIGHT"
+msgstr "On its own mount. T switches it at night; by day it isn't fitted."
+
 msgid "PART_MOUNT_TOP_RAIL"
 msgstr "TOP RAIL"
 
@@ -1320,6 +1326,9 @@ msgstr "None"
 msgid "PART_COMES_LASER"
 msgstr "None"
 
+msgid "PART_COMES_LIGHT"
+msgstr "None"
+
 msgid "PART_COMES_BARREL"
 msgstr "Standard"
 
@@ -1341,6 +1350,9 @@ msgstr "None"
 msgid "PART_NONE_NAME_LASER"
 msgstr "None"
 
+msgid "PART_NONE_NAME_LIGHT"
+msgstr "None"
+
 msgid "PART_NONE_NAME_BARREL"
 msgstr "Standard"
 
@@ -1358,6 +1370,9 @@ msgstr "No grip"
 
 msgid "PART_NONE_PICTURE_LASER"
 msgstr "No laser"
+
+msgid "PART_NONE_PICTURE_LIGHT"
+msgstr "No light"
 
 msgid "PART_NONE_PICTURE_BARREL"
 msgstr "Standard barrel"
@@ -1379,6 +1394,9 @@ msgstr "Nothing under the rail."
 
 msgid "PART_NONE_BLURB_LASER"
 msgstr "Nothing on the rail."
+
+msgid "PART_NONE_BLURB_LIGHT"
+msgstr "Dark at night, and nothing to give you away."
 
 msgid "PART_NONE_BLURB_BARREL"
 msgstr "As it comes."
@@ -1403,6 +1421,9 @@ msgstr "Quick to bring up, but the aim shakes for longer."
 
 msgid "PART_BLURB_REDLASER"
 msgstr "A tighter group at no other cost."
+
+msgid "PART_BLURB_WEAPONTORCH"
+msgstr "Lights the way and anyone in its beam at night, and gives you away."
 
 msgid "PART_BLURB_HICAP"
 msgstr "bots close by hear you walk."
@@ -1448,6 +1469,12 @@ msgstr "reload %s s"
 
 msgid "PART_FIG_DRAW"
 msgstr "draw %s s"
+
+msgid "PART_FIG_REACH"
+msgstr "reach %s m"
+
+msgid "PART_FIG_SPILL"
+msgstr "%s° beam"
 
 msgid "PART_BETTER_ZOOM"
 msgstr "more zoom"
@@ -1508,6 +1535,18 @@ msgstr "quicker draw"
 
 msgid "PART_WORSE_DRAW"
 msgstr "slower draw"
+
+msgid "PART_BETTER_REACH"
+msgstr "lights further at night"
+
+msgid "PART_WORSE_REACH"
+msgstr "lights less far at night"
+
+msgid "PART_BETTER_SPILL"
+msgstr "a wider beam"
+
+msgid "PART_WORSE_SPILL"
+msgstr "a narrower beam"
 
 msgid "PART_WORSE_RATTLES"
 msgstr "rattles while you move"

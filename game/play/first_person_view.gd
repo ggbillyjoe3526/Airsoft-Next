@@ -7,7 +7,9 @@ extends Node3D
 ## vault dips and tips the view. Reduced motion (set_motion) draws less of the lean's roll and the vault's dip and tip,
 ## never less recoil: the climb shows where the next BB goes. Once hit, the view follows the character's own heading as
 ## it walks off. Zooms a little as the sight comes up (as its optic does; a scope zooms only inside its glass). The
-## easing runs on rendered frames; the rules stay on the tick.
+## easing runs on rendered frames; the rules stay on the tick. At night the weapon torch of whoever the view is through
+## is a real spot from the rail while lit (WL7, `set_torch`): with a light in your kit, on Medium and up, one of the
+## preset's real lights, casting shadows on High and Ultra with Sun shadows on; else TorchBeams draws it as a haze.
 
 ## Recoil on screen follows the simulation's at this rate (1/s), so a 60 Hz kick reads smoothly at any frame rate.
 const RECOIL_FOLLOW := 40.0
@@ -24,6 +26,9 @@ var _lean: float = 0.0
 var _vault: float = 0.0
 ## How much of the lean's roll and the vault's dip and tip to draw (Reduced motion).
 var _motion: MotionScale = MotionScale.new()
+## The torch's real spot on the rail (null: none, on Low or by day) and the light it was last set for.
+var _torch: SpotLight3D = null
+var _torch_light: Torch.Light = null
 
 
 ## `hits` holds the lean's geometry: the simulation's own (SimTuning.hits); the built-in values when not given.
@@ -39,6 +44,33 @@ func setup(view: ViewConfig, body: BodyConfig, hits: HitConfig = null) -> void:
 	camera.keep_aspect = Camera3D.KEEP_HEIGHT
 	add_child(camera)
 	camera.make_current()
+
+
+## The view's own torch drawn as `mode` (GraphicsApply.torch_mode): a real spot on the rail, with shadows or not, made
+## once and kept; HAZE frees it (TorchBeams draws the haze). Only on a field played at night: by day nothing calls it.
+func set_torch(mode: TorchBeams.Mode) -> void:
+	if mode == TorchBeams.Mode.HAZE:
+		if _torch != null:
+			_torch.queue_free()
+			_torch = null
+		return
+	if _torch == null:
+		_torch = SpotLight3D.new()
+		_torch.name = "Torch"
+		_torch.position = TorchBeams.RAIL
+		_torch.light_color = TorchBeams.COLOUR
+		_torch.light_energy = TorchBeams.SPOT_ENERGY
+		_torch.spot_attenuation = TorchBeams.SPOT_ATTENUATION
+		_torch.spot_angle_attenuation = TorchBeams.SPOT_ANGLE_ATTENUATION
+		_torch.visible = false
+		_torch_light = null
+		camera.add_child(_torch)
+	_torch.shadow_enabled = mode == TorchBeams.Mode.SHADOWED
+
+
+## The torch's real spot, or null (none: Low, or by day).
+func torch() -> SpotLight3D:
+	return _torch
 
 
 ## Draws `motion`'s share of the lean's roll and the vault's dip and tip from the next frame (Reduced motion).
@@ -67,6 +99,8 @@ func update(c: Character, input: PlayerInput, fraction: float, delta: float, own
 	position = feet + Vector3(0.0, height - _view.vault_dip * vault, 0.0) + Lean.offset(height, _lean, crouch, yaw, _hits)
 	# Leaning right tips the view's top to the right: a roll about the line of sight (local -Z), negative about +Z.
 	rotation = Vector3(pitch + _recoil - _view.vault_tip * vault, yaw, -_lean * _view.lean_camera_roll * _motion.lean_roll)
+	if _torch != null:
+		_show_torch(c)
 	var r := c.armament.replica()
 	var zoom := lerpf(1.0, aimed_zoom(r, _view), c.aim_raise)
 	input.zoom = zoom
@@ -93,3 +127,16 @@ func _ease_lean(lean: float, height: float, crouch: float, yaw: float, delta: fl
 	var pace := Lean.offset(height, LEAN_PACE_STEP, crouch, yaw, _hits).length() / LEAN_PACE_STEP
 	var band := _view.lean_cut_allowance / maxf(pace, 0.001)
 	return clampf(eased, lean - band, lean + band)
+
+
+## The spot on while `c`'s torch is lit, shaped by its light (reach and spill) when that changes.
+func _show_torch(c: Character) -> void:
+	var lit := Torch.lit(c)
+	_torch.visible = lit
+	if not lit:
+		return
+	var light := Torch.in_hand(c)
+	if light != _torch_light:
+		_torch_light = light
+		_torch.spot_range = light.reach
+		_torch.spot_angle = light.spill_deg * 0.5

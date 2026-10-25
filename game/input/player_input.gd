@@ -32,6 +32,7 @@ const PREVIOUS_SLOT := &"slot_previous"
 const HOP_UP_LESS := &"hop_up_less"
 const HOP_UP_MORE := &"hop_up_more"
 const HOLSTER := &"holster"
+const TORCH := &"torch"
 const SCOREBOARD := &"scoreboard"
 ## Held, the order wheel is open (the order keys are data: ControlsConfig.wheel_keys).
 const ORDER_WHEEL := &"order_wheel"
@@ -51,6 +52,7 @@ var _jump_latch: bool = false
 var _reload_latch: bool = false
 var _mode_latch: bool = false
 var _holster_latch: bool = false
+var _torch_latch: bool = false
 var _slot_latch: int = -1
 ## Hop-up notches pressed since the last tick (more lift positive).
 var _hop_steps: int = 0
@@ -155,6 +157,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_holster_latch = true
 		_slot_latch = -1
 		_slot_steps = 0
+	elif event.is_action(TORCH):
+		_torch_latch = true
 	elif event.is_action(HOP_UP_LESS):
 		_hop_steps -= 1
 	elif event.is_action(HOP_UP_MORE):
@@ -281,6 +285,7 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.switch_to = _slot_latch
 	cmd.hop_up_steps = _hop_steps
 	cmd.holster = _holster_latch
+	cmd.toggle_torch = _torch_latch
 	if _slot_steps != 0:
 		cmd.switch_to = posmod(held_slot + _slot_steps, SLOTS.size())
 	fill_order(cmd)
@@ -316,6 +321,7 @@ func _clear_latches() -> void:
 	_reload_latch = false
 	_mode_latch = false
 	_holster_latch = false
+	_torch_latch = false
 	_slot_latch = -1
 	_slot_steps = 0
 	_hop_steps = 0

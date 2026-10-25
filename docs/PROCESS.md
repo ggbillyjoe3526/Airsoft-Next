@@ -208,7 +208,7 @@ None of these reach the shipped game except the perf overlay. Run them from the 
 - **The gate:** `tools/check.sh` runs every local gate (gdlint, the unit tests, the headless smoke test, the licence
   notices check) and prints failures and totals only. Run it before every push.
 - **Its parts:** `tools/unit_tests.sh` (GUT 9.7.1, tests in `tests/unit/test_*.gd`, in two parts of about the same
-  time: `1` the files before `test_f`, `2` the rest, both in turn without one; CI runs them as two jobs side by side;
+  time: `1` the files before `test_fl`, `2` the rest, both in turn without one; CI runs them as two jobs side by side;
   a failure prints as `FAIL: <file> <test>: <message>`), `tools/smoke_test.sh` (imports the project, a bot plays a
   headless match, any script error fails) and `gdlint game tests tools` (gdtoolkit 4.5.0).
 - **Licence notices:** `godot --headless --path . -s res://tools/make_notices.gd` regenerates

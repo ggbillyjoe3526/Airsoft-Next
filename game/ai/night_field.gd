@@ -6,6 +6,11 @@ extends RefCounted
 ## away someone standing at a point can be made out: lit, under the trees, indoors in the dark or in the moonlit open
 ## (BotConfig's night sight). By day there is no field (`build` gives null) and sight is as it always was. Pure data;
 ## the queries allocate nothing.
+##
+## The weapon torches' light (WL7, the browser's map/torchLight.ts) is worked out here too, once per bot perception
+## interval (`update_torches`, BotTorch.refresh): anyone a lit beam's spill falls on, within its reach (across the
+## ground) and with no wall between, is made out from `lit`; so is anyone whose own lit torch points within
+## torch_seen_from of the viewer (`torch_range`). Allocation-free once its table is as long as the highest id.
 
 ## Lit, moonlit-open, under-trees and indoor sight ranges (m), and the pool and roof bands (BotConfig.night_*).
 var lit: float = 40.0
@@ -35,8 +40,16 @@ var canopy: PackedByteArray = PackedByteArray()
 ## roof_start[c + 1]) for cell c.
 var roof_start: PackedInt32Array = PackedInt32Array([0])
 var roofs: PackedFloat64Array = PackedFloat64Array()
+## Lit by someone else's torch, by character id (1: lit), as of perception interval `torch_stamp` (-1: never), and the
+## cosine of BotConfig.night_torch_seen_from_deg.
+var torch_lit: PackedByteArray = PackedByteArray()
+var torch_stamp: int = -1
+var torch_seen_cos: float = 0.5
 ## How long the build took (µs), for the record.
 var build_usec: int = 0
+
+## The torch light's line of sight check (one at a time: the bots think in turn).
+static var _torch_hit: RayHit = RayHit.new()
 
 
 ## The night field of `map` with `cfg`'s night sight, or null when the match is played by day (`night`: the playing
@@ -54,6 +67,7 @@ static func build(map: MapData, cfg: BotConfig, night: bool) -> NightField:
 	f.pool_above = cfg.night_pool_above
 	f.roof_from = cfg.night_roof_from
 	f.roof_to = cfg.night_roof_to
+	f.torch_seen_cos = cos(deg_to_rad(cfg.night_torch_seen_from_deg))
 	f.terrain = map.terrain
 	f.cell = cfg.night_canopy_cell
 	for l in map.lights:
@@ -139,6 +153,67 @@ func under_roof(p: Vector3) -> bool:
 		if h >= lo:
 			return true
 	return false
+
+
+## Works out who the lit torches shine on, once per `stamp` (the bots' perception interval; the same stamp again does
+## nothing): for each lit torch (Torch.lit) everyone else in play inside its spill cone from its holder's leaned eye, a
+## `height` share up their hit volume (the bots' chest aim), within its reach across the ground and with no level surface
+## between. The cone is tested first; only those inside it are ray cast.
+func update_torches(characters: Array[Character], query: WorldQuery, tuning: SimTuning, height: float,
+		stamp: int) -> void:
+	if stamp == torch_stamp:
+		return
+	torch_stamp = stamp
+	var top := -1
+	for c in characters:
+		top = maxi(top, c.id)
+	if torch_lit.size() <= top:
+		torch_lit.resize(top + 1)
+	torch_lit.fill(0)
+	for h in characters:
+		if not Torch.lit(h):
+			continue
+		var light := Torch.in_hand(h)
+		var cos_half := cos(deg_to_rad(light.spill_deg * 0.5))
+		var eye := Lean.eye(h, tuning.body, tuning.hits)
+		var aim := h.view_direction()
+		var reach_sq := light.reach * light.reach
+		for t in characters:
+			if t == h or torch_lit[t.id] == 1 or not Elimination.is_in_play(t):
+				continue
+			var point := t.position + Vector3(0.0, Hitbox.hit_top(t.crouch_amount, tuning.hits) * height, 0.0)
+			var ray := point - eye
+			if ray.x * ray.x + ray.z * ray.z > reach_sq:
+				continue
+			var d := ray.length()
+			if d < 1e-6 or ray.dot(aim) < cos_half * d:
+				continue
+			if not query.ray(eye, point, _torch_hit):
+				torch_lit[t.id] = 1
+
+
+## How far `viewer` makes `target` out by torchlight (m): `lit` while a beam shines on the target, or while the
+## target's own lit torch points within torch_seen_from of the viewer across the ground (its lens gives it away); else 0.
+func torch_range(viewer: Character, target: Character) -> float:
+	if target.id < torch_lit.size() and torch_lit[target.id] == 1:
+		return lit
+	if not Torch.lit(target):
+		return 0.0
+	var dx := viewer.position.x - target.position.x
+	var dz := viewer.position.z - target.position.z
+	var flat := sqrt(dx * dx + dz * dz)
+	if flat < 1e-6:
+		return lit
+	var aim := target.view_direction()
+	var along := sqrt(aim.x * aim.x + aim.z * aim.z)
+	if along < 1e-6:
+		return 0.0
+	return lit if (aim.x * dx + aim.z * dz) / (along * flat) >= torch_seen_cos else 0.0
+
+
+## How far `viewer` makes `target` out at night: by the light round the target, or by torchlight if that is further.
+func range_between(viewer: Character, target: Character) -> float:
+	return maxf(sight_range(target.position), torch_range(viewer, target))
 
 
 ## The cell holding (p.x, p.z), or -1 outside the grid.

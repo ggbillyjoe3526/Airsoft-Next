@@ -38,7 +38,7 @@ jobs:
       - name: Smoke test (imports the project, then runs it headless)
         run: tools/smoke_test.sh
 
-      - name: Unit tests, part 1 (tests/unit/test_a* to test_e*)
+      - name: Unit tests, part 1 (tests/unit/test_a* to test_fi*)
         if: success() || failure()
         run: tools/unit_tests.sh 1
 
@@ -75,7 +75,7 @@ jobs:
           version: ${{ env.GODOT_VERSION }}
           status: ${{ env.GODOT_STATUS }}
 
-      - name: Unit tests, part 2 (tests/unit/test_f* to test_z*)
+      - name: Unit tests, part 2 (tests/unit/test_fl* to test_z*)
         run: tools/unit_tests.sh 2
 
       - name: Keep the logs

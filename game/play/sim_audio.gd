@@ -2,8 +2,8 @@ class_name SimAudio
 extends Node
 ## The match's sound, from the tick's events (docs/ARCHITECTURE.md › Contracts 3): shots with their power part (a
 ## silenced one's shot duller and quieter; its power part and clicks as they are), dry clicks, magazines, the selector,
-## the hop-up dial and draws, BB impacts by surface (in a bush's leaves their rustle, quieter for one brushing through an
-## edge, WL5), footsteps by surface and pace (louder and further on loud ground,
+## the hop-up dial, the weapon torch's click (WL7) and draws, BB impacts by surface (in a bush's leaves their rustle,
+## quieter for one brushing through an edge, WL5), footsteps by surface and pace (louder and further on loud ground,
 ## by the event's carry), vaults, a run into a noisy prop (its prop_<sound> cue; a BB's ring is its impact), the
 ## flag's rope ratcheting up or down, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
 ## yours, the thump when it's you. On the practice range steel rings and a figure knocks, heard down its whole length,
@@ -129,7 +129,7 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 		_prop.append(_load("prop_%s" % s))
 	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault",
 			"foley_holster", "magRattle", "rope_up", "rope_down", "steelRing", "radio_ack", "foley_crouch", "foley_stand",
-			"foley_lean", "whistle_short", "whistle_long"]:
+			"foley_lean", "whistle_short", "whistle_long", "torchClick"]:
 		_load(cue)
 	_set_muffle(cfg.muffled_cutoff_hz)
 	for i in cfg.field_voices:
@@ -188,6 +188,8 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 				_mechanism(&"foley_holster", state, e, own)
 			GameEvent.Kind.FIRE_MODE, GameEvent.Kind.HOP_UP:
 				_mechanism(&"selector", state, e, own)
+			GameEvent.Kind.TORCH:
+				_mechanism(&"torchClick", state, e, own)
 			GameEvent.Kind.BB_IMPACT:
 				if e.target < 0:
 					if _in_reach(e.position, _cfg.max_distance) and _impacts.take(now):
