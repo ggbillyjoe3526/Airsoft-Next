@@ -225,13 +225,14 @@ func _loadout_from(entry: Dictionary, problems: Array[String]) -> Loadout:
 				l.tunes[str(id)] = ReplicaTune.from_dict(t, rules.default_tune(it))
 			else:
 				problems.append("%s: a setup for \"%s\" won't read: dropped" % [l.name, id])
-	# Glowing BBs (WL8): a save from before them has none, so every replica loads them At Night.
+	# Glowing BBs (WL8): a save from before them has none, so every replica loads them At Night. Only a replica has them.
 	var glow: Variant = entry.get("glow")
 	if glow is Dictionary:
 		var picks := glow as Dictionary
 		for id: Variant in picks:
 			var choice := Loadout.GLOW_NAMES.find(str(picks[id])) if picks[id] is String else -1
-			if choice >= 0 and rules.pool.item(str(id)) != null:
+			var it := rules.pool.item(str(id))
+			if choice >= 0 and it != null and it.kind == Pool.Kind.REPLICA:
 				l.glow[str(id)] = choice as Loadout.Glow
 			else:
 				problems.append("%s: Glowing BBs \"%s\" for \"%s\" won't read: At Night" % [l.name, picks[id], id])

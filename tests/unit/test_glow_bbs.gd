@@ -94,6 +94,17 @@ func test_a_choice_that_won_t_read_is_at_night_and_said() -> void:
 	assert_eq(saved.from_dict(data).size(), 1)
 
 
+func test_a_choice_saved_for_a_part_or_power_is_dropped_and_said() -> void:
+	var saved := SavedLoadouts.new(rules)
+	var part := rules.pool.parts[0]
+	assert_ne(part.kind, Pool.Kind.REPLICA)
+	var data := saved.to_dict()
+	(data["slots"][0] as Dictionary)["glow"] = {part.id: "always"}
+	var problems := saved.from_dict(data)
+	assert_eq(problems.size(), 1, str(problems))
+	assert_false(saved.carried().glow.has(part.id), "only a replica has Glowing BBs")
+
+
 func test_the_kit_carries_each_slot_s_choice_and_bots_load_at_night() -> void:
 	var l := rules.default_loadout("A")
 	l.set_glow(l.replica_id(Loadout.Slot.SECONDARY), Loadout.Glow.ALWAYS)
@@ -194,6 +205,7 @@ func test_drawing_makes_nothing_and_hides_the_glow_with_none_in_flight() -> void
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), objects, "no object made while drawing")
 	var bits := PackedByteArray([0, 0, 0])
 	view.set_glowing(bits)
+	assert_false(view._any, "none glows: white BBs skip the glow test")
 	view.update(pool, 0, Vector3.ZERO, 0.0, PlaySession.TICK, Vector3.ZERO)
 	var draws := view.draws()
 	assert_eq(draws[0].multimesh.visible_instance_count, 60, "all white with none glowing")

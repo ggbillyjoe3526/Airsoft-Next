@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | 3,149 of 3,149 | – | – |
+| 2026-10-25 | 2 | worker | 3,166 of 3,166 | – | QA and performance passed with fixes asked: white BBs paid for the glow test; a `glow` entry was kept for a non-replica |
 
 ## Goal
 
@@ -41,7 +42,7 @@ match plays the same with every choice.
 - `CustomiseView`: a GLOWING BBS row under the BB weight's blurb, a `MenuChoice` of At Night, Always and Off with the
   picked one's line under it (the browser's blurbs); `glow_picked` reaches `LoadoutPage._pick_glow`, which edits the
   carried loadout and marks it changed (saved on leaving, as every Customise edit). Seven `en.po` strings.
-- Tests: `tests/unit/test_glow_bbs.gd` (14); `test_play_session.gd`'s prewarm count takes the two glow materials.
+- Tests: `tests/unit/test_glow_bbs.gd` (15; QA added `test_glow_bbs_qa.gd`); `test_play_session.gd`'s prewarm count takes the two glow materials.
 
 Outside `touches`: `game/sim/bb.gd`, `game/sim/bb_pool.gd`, `game/sim/armament.gd` (the firing slot),
 `game/loadout/kit.gd`, `game/loadout/loadout_rules.gd` (the kit's choices), `game/play/play_session.gd` (wiring),
@@ -81,6 +82,10 @@ Outside `touches`: `game/sim/bb.gd`, `game/sim/bb_pool.gd`, `game/sim/armament.g
 | 40 | 59.0, 47.4 | 94.8, 98.6 |
 | 256 (the pool) | 194.7, 195.8 | 551.4, 496.5 |
 
+Attempt 2: a match where nothing glows skips the per-BB glow test (`_any`, set by `set_glowing`), and `streak_of`
+takes each length once. Three runs (another job loading the container): 256 white 104.9, 99.3, 99.6 µs (main 78 µs
+on the performance review's run, attempt 1 186 µs there); 40 white 39.3, 39.4 µs; 256 glowing 511.5, 537.6, 538.2 µs.
+
 Draws: one for white BBs as before, plus two (balls, streaks) only while a glowing BB flies.
 
 On screen (Compatibility, Xvfb, High), a glowing ball's brightest pixel: (147, 201, 113) on Depot by day, (184, 214,
@@ -99,6 +104,10 @@ part 2 529.3 s (WL7: 506 s), both under the 600 s limit; `test_glow_bbs.gd` (par
 failed one test: `test_play_session.gd` counts the materials ShaderPrewarm draws, now two more (the glowing ball and
 its streak); its count is updated. That run's parts read 489.7 and 528.5 s.
 
+Attempt 2 (on the WL7 merge, with QA's `test_glow_bbs_qa.gd`): every gate passed, 3,166 tests of 3,166. Part 1
+516.8 s, part 2 574.2 s: part 2 is past 570 s with another job loading the container (load average 4.5 on 4 cores
+during the benchmarks); attempt 1's 529 s was on a quieter container. Within the 600 s limit, but close.
+
 ## Verified
 
 - `tests/unit/test_glow_bbs.gd`, 14 tests: the choice per replica and At Night by default; `glows` and `glow_bits`;
@@ -114,6 +123,15 @@ its streak); its count is updated. That run's parts read 489.7 and 528.5 s.
   BBs white, a few pixels), `wl8-woodland-night.png` (Woodland at night, At Night: your stream and a bot's, all green),
   `wl8-customise-glow.png` (Customise › BBs with Always picked under BB weight). BBs were placed by hand in flight with
   the simulation stopped, so the streams are tidy.
+
+## Advisories left
+
+- **The green is paled by AgX** on screen (Measurements, KNOWN_ISSUES): for the owner's playtest.
+- **The seeded-match test can't prove no simulation code reads the choice:** it shows the drawing doesn't feed back.
+  A grep finds no reader of `glow`, `glow_bbs` or `BB.slot` under `game/sim/`, `game/ai/` or `game/nav/`.
+- **Streaks in one MultiMesh blend unsorted:** two crossing streaks may draw in either order; at 0.75 opacity and 1 to
+  2 px wide it doesn't show.
+- **The smoke run shows 10 more transient orphan nodes** while the menus build; the steady state is 0.
 
 ## For the owner to test
 

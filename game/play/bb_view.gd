@@ -19,6 +19,8 @@ var _glow_balls: MultiMeshInstance3D = null
 var _streaks: MultiMeshInstance3D = null
 ## Each character's loadout slots whose BBs glow this match, by its id: bit `slot` set.
 var _glowing: PackedByteArray = PackedByteArray()
+## Whether any character's BBs glow this match: without, a white BB costs no more than before glowing BBs.
+var _any: bool = false
 
 
 func setup(cfg: EffectsConfig, pool_size: int) -> void:
@@ -41,6 +43,9 @@ func setup(cfg: EffectsConfig, pool_size: int) -> void:
 ## (glow_bits). A character past its end glows none.
 func set_glowing(bits: PackedByteArray) -> void:
 	_glowing = bits
+	_any = false
+	for b in bits:
+		_any = _any or b != 0
 
 
 ## The bits `set_glowing` takes for one character whose slots load `choices`, on a field lit by a preset with `night` as
@@ -81,7 +86,7 @@ func update(pool: BBPool, player_id: int, muzzle_offset: Vector3, fraction: floa
 		var age := bb.age + fraction * tick
 		if bb.owner_id == player_id and age < _cfg.muzzle_join_time:
 			at += muzzle_offset * (1.0 - age / _cfg.muzzle_join_time)
-		if not _glows(bb):
+		if not (_any and _glows(bb)):
 			multimesh.set_instance_transform(n, Transform3D(_scale, at))
 			n += 1
 			continue
@@ -112,12 +117,14 @@ static func streak_of(cfg: EffectsConfig, at: Vector3, velocity: Vector3, age: f
 	var mid := at - along * 0.5
 	var to_eye := eye - mid
 	var side := along.cross(to_eye)
-	var square := along.length() * to_eye.length()
-	if square <= 0.0 or side.length() < END_ON * square:
+	var length := along.length()
+	var dist := to_eye.length()
+	var side_length := side.length()
+	if length * dist <= 0.0 or side_length < END_ON * length * dist:
 		return Transform3D(Basis(Vector3.ZERO, along, Vector3.ZERO), mid)
-	var across := side.normalized()
-	return Transform3D(Basis(across * cfg.glow_streak_angle * to_eye.length(), along,
-			across.cross(along).normalized()), mid)
+	var across := side / side_length
+	# across is square to along, so their cross product is `length` long
+	return Transform3D(Basis(across * cfg.glow_streak_angle * dist, along, across.cross(along) / length), mid)
 
 
 func _glows(bb: BB) -> bool:
