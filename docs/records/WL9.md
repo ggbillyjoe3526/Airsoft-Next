@@ -1,13 +1,13 @@
 # WL9 · The practice range set in Depot, and practice on any map
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | pass, 3,174 of 3,174 (parts 307 s, 402 s and 325 s) | – | – |
-| 2026-10-25 | 2, fix round | worker | pass, 3,189 of 3,189 (parts 362 s, 357 s and 369 s) | – | QA and performance advisories |
+| 2026-10-25 | 2, fix round | worker | pass, 3,189 of 3,189 (parts 362 s, 357 s and 369 s) | Accept 8/8 | QA and performance advisories |
 
 ## Goal
 
@@ -143,6 +143,14 @@ and `test_mn2_qa` (it asserted Practice greyed on a field, which WL9 changes).
   `wl9-range-in-depot.png` (the range before and now, downrange and towards the yard), `wl9-practice-depot.png` (your
   start with START ahead; the targets in the yard from a raised camera), `wl9-practice-woodland-night.png` (Woodland at
   night: START in your torch, and a figure 9 m out lit by it).
+
+## Advisories left
+
+- **`PracticeSpots._floor_at` repeats `NavGrid.is_walkable_at`'s test** (critic nit): small, left as is.
+- **`play_session.gd` grows to about 1,560 lines** (critic nit): a split waits for a task that touches it anyway.
+- **One gate run before the rebase hung at the 1,080 s limit** starting `test_holster_edges.gd` while another
+  worktree ran match guards; the file passes alone and the rerun passed (Gate). Watch CI for a repeat.
+- **How field layouts and the field challenge feel** can't be judged headless: For the owner to test.
 
 ## For the owner to test
 
