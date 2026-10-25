@@ -11,6 +11,7 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 
 | Area | Issue | Class | Found |
 |---|---|---|---|
+| Wiki | Some numbers and keys in the wiki's prose are typed, not generated, and the check can't see them drift: squad order keys, the minimap's 22 m / 60 m hearing, the Pro team's 30 s push, three restore points, the 38 m / 26 m flat ranges (WK1). Patch Notes also lists features added and later replaced, as the changelog notes do | document | 2026-10-25 |
 | Bots | A bot can come off a vault standing on top of a low wall and walk across it (0.85 m wall in `test_bot_vaults.gd`: seen for 6 ticks once lane points moved; staggering every bot's lane points, as the browser game did, was left out for this) | playtest | 2026-10-22 |
 | Bots | Noisy props, rings and loud ground are NP1's first guesses, to tune in play: on Depot at Normal bots knock about 0.4 props and ring steel about 8 times a round (DP4) | playtest | 2026-10-24 |
 | Bots | Follow me: a follower back from a fight or cover can't close on a leader sprinting at its own top speed, so it chases at the same pace (10.75 m behind on Depot seed 3 on DP4); the guard counts that as chasing, not left behind (DECISIONS, lead ruling, DP4) | can wait | 2026-10-24 |
