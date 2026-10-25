@@ -338,7 +338,8 @@ A wide wood: 120 × 80 m on a gentle slope up to the Knoll and its log fort, wit
 Creek with the cabin). Turn on Settings › Dev › Dev content, then pick it on Play. Step 26 builds it in greybox: since
 WL1 it loads and plays, since WL2 at 5v5 (6v6 under Custom), since WL3 at night, since WL4 with crowns, a forest,
 grass, puddles and fireflies, since WL5 with bushes, since WL6 with bots by night, since WL7 with the weapon torch,
-since WL8 with glowing BBs; the rest follows (WL9 and WL10).
+since WL8 with glowing BBs, since WL9 with practice; since WL10 the match guards and the balance report play it.
+Woodland stays dev content until you make it public (`data/maps.md`, its Tag) once you are happy with it.
 
 - [ ] **Walk the slopes (WL1).** Run up, down and across the Knoll's west face and West Hill: no jump is ever needed,
   you never slide when you stop or stand crouched on the face, your feet stay on the ground going downhill, and
@@ -388,6 +389,26 @@ since WL8 with glowing BBs; the rest follows (WL9 and WL10).
 - [ ] **Frame time at 5v5 and 6v6 (WL2).** With `--perf`, a 6v6 on Woodland on Low and on High: the overlay's frame
   time (ms and max) in a busy moment and a quiet one, and the `[perf-summary]` line at exit; the same at 5v5. The cloud
   measured draw calls only (Compatibility on a software renderer: `docs/records/WL2.md`).
+
+- [ ] **A whole night from each camp (WL10).** A 5v5 Elimination as Alpha and one as Beta, so you start once from the
+  west camp behind West Hill and once from the east camp behind the Knoll (half time swaps them too). Does either
+  start feel safer or quicker to the fort? The bots' figures lean a little to one end (`docs/records/WL10.md`).
+- [ ] **The fort and the hut (WL10).** Attack / Defend from both ends: raise the flag at the fort, and defend it. Bots
+  still never hunt inside the hut (KNOWN_ISSUES): hide in it late in a round and note how long it keeps you. Do the
+  chest-high walls and the hut give attackers and defenders a fair fight?
+- [ ] **The ravine (WL10).** Take the creek lane along the dry ravine from each end: is it a real flank, or a trap the
+  bots shoot down into?
+- [ ] **Bushes, the torch and glowing BBs together (WL10).** In one match: hide deep in a bush, then fight with the torch
+  on and off (T). With it off, can you still follow your glowing BBs and see who shoots at you? With it on, do the
+  bots find you faster (they should, from about 40 m)?
+- [ ] **Teammates' fire (WL10).** Play alongside bot teammates at 5v5 and 6v6: a bot never knocks out you or another
+  teammate. Do they now hold fire too often when a teammate fights near the enemy, or far behind it?
+- [ ] **6v6 (WL10).** A Custom 6v6 at Normal and at Pro: does the fort get too crowded, and do rounds still end before
+  the clock?
+- [ ] **Frame time on every preset (WL10).** With `--perf`, a 5v5 and a 6v6 on Low, Medium, High and Ultra: the
+  overlay's frame time in a firefight and on a quiet walk, against Low's 60 FPS (16.7 ms). The cloud measured draws,
+  triangles and the CPU's share only (`docs/records/WL10.md`); the frame time is your GPU's.
+- [ ] **Make Woodland public (owner).** When it plays well: its Tag in `data/maps.md` from `dev` to `public`.
 
 Once the rest of step 26 lands:
 

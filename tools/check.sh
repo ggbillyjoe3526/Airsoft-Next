@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Every local gate CI runs, quietly: lint, the changelog notes, the wiki, the unit tests (in three parts, CI1), the smoke
-# test and the licence notices; with --guards, the match guards too (a few minutes; CI runs them as a job of their own).
+# test and the licence notices; with --guards, the match guards too (about two hours, Woodland most of it; CI runs them
+# as jobs of their own).
 # Prints one line per gate and the failures; logs are in *.log. Exits non-zero if any gate failed.
 # Usage: tools/check.sh [--guards]      (GODOT=/path/to/godot to override)
 set -uo pipefail

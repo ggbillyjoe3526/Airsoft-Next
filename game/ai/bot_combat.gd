@@ -205,7 +205,7 @@ static func _line_of_fire_blocked(b: Bot, w: BotWorld, eye: Vector3, dir: Vector
 	var cfg := w.cfg
 	if not BotSenses.line_clear(w.query, eye, _aim_point) or leaves_in_line(b, w, eye, _aim_point):
 		return true
-	var reach := dist + cfg.friendly_beyond_target
+	var reach := miss_reach(cfg, dist)
 	var wall := -1.0
 	if w.query.ray(eye, eye + dir * reach, _hit):
 		wall = _hit.fraction * reach
@@ -236,12 +236,18 @@ static func _stray_per_metre(b: Bot, cfg: BotConfig) -> float:
 	return tan(deg_to_rad(cfg.friendly_spread_sigmas * r.spread_deg * me.spread_scale))
 
 
-## How far along `dir` a miss can still hit someone: friendly_beyond_target past the target, or friendly_past_wall past
-## a wall in the way (`wall` m, or -1). Only a wall: it must also stand friendly_wall_clearance higher there and as far
-## to either side as the BBs stray, or they go over or round it.
+## How far a miss at a target `dist` m off flies on, a wall aside (m from the shooter): friendly_beyond_target past the
+## target, and friendly_carry at least.
+static func miss_reach(cfg: BotConfig, dist: float) -> float:
+	return maxf(dist + cfg.friendly_beyond_target, cfg.friendly_carry)
+
+
+## How far along `dir` a miss can still hit someone: miss_reach, or friendly_past_wall past a wall in the way (`wall`
+## m, or -1). Only a wall: it must also stand friendly_wall_clearance higher there and as far to either side as the BBs
+## stray, or they go over or round it.
 static func _friendly_reach(w: BotWorld, eye: Vector3, dir: Vector3, dist: float, wall: float, stray: float) -> float:
 	var cfg := w.cfg
-	var reach := dist + cfg.friendly_beyond_target
+	var reach := miss_reach(cfg, dist)
 	if wall < 0.0:
 		return reach
 	var back := minf(wall, cfg.friendly_wall_probe)
@@ -259,9 +265,12 @@ static func _friendly_reach(w: BotWorld, eye: Vector3, dir: Vector3, dist: float
 	return minf(reach, wall + cfg.friendly_past_wall)
 
 
-## True if a teammate stands in (or near) the line of fire within `dist` m, where it is now or will be as the BBs pass,
+## True if a teammate stands in (or near) the line of fire within `dist` m, where it is now or could be as the BBs pass,
 ## or anyone already hit stands in it before the target (`to_target` m): every body stops a BB. Each teammate counts
-## friendly_margin wider, and `stray` m wider per m away.
+## friendly_margin wider, and `stray` m wider per m away. Where a teammate in play could be (WL10): anywhere a run
+## (friendly_mate_speed) takes it during the flight, since it may strafe either way, break for cover or turn to a fight
+## at any moment; faster than that (a sprint) also straight on, and for a bot round its route's corners. Anyone already
+## hit, straight on at their pace.
 static func _body_in_line(b: Bot, w: BotWorld, from: Vector3, dir: Vector3, dist: float, to_target: float,
 		stray: float) -> bool:
 	var me := b.character
@@ -281,24 +290,37 @@ static func _body_in_line(b: Bot, w: BotWorld, from: Vector3, dir: Vector3, dist
 		var along := (mate.position - from).dot(dir)
 		var reach := clampf(along, 0.0, dist)
 		var flight := flight_time(b, w, reach)
+		var in_play := Elimination.is_in_play(mate)
 		# Past the target only a teammate a BB could knock out matters; before it every body stops the BBs.
-		var harmed := dist if Elimination.is_in_play(mate) and hits.friendly_fire else to_target
+		var harmed := dist if in_play and hits.friendly_fire else to_target
+		var margin := cfg.friendly_margin + reach * stray
 		Hitbox.build_volume(mate, hits, _volume)
-		_inflate(_volume, cfg.friendly_margin + reach * stray)
+		_inflate(_volume, margin + (cfg.friendly_mate_speed * flight if in_play else 0.0))
 		if Hitbox.ray_character(from, dir, harmed, _volume) < INF:
 			return true
+		var speed := Vector2(mate.velocity.x, mate.velocity.z).length()
+		if speed <= 0.0 or (in_play and speed <= cfg.friendly_mate_speed):
+			continue
 		_shift(_volume, mate.velocity.x * flight, mate.velocity.z * flight)
 		if Hitbox.ray_character(from, dir, harmed, _volume) < INF:
 			return true
-		# Speeding up the way they're heading, as a teammate strafing in a duel does.
-		var speed := Vector2(mate.velocity.x, mate.velocity.z).length()
-		if speed <= 0.0 or speed >= cfg.friendly_mate_speed:
-			continue
-		var more := (cfg.friendly_mate_speed - speed) * flight / speed
-		_shift(_volume, mate.velocity.x * more, mate.velocity.z * more)
-		if Hitbox.ray_character(from, dir, harmed, _volume) < INF:
+		var walker := w.bot_of(mate) if in_play else null
+		if walker != null and walker.route_state == Bot.RouteState.OK \
+				and _ahead_in_line(walker, hits, from, dir, harmed, margin, speed * flight):
 			return true
 	return false
+
+
+## True if bot `walker`'s hit volume, `margin` m wider, stands in the line of fire (`harmed` m along `dir` from `from`)
+## once it has walked `distance` m more along its route.
+static func _ahead_in_line(walker: Bot, hits: HitConfig, from: Vector3, dir: Vector3, harmed: float, margin: float,
+		distance: float) -> bool:
+	var mate := walker.character
+	var ahead := BotRoutes.point_ahead(walker, distance)
+	Hitbox.build_volume(mate, hits, _volume)
+	_inflate(_volume, margin)
+	_shift(_volume, ahead.x - mate.position.x, ahead.z - mate.position.z)
+	return Hitbox.ray_character(from, dir, harmed, _volume) < INF
 
 
 static func _inflate(v: Hitbox.Volume, margin: float) -> void:

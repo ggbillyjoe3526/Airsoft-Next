@@ -3,8 +3,8 @@ name: Checks
 # Every pull request and every push to main: lint the scripts, check the changelog notes and the wiki, run the GUT unit
 # tests (in three parts side by side, CI1), import the project and run the headless smoke test, check the licence
 # notices are current, and play the match guards (whole bot matches over 16 seeds, Elimination and Attack / Defend each a
-# job of their own; pipeline/README.md › The checks). Fails on any script error or failed test. The Review line is
-# checked by review.yml.
+# job of their own, the night guards six of their own, WL10; pipeline/README.md › The checks). Fails on any script error
+# or failed test. The Review line is checked by review.yml.
 on:
   pull_request:
   push:
@@ -163,6 +163,44 @@ jobs:
         with:
           name: flag-guards-log
           path: flag-guards.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # The night guards: Woodland at 5v5, 50 to 70 s a match headless, tests/guards/test_woodland_guards.gd in five jobs
+  # of 16 matches each (a test name's part picks them), and Neon Heights at night (test_night_guards.gd).
+  night-guards:
+    name: Night match guards, ${{ matrix.part.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        part:
+          - { name: "Woodland, Elimination at Normal", file: test_woodland_guards, test: elimination_at_normal, log: night-guards-1 }
+          - { name: "Woodland, Elimination at Easy and Hard", file: test_woodland_guards, test: elimination_at_easy, log: night-guards-2 }
+          - { name: "Woodland, Attack / Defend at Normal", file: test_woodland_guards, test: attack_defend_at_normal, log: night-guards-3 }
+          - { name: "Woodland, Attack / Defend at Easy and Hard", file: test_woodland_guards, test: attack_defend_at_easy, log: night-guards-4 }
+          - { name: "Woodland, both modes at Pro", file: test_woodland_guards, test: at_pro, log: night-guards-5 }
+          - { name: "Neon Heights at night", file: test_night_guards, test: "", log: night-guards-6 }
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          status: ${{ env.GODOT_STATUS }}
+
+      - name: Night match guards (tests/guards/${{ matrix.part.file }}.gd, ${{ matrix.part.name }})
+        run: tools/match_guards.sh ${{ matrix.part.file }} ${{ matrix.part.test }}
+        env:
+          GUARDS_LOG: ${{ matrix.part.log }}.log
+
+      - name: Keep the log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.part.log }}-log
+          path: ${{ matrix.part.log }}.log
           if-no-files-found: ignore
           retention-days: 14
 

@@ -75,6 +75,26 @@ static func arrived(b: Bot) -> bool:
 	return b.route_state == Bot.RouteState.NONE and not b.route.is_empty()
 
 
+## Where `b` will be after walking `distance` m more along its route (level, at its feet' height): round its corners,
+## stopping at the route's end; where it stands if it walks no route (none, or in a fight).
+static func point_ahead(b: Bot, distance: float) -> Vector3:
+	var at := b.character.position
+	if b.mode == Bot.Mode.FIGHT or b.route_state != Bot.RouteState.OK:
+		return at
+	var left := distance
+	var leg := b.route_leg
+	while leg < b.route.size() and left > 0.0:
+		var to := Vector2(b.route[leg].x - at.x, b.route[leg].z - at.z)
+		var d := to.length()
+		if d >= left:
+			to *= left / d
+			return Vector3(at.x + to.x, at.y, at.z + to.y)
+		at = Vector3(b.route[leg].x, at.y, b.route[leg].z)
+		left -= d
+		leg += 1
+	return at
+
+
 ## Follows the route: writes the way to walk into b.move_dir and returns true, or false with nothing to walk (no route,
 ## or arrived). `while_planning`: keep walking the old route while a new one is wanted. A bot pushed off its leg (by a
 ## teammate, a fight) that would take a drop walking straight on asks for a fresh route; one walking slower than

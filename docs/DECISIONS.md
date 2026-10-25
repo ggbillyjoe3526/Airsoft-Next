@@ -350,7 +350,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   is unchanged. Keeping out of the light (`BotSkill.keeps_dark`, Normal and up) moves a lane point or hunt spot to the
   nearest dark spot on its floor within 8 m, its edge, no margin, and passes over hold and flag-guard cover in a pool;
   a fight's cover, the raiser's spot at the pole and squad orders ignore the light. The headless runner plays a
-  night-only map (Woodland) at night; Neon Heights keeps its day guards until WL10's night guards.
+  night-only map (Woodland) at night; Neon Heights' guards play it by day and, at Normal, at night (WL10).
 - **The weapon torch is a part in the Light slot, fitted at night only and switched through the command (2026-10-25,
   WL7; the browser's M33h and botTorch.ts; owner's defaults of 2026-10-24, the rest Claude's).** It fits every replica
   (RM8 modelled each one's), is dev while Woodland is (a dev light marks only night matches as dev), and by day isn't
@@ -385,6 +385,17 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   speed over the last 0.5 s, with the gap to the leader grown by 0.25 m at most, is chasing, not left behind: one back
   from cover can't gain on a leader sprinting at its own top speed, and bots never outrun the player's sprint. Stuck,
   standing, lost or slower followers still fail it (`MatchRunner.chasing`).
+- **The match guards play each field at the team size and time of day it is played (2026-10-25, WL10; Claude's
+  defaults).** Woodland at 5v5 (its standard, from `data/maps.md` through `MatchRunner.sized_for`) at night, in
+  Elimination and Attack / Defend, 16 seeds at Normal and 8 at Easy, Hard and Pro each, as five CI jobs of 16 matches;
+  Neon Heights by day as before and at night at Normal in both modes; Depot by day. The height guards take a terrain's
+  lowest point. The balance report plays Woodland the same way.
+- **A bot holds fire where a teammate could be when its BBs pass (2026-10-25, WL10; Claude's defaults).** A bot
+  teammate walking a route counts where the route takes it, round its corners, at its pace and at a run; one in a fight
+  anywhere a run (`friendly_mate_speed`) takes it during the flight, since it strafes either way, breaks for cover or
+  sets off when its fight ends; the player straight on, as before. A miss flies on 25 m past the target and at least
+  60 m from the shooter (`friendly_carry`: a level BB from the eye lands 40 to 53 m out, farther down a slope; the
+  browser's 25 m past the target alone let a near shot hit a teammate 33 m beyond it on Woodland).
 
 ## Maps and modes
 

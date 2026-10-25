@@ -116,6 +116,14 @@ func out_of_light(g: Vector3) -> Vector3:
 	return g
 
 
+## The bot playing `c`, or null for the player (or anyone no bot plays).
+func bot_of(c: Character) -> Bot:
+	for b in bots:
+		if b.character == c:
+			return b
+	return null
+
+
 ## The enemy side's direction (yaw) for `team` this round.
 func enemy_yaw(team: int) -> float:
 	return planner.enemy_yaw[team]

@@ -12,7 +12,8 @@ Bots know only what they see and hear:
 - They hear running, sprinting, vaults, landings, knocked props and shots. Walls muffle what they hear. **Walking and
   moving crouched are silent**, so you can sneak up on a bot that hasn't seen you.
 - A rattling hi-cap magazine gives you away to bots close by, and a silencer halves how far your shots carry.
-- They react after a moment, and their aim settles before it is steady. They never fire with a teammate in the way.
+- They react after a moment, and their aim settles before it is steady. They never fire with a teammate in the way,
+  or where a teammate could step into the shot before the BBs arrive.
 
 ## Difficulty
 

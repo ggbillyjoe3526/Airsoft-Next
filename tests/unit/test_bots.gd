@@ -1,8 +1,8 @@
 extends GutTest
 ## The bots (game/ai/) on Depot, headless: whole matches of bots play out over several seeds with no friendly hits and
-## nobody stuck or off the map; a bot sees only what it could, holds fire with a teammate in the line, hears gunfire
-## through walls no better than you (a silenced shot and a rattling magazine less far), finds cover that hides it, and
-## settles its aim; a tick allocates nothing once warm.
+## nobody stuck or off the map; a bot sees only what it could, holds fire with a teammate in the line (or turned into it
+## by its route, WL10), hears gunfire through walls no better than you (a silenced shot and a rattling magazine less
+## far), finds cover that hides it, and settles its aim; a tick allocates nothing once warm.
 
 const DT := 1.0 / 60.0
 
@@ -213,6 +213,92 @@ func test_a_bot_holds_fire_with_a_teammate_in_the_line() -> void:
 			shots += 1
 		state.time += DT
 	assert_gt(shots, 0, "with the line clear it fires")
+
+
+## Shots bot 0 fires in 3 s at an enemy 12 m up East yard while bot teammate 1 stands at `mate_at` in `mode`, moving at
+## `velocity` on `route` (none: no route), held there each tick.
+func _shots_past_a_walker(mate_at: Vector3, route: PackedVector3Array, mode: Bot.Mode = Bot.Mode.ADVANCE,
+		velocity: Vector3 = Vector3.ZERO) -> int:
+	_start(6)
+	var shooter := _bot(0)
+	var mate := state.characters[1]
+	var walker := _bot(1)
+	var enemy := state.characters[3]
+	shooter.character.position = Vector3(20.0, 0.0, 0.0)
+	enemy.position = Vector3(20.0, 0.0, -12.0)
+	shooter.character.yaw = 0.0
+	shooter.aim_yaw = 0.0
+	for c in state.characters:
+		c.prev_position = c.position
+		if c != shooter.character and c != mate and c != enemy:
+			c.status = Character.Status.OUT
+	shooter.skill = config.skill.duplicate() as BotSkill
+	shooter.skill.contact_cover_min_distance = INF
+	var shots := 0
+	for t in 180:
+		# Bot 0 thinks before its teammate, so it judges the route as given here.
+		mate.position = mate_at
+		mate.velocity = velocity
+		walker.mode = mode
+		walker.route = route
+		walker.route_leg = 0
+		walker.route_state = Bot.RouteState.NONE if route.is_empty() else Bot.RouteState.OK
+		bots.think(state, commands, DT)
+		if commands[0].fire:
+			shots += 1
+		state.time += DT
+	return shots
+
+
+func test_a_bot_holds_fire_while_a_teammate_could_run_into_the_line() -> void:
+	# WL10 (KNOWN_ISSUES: a teammate breaking for cover across a shot's line): a teammate standing 1.1 m off the line
+	# may strafe, break for cover or turn to a fight as the BBs fly, whatever it does now.
+	assert_eq(_shots_past_a_walker(Vector3(21.1, 0.0, -10.0), PackedVector3Array()), 0, "never past one that close")
+	assert_eq(_shots_past_a_walker(Vector3(21.1, 0.0, -10.0), PackedVector3Array(), Bot.Mode.FIGHT), 0,
+			"walking or fighting")
+	assert_gt(_shots_past_a_walker(Vector3(21.7, 0.0, -10.0), PackedVector3Array(), Bot.Mode.FIGHT), 0,
+			"but past one out of a run's reach of the line")
+
+
+func test_a_bot_holds_fire_while_a_sprinting_teammate_s_route_turns_it_across_the_line() -> void:
+	# Faster than a run, a teammate sprinting up the yard (-z) is clear straight on and on a route turning away, but its
+	# route's corner turns it across the line before the BBs pass.
+	var at := Vector3(21.3, 0.0, -10.0)
+	var sprint := Vector3(0.0, 0.0, -6.3)
+	var corner := Vector3(21.3, 0.0, -10.1)
+	assert_gt(_shots_past_a_walker(at, PackedVector3Array(), Bot.Mode.ADVANCE, sprint), 0, "clear straight on")
+	assert_gt(_shots_past_a_walker(at, PackedVector3Array([corner, Vector3(30.0, 0.0, -10.1)]), Bot.Mode.ADVANCE,
+			sprint), 0, "or turning away")
+	assert_eq(_shots_past_a_walker(at, PackedVector3Array([corner, Vector3(10.0, 0.0, -10.1)]), Bot.Mode.ADVANCE,
+			sprint), 0, "never turning across")
+
+
+func test_a_miss_flies_on_past_a_near_target_as_far_as_a_bb_carries() -> void:
+	# WL10: on Woodland a miss at a target 23 m off knocked out a teammate 33 m past it.
+	assert_eq(BotCombat.miss_reach(config, 10.0), config.friendly_carry, "a near target: as far as a BB carries")
+	assert_eq(BotCombat.miss_reach(config, 50.0), 50.0 + config.friendly_beyond_target, "a far one: past it")
+	assert_gt(config.friendly_carry, 56.0, "farther than that teammate stood")
+
+
+func test_a_bot_s_point_ahead_follows_its_route_round_corners() -> void:
+	_start(6)
+	var b := _bot(0)
+	b.character.position = Vector3(0.0, 1.0, 0.0)
+	b.route = PackedVector3Array([Vector3(0.0, 0.0, -2.0), Vector3(3.0, 0.0, -2.0)])
+	b.route_leg = 0
+	b.route_state = Bot.RouteState.OK
+	b.mode = Bot.Mode.ADVANCE
+	assert_almost_eq(BotRoutes.point_ahead(b, 1.0), Vector3(0.0, 1.0, -1.0), Vector3.ONE * 1e-5, "along its leg")
+	assert_almost_eq(BotRoutes.point_ahead(b, 3.0), Vector3(1.0, 1.0, -2.0), Vector3.ONE * 1e-5, "round the corner")
+	assert_almost_eq(BotRoutes.point_ahead(b, 9.0), Vector3(3.0, 1.0, -2.0), Vector3.ONE * 1e-5, "stopping at its end")
+	b.route_leg = 1
+	assert_almost_eq(BotRoutes.point_ahead(b, 1.0), Vector3(0.832050, 1.0, -0.554700), Vector3.ONE * 1e-5,
+			"from where it stands to its next corner")
+	b.mode = Bot.Mode.FIGHT
+	assert_eq(BotRoutes.point_ahead(b, 1.0), b.character.position, "in a fight it walks no route")
+	b.mode = Bot.Mode.ADVANCE
+	b.route_state = Bot.RouteState.WANTED
+	assert_eq(BotRoutes.point_ahead(b, 1.0), b.character.position, "nor while it waits for one")
 
 
 func test_gunfire_is_heard_and_walls_muffle_it() -> void:
