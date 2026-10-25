@@ -218,7 +218,7 @@ func test_a_bot_holds_fire_with_a_teammate_in_the_line() -> void:
 ## Shots bot 0 fires in 3 s at an enemy 12 m up East yard while bot teammate 1 stands at `mate_at` in `mode`, moving at
 ## `velocity` on `route` (none: no route), held there each tick.
 func _shots_past_a_walker(mate_at: Vector3, route: PackedVector3Array, mode: Bot.Mode = Bot.Mode.ADVANCE,
-		velocity: Vector3 = Vector3.ZERO) -> int:
+		velocity: Vector3 = Vector3.ZERO, mate_status: Character.Status = Character.Status.ALIVE) -> int:
 	_start(6)
 	var shooter := _bot(0)
 	var mate := state.characters[1]
@@ -234,6 +234,7 @@ func _shots_past_a_walker(mate_at: Vector3, route: PackedVector3Array, mode: Bot
 			c.status = Character.Status.OUT
 	shooter.skill = config.skill.duplicate() as BotSkill
 	shooter.skill.contact_cover_min_distance = INF
+	mate.status = mate_status
 	var shots := 0
 	for t in 180:
 		# Bot 0 thinks before its teammate, so it judges the route as given here.
@@ -271,6 +272,29 @@ func test_a_bot_holds_fire_while_a_sprinting_teammate_s_route_turns_it_across_th
 			sprint), 0, "or turning away")
 	assert_eq(_shots_past_a_walker(at, PackedVector3Array([corner, Vector3(10.0, 0.0, -10.1)]), Bot.Mode.ADVANCE,
 			sprint), 0, "never turning across")
+
+
+func test_a_bot_keeps_firing_with_a_teammate_nowhere_near_the_line() -> void:
+	# QA (WL10): the wider check must not freeze an ordinary firefight. Bot 0 shoots up East yard at an enemy 12 m off.
+	for mode: Bot.Mode in [Bot.Mode.ADVANCE, Bot.Mode.FIGHT]:
+		assert_gt(_shots_past_a_walker(Vector3(20.0, 0.0, 6.0), PackedVector3Array(), mode), 0, "mate behind the shooter")
+		assert_gt(_shots_past_a_walker(Vector3(20.0, 0.0, 4.0), PackedVector3Array(), mode, Vector3(0.0, 0.0, -4.0)),
+				0, "mate behind the shooter, running up the line")
+		assert_gt(_shots_past_a_walker(Vector3(20.0, 0.0, -12.0) + Vector3(6.0, 0.0, 0.0), PackedVector3Array(), mode),
+				0, "mate in another lane, level with the enemy")
+	assert_gt(_shots_past_a_walker(Vector3(21.5, 0.0, 0.0), PackedVector3Array(), Bot.Mode.FIGHT), 0,
+			"mate shoulder to shoulder")
+
+
+func test_a_teammate_who_is_out_stops_only_the_bbs_before_the_target() -> void:
+	var out := Character.Status.OUT
+	var walking := Character.Status.WALKING_OFF
+	assert_gt(_shots_past_a_walker(Vector3(20.0, 0.0, -25.0), PackedVector3Array(), Bot.Mode.FIGHT, Vector3.ZERO, out),
+			0, "out, past the target in the line")
+	assert_gt(_shots_past_a_walker(Vector3(21.2, 0.0, -9.0), PackedVector3Array(), Bot.Mode.FIGHT, Vector3.ZERO, out),
+			0, "out, just off the line, no run to fear")
+	assert_eq(_shots_past_a_walker(Vector3(20.0, 0.0, -6.0), PackedVector3Array(), Bot.Mode.FIGHT, Vector3.ZERO, walking),
+			0, "walking off, in the line before the target: every body stops a BB")
 
 
 func test_a_miss_flies_on_past_a_near_target_as_far_as_a_bb_carries() -> void:
