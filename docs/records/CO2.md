@@ -1,14 +1,14 @@
 # CO2 · Callouts in the feed and the radio click
 
-**Review:** not yet
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-25 | 1 | worker | 3310 / 3310 | – | – |
+| 2026-10-25 | 1 | worker | 3310 / 3310 | – (QA Fail: blocking 1) | – |
 | 2026-10-25 | 2 | worker | 3325 / 3325 | Retry 7/8 | fix round 1: QA blocking 1 fixed (on Keep a call pushed a hit out of a feed full of hits) |
-| 2026-10-25 | 3 | worker | see Gate | – | fix round 2: critic check 1 (Keep feed refused calls) fixed |
+| 2026-10-25 | 3 | worker | see Gate | Accept 8/8 | fix round 2: critic check 1 (Keep feed refused calls) fixed |
 
 ## Goal
 
@@ -147,6 +147,14 @@ In `screenshots/step27/` (project files), each a real match on Depot with bots p
 - `game/ui/settings_screen.gd` (fix round 1: `follow_focus` on every tab's page, the QA advisory).
 - `game/play/README.md`, `game/config/README.md`, `docs/KNOWN_ISSUES.md`, `docs/wiki/Roadmap.md`,
   `docs/wiki/Accessibility.md`, `changelog.d/bot-callouts.md` (its "in a coming update" sentence): docs.
+
+## Advisories left
+
+- **A click is not cut at a round's end** (QA): it is short and its voices stop when SimAudio is freed.
+- **Enemy clicks share the field voice pool with steps and shots** (performance): within the cue_voices cap; PLAYTEST
+  asks for a listen in a firefight.
+- **Small notes** (critic): one wiki line in HUD-and-Minimap.md runs past the wrap width; no test for a call left
+  unread while What got you holds the feed to none.
 
 ## Gate
 

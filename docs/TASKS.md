@@ -4,32 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## CO2 · Callouts in the feed and the radio click (Dev)
-when: build order step 27, after CO1
-tier: ui
-perf: required
-touches: game/ui/hit_feed.gd, game/ui/hud_feed.gd, game/ui/hud_feed_row.gd, game/ui/hud.gd, game/config/hud_config.gd,
-  game/config/play_tuning.tres, game/play/play_session.gd, game/play/sim_audio.gd, game/config/sound_config.gd,
-  game/save/hud_prefs.gd, game/save/settings.gd, game/ui/settings_hud_page.gd, game/ui/announcer.gd,
-  game/ui/text/en.po, tests/unit/, docs/wiki/HUD-and-Minimap.md, docs/wiki/Bots.md, docs/wiki/Settings.md,
-  docs/PLAYTEST.md
-contract: Simulation and presentation (1); Saves (8)
-acceptance:
-  1. Your teammates' calls show in the one hit feed with the hits, newest on top (bottom left, newest at the bottom,
-     when the feed is moved there), as `concepts/step27/callouts.png`: the speaker's chevron and name in your team's
-     colour, a radio glyph, the words. A call keeps the hit rows' time and fade and counts toward feed_lines; with Feed
-     lines › Keep, hits stay and calls still go. The other team's words never show.
-  2. Each call plays the radio click (`radio_ack`) from the speaker, panned at most SoundConfig's radio pan toward
-     them; an enemy's call within 15 m plays only its click from where they stand, muffled through walls by
-     `SoundOcclusion`.
-  3. Settings › HUD › Callouts, On by default and saved (an old settings file loads On): Off hides the call rows and
-     stops every call's click at once; an order taken still clicks.
-  4. With Screen reader messages on, each call is a polite message ("Brick: Two, Crate yard!").
-  5. The feed is cleared at a round's start; rows are made once and refilled, so a call allocates nothing per frame
-     beyond its text. The smoke test plays a match with callouts on with no script errors.
-status: open
-attempts: 0
-
 ## OV1 · The overtime flag's rules (Dev)
 when: build order step 27, after CO1 (may run beside CO2)
 tier: core
