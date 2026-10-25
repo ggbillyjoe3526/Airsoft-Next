@@ -152,7 +152,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
           Get-ChildItem dist
 
-      - name: Check the installer installs and uninstalls silently
+      - name: Check the installer installs silently
         shell: pwsh
         env:
           TAG: ${{ needs.version.outputs.tag }}
@@ -163,11 +163,40 @@ jobs:
           if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
           if (-not (Test-Path "$dir\Airsoft.exe")) { throw "game exe missing after install" }
           if (-not (Test-Path "$dir\THIRD_PARTY_NOTICES.txt")) { throw "licence notices missing after install" }
+          Write-Host "Install OK"
+
+      # The Linux build is played in the export job; this plays the Windows build players actually install: the same
+      # headless smoke match, the version on the title, and no script errors.
+      - name: Check the installed game starts, plays and shows its version
+        shell: pwsh
+        env:
+          NAME: ${{ needs.version.outputs.name }}
+        run: |
+          $dir = "$env:RUNNER_TEMP\AirsoftTest"
+          $log = "$env:RUNNER_TEMP\windows-smoke.log"
+          $p = Start-Process "$dir\Airsoft.exe" -ArgumentList "--headless", "--log-file", "`"$log`"", "--", "--smoke" -PassThru `
+            -RedirectStandardOutput "$env:RUNNER_TEMP\windows-smoke.out" -RedirectStandardError "$env:RUNNER_TEMP\windows-smoke.err"
+          $null = $p.Handle # keeps the exit code readable after the wait
+          if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "the game didn't finish the smoke run in 5 minutes" }
+          $text = Get-Content $log -Raw -ErrorAction SilentlyContinue
+          if (-not $text) { throw "the game wrote no log to $log (exit code $($p.ExitCode))" }
+          $errors = Select-String -Path $log -Pattern "SCRIPT ERROR|Parse Error"
+          if ($p.ExitCode -ne 0 -or $errors -or $text -notmatch "(?m)^\[smoke\] ok") {
+            Get-Content $log -Tail 40
+            throw "Windows smoke run failed: exit code $($p.ExitCode), $(@($errors).Count) script errors"
+          }
+          if (-not $text.Contains("[boot] Airsoft $env:NAME ")) { Get-Content $log -Tail 40; throw "the title doesn't show $env:NAME" }
+          Select-String -Path $log -Pattern "^\[smoke\] ok" | ForEach-Object { $_.Line }
+
+      - name: Check the uninstaller removes the game silently
+        shell: pwsh
+        run: |
+          $dir = "$env:RUNNER_TEMP\AirsoftTest"
           $p = Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
           if ($p.ExitCode -ne 0) { throw "uninstaller exit code $($p.ExitCode)" }
           Start-Sleep -Seconds 3
           if (Test-Path "$dir\Airsoft.exe") { throw "game exe still there after uninstall" }
-          Write-Host "Install and uninstall OK"
+          Write-Host "Uninstall OK"
 
       - uses: actions/upload-artifact@v7
         with:
