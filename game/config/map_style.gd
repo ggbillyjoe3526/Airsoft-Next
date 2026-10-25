@@ -82,6 +82,10 @@ extends Resource
 @export var canopy_trees: int = 3
 @export var canopy_radius: float = 4.0
 @export var canopy_cell: float = 1.0
+## The most fireflies and wood trees beyond the fence a map's `dressing` may ask for (WL4): more are cut to this
+## with a warning, as each costs load time and a drawn copy.
+@export var most_fireflies: int = 1000
+@export var most_forest_trees: int = 6000
 ## Greybox roughness, and the floor grid: one darker line every `grid_size` metres, `grid_shade` of the colour.
 @export var roughness: float = 0.85
 @export var grid_size: float = 1.0

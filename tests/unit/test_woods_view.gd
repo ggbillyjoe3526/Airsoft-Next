@@ -67,6 +67,24 @@ func test_a_bad_dressing_entry_warns_and_is_left_out() -> void:
 	assert_true(m.puddles[0].mud, "as mud")
 
 
+func test_more_fireflies_or_forest_trees_than_the_most_are_cut_to_it_with_a_warning() -> void:
+	var text := """{"name": "Yard", "blocks": [
+		{"kind": "floor", "center": {"x": 0, "y": -0.25, "z": 0}, "size": {"x": 20, "y": 0.5, "z": 20}}],
+		"spawns": [[{"position": {"x": -5, "y": 0, "z": 0}}], [{"position": {"x": 5, "y": 0, "z": 0}}]],
+		"deadZones": [[{"position": {"x": -6, "y": 0, "z": 6}}], [{"position": {"x": 6, "y": 0, "z": 6}}]],
+		"dressing": {"fireflies": {"count": %d}, "forest": {"trees": %d}}}"""
+	var style := play.map_style
+	var m := MapData.parse(text % [1000000, 100000], style, 1)
+	assert_eq([m.fireflies, m.forest_trees], [style.most_fireflies, style.most_forest_trees], "cut to the most")
+	var said := "\n".join(m.warnings)
+	assert_string_contains(said, "dressing.fireflies.count is more than the most")
+	assert_string_contains(said, "dressing.forest.trees is more than the most")
+	var fine := MapData.parse(text % [style.most_fireflies, style.most_forest_trees], style, 1)
+	assert_eq(fine.warnings, [] as Array[String], "the most itself is fine")
+	assert_gt(style.most_forest_trees, woodland.forest_trees, "Woodland's wood under the most")
+	assert_gt(style.most_fireflies, woodland.fireflies, "and its fireflies")
+
+
 func test_every_tree_has_one_crown_over_everyone_s_head_and_over_its_trunk() -> void:
 	var trees: Array[MapData.Block] = []
 	for b in woodland.blocks:
@@ -297,9 +315,12 @@ func test_it_is_look_only_the_field_checks_nav_grid_and_a_seeded_match_come_out_
 	var with_it := on.play(MATCH_SEED, MATCH_SECONDS)
 	on.free_level()
 	dressed.free()
+	# before_all's view leaves the tree too, so nothing of any wood is in the world for this run
+	remove_child(view)
 	var off := MatchRunner.new(self, "woodland", tuning, null, bare)
 	var without := off.play(MATCH_SEED, MATCH_SECONDS)
 	off.free_level()
+	add_child(view)
 	gut.p("%d ticks, %d hits, farthest %s" % [with_it.ticks, with_it.hits, with_it.farthest])
 	assert_gt(with_it.farthest[0], 5.0, "the bots left their spawns")
 	assert_eq([with_it.ticks, with_it.hits, with_it.rounds.size()], [without.ticks, without.hits, without.rounds.size()],

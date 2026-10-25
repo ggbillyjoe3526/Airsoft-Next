@@ -1,12 +1,13 @@
 # WL4 · Woodland's look in placeholders
 
-**Review:** pending
+**Review:** qa Pass · performance Pass · critic pending
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | 3027 / 3027 | – | – |
+| 2026-10-25 | 2 | worker | 3047 / 3047 | – | Fix round on QA and performance advisories: counts capped, the match test blind to a leak |
 
 ## Goal
 
@@ -70,6 +71,14 @@ match come out the same without it. The sloping ground is cut into 32 m tiles th
 - **The map card stays a day aerial** on High (the night is too dark at the card's size).
 - **Blades are two faces,** one each way, not one face drawn from both sides: the Compatibility renderer lights a back
   face black whatever its normal.
+- **Fireflies and forest trees are capped** at `MapStyle.most_fireflies` 1,000 and `most_forest_trees` 6,000 (attempt
+  2): more is cut to the most with a warning (1,000,000 fireflies built for 3.4 s, 100,000 trees for 4.1 s). Woodland
+  asks for 150 and 2,000.
+- **Neon Heights' night now draws motes:** its file carries the browser's `dressing.motes` (neonHeightsDressing.ts),
+  kept for parity, so at night it builds a WoodsView of the night air alone: 160 additive specks, one draw, the Wind
+  dust share (none on Low). Its day and Depot are unchanged.
+- **Depot's and the range's puddles are read but unused** (7 and 3 in their files): they have no sloping ground, so
+  nothing is drawn and nothing warns.
 - **The leaf plum #7d3b52 stays:** 22 degrees from HC Beta, outside the 20-degree band.
 
 ## Measurements
@@ -137,11 +146,36 @@ map already read can be played), the READMEs of `game/play`, `game/config` and `
 skyline's treelines), `docs/KNOWN_ISSUES.md` (the tiling row goes; the skyline row no longer lists the treelines),
 `docs/PLAYTEST.md`, `changelog.d/woodland-look.md`.
 
+## Fix round (attempt 2)
+
+QA (`pipeline/out/qa-report.md`) and performance (`pipeline/out/performance.md`) passed attempt 1 with advisories.
+
+- **Counts capped** (above), `test_woods_view.gd`'s new cap test: a million fireflies and 100,000 trees come out at the
+  most with a warning each, the most itself warns nothing.
+- **The look-only match test** now takes before_all's view out of the tree for the run without the dressing, so the
+  one run has a fully drawn night wood in the world and the other none; QA's ray sweep
+  (`test_woods_view_qa.gd`) sees a leaked body no bot meets, which the match can't.
+- **`Placed.multimesh()` with one buffer** was tried and dropped: identical buffers on OpenGL (all 15 MultiMeshes),
+  but 19.8 ms against 12.4 ms for the per-copy calls, as GDScript writes the 24 floats a copy slower than the engine
+  sets them. The tufts' 72 ms is their placement, not the MultiMesh.
+
+## Advisories left
+
+- `ShaderPrewarm` draws the tuft and air materials on a plain quad, not a MultiMesh with instance colours and custom
+  data: on Forward+ they may compile one more variant on first sight (performance; unverifiable headless, as for the
+  skyline and the dust).
+- The view's 180 ms build stays on the main thread behind the loading screen (performance: acceptable).
+- Neon Heights' night motes are a visible change on a map the task doesn't name; the owner may want them off
+  (`dressing.motes` out of its file).
+
 ## Checks
 
 `tools/check.sh`, 2026-10-25: gdlint, the changelog notes, the unit tests (3,027 of 3,027; part 1 314 s, part 2
 473 s), the smoke test and the licence notices all pass. The first run failed one test, `test_saved_configs.gd`: the
 new `woods` config wasn't written into `play_tuning.tres`, so an export would have shipped it null; it is now. Alone:
 `test_woods_view.gd` 11, `test_skyline.gd` 12, `test_terrain.gd` 29, `test_dp2_qa.gd` 9, `test_saved_configs.gd` 1.
+
+Attempt 2's gate, 2026-10-25, on the rebased branch with QA's tests: every step passes, 3,047 of 3,047 (part 1
+340 s, part 2 510 s); `test_woods_view.gd` 12 and `test_woods_view_qa.gd` 9 pass alone.
 
 Not verified: how any of it looks and costs on Forward+ and a real GPU (PLAYTEST › Woodland › The wood's look).

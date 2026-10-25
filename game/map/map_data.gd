@@ -174,7 +174,7 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m._read_lights(d.get("lights"))
 	m.skyline = SkylinePiece.read(d.get("dressing"), m.warnings)
 	m._read_kicked_dust(d.get("dressing"))
-	m._read_woods(d.get("dressing"))
+	m._read_woods(d.get("dressing"), style)
 	for w in m.warnings:
 		push_warning("MapData: " + w)
 	var pole: Variant = d.get("flag")
@@ -534,7 +534,7 @@ func _read_kicked_dust(dressing: Variant) -> void:
 	kicked_dust_scale = float(size)
 
 
-func _read_woods(dressing: Variant) -> void:
+func _read_woods(dressing: Variant, style: MapStyle) -> void:
 	if not dressing is Dictionary:
 		return
 	var d: Dictionary = dressing
@@ -565,8 +565,10 @@ func _read_woods(dressing: Variant) -> void:
 		puddles.append(p)
 	if not pools is Array:
 		warnings.append("dressing.puddles is not a list; no puddles")
-	fireflies = _count(_block_of(d, "fireflies", ["count"]).get("count", 0), "dressing.fireflies.count")
-	forest_trees = _count(_block_of(d, "forest", ["trees"]).get("trees", 0), "dressing.forest.trees")
+	fireflies = _count(_block_of(d, "fireflies", ["count"]).get("count", 0), "dressing.fireflies.count",
+			style.most_fireflies)
+	forest_trees = _count(_block_of(d, "forest", ["trees"]).get("trees", 0), "dressing.forest.trees",
+			style.most_forest_trees)
 	var grass: Variant = _block_of(d, "grass", ["height"]).get("height", 0.0)
 	grass_height = maxf(_number(grass, -1.0), 0.0)
 	if _number(grass, -1.0) < 0.0:
@@ -598,12 +600,16 @@ func _share(raw: Variant, what: String) -> float:
 	return v
 
 
-## A count, a whole number 0 or more: anything else is 0 with a warning naming `what`.
-func _count(raw: Variant, what: String) -> int:
+## A count, a whole number 0 or more: anything else is 0 with a warning naming `what`; more than `most` is `most`,
+## with a warning.
+func _count(raw: Variant, what: String, most: int) -> int:
 	var v := _number(raw, -1.0)
 	if v < 0.0 or v != floorf(v):
 		warnings.append("%s is not a whole number; none" % what)
 		return 0
+	if v > most:
+		warnings.append("%s is more than the most a map may ask for; %d" % [what, most])
+		return most
 	return int(v)
 
 
