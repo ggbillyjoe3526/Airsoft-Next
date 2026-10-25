@@ -52,9 +52,9 @@ exactly as they are.
 - Tests: `tests/unit/test_practice_spots.gd` (13); `test_match_page.gd`, `test_rg4_practice.gd`, `test_mn2_qa.gd`
   (Practice on a field), `test_hud_minimap.gd` (the range's session set before it builds; a field's practice minimap),
   `test_dp3_qa.gd` (the range's skyline now smokes: its smoke is taken off for the no-smoke test).
-- The unit tests in three parts: with this task's tests part 2 ran 571 s, so `tools/unit_tests.sh` splits at `test_de`
-  and `test_re` (GUT's JUnit times per file: 345, 344 and 346 s), with a third gate in `tools/check.sh`, a third CI
-  job (`unit-3`), and `docs/PROCESS.md` and `docs/records/CI1.md` to match.
+- The unit tests in three parts: with this task's tests part 2 ran 571 s, so `tools/unit_tests.sh` splits at `test_df`
+  and `test_rg` (first `test_de` and `test_re`; moved in the fix round), with a third gate in
+  `tools/check.sh`, a third CI job (`unit-3`), and `docs/PROCESS.md` and `docs/records/CI1.md` to match.
 
 Outside `touches`: `game/sim/range_challenge.gd` is in it; outside are `game/ui/hud.gd`, `game/ui/hud_range_readout.gd`,
 `game/ui/hud_minimap.gd` (the readout and caption on a field), `assets/maps/range.jpg`, `data/maps.md` (the Kind line),
@@ -99,6 +99,25 @@ and bake unchanged; its skyline is one mesh as before.
 passes (7 of 7). The first run, before the split and two test fixes, had parts of 500 s and 571 s and two failures:
 `test_rg4_qa` (a field with no pole kept the Range's Practice; `MatchPage` now falls back to the field's first mode)
 and `test_mn2_qa` (it asserted Practice greyed on a field, which WL9 changes).
+
+## Fix round (QA and performance advisories)
+
+- **A field's run looks for a target in sight every 0.25 s, not every tick** (performance 1): after finding none it
+  waits `RangeConfig.field_sight_retry` (0.25 s) before casting its rays again; the range, with no sight test, looks
+  every tick as before. Test: `test_on_a_field_a_run_with_nothing_in_sight_looks_again_only_now_and_then` (rays over a
+  second at most one a retry, and a figure lit within one retry of stepping out from behind the wall).
+- **A field picked from the Range opens on its own mode** (QA 1): `MatchPage` remembers the mode of the field you left
+  for the Range (Practice too) and gives it back; a page that opened on the Range (saved Range picks) gives a field its
+  first mode, Elimination, as on main. Practice picked on a field still carries to the next field.
+  `test_wl9_qa.gd`'s saved-picks test now asserts Elimination, then Practice carried from Depot to Neon Heights.
+- **No RANGE ONLY left in comments** (QA 2): `menu_tag.gd` and `match_page.gd`.
+- **The unit parts are rebalanced** (performance 4): they had run 307, 402 and 325 s. `test_pl`, as suggested, gave
+  323, 372 and 399 s; each file timed from its start in the log (GUT's JUnit times undercount the session files'
+  awaits) puts the boundaries at `test_df` and `test_rg`, 368, 365 and 361 s by those times. `tools/unit_tests.sh`, the
+  CI step names, `docs/PROCESS.md` and `docs/records/CI1.md`. One gate run on the way stopped at the 1,080 s limit in
+  `test_holster_edges.gd`'s `before_all` (Depot's level and nav grid); it passes alone in 1 s and part 2 passed on a
+  rerun, so it is noted, not chased.
+- Gate: FIX_GATE
 
 ## Verified
 

@@ -279,6 +279,51 @@ func test_on_a_field_the_challenge_lights_only_targets_in_your_sight() -> void:
 			1e-4, "lit for how far it is from where you stand")
 
 
+func test_on_a_field_a_run_with_nothing_in_sight_looks_again_only_now_and_then() -> void:
+	var world := CountingWorld.new(tuning.body)
+	world.add_floor(80.0, 80.0)
+	world.add_box(Vector3(0.0, 1.5, -9.0), Vector3(3.0, 3.0, 0.4))
+	var figure := RangeTarget.Spec.new()
+	figure.kind = RangeTarget.Kind.FIGURE
+	figure.position = Vector3(0.0, 0.0, -12.0)
+	figure.label = PracticeSpots.FIGURE
+	var start := RangeTarget.Spec.new()
+	start.position = Vector3(0.0, cfg.start_height, -4.0)
+	start.radius = cfg.plate_radius
+	start.start = true
+	var specs: Array[RangeTarget.Spec] = [figure, start]
+	var rng := Seeds.stream(9)
+	var targets := RangeTargets.create(specs, tuning, rng)
+	var me := Character.new(0, 0, Vector3(0.0, tuning.body.rest_gap, 0.0), 0.0, ReplicaStats.default_loadout())
+	var c := RangeChallenge.new("depot", 0)
+	c.sight = RangeChallenge.Sight.new()
+	c.sight.query = world
+	c.sight.watcher = me
+	c.sight.body = tuning.body
+	c.sight.hits = tuning.hits
+	c.sight.reach = cfg.field_sight_reach
+	c.set_on(true, targets, cfg, rng)
+	var events := SimEvents.new()
+	var e := events.add(GameEvent.Kind.TARGET_HIT)
+	e.actor = 0
+	e.target = 1
+	c.step(targets, events, cfg, 1.0 / 60.0, rng, false)
+	events.clear()
+	while c.phase != RangeChallenge.Phase.RUNNING:
+		c.step(targets, events, cfg, 1.0 / 60.0, rng, false)
+	world.rays = 0
+	for i in 60:
+		c.step(targets, events, cfg, 1.0 / 60.0, rng, false)
+	assert_eq(targets[0].lit, 0.0, "behind the wall")
+	assert_between(world.rays, 1, ceili(1.0 / cfg.field_sight_retry) + 1, "a look every %.2f s, not every tick"
+			% cfg.field_sight_retry)
+	# Step out from behind the wall: the figure lights within one retry.
+	me.position.x = 8.0
+	for i in ceili(cfg.field_sight_retry * 60.0) + 1:
+		c.step(targets, events, cfg, 1.0 / 60.0, rng, false)
+	assert_gt(targets[0].lit, 0.0, "in sight again")
+
+
 func test_each_map_keeps_its_own_best_old_range_bests_carry_over_and_a_helped_run_never_counts() -> void:
 	var r := Records.new()
 	r.from_dict({"best_challenge": {"range": 14}})
@@ -379,3 +424,13 @@ func _start_yaw(targets: Array[RangeTarget]) -> float:
 		if t.start:
 			return t.yaw
 	return NAN
+
+
+## A BoxWorld that counts its rays.
+class CountingWorld:
+	extends BoxWorld
+	var rays: int = 0
+
+	func ray(from: Vector3, to: Vector3, hit: RayHit) -> bool:
+		rays += 1
+		return super.ray(from, to, hit)

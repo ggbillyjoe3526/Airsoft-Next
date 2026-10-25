@@ -82,6 +82,9 @@ var sight: Sight = null
 var _run: Run = Run.new()
 ## The targets that can light this tick, by index (lit_one), and how many: grown once, never shrunk.
 var _candidates: PackedInt32Array = PackedInt32Array()
+## On a field, seconds before a run looks again for a target in sight after finding none (RangeConfig.field_sight_retry);
+## always 0 on the range, which looks every tick.
+var _sight_wait: float = 0.0
 
 
 func _init(course_id: String = "", best_kept: int = 0) -> void:
@@ -138,6 +141,7 @@ func step(targets: Array[RangeTarget], events: SimEvents, cfg: RangeConfig, dt: 
 			missed = 0
 			last = null
 			_cue(events, Cue.GO, 0)
+			_sight_wait = 0.0
 			for i in cfg.challenge_lit_at_once:
 				_light_one(targets, cfg, rng)
 		Phase.RUNNING:
@@ -170,7 +174,12 @@ func _step_run(targets: Array[RangeTarget], events: SimEvents, cfg: RangeConfig,
 			else:
 				missed += 1
 				_put_out(t, cfg)
-	while lit < cfg.challenge_lit_at_once and _light_one(targets, cfg, rng):
+	_sight_wait = maxf(0.0, _sight_wait - dt)
+	while lit < cfg.challenge_lit_at_once and _sight_wait <= 0.0:
+		if not _light_one(targets, cfg, rng):
+			if sight != null:
+				_sight_wait = cfg.field_sight_retry
+			break
 		lit += 1
 	clock -= dt
 	if clock > 0.0:

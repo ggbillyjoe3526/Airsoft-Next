@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Unit tests (Gut, addons/gut): the test_*.gd under tests/unit, headless, in three parts of about the same time (CI1,
-# WL9): part 1 the files before test_de (test_a* to test_da*, test_bots.gd's whole bot matches among them), part 2 from
-# test_de to before test_re (test_range* among them), part 3 the rest.
+# WL9): part 1 the files before test_df (test_a* to test_dev*, test_bots.gd's whole bot matches among them), part 2
+# from test_df to before test_rg (test_play* and test_range* among them), part 3 the rest.
 # Each part is a Godot run of its own with its own limit; CI runs them as three jobs side by side. Settings live in
 # .gutconfig.json. Prints each failure as "FAIL: <file> <test>: <message>" and the totals, the whole output in
 # unit-<part>.log; fails if any test fails or any script error is printed.
@@ -23,14 +23,14 @@ if [ "$part" != 1 ] && [ "$part" != 2 ] && [ "$part" != 3 ]; then
 fi
 LOG="unit-$part.log"
 
-# This part's files by name, byte by byte whatever the locale: part 1 sorts before test_de, part 2 from test_de to
-# before test_re, part 3 from test_re on.
+# This part's files by name, byte by byte whatever the locale: part 1 sorts before test_df, part 2 from test_df to
+# before test_rg, part 3 from test_rg on.
 files=()
 while IFS= read -r f; do
   files+=("res://$f")
 done < <(find tests/unit -name 'test_*.gd' | LC_ALL=C sort | LC_ALL=C awk -v part="$part" '{
   name = $0; sub(/.*\//, "", name)
-  at = name < "test_de" ? 1 : (name < "test_re" ? 2 : 3)
+  at = name < "test_df" ? 1 : (name < "test_rg" ? 2 : 3)
   if (at == part) print
 }')
 if [ "${#files[@]}" -eq 0 ]; then

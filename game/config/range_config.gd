@@ -112,6 +112,9 @@ extends Resource
 ## The timed challenge on a field lights only targets in your sight and no further than this (m): about the range's far
 ## plates, the most a replica reaches with holdover.
 @export var field_sight_reach: float = 50.0
+## After a run on a field finds no target in sight to light, how long before it looks again (s): each look is a ray to
+## every target, so not every tick.
+@export var field_sight_retry: float = 0.25
 ## How far up from the nav floor the real floor is looked for (m), and how far down.
 @export var field_floor_up: float = 0.6
 @export var field_floor_down: float = 1.6

@@ -109,11 +109,17 @@ func test_a_saved_range_and_practice_then_a_field_does_not_come_back_as_practice
 	var picks := MatchPicks.new()
 	picks.map_id = "range"
 	picks.mode = MatchOptions.MODE_PRACTICE
-	var page := MatchPage.new(picks, Settings.new())
+	var settings := Settings.new()
+	settings.dev_enabled = true
+	settings.dev.dev_content = true
+	var page := MatchPage.new(picks, settings)
 	add_child_autofree(page)
 	page.map_card("depot").pressed.emit()
-	gut.p("saved range+practice, pick Depot: mode is %s" % picks.mode)
-	assert_true(MatchOptions.MODES.has(picks.mode))
+	assert_eq(picks.mode, MatchOptions.MODE_ELIMINATION, "the Range forced Practice: a field opens on its first mode")
+	# Practice picked on a field still carries to the next field.
+	page.mode_card(MatchOptions.MODE_PRACTICE).pressed.emit()
+	page.map_card("neonHeights").pressed.emit()
+	assert_eq(picks.mode, MatchOptions.MODE_PRACTICE)
 
 
 func test_practice_resumed_on_a_field_puts_you_back_and_lays_out_the_same_targets() -> void:
