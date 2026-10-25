@@ -73,11 +73,21 @@ at its level, never how well (`BotPersonality`).
 | `bot_flag.gd` | Attack / Defend: each bot's side, which attacker raises the flag and which defenders pull it down, when a bot wants the pole |
 | `squad_orders.gd`, `squad_order_book.gd` | Squad orders: carrying each out (Follow me's spots and pace, Hold here's spot and each holder's place, Regroup); the orders in force, handed out and ended |
 | `bot_roster.gd`, `bot_personality.gd` | Each bot's name and personality for a match; a personality laid over the level's skill, and its habits |
+| `callouts.gd`, `callout_log.gd` | `Callouts`: what the bots call to their team (`data/callouts.md`), read off what they do after each step on a seeded stream of its own, never writing a bot or the state; `CalloutLog`: the calls said, a fixed ring the presentation reads |
 
 Nothing allocates per tick once warm. Route searches (`NavGrid.find_route`) are queued round-robin and kept to
 `NavConfig.search_budget` a tick (one, the browser's NAV.searchBudget counted in searches: AStar3D can't pause one), a
 walk-off due taking the tick's first (`BotRoutes.plan`, WL2). At 6v6 on Woodland a bot waits at most 0.08 s for its route.
 
+## Callouts
+
+After each step (`BotController.observe`) the bots put what they just did into words for their team, as
+`data/callouts.md` says: a fresh sighting (Contact, Contacts), a noise while nobody on the team sees anyone (Heard), the
+team's hits (Down, Last one), a reload under threat, setting off after someone (Pushing, Flanking, Checking), settling
+at a hold, and the flag going up (Raising, Flag). One call a team at a time, at the file's pace; hit players never talk.
+The calls go into `CalloutLog` and nothing reads them yet (CO2 shows them). The director draws on its own stream, so a
+match plays the same with the callouts or without (`tests/guards/test_callout_guards.gd`).
+
 ## Not yet
 
-No callouts and no magazine sharing (docs/KNOWN_ISSUES.md).
+No pings and no magazine sharing (docs/KNOWN_ISSUES.md); callouts are not shown or heard yet.

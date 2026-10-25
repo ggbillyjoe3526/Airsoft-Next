@@ -3,8 +3,8 @@ name: Checks
 # Every pull request and every push to main: lint the scripts, check the changelog notes and the wiki, run the GUT unit
 # tests (in three parts side by side, CI1), import the project and run the headless smoke test, check the licence
 # notices are current, and play the match guards (whole bot matches over 16 seeds, Elimination and Attack / Defend each a
-# job of their own, the night guards six of their own, WL10; pipeline/README.md › The checks). Fails on any script error
-# or failed test. The Review line is checked by review.yml.
+# job of their own, the night guards six of their own, WL10, the callouts' guards one, CO1; pipeline/README.md › The
+# checks). Fails on any script error or failed test. The Review line is checked by review.yml.
 on:
   pull_request:
   push:
@@ -163,6 +163,33 @@ jobs:
         with:
           name: flag-guards-log
           path: flag-guards.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # The callouts' guards (CO1): Depot played with and without the bots' callouts, and every map's calls kept to the pace.
+  callout-guards:
+    name: Callout guards (every map)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          status: ${{ env.GODOT_STATUS }}
+
+      - name: Callout guards (tests/guards/test_callout_guards.gd)
+        run: tools/match_guards.sh test_callout_guards
+        env:
+          GUARDS_LOG: callout-guards.log
+
+      - name: Keep the log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: callout-guards-log
+          path: callout-guards.log
           if-no-files-found: ignore
           retention-days: 14
 

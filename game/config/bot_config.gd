@@ -15,6 +15,8 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var hard_skill: BotSkill = BotSkill.new()
 ## Squad orders: where bot teammates go when a teammate orders them (SquadOrders).
 @export var squad: SquadConfig = SquadConfig.new()
+## Callouts: how the bots' calls are read off what they do (Callouts; the words and pace are data/callouts.md).
+@export var callouts: CalloutConfig = CalloutConfig.new()
 
 @export_group("Senses")
 ## Seconds between sight checks per bot (staggered across bots): ten a second (DECISIONS 2026-09-30).

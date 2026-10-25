@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://game/config/bot_config.gd" id="1_bcfg1"]
 [ext_resource type="Script" path="res://game/config/bot_skill.gd" id="2_bskl1"]
 [ext_resource type="Script" path="res://game/config/squad_config.gd" id="3_sqcf1"]
+[ext_resource type="Script" path="res://game/config/callout_config.gd" id="4_clcf1"]
 
 [sub_resource type="Resource" id="Resource_nrm01"]
 script = ExtResource("2_bskl1")
@@ -80,9 +81,18 @@ hold_arrive = 0.7
 hold_move = 3.0
 regroup_arrive = 4.0
 
+[sub_resource type="Resource" id="Resource_cll01"]
+script = ExtResource("4_clcf1")
+in_sight = 0.1
+reload_threat = 4.0
+last_one_seen = 3.0
+queue = 3
+log_size = 16
+
 [resource]
 script = ExtResource("1_bcfg1")
 skill = SubResource("Resource_nrm01")
 normal_skill = SubResource("Resource_hard1")
 hard_skill = SubResource("Resource_pro01")
 squad = SubResource("Resource_sqd01")
+callouts = SubResource("Resource_cll01")

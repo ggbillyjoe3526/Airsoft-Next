@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The match guards (tests/guards, MG1 and FG2): whole bot matches over 16 seeds on each field, headless, in Elimination
-# and in Attack / Defend. Many minutes, so they run as CI jobs of their own (one a file) and not in tools/check.sh's unit
-# tests. Prints failures and totals.
+# and in Attack / Defend, and the callouts' guards (CO1: one match a map, the bots' calls checked). Many minutes, so they
+# run as CI jobs of their own (one a file) and not in tools/check.sh's unit tests. Prints failures and totals.
 # Usage: tools/match_guards.sh [file [test]]   (a file in tests/guards, e.g. test_flag_guards, and optionally the tests
 #                                              in it whose names hold `test`, e.g. elimination_at_normal; all of them
 #                                              without one; GODOT=/path/to/godot to override)

@@ -29,6 +29,7 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `replica_config.gd`, `replicas/*.tres` | One replica's stats, the built-in values; `data/stats.md` wins over them |
 | `replica_stats.gd`, `data_table.gd` | Read `data/stats.md`'s tables, the power sources too (a cell that won't read keeps the built-in value and warns) |
 | `bots_file.gd` | Read `data/bots.md`: the bots' roster of names and what each personality changes (a cell that won't read plays neutral and warns) |
+| `callouts_file.gd` | Read `data/callouts.md`: what the bots call, how often (When they call), the pace, the marks, how chatty each personality is and the lines (a row that won't read is left out and warns) |
 | `part_stats.gd` | Read `data/stats.md`'s part tables: optics, grips, lasers, magazines, barrels and muzzle parts (a part with no row changes nothing) |
 | `replica_schemes.gd` | Replica colours: the eight bold schemes and four plain colours, each class's default, the bots' team colours, Realistic colours |
 | `play_tuning.gd`, `play_tuning.tres` | Bundles the play screen's configs below, and the rematch delay |
@@ -59,4 +60,5 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `accessibility_config.gd` | Settings › Accessibility's fixed numbers: the sound cue ring (life, fade, far opacity, markers, radius) and the sound cue size and HUD size sliders' ranges |
 | `bot_config.gd`, `bot_tuning.tres` | How bots play (`BotConfig.load_default()`): senses, aim, firing, lanes and holds, routes, cover, searching, hunting, the holster |
 | `squad_config.gd` | Squad orders (part of `bot_tuning.tres`): Hold here's reach, wall gap, spacing, arrival and move distance |
+| `callout_config.gd` | Callouts (part of `bot_tuning.tres`): how recently an enemy counts as in sight, a reload as under threat and the last one as seen; the calls a team holds back; the said calls kept |
 | `bot_skill.gd` | How well a bot plays: reaction, turn rate, aim error and settling, lead, bursts, holds, the Hard level's tactics |

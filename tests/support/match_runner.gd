@@ -93,6 +93,8 @@ class MatchTally:
 	## Knock-outs in all; those by a teammate's BB (direct), and by the shooter's own bounced BB. A teammate reached
 	## by a bounced BB while ricochets don't count (a RICOCHET_TICK) is counted apart.
 	var hits: int = 0
+	## BBs fired (SHOT events): the callouts' guard plays a match with and without them and compares.
+	var shots: int = 0
 	var friendly_hits: int = 0
 	var self_hits: int = 0
 	var friendly_ricochets: int = 0
@@ -159,6 +161,8 @@ var night: bool = false
 ## bot even by day (ALWAYS: a day match with torches fitted must play exactly as one without).
 enum Lights { BY_RULE, NONE, ALWAYS }
 var lights: Lights = Lights.BY_RULE
+## The bots call to their team (Callouts, CO1); off, they say nothing and must play exactly the same.
+var talk: bool = true
 var _kits: BotKits = null
 var _kit_rules: LoadoutRules = null
 var config: BotConfig = null
@@ -265,7 +269,7 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 		var light := BotKits.night_light(light_rules)
 		for c in state.characters:
 			c.armament.lights = BotKits.lights_for(c.armament.replicas, light_rules, light)
-	var bots := BotController.new(state, -1, map, nav, level.query(), tuning, config, levels, identities)
+	var bots := BotController.new(state, -1, map, nav, level.query(), tuning, config, levels, identities, talk)
 	bots.world.night = NightField.build(map, config, night)
 	t.kits = kit_names
 	t.hits_by.resize(state.characters.size())
@@ -334,6 +338,8 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 		for i in state.events.count:
 			var e := state.events.items[i]
 			match e.kind:
+				GameEvent.Kind.SHOT:
+					t.shots += 1
 				GameEvent.Kind.CHARACTER_HIT:
 					count_hit(state, e, t)
 					var shooter := state.character(e.actor)
