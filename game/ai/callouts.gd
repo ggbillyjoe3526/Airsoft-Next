@@ -10,8 +10,8 @@ extends RefCounted
 ## for a sighting, the same enemy's gap, then rolled against its chance (× the personality's Talks). The team says one
 ## call at a time, at least Pace's team gap apart, the most urgent first (higher in When they call): the others wait in
 ## a short queue (CalloutConfig.queue, the least urgent dropped when it is full), each dropped after Pace's wait, or when
-## a gap it waited through now stops it. Hit players never talk. Tagged (Extraction), the overtime flag, the answers
-## to a ping and the magazine hand-off are read from the file but not raised yet: their systems raise them.
+## a gap it waited through now stops it. Hit players never talk. Tagged (Extraction), the answers to a ping and the
+## magazine hand-off are read from the file but not raised yet: their systems raise them.
 
 const TEAMS := 2
 ## The events any teammate may say (the one nearest to where it happened), not only the bot it happened to: its own
@@ -156,7 +156,7 @@ func _reset() -> void:
 	_held_called.fill(0)
 
 
-## What one of this tick's events gives to call: a hit, a reload, the flag going up.
+## What one of this tick's events gives to call: a hit, a reload, the flag going up, the overtime flag going up.
 func _on_event(e: GameEvent, state: GameState, bots: Array[Bot]) -> void:
 	match e.kind:
 		GameEvent.Kind.CHARACTER_HIT:
@@ -174,6 +174,11 @@ func _on_event(e: GameEvent, state: GameState, bots: Array[Bot]) -> void:
 				return
 			_offer_from_team(attackers, CalloutsFile.Event.RAISING, -1, e.position, bots, "", 0, 0)
 			_offer_from_team(1 - attackers, CalloutsFile.Event.FLAG, -1, e.position, bots, "", 0, 0)
+		GameEvent.Kind.OVERTIME:
+			# Elimination's overtime flag went up (OV2): on each team, the bot nearest it says so, naming its area.
+			var area := area_of(e.position)
+			for t in TEAMS:
+				_offer_from_team(t, CalloutsFile.Event.OVERTIME, -1, e.position, bots, area, 0, 0)
 
 
 ## A hit on the other team: Down with how many are left, or Last one (naming where when the team saw them lately),

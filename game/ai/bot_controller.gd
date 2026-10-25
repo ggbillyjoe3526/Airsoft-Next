@@ -124,8 +124,9 @@ func card_note_of(character_id: int) -> String:
 
 
 ## What the bots heard in the step just taken (or the match's start), a hit on the player kept for "What got you", the
-## squad orders given in it handed out (an order ends once its giver is out, and for a bot that is out), a fresh plan
-## when a round has started (no order outlasts a round), and last what the bots call of it all (Callouts).
+## squad orders given in it handed out (an order ends once its giver is out, and for a bot that is out), each bot's
+## time to set off for the overtime flag once it is up, a fresh plan when a round has started (no order outlasts a
+## round), and last what the bots call of it all (Callouts).
 func observe(state: GameState) -> void:
 	BotHearing.observe(state, world)
 	var events := state.events
@@ -140,6 +141,8 @@ func observe(state: GameState) -> void:
 			orders.give_order(state.character(e.actor), e.value as SquadOrder.Kind, e.value2 == 1)
 		elif e.kind == GameEvent.Kind.SQUAD_ORDER_REFUSED:
 			orders.refused(e.actor)
+		elif e.kind == GameEvent.Kind.OVERTIME:
+			_overtime(state.time)
 	orders.update()
 	if state.events.count_of(GameEvent.Kind.ROUND_START) > 0:
 		_new_round(state)
@@ -191,6 +194,14 @@ func _record_hit(state: GameState, shooter_id: int, bounced: bool) -> void:
 	last_hit.record(state.time, victim, shooter, bounced, known, held, seen_for, world.cfg.hit_moving_speed)
 
 
+## Elimination's overtime flag went up at `time` (OV2): each bot sets off for it once it has taken in the whistle (its
+## skill's overtime_reaction), and draws now whether it goes round the side (its flank_chance), on its own stream.
+func _overtime(time: float) -> void:
+	for b in world.bots:
+		b.overtime_at = time + b.pick(b.skill.overtime_reaction)
+		b.overtime_flank = b.rng.randf() < b.skill.flank_chance
+
+
 func _new_round(state: GameState) -> void:
 	orders.clear()
 	world.time = state.time
@@ -199,12 +210,14 @@ func _new_round(state: GameState) -> void:
 	world.planner.plan(world)
 
 
-## The round's mode, attacking team and flag, from the sim's round state (the flag is the round state's own, read only).
+## The round's mode, attacking team, flag and overtime flag, from the sim's round state (the round state's own, read
+## only).
 func _sync_round(state: GameState) -> void:
 	var rs := state.round_state
 	world.mode = rs.mode
 	world.attackers = rs.attackers
 	world.flag = rs.flag
+	world.overtime_flag = rs.overtime_flag
 
 
 ## The field's walkable extent (its sloping ground, floors and ramps) and a height over all of it, for drawing hunt

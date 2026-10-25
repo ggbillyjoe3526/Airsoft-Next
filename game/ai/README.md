@@ -32,6 +32,12 @@ lane's first or second point, go after only what they see or hear near the pole,
 once it is off the bottom. Two defenders at one point stand side by side, or, playing as a team (Hard), in a crossfire
 on the lane's next point.
 
+In Elimination's overtime (OV2) every bot sets off for the overtime flag's foot once its level's reaction to it going up
+is over (`BotSkill.overtime_reaction`; the controller draws it, and the once-an-overtime flank roll, as the flag goes
+up), by the same flag mode: a fight comes first, a squad order stays in force, and a bot whose roll came up goes round
+a side point first when far out. A personality that watches the flag first (`data/bots.md`) holds crouch cover by it,
+aiming at it, for its seconds, unless it is the last of its team or `BotConfig.overtime_go_by` of the overtime is left.
+
 Each team plays at its level (`BotConfig.skill_for`: Easy, Normal, Hard). Hard is careful, not twitchier: holding,
 it aims at the corners someone would step out of (`BotAngles`) and answers someone appearing there sooner; near the
 enemy it walks and slices corners, leaning past a near one; it watches where someone ducked out before going after them,
@@ -70,7 +76,7 @@ at its level, never how well (`BotPersonality`).
 | `bot_cover.gd` | Crouch cover and lean spots at tall corners that hide a bot from a threat |
 | `bot_movement.gd`, `bot_routes.gd` | Lanes, holds, hunting, searching, strafing, keeping apart; planning nav routes within the tick's search budget and following them |
 | `round_planner.gd` | Each round's team plans and lanes (a flanker's own, an anchor's short one, attackers to the middle, defenders their first points), and hunt spots from the team's memory |
-| `bot_flag.gd` | Attack / Defend: each bot's side, which attacker raises the flag and which defenders pull it down, when a bot wants the pole |
+| `bot_flag.gd` | Attack / Defend: each bot's side, which attacker raises the flag and which defenders pull it down, when a bot wants the pole; when it goes for Elimination's overtime flag, and where flag mode heads |
 | `squad_orders.gd`, `squad_order_book.gd` | Squad orders: carrying each out (Follow me's spots and pace, Hold here's spot and each holder's place, Regroup); the orders in force, handed out and ended |
 | `bot_roster.gd`, `bot_personality.gd` | Each bot's name and personality for a match; a personality laid over the level's skill, and its habits |
 | `callouts.gd`, `callout_log.gd` | `Callouts`: what the bots call to their team (`data/callouts.md`), read off what they do after each step on a seeded stream of its own, never writing a bot or the state; `CalloutLog`: the calls said, a fixed ring the presentation reads |

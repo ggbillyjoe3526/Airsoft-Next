@@ -27,10 +27,10 @@ const ROUND_SLACK := 0.1
 
 
 ## A runner on `map_id` at the team size the game plays there (MatchRunner.sized_for: Woodland 5v5), at `level`, at
-## night when `night` is set or the map offers no day (Woodland), else by day.
+## night when `night` is set or the map offers no day (Woodland), else by day; with `base`'s tuning when given.
 static func runner(test: GutTest, map_id: String, level: StringName, night: bool,
-		mode: RoundState.Mode = RoundState.Mode.ELIMINATION) -> MatchRunner:
-	var r := MatchRunner.new(test, map_id, MatchRunner.sized_for(map_id))
+		mode: RoundState.Mode = RoundState.Mode.ELIMINATION, base: SimTuning = null) -> MatchRunner:
+	var r := MatchRunner.new(test, map_id, MatchRunner.sized_for(map_id, base))
 	r.difficulty = level
 	r.night = night or r.night
 	r.mode = mode
@@ -120,6 +120,44 @@ static func attack_defend(test: GutTest, map_id: String, level: StringName = &"n
 	test.assert_lt(float(on_time) / maxf(rounds, 1.0), STALLED_ROUNDS_MAX, "%s: rounds settle, not stand-offs" % name)
 	r.free_level()
 	return PackedInt32Array([rounds, captures, raised, on_time])
+
+
+## Elimination's overtime flag in play (OV2): Elimination over seeds 1 to `seeds` with `round_time` s rounds, short
+## enough that most run out the clock and go to the flag, checked as Elimination is (every match won, no round past its
+## clock and the flag's time, nobody falls, flies or leaves the level, no bot knocks out a teammate). Returns [rounds,
+## overtimes, taken by a touch, won by a wipe-out, drawn on time] for the file's own checks.
+static func overtime_flag(test: GutTest, map_id: String, round_time: float, level: StringName = &"normal",
+		seeds: int = SEEDS, night: bool = false) -> PackedInt32Array:
+	var base := SimTuning.load_default().duplicate(true) as SimTuning
+	base.rounds.round_time = round_time
+	var r: MatchRunner = await runner(test, map_id, level, night, RoundState.Mode.ELIMINATION, base)
+	test.assert_true(r.map.has_overtime_flag, "%s has an overtime flag" % map_id)
+	var name := "%s %ds rounds" % [label(r, map_id), roundi(round_time)]
+	var longest := longest_round(r.tuning, RoundState.Mode.ELIMINATION)
+	var t := PackedInt32Array([0, 0, 0, 0, 0])
+	for seed_value in range(1, seeds + 1):
+		var m := r.play(seed_value, MAX_MATCH_SECONDS)
+		var at := "%s seed %d" % [name, seed_value]
+		test.assert_true(m.finished, "%s: the match is won" % at)
+		t[0] += m.rounds.size()
+		for round_tally in m.rounds:
+			test.assert_lte(round_tally.seconds, longest, "%s: no round runs past the clock and the flag's time" % at)
+			if not round_tally.overtime:
+				continue
+			t[1] += 1
+			match round_tally.reason:
+				GameEvent.RoundEnd.OVERTIME_FLAG:
+					t[2] += 1
+				GameEvent.RoundEnd.ELIMINATED:
+					t[3] += 1
+				GameEvent.RoundEnd.TIME:
+					t[4] += 1
+		_heights(test, r, m, at)
+		test.assert_eq(m.friendly_hits, 0, "%s: no bot knocks out a teammate" % at)
+	test.gut.p("%s: %d rounds over %d seeds, %d to the overtime flag: %d touched, %d wiped out, %d drawn on time" % [
+			name, t[0], seeds, t[1], t[2], t[3], t[4]])
+	r.free_level()
+	return t
 
 
 ## The longest a round in `mode` may run (s): its clock, the mode's longest overtime and a tick or two.

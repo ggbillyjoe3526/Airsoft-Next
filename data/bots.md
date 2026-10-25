@@ -57,7 +57,6 @@ A personality changes how a bot plays, never how well: its reaction, turning and
 - **Watches the flag first (s).** In Elimination's overtime it first holds cover near the flag for this long, aiming at
   it, before it goes in to touch it; it goes at once when it is the last of its team in play, and every bot goes in
   for the overtime's last seconds. – goes straight for the flag. The column can be left out: then nobody watches first.
-  Read and checked now; it plays once the overtime flag is built.
 
 ## Roster
 

@@ -78,3 +78,9 @@ team's hits ("Two left!", "Last one!"), a reload under fire, setting off after s
 flag going up. A team speaks one call at a time, a moment apart, the most urgent first; each personality has its own
 lines and talks more or less. Hit players never talk, and what a bot says never changes how anyone plays. You see
 only your own team's words; an enemy close by is heard keying their radio.
+
+**The overtime flag:** when Elimination's [overtime flag](Modes#in-development) goes up, every bot sets off to touch
+it a moment after the whistles (slowest on Easy, quickest on Hard), still fighting anyone it sees on the way. Anchors
+and careful bots first watch it from cover close by, aiming at it, for a few seconds, unless they are the last of their
+team or the overtime is nearly over; a flanker may come at it round the side. A bot you gave an order keeps to it. On
+each team the bot nearest the flag calls it, naming where it stands.

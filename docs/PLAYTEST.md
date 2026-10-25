@@ -273,9 +273,15 @@ One BB hit puts anyone out. A round lasts up to 2:30 and the first team to 5 rou
   Custom match at Round time 1:30 is quickest): the round goes on for 30 s with the clock at 0:00. Stand within a metre
   of the spot (Depot: by the Box's east wall, just east of the middle; Neon Heights: on Neon Avenue by the middle;
   Woodland: the east meadow by the middle) and your team wins the round at once; with an enemy there too nobody wins;
-  untouched, a draw and the round replays. Nothing marks it yet and bots don't go for it: the three whistles, "Overtime
-  · touch the flag", the chequered flag and the bots' run come with OV2 and OV3. Does 30 s feel right? Attack / Defend
-  has none.
+  untouched, a draw and the round replays. Nothing marks it yet: the three whistles, "Overtime · touch the flag" and
+  the chequered flag come with OV3. Does 30 s feel right? Attack / Defend has none.
+- [ ] **Bots go for the overtime flag (OV2).** As above, with Dev settings › Bot intentions on: within about a second
+  of the clock running out every bot heads for the spot ("At the flag"), Easy slowest and Hard quickest, and still
+  fights anyone it sees on the way; an anchor or a careful bot first crouches in cover a few metres from the flag
+  aiming at it (an anchor about 12 s, a careful bot 5 s) and goes in for the last 10 s or as the last of its team; a
+  flanker far out sometimes comes in round one side. An order you give (Follow me, Hold here) still holds. On each team
+  the bot nearest the flag calls it in the feed ("Overtime! Flag's up, …"). Does a lone player get a fair race to the
+  flag, and does hiding near it feel like a stand-off rather than a free win?
 - [ ] **Overtime banner (BP5).** It fits on one line at 1280 px wide; the feed (hits and callouts) hides while Tab is
   up.
 - [ ] **Finish a match.** The Match summary ([HUD and match info](#hud-and-match-info)), then the result screen. Go

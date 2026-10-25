@@ -25,6 +25,8 @@ var round_clock: float = INF
 var mode: RoundState.Mode = RoundState.Mode.ELIMINATION
 var attackers: int = -1
 var flag: FlagState = FlagState.new()
+## Elimination's overtime flag (OV2; RoundState's, read each tick): up, its foot and the time it has left.
+var overtime_flag: OvertimeFlag = OvertimeFlag.new()
 ## The dark on a field played at night (WL6): light pools, canopy and roofs, built once as the match loads (null by
 ## day, and sight is as it always was).
 var night: NightField = null

@@ -39,8 +39,7 @@ const HOLD_COLUMN := "Holds until (s left)"
 const HOLD_MAX := 600.0
 ## Yes, no or – (the difficulty's own).
 const LEVEL_HABIT_COLUMNS: Array[Array] = [["Holds angles", &"holds_angles"], ["Slices corners", &"slices_corners"]]
-## Optional: a Habits table without it watches nothing first. Read and checked; the overtime flag comes with Attack /
-## Defend (docs/KNOWN_ISSUES.md).
+## Optional: a Habits table without it watches nothing first (BotPersonality.overtime_watching, OV2).
 const FLAG_COLUMN := "Watches the flag first (s)"
 const FLAG_MAX := 60.0
 ## The cells that mean "nothing here".
