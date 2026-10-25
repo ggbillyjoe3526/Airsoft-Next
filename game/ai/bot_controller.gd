@@ -23,15 +23,18 @@ var order_outcome: SquadOrders.Outcome:
 var held_middle: Vector3:
 	get:
 		return orders.held_middle
+## The bots' callouts (null with them off): what they call to their team, read off what they do after each step.
+var callouts: Callouts = null
 
 
 ## Bots for every character in `state` but `player_id` (-1: everyone), on `map` with its nav grid and level rays, each
 ## team at its level in `team_levels` (team: a MatchOptions.BOT_LEVELS id; a team not in it plays Easy, the baseline),
 ## each with its name and personality in `identities` (by character id, BotRoster.draw; a bot not in it has neither).
-## Their first plan comes with the match's first ROUND_START (observe).
+## Their first plan comes with the match's first ROUND_START (observe). With `talk` the bots call to their team
+## (Callouts, data/callouts.md); off, they play exactly the same and say nothing.
 func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: WorldQuery, tuning: SimTuning,
 		config: BotConfig, team_levels: Dictionary[int, StringName] = {},
-		identities: Dictionary[int, BotRoster.Identity] = {}) -> void:
+		identities: Dictionary[int, BotRoster.Identity] = {}, talk: bool = true) -> void:
 	_player_id = player_id
 	var w := world
 	w.tuning = tuning
@@ -59,6 +62,8 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 	_measure_field(map)
 	w.setup_sectors(w.planner.bounds_lo, w.planner.bounds_hi)
 	orders = SquadOrderBook.new(w)
+	if talk:
+		callouts = Callouts.new(CalloutsFile.shared(), config.callouts, map.areas, state.match_seed)
 
 
 ## Writes each bot's command for this tick into `commands` (indexed by character id). With the Dev settings' Bots hold
@@ -119,8 +124,8 @@ func card_note_of(character_id: int) -> String:
 
 
 ## What the bots heard in the step just taken (or the match's start), a hit on the player kept for "What got you", the
-## squad orders given in it handed out (an order ends once its giver is out, and for a bot that is out), and a fresh plan
-## when a round has started (no order outlasts a round).
+## squad orders given in it handed out (an order ends once its giver is out, and for a bot that is out), a fresh plan
+## when a round has started (no order outlasts a round), and last what the bots call of it all (Callouts).
 func observe(state: GameState) -> void:
 	BotHearing.observe(state, world)
 	var events := state.events
@@ -138,6 +143,8 @@ func observe(state: GameState) -> void:
 	orders.update()
 	if state.events.count_of(GameEvent.Kind.ROUND_START) > 0:
 		_new_round(state)
+	if callouts != null:
+		callouts.observe(state, world)
 
 
 ## A squad order `kind` from `giver` to its bot teammates in play (SquadOrderBook.give_order); returns the order in

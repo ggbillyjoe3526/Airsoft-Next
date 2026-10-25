@@ -4,36 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## CO1 · Bot callouts: who calls what, and when (Dev)
-when: build order step 27, first (plan: project files `plan/step27-deferred.md`)
-tier: core
-perf: required
-touches: data/callouts.md, game/config/callouts_file.gd, game/config/callout_config.gd, game/config/bot_config.gd,
-  game/config/bot_tuning.tres, game/ai/callouts.gd, game/ai/callout_log.gd, game/ai/bot_controller.gd,
-  game/ai/bot_world.gd, game/ai/README.md, game/sim/seeds.gd, game/config/README.md, tests/unit/test_callouts_file.gd,
-  tests/unit/test_callouts.gd, tests/guards/test_callout_guards.gd, tests/support/match_runner.gd,
-  .github/workflows/ci.yml, tools/match_guards.sh, docs/KNOWN_ISSUES.md
-contract: Simulation and presentation (1); Seeded randomness (5); Data, not literals (6); Headless (9)
-acceptance:
-  1. `CalloutsFile` reads `data/callouts.md` at start as `BotsFile` reads `bots.md` (the browser's
-     `config/calloutsFile.ts`): When they call, Pace, Marks, Personalities (Talks ×) and Lines with `{area}`, `{count}`
-     and `{left}`. A row it can't read is left out with a warning naming its line; it never stops the game. The
-     browser's `calloutsFile.test.ts` cases pass in `test_callouts_file.gd`; the file's header names the Godot files.
-  2. The director (`game/ai/callouts.gd`, the browser's `ai/callouts.ts`) runs from `BotController.observe` on its own
-     stream from `Seeds` (salted off the match seed) and raises Contact, Contacts, Heard, Down, Last one, Reloading,
-     Pushing, Flanking, Checking, Holding, Raising and Flag from what the bots and the state already show. It reads
-     bots and state and writes neither. Tagged stays in the file, unread (no Extraction).
-  3. Pace as the file says: one call a team at a time, the team's and a bot's gaps, the same enemy's gap, up to
-     CalloutConfig's queue waiting at most the file's wait, the most urgent first; a newer hit drops a count still
-     waiting; a call from a bot that is hit is dropped; numbers are words to twelve; areas come from `MapAreas`.
-  4. Said calls go into a fixed ring (`CalloutLog`: speaker, team, event, line), made once a match; a tick allocates
-     nothing beyond the line's string when a call is said.
-  5. A guard plays a seeded match on each public field with and without callouts and gets the same shots, hits, rounds
-     and flag; another checks one call a team a tick and the team's and bot's gaps on every map. The record gives calls
-     a team a minute on Depot (both modes), Woodland and Neon Heights beside the browser's (8.2, 11.4, 6.8, 5.5).
-status: open
-attempts: 0
-
 ## CO2 · Callouts in the feed and the radio click (Dev)
 when: build order step 27, after CO1
 tier: ui

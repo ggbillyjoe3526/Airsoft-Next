@@ -4,14 +4,14 @@ What the bots call to their team in a match: which events they call, how often, 
 line, add one, or make the bots talk more or less.
 
 **The game reads this file**, as it reads [bots.md](bots.md): it is bundled into the build and parsed when the game
-starts (`src/config/calloutsFile.ts`, `src/config/calloutLines.ts`). Change a line or a number, run the game, and it
-changes. After editing, run `npm run test`: `src/config/calloutsFile.test.ts` reads this file and fails with the line
-number of anything it can't understand. A row the game can't read is left out, with a warning in the browser console,
-so a typo never stops the game from starting.
+starts (`game/config/callouts_file.gd`; `game/ai/callouts.gd` plays it). Change a line or a number, run the game, and
+it changes. After editing, run `tools/unit_tests.sh`: `tests/unit/test_callouts_file.gd` reads this file and fails with
+the line number of anything it can't understand. A row the game can't read is left out, with a warning in Godot's
+output, so a typo never stops the game from starting.
 
-Callouts are words, never a voice: your teammates' lines show in the callout feed at the bottom left with a radio
-click from where they stand, and an enemy calling close by gives a muffled click from where they stand. What a bot
-says never changes how it plays: the calls are what it already does, put into words.
+Callouts are words, never a voice: your teammates' lines show in the hit feed with a radio click from where they
+stand, and an enemy calling close by gives a muffled click from where they stand. What a bot says never changes how it
+plays: the calls are what it already does, put into words.
 
 ---
 
@@ -33,7 +33,7 @@ says never changes how it plays: the calls are what it already does, put into wo
   Any. Words in braces are filled in: `{area}` is the named area ("Dock"), `{count}` how many ("Two") and `{left}` how
   many of the other team are left. A line with `{area}` is skipped when there is no area to name. Keep lines short (48
   characters at most, with the longest area name in), friendly and airsoft, with no swearing.
-- **Named areas** are each map's own (`areas` in its map file, `src/map/`). The minimap shows the one you stand in.
+- **Named areas** are each map's own (`areas` in its map file, `data/maps/<id>.json`). The minimap shows the one you stand in.
 
 ### The events
 

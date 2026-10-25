@@ -18,6 +18,9 @@ const MINIMAP_MULTIPLIER := 2246822519
 const MINIMAP_PER_MATCH := 374761393
 ## The bots' names' stream (BotRoster) is the seed with these bits flipped ("name"), as the browser game's rosterSeed.
 const ROSTER_XOR := 0x6e616d65
+## The bots' callouts' stream (Callouts) is the seed with these bits flipped, as the browser game's SEED_SALT
+## (ai/callouts.ts): what they say never moves another roll.
+const CALLOUT_XOR := 0x5ca11
 
 
 ## `seed × multiplier + add`, wrapped to 32 bits (GDScript's 64-bit integers wrap on overflow, keeping the low 32 bits
@@ -59,6 +62,12 @@ static func minimap_seed(seed_value: int, match_number: int) -> int:
 ## seed replays the same names and no other roll moves.
 static func roster_seed(seed_value: int) -> int:
 	return (seed_value & MASK_32) ^ ROSTER_XOR
+
+
+## The bots' callouts' stream's seed (Callouts) for a match seeded with `seed_value`: apart from every other, so the
+## calls replay with the seed and play is the same with them or without.
+static func callout_seed(seed_value: int) -> int:
+	return (seed_value & MASK_32) ^ CALLOUT_XOR
 
 
 ## A generator seeded with `seed_value`: every random draw in the simulation comes from one of these.
