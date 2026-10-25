@@ -4,40 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## WL3 · Night light and the Day / Night switch (Dev)
-when: build order step 26, after WL1
-tier: core
-perf: required
-touches: game/config/lighting_config.gd, game/config/play_tuning.tres, game/config/night_lighting.tres,
-  game/play/field_lighting.gd, game/play/light_pools.gd, game/play/play_session.gd, game/play/skyline_view.gd,
-  game/play/skyline_shapes.gd, game/config/skyline_config.gd, game/map/map_data.gd, game/map/baked_light.gd,
-  game/map/map_level.gd, game/save/dev_settings.gd, game/ui/match_rules_box.gd, game/ui/match_page.gd,
-  game/ui/text/en.po, tests/support/field_checks.gd, tests/support/field_standard.gd,
-  tests/unit/test_night_light.gd, tests/unit/test_skyline.gd, tests/unit/test_baked_light.gd, docs/DECISIONS.md,
-  docs/ART.md, docs/PLAYTEST.md
-contract: Simulation and presentation (1); Data, not literals (6); Saves (8)
-acceptance:
-  1. A night LightingConfig beside the day one, from the browser's `LIGHTING_PRESETS.night` as first guesses: a cool
-     moon 18° up, turned toward the map's `moonOver`; a dark sky with stars and the moon's disc on every preset; haze
-     from 20 m; a dim fill; and the map's `lighting.overrides` (Woodland's brighter moon and exposure). Ambience
-     plays its night set and figures their night glow.
-  2. MapData reads `night`, `lighting.presets` and `lights`. A map plays its first preset unless the Match screen's
-     Day / Night row (shown only for a map offering both) or Dev › Time of day (any map, either preset) picks the
-     other; one night flag drives every night system (tested). field.night (the browser's `map.night`) is ported.
-  3. Light pools: each light lights the ground within its radius; the nearest up to the preset's real light count
-     (Low 0, Medium 2, High 4) are real lights and the rest drawn pools; fires flicker, still under Reduced motion.
-     Fires are (255, 228, 160) and lanterns (255, 232, 180), at least 20° of hue from every team colour (tested).
-  4. A bake's hash reads the sun it was baked under, not the playing preset's: Depot at night keeps its bake with no
-     warning, drawn by its sky share alone. The skyline fades to the playing horizon and its hue test passes on the
-     day and night horizons. Depot's mast lamps glow at night with no real light.
-  5. `test_night_light.gd`: under the night preset, earth, wood, skin and both team colour sets on figures keep a
-     set minimum brightness and contrast against the night ground (the record gives the figures), and the colour
-     vision check passes at night.
-  6. The record gives frame time on Low and High at night on Woodland and on Depot by Dev time of day. Pictures of
-     Woodland's west camp, meadow and fort and Depot's masts at night are posted.
-status: open
-attempts: 0
-
 ## WL4 · Woodland's look in placeholders (Dev)
 when: build order step 26, after WL1 (its night parts after WL3)
 tier: core

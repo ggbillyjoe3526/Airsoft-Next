@@ -856,7 +856,7 @@ msgid "RULE_TIME_BLURB_DAY"
 msgstr "Sunlight. Everyone can see a long way."
 
 msgid "RULE_TIME_BLURB_NIGHT"
-msgstr "Moonlight and haze. Fires and lanterns light whoever stands by them."
+msgstr "Moonlight and haze. Fires and lanterns light the ground round them."
 
 msgid "RULE_TEAM_BLURB_1"
 msgstr "You against one bot: no teammates, nobody to cover you."

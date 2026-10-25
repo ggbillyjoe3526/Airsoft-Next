@@ -1,13 +1,13 @@
 # WL3 · Night light and the Day / Night switch
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | 3006 / 3006 | – | – |
-| 2026-10-25 | 2 | worker | 3022 / 3022 | – | QA failed: a pool a real light handed back stayed dimmed (0.944) or dark after a long frame |
+| 2026-10-25 | 2 | worker | 3022 / 3022 | Accept 8/8 | QA failed: a pool a real light handed back stayed dimmed (0.944) or dark after a long frame |
 
 ## Goal
 
@@ -202,3 +202,17 @@ Files outside `touches` in attempt 2: `docs/KNOWN_ISSUES.md` (the shadow-caster 
 Attempt 2's gate, `tools/check.sh`, 2026-10-25: every step passes, 3,022 of 3,022 (part 1 336 s, part 2 485 s, under
 the 600 s limit). `test_night_light.gd` 16, `test_night_light_qa.gd` 9, `test_skyline.gd` 10 and `test_baked_light.gd` 12
 pass alone.
+
+QA's handover test (a13a3af) and a moved doc comment (a70d91a) came after attempt 2's gate; the gate re-run on that head
+passes every step, 3,023 of 3,023.
+
+## Advisories left
+
+- The Night blurb promised that fires light whoever stands by them, which Low (no real lights) doesn't do; it now says
+  they light the ground round them (critic).
+- The Match page's Day / Night row parses the whole map file on the UI thread to read its preset names (Woodland's
+  terrain included); a preset list in the map catalogue would avoid it (critic).
+- The flicker shape's numbers are written twice, in the pool shader and in `flicker_at`; pass them as uniforms so they
+  can't drift (critic).
+- Neon Heights' night fill is now a slight purple tint; the owner's eye decides (QA).
+- Night on High adds 3 to 4 draws of shadow casters under the low moon (KNOWN_ISSUES; performance).
