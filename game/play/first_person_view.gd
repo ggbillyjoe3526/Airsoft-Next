@@ -8,8 +8,8 @@ extends Node3D
 ## never less recoil: the climb shows where the next BB goes. Once hit, the view follows the character's own heading as
 ## it walks off. Zooms a little as the sight comes up (as its optic does; a scope zooms only inside its glass). The
 ## easing runs on rendered frames; the rules stay on the tick. At night the weapon torch of whoever the view is through
-## is a real spot from the rail while lit (WL7, `set_torch`): on Medium and up, one of the preset's real lights, casting
-## shadows on High and Ultra; on Low TorchBeams draws it as a haze.
+## is a real spot from the rail while lit (WL7, `set_torch`): with a light in your kit, on Medium and up, one of the
+## preset's real lights, casting shadows on High and Ultra with Sun shadows on; else TorchBeams draws it as a haze.
 
 ## Recoil on screen follows the simulation's at this rate (1/s), so a 60 Hz kick reads smoothly at any frame rate.
 const RECOIL_FOLLOW := 40.0

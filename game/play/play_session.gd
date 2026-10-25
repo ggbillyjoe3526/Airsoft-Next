@@ -123,6 +123,9 @@ var _light: LightingConfig = null
 var _pools: LightPools = null
 ## The weapon torches drawn at night (TorchBeams; null by day).
 var _torches: TorchBeams = null
+## Whether your kit carries a weapon light this match (fitted at night): only then does the view's torch take one of
+## the light pools' real lights (GraphicsApply.pool_lights).
+var _own_light: bool = false
 ## The skyline round the field, or null on a map without one (SkylineView).
 var _skyline: SkylineView = null
 ## A wood's crowns and dressing, or null on a map with neither (WoodsView, WL4).
@@ -424,6 +427,9 @@ func _start_simulation(map: MapData) -> void:
 	player = Character.new(PLAYER_ID, player_team, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
 	# Your weapon light is fitted only at night (WL7): by day the kit plays exactly as one without.
 	player.armament.lights = kit.lights_for(_light.night)
+	_own_light = false
+	for l in player.armament.lights:
+		_own_light = _own_light or l != null
 	state.characters.append(player)
 	# Attack / Defend on a map with a pole, your team attacking first; on a map without one, Elimination.
 	if mode == MatchOptions.MODE_ATTACK_DEFEND and map.has_pole:
@@ -1324,11 +1330,11 @@ func _apply_graphics(values: GraphicsQuality) -> void:
 	if _skyline != null:
 		_skyline.set_smoke(SkylineView.smokes(values))
 	if _torches != null:
-		var torch := GraphicsApply.torch_mode(values, _light)
+		var torch := GraphicsApply.torch_mode(values, _light, _own_light)
 		_eyes.set_torch(torch)
 		_torches.set_own_haze(torch == TorchBeams.Mode.HAZE)
 	if _pools != null:
-		_pools.set_real_count(GraphicsApply.pool_lights(values, _light, _torches != null))
+		_pools.set_real_count(GraphicsApply.pool_lights(values, _light, _torches != null and _own_light))
 	var lines := _play.figures.lod_lines(values.mesh_detail)
 	if lines != _figure_lines:
 		_figure_lines = lines

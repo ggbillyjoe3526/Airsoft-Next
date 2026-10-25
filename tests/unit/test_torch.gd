@@ -479,12 +479,50 @@ func test_your_torch_is_a_real_spot_from_medium_with_shadows_from_high_and_a_haz
 	var pools: Array[int] = []
 	for preset: StringName in [&"low", &"medium", &"high", &"ultra"]:
 		var q := table.preset(preset)
-		modes.append(GraphicsApply.torch_mode(q, night))
+		assert_eq(GraphicsApply.torch_mode(q, night, false), TorchBeams.Mode.HAZE, "none fitted: %s" % preset)
+		modes.append(GraphicsApply.torch_mode(q, night, true))
 		pools.append(GraphicsApply.pool_lights(q, night, true))
 	assert_eq(modes, [TorchBeams.Mode.HAZE, TorchBeams.Mode.SPOT, TorchBeams.Mode.SHADOWED,
 			TorchBeams.Mode.SHADOWED] as Array[TorchBeams.Mode])
 	assert_eq(pools, [0, 1, 3, 3] as Array[int], "the torch is one of the preset's real lights")
-	assert_eq(GraphicsApply.pool_lights(table.preset(&"high"), night, false), 4, "no torches: the pools have all")
+	assert_eq(GraphicsApply.pool_lights(table.preset(&"high"), night, false), 4, "none fitted: the pools have all")
+	var no_sun := table.preset(&"ultra")
+	no_sun.sun_shadows = false
+	assert_eq(GraphicsApply.torch_mode(no_sun, night, true), TorchBeams.Mode.SPOT, "Sun shadows off: no torch shadow")
+	assert_eq(GraphicsApply.pool_lights(no_sun, night, true), 3, "still one real light for it")
+
+
+func test_the_pools_give_your_torch_a_real_light_only_when_you_carry_one_and_for_the_whole_match() -> void:
+	var medium := GraphicsTable.shared().preset(&"medium")
+	var real := PlayTuning.load_default().night_lighting.real_lights_for(medium.mesh_detail)
+	var settings := Settings.new()
+	settings.dev_enabled = true
+	settings.dev.dev_content = true
+	var bare := PlaySession.new()
+	bare.map_id = "woodland"
+	bare.settings = settings
+	bare.bots_active = false
+	add_child_autofree(bare)
+	bare._apply_graphics(medium)
+	assert_eq(bare.light_pools().real_lights().size(), real, "no light in your kit: the pools keep all")
+	assert_null(bare._eyes.torch(), "and no spot is made")
+	var rules := _rules(true)
+	var l := rules.default_loadout("Night")
+	rules.set_part(l, AEG, &"light", TORCH)
+	var fitted := PlaySession.new()
+	fitted.map_id = "woodland"
+	fitted.settings = settings
+	fitted.kit = rules.carried(l)
+	fitted.bots_active = false
+	add_child_autofree(fitted)
+	fitted._apply_graphics(medium)
+	var pools := fitted.light_pools()
+	assert_eq(pools.real_lights().size(), real - 1, "your torch takes one")
+	for on: bool in [true, false, true]:
+		fitted.player.torch_on = on
+		await wait_process_frames(2)
+		pools.update(Vector3(-50.0, 2.0, -10.0), 0.05)
+		assert_eq(pools.real_lights().size(), real - 1, "lit or not: the pools never flicker")
 
 
 func test_the_view_s_spot_follows_the_torch_and_its_mode() -> void:

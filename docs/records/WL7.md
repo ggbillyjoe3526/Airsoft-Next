@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | 3,130 of 3,130 | – | – |
+| 2026-10-25 | 2 | worker | 3,146 of 3,146 | – | QA and performance passed; their fixes: the pools' light only with a torch in your kit, the torch's shadow only with Sun shadows on |
 
 ## Goal
 
@@ -80,9 +81,12 @@ else's is a drawn beam (owner's defaults, 2026-10-24).
 - **Easy's torch on the move reads `keeps_dark`:** the browser's M71 "sloppy" bots are the ones that don't keep dark.
 - **The switch works through a vault**, captured before the vault takes the command.
 - **Going out on holster or a switch clicks (an event); going out when hit is silent:** the hand goes up.
-- **The watched character gets the real spot**, spectating too, so the view always has its own light.
-- **At night one real light is kept for the view's torch whenever torches are drawn**, on Medium and up.
-- **Torch shadows from Mesh detail High** (`GraphicsApply.TORCH_SHADOWS_FROM`), as the owner's default says.
+- **The view's torch gets the real spot, spectating too, when your kit carries a torch;** with none in your kit the
+  pools keep every real light and a spectated bot's torch is the haze (round 2: Neon Heights plays at night by
+  default and the default kit has no light).
+- **That real light is taken for the whole match, lit or not,** so the pools never flicker as the torch switches.
+- **Torch shadows from Mesh detail High, and only with Sun shadows on** (`GraphicsApply.TORCH_SHADOWS_FROM`; round 2):
+  someone who turned the sun's shadows off doesn't pay for the torch's.
 - **The torch's light is warm white, Color8(250, 250, 236):** 20° clear of every team hue (a test).
 - **Low's own haze starts 2 m out from the rail:** seen from its tip a cone is all rim, a hard ring round the view.
 - **The bots' figures show no torch model:** 20 models in view cost 55 to 67 draws (below), a fifth of Low's frame at
@@ -147,6 +151,8 @@ moved from `test_f` to `test_fl` (`tools/unit_tests.sh`, CI's step names, PROCES
 350 s and part 2 at 550 s against its 600 s limit; now part 1 (98 files) 517 s and part 2 (157 files, `test_torch.gd`
 about 28 s among them) 506 s. A first run the same day read 478 and 508 s.
 
+Round 2: 3,146 of 3,146 (QA's `test_torch_qa.gd` in), 19 min 24 s; part 1 524 s, part 2 541 s.
+
 `tools/match_guards.sh`: 7 of 7 in 28 min 55 s (Depot and Neon Heights by day, so no torch is fitted).
 
 ## Verified
@@ -164,6 +170,20 @@ about 28 s among them) 506 s. A first run the same day read 478 and 508 s.
   (your torch on High in Woodland at night: the lit ground spot, the bot ahead lit, another's glare to the right),
   `wl7-own-haze-low.png` (the same on Low), `wl7-side-beam.png` (a bot's beam from the side, its cone and glare from
   its rifle), `wl7-customise-light.png` (Customise › Light with the Weapon Torch fitted).
+
+## Advisories left
+
+From round 1's QA and performance reviews, not fixed here:
+
+- **Fill rate on Low (performance):** the cones are additive and drawn from both sides, the one fill-rate risk on a weak
+  integrated GPU at Low. The owner's frame time with every torch on (PLAYTEST) tells whether it needs a cheaper cone.
+- **The spot's ray (performance):** each lit torch's spot is placed by a ray every rendered frame; it could be cached
+  once a tick. 26 to 61 µs a frame with every torch on (Measurements).
+- **The prewarm (performance):** the shadowed spot's first lighting isn't in the shader prewarm, so its first frame
+  lit may hitch on High and Ultra.
+- **A hidden spot (QA):** fixed in round 2 (no light in your kit: no `SpotLight3D` is made).
+- **A torch lit in the pre-round freeze stays lit (QA),** as in the browser: the freeze holds movement, not switches.
+- **Controls has one more row (QA):** Weapon torch, after Holster.
 
 ## For the owner to test
 

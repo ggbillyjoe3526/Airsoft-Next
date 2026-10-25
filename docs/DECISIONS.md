@@ -354,9 +354,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   round start. Every bot carries the pool's first light on a night field and switches it by what it is doing: on in a
   fight within 20 m and at the end of a search, Easy (no `keeps_dark`) while moving too, a state held 1.5 s at least.
   Bots see anyone inside a lit beam's spill within its reach from the lit range, and anyone whose lit torch points
-  within 60° of them from as far (`BotConfig` night sight). Your own torch (the watched player's, spectating too) is a
-  real spot from the rail on Medium and up, taking one of Mesh detail's real lights, with shadows from High; a haze on
-  Low. Everyone else's is a cone, a lens glare and a lit spot: three instanced draws; the bots' figures show no torch
+  within 60° of them from as far (`BotConfig` night sight). When your kit carries a torch, the view's (yours, or a
+  spectated bot's) is a real spot from the rail on Medium and up, taking one of Mesh detail's real lights for the whole
+  match (the pools never flicker), with shadows from High while Sun shadows are on; else a haze. Everyone else's is a cone, a lens glare and a lit spot: three instanced draws; the bots' figures show no torch
   model (20 models cost some 60 draws). Its light is warm white, off every team hue.
 - **Hunting bots check by eye, and a team shares what its bots checked (M87, owner, 2026-10-06).** A checked spot counts
   for the level's `huntMemory` (Easy 20 s, Normal 40, Hard 50, Pro 60), then as never checked.

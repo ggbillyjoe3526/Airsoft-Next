@@ -226,18 +226,22 @@ static func contact_shadows(values: GraphicsQuality) -> bool:
 	return not values.sun_shadows
 
 
-## How your own weapon torch is drawn at night with `values` (WL7): a real spot while the preset gives `lighting`'s
-## night at least one real light (Medium and up, LightingConfig.real_lights_for), casting shadows from
-## TORCH_SHADOWS_FROM; else a haze (TorchBeams).
-static func torch_mode(values: GraphicsQuality, lighting: LightingConfig) -> TorchBeams.Mode:
-	if lighting.real_lights_for(values.mesh_detail) < 1:
+## How the view's weapon torch is drawn at night with `values` (WL7): a real spot while your kit carries a light this
+## match (`fitted`) and the preset gives `lighting`'s night at least one real light (Medium and up,
+## LightingConfig.real_lights_for), casting shadows from TORCH_SHADOWS_FROM with Sun shadows on; else a haze
+## (TorchBeams), which also draws a spectated bot's torch when you carry none.
+static func torch_mode(values: GraphicsQuality, lighting: LightingConfig, fitted: bool) -> TorchBeams.Mode:
+	if not fitted or lighting.real_lights_for(values.mesh_detail) < 1:
 		return TorchBeams.Mode.HAZE
-	return TorchBeams.Mode.SHADOWED if values.mesh_detail >= TORCH_SHADOWS_FROM else TorchBeams.Mode.SPOT
+	if values.mesh_detail >= TORCH_SHADOWS_FROM and values.sun_shadows:
+		return TorchBeams.Mode.SHADOWED
+	return TorchBeams.Mode.SPOT
 
 
 ## The real lights `lighting`'s light pools get with `values`: the preset's, less the one your torch's real spot takes
-## on a field where a torch may be lit (`torches`).
-static func pool_lights(values: GraphicsQuality, lighting: LightingConfig, torches: bool) -> int:
+## while your kit carries a light this match (`fitted`; taken for the whole match, lit or not, so the pools never
+## flicker as it switches).
+static func pool_lights(values: GraphicsQuality, lighting: LightingConfig, fitted: bool) -> int:
 	var real := lighting.real_lights_for(values.mesh_detail)
-	var torch := 1 if torches and torch_mode(values, lighting) != TorchBeams.Mode.HAZE else 0
+	var torch := 1 if torch_mode(values, lighting, fitted) != TorchBeams.Mode.HAZE else 0
 	return maxi(0, real - torch)

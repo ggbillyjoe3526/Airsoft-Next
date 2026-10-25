@@ -402,7 +402,7 @@ Once the rest of step 26 lands:
 - [ ] **The weapon torch (WL7).** Fit it (Customise › Light) and play Woodland. **T** clicks it on and off (rebind it
   under Settings › Controls › Keys); it goes out when you holster, switch to a replica without one, are hit, and at
   each round start. On Medium and up it is a real light from the rail lighting the ground and the people ahead (with
-  shadows on High and Ultra); on Low a soft haze. Does it help you see without washing the view out?
+  shadows on High and Ultra while Sun shadows are on); on Low a soft haze. Does it help you see without washing the view out?
 - [ ] **Others' torches (WL7).** A bot's lit torch is a pale beam, a glare at its lens (brightest looking straight down
   it) and a lit spot where it lands, starting just behind its muzzle; it reads from the side and across the meadow,
   never in a team's hue. Bots switch
