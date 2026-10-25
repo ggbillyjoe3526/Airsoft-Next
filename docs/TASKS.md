@@ -4,30 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## WL2 · 5v5 and 6v6: team sizes per map (Dev)
-when: build order step 26, after WL1
-tier: core
-perf: required
-touches: data/maps.md, game/map/map_catalog.gd, game/ui/match_rules_box.gd, game/ui/match_page.gd,
-  game/ui/match_options.gd, game/ui/match_picks.gd, game/save/custom_rules.gd, game/config/round_config.gd,
-  game/ai/bot_roster.gd, game/ai/bot_routes.gd, game/config/nav_config.gd, game/play/play_session.gd,
-  game/ui/text/en.po, tests/unit/test_match_page.gd, tests/unit/test_team_sizes.gd, docs/PLAYTEST.md
-contract: Data, not literals (6); Saves (8)
-acceptance:
-  1. `data/maps.md` gains Min, Standard and Max team size columns (the browser's `maps.ts` teamSize): Depot 1, 3, 3;
-     Neon Heights 1, 4, 5; Woodland 5, 5, 6; the range 1, 1, 1. MapCatalog reads them; an unreadable cell keeps its
-     built-in value and warns.
-  2. The Team size row offers only the picked map's sizes. Picking a map sets its standard size; a saved custom size
-     is kept where the map allows it (Depot 3v3 to Woodland 5v5 and back to 3v3, saved). Nothing offers 7v7. An old
-     save loads unchanged.
-  3. A 6v6 on Woodland spawns twelve players, each on a spawn of their own, and each walks off to a dead-zone spot
-     of their own; every bot has a name and a kit.
-  4. Route searches keep to a budget a tick (the browser's NAV.searchBudget, in NavConfig); a search over it waits
-     for the next tick, and no bot waits more than 1 s for a route (tested at 6v6). The record gives frame time and
-     draw calls at 5v5 and 6v6 on Woodland on Low and High, and the searches a tick.
-status: open
-attempts: 0
-
 ## WL3 · Night light and the Day / Night switch (Dev)
 when: build order step 26, after WL1
 tier: core

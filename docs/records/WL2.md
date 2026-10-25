@@ -1,13 +1,13 @@
 # WL2 · 5v5 and 6v6: team sizes per map
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-24 | 1 | worker | 2987 / 2987 (second run; the first lost 2 to field.room) | – | – |
-| 2026-10-25 | 2 | worker | 2994 / 2994 (part 1 316 s, part 2 477 s) | – | QA advisories: a pending walk-off mid-vault held every bot's search; `_take_nav` popped an empty array unchecked; waits for a staged build went unasserted |
+| 2026-10-25 | 2 | worker | 2994 / 2994 (part 1 316 s, part 2 477 s) | Accept 8/8 | QA advisories: a pending walk-off mid-vault held every bot's search; `_take_nav` popped an empty array unchecked; waits for a staged build went unasserted |
 
 ## Goal
 
@@ -182,3 +182,12 @@ touched files (`test_match_page`, `test_cr1_qa`, `test_cr2_qa`, `test_cr2_rules`
 
 Not verified here: how 5v5 and 6v6 feel on Woodland, Forward+ frame times on Low and High, and the load on the owner's
 PC (PLAYTEST › Woodland, › Custom matches and rules).
+
+## Advisories left
+
+- PlaySession (1,407 lines) carries the nav task's plumbing; a small NavBuildTask helper would keep it out of the
+  Node (critic).
+- The measured route wait runs one tick short: `route_asked_at` is stamped the tick after `want()` (critic).
+- Each route search is one whole AStar3D call on the main thread, 2 to 3 a second at 6v6, 6 to 10 ms at worst on the
+  cloud machine; a slower CPU may show it as a hitch. Moving searches to a worker is the cure (performance).
+- Unit part 2 now takes 477 s; move the part boundary once it nears 600 s (CI1).
