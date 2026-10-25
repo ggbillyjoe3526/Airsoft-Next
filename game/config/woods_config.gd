@@ -62,6 +62,10 @@ extends Resource
 @export var tuft_tip: float = 1.15
 @export var tuft_jitter: float = 0.12
 @export var tuft_margin: float = 0.15
+## Every other blade turned on by this share of a blade's step, so the clump isn't a regular star.
+@export var tuft_stagger: float = 0.37
+## How much light the tufts' faces give back as a shine (0 to 1).
+@export var tuft_specular: float = 0.2
 @export var tile: float = 32.0
 
 @export_group("Puddles")
@@ -98,6 +102,8 @@ extends Resource
 @export var leaf_radius: float = 0.75
 @export var leaf_size: Vector2 = Vector2(0.08, 0.15)
 @export var leaf_lift: float = 0.014
+## A drift's middle stands this share of `leaf_radius` out from its foot.
+@export var leaf_out: float = 0.6
 @export var leaf_colours: PackedColorArray = PackedColorArray([
 	Color("b5a03c"), Color("8a8a3e"), Color("6a5f4a"), Color("8f8a72"), Color("7d3b52"), Color("a59a5a"),
 	Color("6b5f3f"),
@@ -120,6 +126,13 @@ extends Resource
 @export var fallen_sink: float = 0.03
 @export var fallen_lane: float = 1.2
 @export var fallen_spot: float = 2.0
+## None within `fallen_puddle` m of a puddle; each piece turned up to `fallen_turn` radians off its side; twigs come
+## `twigs` to a slot, each turned up to `twig_turn` radians more and `twig_least` to all of the slot's length.
+@export var fallen_puddle: float = 0.1
+@export var fallen_turn: float = 0.25
+@export var twigs: int = 3
+@export var twig_turn: float = 0.6
+@export var twig_least: float = 0.6
 @export var bark: PackedColorArray = PackedColorArray([
 	Color("5a5140"), Color("6a5f4a"), Color("6e6248"), Color("7a6a4a"),
 ])
@@ -143,13 +156,19 @@ extends Resource
 @export var firefly_glow: float = 1.0
 @export var firefly_height: Vector2 = Vector2(0.3, 1.9)
 @export var firefly_reach: float = 2.5
+## The nearest a firefly hangs to its log or puddle's edge (m).
+@export var firefly_near: float = 0.3
 @export var firefly_drift: float = 0.35
 @export var firefly_period: Vector2 = Vector2(2.6, 5.0)
 @export var firefly_low: float = 0.12
 @export var mote_count: int = 160
 @export var mote_size: float = 0.03
+## The smallest mote is this share of `mote_size`.
+@export var mote_least: float = 0.6
 @export var mote_box: Vector3 = Vector3(16.0, 4.0, 16.0)
 @export var mote_speed: float = 0.12
+## The way the motes drift (scaled by `mote_speed`; each mote 0.5 to 1.5 times as fast).
+@export var mote_wind: Vector3 = Vector3(0.6, 0.15, 0.4)
 @export var mote_glow: float = 0.35
 @export var mote_edge: float = 1.5
 

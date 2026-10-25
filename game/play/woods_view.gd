@@ -19,6 +19,7 @@ uniform float fade = 0.3;
 uniform float root = 0.7;
 uniform float tip = 1.25;
 uniform float rough = 0.9;
+uniform float shine = 0.2;
 varying float up;
 
 void vertex() {
@@ -35,7 +36,7 @@ void fragment() {
 	}
 	ALBEDO = own * mix(root, tip, up);
 	ROUGHNESS = rough;
-	SPECULAR = 0.2;
+	SPECULAR = shine;
 }
 """
 ## Fireflies and motes: points facing the eye, self-lit and added to what is behind them, through the haze. A firefly
@@ -54,6 +55,7 @@ uniform vec4 mote : source_color = vec4(1.0);
 uniform float drift = 0.35;
 uniform float low = 0.12;
 uniform float speed = 0.12;
+uniform vec3 wind = vec3(0.6, 0.15, 0.4);
 varying vec3 tint;
 varying float shine;
 
@@ -68,7 +70,7 @@ void vertex() {
 		tint = firefly.rgb;
 	} else {
 		vec3 corner = eye - box * 0.5;
-		at = corner + mod(at + vec3(0.6, 0.15, 0.4) * speed * t * (0.5 + INSTANCE_CUSTOM.y) - corner, box);
+		at = corner + mod(at + wind * speed * t * (0.5 + INSTANCE_CUSTOM.y) - corner, box);
 		vec3 inside = min(at - corner, corner + box - at);
 		shine = clamp(min(inside.x, min(inside.y, inside.z)) / edge, 0.0, 1.0);
 		tint = mote.rgb;
@@ -84,6 +86,12 @@ void fragment() {
 	ALPHA = round_edge * shine;
 }
 """
+
+## A tuft tile is drawn while its middle is within its step's reach and this share of its side (its middle to its
+## far corner is 0.71 of the side).
+const TILE_REACH := 0.75
+## How far under and over 0 the night air's box reaches (m): past any field's ground and eye.
+const AIR_DEPTH := 100.0
 
 var _cfg: WoodsConfig = null
 var _crowns: MultiMeshInstance3D = null
@@ -131,7 +139,7 @@ func set_quality(detail: int, dust_share: float) -> void:
 		_tuft_look.set_shader_parameter(&"reach", reach)
 		for tile in _tufts:
 			_show_share(tile, share if reach > 0.0 else 0.0)
-			tile.visibility_range_end = reach + _cfg.tile * 0.75
+			tile.visibility_range_end = reach + _cfg.tile * TILE_REACH
 	if _puddles != null:
 		_puddles.visible = dressed
 	if _floor != null:
@@ -196,23 +204,23 @@ func air() -> MultiMeshInstance3D:
 	return _air
 
 
-func _make_crowns(mm: MultiMesh) -> void:
-	if mm.instance_count == 0:
+func _make_crowns(placed: WoodsShapes.Placed) -> void:
+	if placed.size() == 0:
 		return
-	_crowns = _instanced("Crowns", mm, _flat_material(_cfg.crown_roughness))
+	_crowns = _instanced("Crowns", placed.multimesh(), _flat_material(_cfg.crown_roughness))
 
 
-func _make_forest(mm: MultiMesh) -> void:
-	if mm == null or mm.instance_count == 0:
+func _make_forest(placed: WoodsShapes.Placed) -> void:
+	if placed == null or placed.size() == 0:
 		return
-	_forest = _instanced("Forest", mm, _flat_material(_cfg.crown_roughness))
+	_forest = _instanced("Forest", placed.multimesh(), _flat_material(_cfg.crown_roughness))
 	_forest.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
-func _make_tufts(tiles: Array[MultiMesh]) -> void:
+func _make_tufts(tiles: Array[WoodsShapes.Placed]) -> void:
 	var holder: Node3D = null
 	for i in tiles.size():
-		if tiles[i].instance_count == 0:
+		if tiles[i].size() == 0:
 			continue
 		if holder == null:
 			holder = Node3D.new()
@@ -225,9 +233,10 @@ func _make_tufts(tiles: Array[MultiMesh]) -> void:
 			_tuft_look.set_shader_parameter(&"root", _cfg.tuft_root)
 			_tuft_look.set_shader_parameter(&"tip", _cfg.tuft_tip)
 			_tuft_look.set_shader_parameter(&"rough", _cfg.roughness)
+			_tuft_look.set_shader_parameter(&"shine", _cfg.tuft_specular)
 		var mi := MultiMeshInstance3D.new()
 		mi.name = "Tile%d" % i
-		mi.multimesh = tiles[i]
+		mi.multimesh = tiles[i].multimesh()
 		mi.material_override = _tuft_look
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		holder.add_child(mi)
@@ -263,8 +272,8 @@ func _make_floor(mesh: ArrayMesh) -> void:
 	add_child(_floor)
 
 
-func _make_air(mm: MultiMesh, map: MapData) -> void:
-	if mm == null:
+func _make_air(placed: WoodsShapes.Placed, map: MapData) -> void:
+	if placed == null:
 		return
 	_air_look = ShaderMaterial.new()
 	_air_look.shader = Shader.new()
@@ -276,12 +285,13 @@ func _make_air(mm: MultiMesh, map: MapData) -> void:
 	_air_look.set_shader_parameter(&"drift", _cfg.firefly_drift)
 	_air_look.set_shader_parameter(&"low", _cfg.firefly_low)
 	_air_look.set_shader_parameter(&"speed", _cfg.mote_speed)
-	_air = _instanced("NightAir", mm, _air_look)
+	_air_look.set_shader_parameter(&"wind", _cfg.mote_wind)
+	_air = _instanced("NightAir", placed.multimesh(), _air_look)
 	_air.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	# the shader moves every point: the field and the motes' box round any eye on it
 	var field := WoodsShapes.field_rect(map)
-	var lo := Vector3(field.position.x, -100.0, field.position.y) - _cfg.mote_box
-	_air.custom_aabb = AABB(lo, Vector3(field.size.x, 200.0, field.size.y) + _cfg.mote_box * 2.0)
+	var lo := Vector3(field.position.x, -AIR_DEPTH, field.position.y) - _cfg.mote_box
+	_air.custom_aabb = AABB(lo, Vector3(field.size.x, AIR_DEPTH * 2.0, field.size.y) + _cfg.mote_box * 2.0)
 
 
 func _instanced(id: String, mm: MultiMesh, look: Material) -> MultiMeshInstance3D:

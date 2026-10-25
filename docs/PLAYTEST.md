@@ -333,7 +333,8 @@ flagpole stands in the walled loading bay. Three lanes lead there: **Dock Road**
 
 A wide wood: 120 × 80 m on a gentle slope up to the Knoll and its log fort, with three lanes (Pine Belt, Meadow,
 Creek with the cabin). Turn on Settings › Dev › Dev content, then pick it on Play. Step 26 builds it in greybox: since
-WL1 it loads and plays by day, since WL2 at 5v5 (6v6 under Custom); night, bushes and the torch follow (WL3 to WL10).
+WL1 it loads and plays, since WL2 at 5v5 (6v6 under Custom), since WL3 at night, since WL4 with crowns, a forest,
+grass, puddles and fireflies; bushes and the torch follow (WL5 to WL10).
 
 - [ ] **Walk the slopes (WL1).** Run up, down and across the Knoll's west face and West Hill: no jump is ever needed,
   you never slide when you stop or stand crouched on the face, your feet stay on the ground going downhill, and
@@ -354,6 +355,16 @@ WL1 it loads and plays by day, since WL2 at 5v5 (6v6 under Custom); night, bushe
   lights you and the figures by it. Do the pale greybox walls facing the moon read too bright beside the dark ground
   (the moon is low, so it lights walls three times as much as the ground)? Note the frame time (`--perf`) on Low and High at night, and in the same spot on
   Depot by Settings › Dev › Time of day › Night: the cloud can't measure your GPU (`docs/records/WL3.md`).
+- [ ] **The wood's look (WL4).** Every pine has a dark cone crown over your head; you see, shoot and are seen
+  under it as before (crowns stop nothing). Over the fence a forest and treelines fade to the sky on every side, and
+  you never see the field's edge end in nothing. From Medium: grass tufts in the meadow that shrink away in the
+  distance (does their edge pop as you walk?), puddles and mud by the creek and in the pines that look wet and darker, never
+  hiding a BB skimming over them; leaves by the trunks, branches and twigs by the logs and walls,
+  moss on the logs. At night fireflies hang by the logs and water and motes drift by you; with Reduced motion on
+  they stand still and steady. Switch Low, Medium, High, Ultra in one spot: Low shows only the crowns, more forest
+  and grass each step up. Note the frame time (`--perf`) at night on each preset in the meadow and the pine belt,
+  with Settings › Graphics › Mesh detail at Low and at Ultra: the cloud counted triangles and draw calls only
+  (`docs/records/WL4.md`).
 - [ ] **Depot by night and Neon Heights' Day / Night (WL3).** Settings › Dev › Time of day › Night: Depot's four
   floodlight masts glow over the walls, its baked shade in corners stays, no warning. Back to Map's own, pick Neon
   Heights on Play: a Day / Night row under the rules, Night lit; pick Day and the match plays by day. Woodland and

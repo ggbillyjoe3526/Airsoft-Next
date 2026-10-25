@@ -21,9 +21,40 @@ const WATER := "water"
 const MUD := "mud"
 ## A block whose bottom is this close over the ground under its middle, or under it, stands on the ground (m).
 const STANDING := 0.25
+## No rectangles (a ground square no foot overlaps).
+const NONE: Array[Rect2] = []
 ## A night-air instance's kind, in its custom data's x.
 const FIREFLY := 0.0
 const MOTE := 1.0
+
+
+## Copies of one mesh as plain data, each with its transform and, where given, its colour (sRGB) and custom data:
+## what a MultiMesh is filled from (the headless renderer keeps none of a MultiMesh's own, so tests read this).
+class Placed:
+	extends RefCounted
+	var mesh: Mesh = null
+	var xforms: Array[Transform3D] = []
+	var colours: PackedColorArray = PackedColorArray()
+	var custom: PackedColorArray = PackedColorArray()
+
+	func size() -> int:
+		return xforms.size()
+
+	## A MultiMesh of them.
+	func multimesh() -> MultiMesh:
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_colors = not colours.is_empty()
+		mm.use_custom_data = not custom.is_empty()
+		mm.mesh = mesh
+		mm.instance_count = xforms.size()
+		for i in xforms.size():
+			mm.set_instance_transform(i, xforms[i])
+			if mm.use_colors:
+				mm.set_instance_color(i, colours[i])
+			if mm.use_custom_data:
+				mm.set_instance_custom_data(i, custom[i])
+		return mm
 
 
 ## A unit cone: radius 1 round the origin at its base, its tip 1 m up, `sides` flat faces, its base closed when
@@ -42,7 +73,7 @@ static func cone(sides: int, capped: bool) -> ArrayMesh:
 
 
 ## Every tree's crown (blocks of kind tree), sRGB instance colours.
-static func crowns(map: MapData, cfg: WoodsConfig) -> MultiMesh:
+static func crowns(map: MapData, cfg: WoodsConfig) -> Placed:
 	var rng := _rng(map, SALT_CROWNS)
 	var xforms: Array[Transform3D] = []
 	var colours := PackedColorArray()
@@ -65,7 +96,7 @@ static func crowns(map: MapData, cfg: WoodsConfig) -> MultiMesh:
 
 ## The wood beyond the fence: `map.forest_trees` cones in a seeded order (a share of them is a fair sample), faded
 ## toward `horizon` (sRGB) a share of the way the skyline is (`sky`).
-static func forest(map: MapData, cfg: WoodsConfig, sky: SkylineConfig, horizon: Color) -> MultiMesh:
+static func forest(map: MapData, cfg: WoodsConfig, sky: SkylineConfig, horizon: Color) -> Placed:
 	if map.forest_trees <= 0:
 		return null
 	var rng := _rng(map, SALT_FOREST)
@@ -142,7 +173,7 @@ static func tuft(cfg: WoodsConfig, height: float) -> ArrayMesh:
 	var pos := PackedVector3Array()
 	var uv := PackedVector2Array()
 	for i in cfg.tuft_blades:
-		var a := TAU * (i + 0.37 * (i % 2)) / cfg.tuft_blades
+		var a := TAU * (i + cfg.tuft_stagger * (i % 2)) / cfg.tuft_blades
 		var out := Vector3(cos(a), 0.0, sin(a))
 		var side := Vector3(-out.z, 0.0, out.x) * cfg.tuft_width * 0.5
 		var foot := out * cfg.tuft_spread * 0.5
@@ -166,15 +197,19 @@ static func tuft(cfg: WoodsConfig, height: float) -> ArrayMesh:
 ## The grass tufts at the densest step's density, one list a `tile` m square of the field (row by row; an empty tile
 ## has none), each in a seeded order so any share of a list is a fair sample; sRGB instance colours. Empty on a map
 ## with no grass height or no sloping ground.
-static func tufts(map: MapData, cfg: WoodsConfig, style: MapStyle) -> Array[MultiMesh]:
-	var out: Array[MultiMesh] = []
+static func tufts(map: MapData, cfg: WoodsConfig, style: MapStyle) -> Array[Placed]:
+	var out: Array[Placed] = []
 	var t := map.terrain
 	if t == null or map.grass_height <= 0.0:
 		return out
 	var rng := _rng(map, SALT_TUFTS)
 	var density := cfg.tuft_density[cfg.tuft_density.size() - 1] if not cfg.tuft_density.is_empty() else 0.0
 	var per_square := density * t.ground_cell * t.ground_cell
-	var feet := _feet(map, cfg.tuft_margin)
+	var feet := _by_square(t, _feet(map, cfg.tuft_margin))
+	var pools: Array[Rect2] = []
+	for p in map.puddles:
+		pools.append(Rect2(p.at - p.size * 0.5, p.size).grow(cfg.tuft_margin))
+	var wet := _by_square(t, pools)
 	var grass := style.terrain_colour(RayHit.Surface.GRASS)
 	var cols := ceili((t.max_x() - t.min_x) / cfg.tile)
 	var rows := ceili((t.max_z() - t.min_z) / cfg.tile)
@@ -193,7 +228,9 @@ static func tufts(map: MapData, cfg: WoodsConfig, style: MapStyle) -> Array[Mult
 				var s := rng.randf_range(cfg.tuft_height.x, cfg.tuft_height.y)
 				var yaw := rng.randf() * TAU
 				var shade := 1.0 + rng.randf_range(-cfg.tuft_jitter, cfg.tuft_jitter)
-				if _in_any(feet, Vector2(x, z)) or on_puddle(map, Vector2(x, z), cfg.tuft_margin):
+				var key := j * t.ground_cols + i
+				if _in_any(feet.get(key, NONE), Vector2(x, z)) or wet.has(key) and on_puddle(map, Vector2(x, z),
+						cfg.tuft_margin):
 					continue
 				var tile := mini(floori((z - t.min_z) / cfg.tile), rows - 1) * cols \
 						+ mini(floori((x - t.min_x) / cfg.tile), cols - 1)
@@ -301,7 +338,7 @@ static func floor_mesh(map: MapData, cfg: WoodsConfig) -> ArrayMesh:
 ## (a share of it is a fair sample of both). Each instance's custom data: x its kind (FIREFLY, MOTE), y its phase
 ## (0 to 1), z a firefly's pulse period (s), w its size (m). A firefly stands where it hangs; a mote's origin is its
 ## place in the box round the eye (0 to WoodsConfig.mote_box). Null with neither.
-static func night_air(map: MapData, cfg: WoodsConfig) -> MultiMesh:
+static func night_air(map: MapData, cfg: WoodsConfig) -> Placed:
 	var motes := cfg.mote_count if map.has_motes else 0
 	if map.fireflies + motes <= 0:
 		return null
@@ -318,7 +355,7 @@ static func night_air(map: MapData, cfg: WoodsConfig) -> MultiMesh:
 	var items: Array = []
 	for i in map.fireflies:
 		var a := anchors[rng.randi() % anchors.size()]
-		var reach := rng.randf_range(0.3, cfg.firefly_reach)
+		var reach := rng.randf_range(cfg.firefly_near, cfg.firefly_reach)
 		var dir := Vector2.from_angle(rng.randf() * TAU)
 		# out past the anchor's edge that way, then up to `firefly_reach` further
 		var edge := absf(dir.x) * a.size.x * 0.5 + absf(dir.y) * a.size.y * 0.5
@@ -328,7 +365,7 @@ static func night_air(map: MapData, cfg: WoodsConfig) -> MultiMesh:
 				cfg.firefly_period.y), cfg.firefly_size)])
 	for i in motes:
 		var at := Vector3(rng.randf(), rng.randf(), rng.randf()) * cfg.mote_box
-		items.append([at, Color(MOTE, rng.randf(), 0.0, cfg.mote_size * rng.randf_range(0.6, 1.0))])
+		items.append([at, Color(MOTE, rng.randf(), 0.0, cfg.mote_size * rng.randf_range(cfg.mote_least, 1.0))])
 	_shuffle(items, rng)
 	var xforms: Array[Transform3D] = []
 	var custom := PackedColorArray()
@@ -372,7 +409,7 @@ static func _leaves(map: MapData, cfg: WoodsConfig, standing: Array[MapData.Bloc
 		var foot: Rect2 = nearest[key]
 		var toward := _to_rect(foot, middle)
 		var spot := middle - toward + (toward.normalized() if toward != Vector2.ZERO else Vector2.RIGHT) \
-				* cfg.leaf_radius * 0.6
+				* cfg.leaf_radius * cfg.leaf_out
 		var n := rng.randi_range(cfg.leaf_count.x, cfg.leaf_count.y)
 		for k in n:
 			var at := spot + Vector2.from_angle(rng.randf() * TAU) * cfg.leaf_radius * sqrt(rng.randf())
@@ -420,20 +457,20 @@ static func _fallen(map: MapData, cfg: WoodsConfig, standing: Array[MapData.Bloc
 				var reach := minf(size.x, room / slots)
 				var shift := (float(k) + 0.5) * room / slots - room * 0.5
 				var middle := Vector2(b.center.x, b.center.z) + normal * (out_by + size.y * 0.5) + along * shift
-				if take >= map.fallen or is_nan(t.height_at(middle.x, middle.y)) or on_puddle(map, middle, 0.1) \
+				if take >= map.fallen or is_nan(t.height_at(middle.x, middle.y)) or on_puddle(map, middle, cfg.fallen_puddle) \
 						or _near_lane(map, middle, cfg.fallen_lane) or _near_spot(spots, middle, cfg.fallen_spot):
 					continue
 				var bark := cfg.bark[rng.randi() % cfg.bark.size()]
-				var yaw := rng.randf_range(-0.25, 0.25)
+				var yaw := rng.randf_range(-cfg.fallen_turn, cfg.fallen_turn)
 				var dir := along.rotated(yaw)
 				match piece:
 					0:
 						_log_piece(t, cfg, middle, dir, reach, size.z, bark, bark, pos, nor, col)
 					1:
-						for s in 3:
-							var twig := dir.rotated(rng.randf_range(-0.6, 0.6))
+						for s in cfg.twigs:
+							var twig := dir.rotated(rng.randf_range(-cfg.twig_turn, cfg.twig_turn))
 							var at := middle + Vector2(-dir.y, dir.x) * rng.randf_range(-0.5, 0.5) * size.y
-							_log_piece(t, cfg, at, twig, reach * rng.randf_range(0.6, 1.0), size.z, bark, bark, pos,
+							_log_piece(t, cfg, at, twig, reach * rng.randf_range(cfg.twig_least, 1.0), size.z, bark, bark, pos,
 									nor, col)
 					2:
 						_log_piece(t, cfg, middle, dir, reach, size.z, bark, cfg.grain, pos, nor, col)
@@ -498,6 +535,24 @@ static func _feet(map: MapData, margin: float) -> Array[Rect2]:
 	var out: Array[Rect2] = []
 	for b in _standing(map):
 		out.append(_footprint(b, margin))
+	return out
+
+
+## `rects` by the ground squares (row by row) each overlaps, so a point need only be tested against its own square's.
+static func _by_square(t: TerrainGrid, rects: Array[Rect2]) -> Dictionary[int, Array]:
+	var out: Dictionary[int, Array] = {}
+	for r in rects:
+		var i0 := maxi(floori((r.position.x - t.min_x) / t.ground_cell), 0)
+		var i1 := mini(floori((r.end.x - t.min_x) / t.ground_cell), t.ground_cols - 1)
+		var j0 := maxi(floori((r.position.y - t.min_z) / t.ground_cell), 0)
+		var j1 := mini(floori((r.end.y - t.min_z) / t.ground_cell), t.ground_rows - 1)
+		for j in range(j0, j1 + 1):
+			for i in range(i0, i1 + 1):
+				var key := j * t.ground_cols + i
+				if not out.has(key):
+					var list: Array[Rect2] = []
+					out[key] = list
+				out[key].append(r)
 	return out
 
 
@@ -592,20 +647,13 @@ static func _rng(map: MapData, salt: int) -> RandomNumberGenerator:
 
 
 static func _instances(mesh: Mesh, xforms: Array[Transform3D], colours: PackedColorArray,
-		custom: PackedColorArray) -> MultiMesh:
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_colors = not colours.is_empty()
-	mm.use_custom_data = not custom.is_empty()
-	mm.mesh = mesh
-	mm.instance_count = xforms.size()
-	for i in xforms.size():
-		mm.set_instance_transform(i, xforms[i])
-		if mm.use_colors:
-			mm.set_instance_color(i, colours[i])
-		if mm.use_custom_data:
-			mm.set_instance_custom_data(i, custom[i])
-	return mm
+		custom: PackedColorArray) -> Placed:
+	var p := Placed.new()
+	p.mesh = mesh
+	p.xforms = xforms
+	p.colours = colours
+	p.custom = custom
+	return p
 
 
 static func _mesh(pos: PackedVector3Array, nor: PackedVector3Array, col: PackedColorArray) -> ArrayMesh:
