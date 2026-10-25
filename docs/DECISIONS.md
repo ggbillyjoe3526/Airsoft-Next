@@ -228,7 +228,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   DP3).** A map's `dressing.skyline` pieces of the kinds built so far (shed, water tower, crane, containers, chimney,
   silo, power line, hill, watch tower, fuselage, mast) are drawn as one vertex-coloured mesh, faded toward the sky's
   horizon by distance, casting no shadow, with no collider; a piece no eye over a lane point, spawn or raised floor
-  sees over the blocks is left out (MS1). Other kinds (Neon Heights' towers, the treelines) wait for their maps'
+  sees over the blocks is left out (MS1). Treelines join them in WL4; Neon Heights' towers wait for its
   dressing. Site colours and greys only, no red (too near Beta's hue). Chimney smoke is drawn from Medium, read off
   the mesh detail row rather than a row of its own. The models replace the greybox at step 28.
 - **Every figure keeps its team-colour plate carrier (owner, 2026-10-17, AX1).** The carrier reads like a site's team

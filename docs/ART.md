@@ -60,6 +60,24 @@ The props that make a site read as an airsoft site. Each is one of the four mate
 - **Ground and safety paint.** A concrete slab with expansion joints, yellow floor lines and bay markings,
   yellow-black hazard stripes on posts and edges, yellow traffic cones, coiled hose, a little grass in the joints.
 
+## The wood
+
+Woodland's look in placeholders (WL4, `WoodsView` from `WoodsConfig`), until the owner's models (step 32):
+
+- **Crowns.** Every tree a dark-green cone, from about 0.38 of its trunk (never under 2.6 m, over every head) to
+  1.4 m over the trunk's top, on every preset. No collider: sight, BBs and the nav grid see trunks only.
+- **Beyond the fence.** The skyline's treelines (cones along their points in bands, faded to the horizon) and hills,
+  and a forest of 2,000 cones in the 12 to 118 m ring round the field, standing on the hills, a share of it from
+  Medium, all on Ultra.
+- **On the ground** (from Medium). Grass tufts on the grass squares, never over the map's 0.34 m, shrinking away by
+  30 to 60 m; puddles and mud as a darker, glossier skin on the slope (water glossy, mud duller, both off the team
+  hues); leaf drifts by the trunks, fallen branches, twigs and short logs by the feet of blocks (out of lanes and
+  spawns), moss on the top and north side of half the logs.
+- **The night air.** Fireflies by the logs and water, and pale motes round the eye, self-lit, the Wind dust row's
+  share; still and steady under Reduced motion.
+- **Colours** are greens, browns and greys, every one more than 20 degrees from a team's hue or greyer than 0.3
+  (tested by day and night); the leaf plum #7d3b52 sits 22 degrees from HC Beta.
+
 ## Colour and readability
 
 - **The field** is warm concrete greys, sand, cream and off-white for the ground and walls, tan plywood for cover,
@@ -187,5 +205,10 @@ The figures (step 23, FI1-FI7; every bot on every preset, DECISIONS BD1):
   `tests/support/hit_area_probe.gd` (FI7, `docs/records/FI7.md`); step 28 fits it to the final figures (HV1).
 - **The bench.** `tools/figure_bench.gd`: 11 figures on Depot, the animation and skeleton time per figure, and the
   frame time with `--perf` (dev only, never exported).
+
+The wood (WL4): `WoodsShapes` (`game/play/woods_shapes.gd`) places every part from `MapData`'s `dressing` with
+seeded order and colours, as plain data; `WoodsView` draws it (instanced cones, tuft tiles, one puddle mesh of two
+surfaces, one floor mesh, one night-air draw) and follows the Mesh detail and Wind dust rows; `SkylineShapes` builds
+the treelines. Pictures: `tools/map_pictures.gd` renders `assets/maps/woodland.jpg` with it on High.
 
 The browser game's version is in `legacy/browser/docs/ART.md`.

@@ -59,6 +59,10 @@ never stops the game from starting.
   players who want them.
 - **Wind dust** is a share of the specks `game/config/effects_config.gd` sets (`dust_count`), lit by the sun so they
   glint in its light and vanish in shade. At 0 % feet kick up no dust either (sprinting steps and landings).
+- **Mesh detail** also draws a wood's dressing (Woodland, WL4): Low the trees' crowns alone; from Medium the forest
+  beyond the fence (a share of it each step, all on Ultra), the grass tufts (denser and farther each step), the
+  puddles and mud, and the leaves, fallen wood and moss. **Wind dust** is also the share of its fireflies and motes
+  by night (`game/config/woods_config.gd`).
 - **Sun shadows** off draws a soft dark disc under every other player instead (a contact shadow, free).
 
 ## Choices only some renderers draw

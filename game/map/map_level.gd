@@ -1,9 +1,10 @@
 class_name MapLevel
 extends Node3D
 ## A map in the world (the browser game's render/field/mapMeshes.ts and physics/physicsWorld.ts, greybox for now): the
-## blocks and any sloping ground drawn as one vertex-coloured mesh under a floor grid, the ground beyond the walls, and
-## the blocks and the sloping ground's very triangles (a trimesh) as Jolt static colliders, one body per surface so a
-## ray knows what it met. It hands the simulation its two views of the level:
+## blocks and the ground beyond the walls drawn as one vertex-coloured mesh under a floor grid, any sloping ground in
+## tiles of about TERRAIN_TILE m a side in the same material (each culled on its own, in the view and in every shadow
+## cascade; WL4), and the blocks and the sloping ground's very triangles (a trimesh) as Jolt static colliders, one body
+## per surface so a ray knows what it met. It hands the simulation its two views of the level:
 ## `query()` (WorldQuery: BB rays, what is underfoot) and `mover()` (CharacterMover), the only code that asks Jolt
 ## (docs/ARCHITECTURE.md › Contracts 4). Add it to the tree, then call `build`.
 ##
@@ -22,6 +23,8 @@ const GRID_PIXELS := 128
 const GRID_LINE := 2
 ## What a warning about a bake tells you to do.
 const REBAKE := "rebake with tools/bake_light.gd"
+## Sloping ground is drawn in tiles of whole ground squares at most this many metres a side (WL4).
+const TERRAIN_TILE := 32.0
 
 
 var map: MapData = null
@@ -31,6 +34,8 @@ var _lighting: LightingConfig = null
 var _night: bool = false
 var _material: StandardMaterial3D = null
 var _mesh: MeshInstance3D = null
+## Sloping ground's tiles, under one node; empty on a map without it.
+var _tiles: Array[MeshInstance3D] = []
 ## Whether the mesh drawn is the baked one; the map's bake, loaded when first drawn (`_bake_looked`).
 var _baked: bool = false
 var _bake: BakedLight = null
@@ -60,6 +65,8 @@ func build(m: MapData, style: MapStyle, body: BodyConfig, light: BakeConfig = nu
 	_material = _greybox_material(style)
 	_mesh = _make_mesh()
 	add_child(_mesh)
+	if m.terrain != null:
+		_add_ground_tiles(m.terrain)
 	for s in RayHit.Surface.size():
 		var sb := StaticBody3D.new()
 		sb.name = "Colliders_%s" % RayHit.Surface.keys()[s]
@@ -118,6 +125,11 @@ func baked_light_drawn() -> bool:
 	return _baked
 
 
+## Sloping ground's tiles (WL4), row by row; empty on a map without sloping ground.
+func ground_tiles() -> Array[MeshInstance3D]:
+	return _tiles
+
+
 ## The level as the simulation's WorldQuery.
 func query() -> JoltQuery:
 	return _query
@@ -133,6 +145,22 @@ func _notification(what: int) -> void:
 		for rid in _rids:
 			PhysicsServer3D.free_rid(rid)
 		_rids.clear()
+
+
+## Sloping ground drawn in tiles under one node, each in the greybox's material, casting shadows: built once, the
+## baked light's switch leaves them be (no bake covers sloping ground).
+func _add_ground_tiles(t: TerrainGrid) -> void:
+	var ground := Node3D.new()
+	ground.name = "Ground"
+	add_child(ground)
+	var meshes := GreyboxFaces.terrain_tiles(t, _style, TERRAIN_TILE)
+	for i in meshes.size():
+		var mi := MeshInstance3D.new()
+		mi.name = "Tile%d" % i
+		mi.mesh = meshes[i]
+		mi.material_override = _material
+		ground.add_child(mi)
+		_tiles.append(mi)
 
 
 ## The sloping ground's triangles as one trimesh per ground surface, each on that surface's body.
@@ -216,9 +244,8 @@ func _bake_or_null() -> BakedLight:
 	return _bake
 
 
-## Every block, the ground beyond the walls and any sloping ground as one mesh in one material: vertex colours carry
-## each block's and ground square's colour, a world-space grid texture the metre lines, so the whole field is a single
-## draw call.
+## Every block and the ground beyond the walls as one mesh in one material: vertex colours carry each block's colour,
+## a world-space grid texture the metre lines, so the blocks are a single draw call (sloping ground is its tiles').
 static func _greybox_mesh(m: MapData, style: MapStyle) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -228,17 +255,11 @@ static func _greybox_mesh(m: MapData, style: MapStyle) -> ArrayMesh:
 			_add_face(st, f)
 	st.set_color(style.ground_colour)
 	_add_face(st, GreyboxFaces.ground_face(style, GreyboxFaces.ground_top(m)))
-	if m.terrain == null:
-		return st.commit()
-	var arrays := st.commit_to_arrays()
-	GreyboxFaces.add_terrain(arrays, m.terrain, style)
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	return mesh
+	return st.commit()
 
 
-## The same faces cut into tiles, each vertex's colour lit by the bake (`_bake_or_null` has checked it fits), the
-## ground, and any sloping ground unlit.
+## The same faces cut into tiles, each vertex's colour lit by the bake (`_bake_or_null` has checked it fits), and the
+## ground unlit.
 func _baked_mesh() -> ArrayMesh:
 	var t := GreyboxFaces.tile(map, _light.cell, _light.ground_y)
 	var n := t.positions.size()
@@ -270,8 +291,6 @@ func _baked_mesh() -> ArrayMesh:
 	arrays[Mesh.ARRAY_NORMAL] = t.normals
 	arrays[Mesh.ARRAY_COLOR] = colours
 	arrays[Mesh.ARRAY_INDEX] = t.indices
-	if map.terrain != null:
-		GreyboxFaces.add_terrain(arrays, map.terrain, _style)
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	return mesh

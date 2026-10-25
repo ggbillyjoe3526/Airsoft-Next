@@ -48,6 +48,8 @@ static func parts_of(p: SkylinePiece, cfg: SkylineConfig, middle: Vector2) -> Ar
 			_fuselage(out, p, cfg)
 		&"mast":
 			_mast(out, p, cfg, toward)
+		&"treeline":
+			_treeline(out, p, cfg)
 	return out
 
 
@@ -218,6 +220,33 @@ static func _power_line(out: Array[Part], p: SkylinePiece, cfg: SkylineConfig) -
 				piece.cap_a = s == 0
 				piece.cap_b = s == cfg.wire_pieces - 1
 				out.append(piece)
+
+
+## A band of conifers along the line (WL4): rows `treeline_spacing` m apart across its depth, a cone every
+## `treeline_spacing` m along each, jittered and of seeded heights and colours (the same every build), sunk
+## `treeline_sink` m so none floats on lower ground beyond the field.
+static func _treeline(out: Array[Part], p: SkylinePiece, cfg: SkylineConfig) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(p.points)
+	var depth := p.depth if p.depth > 0.0 else cfg.treeline_spacing
+	var rows := maxi(1, roundi(depth / cfg.treeline_spacing))
+	var shake := cfg.treeline_jitter * cfg.treeline_spacing
+	for i in p.points.size() - 1:
+		var a := p.points[i]
+		var b := p.points[i + 1]
+		var run := (b - a).normalized()
+		var across := Vector2(-run.y, run.x)
+		var steps := maxi(1, roundi(a.distance_to(b) / cfg.treeline_spacing))
+		for k in steps:
+			for r in rows:
+				var off := (float(r) + 0.5) / rows - 0.5
+				var at := a.lerp(b, (k + 0.5 * (r % 2)) / steps) + across * depth * off
+				at += Vector2(rng.randf_range(-shake, shake), rng.randf_range(-shake, shake))
+				var h := p.height * rng.randf_range(cfg.treeline_low, 1.0)
+				var colour := cfg.treeline_colours[rng.randi() % cfg.treeline_colours.size()]
+				var foot := Vector3(at.x, -cfg.treeline_sink, at.y)
+				out.append(drum(foot, Vector3(at.x, h, at.y), h * cfg.treeline_width, 0.0, cfg.treeline_sides,
+						p.colour_or(colour)))
 
 
 static func _hill(out: Array[Part], p: SkylinePiece, cfg: SkylineConfig) -> void:

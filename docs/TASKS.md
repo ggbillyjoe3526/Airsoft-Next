@@ -4,28 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## WL4 · Woodland's look in placeholders (Dev)
-when: build order step 26, after WL1 (its night parts after WL3)
-tier: core
-perf: required
-touches: game/play/woods_view.gd, game/config/woods_config.gd, game/map/map_data.gd, game/map/skyline_piece.gd,
-  game/play/skyline_shapes.gd, game/config/skyline_config.gd, game/play/play_session.gd,
-  game/save/graphics_apply.gd, data/graphics.md, tests/unit/test_woods_view.gd, tests/unit/test_skyline.gd,
-  tools/map_pictures.gd, assets/maps/woodland.jpg, docs/ART.md
-contract: Simulation and presentation (1); Data, not literals (6)
-acceptance:
-  1. Every tree gets a crown, a cone placeholder above head height, drawn instanced: no collider, no effect on
-     sight, BBs or nav.
-  2. The map's `dressing`: the `treeline` skyline kind (cones along its points, faded to the horizon, MS1's unseen
-     pieces left out) and the hills; `forest` beyond the fence; grass tufts under 0.34 m from Medium; puddles as a
-     darker, glossier ground that never hides a BB; moss on logs; leaf drifts and fallen twigs (`woods`); fireflies
-     and motes at night, still under Reduced motion. Each part follows a Graphics row, off on Low where it costs.
-  3. It is look only: field checks, the nav grid and a seeded match come out the same with it off (tested).
-  4. The record gives triangles, draw calls and frame time per preset; pictures from the meadow by day and by night
-     are posted, and `assets/maps/woodland.jpg` is rendered again.
-status: open
-attempts: 0
-
 ## WL5 · Bushes hide you and stop BBs (Dev)
 when: build order step 26, after WL1
 tier: core

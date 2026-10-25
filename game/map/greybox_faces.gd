@@ -2,9 +2,9 @@ class_name GreyboxFaces
 extends RefCounted
 ## The greybox's geometry as plain data (DP2): each block's faces in one order (`faces_of`), the ground beyond the walls,
 ## the faces cut into tiles for the baked light (`tile`, and `tile_count` without making them), and sloping ground's
-## squares in their surfaces' colours (`add_terrain`). MapLevel builds its meshes and ramp colliders from it;
-## tools/bake_light.gd casts its rays at the same faces and bakes the same tiles, so their orders can't drift. Static
-## functions only.
+## squares in their surfaces' colours (`add_terrain`, or cut into tiles that cull, `terrain_tiles`). MapLevel builds
+## its meshes and ramp colliders from it; tools/bake_light.gd casts its rays at the same faces and bakes the same
+## tiles, so their orders can't drift. Static functions only.
 
 ## A length this close under a whole number of tiles (m) takes that number, not one more.
 const TILE_SLACK := 1e-4
@@ -79,6 +79,64 @@ static func ground_top(m: MapData) -> float:
 ## indices or none for a plain list): each ground square its four corners in its surface's colour (`style`), lit as the
 ## ground slopes there (smooth across squares), and its two triangles split and wound as TerrainGrid's.
 static func add_terrain(arrays: Array, t: TerrainGrid, style: MapStyle) -> void:
+	_add_squares(arrays, t, _palette(style), t.ground_lattice(), lattice_normals(t),
+			Rect2i(0, 0, t.ground_cols, t.ground_rows))
+
+
+## Sloping ground `t` cut into meshes of whole squares at most `size` m a side (WL4), row by row from its (min_x, min_z)
+## corner, so each can be culled on its own: every square exactly as `add_terrain` draws it (the same corners, normals,
+## colours and split), so together they are the whole ground's very faces.
+static func terrain_tiles(t: TerrainGrid, style: MapStyle, size: float) -> Array[ArrayMesh]:
+	var out: Array[ArrayMesh] = []
+	var per := maxi(1, floori(size / t.ground_cell + TILE_SLACK))
+	var palette := _palette(style)
+	var lattice := t.ground_lattice()
+	var normals := lattice_normals(t)
+	for j0 in range(0, t.ground_rows, per):
+		for i0 in range(0, t.ground_cols, per):
+			var arrays := []
+			arrays.resize(Mesh.ARRAY_MAX)
+			arrays[Mesh.ARRAY_VERTEX] = PackedVector3Array()
+			arrays[Mesh.ARRAY_NORMAL] = PackedVector3Array()
+			arrays[Mesh.ARRAY_COLOR] = PackedColorArray()
+			arrays[Mesh.ARRAY_INDEX] = PackedInt32Array()
+			_add_squares(arrays, t, palette, lattice, normals,
+					Rect2i(i0, j0, mini(per, t.ground_cols - i0), mini(per, t.ground_rows - j0)))
+			var mesh := ArrayMesh.new()
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+			out.append(mesh)
+	return out
+
+
+## Each ground lattice corner's normal, from the heights a square either side of it (the edge's own past the edge).
+static func lattice_normals(t: TerrainGrid) -> PackedVector3Array:
+	var lattice := t.ground_lattice()
+	var vx := t.ground_cols + 1
+	var vz := t.ground_rows + 1
+	var gc := t.ground_cell
+	var out := PackedVector3Array()
+	out.resize(lattice.size())
+	for j in vz:
+		var up := (j - 1 if j > 0 else j) * vx
+		var down := (j + 1 if j + 1 < vz else j) * vx
+		for i in vx:
+			var west := i - 1 if i > 0 else i
+			var east := i + 1 if i + 1 < vx else i
+			out[j * vx + i] = Vector3(lattice[j * vx + west] - lattice[j * vx + east], 2.0 * gc,
+					lattice[up + i] - lattice[down + i]).normalized()
+	return out
+
+
+static func _palette(style: MapStyle) -> PackedColorArray:
+	var palette := PackedColorArray()
+	for surface in RayHit.Surface.size():
+		palette.append(style.terrain_colour(surface))
+	return palette
+
+
+## The ground squares in `squares` (columns and rows of them) appended to `arrays`.
+static func _add_squares(arrays: Array, t: TerrainGrid, palette: PackedColorArray, lattice: PackedFloat64Array,
+		corner_normals: PackedVector3Array, squares: Rect2i) -> void:
 	var positions: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
 	var colours: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
@@ -90,36 +148,20 @@ static func add_terrain(arrays: Array, t: TerrainGrid, style: MapStyle) -> void:
 		indices.resize(base)
 		for i in base:
 			indices[i] = i
-	var lattice := t.ground_lattice()
 	var vx := t.ground_cols + 1
-	var vz := t.ground_rows + 1
 	var gc := t.ground_cell
-	# Each lattice corner's normal, from the heights a square either side of it (the edge's own past the edge).
-	var lattice_normals := PackedVector3Array()
-	lattice_normals.resize(lattice.size())
-	for j in vz:
-		var up := (j - 1 if j > 0 else j) * vx
-		var down := (j + 1 if j + 1 < vz else j) * vx
-		for i in vx:
-			var west := i - 1 if i > 0 else i
-			var east := i + 1 if i + 1 < vx else i
-			lattice_normals[j * vx + i] = Vector3(lattice[j * vx + west] - lattice[j * vx + east], 2.0 * gc,
-					lattice[up + i] - lattice[down + i]).normalized()
-	var squares := t.ground_cols * t.ground_rows
-	positions.resize(base + squares * 4)
-	normals.resize(base + squares * 4)
-	colours.resize(base + squares * 4)
+	var count := squares.size.x * squares.size.y
+	positions.resize(base + count * 4)
+	normals.resize(base + count * 4)
+	colours.resize(base + count * 4)
 	var first := indices.size()
-	indices.resize(first + squares * 6)
-	var palette := PackedColorArray()
-	for surface in RayHit.Surface.size():
-		palette.append(style.terrain_colour(surface))
-	for j in t.ground_rows:
+	indices.resize(first + count * 6)
+	var q := 0
+	for j in range(squares.position.y, squares.end.y):
 		var z0 := t.min_z + j * gc
 		var z1 := z0 + gc
-		for i in t.ground_cols:
-			var q := j * t.ground_cols + i
-			var colour := palette[t.surfaces[q]]
+		for i in range(squares.position.x, squares.end.x):
+			var colour := palette[t.surfaces[j * t.ground_cols + i]]
 			var x0 := t.min_x + i * gc
 			var x1 := x0 + gc
 			var k := j * vx + i
@@ -129,10 +171,10 @@ static func add_terrain(arrays: Array, t: TerrainGrid, style: MapStyle) -> void:
 			positions[v + 1] = Vector3(x1, lattice[k + 1], z0)
 			positions[v + 2] = Vector3(x0, lattice[k + vx], z1)
 			positions[v + 3] = Vector3(x1, lattice[k + vx + 1], z1)
-			normals[v] = lattice_normals[k]
-			normals[v + 1] = lattice_normals[k + 1]
-			normals[v + 2] = lattice_normals[k + vx]
-			normals[v + 3] = lattice_normals[k + vx + 1]
+			normals[v] = corner_normals[k]
+			normals[v + 1] = corner_normals[k + 1]
+			normals[v + 2] = corner_normals[k + vx]
+			normals[v + 3] = corner_normals[k + vx + 1]
 			colours[v] = colour
 			colours[v + 1] = colour
 			colours[v + 2] = colour
@@ -145,6 +187,7 @@ static func add_terrain(arrays: Array, t: TerrainGrid, style: MapStyle) -> void:
 			indices[n + 3] = v
 			indices[n + 4] = v + 3
 			indices[n + 5] = v + 2
+			q += 1
 	arrays[Mesh.ARRAY_VERTEX] = positions
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_COLOR] = colours

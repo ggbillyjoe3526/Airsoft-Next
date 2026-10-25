@@ -108,6 +108,21 @@ extends Resource
 @export var hill_colour: Color = Color("26362b")
 @export var hill_rings: int = 4
 
+@export_group("Treeline")
+## A band of dark conifers along a line (WL4; the browser game's DRESSING.treeline): cones `treeline_spacing` m apart
+## in rows across its depth, jittered by `treeline_jitter` of the spacing, `treeline_low` to 1 of its height tall,
+## `treeline_width` of their height wide (radius) with `treeline_sides` sides, sunk `treeline_sink` m into the ground,
+## each in one of these greens (far from both teams' hues).
+@export var treeline_colours: PackedColorArray = PackedColorArray([
+	Color("1c3024"), Color("22382a"), Color("18291f"), Color("2a3a2c"),
+])
+@export var treeline_spacing: float = 2.4
+@export var treeline_jitter: float = 0.35
+@export var treeline_low: float = 0.7
+@export var treeline_width: float = 0.27
+@export var treeline_sides: int = 6
+@export var treeline_sink: float = 1.0
+
 @export_group("Watch tower")
 ## A concrete column `watch_column` of the width wide up to a deck `watch_deck` m thick, a parapet `watch_parapet` m
 ## tall, corner posts and a roof `watch_roof` m thick over a cabin `watch_cabin` m tall.

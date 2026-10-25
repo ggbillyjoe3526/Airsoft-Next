@@ -195,10 +195,11 @@ static func apply_picture(values: GraphicsQuality, viewport: Viewport) -> void:
 
 
 ## The match's sun (shadows on, their range), its ambient occlusion (on, and half or full size), the wind dust's share,
-## the kicked dust (on with any wind dust) and the level's baked light (a new mesh only when it changes), from `values`
-## (already drawable). Any of `lighting`, `dust`, `level` and `kicked` may be null.
+## the kicked dust (on with any wind dust), the level's baked light (a new mesh only when it changes) and a wood's
+## dressing (WoodsView: its parts by Mesh detail, its fireflies and motes by the wind dust's share), from `values`
+## (already drawable). Any of `lighting`, `dust`, `level`, `kicked` and `woods` may be null.
 static func apply_field(values: GraphicsQuality, lighting: FieldLighting, dust: WindDust, rs: Server = null,
-		level: MapLevel = null, kicked: KickedDust = null) -> void:
+		level: MapLevel = null, kicked: KickedDust = null, woods: WoodsView = null) -> void:
 	var to := rs if rs != null else server()
 	if lighting != null:
 		lighting.sun.shadow_enabled = values.sun_shadows
@@ -213,6 +214,8 @@ static func apply_field(values: GraphicsQuality, lighting: FieldLighting, dust: 
 		level.set_baked_light(values.baked_light)
 	if kicked != null:
 		kicked.set_on(values.wind_dust > 0)
+	if woods != null:
+		woods.set_quality(values.mesh_detail, values.wind_dust / PERCENT)
 
 
 ## Whether the figures draw their contact shadows with `values`: where the sun casts none.

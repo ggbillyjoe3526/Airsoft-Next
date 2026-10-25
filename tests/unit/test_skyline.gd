@@ -159,6 +159,53 @@ func test_it_fades_to_the_playing_horizon_and_no_fade_step_reads_as_a_team_by_da
 	assert_ne(play.night_lighting.sky_horizon, play.lighting.sky_horizon, "the night has its own horizon")
 
 
+func test_a_treeline_is_cones_along_its_points_across_its_depth() -> void:
+	var cfg := play.skyline
+	var warnings: Array[String] = []
+	var pieces := SkylinePiece.read({"skyline": [
+		{"kind": "treeline", "height": 15, "depth": 5, "points": [{"x": 0, "z": -40}, {"x": 40, "z": -40}]},
+		{"kind": "treeline", "height": 15, "depth": -1, "points": [{"x": 0, "z": -40}, {"x": 40, "z": -40}]}]},
+			warnings)
+	assert_eq(pieces.size(), 1, "a negative depth is left out")
+	assert_eq(warnings.size(), 1, "with a warning")
+	var parts := SkylineShapes.parts_of(pieces[0], cfg, Vector2.ZERO)
+	var rows := roundi(5.0 / cfg.treeline_spacing)
+	assert_eq(parts.size(), roundi(40.0 / cfg.treeline_spacing) * rows, "a cone every spacing, %d rows deep" % rows)
+	var shake := cfg.treeline_jitter * cfg.treeline_spacing
+	var off := 0
+	for part in parts:
+		var top := part.b[0]
+		var foot := part.a[0]
+		if top.y > 15.0 or top.y < 15.0 * cfg.treeline_low or absf(top.z + 40.0) > 2.5 + shake \
+				or top.x < -shake or top.x > 40.0 + cfg.treeline_spacing + shake or foot.y > 0.0:
+			off += 1
+	assert_eq(off, 0, "every cone in the band, its foot sunk, its height within the treeline's")
+	var a := SkylineShapes.parts_of(pieces[0], cfg, Vector2.ZERO)
+	assert_eq(a[3].b, parts[3].b, "the same cones every time")
+
+
+func test_woodland_s_treelines_and_hills_are_built_and_read_as_no_team_by_day_or_night() -> void:
+	var teams := AccessibilityTable.read_file().colours
+	var woodland := MapData.load_map("woodland", play.map_style, 1)
+	assert_eq(woodland.warnings, [] as Array[String])
+	for preset: LightingConfig in [play.lighting, play.night_lighting]:
+		var v := SkylineView.build(woodland, play.skyline, preset, body.stand_eye_height)
+		var kinds: Dictionary[StringName, int] = {}
+		for p in v.kept:
+			kinds[p.kind] = kinds.get(p.kind, 0) + 1
+		assert_gt(kinds.get(&"treeline", 0), 0, "%s: treelines built" % preset.id)
+		assert_gt(kinds.get(&"hill", 0), 0, "%s: hills built" % preset.id)
+		var team_like: Array[String] = []
+		var seen: Dictionary[Color, bool] = {}
+		for c: Color in v.mesh().surface_get_arrays(0)[Mesh.ARRAY_COLOR]:
+			seen[c] = true
+		for c: Color in seen:
+			if FieldChecks.reads_as_team(c, teams):
+				team_like.append(c.to_html(false))
+		assert_eq(team_like, [] as Array[String], "%s: no colour near a team's hue" % preset.id)
+		v.free()
+
+
 func test_the_masts_lamps_glow_at_night_with_no_real_light() -> void:
 	var night := SkylineView.build(depot, play.skyline, play.night_lighting, body.stand_eye_height)
 	add_child_autofree(night)

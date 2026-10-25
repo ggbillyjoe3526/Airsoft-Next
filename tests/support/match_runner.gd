@@ -159,13 +159,15 @@ var lowest_floor: float = INF
 var highest_top: float = -INF
 
 
-## Builds `map_id`'s level under `parent` (it stays there until `free_level`). Check `map.problems` before trusting
-## the height bounds: a map refused for having no floor leaves `lowest_floor` at INF.
-func _init(parent: Node, map_id: String, sim_tuning: SimTuning = null, bot_config: BotConfig = null) -> void:
+## Builds `map_id`'s level under `parent` (it stays there until `free_level`), or `given`'s when there is one (a map
+## already read, such as a copy with a part of its file taken out). Check `map.problems` before trusting the height
+## bounds: a map refused for having no floor leaves `lowest_floor` at INF.
+func _init(parent: Node, map_id: String, sim_tuning: SimTuning = null, bot_config: BotConfig = null,
+		given: MapData = null) -> void:
 	tuning = sim_tuning if sim_tuning != null else SimTuning.load_default()
 	config = bot_config if bot_config != null else BotConfig.load_default()
 	var style := MapStyle.new()
-	map = MapData.load_map(map_id, style, tuning.rounds.team_size)
+	map = given if given != null else MapData.load_map(map_id, style, tuning.rounds.team_size)
 	level = MapLevel.new()
 	parent.add_child(level)
 	level.build(map, style, tuning.body)
