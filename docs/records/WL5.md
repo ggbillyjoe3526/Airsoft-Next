@@ -118,6 +118,21 @@ sixth tick (each bot against each enemy in view range), 26 of them through some 
   still for the picture), `wl5-hud-notice-minimap.png` and `wl5-minimap.png` (the notice, and the bushes as green
   discs on the minimap).
 
+## Advisories left
+
+- The leaves' turn draws from the match stream (`state.rng`), as ricochets do, so on a map with bushes later spread
+  draws shift; the same seed still plays the same match and a bushless world draws nothing (QA). A stream of its own
+  would keep spread independent of bushes.
+- Overlapping bushes count twice (`Foliage.depth` sums them); sight and the BB stop agree, so the 0.6 m rule holds
+  (QA).
+- `Hud._leaves_left` isn't cleared at a round start; a notice can linger under 1.4 s into the next round (QA,
+  harmless).
+- Woodland isn't in the match guards while it is Dev-only; QA ran 5v5 seeds by hand (Normal 1-6, Easy/Hard/Pro 3
+  each): no round held up or on time.
+- BushView casts sun shadows across the whole map in one unculled draw a cascade (performance; Low has no sun shadows,
+  so check Medium and up on the owner's PC).
+- `Foliage.leaf_floor` walks every bush once a leaf event; grid it if bushes pass a few hundred (performance).
+
 ## For the owner to test
 
 - On Woodland (Dev), shoot into a bush someone is crouched behind: deep in, nothing gets through; through an edge, BBs
