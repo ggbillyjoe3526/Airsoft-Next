@@ -307,6 +307,35 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## A sector counts as checked once a bot sees a spot in it empty within this range (m).
 @export var hunt_clear_range: float = 19.0
 
+@export_group("Night sight")
+## How far a bot makes someone out on a field played at night (m; the browser game's NIGHT_SIGHT, WL6), by the light
+## the target stands in: a light pool (as far as by day), the moonlit open, under the trees, or indoors in the dark (a
+## floor or roof over it and no pool). view_distance still caps them all. NightField reads these.
+@export var night_lit: float = 40.0
+@export var night_open: float = 25.0
+@export var night_canopy: float = 10.0
+@export var night_indoor: float = 15.0
+## Ground counts as under the trees when at least `night_canopy_trees` trunks (blocks of kind tree) stand within
+## `night_canopy_radius` m of its cell's middle, on a grid of `night_canopy_cell` m cells from the blocks' corner
+## (MapStyle's canopy rule for the under-trees ground is the same; a test holds them equal).
+@export var night_canopy_trees: int = 3
+@export var night_canopy_radius: float = 4.0
+@export var night_canopy_cell: float = 1.0
+## A pool lights the floor under it, for feet from `night_pool_below` m under that floor to `night_pool_above` m over
+## it, not the floors above or below (on terrain the floor is the ground under the feet).
+@export var night_pool_below: float = 0.5
+@export var night_pool_above: float = 2.0
+## Feet with the underside of a block (trees aside) between `night_roof_from` and `night_roof_to` m over them stand
+## under a floor or roof: unlit, they are made out from night_indoor.
+@export var night_roof_from: float = 1.9
+@export var night_roof_to: float = 9.5
+## Keeping out of the light (BotSkill.keeps_dark): a lane point or hunt spot in a light pool moves to the nearest dark
+## spot on its floor within dark_spot_radius (m), tried in rings dark_spot_step (m) apart, dark_spot_directions round
+## each; unmoved if there is none.
+@export var dark_spot_radius: float = 8.0
+@export var dark_spot_step: float = 1.0
+@export var dark_spot_directions: int = 16
+
 
 ## The skill a bot at `level` (MatchOptions.BOT_LEVELS) plays with; Normal's for a level it doesn't know.
 func skill_for(level: StringName) -> BotSkill:

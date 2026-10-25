@@ -25,6 +25,9 @@ var round_clock: float = INF
 var mode: RoundState.Mode = RoundState.Mode.ELIMINATION
 var attackers: int = -1
 var flag: FlagState = FlagState.new()
+## The dark on a field played at night (WL6): light pools, canopy and roofs, built once as the match loads (null by
+## day, and sight is as it always was).
+var night: NightField = null
 
 ## The field split into square sectors (BotConfig.hunt_sector_size) from (min_x, min_z): when each team last checked
 ## each one (-INF never).
@@ -86,6 +89,31 @@ func pushing_late(b: Bot) -> bool:
 ## Team play: true while `b` goes to trade a teammate's hit call it heard.
 func trading(b: Bot) -> bool:
 	return time - b.trade_at < cfg.trade_time
+
+
+## Keeping out of the light (BotSkill.keeps_dark): `g` (a floor point) moved to the nearest dark spot on its own floor,
+## within dark_spot_radius in rings dark_spot_step apart, dark_spot_directions round each; `g` itself by day, outside the
+## light, or with no dark spot near. The nearest is at the pool's edge, so a bot that stops a little short of it may
+## stand just inside the light (the browser game's M40: a margin past the edge made defenders too strong).
+func out_of_light(g: Vector3) -> Vector3:
+	if night == null or not night.in_light(g):
+		return g
+	var step := cfg.dark_spot_step
+	var turns := maxi(1, cfg.dark_spot_directions)
+	var ring := 1
+	while step > 0.0 and ring * step <= cfg.dark_spot_radius + 1e-6:
+		var r := ring * step
+		for k in turns:
+			var angle := TAU * k / turns
+			var at := Vector3(g.x + cos(angle) * r, g.y, g.z + sin(angle) * r)
+			if not nav.is_walkable_at(at):
+				continue
+			at.y = nav.floor_at(at)
+			if absf(at.y - g.y) > tuning.body.max_step or night.in_light(at):
+				continue
+			return at
+		ring += 1
+	return g
 
 
 ## The enemy side's direction (yaw) for `team` this round.

@@ -338,6 +338,14 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   hears, reacts, turns or aims. Anchors aim from cover when standing still; every other bot fires from the hip.
 - **Every level hunts the middle of the map; Normal, Hard and Pro keep out of the light at night; Easy stands where its
   lane says (owner, 2026-10-05).** Below Pro, both teams swept to the far end and rounds ran out of time (M71).
+- **Bots see by the dark at night, from the map's data, never from lights or scene nodes (2026-10-25, WL6; the
+  browser's NIGHT_SIGHT and M40, Claude's defaults).** A NightField is built once a match when the preset played is a
+  night one (Woodland always, Neon Heights by default): someone is made out from 40 m lit, 25 m in the open, 10 m under
+  the trees (3 trunks within 4 m, 1 m cells) and 15 m indoors (`BotConfig` night sight). By day there is none and sight
+  is unchanged. Keeping out of the light (`BotSkill.keeps_dark`, Normal and up) moves a lane point or hunt spot to the
+  nearest dark spot on its floor within 8 m, its edge, no margin, and passes over hold and flag-guard cover in a pool;
+  a fight's cover, the raiser's spot at the pole and squad orders ignore the light. The headless runner plays a
+  night-only map (Woodland) at night; Neon Heights keeps its day guards until WL10's night guards.
 - **Hunting bots check by eye, and a team shares what its bots checked (M87, owner, 2026-10-06).** A checked spot counts
   for the level's `huntMemory` (Easy 20 s, Normal 40, Hard 50, Pro 60), then as never checked.
 - **Balance is measured by headless bot matches against bands, as a report (owner, 2026-10-06; TE4).** Noise across

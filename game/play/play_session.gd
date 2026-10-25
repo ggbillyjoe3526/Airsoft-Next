@@ -314,6 +314,8 @@ func _build_views_and_start() -> void:
 	var levels: Dictionary[int, StringName] = {player_team: teammates_level(), opponent_team(): difficulty}
 	_bots = BotController.new(state, nobody if autopilot and not practice else PLAYER_ID, _map, _sim.nav,
 			_level.query(), _tuning, _bot_config, levels, _identities)
+	# The dark the bots see by, from the map's data once, when the preset played is a night one (WL6; null by day).
+	_bots.world.night = NightField.build(_map, _bot_config, _light.night)
 	# On the range the pilot shoots a plate instead (there is no one to play against).
 	if autopilot and practice:
 		_pilot = RangePilot.new()
