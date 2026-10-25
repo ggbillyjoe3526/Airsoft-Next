@@ -29,7 +29,7 @@ can't settle a check.
 | 5 | Simulation apart from presentation (rules in plain classes, nodes only read state and events); static types on every variable, parameter and return; no magic numbers in gameplay code; no hidden global state (CLAUDE.md §3, §8) | yes |
 | 6 | Feels like airsoft and fits the pillars, the tone, the fixed technical decisions and the assets policy (CLAUDE.md §2, §3, §4, §10) | yes |
 | 7 | Maintainability: small scripts and scenes; nodes, resources, timers, tweens and connections freed on teardown; UIDs, resource ids and node paths kept in `.tscn`/`.tres` edits; no copy of an existing script; names that read | no |
-| 8 | Scope: nothing beyond the task or its stage (Dev adds, Beta fixes; no later-version feature); the docs it affects updated (KNOWN_ISSUES rows, DECISIONS for a ruling, a folder README for a file added or moved, the `changelog.d/` note) | no |
+| 8 | Scope: nothing beyond the task or its stage (Dev adds, Beta fixes; no later-version feature); the docs it affects updated (KNOWN_ISSUES rows, DECISIONS for a ruling, a folder README for a file added or moved, the `changelog.d/` note, the `docs/wiki/` page for a change players notice) | no |
 
 - **QA and performance first.** File each of their blocking findings under the check it breaks (after checking its
   file:line), then add what they missed; check 3 still reads the hot paths yourself (new `Array`, `Dictionary`,

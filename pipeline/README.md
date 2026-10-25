@@ -56,7 +56,8 @@ Audits and major reviews are not pipeline tasks: they run in their own thread an
 8. **Retry**: only the failed checks and their evidence go back to the worker, and the attempt rule below applies.
 
 Then the thread runs the changelog agent once the change is final (one `changelog.d/` note per pull request; never an
-edit to `CHANGELOG.md`), writes the task's record, `docs/records/<id>.md` (below), ships the work, the note and the
+edit to `CHANGELOG.md`), updates the `docs/wiki/` page a player-visible change touches (`docs/PROCESS.md` › Pull
+requests and branches), writes the task's record, `docs/records/<id>.md` (below), ships the work, the note and the
 record in one push, and merges the pull request itself once CI is green (owner, 2026-10-16).
 
 ### The critic's eight checks
@@ -72,7 +73,7 @@ The table with its evidence rules is `.claude/agents/critic.md`; in short:
 | 5 | Simulation apart from presentation, static types everywhere, no magic numbers, no hidden global state | yes |
 | 6 | Feels like airsoft: the pillars, the tone, the fixed technical decisions, the assets policy | yes |
 | 7 | Maintainability: small scripts and scenes, everything freed, UIDs kept in `.tscn`/`.tres` edits | no |
-| 8 | Scope (the task and its stage) and the docs it affects | no |
+| 8 | Scope (the task and its stage) and the docs it affects, the wiki page included | no |
 
 ### Verdict and attempts
 

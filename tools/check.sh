@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Every local gate CI runs, quietly: lint, the changelog notes, the unit tests (in two parts, CI1), the smoke test and
-# the licence notices; with --guards, the match guards too (a few minutes; CI runs them as a job of their own).
+# Every local gate CI runs, quietly: lint, the changelog notes, the wiki, the unit tests (in two parts, CI1), the smoke
+# test and the licence notices; with --guards, the match guards too (a few minutes; CI runs them as a job of their own).
 # Prints one line per gate and the failures; logs are in *.log. Exits non-zero if any gate failed.
 # Usage: tools/check.sh [--guards]      (GODOT=/path/to/godot to override)
 set -uo pipefail
@@ -26,6 +26,7 @@ else
   echo "– gdlint not installed (pip install \"gdtoolkit==4.5.0\"); CI runs it"
 fi
 gate "changelog notes" tools/changelog.sh check
+gate "wiki" python3 tools/wiki.py check
 gate "unit tests, part 1" tools/unit_tests.sh 1
 gate "unit tests, part 2" tools/unit_tests.sh 2
 gate "smoke test" tools/smoke_test.sh

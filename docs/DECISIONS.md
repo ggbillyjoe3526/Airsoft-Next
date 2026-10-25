@@ -151,6 +151,11 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Each pull request adds one changelog note, `changelog.d/<short-name>.md`, in player words, never an edit to
   `CHANGELOG.md` (owner, 2026-10-18, with katanashotgun's scripts).** `tools/changelog.sh release` folds them
   into `CHANGELOG.md` at release.
+- **The game has a GitHub wiki for players and developers, kept current as the game changes, like katanashotgun's
+  (owner, 2026-10-25).** Its pages live in `docs/wiki/` and are reviewed in pull requests; tables and Patch Notes are
+  generated from the data and changelog notes by `tools/wiki.py`, and `.github/workflows/wiki.yml` publishes on every
+  merge. A change players notice updates its page in the same pull request (`docs/PROCESS.md`). Dev content appears
+  only on Roadmap, Development or under In development; robots never (WK1 default, following the robots ruling).
 
 ## Art direction and graphics
 

@@ -7,6 +7,10 @@ matches against bots on purpose-built airsoft fields: plastic replicas, visible 
 It is the same game as the browser version (`ggbillyjoe3526/Airsoft`, frozen at `0.1-beta.1`), rebuilt as an
 installable desktop game. Versions restart at 0.1 Dev 1.
 
+The [wiki](https://github.com/ggbillyjoe3526/Airsoft-Next/wiki) explains the game for players: controls, rules, every
+replica's stats, maps, modes, bots, settings, patch notes and the roadmap. Its pages are `docs/wiki/`, published on
+every merge (`docs/wiki/README.md`).
+
 ## Status
 
 **Building 0.1 Dev 1.** Depot is playable against stand-in targets (no bots yet): press *Play Depot* on the title
@@ -37,13 +41,13 @@ screen. The plan is `docs/ROADMAP.md`; what is happening now is `docs/HANDOFF.md
 | `assets/` | Models (glTF), fonts and sounds; every one is logged in `docs/ASSETS.md` |
 | `tests/` | GUT unit tests, run headless |
 | `tools/` | Check, test, release and asset scripts; `tools/blender/` builds the figures |
-| `docs/` | Vision, art direction, rulings, roadmap, process and the playtest guide |
+| `docs/` | Vision, art direction, rulings, roadmap, process, the playtest guide and the wiki's pages (`docs/wiki/`) |
 | `legacy/` | Read-only reference, removed at 0.1: the browser game's gameplay code, tests and docs, and a few katanashotgun scripts still to port |
 
 ## Checks
 
-`tools/check.sh` runs every check CI runs (lint, unit tests, a headless smoke test, the licence notices); it needs
-`godot` on PATH (or `GODOT=/path/to/godot`) and, for lint, `pip install "gdtoolkit==4.5.0"`. How work moves:
+`tools/check.sh` runs every check CI runs (lint, the wiki, unit tests, a headless smoke test, the licence notices); it
+needs `godot` on PATH (or `GODOT=/path/to/godot`) and, for lint, `pip install "gdtoolkit==4.5.0"`. How work moves:
 `docs/PROCESS.md` and `CLAUDE.md`.
 
 ## Licence
