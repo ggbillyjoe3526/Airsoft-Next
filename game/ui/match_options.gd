@@ -40,8 +40,13 @@ const RULES_NAME: Dictionary[String, String] = {RULES_SKIRMISH: "RULES_SKIRMISH"
 const RULES_BLURB: Dictionary[String, String] = {
 	RULES_SKIRMISH: "RULES_SKIRMISH_BLURB", RULES_CUSTOM: "RULES_CUSTOM_BLURB",
 }
-## The bots' levels, in the order shown.
-const BOT_LEVELS: PackedStringArray = ["easy", "normal", "hard", "pro"]
+## The bots' levels, in the order shown (three since 2026-10-25: each moved up a name and Pro became Hard, DECISIONS).
+const BOT_LEVELS: PackedStringArray = ["easy", "normal", "hard"]
+## The level a new player starts on.
+const DEFAULT_LEVEL := "normal"
+## Against this level the scoreboard and the summary give a Pro tip, and What got you on Auto shows (the browser game's
+## Pro bots).
+const TIPS_LEVEL := &"hard"
 const TEAM_KEYS: PackedStringArray = ["TEAM_ALPHA", "TEAM_BETA"]
 
 
@@ -201,9 +206,9 @@ static func summary_rest(mode: String, team: int, bots: String, custom: CustomRu
 	return rest
 
 
-## Your teammates' level as played: the one picked, or the opponents' as it follows (BotConfig.teammates_following).
+## Your teammates' level as played: the one picked, or the opponents' as it follows.
 static func teammates_level(opponents: String, picked: String) -> String:
-	return picked if not picked.is_empty() else String(BotConfig.teammates_following(StringName(opponents)))
+	return picked if not picked.is_empty() else opponents
 
 
 ## The Opponents row's line for `level` (the browser game's DIFFICULTIES blurb), with the match's XP multiplier `xp` in

@@ -14,7 +14,7 @@ const VERSION := 1
 ## Windowed leaves the window as it is (the project starts maximised); the other two are the DisplayServer's
 ## borderless and exclusive fullscreen.
 enum WindowMode { WINDOWED, BORDERLESS, EXCLUSIVE }
-## When the "What got you" card shows: against Pro bots, always, or never.
+## When the "What got you" card shows: against Hard bots, always, or never.
 enum WhatGotYou { AUTO, ON, OFF }
 ## The renderer the next start asks for: Auto (Forward+, falling back by itself) or the simpler Compatibility one.
 enum Renderer { AUTO, COMPATIBILITY }
@@ -81,7 +81,7 @@ var renderer: Renderer = Renderer.AUTO
 var first_start_seen: bool = false
 ## Replica colours: every bold scheme shows as its plain family colour (LO3).
 var realistic_colours: bool = false
-## The "What got you" card once you are hit: Auto shows it against Pro bots only.
+## The "What got you" card once you are hit: Auto shows it against Hard bots only.
 var what_got_you: WhatGotYou = WhatGotYou.AUTO
 ## The HUD tab's choices: the crosshair, the hit marker, the ammo counter, the hit feed and the panels' opacity.
 var hud: HudPrefs = HudPrefs.new()

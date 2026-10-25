@@ -26,9 +26,9 @@ var held_middle: Vector3:
 
 
 ## Bots for every character in `state` but `player_id` (-1: everyone), on `map` with its nav grid and level rays, each
-## team at its level in `team_levels` (team: a MatchOptions.BOT_LEVELS id; a team not in it plays Normal), each with its
-## name and personality in `identities` (by character id, BotRoster.draw; a bot not in it has neither). Their first
-## plan comes with the match's first ROUND_START (observe).
+## team at its level in `team_levels` (team: a MatchOptions.BOT_LEVELS id; a team not in it plays Easy, the baseline),
+## each with its name and personality in `identities` (by character id, BotRoster.draw; a bot not in it has neither).
+## Their first plan comes with the match's first ROUND_START (observe).
 func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: WorldQuery, tuning: SimTuning,
 		config: BotConfig, team_levels: Dictionary[int, StringName] = {},
 		identities: Dictionary[int, BotRoster.Identity] = {}) -> void:
@@ -46,7 +46,7 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 	w.planner = RoundPlanner.new(state.match_seed)
 	for c in state.characters:
 		if c.id != player_id:
-			var skill := config.skill_for(team_levels.get(c.team, &"normal"))
+			var skill := config.skill_for(team_levels[c.team]) if team_levels.has(c.team) else config.skill
 			var who: BotRoster.Identity = identities.get(c.id)
 			if who != null:
 				skill = BotPersonality.personal_skill(skill, who.style)

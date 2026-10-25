@@ -5,7 +5,7 @@ extends GutTest
 
 const MAIN := preload("res://game/main.tscn")
 const SAVE := "user://test-mn3-bots.save"
-const LEVELS: Array[String] = ["easy", "normal", "hard", "pro"]
+const LEVELS: Array[String] = ["easy", "normal", "hard"]
 
 var _picks: MatchPicks = null
 
@@ -37,7 +37,7 @@ func _picked_row(page: MatchPage, teammates: bool) -> Array[String]:
 
 # --- the rows ---
 
-func test_two_rows_with_a_button_for_each_of_the_four_levels() -> void:
+func test_two_rows_with_a_button_for_each_of_the_three_levels() -> void:
 	var page := _page()
 	assert_eq(MatchOptions.BOT_LEVELS, PackedStringArray(LEVELS))
 	for level in LEVELS:
@@ -52,11 +52,10 @@ func test_two_rows_with_a_button_for_each_of_the_four_levels() -> void:
 func test_the_words_are_the_browser_games_blurbs() -> void:
 	var page := _page()
 	var words := {
-		"easy": ["Slow to react, shaky aim. Learn the map.", "Slow to react, shaky aim: you carry the team."],
-		"normal": ["A fair fight: their first BBs up close can miss.", "They hold their own in a fair fight."],
-		"hard": ["Quick and steady, each on kit of its own. Get seen first and you're out.",
+		"easy": ["A fair fight to learn on: their first BBs up close can miss.", "They hold their own in a fair fight."],
+		"normal": ["Quick and steady, each on kit of its own. Get seen first and you're out.",
 				"Quick and steady: they win fights for you."],
-		"pro": ["Tournament-sharp: patient, accurate and well kitted. Slow down and slice every corner.",
+		"hard": ["Tournament-sharp: patient, accurate and well kitted. Slow down and slice every corner.",
 				"Patient and accurate: they hold their angles and win their duels."],
 	}
 	for level: String in words:
@@ -71,11 +70,11 @@ func test_the_opponents_line_ends_with_the_xp_multiplier() -> void:
 	var page := _page()
 	page.bot_button("hard").pressed.emit()
 	assert_eq(page.bots_box().opponents_text(),
-			"Quick and steady, each on kit of its own. Get seen first and you're out. XP ×1.5")
+			"Tournament-sharp: patient, accurate and well kitted. Slow down and slice every corner. XP ×1.5")
 	page.bot_button("easy").pressed.emit()
 	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×0.5")
-	page.bot_button("pro").pressed.emit()
-	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×2")
+	page.bot_button("normal").pressed.emit()
+	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×1")
 
 
 # --- following until picked ---
@@ -89,9 +88,7 @@ func test_teammates_follow_the_opponents_until_one_is_picked() -> void:
 	page.bot_button("hard").pressed.emit()
 	assert_eq(_picked_row(page, true), ["hard"], "they follow Hard")
 	page.bot_button("easy").pressed.emit()
-	assert_eq(_picked_row(page, true), ["normal"], "Normal against Easy (BotConfig.teammates_following)")
-	page.bot_button("pro").pressed.emit()
-	assert_eq(_picked_row(page, true), ["pro"])
+	assert_eq(_picked_row(page, true), ["easy"], "they follow Easy too (TL1)")
 	assert_eq(_picks.teammates, "", "following never writes a pick")
 
 
@@ -113,11 +110,11 @@ func test_a_picked_level_is_kept_until_you_follow_again() -> void:
 
 func test_the_picks_are_kept_when_the_page_is_built_again() -> void:
 	var page := _page()
-	page.bot_button("pro").pressed.emit()
+	page.bot_button("hard").pressed.emit()
 	page.teammate_button("normal").pressed.emit()
 	var again := MatchPage.new(_picks, Settings.new())
 	add_child_autofree(again)
-	assert_eq(_picked_row(again, false), ["pro"])
+	assert_eq(_picked_row(again, false), ["hard"])
 	assert_eq(_picked_row(again, true), ["normal"])
 	assert_false(again.bots_box().says_follows())
 
@@ -146,7 +143,7 @@ func test_following_hands_the_session_no_teammate_level() -> void:
 	main._start_play()
 	await wait_process_frames(2)
 	assert_eq(main._play.teammate_difficulty, &"")
-	assert_eq(main._play.teammates_level(), &"normal", "Normal against Easy")
+	assert_eq(main._play.teammates_level(), &"easy", "Easy against Easy")
 	assert_true(main._play.counts_for_records())
 	main._end_play()
 	await wait_process_frames(2)
@@ -163,8 +160,7 @@ func test_the_summary_names_both_levels_when_they_differ() -> void:
 	assert_eq(page.summary_text(), "Depot · Elimination · Alpha · Hard bots · Normal teammates")
 	page.bot_button("easy").pressed.emit()
 	page.bots_box().follow_button().pressed.emit()
-	assert_eq(page.summary_text(), "Depot · Elimination · Alpha · Easy bots · Normal teammates",
-			"Easy opponents give Normal teammates")
+	assert_eq(page.summary_text(), "Depot · Elimination · Alpha · Easy bots", "following Easy: said once")
 	page.teammate_button("easy").pressed.emit()
 	assert_eq(page.summary_text(), "Depot · Elimination · Alpha · Easy bots", "picked the same level")
 
@@ -219,16 +215,16 @@ func test_the_xp_follows_the_lower_of_the_two_levels() -> void:
 	page.teammate_button("normal").pressed.emit()
 	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×1", "Normal teammates hold Hard's XP at ×1")
 	page.bot_button("easy").pressed.emit()
-	page.teammate_button("pro").pressed.emit()
-	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×0.5", "Easy opponents hold Pro teammates")
+	page.teammate_button("hard").pressed.emit()
+	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×0.5", "Easy opponents hold Hard teammates")
 
 
 func test_the_xp_is_held_to_the_custom_cap_and_a_1v1_counts_the_opponents_alone() -> void:
 	var page := _page()
-	page.bot_button("pro").pressed.emit()
-	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×2")
+	page.bot_button("hard").pressed.emit()
+	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×1.5")
 	page.rules_box().rules_button(MatchOptions.RULES_CUSTOM).pressed.emit()
-	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×1.5", "Custom's cap")
+	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×1.5", "Custom's cap, Hard's own since TL1")
 	page.teammate_button("easy").pressed.emit()
 	page.rules_box().team_size_choice().button(0).pressed.emit()
 	assert_string_ends_with(page.bots_box().opponents_text(), "XP ×1.5", "no teammates to hold it down")

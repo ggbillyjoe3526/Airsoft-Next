@@ -1,6 +1,6 @@
 extends GutTest
-## QA for DF2b (Pro team play): state left across rounds, who hears and who is told, who counts toward a late push,
-## pairs that never stall, and Pro matches replaying the same.
+## QA for DF2b (Hard team play): state left across rounds, who hears and who is told, who counts toward a late push,
+## pairs that never stall, and Hard matches replaying the same.
 
 const DT := 1.0 / 60.0
 
@@ -34,7 +34,7 @@ func _start(player_id: int = -1) -> void:
 		var team := 0 if i < size else 1
 		var x := float(i) * 2.0 if team == 0 else 20.0 + float(i - size) * 2.0
 		state.characters.append(Character.new(i, team, Vector3(x, 0.0, 0.0), 0.0, loadout))
-	var levels: Dictionary[int, StringName] = {0: &"pro", 1: &"pro"}
+	var levels: Dictionary[int, StringName] = {0: &"hard", 1: &"hard"}
 	bots = BotController.new(state, player_id, map, nav, level.query(), tuning, config, levels)
 	bots.world.time = 10.0
 
@@ -144,8 +144,8 @@ func test_a_pro_match_with_team_play_replays_the_same_from_the_same_seed() -> vo
 	# The fixture's own level shares the physics world (and skews the first run): play on the runner's alone.
 	level.free()
 	level = null
-	# Pro only: team play is Pro's, and the other levels' replay is test_bots_hunt.gd's (kept short for the suite's time).
-	for lv: StringName in [&"pro"]:
+	# Hard only: team play is Hard's, and the other levels' replay is test_bots_hunt.gd's (kept short for the suite's time).
+	for lv: StringName in [&"hard"]:
 		var tallies: Array[MatchRunner.MatchTally] = []
 		for i in 2:
 			var r := MatchRunner.new(self, "depot")

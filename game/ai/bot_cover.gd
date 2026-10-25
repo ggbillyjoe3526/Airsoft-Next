@@ -37,7 +37,7 @@ class _Search:
 	var taken: PackedVector3Array = PackedVector3Array()
 	var taken_gap: float = 0.0
 	var best: float = INF
-	## The night field to keep out of the light of (BotSkill.keeps_dark), or null.
+	## The night field to keep out of the light of (holding), or null.
 	var dark: NightField = null
 
 
@@ -102,8 +102,8 @@ static func hides_from(spot: Vector3, threat_eye: Vector3, w: BotWorld) -> bool:
 
 ## Looks for a spot within `radius` of `from` hidden from `threat_eye` (see the class comment), trying `candidates`
 ## random spots too; `peekable` keeps only spots to fight from. `taken` are spots teammates hold or head for (the first
-## `taken_count`). With `keep_dark` (BotSkill.keeps_dark, holding), on a field played at night no spot in a light pool
-## counts. Writes the best into `out`; false if nothing works.
+## `taken_count`). With `keep_dark` (holding), on a field played at night no spot in a light pool counts. Writes the
+## best into `out`; false if nothing works.
 static func find(from: Vector3, threat_eye: Vector3, w: BotWorld, rng: RandomNumberGenerator, out: Spot, radius: float,
 		candidates: int, peekable: bool, taken: PackedVector3Array, taken_count: int, keep_dark: bool = false) -> bool:
 	var cfg := w.cfg

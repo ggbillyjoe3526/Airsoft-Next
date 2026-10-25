@@ -292,7 +292,7 @@ func test_no_late_push_in_attack_defend_and_flag_spots_kept_off_in_cover_searche
 	_start()
 	var w := bots.world
 	var b := _bot(3)
-	b.skill = config.skill_for(&"pro")
+	b.skill = config.skill_for(&"hard")
 	for id: int in [4, 5]:
 		state.characters[id].status = Character.Status.OUT
 	w.live = true

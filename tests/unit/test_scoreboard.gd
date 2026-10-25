@@ -1,13 +1,13 @@
 extends GutTest
 ## The scoreboard while Tab is held (SB1; concept `scoreboard.png`): the map, mode, bots and size, the round and its
 ## time left; your team first and you first; this round's hits and the match's numbers per player, those out greyed;
-## each team's count in play; a Pro tip against Pro bots only, one per round in order; the teammate markers hide under
+## each team's count in play; a Pro tip against Hard bots only, one per round in order; the teammate markers hide under
 ## it, and the board refills as the field moves.
 
 var session: PlaySession = null
 
 
-func _session(difficulty: StringName = &"normal") -> PlaySession:
+func _session(difficulty: StringName = &"easy") -> PlaySession:
 	var s := PlaySession.new()
 	s.bots_active = false
 	s.difficulty = difficulty
@@ -58,7 +58,7 @@ func test_the_board_names_the_match_and_lists_your_team_first() -> void:
 	_show(hud)
 	assert_true(board.visible)
 	var size := SimTuning.new().rounds.team_size
-	assert_string_starts_with(board.table().heading_text(), "DEPOT · ELIMINATION · NORMAL BOTS · %d V %d · ROUND 1 · "
+	assert_string_starts_with(board.table().heading_text(), "DEPOT · ELIMINATION · EASY BOTS · %d V %d · ROUND 1 · "
 			% [size, size])
 	assert_string_ends_with(board.table().heading_text(), " LEFT")
 	var notes := board.table().team_notes()
@@ -67,7 +67,7 @@ func test_the_board_names_the_match_and_lists_your_team_first() -> void:
 	var lines := board.table().lines()
 	assert_eq(lines.size(), size * 2)
 	assert_eq(lines[0], "You | 0 | 0 | 0 | 0 | – | 0:00", "you first; no BB yet, no accuracy")
-	assert_eq(board.tip_text(), "", "no tip against Normal bots")
+	assert_eq(board.tip_text(), "", "no tip against Easy bots")
 
 
 func test_the_board_follows_the_field_while_it_is_up() -> void:
@@ -109,12 +109,12 @@ func test_the_teammate_markers_hide_under_the_board() -> void:
 
 
 func test_against_pro_bots_a_tip_shows_for_the_round() -> void:
-	session = _session(&"pro")
+	session = _session(&"hard")
 	await wait_physics_frames(2)
 	var hud := session.hud()
 	_show(hud)
 	assert_eq(hud.board().tip_text(), tr("PRO_TIP_1"))
-	assert_string_contains(hud.board().table().heading_text(), "PRO BOTS")
+	assert_string_contains(hud.board().table().heading_text(), "HARD BOTS")
 
 
 func test_in_overtime_the_board_counts_the_overtime_down_and_keeps_moving() -> void:

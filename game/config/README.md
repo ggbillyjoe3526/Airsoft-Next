@@ -59,4 +59,4 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `accessibility_config.gd` | Settings › Accessibility's fixed numbers: the sound cue ring (life, fade, far opacity, markers, radius) and the sound cue size and HUD size sliders' ranges |
 | `bot_config.gd`, `bot_tuning.tres` | How bots play (`BotConfig.load_default()`): senses, aim, firing, lanes and holds, routes, cover, searching, hunting, the holster |
 | `squad_config.gd` | Squad orders (part of `bot_tuning.tres`): Hold here's reach, wall gap, spacing, arrival and move distance |
-| `bot_skill.gd` | How well a bot plays: reaction, turn rate, aim error and settling, lead, bursts, holds, whether it fires into bushes (Easy) |
+| `bot_skill.gd` | How well a bot plays: reaction, turn rate, aim error and settling, lead, bursts, holds, the Hard level's tactics |

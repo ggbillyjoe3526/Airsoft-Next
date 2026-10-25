@@ -409,7 +409,7 @@ Woodland stays dev content until you make it public (`data/maps.md`, its Tag) on
   bots find you faster (they should, from about 40 m)?
 - [ ] **Teammates' fire (WL10).** Play alongside bot teammates at 5v5 and 6v6: a bot never knocks out you or another
   teammate. Do they now hold fire too often when a teammate fights near the enemy, or far behind it?
-- [ ] **6v6 (WL10).** A Custom 6v6 at Normal and at Pro: does the fort get too crowded, and do rounds still end before
+- [ ] **6v6 (WL10).** A Custom 6v6 at Normal and at Hard: does the fort get too crowded, and do rounds still end before
   the clock?
 - [ ] **Frame time on every preset (WL10).** With `--perf`, a 5v5 and a 6v6 on Low, Medium, High and Ultra: the
   overlay's frame time in a firefight and on a quiet walk, against Low's 60 FPS (16.7 ms). The cloud measured draws,
@@ -477,13 +477,13 @@ You're on Alpha (blue) with two bot teammates against three Beta (orange) bots b
   they already saw empty; a round shouldn't drag to the clock.
 - [ ] **Up close, a fair moment.** Walk into a Normal bot at 5 to 10 m: its first BBs go wide and walk in (its first
   hit takes about 1.5 s).
-- [ ] **The bots' kits (BG1).** Opponents carry kits from `bot-kits.md`: Easy mostly plain, each level up more scoped,
-  silenced or red-dot, Pro never plain. Spectate a few: the optic shows on their rifle and a silenced bot is heard
+- [ ] **The bots' kits (BG1).** Opponents carry kits from `bot-kits.md`: Easy the plainest, each level up more scoped,
+  silenced or red-dot, Hard never plain. Spectate a few: the optic shows on their rifle and a silenced bot is heard
   nearer. Does gear make Normal unfair or Hard too easy?
 - [ ] **Bot names and personalities (BN1).** Every bot has a name and plays the same way every match: a **Rusher** is
   first through the gap, an **Anchor** holds one spot aiming over cover, a **Flanker** takes a lane of its own, a
   **Careful** bot clears each corner. Can you tell them apart?
-- [ ] **At night** (Woodland, Neon Heights by Night): Normal, Hard and Pro bots hold posts out of lantern light.
+- [ ] **At night** (Woodland, Neon Heights by Night): bots on every level hold posts out of lantern light.
 - [ ] **Anchors (BP5).** In Elimination with over a minute left, give an anchor teammate Follow me (F), then end it
   with F again: it goes hunting.
 
@@ -540,17 +540,26 @@ The Match screen's Practice card, then Start practice.
 Your squad against a home team on a timed run, rebuilt with its rework for the Modes Update (`docs/ROADMAP.md` ›
 0.3 · Modes Update). The browser game's checks for it are in `legacy/browser/docs/`.
 
-## Pro difficulty
+## Hard difficulty
 
-Play › Match › Bots › Pro; play each map once in Elimination (and once in Attack / Defend when it comes). Pro pays
-XP ×2.
+Play › Match › Bots › Hard, the old Pro (TL1); play each map once in Elimination and once in Attack / Defend. Hard
+pays XP ×1.5.
 
-- [ ] **Slow down.** Pro bots hold still aiming at corners and doorways and walk quietly towards where they heard you.
+- [ ] **Slow down.** Hard bots hold still aiming at corners and doorways and walk quietly towards where they heard you.
   Run past a corner and you lose; slice it a step at a time and you win.
 - [ ] **What got you.** After you're hit a card shows, for example, "Beta 2 · from your left · 14 m", whether that bot
   held the angle and whether you moved.
-- [ ] **Teammates on Pro** hold angles, trade your hits and win their duels. Is any approach unfair on a map, or does
+- [ ] **Teammates on Hard** hold angles, trade your hits and win their duels. Is any approach unfair on a map, or does
   one end win far more?
+
+## Three levels (TL1)
+
+- [ ] **The Bots rows** show Easy, Normal and Hard, no Pro, and a new save starts on Normal. Easy should play like the
+  old Normal, Normal like the old Hard, Hard like the old Pro: does each feel right for its name?
+- [ ] **A save from before** keeps its records: the old Normal's wins and losses show under Easy, the old Hard's under
+  Normal, the old Pro's under Hard (the old Easy's add to Easy's), with no warning.
+- [ ] **XP:** Easy ×0.5, Normal ×1, Hard ×1.5 on the Opponents line and the XP card. Normal now pays ×1 against the
+  old Hard's bots: does the pace still feel fair (about 25 matches to level 10 on Normal)?
 
 ## Menus
 
@@ -593,7 +602,7 @@ XP ×2.
   first, your line highlighted, players hit this round greyed.
 - [ ] **The Match summary.** The result, everyone's numbers and Your records (wins and losses per difficulty and mode,
   best accuracy and wins in a row, NEW RECORD on a best you beat).
-- [ ] **What got you** (Settings › Gameplay): Auto shows the card against Pro only, On on every level, Off hides it.
+- [ ] **What got you** (Settings › Gameplay): Auto shows the card against Hard only, On on every level, Off hides it.
 - [ ] **Crosshair** (Settings › Gameplay › Crosshair). Previews, Shape, Size, Thickness, Gap, Colour (no blue or
   orange), Opacity, Spread and Outline; in a match it looks the same and opens as you move.
 - [ ] **Hit marker** (M97). Off by default: the hit tick sounds but no X. On: a bold red X

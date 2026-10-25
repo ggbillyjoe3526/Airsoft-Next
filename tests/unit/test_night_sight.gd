@@ -1,7 +1,7 @@
 extends GutTest
 ## Bots by night (WL6; the browser game's map/nightSight.test.ts, nightSightQA.test.ts and ai/woodlandNightMatch.test.ts):
 ## the NightField built from a map's data (light pools by floor, the canopy grid, roofs), how far bots make someone out
-## by it, Normal and up keeping out of the light while Easy stands where its lane says, and a 5v5 night match on
+## by it, every level keeping out of the light (the old Easy that stood in it is gone, TL1), and a 5v5 night match on
 ## Woodland. By day there is no field and sight is as it always was.
 
 const DT := 1.0 / 60.0
@@ -130,7 +130,7 @@ func test_woodland_s_field_is_the_browser_s_and_built_quickly() -> void:
 
 ## A bot of `level` at `viewer_at` facing `target_at`, its enemy standing there, in an open world; at night on the test
 ## field when `night`.
-func _pair(viewer_at: Vector3, target_at: Vector3, night: bool, level: StringName = &"normal") -> Bot:
+func _pair(viewer_at: Vector3, target_at: Vector3, night: bool, level: StringName = &"easy") -> Bot:
 	var loadout := ReplicaStats.default_loadout()
 	var me := Character.new(0, 0, viewer_at, BotAim.look_yaw(viewer_at, target_at), loadout)
 	var foe := Character.new(1, 1, target_at, 0.0, loadout)
@@ -216,15 +216,9 @@ func _small_nav(map: MapData) -> NavGrid:
 	return _nav_cache
 
 
-func test_levels_from_normal_keep_dark_and_easy_does_not() -> void:
-	assert_false(cfg.skill_for(&"easy").keeps_dark, "Easy")
-	for level: StringName in [&"normal", &"hard", &"pro"]:
-		assert_true(cfg.skill_for(level).keeps_dark, String(level))
-
-
-func test_a_lane_point_in_a_pool_moves_to_the_dark_for_normal_not_easy_nor_by_day() -> void:
+func test_a_lane_point_in_a_pool_moves_to_the_dark_at_every_level_but_not_by_day() -> void:
 	var pool := Vector3(0.0, 0.0, -20.0)
-	for c: Array in [[&"normal", true, false], [&"pro", true, false], [&"easy", true, true], [&"normal", false, true]]:
+	for c: Array in [[&"easy", true, false], [&"normal", true, false], [&"hard", true, false], [&"easy", false, true]]:
 		var b := _keeper(c[0], c[1])
 		_w.lanes = [PackedVector3Array([pool])]
 		b.reset(0, 1, 0.0, cfg)
@@ -237,9 +231,9 @@ func test_a_lane_point_in_a_pool_moves_to_the_dark_for_normal_not_easy_nor_by_da
 			assert_almost_eq(b.lane_goal.y, 0.0, 0.01, "on its floor")
 
 
-func test_a_hunt_spot_in_a_pool_moves_to_the_dark_for_normal_not_easy() -> void:
+func test_a_hunt_spot_in_a_pool_moves_to_the_dark_at_every_level() -> void:
 	var lit_field := NightField.build(_field(30.0), cfg, true)
-	for c: Array in [[&"normal", true, false], [&"easy", true, true], [&"normal", false, true]]:
+	for c: Array in [[&"easy", true, false], [&"hard", true, false], [&"easy", false, true]]:
 		var b := _keeper(c[0], c[1])
 		_w.planner.bounds_lo = Vector2(-2.0, -22.0)
 		_w.planner.bounds_hi = Vector2(2.0, -18.0)
@@ -250,7 +244,7 @@ func test_a_hunt_spot_in_a_pool_moves_to_the_dark_for_normal_not_easy() -> void:
 
 func test_hold_cover_in_a_pool_is_passed_over_when_keeping_dark() -> void:
 	for c: Array in [[true, true, false], [false, true, true], [true, false, true]]:
-		var b := _keeper(&"normal", c[1])
+		var b := _keeper(&"easy", c[1])
 		var world := BoxWorld.new()
 		world.add_box(Vector3(0.0, 0.6, -20.0), Vector3(1.0, 1.2, 1.0))
 		_w.query = world

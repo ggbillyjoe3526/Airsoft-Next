@@ -22,19 +22,14 @@ static func refresh(w: BotWorld) -> void:
 
 ## Whether `b` wants its torch on: fighting someone within `reach` it can still make out, and on the last stretch of a
 ## search (within its skill's search_walk_distance of where it last knew of someone); off advancing, on the way to a
-## search, in cover, at the pole, on orders and between rounds. A bot that doesn't keep out of the light (Easy,
-## BotSkill.keeps_dark off) keeps it on while advancing and searching too: a beam switched on far from the fight only
-## gives its bot away (the browser's M71). Reads the last tick's mode and target (a tick's lag is nothing next to the
-## hold).
+## search, in cover, at the pole, on orders and between rounds: a beam switched on far from the fight only gives its bot
+## away (the browser's M71). Reads the last tick's mode and target (a tick's lag is nothing next to the hold).
 static func wants_torch(b: Bot, w: BotWorld, reach: float) -> bool:
 	if not w.live:
 		return false
-	var sloppy := not b.skill.keeps_dark
 	match b.mode:
 		Bot.Mode.SEARCH:
-			return sloppy or _within(b.character.position, b.last_known, b.skill.search_walk_distance)
-		Bot.Mode.ADVANCE:
-			return sloppy
+			return _within(b.character.position, b.last_known, b.skill.search_walk_distance)
 		Bot.Mode.FIGHT:
 			if b.target_id < 0:
 				return false

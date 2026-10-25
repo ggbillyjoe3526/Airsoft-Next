@@ -267,7 +267,7 @@ func _world(count: int, budget: int) -> BotWorld:
 		var end := map.ends[i % 2]
 		var c := Character.new(i, i % 2, end.spawns[i / 2].position, 0.0, ReplicaStats.default_loadout())
 		w.characters.append(c)
-		var b := Bot.new(c, i, w.cfg.skill_for(&"normal"), count)
+		var b := Bot.new(c, i, w.cfg.skill_for(&"easy"), count)
 		BotRoutes.want(b, map.ends[1 - i % 2].spawns[0].position, w.cfg)
 		w.bots.append(b)
 	return w

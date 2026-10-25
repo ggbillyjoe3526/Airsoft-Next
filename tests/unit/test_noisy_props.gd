@@ -345,7 +345,7 @@ func test_run_sprint_and_landing_steps_on_gravel_carry_further_and_a_rattle_does
 # --- What the bots hear ---
 
 
-## Team 0's bots (ids 0 and 1, Pro: they play as a team) at the field's west, team 1's knocker (id 2) `away` m east.
+## Team 0's bots (ids 0 and 1, Hard: they play as a team) at the field's west, team 1's knocker (id 2) `away` m east.
 func _bots(away: float) -> Array:
 	if _bot_map == null:
 		_bot_map = MapData.new()
@@ -363,7 +363,7 @@ func _bots(away: float) -> Array:
 	state.characters.append(Character.new(0, 0, Vector3(-15.0, GAP, 0.0), EAST, loadout))
 	state.characters.append(Character.new(1, 0, Vector3(-15.0, GAP, 3.0), EAST, loadout))
 	state.characters.append(Character.new(2, 1, Vector3(-15.0 + away, GAP, 0.0), -EAST, loadout))
-	var levels: Dictionary[int, StringName] = {0: &"pro", 1: &"normal"}
+	var levels: Dictionary[int, StringName] = {0: &"hard", 1: &"easy"}
 	var bots := BotController.new(state, -1, _bot_map, _bot_nav, w, tuning, BotConfig.load_default(), levels)
 	bots.world.time = 10.0
 	state.time = 10.0

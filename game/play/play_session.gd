@@ -74,7 +74,7 @@ var bots_active: bool = true
 ## The match's mode and the other team's difficulty (MatchOptions), for its XP and the records.
 var mode: String = MatchOptions.MODE_ELIMINATION
 var difficulty: StringName = &"normal"
-## Your teammates' difficulty; &"" follows the other team's (BotConfig.teammates_following).
+## Your teammates' difficulty; &"" follows the other team's.
 var teammate_difficulty: StringName = &""
 ## The Custom rule set's switches the match plays; null plays Skirmish, the tuning as it is. A Custom match never goes
 ## into the records and its XP is capped (MatchXp).
@@ -363,7 +363,7 @@ func _build_views_and_start() -> void:
 	var map_name := listed.display_name if listed != null else _map.display_name
 	var bots := tr("BOT_" + String(difficulty).to_upper())
 	_hud.set_board_match(map_name, tr("HUD_BOARD_SUB") % [tr(MatchOptions.MODE_NAME[mode]), bots, size, size],
-			difficulty == &"pro")
+			difficulty == MatchOptions.TIPS_LEVEL)
 	_hud.set_match_tail(tr("SUM_MATCH_TAIL") % [map_name, bots])
 	# A field's minimap in practice too (nobody to hear); the range is a corridor you see whole.
 	if not _on_range:
@@ -921,7 +921,7 @@ func _after_tick() -> void:
 			GameEvent.Kind.MATCH_OVER:
 				matches_played += 1
 				_rematch_left = _play.rematch_delay
-				var tip := tr(HudScoreboard.tip_for(state.round_state.number + 1)) if difficulty == &"pro" else ""
+				var tip := tr(HudScoreboard.tip_for(state.round_state.number + 1)) if difficulty == MatchOptions.TIPS_LEVEL else ""
 				_hud.open_summary(state, what_got_you_shown(), tip)
 				if counts:
 					_settle()
@@ -1224,13 +1224,13 @@ func _hit_called(shooter_id: int) -> void:
 		_hud.show_what_got_you(facts, who, colour, note)
 
 
-## Whether What got you shows, on the card and in the summary: On, or Auto against Pro bots.
+## Whether What got you shows, on the card and in the summary: On, or Auto against Hard bots (MatchOptions.TIPS_LEVEL).
 func what_got_you_shown() -> bool:
 	match settings.what_got_you:
 		Settings.WhatGotYou.ON:
 			return true
 		Settings.WhatGotYou.AUTO:
-			return difficulty == &"pro"
+			return difficulty == MatchOptions.TIPS_LEVEL
 	return false
 
 
@@ -1321,22 +1321,20 @@ func _vault_ready() -> bool:
 	return way != Vector2.ZERO and Vault.find_along(player, way, _tuning, _level.query(), _vault_probe)
 
 
-## Your teammates' difficulty: the one picked, or the other team's as it follows (BotConfig.teammates_following).
+## Your teammates' difficulty: the one picked, or the other team's as it follows.
 func teammates_level() -> StringName:
-	return teammate_difficulty if teammate_difficulty != &"" else BotConfig.teammates_following(difficulty)
+	return teammate_difficulty if teammate_difficulty != &"" else difficulty
 
 
 ## Whether a finished match goes into the records (the browser game's countsForRecords): the records are per the other
-## team's difficulty, so your teammates must be at its level or the one they follow by default; Hard opponents with
-## Easy teammates would mix an easier match into Hard's record. A match with no teammates always counts; a Custom one
-## never does.
+## team's difficulty, so your teammates must be at its level; Hard opponents with Easy teammates would mix an easier
+## match into Hard's record. A match with no teammates always counts; a Custom one never does.
 func counts_for_records() -> bool:
 	if custom_rules != null:
 		return false
 	if _tuning != null and _tuning.rounds.team_size <= 1:
 		return true
-	var mates := teammates_level()
-	return mates == difficulty or mates == BotConfig.teammates_following(difficulty)
+	return teammates_level() == difficulty
 
 
 ## Gives the finished match's XP and adds it to the records, then saves both (once a match: a few small writes).

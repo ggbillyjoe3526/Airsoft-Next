@@ -3,7 +3,7 @@ extends VBoxContainer
 ## The scoreboard while Tab is held (concept `scoreboard.png`; the browser game's hold-key board): the map, the mode,
 ## the bots and the size, the round and its time left; each team with its score and how many are in play, your team
 ## first and you first in it; per player this round's hits, then the match's hits, times hit, BBs fired, accuracy and
-## time in play (MatchStats), those out this round greyed with a raised hand. Against Pro bots a Pro tip under it, one
+## time in play (MatchStats), those out this round greyed with a raised hand. Against Hard bots a Pro tip under it, one
 ## per round in order. The field stays live under it: it refills at once when a round, the clock's second or who is in
 ## play changes, and when only the numbers moved (each BB fired moves them) at most every HudConfig.board_refill_gap.
 
@@ -32,7 +32,7 @@ var _tip: Label = null
 var _names := PackedStringArray()
 var _map_name := ""
 var _sub := ""
-var _pro: bool = false
+var _tips: bool = false
 ## Attack / Defend's longest overtime (s), for the heading's OT countdown.
 var _max_overtime: float = 0.0
 ## What the board last showed: the numbers' version, the round, the clock's second and who was in play (bits by id).
@@ -80,13 +80,13 @@ func setup(cfg: HudConfig, teams: TeamConfig, mate_colour: Color, max_overtime: 
 	_tip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 
-## The names by character id ("" for you), the map's name, the line after it ("Elimination · Pro bots · 3 v 3"), and
-## whether the opponents are Pro (the tips show only then).
-func set_match(names: PackedStringArray, map_name: String, sub: String, pro: bool) -> void:
+## The names by character id ("" for you), the map's name, the line after it ("Elimination · Hard bots · 3 v 3"), and
+## whether the Pro tips show (opponents at Hard).
+func set_match(names: PackedStringArray, map_name: String, sub: String, tips: bool) -> void:
 	_names = names
 	_map_name = map_name.to_upper()
 	_sub = sub.to_upper()
-	_pro = pro
+	_tips = tips
 	_shown_version = -1
 
 
@@ -154,8 +154,8 @@ func _fill(state: GameState, stats: MatchStats, you: Character, second: int) -> 
 			if c.team == side and c.id != you.id:
 				_add_row(c, stats, you)
 	_table.finish()
-	_tip_box.visible = _pro
-	if _pro:
+	_tip_box.visible = _tips
+	if _tips:
 		_tip.text = tr(tip_for(rs.number))
 	_tip_box.custom_minimum_size.x = _table.size.x
 

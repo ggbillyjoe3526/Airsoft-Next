@@ -411,7 +411,7 @@ func test_bot_ticks_allocate_no_objects_once_warm() -> void:
 
 func test_pro_bot_ticks_allocate_no_objects_once_warm() -> void:
 	# Held angles, slicing, the careful walk, pre-aim and the peek watch (DF2a).
-	_start(9, -1, {0: &"pro", 1: &"pro"})
+	_start(9, -1, {0: &"hard", 1: &"hard"})
 	_assert_warm_ticks_allocate_nothing()
 
 

@@ -150,7 +150,7 @@ func _bot_field() -> Array:
 	state.characters.append(Character.new(1, 0, Vector3(-15.0, GAP, 3.0), 0.0, loadout))
 	state.characters.append(Character.new(2, 1, Vector3(-5.0, GAP, 0.0), 0.0, loadout))
 	state.characters.append(Character.new(3, 0, Vector3(-9.0, GAP, 0.0), 0.0, loadout))
-	var levels: Dictionary[int, StringName] = {0: &"pro", 1: &"pro"}
+	var levels: Dictionary[int, StringName] = {0: &"hard", 1: &"hard"}
 	var bots := BotController.new(state, 3, map, nav, w, tuning, BotConfig.load_default(), levels)
 	bots.world.time = 10.0
 	state.time = 10.0

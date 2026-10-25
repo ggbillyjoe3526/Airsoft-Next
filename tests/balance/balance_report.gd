@@ -15,10 +15,9 @@ const NOISE_SE := 2.0
 const NORMAL_MIN := 0.45
 const NORMAL_MAX := 0.55
 ## Each level's band for the same shares, each level against itself (the browser game's balanceSupport.ts): Normal's
-## is the tightest, as every level is tuned from it.
+## is the tightest. The bands stayed with the names when the levels moved up (owner, 2026-10-25): Hard has Pro's.
 const LEVEL_BANDS: Dictionary[StringName, Vector2] = {
-	&"easy": Vector2(0.35, 0.65), &"normal": Vector2(NORMAL_MIN, NORMAL_MAX), &"hard": Vector2(0.35, 0.65),
-	&"pro": Vector2(0.4, 0.6),
+	&"easy": Vector2(0.35, 0.65), &"normal": Vector2(NORMAL_MIN, NORMAL_MAX), &"hard": Vector2(0.4, 0.6),
 }
 ## Easy's mean round, at most this many times Normal's (the browser's depotDifficulty.balance.ts): slower bots
 ## shouldn't turn a round into a stand-off.
@@ -28,9 +27,7 @@ const ON_TIME_MAX := 0.1
 ## Attack / Defend: the attackers' share of all rounds, each level against itself (the browser game's depotFlag,
 ## depotProFlag and neonHeightsFlag balance files): Normal's per map (Depot's, any other map's), the other levels' as in
 ## LEVEL_BANDS but wider at Normal's level of play on the pole.
-const ATTACK_BANDS: Dictionary[StringName, Vector2] = {
-	&"easy": Vector2(0.35, 0.65), &"hard": Vector2(0.35, 0.65), &"pro": Vector2(0.4, 0.6),
-}
+const ATTACK_BANDS: Dictionary[StringName, Vector2] = {&"easy": Vector2(0.35, 0.65), &"hard": Vector2(0.4, 0.6)}
 const ATTACK_NORMAL_BANDS: Dictionary[String, Vector2] = {"depot": Vector2(0.38, 0.67)}
 const ATTACK_NORMAL_BAND := Vector2(0.4, 0.65)
 

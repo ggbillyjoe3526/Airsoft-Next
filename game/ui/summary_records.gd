@@ -1,6 +1,6 @@
 class_name SummaryRecords
 extends PanelContainer
-## The match summary's records panel (concept `summary.png`; the browser game's recordsView): "Your records · Pro
+## The match summary's records panel (concept `summary.png`; the browser game's recordsView): "Your records · Hard
 ## Elimination", then won and lost at that difficulty and mode, the best accuracy (NEW RECORD with the best before it
 ## when this match beat it; a match counts from Records.ACCURACY_MIN_BBS BBs) and the wins in a row with the best run
 ## (NEW RECORD when this match made it). A match that stays out of the records says so beside the heading.

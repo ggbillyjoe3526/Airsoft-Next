@@ -68,11 +68,11 @@ func test_the_controller_gives_each_bot_its_name_personality_and_skill() -> void
 	assert_eq(bots.name_of(0), "Bot0")
 	assert_eq(anchor.personality, &"anchor")
 	assert_true(anchor.skill.holds_angles, "the anchor's skill carries its habits")
-	assert_false(config.skill_for(&"normal").holds_angles, "the level's own numbers untouched")
+	assert_false(config.skill_for(&"easy").holds_angles, "the level's own numbers untouched")
 	assert_eq(_bot(1).bot_name, "")
 	assert_eq(bots.name_of(1), "")
 	assert_true(_bot(1).style.is_neutral())
-	assert_eq(_bot(1).skill, config.skill_for(&"normal"), "no personality: the level's skill itself")
+	assert_eq(_bot(1).skill, config.skill_for(&"easy"), "no personality: the level's skill itself")
 
 
 func test_a_flanker_dealt_a_shared_lane_takes_the_free_one_furthest_from_its_team() -> void:

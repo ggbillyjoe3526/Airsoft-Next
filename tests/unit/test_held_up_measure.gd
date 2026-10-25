@@ -33,7 +33,7 @@ func _feed(ring: PackedVector3Array, places: Array[Vector3], seconds: int, on_wa
 
 func _bot() -> Bot:
 	var me := Character.new(0, 0, Vector3.ZERO, 0.0, ReplicaStats.default_loadout())
-	return Bot.new(me, 1, config.skill_for(&"normal"), 2)
+	return Bot.new(me, 1, config.skill_for(&"easy"), 2)
 
 
 func test_a_bot_frozen_on_its_way_counts_once_the_window_is_full() -> void:
@@ -81,8 +81,8 @@ func test_a_bot_dithering_in_a_doorway_whose_errand_flips_counts() -> void:
 			"pacing the doorway, flipping between lane and search")
 
 
-## A search given up for its lane, walking back the way it came (DP1, Depot seed 7 at Pro): out 10 m searching, back
-## advancing, at the same place ten seconds apart. Not held up; a whole window on the lane errand on the spot is.
+## A search given up for its lane, walking back the way it came (DP1, Depot seed 7 at Pro, now Hard): out 10 m
+## searching, back advancing, at the same place ten seconds apart. Not held up; a whole window on the lane errand on the spot is.
 func test_a_search_given_up_for_the_lane_walking_back_does_not_count() -> void:
 	var ring := _ring()
 	var places: Array[Vector3] = []

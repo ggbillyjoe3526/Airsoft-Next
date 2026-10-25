@@ -23,7 +23,7 @@ A finished match pays:
 - **A shorter Custom match pays less:** Match played, Match won and each Round won are scaled by its rounds to win
   divided by 5 (never more than in full).
 - A first-to-5 match on Normal gives about 250 XP, so the first level comes after your first match and the top level
-  after about 25 matches on Normal (fewer on Hard or Pro).
+  after about 25 matches on Normal (fewer on Hard).
 - The [Practice Range](Practice-Range) gives no XP, and nor does a match played with Dev settings that change how it
   plays.
 

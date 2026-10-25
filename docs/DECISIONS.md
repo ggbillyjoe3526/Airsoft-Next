@@ -336,7 +336,17 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Bots are ordinary characters driven by the same commands as the player, with human limits (2026-09-30).** A 120°
   view, sight checks 10 times a second, a reaction delay, a capped turn rate and aim error. They never fire with a
   teammate in the line of fire. A test proves no bot aims at someone it hasn't seen or heard (M37).
-- **Bots hold fire through more than 0.25 m of bush; Easy fires into the leaves (2026-10-15, FO1).**
+- **Bots hold fire through more than 0.25 m of bush; Easy fires into the leaves (2026-10-15, FO1).** That Easy is gone
+  (TL1): every level holds fire.
+- **Three levels: each moved up a name, and Pro became Hard (owner, 2026-10-25; TL1).** "Current normal is the new
+  easy, current hard is the new normal, current pro is the new hard. There is no longer a pro difficulty." Easy plays as
+  Normal did (the baseline's numbers), Normal as Hard did and Hard as Pro did, with its held angles, cleared corners,
+  team play, Pro tips and What got you on Auto. The old Easy and its own habits (firing into bushes, standing in the
+  light at night, its torch on while moving) are gone, and teammates follow the opponents at every level. The names
+  keep their XP multipliers (×0.5, ×1, ×1.5), their balance bands (Normal 45 to 55 %, Hard Pro's 40 to 60 %), their
+  guard seeds (16 at Normal, 8 at Easy and Hard) and the default (Normal); a level's kits and the records saved before
+  (records version 2) follow its bots. The entries below name the levels as they were: their Pro is today's Hard,
+  their Hard today's Normal and their Normal today's Easy.
 - **Difficulty is skill plus a few tactics, never different senses (2026-10-01).** Easy, Normal, Hard and Pro see and
   hear alike. Opponents and teammates have separate difficulties (owner, 2026-10-03).
 - **Normal is the baseline (owner, 2026-10-06).** Tune on Normal, then check that Easy, Hard and Pro still scale.
@@ -344,7 +354,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   2026-10-25).** It never changes a level's own numbers: the other team's skill is a rating that blends the levels'
   numbers. Your teammates never adapt, Extraction doesn't, and its matches stay out of the records and give no XP.
 - **Against Easy opponents, teammates play Normal (owner, 2026-10-05).** Otherwise teammates follow the opponents'
-  level. That pair is the standard match for the records.
+  level. That pair is the standard match for the records. Since TL1 they follow at every level: the old Normal
+  teammates are today's Easy.
 - **Pro is careful, not twitchier (owner, 2026-10-04).** Pro bots hold and pre-aim angles, clear corners, trade and set
   crossfires. They react fast (about 0.2 s) only to someone appearing near where they already aim. Pro pays ×2; its
   rewards are cosmetic only. A "what got you" card exists on every difficulty and is on by default only on Pro.
@@ -358,7 +369,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   the same personality (rusher, anchor, flanker, careful). A personality changes how a bot plays, never how it sees,
   hears, reacts, turns or aims. Anchors aim from cover when standing still; every other bot fires from the hip.
 - **Every level hunts the middle of the map; Normal, Hard and Pro keep out of the light at night; Easy stands where its
-  lane says (owner, 2026-10-05).** Below Pro, both teams swept to the far end and rounds ran out of time (M71).
+  lane says (owner, 2026-10-05).** Below Pro, both teams swept to the far end and rounds ran out of time (M71). Every
+  level keeps out of the light since TL1.
 - **Bots see by the dark at night, from the map's data, never from lights or scene nodes (2026-10-25, WL6; the
   browser's NIGHT_SIGHT and M40, Claude's defaults).** A NightField is built once a match when the preset played is a
   night one (Woodland always, Neon Heights by default): someone is made out from 40 m lit, 25 m in the open, 10 m under

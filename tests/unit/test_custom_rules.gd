@@ -94,13 +94,15 @@ func test_levels_reads_the_custom_row() -> void:
 func test_custom_xp_is_capped_and_never_raised() -> void:
 	var table := LevelTable.read_file(Pool.shared())
 	var cap := table.multiplier(LevelTable.CUSTOM)
+	assert_eq(table.multiplier(&"hard"), cap, "as shipped, Hard's ×1.5 is the cap (TL1)")
+	table.multipliers[&"hard"] = cap + 0.5
 	var o := MatchXp.Outcome.new()
 	o.won = true
-	o.difficulty = &"pro"
+	o.difficulty = &"hard"
 	o.custom = true
-	assert_eq(MatchXp.earned(table, o).multiplier, cap, "Pro held to the cap")
+	assert_eq(MatchXp.earned(table, o).multiplier, cap, "a Hard above the cap held to it")
 	o.custom = false
-	assert_eq(MatchXp.earned(table, o).multiplier, table.multiplier(&"pro"), "Skirmish Pro as ever")
+	assert_eq(MatchXp.earned(table, o).multiplier, cap + 0.5, "Skirmish Hard as ever")
 	o.difficulty = &"easy"
 	o.custom = true
 	assert_eq(MatchXp.earned(table, o).multiplier, table.multiplier(&"easy"), "Easy stays under it")
@@ -108,14 +110,14 @@ func test_custom_xp_is_capped_and_never_raised() -> void:
 
 func test_a_custom_match_settles_capped_and_off_the_records() -> void:
 	var s: PlaySession = autofree(PlaySession.new())
-	s.difficulty = &"pro"
+	s.difficulty = &"hard"
 	assert_true(s.counts_for_records(), "Skirmish")
 	s.custom_rules = CustomRules.new()
 	assert_false(s.counts_for_records(), "Custom, even with its switches as Skirmish's")
 	var tally := PlayerTally.new(0)
 	tally.winner = 0
 	var progress := Progress.new(LevelTable.read_file(Pool.shared()))
-	var settled := tally.settle(progress, null, false, 0, 5, MatchOptions.MODE_ELIMINATION, &"pro", &"pro", true)
+	var settled := tally.settle(progress, null, false, 0, 5, MatchOptions.MODE_ELIMINATION, &"hard", &"hard", true)
 	assert_eq(settled.earned.multiplier, progress.table.multiplier(LevelTable.CUSTOM))
 	assert_null(settled.news, "no records")
 

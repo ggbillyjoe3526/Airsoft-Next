@@ -99,13 +99,15 @@ func test_the_xp_tables_override_the_built_in_numbers_and_refuse_bad_ones() -> v
 | Difficulty | Multiplier |
 |---|---|
 | Easy | 0.05 |
-| Pro | 3 |
+| Hard | 3 |
+| Pro | 2 |
 """, pool)
 	assert_eq(t.earn[&"match_played"], 50)
 	assert_eq(t.earn[&"hit"], 10, "a bad number keeps the built-in one")
 	assert_eq(t.multiplier(&"easy"), 0.5, "below 0.1 is refused")
-	assert_eq(t.multiplier(&"pro"), 3.0)
+	assert_eq(t.multiplier(&"hard"), 3.0)
 	var text := "\n".join(t.problems)
+	assert_string_contains(text, "\"Pro\" isn't a difficulty (Easy, Normal, Hard or Custom)", "no Pro since TL1")
 	assert_string_contains(text, "\"Kills\" isn't one of")
 	assert_string_contains(text, "Multiplier must be a number from 0.1")
 

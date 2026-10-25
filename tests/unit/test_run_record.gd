@@ -62,7 +62,7 @@ func _next_start(running: Callable = _no) -> RunRecord:
 
 
 func _play(r: RunRecord) -> void:
-	r.play(1 << 60, "depot", "attack_defend", {"team_size": 2}, 1, "pro", "easy", [2, 2])
+	r.play(1 << 60, "depot", "attack_defend", {"team_size": 2}, 1, "hard", "easy", [2, 2])
 	r.round_started(4, PackedInt32Array([2, 1]))
 
 
@@ -113,7 +113,7 @@ func test_a_crash_in_play_keeps_the_match_and_its_round() -> void:
 	assert_eq(str(facts["mode"]), "attack_defend")
 	assert_eq(int((facts["rules"] as Dictionary)["team_size"]), 2)
 	assert_eq(int(facts["team"]), 1)
-	assert_eq(str(facts["difficulty"]), "pro")
+	assert_eq(str(facts["difficulty"]), "hard")
 	assert_eq(str(facts["teammates"]), "easy")
 	assert_eq((facts["team_sizes"] as Array).size(), 2)
 	assert_eq(int(prev["round"]), 4)
@@ -214,14 +214,14 @@ func test_the_entry_scene_records_a_match_its_rounds_the_menus_and_a_clean_quit(
 	assert_eq(r.version, Version.current())
 	assert_eq(r.pid, OS.get_process_id())
 	assert_almost_eq(r.started, int(Time.get_unix_time_from_system()), 5)
-	main._picks.bots = "pro"
+	main._picks.bots = "hard"
 	main._start_play()
 	var play: PlaySession = main._play
 	r = RunRecord.load_file(_run_path)
 	assert_eq(r.place, RunRecord.MATCH)
 	assert_eq(str(r.match_facts["seed"]), str(play.match_seed), "the seed main gave the match")
 	assert_eq(str(r.match_facts["map"]), play.map_id)
-	assert_eq(str(r.match_facts["difficulty"]), "pro")
+	assert_eq(str(r.match_facts["difficulty"]), "hard")
 	assert_eq(int(r.match_facts["team"]), play.player_team)
 	play.round_started.emit(3, PackedInt32Array([1, 1]))
 	r = RunRecord.load_file(_run_path)

@@ -53,7 +53,7 @@ func _bot(id: int) -> Bot:
 	return null
 
 
-## A Pro bot 12 m up East yard from you, facing you (its view `off_deg` off you), standing at a post when `holding`;
+## A Hard bot 12 m up East yard from you, facing you (its view `off_deg` off you), standing at a post when `holding`;
 ## everyone else out. Plays until it hits you (at most 12 s); returns when it first saw you.
 func _duel(holding: bool, off_deg: float = 0.0, walk: bool = false) -> float:
 	_start()
@@ -63,7 +63,7 @@ func _duel(holding: bool, off_deg: float = 0.0, walk: bool = false) -> float:
 	b.character.position = Vector3(20.0, 0.0, -12.0)
 	b.character.yaw = PI
 	me.yaw = 0.0
-	b.skill = config.pro_skill.duplicate() as BotSkill
+	b.skill = config.hard_skill.duplicate() as BotSkill
 	b.skill.contact_cover_min_distance = INF
 	b.aim_yaw = b.character.yaw + deg_to_rad(off_deg)
 	b.aim_pitch = 0.0
@@ -98,7 +98,7 @@ func test_a_pro_bot_at_a_post_with_its_view_on_you_was_holding_the_angle() -> vo
 	assert_true(f.held_known)
 	assert_true(f.held, "holding the angle")
 	assert_almost_eq(f.in_view, f.time - first_seen, 0.02, "from its first sight to the hit")
-	assert_gte(f.in_view, config.pro_skill.pre_aim_reaction_time.x - 0.02, "at least its reaction")
+	assert_gte(f.in_view, config.hard_skill.pre_aim_reaction_time.x - 0.02, "at least its reaction")
 	assert_almost_eq(f.distance, 12.0, 0.5)
 	assert_almost_eq(f.from_shooter.y, 1.0, 0.05, "the BB came down the yard from it to you")
 	assert_false(f.moving, "you stood still")

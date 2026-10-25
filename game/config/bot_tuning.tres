@@ -7,29 +7,6 @@
 [sub_resource type="Resource" id="Resource_nrm01"]
 script = ExtResource("2_bskl1")
 
-[sub_resource type="Resource" id="Resource_easy1"]
-script = ExtResource("2_bskl1")
-reaction_time = Vector2(0.6, 1)
-turn_rate = 3.2
-aim_error_start_deg = 8.0
-aim_error_settled_deg = 1.7
-aim_settle_time = 1.3
-aim_error_start_metres = 1.0
-aim_error_moving_deg = 2.0
-aim_error_tracking = 0.147
-lead_factor = 0.25
-burst = Vector2(0.15, 0.35)
-burst_pause = Vector2(0.45, 0.9)
-hold_time = Vector2(1, 2.5)
-hold_cover_chance = 0.2
-contact_cover_min_distance = 12.0
-search_walk_distance = 4.0
-flank_chance = 0.0
-hunt_memory = 20.0
-pre_aim_reaction_time = Vector2(0.6, 1)
-fires_into_leaves = true
-keeps_dark = false
-
 [sub_resource type="Resource" id="Resource_hard1"]
 script = ExtResource("2_bskl1")
 reaction_time = Vector2(0.25, 0.45)
@@ -106,7 +83,6 @@ regroup_arrive = 4.0
 [resource]
 script = ExtResource("1_bcfg1")
 skill = SubResource("Resource_nrm01")
-easy_skill = SubResource("Resource_easy1")
-hard_skill = SubResource("Resource_hard1")
-pro_skill = SubResource("Resource_pro01")
+normal_skill = SubResource("Resource_hard1")
+hard_skill = SubResource("Resource_pro01")
 squad = SubResource("Resource_sqd01")

@@ -1,6 +1,6 @@
 extends GutTest
 ## The match guards (MG1; the browser game's depotMatch*.test.ts and depotMatchSupport.ts): whole bot-against-bot
-## Elimination matches over 16 seeds on each field at Normal, and 8 at Easy, Hard and Pro, checking only what must never
+## Elimination matches over 16 seeds on each field at Normal, and 8 at Easy and Hard, checking only what must never
 ## happen on any seed. Every match is won, few rounds run out the clock, every bot leaves its spawn each round and
 ## isn't held up on its way, nobody falls through the floor, flies or leaves the level, and no bot knocks out a
 ## teammate; on Depot, bot teammates told to follow a leader keep up with it (Follow me). Who wins is the balance
@@ -29,13 +29,13 @@ func test_neon_heights_matches_play_out_on_every_seed() -> void:
 	await MatchGuard.elimination(self, "neonHeights")
 
 
-func test_depot_matches_play_out_at_easy_hard_and_pro() -> void:
-	for level: StringName in [&"easy", &"hard", &"pro"]:
+func test_depot_matches_play_out_at_easy_and_hard() -> void:
+	for level: StringName in [&"easy", &"hard"]:
 		await MatchGuard.elimination(self, "depot", level, MatchGuard.LEVEL_SEEDS)
 
 
-func test_neon_heights_matches_play_out_at_easy_hard_and_pro() -> void:
-	for level: StringName in [&"easy", &"hard", &"pro"]:
+func test_neon_heights_matches_play_out_at_easy_and_hard() -> void:
+	for level: StringName in [&"easy", &"hard"]:
 		await MatchGuard.elimination(self, "neonHeights", level, MatchGuard.LEVEL_SEEDS)
 
 
