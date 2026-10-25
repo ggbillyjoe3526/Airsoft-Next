@@ -176,3 +176,27 @@ func test_dev_time_of_day_row_picks_saves_and_shows_the_saved_choice() -> void:
 	again.time_of_day_choice().button(0).pressed.emit()
 	assert_eq(back.dev.time_of_day, &"", "back to the map's own")
 	DirAccess.remove_absolute(path)
+
+
+func test_pools_stay_whole_after_many_handovers_and_long_frames() -> void:
+	var pools := _pools()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 26
+	for count: int in [1, 2, 4]:
+		pools.set_real_count(count)
+		for step in 600:
+			var eye := Vector3(rng.randf_range(-70.0, 70.0), 2.0, rng.randf_range(-30.0, 30.0))
+			var dt := rng.randf_range(0.0, 1.0) if step % 7 == 0 else 1.0 / 60.0
+			pools.update(eye, dt)
+			for k in woodland.lights.size():
+				var share := pools.drawn_share(k)
+				assert_between(share, 0.0, 1.0, "pool %d stays in range" % k)
+		# settle: every unserved pool is whole, a served one is under its light
+		for i in 120:
+			pools.update(Vector3(-50.0, 2.0, -10.0), 1.0 / 60.0)
+		var served := pools.served()
+		for k in woodland.lights.size():
+			if served.has(k):
+				assert_eq(pools.drawn_share(k), 0.0, "%d real: pool %d served" % [count, k])
+			else:
+				assert_eq(pools.drawn_share(k), 1.0, "%d real: pool %d whole" % [count, k])
