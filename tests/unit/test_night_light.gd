@@ -83,6 +83,8 @@ func test_woodland_takes_its_overrides_and_turns_the_moon_toward_the_knoll() -> 
 	var knoll := (woodland.moon_over - woodland.middle()).normalized()
 	assert_almost_eq(toward_moon.dot(knoll), 1.0, 1e-4, "the moon hangs over the Knoll, seen from the middle")
 	assert_eq(LightingConfig.for_map(play.lighting, n, depot, LightingConfig.NIGHT), n, "Depot: the preset as it is")
+	var day := LightingConfig.for_map(play.lighting, n, woodland, LightingConfig.DAY)
+	assert_eq(day, play.lighting, "by day Woodland's sun keeps its heading: only the moon turns")
 	var neon_night := LightingConfig.for_map(play.lighting, n, neon, LightingConfig.NIGHT)
 	assert_eq(neon_night.stars, 180, "Neon Heights' fewer stars")
 	assert_eq(neon_night.sky_horizon, Color.hex(0x3329_5aff), "and its horizon")
@@ -182,6 +184,13 @@ func test_a_match_on_depot_by_dev_night_lights_everything_by_its_one_flag() -> v
 	assert_null(session.light_pools(), "Depot has no lights to pool")
 	assert_eq(session._skyline.mesh().get_surface_count(), 2, "its masts' lamps lit")
 	assert_true(session.state.off_record or s.dev.cheats().watching, "a forced preset keeps it out of the records")
+	# the night sky can't be a prewarm speck (a sky shader draws no mesh); it is the background of the frames the specks
+	# are drawn on, behind the loading screen, so it compiles with them
+	assert_eq(session.find_children("*", "ShaderPrewarm", true, false).size(), 1, "the prewarm is hung")
+	assert_true(session._eyes.camera.current, "under the eye camera")
+	var env := session.get_viewport().find_world_3d().environment
+	var sky := env.sky.sky_material as ShaderMaterial if env != null else null
+	assert_true(sky != null and sky.shader.code == FieldLighting.NIGHT_SKY, "which draws the night sky behind it")
 
 
 # --- Light pools ---
@@ -369,12 +378,14 @@ func test_the_match_page_offers_day_or_night_only_where_a_map_offers_both() -> v
 
 func _night_presets() -> Array[LightingConfig]:
 	return [play.night_lighting, LightingConfig.for_map(play.lighting, play.night_lighting, woodland,
-			LightingConfig.NIGHT)]
+			LightingConfig.NIGHT), LightingConfig.for_map(play.lighting, play.night_lighting, neon, LightingConfig.NIGHT)]
 
 
-## The base night (Depot by Dev, Neon Heights) or Woodland's, by name.
+## The base night (Depot by Dev), Woodland's or Neon Heights' (its cooler fill), by name.
 func _name(preset: LightingConfig) -> String:
-	return "night" if preset == play.night_lighting else "Woodland's night"
+	if preset == play.night_lighting:
+		return "night"
+	return "Woodland's night" if preset.sun_energy != play.night_lighting.sun_energy else "Neon Heights' night"
 
 
 ## The night ground: Woodland's grass, leaf litter and earth, and Depot's floor.

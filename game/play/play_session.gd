@@ -570,6 +570,7 @@ func _build_views(ui: CanvasLayer) -> void:
 		first_use.append_array(_skyline.materials())
 	if _pools != null:
 		first_use.append_array(_pools.materials())
+	# the sky (by night its own shader) is no speck: it is the background of the prewarm's frames, so it compiles there
 	var warm := ShaderPrewarm.new()
 	warm.setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE), figure_materials)
 	warm.tree_exited.connect(_on_shaders_warmed, CONNECT_ONE_SHOT)

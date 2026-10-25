@@ -69,6 +69,12 @@ const PRESETS: Array[StringName] = [DAY, NIGHT]
 @export var override_key: float = 1.0
 @export var override_fill: float = 1.0
 @export var override_exposure: float = 1.0
+## The browser preset's own hemisphere fill (sky and ground, sRGB) a map's `hemi` colours are read against: the fill
+## colour takes their ratio, channel by channel on linear RGB, at its own brightness (the ratio's luminance taken
+## out), so a map's colours tint the tuned fill and only its `intensity` (`fill`) brightens it. Alpha 0: a map's
+## colours replace the fill colour outright.
+@export var override_fill_sky: Color = Color(0, 0, 0, 0)
+@export var override_fill_ground: Color = Color(0, 0, 0, 0)
 
 @export_group("Light pools")
 ## A map's lights (MapData.lights) under a night preset (LightPools). Fires and lanterns take these colours, whatever
@@ -114,12 +120,12 @@ class Override:
 
 
 ## The preset `preset` as `m` plays it: `night_preset` when that is its id, else `day`, with the map's overrides of it
-## and its moon turned toward the map's moonOver on a copy. Neither config is changed; with nothing to change, the
-## preset itself.
+## and, by night, its moon turned toward the map's moonOver (the day's sun keeps its heading), on a copy. Neither
+## config is changed; with nothing to change, the preset itself.
 static func for_map(day: LightingConfig, night_preset: LightingConfig, m: MapData, preset: StringName) -> LightingConfig:
 	var base := night_preset if night_preset != null and preset == night_preset.id else day
 	var o: Override = m.lighting_overrides.get(base.id) if m != null else null
-	var turned := m != null and m.has_moon_over
+	var turned := m != null and m.has_moon_over and base.night
 	if o == null and not turned:
 		return base
 	var out := base.duplicate() as LightingConfig
@@ -157,6 +163,11 @@ func pool_colour(kind: StringName, colour: Color) -> Color:
 
 
 ## Whether it draws the night sky (stars and the moon) instead of the day's.
+## The mean of a hemisphere fill's sky and ground colours (sRGB), on linear RGB: Godot's ambient has one colour.
+static func _hemi_mean(sky: Color, ground: Color) -> Color:
+	return sky.srgb_to_linear().lerp(ground.srgb_to_linear(), 0.5)
+
+
 func night_sky() -> bool:
 	return stars > 0 or moon_size > 0.0
 
@@ -172,9 +183,17 @@ func _override(o: Override) -> void:
 		sky_horizon = o.sky_horizon
 	if o.fog_colour.a > 0.0:
 		fog_colour = o.fog_colour
-	if o.fill_sky.a > 0.0 and o.fill_ground.a > 0.0:
-		ambient_colour = o.fill_sky.lerp(o.fill_ground, 0.5)
-	elif o.fill_sky.a > 0.0:
-		ambient_colour = o.fill_sky
+	if o.fill_sky.a > 0.0:
+		var ground := o.fill_ground if o.fill_ground.a > 0.0 else o.fill_sky
+		var base_ground := override_fill_ground if o.fill_ground.a > 0.0 else override_fill_sky
+		var tint := _hemi_mean(o.fill_sky, ground)
+		if override_fill_sky.a > 0.0 and base_ground.a > 0.0:
+			var base := _hemi_mean(override_fill_sky, base_ground)
+			var ratio := Color(tint.r / maxf(base.r, 1e-4), tint.g / maxf(base.g, 1e-4), tint.b / maxf(base.b, 1e-4))
+			ratio /= maxf(ratio.get_luminance(), 1e-4)
+			var fill := ambient_colour.srgb_to_linear()
+			ambient_colour = Color(fill.r * ratio.r, fill.g * ratio.g, fill.b * ratio.b).linear_to_srgb()
+		else:
+			ambient_colour = tint.linear_to_srgb()
 	if o.stars >= 0:
 		stars = o.stars

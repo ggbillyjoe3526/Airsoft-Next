@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | 3006 / 3006 | – | – |
+| 2026-10-25 | 2 | worker | 3022 / 3022 | – | QA failed: a pool a real light handed back stayed dimmed (0.944) or dark after a long frame |
 
 ## Goal
 
@@ -73,7 +74,11 @@ Time of day picks the other, so Woodland plays by night and Depot can be seen by
   and moody with figures still standing out (pictures below).
 - **Overrides by ratio** to the browser preset's own key 1, fill 1 and exposure 1.3: Woodland's key 1.35, fill 1.4 and
   exposureScale 1.55 become moon ×1.35, fill ×1.4 and exposure ×1.19.
-- **Neon Heights' hemisphere sky and ground colours** are averaged into the fill colour: Godot's ambient has one colour.
+- **Neon Heights' hemisphere sky and ground colours** are averaged (on linear RGB; Godot's ambient has one colour)
+  and tint the tuned fill by their ratio to the browser night's own hemi (#3a4c78 over #2a2620), channel by channel,
+  the ratio's luminance taken out, so only a map's hemi `intensity` changes the fill's strength (attempt 2). The raw
+  colours replacing the retuned fill drew Neon Heights' night at L* 1 to 7; the ratio at full strength drew a lit
+  violet room.
 - **A light of no kind keeps its own colour** (Neon Heights' signs); fires and lanterns always take the preset's.
 - **The Match pick is for the session**, not saved: the rules box's other picks aren't either. Dev's Time of day is
   saved, as Dev settings are, and counts as watching, so a Depot night match never reaches the records.
@@ -164,3 +169,36 @@ the smoke test and the licence notices all pass.
 `test_night_light.gd` 16 of 16, `test_skyline.gd` 10 of 10, `test_baked_light.gd` 12 of 12, `test_field_rules.gd`,
 `test_dp3_qa.gd` and `test_fc2_qa.gd` pass alone. Not verified: how the night feels to play and how it reads on
 Forward+ on a real screen (PLAYTEST › The night; Depot by night and Neon Heights' Day / Night).
+
+## Fix round (attempt 2)
+
+QA (`pipeline/out/qa-report.md`) failed attempt 1 on one blocker; performance passed with advisories.
+
+- **A handed-back pool stayed dim.** When a real light finished fading out, `LightPools.update` moved it to its new
+  pool before restoring the old pool's drawn share, so the old one kept its last 1 - fade: 0.944 at 60 fps, 0.0 after
+  a 0.5 s frame. The light now sets the pool it releases back to 1.0 (and sends the uniform) before it moves on. QA's
+  `test_night_light_qa.gd` (9) passes unchanged, its two pool tests failing on attempt 1's code.
+- **Only the moon turns.** `LightingConfig.for_map` turned the day's sun toward `moonOver` too (Woodland by Dev day);
+  it now turns a night preset only (tested: Woodland's day is the day preset itself).
+- **The night sky's compile.** A sky shader draws no mesh, so it can't be one of ShaderPrewarm's specks; it is the
+  background of the very frames the specks are drawn on (the views step's, behind the loading screen, under the eye
+  camera), so it compiles with them. `test_night_light.gd` holds that: on that frame the prewarm is hung, the eye
+  camera is current and the world draws the night sky. A comment in `PlaySession` says so.
+- **Neon Heights' night in the readability test.** Adding it found its fill far too dark (earth L* 1.1, the teams
+  ΔE 22.5 apart for tritan): its `hemi` colours replaced the retuned fill outright. They now tint it, read against
+  the browser night's own (`override_fill_sky`, `override_fill_ground`) at the fill's own brightness (Defaults).
+  Neon Heights' night, fill alone: earth L* 9.5, log 12.8 / ΔE 5.6, boards 16.5 / 9.4, light skin 27.9 / 12.9, mid
+  skin 16.1 / 15.8, Standard 22.1 / 35.7 and 23.4 / 43.1, high contrast 31.6 / 25.6 and 11.4 / 29.2; the colour
+  vision check passes (ΔE at least 40, gap at least 15). Its fill is violet where the base night's is blue-grey, as
+  the browser's was; a render indoors on Neon Heights reads dark and violet, not lit.
+- **The moon's shadow casters.** Depot by night on High from the yard, 30 frames each: day 97 draws and 119,757
+  primitives; night 104 and 133,270; night with the moon at 45° 98 and 119,757; with a 50 m shadow range 100 and
+  124,245; 40 m 99 and 122,001. Woodland from the meadow: day 99 and 449,187, night 98 and 455,400, the same at 50 m.
+  The low moon is the cause. A night range cap would override the player's Shadow range row (a file outside
+  `touches`) for 3 to 4 draws on a Dev-only night, so it is a KNOWN_ISSUES row instead.
+
+Files outside `touches` in attempt 2: `docs/KNOWN_ISSUES.md` (the shadow-caster row).
+
+Attempt 2's gate, `tools/check.sh`, 2026-10-25: every step passes, 3,022 of 3,022 (part 1 336 s, part 2 485 s, under
+the 600 s limit). `test_night_light.gd` 16, `test_night_light_qa.gd` 9, `test_skyline.gd` 10 and `test_baked_light.gd` 12
+pass alone.

@@ -36,3 +36,5 @@ override_fill = 1.0
 override_exposure = 1.3
 real_energy = 3.0
 pool_strength = 0.25
+override_fill_sky = Color(0.227451, 0.298039, 0.470588, 1)
+override_fill_ground = Color(0.164706, 0.14902, 0.12549, 1)

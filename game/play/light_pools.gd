@@ -223,7 +223,12 @@ func update(eye: Vector3, delta: float) -> void:
 			_fade[k] = minf(1.0, _fade[k] + step)
 		else:
 			_fade[k] = maxf(0.0, _fade[k] - step)
-			if _fade[k] <= 0.0:
+			if _fade[k] <= 0.0 and _serving[k] != _target[k]:
+				# the released pool is drawn whole again before the light moves on
+				var released := _serving[k]
+				if released >= 0 and _drawn[released] != 1.0:
+					_drawn[released] = 1.0
+					changed = true
 				_serving[k] = _target[k]
 				_place(k)
 		var pool := _serving[k]
