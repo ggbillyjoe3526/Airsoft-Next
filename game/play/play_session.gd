@@ -547,6 +547,7 @@ func _build_views(ui: CanvasLayer) -> void:
 			kit.parts_under(_light.night), _play.view, _eyes.camera)
 	_bbs = BBView.new()
 	_bbs.setup(_play.effects, state.bbs.bbs.size())
+	_bbs.set_glowing(_glowing_bbs())
 	add_child(_bbs)
 	_puffs = PuffView.new()
 	_puffs.setup(_play.effects, _map.foliage)
@@ -593,6 +594,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	var figure_materials := _build_bodies()
 	var first_use: Array[Material] = [_bbs.drawn_material(), _puffs.drawn_material(), _gas.drawn_material(),
 			_kicked.drawn_material(), contact.material, _dust.drawn_material()]
+	first_use.append_array(_bbs.glow_materials())
 	if state.round_state.mode == RoundState.Mode.ATTACK_DEFEND:
 		_flag = FlagView.new()
 		_flag.setup(_play.flag, _colours.figures, state.round_state.pole, _tuning.flag.radius)
@@ -722,6 +724,18 @@ static func lighting_for(map: MapData, play: PlayTuning, pick: StringName, force
 ## The light the match is lit by (null before its map is read).
 func lighting() -> LightingConfig:
 	return _light
+
+
+## Whose BBs glow this match (BBView.set_glowing), by character id: yours by your kit's Glowing BBs, every bot's by
+## BotKits.GLOW_BBS, each under the preset's night flag (WL8). Drawing only: the BBs fly the same.
+func _glowing_bbs() -> PackedByteArray:
+	var bits := PackedByteArray()
+	bits.resize(state.characters.size())
+	var bot: Array[Loadout.Glow] = [BotKits.GLOW_BBS, BotKits.GLOW_BBS]
+	for c in state.characters:
+		if c.id >= 0 and c.id < bits.size():
+			bits[c.id] = BBView.glow_bits(kit.glow_bbs if c == player else bot, _light.night)
+	return bits
 
 
 ## A night field's pools of light (null by day, on a map without lights, or before the level is built).
@@ -903,7 +917,8 @@ func _process(delta: float) -> void:
 	_hands.update(player, _input.view_yaw, _input.view_pitch, _eyes.global_position, look, delta)
 	# Your replica only through your own eyes (update shows it whenever you are in play).
 	_hands.visible = _hands.visible and watched == player
-	_bbs.update(state.bbs, PLAYER_ID, _hands.muzzle_position() - _eyes.global_position, fraction, TICK)
+	_bbs.update(state.bbs, PLAYER_ID, _hands.muzzle_position() - _eyes.global_position, fraction, TICK,
+			_eyes.global_position)
 	_puffs.update(delta)
 	var wind := state.wind.at(state.time)
 	_dust.update(_eyes.global_position, wind, delta)

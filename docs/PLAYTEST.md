@@ -196,8 +196,9 @@ parts. To try every part before you have levelled, turn on Settings › Dev › 
 - [ ] **Performance panel.** Energy, muzzle speed, BB weight, rate of fire, on-target range, time to 20 m, spread,
   recoil, magazines, reload, draw, aim raise, shots heard from.
 - [ ] **The 11.1 V LiPo battery** on the rifle: rate of fire +15 %, energy unchanged; it empties faster.
-- [ ] **Glowing BBs** (per replica): At Night (the default), Always or Off. A glowing BB is green, a little larger at
-  range, with a longer streak.
+- [ ] **Glowing BBs (WL8)** (per replica): Customise › BBs, under BB weight: At Night (the default), Always or Off,
+  each replica its own; quit and start again: still picked. With Always on Depot by day your BBs are green, a little
+  larger at range, with a green streak; the bots' stay white. Do they read against the sky, the walls and the ground?
 - [ ] **Light (WL7; dev content, night fields).** Customise › Light offers None and the Weapon Torch on every replica,
   the Cyber Pistol too. Without Dev content the slot shows LATER. Fit it, quit, start again: still fitted. On Depot by
   day it does nothing and your replica in hand shows no torch.
@@ -336,8 +337,8 @@ flagpole stands in the walled loading bay. Three lanes lead there: **Dock Road**
 A wide wood: 120 × 80 m on a gentle slope up to the Knoll and its log fort, with three lanes (Pine Belt, Meadow,
 Creek with the cabin). Turn on Settings › Dev › Dev content, then pick it on Play. Step 26 builds it in greybox: since
 WL1 it loads and plays, since WL2 at 5v5 (6v6 under Custom), since WL3 at night, since WL4 with crowns, a forest,
-grass, puddles and fireflies, since WL5 with bushes, since WL6 with bots by night, since WL7 with the weapon torch; the
-rest follows (WL8 to WL10).
+grass, puddles and fireflies, since WL5 with bushes, since WL6 with bots by night, since WL7 with the weapon torch,
+since WL8 with glowing BBs; the rest follows (WL9 and WL10).
 
 - [ ] **Walk the slopes (WL1).** Run up, down and across the Knoll's west face and West Hill: no jump is ever needed,
   you never slide when you stop or stand crouched on the face, your feet stay on the ground going downhill, and
@@ -411,7 +412,11 @@ Once the rest of step 26 lands:
   pointed near a bot: it sees you from as far.
 - [ ] **Frame time with every torch on (WL7).** With `--perf`, a 5v5 firefight on Woodland at night with torches on, on
   Low and on High: the overlay's frame time (ms and max). High draws your torch with a shadow: is it within budget?
-- [ ] **Glowing BBs (WL8):** their checks come with them.
+- [ ] **Glowing BBs (WL8).** At Night (the default), everyone's BBs glow green with a streak, yours and every bot's:
+  can you follow a shot all the way and tell where a burst came from? Set Off: your BBs are white, the bots' still
+  glow. Does the green read as a BB and never as a team's colour?
+- [ ] **Frame time in a night firefight (WL8).** With `--perf`, a 5v5 on Woodland on Low and on High, every BB
+  glowing: the overlay's frame time and draws (two more draws while any glowing BB flies). Does it hold the budget?
 
 ### Neon Heights (the Maps Update)
 

@@ -7,6 +7,17 @@ extends Resource
 ## A BB drawn this wide (m): larger than a real 6 mm BB so it reads at range.
 @export var bb_size: float = 0.012
 @export var bb_colour: Color = Color(1.0, 0.98, 0.92)
+## Glowing BBs (WL8, the browser game's BB_VISUALS.glowInDark; Loadout.Glow): glow-in-the-dark green (`glow_colour`, lit
+## itself, nothing drawn round it), never narrower on screen than `glow_min_angle` radians across its radius, with a
+## streak `glow_streak_colour` at `glow_streak_opacity` back along its flight `glow_streak_time` s of it (never longer than
+## its flight so far), `glow_streak_angle` radians of view wide. On every graphics preset: they cost a colour. A white
+## BB draws as above, with no streak. Greens at least 20 degrees of hue off every team's (docs/ART.md).
+@export var glow_colour: Color = Color8(157, 255, 122)
+@export var glow_streak_colour: Color = Color8(92, 255, 74)
+@export var glow_min_angle: float = 0.0045
+@export var glow_streak_time: float = 0.05
+@export var glow_streak_angle: float = 0.0018
+@export var glow_streak_opacity: float = 0.75
 ## A BB you fired is drawn from the muzzle, joining its true path from the eye over this long (s).
 @export var muzzle_join_time: float = 0.12
 ## Puffs: how many can show at once, how long one lasts (s), its size at the start and end (m).

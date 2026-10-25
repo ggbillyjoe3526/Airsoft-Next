@@ -12,9 +12,11 @@ func _init(size: int = 0) -> void:
 
 
 ## Fires a BB of `mass` kg from `origin` along the unit vector `dir` at `speed` m/s, with the backspin a hop-up lift of
-## `hop_up` gives (× `spin_per_hop`). Takes a free slot, else the oldest BB in flight. Returns null for a pool with no
-## slots or a mass that isn't positive (it would fill the flight with NaN).
-func spawn(owner_id: int, origin: Vector3, dir: Vector3, speed: float, hop_up: float, mass: float, spin_per_hop: float) -> BB:
+## `hop_up` gives (× `spin_per_hop`), from the replica in its owner's loadout slot `slot`. Takes a free slot, else the
+## oldest BB in flight. Returns null for a pool with no slots or a mass that isn't positive (it would fill the flight
+## with NaN).
+func spawn(owner_id: int, origin: Vector3, dir: Vector3, speed: float, hop_up: float, mass: float, spin_per_hop: float,
+		slot: int = -1) -> BB:
 	if not (mass > 0.0):
 		push_error("BBPool.spawn: BB mass must be positive (kg), got %s" % mass)
 		return null
@@ -34,6 +36,7 @@ func spawn(owner_id: int, origin: Vector3, dir: Vector3, speed: float, hop_up: f
 	bb.serial = next_serial
 	next_serial += 1
 	bb.owner_id = owner_id
+	bb.slot = slot
 	bb.position = origin
 	bb.prev_position = origin
 	bb.velocity = dir * speed

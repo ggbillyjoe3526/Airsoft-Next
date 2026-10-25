@@ -496,6 +496,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **The AEG Rifle and the GBB Pistol are redesigned from the owner's reference photos, with no text or logo copied
   (owner, 2026-10-12; RM6, RM7).** Small, minimal iron sights; the old length, grip, magazine, rails and mounts stay.
   The Gas Pistol became the GBB Pistol, a blowback replica with the same numbers.
+- **Glowing BBs are green and loaded At Night by default (owner, 2026-10-24; WL8).** A per-replica Customise choice
+  (At Night, Always, Off), saved with the loadout; every bot loads At Night. Drawing only: a seeded match plays the same
+  with every choice. Their greens stay more than 20 degrees of hue off every team's.
 - **The Loadout and the Armory open only between matches, never from the pause menu (owner, 2026-10-03).** The practice
   range's pause menu offers the Loadout, because a range has no match.
 - **Five saved loadouts, and the one carried follows your edits (2026-10-13, SL1; Claude's default).** Every change goes
