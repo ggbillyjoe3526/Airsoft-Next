@@ -4,26 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## WL6 · Bots by night (Dev)
-when: build order step 26, after WL3
-tier: core
-perf: required
-touches: game/ai/night_field.gd, game/ai/bot_senses.gd, game/ai/bot_world.gd, game/ai/bot_cover.gd,
-  game/ai/round_planner.gd, game/config/bot_config.gd, game/config/bot_tuning.tres, game/play/play_session.gd,
-  tests/unit/test_night_sight.gd, docs/DECISIONS.md
-contract: Simulation and presentation (1); Data, not literals (6)
-acceptance:
-  1. A NightField is built once a match when the map plays at night, never by day: light pools by floor, the canopy
-     grid (3 trunks within 4 m, 1 m cells) and roofs (the browser's `map/nightSight.ts`). Bots make someone out from
-     40 m lit, 25 m in the open, 10 m under the canopy and 15 m indoors (NIGHT_SIGHT in a typed config). By day
-     sight is unchanged (a seeded Depot match plays the same).
-  2. Normal, Hard and Pro keep out of light pools when they hold or hunt; Easy stands where its lane says.
-  3. A 5v5 night match on Woodland keeps every sighting inside the target's range, builds the canopy grid once and
-     finishes its rounds (the browser's `woodlandNightMatch.test.ts`). The record gives the grid's build time and
-     the night sight check's cost a bot.
-status: open
-attempts: 0
-
 ## WL7 · The weapon torch (Dev)
 when: build order step 26, after WL6
 tier: core

@@ -1,12 +1,12 @@
 # WL6 · Bots by night
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-25 | 1 | worker | 3,097 of 3,097 | – | – |
+| 2026-10-25 | 1 | worker | 3,097 of 3,097 | Accept 8/8 | – |
 
 ## Goal
 
@@ -129,6 +129,8 @@ stays.
   (performance). If WL10 adds lit lane points or many pools, spread the picks or cache each pool's dark spot.
 - By day `out_of_light` still runs and returns early (1.4 µs); a `night != null` guard at its callers is free tidiness
   (performance).
+- `out_of_light` checks floor and walkability but not that the dark spot is reachable on foot (as the browser);
+  QA's sweep found every result reachable on Woodland and Neon Heights; recheck on WL10's maps (critic).
 - BotCover's static search keeps the last NightField until the next `find` (one RefCounted, no leak; QA).
 - 120 of Woodland's 2,731 lit walkable spots (4 %) have no dark spot within 8 m, so a bot holds there; no bot stalled
   over 6 seeds on Easy, Normal and Pro (QA).

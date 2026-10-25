@@ -57,7 +57,7 @@ func test_the_preset_played_decides_the_night() -> void:
 	assert_false(PlaySession.lighting_for(depot, play, &"", &"").night, "Depot")
 	assert_true(PlaySession.lighting_for(depot, play, &"", LightingConfig.NIGHT).night, "Depot, Dev: Time of day Night")
 	assert_false(PlaySession.lighting_for(woodland, play, &"", LightingConfig.DAY).night,
-			"Dev: Time of day Day does not take Woodland's night away: it offers none (see the report)")
+			"Woodland, Dev: Time of day Day (a forced preset wins over the map's own)")
 
 
 ## Every lit walkable spot of `map_id`'s light pools, moved out of the light: still on its floor, walkable, dark, a step
