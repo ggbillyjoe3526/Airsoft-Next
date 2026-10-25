@@ -55,6 +55,8 @@ class RoundTally:
 	## Attack / Defend: the team attacking (-1 in Elimination), and how far the flag got up (0 to 1).
 	var attackers: int = -1
 	var top_flag: float = 0.0
+	## Elimination: the overtime flag went up this round (OV1).
+	var overtime: bool = false
 
 
 ## One match: its rounds and everything that must never happen, counted.
@@ -120,6 +122,17 @@ class MatchTally:
 	func captures() -> int:
 		return _ended(GameEvent.RoundEnd.CAPTURED)
 
+	## Elimination: rounds that went to the overtime flag, and those won by touching it.
+	func overtimes() -> int:
+		var n := 0
+		for r in rounds:
+			if r.overtime:
+				n += 1
+		return n
+
+	func flag_touches() -> int:
+		return _ended(GameEvent.RoundEnd.OVERTIME_FLAG)
+
 	## Attack / Defend: the flag got all the way up in some round.
 	func flag_raised() -> bool:
 		for r in rounds:
@@ -163,6 +176,9 @@ enum Lights { BY_RULE, NONE, ALWAYS }
 var lights: Lights = Lights.BY_RULE
 ## The bots call to their team (Callouts, CO1); off, they say nothing and must play exactly the same.
 var talk: bool = true
+## Elimination's overtime flag goes up on a map with a spot, as in the game (OV1); off, a clock run out level is a draw
+## at once, as before it: a match that never reaches overtime plays the same either way.
+var overtime_flag: bool = true
 var _kits: BotKits = null
 var _kit_rules: LoadoutRules = null
 var config: BotConfig = null
@@ -280,6 +296,9 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 		state.round_state.mode = mode
 		state.round_state.pole = map.pole
 		state.round_state.first_attackers = 0
+	else:
+		state.round_state.has_overtime_spot = map.has_overtime_flag and overtime_flag
+		state.round_state.overtime_spot = map.overtime_flag
 	sim.start_match(state)
 	bots.observe(state)
 	var round_now := _new_round(state)
@@ -353,6 +372,8 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 					t.knocks += 1
 				GameEvent.Kind.PROP_RING:
 					t.rings += 1
+				GameEvent.Kind.OVERTIME:
+					round_now.overtime = true
 				GameEvent.Kind.ROUND_OVER:
 					# In Attack / Defend only the attackers must leave: defenders hold by their pole.
 					for c in state.characters:

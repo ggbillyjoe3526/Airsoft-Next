@@ -39,12 +39,19 @@ var match_winner: int = -1
 var attackers: int = -1
 var flag: FlagState = FlagState.new()
 var overtime: float = 0.0
+## Elimination: the foot of the map's overtime flag (map data; set before Round.start_match on a map with a spot), and
+## the flag itself (up, foot, time left, contested), down with all its time at each round's start. Without a spot, a
+## clock run out with both teams in play is a draw at once. Never up in Attack / Defend or practice.
+var has_overtime_spot: bool = false
+var overtime_spot: Vector3 = Vector3.ZERO
+var overtime_flag: OvertimeFlag = OvertimeFlag.new()
 
 
 func is_live() -> bool:
 	return phase == Phase.LIVE
 
 
-## The last finished round was a draw (both teams out at once, or the clock ran out): it is played again.
+## The last finished round was a draw (both teams out at once, or the clock ran out, or the overtime flag stood
+## untouched): it is played again.
 func drawn() -> bool:
 	return winner != 0 and winner != 1

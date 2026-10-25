@@ -1,8 +1,9 @@
 extends GutTest
 ## The field layout (FC2; the browser game's content/mapChecks.test.ts, its layout half): FieldMeasure measures every
 ## field row of data/maps.md once, on its MapLevel's JoltQuery (the BBs' own ray) and its NavGrid, and FieldChecks.layout
-## judges the figures, each field failing exactly its FieldStandard.KNOWN_FAILING layout checks; then each check fails
-## on its own fault in a copy of Depot's data, measured on a BoxWorld of its blocks.
+## judges the figures, each field failing exactly its FieldStandard.KNOWN_FAILING layout checks and every field's overtime
+## flag passing (OV1); then each check fails on its own fault in a copy of Depot's data, measured on a BoxWorld of its
+## blocks.
 
 var catalog: MapCatalog
 var style: MapStyle
@@ -205,3 +206,40 @@ func test_a_flag_in_sight_of_the_attackers_fails_flag() -> void:
 	var r := FieldChecks.flag(_measure(m))
 	assert_eq(r.status, FieldChecks.Status.FAIL, r.text)
 	assert_string_contains(r.text, "can be seen from the attackers' spawn")
+
+
+func test_every_fields_overtime_flag_passes() -> void:
+	for id in results:
+		var list: Array[FieldChecks.Result] = []
+		list.assign(results[id])
+		var r := _only(list, FieldStandard.OVERTIME_FLAG)
+		assert_not_null(r, id)
+		if r != null:
+			gut.p("%s %s" % [id, r])
+			assert_eq(r.status, FieldChecks.Status.PASS, "%s: %s" % [id, r.text])
+
+
+func test_an_overtime_flag_by_one_end_fails_and_none_warns() -> void:
+	var m := _depot()
+	var s := m.ends[1].spawns[0].position
+	m.overtime_flag = Vector3(s.x - 4.0, s.y, s.z)
+	var r := FieldChecks.overtime_flag(_measure(m, depot_nav))
+	assert_eq(r.status, FieldChecks.Status.FAIL, r.text)
+	assert_string_contains(r.text, "One end gets there first")
+	m.has_overtime_flag = false
+	r = FieldChecks.overtime_flag(_measure(m, depot_nav))
+	assert_eq(r.status, FieldChecks.Status.WARN, r.text)
+	assert_string_contains(r.text, "a draw at once")
+
+
+func test_an_overtime_flag_off_the_floor_or_in_a_bush_fails() -> void:
+	var m := _depot()
+	m.overtime_flag += Vector3(0, 0.5, 0)
+	var r := FieldChecks.overtime_flag(_measure(m, depot_nav))
+	assert_eq(r.status, FieldChecks.Status.FAIL, r.text)
+	assert_string_contains(r.text, "off the floor")
+	m = _depot()
+	m.foliage.add(m.overtime_flag, 1.5, 2.0)
+	r = FieldChecks.overtime_flag(_measure(m, depot_nav))
+	assert_eq(r.status, FieldChecks.Status.FAIL, r.text)
+	assert_string_contains(r.text, "stands in a bush")

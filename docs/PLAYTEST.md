@@ -269,10 +269,13 @@ One BB hit puts anyone out. A round lasts up to 2:30 and the first team to 5 rou
   stand on separate spots.
 - [ ] **End a round.** A banner says who won, the score updates and the next round starts by itself. The first round
   after starting the game opens with the referee's two short whistle blasts.
-- [ ] **Overtime flag (OT1).** In Elimination, hide until the clock runs out with both teams in (Round time 1:30 is
-  quickest): three whistles, "Overtime · touch the flag", a chequered flag near the middle and a 0:30 clock. Touch it
-  (within a metre) and your team wins, "Flag touched"; with both teams at it nobody wins; untouched, "draw" and the
-  round replays. Bots head for it; does 30 s feel right? Attack / Defend has none.
+- [ ] **Overtime flag (OV1, the rules; OT1).** In Elimination, hide until the clock runs out with both teams in (a
+  Custom match at Round time 1:30 is quickest): the round goes on for 30 s with the clock at 0:00. Stand within a metre
+  of the spot (Depot: by the Box's east wall, just east of the middle; Neon Heights: on Neon Avenue by the middle;
+  Woodland: the east meadow by the middle) and your team wins the round at once; with an enemy there too nobody wins;
+  untouched, a draw and the round replays. Nothing marks it yet and bots don't go for it: the three whistles, "Overtime
+  · touch the flag", the chequered flag and the bots' run come with OV2 and OV3. Does 30 s feel right? Attack / Defend
+  has none.
 - [ ] **Overtime banner (BP5).** It fits on one line at 1280 px wide; the feed (hits and callouts) hides while Tab is
   up.
 - [ ] **Finish a match.** The Match summary ([HUD and match info](#hud-and-match-info)), then the result screen. Go

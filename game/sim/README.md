@@ -38,12 +38,13 @@ and, on the range, `test_range_map.gd`).
 | `ricochet.gd` | A BB bouncing off concrete and steel; whether a bounced BB knocks anyone out is the match's rule |
 | `hitbox.gd`, `bb_step.gd` | The hit volume (head, chest, hips leaning; swinging legs) and each tick's BB flight against the level, bushes (0.6 m of leaves over a flight stops a BB) and bodies |
 | `elimination.gd` | Hit calling: alive, calling, walking off, leaving, out |
-| `round.gd`, `round_state.gd` | Rounds in Elimination and Attack / Defend: clock, score, half time, reset, match over; the flag's time-out and overtime; the practice switch (no rounds, no clock) |
+| `round.gd`, `round_state.gd` | Rounds in Elimination and Attack / Defend: clock, score, half time, reset, match over; the flag's time-out and overtime; Elimination's overtime flag at the buzzer; the practice switch (no rounds, no clock) |
 | `range_target.gd`, `range_targets.gd` | Practice range targets: steel plates (front only, on posts), figures with a player's hit volume that fall and rise, pop-ups, movers and swingers on seeded times; BBs stop on them as `TARGET_HIT`; full spares in practice |
 | `range_challenge.gd` | The range's timed challenge: ready on the START plate, a counted-down start, lit targets picked from the match's stream for a timed run, cues as `CHALLENGE` events, and the run's best (none with a Dev cheat on since START) |
 | `flag.gd`, `flag_state.gd` | Attack / Defend's flag: attackers at the pole raise it, defenders pull it down, both hold it still |
+| `overtime_flag.gd` | `OvertimeFlag`: Elimination's overtime flag (OV1): up at the map's spot when the clock runs out with both teams in play (an OVERTIME event), the first team with a player in play within reach of its foot wins the round (`RoundEnd.OVERTIME_FLAG`), both teams there hold each other off, untouched for `OvertimeConfig.time` a draw played again |
 
 ## Not yet
 
-The overtime flag comes in a later task. The walk-off route
-goes round cover on the map's nav grid (`Simulation.nav`, game/nav/); without one it is one straight leg.
+The walk-off route goes round cover on the map's nav grid (`Simulation.nav`, game/nav/); without one it is one straight
+leg.

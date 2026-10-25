@@ -453,6 +453,9 @@ func _start_simulation(map: MapData) -> void:
 		state.round_state.first_attackers = player_team
 	else:
 		mode = MatchOptions.MODE_ELIMINATION
+		# Elimination's overtime flag, on a map with a spot for it (OV1).
+		state.round_state.has_overtime_spot = map.has_overtime_flag
+		state.round_state.overtime_spot = map.overtime_flag
 	# Every bot's name and personality, drawn on the match's seed. Your teammates carry their replicas as they come;
 	# the other team's bots each pick a kit by the difficulty, leaning towards kits that suit their personality.
 	_bot_parts.clear()

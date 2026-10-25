@@ -16,6 +16,7 @@ const DEFAULT_PATH := "res://game/config/sim_tuning.tres"
 @export var hits: HitConfig = HitConfig.new()
 @export var rounds: RoundConfig = RoundConfig.new()
 @export var flag: FlagConfig = FlagConfig.new()
+@export var overtime: OvertimeConfig = OvertimeConfig.new()
 @export var targets: RangeConfig = RangeConfig.new()
 @export var footsteps: FootstepConfig = FootstepConfig.new()
 @export var replica_rules: ReplicaRulesConfig = ReplicaRulesConfig.new()

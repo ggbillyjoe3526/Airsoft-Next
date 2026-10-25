@@ -448,7 +448,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Elimination's overtime flag: a time-out with nobody ahead puts a flag up near the middle, and the first team to
   touch it wins the round (2026-10-15, OT1; Claude's defaults).** Untouched after 30 s, the round is a draw, played
   again. Always on in Elimination, with no rules row (step 27 plan); never in Attack / Defend, Extraction or practice.
-  Its cloth is chequered off-white and dark until touched. Spots and timings: `legacy/browser/docs/records/OT1.md`.
+  Its cloth is chequered off-white and dark until touched. Each map's spot is held by `field.overtimeFlag` (on walkable
+  floor, out of the bushes, each end's walk within 15 %). Spots, walks and timings: `docs/records/OV1.md`, and the
+  browser's in `legacy/browser/docs/records/OT1.md`.
 - **Rule sets: Skirmish, Tournament, Pro CQB and Custom (owner, 2026-10-04).** Skirmish is today's rules, the default. A
   match counts for the records only as its ruleset's standard match; Custom pays at most ×1.5. Tournament and Pro CQB
   are dev and fold into the field rule presets (owner, 2026-10-05).
