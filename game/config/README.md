@@ -20,7 +20,7 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `wind_config.gd` | The match's breeze: its speed range, gusts and veer |
 | `ricochet_config.gd` | BBs bouncing off hard surfaces: restitution by material, slide, scatter, the most bounces |
 | `round_config.gd` | Rounds: clock, score, half time, reset |
-| `range_config.gd` | The practice range's targets: plate and post sizes, a figure's time down and rise, pop-ups', movers' and swingers' timing, the range's marked distances and size (the targets' layout is `data/maps/range.json`) |
+| `range_config.gd` | The practice range's targets: plate and post sizes, a figure's time down and rise, pop-ups', movers' and swingers' timing, the range's marked distances and size (the targets' layout is `data/maps/range.json`); practice on a field (`field_`, WL9): where targets stand and of what kind, the START plate's search, the challenge's sight reach |
 | `flag_config.gd` | Attack / Defend's flag: reach, raise and lower times, overtime, rope steps |
 | `footstep_config.gd` | Strides and landings |
 | `noise_config.gd` | Noisy props and loud ground (NP1): which block kinds knock and ring, how far each carries, the knock's speed, touch and facing, the quiet time, the ring's speed and margin, how far steps carry on each ground |

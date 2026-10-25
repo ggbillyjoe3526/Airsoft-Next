@@ -43,9 +43,10 @@ greys out.
 
 ## Practice
 
-The [Practice Range](Practice-Range) has one mode, Practice: no bots, no score and no XP, just targets and a timed
-challenge. While Practice is picked the Match screen shows Team, Bots and Rules as NOT USED, and keeps your picks for
-when you go back to a field.
+Practice has no bots, no score and no XP, just targets and a timed challenge. It is the
+[Practice Range](Practice-Range)'s only mode, and every field hosts it too, with targets where the other team would play
+([Practice on a field](Practice-Range#practice-on-a-field)). While Practice is picked the Match screen shows Team, Bots
+and Rules as NOT USED, and keeps your picks for your next match.
 
 ## Round flow
 

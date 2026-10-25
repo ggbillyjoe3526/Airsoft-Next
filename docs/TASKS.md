@@ -4,32 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## WL9 · The practice range set in Depot, and practice on any map (Dev)
-when: build order step 26, after WL1 (Woodland's at night after WL7)
-tier: core
-perf: required
-touches: data/maps/range.json, data/maps/depot.json, game/map/practice_spots.gd, game/config/range_config.gd,
-  game/ui/match_options.gd, game/ui/match_page.gd, game/play/practice_spot.gd, game/play/play_session.gd,
-  game/sim/range_targets.gd, game/sim/range_challenge.gd, game/save/run_record.gd, game/ui/pause_menu.gd,
-  game/ui/text/en.po, tests/unit/test_practice_spots.gd, tests/unit/test_match_page.gd, docs/PLAYTEST.md
-contract: Data, not literals (6); Saves (8)
-acceptance:
-  1. Practice is offered on every field (dev fields under Dev content): no bots, no score, you start at end 0's
-     first spawn.
-  2. Targets come from the map's data alone (the browser's `practiceSpots.ts`, `practiceLayout.ts` and
-     `PRACTICE_SPOTS`): lane points facing back down their lane, the other end's spawns, points along long legs,
-     each on the floor, none near your start or crowding another, crouched behind low cover, steel, movers and
-     swingers where they fit. A test runs it on Depot, Neon Heights and Woodland.
-  3. The timed challenge's START plate stands ahead of your start where it fits; each map keeps its own best, and a
-     run with a play-changing Dev setting is never a best.
-  4. Practice on Woodland plays at night with your torch fitted. Pictures on Depot and Woodland are posted.
-  5. The practice range is set in Depot (owner, 2026-10-24): its design and layout stay exactly as they are (lanes,
-     plate distances, figures, movers and swingers, the timed challenge), but it is dressed as part of the Depot site
-     with Depot's props, materials, light, sky and skyline instead of its own, so the Blender models serve both.
-     Practice, Loadout from practice, the readout and the challenge's best work as before. A picture is posted.
-status: open
-attempts: 0
-
 ## WL10 · Woodland's match guards, balance and performance (Dev)
 when: build order step 26, last
 tier: core

@@ -6,7 +6,8 @@ extends PanelContainer
 ## ("Flew out of bounds", with what to try). Before your first shot it says how the range works. There is no hit marker
 ## for a target (owner, 2026-10-22): this line, the target's own movement and its sound are all a hit shows. Text is
 ## rebuilt only when what it says changes. The timed challenge's own display (HudRangeChallenge) takes its place while
-## the challenge is on.
+## the challenge is on. On a field (M94) there are no marked distances: a target and where a BB landed are counted from
+## where you stand, and only a BB that fell off the world flew out.
 
 ## What the last BB did.
 enum Kind { NONE, TARGET, LANDED, OUT }
@@ -43,7 +44,7 @@ class Last:
 	## A target's label (RangeTarget.label) and marked distance (m).
 	var label: String = ""
 	var marked: int = 0
-	## Where a BB came down: metres downrange of the firing line.
+	## Where a BB came down: metres downrange of the firing line (from where you stand on a field).
 	var landed: int = 0
 
 	func same(other: Last) -> bool:
@@ -58,6 +59,10 @@ class Last:
 
 var _range: RangeConfig = null
 var _player_id: int = 0
+## Practice on a field: distances from `_from` (your feet, each tick), and a BB is out only below `_kill_y`.
+var _on_field: bool = false
+var _kill_y: float = 0.0
+var _from: Vector3 = Vector3.ZERO
 var _last := Last.new()
 var _shown := Last.new()
 var _rule: StyleBoxFlat = null
@@ -69,10 +74,12 @@ var _key_row: VBoxContainer = null
 var _key_text: Label = null
 
 
-## Built for `range_cfg` (where its walls are) and `player_id`'s BBs.
-func setup(range_cfg: RangeConfig, player_id: int) -> void:
+## Built for `range_cfg` (where its walls are) and `player_id`'s BBs; `on_field` on a field whose world ends at `kill_y`.
+func setup(range_cfg: RangeConfig, player_id: int, on_field: bool = false, kill_y: float = 0.0) -> void:
 	_range = range_cfg
 	_player_id = player_id
+	_on_field = on_field
+	_kill_y = kill_y
 	name = "RangeReadout"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	custom_minimum_size = Vector2(MIN_WIDTH, 0.0)
@@ -151,6 +158,8 @@ func lines() -> PackedStringArray:
 
 ## The tick's events: your BBs' ends set what the readout says.
 func on_tick(state: GameState) -> void:
+	if _on_field and _player_id >= 0 and _player_id < state.characters.size():
+		_from = state.characters[_player_id].position
 	var events := state.events
 	for i in events.count:
 		note(events.items[i], state.targets)
@@ -175,15 +184,17 @@ func note(e: GameEvent, targets: Array[RangeTarget]) -> bool:
 				return false
 			_last.kind = Kind.TARGET
 			_last.label = targets[e.target].label
-			_last.marked = roundi(targets[e.target].distance)
+			_last.marked = roundi(_away(targets[e.target].home)) if _on_field else roundi(targets[e.target].distance)
 		_:
 			return false
 	return true
 
 
-## Whether a point is within the range's walls and backstop (at any height): a BB lost out there ran out of time in the
-## air, one lost beyond them flew out.
+## Whether a point is within the range's walls and backstop (at any height), or above a field's floor of the world: a
+## BB lost there ran out of time in the air, one lost beyond flew out.
 func inside(p: Vector3) -> bool:
+	if _on_field:
+		return p.y >= _kill_y
 	return absf(p.x) <= _range.half_width and p.z >= -_range.backstop and p.z <= _range.behind_line
 
 
@@ -201,7 +212,12 @@ static func label_words(label: String) -> String:
 
 func _land(p: Vector3) -> void:
 	_last.kind = Kind.LANDED
-	_last.landed = downrange(p)
+	_last.landed = roundi(_away(p)) if _on_field else downrange(p)
+
+
+## How far `p` is from where you stand, across the floor (m).
+func _away(p: Vector3) -> float:
+	return Vector2(p.x - _from.x, p.z - _from.z).length()
 
 
 ## Writes the last BB into the panel (nothing before the first shot: how the range works).
@@ -216,17 +232,18 @@ func _draw_last() -> void:
 	custom_minimum_size.x = MIN_WIDTH
 	match _last.kind:
 		Kind.NONE:
-			_kicker.text = tr("RANGE_FIRST_KICKER").to_upper()
+			_kicker.text = tr("RANGE_FIRST_KICKER_FIELD" if _on_field else "RANGE_FIRST_KICKER").to_upper()
 			name_text = tr("RANGE_FIRST_TITLE")
 			big_size = TITLE_SIZE
-			sub = tr("RANGE_FIRST_BODY")
+			sub = tr("RANGE_FIRST_BODY_FIELD" if _on_field else "RANGE_FIRST_BODY")
 			custom_minimum_size.x = FIRST_WIDTH
 		Kind.TARGET:
 			_kicker.text = tr("RANGE_LAST_BB").to_upper()
 			name_text = "%s %s" % [label_words(_last.label), small % (tr("HUD_METRES") % _last.marked)]
 		Kind.LANDED:
 			_kicker.text = tr("RANGE_LAST_BB").to_upper()
-			name_text = "%s %s" % [tr("RANGE_MISSED"), small % (tr("RANGE_LANDED") % _last.landed)]
+			var landed := tr("RANGE_LANDED_FIELD" if _on_field else "RANGE_LANDED") % _last.landed
+			name_text = "%s %s" % [tr("RANGE_MISSED"), small % landed]
 			rule = GameTheme.DIM
 		Kind.OUT:
 			_kicker.text = tr("RANGE_LAST_BB").to_upper()

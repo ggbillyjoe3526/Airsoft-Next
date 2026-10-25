@@ -2458,9 +2458,6 @@ msgstr "START"
 msgid "MENU_FIELDS_ONLY"
 msgstr "FIELDS ONLY"
 
-msgid "MENU_RANGE_ONLY"
-msgstr "RANGE ONLY"
-
 msgid "MENU_NOT_USED"
 msgstr "NOT USED"
 
@@ -2515,11 +2512,20 @@ msgstr "Shoot anything."
 msgid "RANGE_FIRST_BODY"
 msgstr "Each BB names what it hit, or says where it landed. Distances are marked on the walls."
 
+msgid "RANGE_FIRST_KICKER_FIELD"
+msgstr "Practice"
+
+msgid "RANGE_FIRST_BODY_FIELD"
+msgstr "Targets stand where the other team would play. Each BB names what it hit, or how far from you it landed."
+
 msgid "RANGE_MISSED"
 msgstr "Missed"
 
 msgid "RANGE_LANDED"
 msgstr "landed %d m downrange"
+
+msgid "RANGE_LANDED_FIELD"
+msgstr "landed %d m away"
 
 msgid "RANGE_OUT"
 msgstr "Flew out of bounds"

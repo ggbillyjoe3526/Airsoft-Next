@@ -27,6 +27,11 @@
   sums the totals over `unit-1.log` and `unit-2.log`; CI runs part 1 in the job that also runs the smoke test and the
   notices ("Unit tests part 1, smoke test, notices", job id `godot` kept) and part 2 in a job of its own ("Unit tests
   part 2", `unit-2`), side by side, each keeping its log.
+- **Three parts since WL9** (`tools/unit_tests.sh [1|2|3]`): part 2 had reached 571 s against part 1's 500, so WL9
+  split at `test_de` and `test_re` (56, 129 and 74 files) by GUT's JUnit times per file (345, 344 and 346 s of
+  tests), but the parts then ran 307, 402 and 325 s: JUnit undercounts the session files' awaits. Timed by each file's
+  start in the log, the boundaries moved to `test_df` and `test_rg` (63, 129 and 69 files; 368, 365 and 361 s).
+  `tools/check.sh` runs three gates and sums `unit-1.log` to `unit-3.log`; CI adds "Unit tests part 3" (`unit-3`).
 - **Failures name their file**: the script now prints only `FAIL: <file> <test>: <message>` for each failed test
   (GUT's run summary; `FAIL: <file>: <message>` for a failed `before_all` or `after_all`), `FAIL: <file>: SCRIPT ERROR
   ...` for a script error with the file that was running (or, for a test file that doesn't parse, which errors before

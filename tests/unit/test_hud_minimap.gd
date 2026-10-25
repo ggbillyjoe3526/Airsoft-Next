@@ -280,20 +280,28 @@ func test_the_pictures_go_with_the_panel() -> void:
 
 # --- in the match ---
 
-func _session(mode: String = MatchOptions.MODE_ELIMINATION, practice: bool = false) -> PlaySession:
+func _session(mode: String = MatchOptions.MODE_ELIMINATION, practice: bool = false, map_id: String = "") -> PlaySession:
 	var s := PlaySession.new()
 	s.mode = mode
 	s.practice = practice
+	if map_id != "":
+		s.map_id = map_id
 	s.bots_active = false
 	add_child_autofree(s)
 	return s
 
 
 func test_the_hud_has_no_panel_on_the_range() -> void:
-	var s := _session(MatchOptions.MODE_ELIMINATION, true)
-	s.map_id = "range"
+	var s := _session(MatchOptions.MODE_ELIMINATION, true, "range")
 	await wait_physics_frames(2)
 	assert_null(s.hud().minimap(), "none on the range")
+
+
+func test_practice_on_a_field_has_its_panel_captioned_practice() -> void:
+	var s := _session(MatchOptions.MODE_PRACTICE, true, "depot")
+	await wait_physics_frames(2)
+	assert_not_null(s.hud().minimap(), "a field's minimap in practice (WL9)")
+	assert_string_contains(s.hud().minimap().caption_text(), "Practice", "no rounds to count")
 
 
 func test_what_got_you_and_the_pinned_flag_marker_sit_under_the_panel_and_the_summary_hides_it() -> void:

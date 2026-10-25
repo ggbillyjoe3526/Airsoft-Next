@@ -1,7 +1,7 @@
 class_name MenuTag
 extends PanelContainer
-## A small capitals tag in a thin outline: LATER (grey) on what isn't built yet, FIELDS ONLY, RANGE ONLY and NOT USED (the
-## same grey) on what the picked map or mode leaves unused, DEV (violet) on dev content, LEVEL n
+## A small capitals tag in a thin outline: LATER (grey) on what isn't built yet, FIELDS ONLY and NOT USED (the same
+## grey) on what the picked map or mode leaves unused, DEV (violet) on dev content, LEVEL n
 ## (muted) on an item not unlocked yet, and ATK (filled yellow) on the side attacking first. The concepts' `.later`,
 ## `.dev`, `.lvl2` and `.atk`.
 
@@ -40,7 +40,7 @@ static func later() -> MenuTag:
 	return make(TranslationServer.translate("MENU_LATER"), GameTheme.DIM, GameTheme.DIM)
 
 
-## A grey tag with the words under translation `key`, `size` px: FIELDS ONLY and RANGE ONLY on a mode card, NOT USED on
+## A grey tag with the words under translation `key`, `size` px: FIELDS ONLY on a mode card, NOT USED on
 ## a heading (the concept's `.later` in an `h2`).
 static func grey(key: String, size: int = SIZE) -> MenuTag:
 	return make(TranslationServer.translate(key), GameTheme.DIM, GameTheme.DIM, Color(0.0, 0.0, 0.0, 0.0), size)

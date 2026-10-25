@@ -455,7 +455,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   settings and, off the map's own, keeps a match out of the records, as the browser's did (WL3).
 - **The practice range and the tutorial are set in Depot (owner, 2026-10-24).** Their design and layout stay as they
   are, but they are dressed as part of the Depot site with Depot's props, materials, light and skyline, so their assets
-  are modelled with Depot's (the range in WL9, step 26; the tutorial in step 27).
+  are modelled with Depot's (the range in WL9, step 26; the tutorial in step 27). The range stands as its own space
+  in the lot west of Depot's yard, not on the match field: its coordinates are Depot's less (-42, -6), unturned, so
+  the sun and Depot's skyline stand round it as round the yard, and Depot's water tower and a shed that stood on that
+  lot moved west in both files (WL9).
 - **Practice on a public map is public (owner, 2026-10-24: the recommended defaults; WL9).** On a dev map it is dev,
   and Woodland's practice is at night with your weapon torch.
 - **Neon Heights is the third field: a vertical futuristic city with Day and Night (owner, 2026-10-04).** 46 × 30 m,

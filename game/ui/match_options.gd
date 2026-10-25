@@ -11,10 +11,9 @@ const MODE_PRACTICE := "practice"
 const MODES: PackedStringArray = ["elimination", "attack_defend", "practice"]
 ## The modes that are built; the others show greyed with a LATER tag.
 const BUILT_MODES: PackedStringArray = ["elimination", "attack_defend", "practice"]
-## The tag a mode card carries on a map that doesn't host it (translation keys): Elimination and Attack / Defend say
-## FIELDS ONLY on the range, Practice says RANGE ONLY on a field.
+## The tag a mode card carries on a map that doesn't host it (a translation key): Elimination and Attack / Defend say
+## FIELDS ONLY on the range. Every map hosts Practice.
 const FIELDS_ONLY_KEY := "MENU_FIELDS_ONLY"
-const RANGE_ONLY_KEY := "MENU_RANGE_ONLY"
 ## The modes that need a map with a flagpole (MapData.has_pole).
 const POLE_MODES: PackedStringArray = ["attack_defend"]
 ## The words of a mode: its name and its line (translation keys).
@@ -25,10 +24,10 @@ const MODE_BLURB: Dictionary[String, String] = {
 	"elimination": "MODE_ELIMINATION_BLURB", "attack_defend": "MODE_ATTACK_DEFEND_BLURB",
 	"practice": "MODE_PRACTICE_BLURB",
 }
-## The modes a map of each kind hosts (data/maps.md's Kind): every field hosts Elimination and Attack / Defend (the
-## latter only with a flagpole), the range its own practice mode (practice on a field comes with the Woodland update).
+## The modes a map of each kind hosts (data/maps.md's Kind): every field hosts Elimination, Attack / Defend (only with a
+## flagpole) and Practice (M94: targets where the other team would play), the range Practice alone.
 const KIND_MODES: Dictionary[StringName, PackedStringArray] = {
-	&"field": ["elimination", "attack_defend"],
+	&"field": ["elimination", "attack_defend", "practice"],
 	&"range": ["practice"],
 }
 ## The rule sets (concepts `rules-skirmish.png`, `rules-custom.png`): Skirmish plays the round tuning as it is, Custom
@@ -64,12 +63,12 @@ static func mode_pickable(mode: String, map: MapCatalog.Entry, has_pole: bool) -
 	return BUILT_MODES.has(mode) and modes_offered(map).has(mode) and (has_pole or not POLE_MODES.has(mode))
 
 
-## The words on a mode card that the picked `map` doesn't host: FIELDS ONLY on the range's, RANGE ONLY on a field's
-## Practice card; "" for a mode the map hosts (or no map).
+## The words on a mode card that the picked `map` doesn't host: FIELDS ONLY on the range's Elimination and Attack /
+## Defend; "" for a mode the map hosts (or no map).
 static func only_tag_key(mode: String, map: MapCatalog.Entry) -> String:
 	if map == null or modes_offered(map).has(mode):
 		return ""
-	return FIELDS_ONLY_KEY if map.kind == &"range" else RANGE_ONLY_KEY
+	return FIELDS_ONLY_KEY
 
 
 ## Whether `mode` is held back on `map` only for want of a flagpole: the card says so.

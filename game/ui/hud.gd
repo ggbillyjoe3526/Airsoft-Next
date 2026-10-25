@@ -272,7 +272,9 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 
 ## Makes this the practice range's HUD: no score bar, rounds or hit feed, and the readout and the timed challenge in
 ## their place, for `range_cfg`'s walls and run and the player's BBs.
-func setup_range(range_cfg: RangeConfig) -> void:
+## Practice's readout and challenge display; `on_field` on a field (M94): distances from where you stand, and a BB lost
+## only below `kill_y` flew out.
+func setup_range(range_cfg: RangeConfig, on_field: bool = false, kill_y: float = 0.0) -> void:
 	# The readout sits at the bottom of a lane, MARGIN in from the corner, so it grows up and keeps its foot as it changes.
 	var lane := VBoxContainer.new()
 	lane.name = "RangeLane"
@@ -283,7 +285,7 @@ func setup_range(range_cfg: RangeConfig) -> void:
 	add_child(lane)
 	_readout = HudRangeReadout.new()
 	lane.add_child(_readout)
-	_readout.setup(range_cfg, _player.id)
+	_readout.setup(range_cfg, _player.id, on_field, kill_y)
 	_challenge = HudRangeChallenge.new()
 	add_child(_challenge)
 	_challenge.setup(range_cfg, _player.id)

@@ -123,7 +123,10 @@ func test_no_skyline_vertex_stands_inside_a_block_of_the_field() -> void:
 
 
 func test_a_skyline_without_chimney_smoke_ignores_the_smoke_switches() -> void:
+	# The range's skyline is Depot's site (WL9), smoke and all: here with every chimney's smoke taken off.
 	var range_map := MapData.load_map("range", play.map_style, 1)
+	for p in range_map.skyline:
+		p.smoke = false
 	var v := _build(range_map)
 	assert_not_null(v, "the range shows a skyline")
 	if v == null:

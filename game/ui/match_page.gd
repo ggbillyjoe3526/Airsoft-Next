@@ -63,8 +63,11 @@ var _settings: Settings = null
 var _tuning: SimTuning = null
 ## The map the round tuning was read for.
 var _tuned_map: String = ""
-## The mode last picked on a field, given back when a field is picked again after the Range's Practice took over.
+## The mode you had on the field you left for the Range (Practice too, when you picked it), given back when a field is
+## picked next; "" when the page opened on the Range, so the field opens on its first mode, not the Range's Practice.
 var _field_mode: String = ""
+## The kind of the map picked at the last refresh (&"" before the first or for a map not in the catalogue).
+var _last_kind: StringName = &""
 var _play_tuning: PlayTuning = null
 var _catalog: MapCatalog = null
 var _maps_grid: GridContainer = null
@@ -93,7 +96,7 @@ var _rules: MatchRulesBox = null
 var _bots: MatchBotsBox = null
 ## The mode cards' blurbs (Elimination's reads the rounds to win).
 var _mode_blurbs: Dictionary[String, Label] = {}
-## A mode card's FIELDS ONLY or RANGE ONLY tag, shown while the picked map doesn't host the mode.
+## A mode card's FIELDS ONLY tag, shown while the picked map doesn't host the mode.
 var _only_tags: Dictionary[String, MenuTag] = {}
 ## The Custom size the maps were last checked for (0 under Skirmish): each is checked at the size it would play.
 var _checked_custom: int = -1
@@ -572,10 +575,16 @@ func _refresh() -> void:
 		_map_cards[id].set_picked(id == picks.map_id)
 	var entry := _catalog.find(picks.map_id)
 	var pole: bool = _poles.get(picks.map_id, false)
-	if picks.mode != MatchOptions.MODE_PRACTICE:
-		_field_mode = picks.mode
-	elif MatchOptions.mode_pickable(_field_mode, entry, pole):
+	var on_field := entry != null and entry.kind != &"range"
+	var kind: StringName = entry.kind if entry != null else &""
+	if on_field and _last_kind == &"range":
+		# The Range's Practice gives way: to your field's mode, or the field's first where there is none or it can't be
+		# picked ("" is never pickable, so the fallback below takes the first).
 		picks.mode = _field_mode
+		_field_mode = ""
+	elif kind == &"range" and _last_kind != &"range" and _last_kind != &"":
+		_field_mode = picks.mode
+	_last_kind = kind
 	if not MatchOptions.mode_pickable(picks.mode, entry, pole):
 		for mode in MatchOptions.MODES:
 			if MatchOptions.mode_pickable(mode, entry, pole):

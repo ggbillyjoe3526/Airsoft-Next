@@ -65,7 +65,7 @@ func test_the_range_is_listed_beside_the_fields_and_hosts_only_practice() -> voi
 	assert_eq(MatchOptions.modes_offered(range_entry), PackedStringArray(["practice"]))
 	assert_eq(MatchOptions.only_tag_key("elimination", range_entry), MatchOptions.FIELDS_ONLY_KEY)
 	assert_eq(MatchOptions.only_tag_key("practice", range_entry), "")
-	assert_eq(MatchOptions.only_tag_key("practice", catalog.find("depot")), MatchOptions.RANGE_ONLY_KEY)
+	assert_eq(MatchOptions.only_tag_key("practice", catalog.find("depot")), "", "every field hosts Practice (WL9)")
 	assert_eq(MatchOptions.check_size(range_entry, 3), 1, "you alone on the range")
 	assert_eq(MatchOptions.check_size(catalog.find("depot"), 3), 3)
 

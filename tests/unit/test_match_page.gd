@@ -65,7 +65,7 @@ func test_the_page_shows_the_chips_the_summary_and_play() -> void:
 
 func test_a_map_offers_only_its_own_modes() -> void:
 	var catalog := MapCatalog.shared()
-	var field := PackedStringArray(["elimination", "attack_defend"])
+	var field := PackedStringArray(["elimination", "attack_defend", "practice"])
 	assert_eq(MatchOptions.modes_offered(catalog.find("depot")), field)
 	assert_eq(MatchOptions.modes_offered(catalog.find("neonHeights")), field)
 	assert_eq(MatchOptions.modes_offered(catalog.find("range")), PackedStringArray(["practice"]))
@@ -74,7 +74,7 @@ func test_a_map_offers_only_its_own_modes() -> void:
 	assert_true(MatchOptions.mode_pickable("attack_defend", catalog.find("depot"), true))
 	assert_false(MatchOptions.mode_pickable("attack_defend", catalog.find("depot"), false), "no pole on the map")
 	assert_true(MatchOptions.mode_pickable("elimination", catalog.find("depot"), false), "Elimination needs no pole")
-	assert_false(MatchOptions.mode_pickable("practice", catalog.find("depot"), true), "the range's, and not built")
+	assert_true(MatchOptions.mode_pickable("practice", catalog.find("depot"), true), "every field hosts Practice (WL9)")
 	assert_false(MatchOptions.mode_pickable("elimination", catalog.find("range"), false), "not hosted by the range")
 
 
@@ -86,15 +86,15 @@ func test_a_pole_mode_on_a_map_without_a_pole_says_so_rather_than_later() -> voi
 	assert_false(MatchOptions.needs_pole("practice", depot, false), "not built: it says later instead")
 
 
-func test_elimination_and_attack_defend_can_be_picked_and_practice_says_range_only() -> void:
+func test_every_mode_can_be_picked_on_a_field_and_none_says_range_only() -> void:
 	var page := _page(false)
 	assert_true(page.mode_card("elimination").is_picked())
 	for mode: String in ["elimination", "attack_defend"]:
 		assert_false(page.mode_card(mode).disabled, mode)
 		assert_false(_labels(page.mode_card(mode)).has("LATER"), mode)
 		assert_false(page.says_needs_pole(mode), "Depot has a pole")
-	assert_true(page.mode_card("practice").disabled, "a field doesn't host practice")
-	assert_true(_labels(page.mode_card("practice")).has("RANGE ONLY"))
+	assert_false(page.mode_card("practice").disabled, "every field hosts Practice (WL9)")
+	assert_false(_labels(page.mode_card("practice")).has("RANGE ONLY"))
 	assert_false(_labels(page.mode_card("practice")).has("LATER"))
 	for level: String in MatchOptions.BOT_LEVELS:
 		assert_false(page.bot_button(level).disabled, level)

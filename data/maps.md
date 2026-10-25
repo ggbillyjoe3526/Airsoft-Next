@@ -10,7 +10,7 @@ public himself.
 warning; a map with no row is not listed.
 
 - **Id** is the map file's name without `.json`.
-- **Kind** is `field` for a match map (listed in the Map choice) or `range` for the practice range (listed beside the fields, with Practice as its only mode).
+- **Kind** is `field` for a match map (listed in the Map choice; Practice plays on it too, its targets where the other team would play) or `range` for the practice range (listed beside the fields, with Practice as its only mode; set in Depot's site, its skyline Depot's).
 - **Tag** is `public` or `dev`.
 - **Min**, **Standard** and **Max** are the players a side it offers (the browser game's teamSize): the Match screen's
   Team size row shows Min to Max, Skirmish plays Standard, and picking the map sets Standard unless the saved Custom

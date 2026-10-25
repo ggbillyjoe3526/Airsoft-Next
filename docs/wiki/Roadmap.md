@@ -15,9 +15,9 @@ then **0.1**, which opens **Early Access**. Each build is posted on the
 
 Depot, the AEG Rifle, the GBB Pistol and the Cyber Pistol, every part and power source, the Loadout, levels and the
 Armory, Easy to Pro bots with names, personalities and kits, Elimination, Attack / Defend and Custom matches, the
-practice range and its timed challenge, squad orders, the minimap, the hit feed, scoreboard and match summary, the
-sound pass, graphics presets, accessibility options, the save file screen, the crash screen and bug reports. The rest
-of this wiki describes all of it.
+practice range in Depot's site, Practice on any field and the timed challenge, squad orders, the minimap, the hit feed,
+scoreboard and match summary, the sound pass, graphics presets, accessibility options, the save file screen, the crash
+screen and bug reports. The rest of this wiki describes all of it.
 
 ### In development
 
@@ -30,7 +30,7 @@ it is playtested and made public.
 - **Night play:** a low moon, stars and haze, with lamps and fires lighting the ground.
 - **The weapon torch:** fit a torch to any replica for night fields. It lights the way and gives you away.
 - **Glowing BBs:** green tracer BBs you can follow in the dark, flying exactly like white ones.
-- **The practice range moves into Depot:** the same lanes, targets and timed challenge, set in Depot's yard and look.
+- **Practice on the dev fields:** Woodland's practice plays at night, with your torch fitted.
 
 ### Next
 
