@@ -288,29 +288,87 @@ func test_an_unknown_ground_surface_is_left_out_with_a_warning() -> void:
 
 # --- MapLevel: the mesh, rays, what is underfoot ---
 
-func test_the_level_draws_the_ground_squares_in_their_surfaces_colours_in_one_draw() -> void:
+func test_the_level_draws_the_ground_squares_in_their_surfaces_colours_in_its_tiles() -> void:
 	var m := MapData.parse(_file(_flat_terrain(), GROUND), style, 1)
 	var level := _level(m)
-	var mesh := (level.get_node("Greybox") as MeshInstance3D).mesh as ArrayMesh
-	assert_eq(mesh.get_surface_count(), 1, "one draw call")
-	var arrays := mesh.surface_get_arrays(0)
-	var positions: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-	var colours: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
-	var squares := m.terrain.ground_cols * m.terrain.ground_rows
-	var base := positions.size() - squares * 4
+	var greybox := (level.get_node("Greybox") as MeshInstance3D).mesh as ArrayMesh
+	assert_eq(greybox.get_surface_count(), 1, "the blocks: one draw call")
+	var tiles := level.ground_tiles()
+	assert_eq(tiles.size(), 1, "a 10 m slope is one tile")
 	var seen: Dictionary[int, bool] = {}
 	var wrong := 0
-	for q in squares:
-		var corner := positions[base + q * 4]
-		var s := m.terrain.surface_at(corner.x + 0.25, corner.z + 0.25)
-		var want := style.terrain_colour(s)
-		var got := colours[base + q * 4]
-		# A mesh keeps its colours in bytes.
-		if maxf(maxf(absf(got.r - want.r), absf(got.g - want.g)), absf(got.b - want.b)) > 1.0 / 255.0:
-			wrong += 1
-		seen[s] = true
+	var squares := 0
+	for tile in tiles:
+		assert_eq(tile.material_override, level.get_node("Greybox").material_override, "the greybox's material")
+		var arrays := (tile.mesh as ArrayMesh).surface_get_arrays(0)
+		var positions: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var colours: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+		for v in range(0, positions.size(), 4):
+			var corner := positions[v]
+			var s := m.terrain.surface_at(corner.x + 0.25, corner.z + 0.25)
+			var want := style.terrain_colour(s)
+			var got := colours[v]
+			# A mesh keeps its colours in bytes.
+			if maxf(maxf(absf(got.r - want.r), absf(got.g - want.g)), absf(got.b - want.b)) > 1.0 / 255.0:
+				wrong += 1
+			seen[s] = true
+			squares += 1
+	assert_eq(squares, m.terrain.ground_cols * m.terrain.ground_rows, "every square drawn once")
 	assert_eq(wrong, 0, "every square in its surface's colour")
 	assert_eq(seen.size(), 4, "grass, leaves, earth and gravel drawn")
+
+
+func test_woodland_s_ground_is_tiles_that_cull_drawing_the_very_squares_of_the_whole() -> void:
+	var m := MapData.load_map("woodland", style, 1)
+	var level := _level(m)
+	var tiles := level.ground_tiles()
+	assert_eq(tiles.size(), 12, "120 x 80 m in tiles of 32 m: 4 x 3")
+	# the whole ground as one mesh, as it was drawn before WL4
+	var whole := []
+	whole.resize(Mesh.ARRAY_MAX)
+	whole[Mesh.ARRAY_VERTEX] = PackedVector3Array()
+	whole[Mesh.ARRAY_NORMAL] = PackedVector3Array()
+	whole[Mesh.ARRAY_COLOR] = PackedColorArray()
+	whole[Mesh.ARRAY_INDEX] = PackedInt32Array()
+	GreyboxFaces.add_terrain(whole, m.terrain, style)
+	# read back through a mesh, as the tiles are (it keeps colours in bytes and packs normals)
+	var whole_mesh := ArrayMesh.new()
+	whole_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, whole)
+	whole = whole_mesh.surface_get_arrays(0)
+	var wp: PackedVector3Array = whole[Mesh.ARRAY_VERTEX]
+	var wn: PackedVector3Array = whole[Mesh.ARRAY_NORMAL]
+	var wc: PackedColorArray = whole[Mesh.ARRAY_COLOR]
+	var wi: PackedInt32Array = whole[Mesh.ARRAY_INDEX]
+	var gc := m.terrain.ground_cell
+	var drawn := PackedByteArray()
+	drawn.resize(m.terrain.ground_cols * m.terrain.ground_rows)
+	var differ := 0
+	var triangles := 0
+	for tile in tiles:
+		var box := tile.get_aabb()
+		assert_lte(maxf(box.size.x, box.size.z), MapLevel.TERRAIN_TILE + 0.001, "%s is at most a tile" % tile.name)
+		assert_eq(tile.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_ON, "it casts as the ground did")
+		var a := (tile.mesh as ArrayMesh).surface_get_arrays(0)
+		var p: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		var n: PackedVector3Array = a[Mesh.ARRAY_NORMAL]
+		var c: PackedColorArray = a[Mesh.ARRAY_COLOR]
+		var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX]
+		triangles += idx.size() / 3
+		for v in range(0, p.size(), 4):
+			var q := roundi((p[v].z - m.terrain.min_z) / gc) * m.terrain.ground_cols + roundi((p[v].x - m.terrain.min_x) / gc)
+			drawn[q] += 1
+			var u := q * 4
+			for k in 4:
+				if p[v + k] != wp[u + k] or n[v + k] != wn[u + k] or c[v + k] != wc[u + k]:
+					differ += 1
+			# the same two triangles, split the same way
+			var t0 := (v / 4) * 6
+			for k in 6:
+				if idx[t0 + k] - v != wi[q * 6 + k] - u:
+					differ += 1
+	assert_eq(differ, 0, "each square's corners, normals, colours and split as the whole ground's")
+	assert_eq(triangles, wi.size() / 3, "no square more or less")
+	assert_eq(Array(drawn).count(1), drawn.size(), "every square in exactly one tile")
 
 
 func test_rays_and_feet_meet_each_ground_surface() -> void:
