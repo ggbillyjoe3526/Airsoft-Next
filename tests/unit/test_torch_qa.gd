@@ -51,8 +51,8 @@ func _lights_of(session: PlaySession, node_class: String) -> int:
 
 # --- the sim ---
 
-func test_the_event_for_the_torch_is_the_last_kind_and_no_older_id_moved() -> void:
-	assert_eq(GameEvent.Kind.values().max(), GameEvent.Kind.TORCH, "appended last")
+func test_the_event_for_the_torch_was_appended_and_no_older_id_moved() -> void:
+	assert_eq(GameEvent.Kind.OVERTIME, GameEvent.Kind.TORCH + 1, "appended: only the overtime flag's (OV1) after it")
 	assert_eq(GameEvent.Kind.TORCH, GameEvent.Kind.BB_LEAVES + 1, "straight after the leaves")
 	assert_eq(GameEvent.Kind.BB_LEAVES, GameEvent.Kind.PROP_RING + 1, "nothing before it shifted")
 

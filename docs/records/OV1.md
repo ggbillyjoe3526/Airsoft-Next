@@ -44,7 +44,8 @@ files `plan/step27-deferred.md` › The overtime flag.
   in practice, a seeded fight the same with a spot or without, a tick with the flag up allocating nothing);
   `test_field_layout.gd` +3 (every field's spot passes; a spot by one end fails, none warns; off the floor or in a bush
   fails); `test_field_rules.gd` +1 (the spots read; one lifted fails on-floor); `test_match_runner.gd` +1 (short
-  rounds go to the flag and are tallied within the cap; the two clock tests run without it).
+  rounds go to the flag and are tallied within the cap; the two clock tests run without it); `test_torch_qa.gd`'s
+  event-order case now has OVERTIME appended after TORCH.
 
 ## Risks
 
@@ -113,4 +114,7 @@ is OV2's to match.
 
 ## Gate
 
-GATE
+`tools/check.sh` on `d5cf1ca` (OV1 on CO2's branch), on the 4-core container, 1,126 s: gdlint, the changelog notes,
+the wiki, the smoke test and the licence notices passed; unit tests part 1 840 tests in 351 s and part 2 1,594 in
+332 s, all passing; part 3 failed one of 911, `test_torch_qa.gd`'s check that TORCH is the last event kind (OVERTIME
+is appended after it). With that case updated, part 3 again: 911 of 911 in 325 s (3,345 tests, all passing).
