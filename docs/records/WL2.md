@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-24 | 1 | worker | 2987 / 2987 (second run; the first lost 2 to field.room) | – | – |
+| 2026-10-25 | 2 | worker | 2994 / 2994 (part 1 316 s, part 2 477 s) | – | QA advisories: a pending walk-off mid-vault held every bot's search; `_take_nav` popped an empty array unchecked; waits for a staged build went unasserted |
 
 ## Goal
 
@@ -153,6 +154,17 @@ identical (7, 7, 6 and 7 rounds). The budget of one and the moved planner change
 `test_rg5_loadout.gd`, and `tests/support/field_checks.gd` (field.room needs room for the map's own Max, not 6 on
 every map). Unchanged in `touches`: `game/ui/match_picks.gd`, `game/ai/bot_roster.gd` (32 names are enough
 for eleven bots).
+
+## Fix round (attempt 2)
+
+- **A victim mid-vault.** `BotRoutes.plan` kept the tick's search for any pending walk-off, but the simulation plans one
+  only once its victim has landed, so with a budget of one no bot got a route while it vaulted. Both now read
+  `Elimination.walk_off_due` (pending, not mid-vault, a grid to search); `test_team_sizes.gd` holds a bot getting its
+  search while the victim vaults.
+- **`_take_nav`** reports a task that left no grid with `push_error` and builds the grid there instead of handing on
+  null.
+- **Waits asserted.** Every `wait_until` for a staged build in the adapted tests is asserted, so a timeout fails with
+  its own message.
 
 ## Known issues
 
