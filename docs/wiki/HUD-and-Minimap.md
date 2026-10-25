@@ -39,14 +39,14 @@ hit, BBs fired, accuracy and time in play. Players out this round are greyed wit
 
 When your hit is called, a card on the left shows the shooter's name and side, how far away they were and a dial of
 the shot's line, whether they were holding that angle, how long you were in their view and whether you were moving,
-then that bot's personality note. **Settings › HUD › What got you** is Auto (only against Pro bots, the default), On
+then that bot's personality note. **Settings › HUD › What got you** is Auto (only against Hard bots, the default), On
 or Off.
 
 ## The match summary
 
 After the last round: a **WON** or **LOST** stamp with the score, map and bots; every player's numbers for the whole
 match; your XP card with any level-up; your records for that bot level and mode with **NEW RECORD** tags; What got you
-for the last five times you were hit; and, against Pro bots, the next Pro tip.
+for the last five times you were hit; and, against Hard bots, the next Pro tip.
 
 ## The minimap
 

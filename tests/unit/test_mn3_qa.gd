@@ -5,7 +5,7 @@ extends GutTest
 
 const MAIN := preload("res://game/main.tscn")
 const SAVE := "user://test-mn3-qa.save"
-const LEVELS: Array[String] = ["easy", "normal", "hard", "pro"]
+const LEVELS: Array[String] = ["easy", "normal", "hard"]
 
 var _picks: MatchPicks = null
 
@@ -67,12 +67,12 @@ func test_the_teammates_pick_sets_the_bots_skill_of_your_team() -> void:
 func test_following_gives_your_team_the_following_level_skill() -> void:
 	var main: Node = add_child_autofree(MAIN.instantiate())
 	await wait_process_frames(2)
-	main._picks.bots = "pro"
+	main._picks.bots = "hard"
 	main._start_play()
 	await wait_until(func() -> bool: return main._play != null and main._play._bots != null, 30.0)
 	var config := BotConfig.load_default()
 	for b: Bot in main._play._bots.world.bots:
-		assert_eq(b.skill.aim_error_start_deg, config.skill_for(&"pro").aim_error_start_deg)
+		assert_eq(b.skill.aim_error_start_deg, config.skill_for(&"hard").aim_error_start_deg)
 	main._end_play()
 	await wait_process_frames(2)
 
@@ -84,14 +84,13 @@ func test_the_records_rule_over_every_pair() -> void:
 			var s: PlaySession = autofree(PlaySession.new())
 			s.difficulty = StringName(opponents)
 			s.teammate_difficulty = StringName(mates)
-			var follows := String(BotConfig.teammates_following(StringName(opponents)))
-			var want := mates == opponents or mates == follows
+			var want := mates == opponents
 			assert_eq(s.counts_for_records(), want, "%s vs %s teammates" % [opponents, mates])
 			counted += int(want)
 		var following: PlaySession = autofree(PlaySession.new())
 		following.difficulty = StringName(opponents)
 		assert_true(following.counts_for_records(), "%s with teammates following" % opponents)
-	assert_eq(counted, 5, "the four same-level pairs and Normal against Easy")
+	assert_eq(counted, 3, "the three same-level pairs")
 
 
 # --- the picks survive the menus being freed ---
@@ -127,7 +126,7 @@ func test_a_following_teammate_still_follows_after_the_menus_are_rebuilt() -> vo
 	assert_eq(_picked(again, true), ["hard"])
 	assert_true(again.bots_box().says_follows())
 	again.bot_button("easy").pressed.emit()
-	assert_eq(_picked(again, true), ["normal"])
+	assert_eq(_picked(again, true), ["easy"])
 
 
 # --- the XP on the page is the XP the match gives ---
@@ -138,7 +137,7 @@ func test_the_page_xp_matches_what_the_match_earns_over_every_pair() -> void:
 		var page := _page()
 		for custom: bool in [false, true]:
 			for opponents in LEVELS:
-				for picked: String in ["", "easy", "normal", "hard", "pro"]:
+				for picked: String in ["", "easy", "normal", "hard"]:
 					_picks.bots = opponents
 					_picks.teammates = picked
 					page.bots_box().show_picks(1 if sized else 3, custom)
@@ -161,21 +160,21 @@ func test_the_page_xp_matches_what_the_match_earns_over_every_pair() -> void:
 
 func test_custom_1v1_greys_the_row_and_2v2_restores_the_pick() -> void:
 	var page := _page()
-	page.bot_button("hard").pressed.emit()
-	page.teammate_button("pro").pressed.emit()
+	page.bot_button("normal").pressed.emit()
+	page.teammate_button("hard").pressed.emit()
 	page.rules_box().rules_button(MatchOptions.RULES_CUSTOM).pressed.emit()
 	page.rules_box().team_size_choice().button(0).pressed.emit()
 	for level in LEVELS:
 		assert_true(page.teammate_button(level).disabled, level)
 	assert_eq(_picked(page, true), [])
-	assert_eq(_picks.teammates, "pro", "the pick is kept")
+	assert_eq(_picks.teammates, "hard", "the pick is kept")
 	page.rules_box().team_size_choice().button(1).pressed.emit()
 	for level in LEVELS:
 		assert_false(page.teammate_button(level).disabled, level)
-	assert_eq(_picked(page, true), ["pro"])
+	assert_eq(_picked(page, true), ["hard"])
 	assert_true(page.bots_box().follow_button().visible)
-	assert_eq(page.teammate_button("pro").modulate.a, 1.0, "not faded")
-	assert_eq(page.summary_text(), "Depot · Elimination · Alpha · Hard bots · Pro teammates · Custom 2v2")
+	assert_eq(page.teammate_button("hard").modulate.a, 1.0, "not faded")
+	assert_eq(page.summary_text(), "Depot · Elimination · Alpha · Normal bots · Hard teammates · Custom 2v2")
 	await wait_process_frames(2)
 
 

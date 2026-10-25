@@ -486,8 +486,8 @@ static func _rays_through(query: WorldQuery, bushes: Foliage) -> Array[Array]:
 var _w: BotWorld = null
 
 
-## A Normal (or `level`) bot at the origin facing -Z, its enemy `away` m in front, standing, in `query`.
-func _duel(query: WorldQuery, away: float, level: StringName = &"normal") -> Bot:
+## An Easy (or `level`) bot at the origin facing -Z, its enemy `away` m in front, standing, in `query`.
+func _duel(query: WorldQuery, away: float, level: StringName = &"easy") -> Bot:
 	var cfg := BotConfig.load_default()
 	var loadout := ReplicaStats.default_loadout()
 	var me := Character.new(0, 0, Vector3.ZERO, 0.0, loadout)
@@ -531,17 +531,18 @@ func test_a_bush_hides_no_one_within_close_awareness() -> void:
 	assert_gt(BotSenses.visible_part(b.character, _w.characters[1], _w), 0.0, "noticed through a whole bush")
 
 
-func test_bots_hold_fire_through_more_than_0_25_m_and_easy_fires_through_what_a_bb_crosses() -> void:
-	var cases := [[0.2, &"normal", false], [0.3, &"normal", true], [0.3, &"pro", true], [0.5, &"easy", false],
-			[0.7, &"easy", true]]
+func test_bots_at_every_level_hold_fire_through_more_than_0_25_m() -> void:
+	# The old Easy fired through what a BB crosses; no level does since TL1.
+	var cases := [[0.2, &"easy", false], [0.3, &"easy", true], [0.3, &"hard", true], [0.2, &"hard", false],
+			[0.7, &"normal", true]]
 	for c: Array in cases:
 		var world := _bushy(c[0], 15.0)
 		var b := _duel(world, 15.0, c[1])
 		var eye := BotSenses.eye_of(b.character, _w.tuning)
 		var chest := BotSenses.body_point(_w.characters[1], _w.tuning.hits, _w.cfg.aim_height_fraction)
-		assert_eq(BotCombat.leaves_in_line(b, _w, eye, chest), c[2], "%s through %.2f m" % [c[1], c[0]])
-	var none := _duel(BoxWorld.new(), 15.0)
-	assert_false(BotCombat.leaves_in_line(none, _w, Vector3.ZERO, Vector3(0.0, 0.0, -15.0)), "no bushes, no leaves")
+		assert_eq(BotCombat.leaves_in_line(_w, eye, chest), c[2], "%s through %.2f m" % [c[1], c[0]])
+	_duel(BoxWorld.new(), 15.0)
+	assert_false(BotCombat.leaves_in_line(_w, Vector3.ZERO, Vector3(0.0, 0.0, -15.0)), "no bushes, no leaves")
 
 
 func test_a_5v5_woodland_match_never_sees_through_more_than_0_6_m_of_leaves_and_finishes_its_rounds() -> void:

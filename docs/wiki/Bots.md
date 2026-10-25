@@ -17,28 +17,27 @@ Bots know only what they see and hear:
 
 ## Difficulty
 
-The Match screen's **Bots** section has two rows, **Opponents** and **Teammates**, each Easy, Normal, Hard or Pro,
-with a line on how that level plays. Your teammates follow the opponents' level until you pick one (Normal against
-Easy); "Follow opponents" puts them back.
+The Match screen's **Bots** section has two rows, **Opponents** and **Teammates**, each Easy, Normal or Hard, with a
+line on how that level plays. A new player starts on Normal. Your teammates follow the opponents' level until you pick
+one; "Follow opponents" puts them back.
 
 | Level | How it plays |
 | --- | --- |
-| **Easy** | Reacts slower, aims shakier and flanks only if its personality is Flanker. |
-| **Normal** | The standard bot. |
-| **Hard** | Reacts faster, aims steadier, leads moving targets more, takes cover more and flanks more often. |
-| **Pro** | Careful, not twitchier: aims at the corners and doorways you would step out of, and plays as a team. |
+| **Easy** | A fair fight to learn on: its first BBs up close can miss. |
+| **Normal** | Reacts faster, aims steadier, leads moving targets more, takes cover more and flanks more often. |
+| **Hard** | Careful, not twitchier: aims at the corners and doorways you would step out of, and plays as a team. |
 
-**Pro bots** in more detail:
+**Hard bots** in more detail:
 
-- Step out right where a Pro bot is aiming and it shoots back faster; from anywhere else it is no faster than Hard.
+- Step out right where a Hard bot is aiming and it shoots back faster; from anywhere else it is no faster than Normal.
 - Near your side they walk instead of run, check each corner ahead and lean out past it.
 - When you duck out of a fight they watch that spot for a moment before coming after you, and low on BBs with you
   nearby they top up from cover.
-- When a teammate is hit, nearby Pro bots run to trade it. A Pro bot that hears you tells its team where.
-- Two Pro bots on one lane move in pairs, one covering while the other moves, and in Attack / Defend two defenders on
+- When a teammate is hit, nearby Hard bots run to trade it. A Hard bot that hears you tells its team where.
+- Two Hard bots on one lane move in pairs, one covering while the other moves, and in Attack / Defend two defenders on
   a lane set up a crossfire.
-- A Pro team that's behind with 30 seconds or less left stops holding and comes looking.
-- Against Pro bots the scoreboard shows a **Pro tip** each round.
+- A Hard team that's behind with 30 seconds or less left stops holding and comes looking.
+- Against Hard bots the scoreboard shows a **Pro tip** each round.
 
 The bots' level sets the XP a match pays ([Levels and Unlocks](Levels-and-Unlocks#earning-xp)).
 

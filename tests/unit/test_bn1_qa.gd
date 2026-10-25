@@ -186,7 +186,7 @@ func test_a_pick_without_a_personality_is_the_old_pick() -> void:
 	var rules := _rules()
 	for i in 100:
 		var s := Seeds.kit_seed(i, 1)
-		assert_eq(k.pick(&"pro", rules, s), k.pick(&"pro", rules, s, &"", 9.0))
+		assert_eq(k.pick(&"hard", rules, s), k.pick(&"hard", rules, s, &"", 9.0))
 
 
 func test_the_roster_seed_is_apart_from_the_other_streams() -> void:

@@ -1,5 +1,5 @@
 extends GutTest
-## QA for DF2a (Pro's solo habits): edge cases of held angles, slicing, the peek watch and the Match page, and a Pro match
+## QA for DF2a (Hard's solo habits): edge cases of held angles, slicing, the peek watch and the Match page, and a Hard match
 ## played twice on one seed (game/ai/bot_combat.gd, bot_brain.gd, bot_angles.gd, game/ui/match_page.gd).
 
 const DT := 1.0 / 60.0
@@ -35,7 +35,7 @@ func _aim(b: Bot, walking: bool, cmd: PlayerCommand) -> void:
 
 
 func test_pro_holding_in_the_open_with_no_angles_sweeps_as_before_without_error() -> void:
-	var b := _bot(&"pro", WorldQuery.new())
+	var b := _bot(&"hard", WorldQuery.new())
 	b.holding = true
 	var cmd := PlayerCommand.new()
 	for i in 120:
@@ -47,7 +47,7 @@ func test_pro_holding_in_the_open_with_no_angles_sweeps_as_before_without_error(
 
 
 func test_slicing_in_the_open_walks_where_it_looks_and_never_leans() -> void:
-	var b := _bot(&"pro", WorldQuery.new())
+	var b := _bot(&"hard", WorldQuery.new())
 	b.careful = true
 	b.mode = Bot.Mode.ADVANCE
 	b.move_dir = Vector3(0.0, 0.0, -1.0)
@@ -59,7 +59,7 @@ func test_slicing_in_the_open_walks_where_it_looks_and_never_leans() -> void:
 
 
 func test_any_hold_time_picks_a_valid_angle_even_as_the_count_changes() -> void:
-	var b := _bot(&"pro", _wall())
+	var b := _bot(&"hard", _wall())
 	b.holding = true
 	var cmd := PlayerCommand.new()
 	for t: float in [0.0, 2.99, 3.0, 5.9, 6.0, 1.0e6, 123456.789]:
@@ -78,9 +78,9 @@ func test_any_hold_time_picks_a_valid_angle_even_as_the_count_changes() -> void:
 
 
 func test_a_crouched_pro_finds_the_same_corner_as_standing() -> void:
-	var stand := _bot(&"pro", _wall())
+	var stand := _bot(&"hard", _wall())
 	stand.holding = true
-	var crouch := _bot(&"pro", _wall())
+	var crouch := _bot(&"hard", _wall())
 	crouch.holding = true
 	crouch.character.crouch_amount = 1.0
 	var cmd := PlayerCommand.new()
@@ -92,7 +92,7 @@ func test_a_crouched_pro_finds_the_same_corner_as_standing() -> void:
 
 
 func test_a_moving_holder_looks_for_corners_afresh_once_it_has_moved() -> void:
-	var b := _bot(&"pro", _wall(), Vector3(0.0, 0.0, 0.0))
+	var b := _bot(&"hard", _wall(), Vector3(0.0, 0.0, 0.0))
 	b.holding = true
 	var cmd := PlayerCommand.new()
 	_aim(b, false, cmd)
@@ -104,7 +104,7 @@ func test_a_moving_holder_looks_for_corners_afresh_once_it_has_moved() -> void:
 
 
 func test_a_bot_reset_for_a_new_round_forgets_its_watch_and_its_angles() -> void:
-	var b := _bot(&"pro", _wall())
+	var b := _bot(&"hard", _wall())
 	b.watch_until = 99999.0
 	b.held_angle_count = 2
 	b.careful = true
@@ -117,7 +117,7 @@ func test_a_bot_reset_for_a_new_round_forgets_its_watch_and_its_angles() -> void
 
 
 func test_the_watch_is_not_started_without_a_contact_or_below_pro() -> void:
-	var b := _bot(&"pro", WorldQuery.new())
+	var b := _bot(&"hard", WorldQuery.new())
 	b.mode = Bot.Mode.FIGHT
 	b.has_last_known = true
 	b.heard_at = _w.time
@@ -127,7 +127,7 @@ func test_the_watch_is_not_started_without_a_contact_or_below_pro() -> void:
 
 
 func test_a_watch_ends_when_the_enemy_is_seen_again_and_it_fights() -> void:
-	var b := _bot(&"pro", WorldQuery.new())
+	var b := _bot(&"hard", WorldQuery.new())
 	var foe := _w.characters[1]
 	BotSenses.perceive(b, _w)
 	b.mode = Bot.Mode.FIGHT
@@ -145,7 +145,7 @@ func test_a_pro_match_plays_the_same_twice_and_no_bot_stays_stuck() -> void:
 	var tally: Array[MatchRunner.MatchTally] = []
 	for run in 2:
 		var r := MatchRunner.new(self, "depot")
-		r.difficulty = &"pro"
+		r.difficulty = &"hard"
 		await wait_physics_frames(2)
 		tally.append(r.play(7, 90.0))
 		r.free_level()
@@ -154,15 +154,15 @@ func test_a_pro_match_plays_the_same_twice_and_no_bot_stays_stuck() -> void:
 	assert_eq(tally[0].rounds.size(), tally[1].rounds.size())
 	assert_eq(tally[0].farthest, tally[1].farthest)
 	assert_eq(tally[0].held_up, 0)
-	assert_gt(tally[0].hits, 0, "Pro shoots")
+	assert_gt(tally[0].hits, 0, "Hard shoots")
 
 
 func test_a_pro_pick_saved_opens_as_pro_with_dev_content_off() -> void:
 	var picks := MatchPicks.new()
-	picks.bots = "pro"
+	picks.bots = "hard"
 	var page := MatchPage.new(picks, Settings.new())
 	add_child_autofree(page)
 	await wait_physics_frames(2)
-	assert_eq(page.picks.bots, "pro", "Pro is public since DF2b")
-	assert_string_ends_with(page.summary_text(), "Pro bots")
-	assert_true(page.bot_button("pro").is_picked())
+	assert_eq(page.picks.bots, "hard", "Hard is public since DF2b")
+	assert_string_ends_with(page.summary_text(), "Hard bots")
+	assert_true(page.bot_button("hard").is_picked())

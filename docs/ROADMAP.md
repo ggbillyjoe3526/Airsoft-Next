@@ -142,9 +142,9 @@ foundations. The owner has since pulled more into 0.1: see the browser game's De
 2026-10-12): feature complete, but light on content.
 
 The whole of 0.1 is the browser game's 0.1 as those rulings define it (owner, 2026-10-18): Depot (Elimination,
-Attack / Defend, custom matches), Easy to Hard and Pro, Woodland (night play, the weapon torch, glowing BBs, 5v5 /
-6v6), the AEG Rifle, GBB Pistol and Cyber Pistol (level 10), loadout and attachments, levels and the Armory, squad
-orders, settings, comfort and accessibility. 0.1 Dev 1 builds the core slice (Depot, the AEG and GBB Pistol, bots,
+Attack / Defend, custom matches), Easy, Normal and Hard (Hard the old Pro, TL1), Woodland (night play, the weapon
+torch, glowing BBs, 5v5 / 6v6), the AEG Rifle, GBB Pistol and Cyber Pistol (level 10), loadout and attachments, levels
+and the Armory, squad orders, settings, comfort and accessibility. 0.1 Dev 1 builds the core slice (Depot, the AEG and GBB Pistol, bots,
 Elimination); the rest follows in later Dev builds.
 
 - **Replicas:** the AEG Rifle and the GBB Pistol (the starting kit), and the Cyber Pistol at level 10. More
@@ -181,8 +181,8 @@ The owner sorted every feature in the game and on this roadmap into Keep (in Bet
 `docs/DECISIONS.md`.
 
 - **Public in 0.1** (after the owner's playtest, as before): Depot with Elimination, Attack / Defend and custom matches;
-  Easy, Normal and Hard; Woodland with night play, the weapon torch, glowing BBs and 5v5 / 6v6 (M88, owner
-  2026-10-06); Pro.
+  Easy, Normal and Hard (three levels since TL1, owner 2026-10-25: Hard is the old Pro); Woodland with night play,
+  the weapon torch, glowing BBs and 5v5 / 6v6 (M88, owner 2026-10-06).
 - **Stays dev, public later:** Neon Heights (the Maps Update, with its new look), Extraction (the Modes Update, once
   reworked), the Tournament and Pro CQB rule sets (the Modes Update, folded into the field rule presets). The Retro
   pixel filter, once 0.5, went public in the browser game's 0.1 Dev 5 (M96).

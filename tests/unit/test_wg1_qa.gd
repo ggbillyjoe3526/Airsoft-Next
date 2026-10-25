@@ -17,7 +17,7 @@ func after_each() -> void:
 func _session(setting: Settings.WhatGotYou = Settings.WhatGotYou.ON) -> PlaySession:
 	var s := PlaySession.new()
 	s.bots_active = false
-	s.difficulty = &"normal"
+	s.difficulty = &"easy"
 	s.settings = Settings.new()
 	s.settings.what_got_you = setting
 	add_child_autofree(s)

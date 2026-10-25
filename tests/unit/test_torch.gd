@@ -322,7 +322,7 @@ func test_bots_switch_it_by_what_they_do() -> void:
 	var me := _person(0, 0, Vector3.ZERO, Vector3(0.0, 0.0, -10.0), false)
 	var foe := _person(1, 1, Vector3(0.0, 0.0, -15.0), Vector3.ZERO, false)
 	var w := _world([me, foe], BoxWorld.new(tuning.body))
-	var b := _bot(&"normal", w)
+	var b := _bot(&"easy", w)
 	w.live = true
 	b.mode = Bot.Mode.FIGHT
 	b.target_id = 1
@@ -337,11 +337,15 @@ func test_bots_switch_it_by_what_they_do() -> void:
 	for mode: Bot.Mode in [Bot.Mode.ADVANCE, Bot.Mode.COVER, Bot.Mode.FLAG, Bot.Mode.ORDER]:
 		b.mode = mode
 		assert_false(BotTorch.wants_torch(b, w, 20.0), "off: %s" % Bot.Mode.keys()[mode])
-	var easy := _bot(&"easy", w)
-	easy.mode = Bot.Mode.ADVANCE
-	assert_true(BotTorch.wants_torch(easy, w, 20.0), "Easy keeps it on while advancing")
+	# Every level alike since TL1: the old Easy, that kept it on while advancing, is gone.
+	for level: StringName in [&"easy", &"normal", &"hard"]:
+		var other := _bot(level, w)
+		other.mode = Bot.Mode.ADVANCE
+		assert_false(BotTorch.wants_torch(other, w, 20.0), "%s: off while advancing" % level)
+	b.mode = Bot.Mode.FIGHT
+	foe.position = Vector3(0.0, 0.0, -15.0)
 	w.live = false
-	assert_false(BotTorch.wants_torch(easy, w, 20.0), "off between rounds")
+	assert_false(BotTorch.wants_torch(b, w, 20.0), "off between rounds")
 
 
 func test_a_bot_holds_each_state_its_minimum_no_strobing_and_never_by_day() -> void:
@@ -349,7 +353,7 @@ func test_a_bot_holds_each_state_its_minimum_no_strobing_and_never_by_day() -> v
 	var foe := _person(1, 1, Vector3(0.0, 0.0, -15.0), Vector3.ZERO, false)
 	var w := _world([me, foe], BoxWorld.new(tuning.body))
 	w.live = true
-	var b := _bot(&"normal", w)
+	var b := _bot(&"easy", w)
 	b.mode = Bot.Mode.FIGHT
 	b.target_id = 1
 	var cmd := PlayerCommand.new()

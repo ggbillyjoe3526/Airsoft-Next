@@ -1,12 +1,12 @@
 extends GutTest
-## Pro's own habits (DF2): held angles found from the level's walls alone, someone stepping out where a Pro bot already
+## Hard's own habits (DF2): held angles found from the level's walls alone, someone stepping out where a Hard bot already
 ## aims answered sooner and steadier, corners sliced near the enemy, a watch where someone ducked out before going after
 ## them, a top-up only from cover with a threat in mind, and at every level no aim at an enemy unseen and unheard (the
 ## browser game's M37 test; game/ai/bot_angles.gd, bot_combat.gd, bot_senses.gd, bot_brain.gd).
 
 const DT := 1.0 / 60.0
 const EYE := 1.6
-const LEVELS: Array[StringName] = [&"easy", &"normal", &"hard", &"pro"]
+const LEVELS: Array[StringName] = [&"easy", &"normal", &"hard"]
 
 
 ## A level made of two others: a ray stops at whichever it meets first.
@@ -136,9 +136,9 @@ func test_keeps_the_better_of_two_close_picks() -> void:
 
 # --- holding ---
 
-func test_pro_turns_to_the_corner_instead_of_sweeping_and_looks_for_corners_only_now_and_then() -> void:
+func test_hard_turns_to_the_corner_instead_of_sweeping_and_looks_for_corners_only_now_and_then() -> void:
 	var looks: Dictionary[StringName, float] = {}
-	for level: StringName in [&"pro", &"hard"]:
+	for level: StringName in [&"hard", &"normal"]:
 		var q := Counting.new(_corner())
 		var b := _bot(level, q, Vector3(30.0, 0.0, 30.0))
 		b.holding = true
@@ -147,22 +147,22 @@ func test_pro_turns_to_the_corner_instead_of_sweeping_and_looks_for_corners_only
 			_idle_aim(b, false, cmd)
 			_w.time += DT
 		looks[level] = b.aim_yaw
-		if level == &"pro":
+		if level == &"hard":
 			assert_gt(b.held_angle_count, 0)
 			var eye := BotSenses.eye_of(b.character, tuning)
 			assert_lt(absf(wrapf(b.aim_yaw - _look_at(eye, b.held_angles[0].point), -PI, PI)), deg_to_rad(1.0))
 			assert_lte(q.rays, config.angle_rays * (1 + ceili(2.0 / config.angle_refresh)), "a fan per refresh")
 		else:
-			assert_eq(b.held_angle_count, 0, "Hard holds no angles")
+			assert_eq(b.held_angle_count, 0, "Normal holds no angles")
 			assert_eq(q.rays, 0)
-	assert_lt(absf(looks[&"hard"]), deg_to_rad(1.0), "Hard faces the enemy side, sweeping from there")
-	assert_gt(absf(looks[&"pro"]), deg_to_rad(2.0))
+	assert_lt(absf(looks[&"normal"]), deg_to_rad(1.0), "Normal faces the enemy side, sweeping from there")
+	assert_gt(absf(looks[&"hard"]), deg_to_rad(2.0))
 
 
 func test_finds_the_same_corners_wherever_the_enemies_are() -> void:
 	var seen: Array[PackedVector3Array] = []
 	for foe: Vector3 in [Vector3(3.0, 0.0, -12.0), Vector3(-20.0, 0.0, 20.0), Vector3(10.0, 0.0, -2.0)]:
-		var b := _bot(&"pro", _corner(), foe)
+		var b := _bot(&"hard", _corner(), foe)
 		b.holding = true
 		_idle_aim(b, false, PlayerCommand.new())
 		var points := PackedVector3Array()
@@ -189,20 +189,20 @@ func _sighting(level: StringName, off: float, seed_value: int) -> Vector2:
 	return Vector2(b.contact.react_at - _w.time, _w.time - b.contact.acquired_at)
 
 
-func test_answers_sooner_and_steadier_when_someone_steps_out_where_a_pro_bot_already_aims() -> void:
-	var pro := config.skill_for(&"pro")
+func test_answers_sooner_and_steadier_when_someone_steps_out_where_a_hard_bot_already_aims() -> void:
+	var top := config.skill_for(&"hard")
 	for seed_value in range(1, 21):
-		var aimed := _sighting(&"pro", 0.0, seed_value)
-		assert_between(aimed.x, pro.pre_aim_reaction_time.x, pro.pre_aim_reaction_time.y, "seed %d" % seed_value)
-		assert_almost_eq(aimed.y, pro.pre_aim_settled * pro.aim_settle_time, 1e-5)
-		var surprised := _sighting(&"pro", 30.0, seed_value)
-		assert_between(surprised.x, pro.reaction_time.x, pro.reaction_time.y, "seed %d" % seed_value)
+		var aimed := _sighting(&"hard", 0.0, seed_value)
+		assert_between(aimed.x, top.pre_aim_reaction_time.x, top.pre_aim_reaction_time.y, "seed %d" % seed_value)
+		assert_almost_eq(aimed.y, top.pre_aim_settled * top.aim_settle_time, 1e-5)
+		var surprised := _sighting(&"hard", 30.0, seed_value)
+		assert_between(surprised.x, top.reaction_time.x, top.reaction_time.y, "seed %d" % seed_value)
 		assert_eq(surprised.y, 0.0)
-	assert_lt(pro.pre_aim_reaction_time.y, pro.reaction_time.y, "the reason to slice corners slowly")
+	assert_lt(top.pre_aim_reaction_time.y, top.reaction_time.y, "the reason to slice corners slowly")
 
 
-func test_changes_nothing_below_pro() -> void:
-	for level: StringName in [&"easy", &"normal", &"hard"]:
+func test_changes_nothing_below_hard() -> void:
+	for level: StringName in [&"easy", &"normal"]:
 		var s := config.skill_for(level)
 		assert_false(s.holds_angles, level)
 		assert_false(s.slices_corners, level)
@@ -210,29 +210,29 @@ func test_changes_nothing_below_pro() -> void:
 		assert_eq(s.pre_aim_reaction_time, s.reaction_time, level)
 		assert_eq(s.pre_aim_settled, 0.0, level)
 	for seed_value in range(1, 11):
-		var aimed := _sighting(&"hard", 0.0, seed_value)
-		assert_eq(aimed, _sighting(&"hard", 30.0, seed_value), "Hard reacts the same aimed or not")
+		var aimed := _sighting(&"normal", 0.0, seed_value)
+		assert_eq(aimed, _sighting(&"normal", 30.0, seed_value), "Normal reacts the same aimed or not")
 		assert_eq(aimed.y, 0.0)
 
 
-func test_pro_alone_holds_angles_and_is_no_quicker_than_hard_when_surprised() -> void:
-	var pro := config.skill_for(&"pro")
-	var hard := config.skill_for(&"hard")
-	assert_true(pro.holds_angles)
-	assert_true(pro.slices_corners)
-	assert_almost_eq(pro.pre_aim_reaction_time.x, 0.18, 1e-6)
-	assert_almost_eq(pro.pre_aim_reaction_time.y, 0.28, 1e-6)
-	assert_between(pro.pre_aim_settled, 0.01, 1.0)
-	assert_gte(pro.reaction_time.x, hard.reaction_time.x)
-	assert_gte(pro.reaction_time.y, hard.reaction_time.y)
-	assert_eq(pro.peek_watch_time, Vector2(1.5, 3.0))
+func test_hard_alone_holds_angles_and_is_no_quicker_than_normal_when_surprised() -> void:
+	var top := config.skill_for(&"hard")
+	var below := config.skill_for(&"normal")
+	assert_true(top.holds_angles)
+	assert_true(top.slices_corners)
+	assert_almost_eq(top.pre_aim_reaction_time.x, 0.18, 1e-6)
+	assert_almost_eq(top.pre_aim_reaction_time.y, 0.28, 1e-6)
+	assert_between(top.pre_aim_settled, 0.01, 1.0)
+	assert_gte(top.reaction_time.x, below.reaction_time.x)
+	assert_gte(top.reaction_time.y, below.reaction_time.y)
+	assert_eq(top.peek_watch_time, Vector2(1.5, 3.0))
 
 
 # --- slicing ---
 
 func test_slicing_aims_at_the_corner_ahead_and_leans_out_once_close() -> void:
 	for start_z: float in [-3.0, 6.0]:
-		var b := _bot(&"pro", _corner(), Vector3(30.0, 0.0, 30.0), 1, Vector3(0.0, 0.0, start_z))
+		var b := _bot(&"hard", _corner(), Vector3(30.0, 0.0, 30.0), 1, Vector3(0.0, 0.0, start_z))
 		b.careful = true
 		b.move_dir = Vector3(0.0, 0.0, -1.0)
 		var cmd := PlayerCommand.new()
@@ -245,18 +245,18 @@ func test_slicing_aims_at_the_corner_ahead_and_leans_out_once_close() -> void:
 		assert_lt(absf(wrapf(b.aim_yaw - _look_at(eye, a.point), -PI, PI)), deg_to_rad(1.0), "at the corner")
 		var near := Vector2(a.point.x, a.point.z - start_z).length() <= config.slice_lean_distance
 		assert_eq(cmd.lean, float(a.side) if near else 0.0, "leaning out only within %.0f m" % config.slice_lean_distance)
-	# Not careful (or below Pro), it looks where it walks.
-	var hard := _bot(&"hard", _corner(), Vector3(30.0, 0.0, 30.0), 1, Vector3(0.0, 0.0, -3.0))
-	hard.move_dir = Vector3(0.0, 0.0, -1.0)
+	# Not careful (or below Hard), it looks where it walks.
+	var normal := _bot(&"normal", _corner(), Vector3(30.0, 0.0, 30.0), 1, Vector3(0.0, 0.0, -3.0))
+	normal.move_dir = Vector3(0.0, 0.0, -1.0)
 	var c := PlayerCommand.new()
 	for i in 60:
-		_idle_aim(hard, true, c)
-	assert_lt(absf(hard.aim_yaw), deg_to_rad(0.5))
+		_idle_aim(normal, true, c)
+	assert_lt(absf(normal.aim_yaw), deg_to_rad(0.5))
 	assert_eq(c.lean, 0.0)
 
 
 func test_slicing_towards_someone_heard_round_a_corner_aims_at_that_corner() -> void:
-	var b := _bot(&"pro", _corner(), Vector3(30.0, 0.0, 30.0), 1, Vector3(0.0, 0.0, -3.0))
+	var b := _bot(&"hard", _corner(), Vector3(30.0, 0.0, 30.0), 1, Vector3(0.0, 0.0, -3.0))
 	b.careful = true
 	b.mode = Bot.Mode.SEARCH
 	b.has_last_known = true
@@ -273,8 +273,8 @@ func test_slicing_towards_someone_heard_round_a_corner_aims_at_that_corner() -> 
 
 # --- watching, and reloading from cover ---
 
-func test_pro_watches_where_someone_ducked_out_before_going_after_them_and_hard_goes_at_once() -> void:
-	for level: StringName in [&"pro", &"hard"]:
+func test_hard_watches_where_someone_ducked_out_before_going_after_them_and_normal_goes_at_once() -> void:
+	for level: StringName in [&"hard", &"normal"]:
 		var b := _bot(level, WorldQuery.new(), Vector3(0.0, 0.0, -5.0))
 		var foe := _w.characters[1]
 		BotSenses.perceive(b, _w)
@@ -284,8 +284,8 @@ func test_pro_watches_where_someone_ducked_out_before_going_after_them_and_hard_
 		BotBrain._choose_mode(b, _w, foe, DT)
 		assert_eq(b.mode, Bot.Mode.SEARCH, level)
 		var watch := b.watch_until - _w.time
-		if level == &"pro":
-			assert_between(watch, 1.5, 3.0, "Pro watches the spot first")
+		if level == &"hard":
+			assert_between(watch, 1.5, 3.0, "Hard watches the spot first")
 			var cmd := PlayerCommand.new()
 			assert_false(BotMovement._search(b, _w, cmd, DT), "and stays put meanwhile")
 			assert_eq(b.route_state, Bot.RouteState.NONE)
@@ -294,11 +294,11 @@ func test_pro_watches_where_someone_ducked_out_before_going_after_them_and_hard_
 			BotBrain._choose_mode(b, _w, foe, DT)
 			assert_eq(b.watch_until, -INF, "back in sight, the watch is over")
 		else:
-			assert_eq(b.watch_until, -INF, "Hard goes after them")
+			assert_eq(b.watch_until, -INF, "Normal goes after them")
 
 
 func test_a_corner_slicer_tops_up_only_from_cover_with_a_threat_in_mind() -> void:
-	for level: StringName in [&"pro", &"hard"]:
+	for level: StringName in [&"hard", &"normal"]:
 		var b := _bot(level, WorldQuery.new(), Vector3(0.0, 0.0, -30.0))
 		var a := b.character.armament
 		a.ammo[a.active].mag = 1
@@ -308,7 +308,7 @@ func test_a_corner_slicer_tops_up_only_from_cover_with_a_threat_in_mind() -> voi
 		b.cover.position = Vector3(8.0, 0.0, 0.0)
 		var cmd := PlayerCommand.new()
 		BotCombat.reload_when_due(b, _w, cmd)
-		assert_eq(cmd.reload, level != &"pro", "%s on the way to cover" % level)
+		assert_eq(cmd.reload, level != &"hard", "%s on the way to cover" % level)
 		b.cover.position = Vector3.ZERO
 		cmd.reload = false
 		BotCombat.reload_when_due(b, _w, cmd)
@@ -317,14 +317,14 @@ func test_a_corner_slicer_tops_up_only_from_cover_with_a_threat_in_mind() -> voi
 
 # --- the records ---
 
-func test_a_pro_match_counts_for_the_records() -> void:
+func test_a_hard_match_counts_for_the_records() -> void:
 	var s := PlaySession.new()
 	s.autopilot = true
 	s.settings = Settings.new()
-	s.difficulty = &"pro"
+	s.difficulty = &"hard"
 	add_child_autofree(s)
 	await wait_physics_frames(2)
-	assert_false(s.state.dev_content, "Pro is public (owner, 2026-10-05)")
+	assert_false(s.state.dev_content, "Hard, Pro as was, is public (owner, 2026-10-05)")
 	assert_false(s.state.off_record)
 	assert_true(s.counts_for_records())
 
@@ -345,7 +345,7 @@ func test_plays_the_same_tick_for_tick_wherever_a_hidden_silent_enemy_stands_at_
 			assert_gt(_distinct(west), 20, "%s, seed %d: it moves and looks about" % [lv, seed_value])
 			assert_eq(east, west, "%s, seed %d" % [lv, seed_value])
 		assert_eq(_angled, config.skill_for(lv).holds_angles or config.skill_for(lv).slices_corners,
-				"%s: Pro's runs aim at corners, the others' never look for them" % lv)
+				"%s: Hard's runs aim at corners, the others' never look for them" % lv)
 	level.free()
 
 

@@ -81,14 +81,14 @@ func test_the_records_panel_tags_a_new_record_with_the_best_before() -> void:
 	news.was_accuracy = 0.07
 	var panel := SummaryRecords.new()
 	add_child_autofree(panel)
-	panel.fill(r, PackedInt32Array([5, 6]), news, "Your records · Pro Elimination")
+	panel.fill(r, PackedInt32Array([5, 6]), news, "Your records · Hard Elimination")
 	assert_eq(panel.values(), PackedStringArray(["5 won · 6 lost", "9% NEW RECORD was 7%", "2 best 4"]))
 
 
 func test_a_match_out_of_the_records_says_so_and_no_best_yet_says_from_how_many_bbs() -> void:
 	var panel := SummaryRecords.new()
 	add_child_autofree(panel)
-	panel.fill(Records.new(), PackedInt32Array([0, 0]), null, "Your records · Normal Elimination")
+	panel.fill(Records.new(), PackedInt32Array([0, 0]), null, "Your records · Easy Elimination")
 	assert_eq(panel.values()[1], "– counts from 30 BBs")
 	var words: Array[String] = []
 	for l in panel.find_children("*", "Label", true, false):
@@ -139,7 +139,7 @@ func test_only_the_latest_hits_are_listed_with_the_rest_counted() -> void:
 # --- in play ---
 
 func test_the_summary_follows_the_last_rounds_table_with_everyones_match_numbers() -> void:
-	session = _session(&"pro")
+	session = _session(&"hard")
 	await wait_physics_frames(2)
 	session.counts = false
 	_hit_you()
@@ -151,7 +151,7 @@ func test_the_summary_follows_the_last_rounds_table_with_everyones_match_numbers
 	var hud := session.hud()
 	hud.update(session.state, 1.0, 0.0)
 	assert_false(hud.summary_up(), "the last round's table first")
-	assert_eq(hud.banner_text(), "LOST / THE MATCH · ALPHA 2 – 0 BETA · DEPOT · PRO BOTS")
+	assert_eq(hud.banner_text(), "LOST / THE MATCH · ALPHA 2 – 0 BETA · DEPOT · HARD BOTS")
 	session._move_on()
 	hud.update(session.state, 1.0, 0.0)
 	assert_true(hud.summary_up())
@@ -161,7 +161,7 @@ func test_the_summary_follows_the_last_rounds_table_with_everyones_match_numbers
 	assert_string_starts_with(summary.table().lines()[0], "You | 0 | 2 | ", "you first: no hits, hit twice")
 	assert_eq(summary.hits().entries().size(), 2)
 	assert_eq(summary.hits().entries()[0].number, 1)
-	assert_true(summary.hits().visible, "Auto against Pro bots")
+	assert_true(summary.hits().visible, "Auto against Hard bots")
 	assert_eq(summary.tip_text(), tr(HudScoreboard.tip_for(session.state.round_state.number + 1)))
 	assert_eq(summary.foot_text(), "A NEW MATCH STARTS SHORTLY · CLICK TO START NOW")
 	assert_false(hud._replica.visible, "the replica panel makes way")
@@ -171,7 +171,7 @@ func test_the_summary_follows_the_last_rounds_table_with_everyones_match_numbers
 
 
 func test_against_normal_bots_auto_leaves_out_what_got_you_and_the_tip() -> void:
-	session = _session(&"normal")
+	session = _session(&"easy")
 	await wait_physics_frames(2)
 	session.counts = false
 	_hit_you()
@@ -185,7 +185,7 @@ func test_against_normal_bots_auto_leaves_out_what_got_you_and_the_tip() -> void
 
 
 func test_a_click_starts_the_next_match_and_it_starts_on_its_own_too() -> void:
-	session = _session(&"normal")
+	session = _session(&"easy")
 	await wait_physics_frames(2)
 	session.counts = false
 	_end_match(0)

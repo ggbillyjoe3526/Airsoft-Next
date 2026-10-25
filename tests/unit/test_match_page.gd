@@ -114,14 +114,22 @@ func test_picking_attack_defend_names_who_attacks_first() -> void:
 	assert_string_contains(page.attack_line(), "Beta attacks first", "the team you pick attacks first")
 
 
-func test_pro_is_offered_without_dev_content_and_named_in_the_summary() -> void:
+func test_hard_is_offered_without_dev_content_and_named_in_the_summary() -> void:
 	var page := _page(false)
-	var pro := page.bot_button("pro")
-	assert_false(_labels(pro).has("DEV"), "a public level, no DEV tag")
-	pro.pressed.emit()
-	assert_eq(page.picks.bots, "pro")
-	assert_true(pro.is_picked())
-	assert_string_ends_with(page.summary_text(), "Pro bots")
+	var hard := page.bot_button("hard")
+	assert_false(_labels(hard).has("DEV"), "a public level, no DEV tag")
+	hard.pressed.emit()
+	assert_eq(page.picks.bots, "hard")
+	assert_true(hard.is_picked())
+	assert_string_ends_with(page.summary_text(), "Hard bots")
+
+
+func test_there_are_three_levels_and_a_new_player_starts_on_normal() -> void:
+	var page := _page(false)
+	assert_eq(MatchOptions.BOT_LEVELS, PackedStringArray(["easy", "normal", "hard"]))
+	assert_null(page.bots_box().find_child("*_pro", true, false), "no Pro button (TL1)")
+	assert_eq(MatchPicks.new().bots, "normal")
+	assert_true(page.bot_button("normal").is_picked())
 
 
 # --- maps ---

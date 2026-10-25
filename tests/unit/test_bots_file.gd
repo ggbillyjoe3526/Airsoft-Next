@@ -192,7 +192,7 @@ func test_a_personality_changes_how_a_bot_plays_never_how_well() -> void:
 				assert_eq(s.get(field), skill.get(field), "%s %s keeps %s" % [level, k, field])
 			assert_between(s.hold_cover_chance, 0.0, 1.0)
 			assert_between(s.flank_chance, 0.0, 1.0)
-	var normal := cfg.skill_for(&"normal")
+	var normal := cfg.skill_for(&"easy")
 	var rusher := BotPersonality.personal_skill(normal, f.style(&"rusher"))
 	assert_almost_eq(rusher.hold_time, normal.hold_time * 0.3, Vector2(1e-5, 1e-5))
 	assert_almost_eq(rusher.burst, normal.burst * 1.2, Vector2(1e-5, 1e-5))

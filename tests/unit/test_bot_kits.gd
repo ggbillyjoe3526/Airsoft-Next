@@ -8,8 +8,8 @@ const CYBER := "000019"
 const SILENCER := "000018"
 const HEADER := """## Kits
 
-| Kit | Primary | Primary parts | Secondary | Secondary parts | Suits | Easy | Normal | Hard | Pro |
-|---|---|---|---|---|---|---|---|---|---|
+| Kit | Primary | Primary parts | Secondary | Secondary parts | Suits | Easy | Normal | Hard |
+|---|---|---|---|---|---|---|---|---|
 """
 
 var pool: Pool
@@ -41,25 +41,25 @@ func test_the_shipped_file_reads_clean() -> void:
 			["Factory", "Rifleman", "Marksman", "Support", "Stealth", "Pointman", "Cyber"])
 	var cyber := _kit(k, "Cyber")
 	assert_eq(cyber.slots[0].replica, CYBER)
-	assert_eq(cyber.weights[&"normal"], 0.0, "never at Normal")
+	assert_eq(cyber.weights[&"easy"], 0.0, "never at Easy")
 	assert_eq(_kit(k, "Support").suits, PackedStringArray(["anchor", "rusher"]))
 	assert_eq(BotKits.personalities(), PackedStringArray(["rusher", "anchor", "flanker", "careful"]))
 
 
 func test_a_row_it_cant_read_is_left_out_with_its_line() -> void:
-	var k := _parse("""| Good | AEG Rifle | Red Dot | | | | 1 | 1 | 1 | 1 |
-| Typo | AEG Rifel | | | | | 1 | 1 | 1 | 1 |
-| Misfit | GBB Pistol | Vertical Grip | | | | 1 | 1 | 1 | 1 |
-| Twice | AEG Rifle | Red Dot, 2x Scope | | | | 1 | 1 | 1 | 1 |
-| Weight | AEG Rifle | | | | | 1 | lots | 1 | 1 |
-| Torch | AEG Rifle | Weapon Torch | | | | 1 | 1 | 1 | 1 |
-| Moody | AEG Rifle | | | | grumpy | 1 | 1 | 1 | 1 |
-| good | AEG Rifle | | | | | 1 | 1 | 1 | 1 |
-| Parts only | | Red Dot | | | | 1 | 1 | 1 | 1 |
-| Power | AEG Rifle | Green Gas | | | | 1 | 1 | 1 | 1 |
-| Built in | Cyber Pistol | 11.1 V LiPo Battery | | | | 1 | 1 | 1 | 1 |
-| Same | GBB Pistol | | GBB Pistol | | | 1 | 1 | 1 | 1 |
-| Not a replica | Red Dot | | | | | 1 | 1 | 1 | 1 |
+	var k := _parse("""| Good | AEG Rifle | Red Dot | | | | 1 | 1 | 1 |
+| Typo | AEG Rifel | | | | | 1 | 1 | 1 |
+| Misfit | GBB Pistol | Vertical Grip | | | | 1 | 1 | 1 |
+| Twice | AEG Rifle | Red Dot, 2x Scope | | | | 1 | 1 | 1 |
+| Weight | AEG Rifle | | | | | 1 | lots | 1 |
+| Torch | AEG Rifle | Weapon Torch | | | | 1 | 1 | 1 |
+| Moody | AEG Rifle | | | | grumpy | 1 | 1 | 1 |
+| good | AEG Rifle | | | | | 1 | 1 | 1 |
+| Parts only | | Red Dot | | | | 1 | 1 | 1 |
+| Power | AEG Rifle | Green Gas | | | | 1 | 1 | 1 |
+| Built in | Cyber Pistol | 11.1 V LiPo Battery | | | | 1 | 1 | 1 |
+| Same | GBB Pistol | | GBB Pistol | | | 1 | 1 | 1 |
+| Not a replica | Red Dot | | | | | 1 | 1 | 1 |
 """)
 	assert_eq(k.kits.size(), 1, "only Good reads")
 	assert_eq(k.problems.size(), 12)
@@ -83,32 +83,32 @@ func test_a_file_without_its_columns_gives_no_kits() -> void:
 func test_a_pick_is_seeded_and_follows_the_difficultys_weights() -> void:
 	var k := BotKits.read_file(pool)
 	var seed_value := Seeds.kit_seed(42, 4)
-	assert_eq(k.pick(&"normal", rules, seed_value), k.pick(&"normal", rules, seed_value), "a seed replays its kit")
+	assert_eq(k.pick(&"easy", rules, seed_value), k.pick(&"easy", rules, seed_value), "a seed replays its kit")
 	var counts: Dictionary[String, int] = {}
 	for i in 4000:
-		var plan := k.pick(&"normal", rules, Seeds.kit_seed(i, 3))
+		var plan := k.pick(&"easy", rules, Seeds.kit_seed(i, 3))
 		counts[plan.kit_name] = counts.get(plan.kit_name, 0) + 1
 	assert_almost_eq(counts["Factory"] / 4000.0, 0.30, 0.03)
 	assert_almost_eq(counts["Rifleman"] / 4000.0, 0.25, 0.03)
-	assert_false(counts.has("Cyber"), "weighted 0 at Normal: never")
-	var pro: Dictionary[String, int] = {}
+	assert_false(counts.has("Cyber"), "weighted 0 at Easy: never")
+	var hard: Dictionary[String, int] = {}
 	for i in 2000:
-		var plan := k.pick(&"pro", rules, Seeds.kit_seed(i, 3))
-		pro[plan.kit_name] = pro.get(plan.kit_name, 0) + 1
-	assert_false(pro.has("Factory"), "Pro never factory")
-	assert_true(pro.has("Cyber"))
+		var plan := k.pick(&"hard", rules, Seeds.kit_seed(i, 3))
+		hard[plan.kit_name] = hard.get(plan.kit_name, 0) + 1
+	assert_false(hard.has("Factory"), "Hard never factory")
+	assert_true(hard.has("Cyber"))
 
 
 func test_each_bot_picks_its_own_kit() -> void:
 	var k := BotKits.read_file(pool)
 	var names: Dictionary[String, bool] = {}
 	for id in 6:
-		names[k.pick(&"pro", rules, Seeds.kit_seed(7, id)).kit_name] = true
+		names[k.pick(&"hard", rules, Seeds.kit_seed(7, id)).kit_name] = true
 	assert_gt(names.size(), 1, "six bots on one seed don't all carry the same kit")
 
 
 func test_no_weight_above_zero_means_the_replicas_as_they_come() -> void:
-	var k := _parse("| Only Hard | AEG Rifle | Red Dot | | | | 0 | | 5 | 0 |\n")
+	var k := _parse("| Only Hard | AEG Rifle | Red Dot | | | | 0 | | 5 |\n")
 	assert_null(k.pick(&"normal", rules, 1))
 	assert_null(k.pick(&"unknown", rules, 1))
 	assert_not_null(k.pick(&"hard", rules, 1))
@@ -116,7 +116,7 @@ func test_no_weight_above_zero_means_the_replicas_as_they_come() -> void:
 
 func test_dev_gear_is_picked_only_with_dev_content_on() -> void:
 	pool.item(SILENCER).access = &"dev"
-	var k := _parse("| Dev | AEG Rifle | Silencer | | | | 1 | 1 | 1 | 1 |\n")
+	var k := _parse("| Dev | AEG Rifle | Silencer | | | | 1 | 1 | 1 |\n")
 	assert_eq(k.problems, [] as Array[String])
 	assert_null(k.pick(&"normal", rules, 1), "dev gear stays out")
 	rules.dev_content = true
@@ -150,7 +150,7 @@ func test_bots_never_touch_the_selector_so_a_kit_comes_on_auto_where_it_can() ->
 
 
 func test_a_kit_with_no_secondary_carries_its_primary_only() -> void:
-	var k := _parse("| Lone | Cyber Pistol | | | | | 1 | 1 | 1 | 1 |\n")
+	var k := _parse("| Lone | Cyber Pistol | | | | | 1 | 1 | 1 |\n")
 	var kit := BotKits.kit_of(k.kits[0], rules)
 	assert_eq(kit.size(), 1)
 	assert_eq(kit.replicas[0].id, &"cyber")
@@ -170,7 +170,7 @@ func test_in_a_session_the_opponents_carry_their_kits_and_your_teammates_theirs_
 	var s := PlaySession.new()
 	s.autopilot = true
 	s.settings = Settings.new()
-	s.difficulty = &"pro"
+	s.difficulty = &"hard"
 	s.match_seed = 11
 	add_child_autofree(s)
 	await wait_physics_frames(3)
@@ -184,7 +184,7 @@ func test_in_a_session_the_opponents_carry_their_kits_and_your_teammates_theirs_
 			assert_false(s._bot_parts.has(c.id))
 			continue
 		# Its kit leans towards its personality (BN1).
-		var plan := k.pick(&"pro", s._bot_kit_rules(), Seeds.kit_seed(11, c.id), s._identities[c.id].personality,
+		var plan := k.pick(&"hard", s._bot_kit_rules(), Seeds.kit_seed(11, c.id), s._identities[c.id].personality,
 				s._bot_config.kit_suit_lean)
 		var kit := BotKits.kit_of(plan, s._bot_kit_rules())
 		assert_eq(c.armament.replicas.size(), kit.size())

@@ -14,7 +14,7 @@ then **0.1**, which opens **Early Access**. Each build is posted on the
 ### Built
 
 Depot, the AEG Rifle, the GBB Pistol and the Cyber Pistol, every part and power source, the Loadout, levels and the
-Armory, Easy to Pro bots with names, personalities and kits, Elimination, Attack / Defend and Custom matches, the
+Armory, Easy, Normal and Hard bots with names, personalities and kits, Elimination, Attack / Defend and Custom matches, the
 practice range in Depot's site, Practice on any field and the timed challenge, squad orders, the minimap, the hit feed,
 scoreboard and match summary, the sound pass, graphics presets, accessibility options, the save file screen, the crash
 screen and bug reports. The rest of this wiki describes all of it.

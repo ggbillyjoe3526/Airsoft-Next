@@ -94,7 +94,7 @@ func test_level_3_lists_nine_of_nineteen_with_the_silencer_next() -> void:
 	for w: String in ["LEVEL ", "3", "of 10", "120 / 500 XP", "380 XP to level 4", "920", "9 / 19", "NEXT UNLOCK · LEVEL 4",
 			"Silencer", "HOW XP IS EARNED", "100 XP", "100 more", "20", "10"]:
 		assert_true(words.has(w), w)
-	assert_true(_words(page.summary()).has("Then times the difficulty: Easy ×0.5 · Normal ×1 · Hard ×1.5 · Pro ×2. A first-to-5 win on Normal gives about 250 XP. Practice, and matches with Dev settings, give none."))
+	assert_true(_words(page.summary()).has("Then times the difficulty: Easy ×0.5 · Normal ×1 · Hard ×1.5. A first-to-5 win on Normal gives about 250 XP. Practice, and matches with Dev settings, give none."))
 	var track := _words(page.track())
 	for w: String in ["LEVELS", "STARTING KIT", "LEVEL 1", "100 XP · UNLOCKED", "1,300 XP · NEXT", "1,900 XP · LOCKED",
 			"6,500 XP · LOCKED", "Red Dot", "Cyber Pistol", "REPLICA", "POWER", "MUZZLE"]:

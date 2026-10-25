@@ -1,7 +1,7 @@
 extends GutTest
 ## What got you and skipping the round (WG1; concept `out.png`): the card from HitFacts once your hit is called (the
 ## side and distance the shot came from, held angle, time in view, moving, the bot's note) as the setting says (Auto:
-## Pro bots only); out, hold Jump to skip the rest of the round at speed with the HUD hidden, or Skip to next round in
+## Hard bots only); out, hold Jump to skip the rest of the round at speed with the HUD hidden, or Skip to next round in
 ## the pause menu; the line you were hit in stays in the feed until the round ends.
 
 const K := GameEvent.Kind
@@ -23,7 +23,7 @@ func _facts(shooter_at: Vector3, yaw: float) -> HitFacts:
 	return f
 
 
-func _session(setting: Settings.WhatGotYou, difficulty: StringName = &"normal") -> PlaySession:
+func _session(setting: Settings.WhatGotYou, difficulty: StringName = &"easy") -> PlaySession:
 	var s := PlaySession.new()
 	s.bots_active = false
 	s.difficulty = difficulty
@@ -115,7 +115,7 @@ func test_the_card_shows_as_the_setting_says() -> void:
 	session = _session(Settings.WhatGotYou.AUTO)
 	await wait_physics_frames(2)
 	_hit_you()
-	assert_null(session.hud().what_got_you(), "Auto: not against Normal bots")
+	assert_null(session.hud().what_got_you(), "Auto: not against Easy bots")
 	session = _session(Settings.WhatGotYou.ON)
 	await wait_physics_frames(2)
 	_hit_you()
@@ -129,11 +129,11 @@ func test_the_card_shows_as_the_setting_says() -> void:
 
 
 func test_auto_shows_the_card_against_pro_bots_and_off_never() -> void:
-	session = _session(Settings.WhatGotYou.AUTO, &"pro")
+	session = _session(Settings.WhatGotYou.AUTO, &"hard")
 	await wait_physics_frames(2)
 	_hit_you()
 	assert_not_null(session.hud().what_got_you())
-	session = _session(Settings.WhatGotYou.OFF, &"pro")
+	session = _session(Settings.WhatGotYou.OFF, &"hard")
 	await wait_physics_frames(2)
 	_hit_you()
 	assert_null(session.hud().what_got_you())

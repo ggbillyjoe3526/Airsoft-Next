@@ -492,8 +492,8 @@ def gen_bot_kits(_arg: str) -> str:
         rows.append([f"**{cell(r, 'Kit', path)}**",
                      carry(r["Primary"], r.get("Primary parts", "")),
                      carry(r["Secondary"], r.get("Secondary parts", "")) if r.get("Secondary") else "–"]
-                    + [f"{r.get(d) or 0} %" for d in ("Easy", "Normal", "Hard", "Pro")])
-    return table(["Kit", "Primary", "Sidearm", "Easy", "Normal", "Hard", "Pro"], rows)
+                    + [f"{r.get(d) or 0} %" for d in ("Easy", "Normal", "Hard")])
+    return table(["Kit", "Primary", "Sidearm", "Easy", "Normal", "Hard"], rows)
 
 
 def gen_rules(_arg: str) -> str:

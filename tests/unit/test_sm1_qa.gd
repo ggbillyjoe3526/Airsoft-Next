@@ -67,7 +67,7 @@ func _count_nodes(n: Node) -> int:
 # --- the hits on you across rounds and matches ---
 
 func test_a_drawn_round_one_replayed_keeps_the_hits_on_you() -> void:
-	session = _session(&"pro")
+	session = _session(&"hard")
 	await wait_physics_frames(2)
 	session.counts = false
 	_hit_you()
@@ -80,7 +80,7 @@ func test_a_drawn_round_one_replayed_keeps_the_hits_on_you() -> void:
 
 
 func test_the_setting_changed_mid_match_lists_every_hit_with_the_setting_at_the_end() -> void:
-	session = _session(&"normal", Settings.WhatGotYou.OFF)
+	session = _session(&"easy", Settings.WhatGotYou.OFF)
 	await wait_physics_frames(2)
 	session.counts = false
 	_hit_you()
@@ -93,7 +93,7 @@ func test_the_setting_changed_mid_match_lists_every_hit_with_the_setting_at_the_
 
 
 func test_a_match_with_no_hits_on_you_says_nobody_got_you() -> void:
-	session = _session(&"pro")
+	session = _session(&"hard")
 	await wait_physics_frames(2)
 	session.counts = false
 	_end_match(0)
@@ -103,7 +103,7 @@ func test_a_match_with_no_hits_on_you_says_nobody_got_you() -> void:
 # --- clicks, pause and the rematch ---
 
 func test_a_click_on_the_last_rounds_table_moves_on_without_starting_the_match() -> void:
-	session = _session(&"normal")
+	session = _session(&"easy")
 	await wait_physics_frames(2)
 	session.counts = false
 	_end_match_table_up(0)
@@ -120,7 +120,7 @@ func test_a_click_on_the_last_rounds_table_moves_on_without_starting_the_match()
 
 
 func test_the_pause_menu_over_the_summary_holds_the_wait_and_resume_does_not_start_the_match() -> void:
-	session = _session(&"normal")
+	session = _session(&"easy")
 	await wait_physics_frames(2)
 	session.counts = false
 	_end_match(0)
@@ -133,7 +133,7 @@ func test_the_pause_menu_over_the_summary_holds_the_wait_and_resume_does_not_sta
 
 
 func test_the_banner_stays_up_with_the_summary() -> void:
-	session = _session(&"normal")
+	session = _session(&"easy")
 	await wait_physics_frames(2)
 	session.counts = false
 	_end_match(0)
@@ -143,7 +143,7 @@ func test_the_banner_stays_up_with_the_summary() -> void:
 
 
 func test_a_click_on_the_summary_holds_fire_into_the_next_match() -> void:
-	session = _session(&"normal")
+	session = _session(&"easy")
 	await wait_physics_frames(2)
 	session.counts = false
 	_end_match(0)
@@ -152,7 +152,7 @@ func test_a_click_on_the_summary_holds_fire_into_the_next_match() -> void:
 
 
 func test_a_skip_stops_at_the_match_end_and_the_hud_comes_back_for_the_summary() -> void:
-	session = _session(&"normal")
+	session = _session(&"easy")
 	await wait_physics_frames(2)
 	session.counts = false
 	session._skipping = true
@@ -179,18 +179,18 @@ func test_bbcode_in_a_bot_name_and_note_shows_as_typed() -> void:
 
 func test_every_new_string_formats_with_its_arguments() -> void:
 	assert_eq(tr("SUM_STAMP_SUB") % ["Alpha", 5, 3, "Beta"], "The match · Alpha 5 – 3 Beta")
-	assert_eq(tr("SUM_MATCH_TAIL") % ["Depot", "Pro"], "Depot · Pro bots")
-	assert_eq(tr("SUM_RECORDS") % ["Pro", "Elimination"], "Your records · Pro Elimination")
+	assert_eq(tr("SUM_MATCH_TAIL") % ["Depot", "Hard"], "Depot · Hard bots")
+	assert_eq(tr("SUM_RECORDS") % ["Hard", "Elimination"], "Your records · Hard Elimination")
 	assert_eq(tr("SUM_EARLIER_HITS") % 2, "2 earlier")
 	assert_eq(tr("SUM_WAS") % "7%", "was 7%")
 
 
 # --- layout at 1080p ---
 
-## Lost 4–5 against Pro bots, hit in 7 of the 9 rounds (Magpie three times, from cover): "1 earlier", six lines,
+## Lost 4–5 against Hard bots, hit in 7 of the 9 rounds (Magpie three times, from cover): "1 earlier", six lines,
 ## Magpie's closing line with her note, and the second tip; `counted` false: the records say the match stays out.
 func _fill_a_long_summary(counted: bool) -> Rect2:
-	session = _session(&"pro")
+	session = _session(&"hard")
 	await wait_physics_frames(2)
 	session.counts = false
 	var hud := session.hud()
@@ -205,7 +205,7 @@ func _fill_a_long_summary(counted: bool) -> Rect2:
 	session.state.round_state.number = 1
 	_end_match(1)
 	hud.summary().set_records(Records.new(), PackedInt32Array([12, 14]), Records.News.new() if counted else null,
-			"Your records · Pro Elimination")
+			"Your records · Hard Elimination")
 	assert_eq(hud.summary().tip_text(), tr("PRO_TIP_2"))
 	hud.size = Vector2(1920.0, 1080.0)
 	for i in 4:
@@ -229,7 +229,7 @@ func test_the_right_column_stays_on_a_1080p_screen_when_the_match_stays_out_of_t
 # --- freed nodes and per-frame cost ---
 
 func test_a_rematch_refills_the_summary_without_piling_up_nodes() -> void:
-	session = _session(&"pro")
+	session = _session(&"hard")
 	await wait_physics_frames(2)
 	session.counts = false
 	var summary := session.hud().summary()
@@ -247,7 +247,7 @@ func test_a_rematch_refills_the_summary_without_piling_up_nodes() -> void:
 
 
 func test_hud_update_with_the_summary_up_builds_nothing_per_frame() -> void:
-	session = _session(&"pro")
+	session = _session(&"hard")
 	await wait_physics_frames(2)
 	session.counts = false
 	_hit_you()
@@ -270,7 +270,7 @@ func test_a_saved_best_from_fewer_than_30_bbs_still_loads_and_saves_unchanged() 
 	assert_eq(back.from_dict(r.to_dict()).size(), 0, "no warnings")
 	assert_almost_eq(back.best_accuracy, 0.25, 1e-6)
 	var m := Records.Result.new()
-	m.difficulty = &"pro"
+	m.difficulty = &"hard"
 	m.mode = MatchOptions.MODE_ELIMINATION
 	m.hits = 20
 	m.bbs_fired = 25
@@ -299,7 +299,7 @@ func test_attack_defend_stamps_the_match_with_your_team_first_and_shows_the_summ
 # --- attempt 2: the score bar and feed make way; the not-counted note beside the heading ---
 
 func test_the_score_bar_and_feed_make_way_for_the_summary_and_come_back_on_the_next_match() -> void:
-	session = _session(&"normal")
+	session = _session(&"easy")
 	await wait_physics_frames(2)
 	session.counts = false
 	var hud := session.hud()
@@ -318,7 +318,7 @@ func test_the_score_bar_and_feed_make_way_for_the_summary_and_come_back_on_the_n
 
 
 func test_the_longest_heading_with_the_not_counted_note_stays_on_the_screen() -> void:
-	session = _session(&"normal")
+	session = _session(&"easy")
 	await wait_physics_frames(2)
 	session.counts = false
 	_end_match(0)

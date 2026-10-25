@@ -3,8 +3,8 @@ extends GutTest
 
 const HEADER := """## Kits
 
-| Kit | Primary | Primary parts | Secondary | Secondary parts | Suits | Easy | Normal | Hard | Pro |
-|---|---|---|---|---|---|---|---|---|---|
+| Kit | Primary | Primary parts | Secondary | Secondary parts | Suits | Easy | Normal | Hard |
+|---|---|---|---|---|---|---|---|---|
 """
 
 var pool: Pool
@@ -29,7 +29,7 @@ func _parse(rows: String) -> BotKits:
 	return BotKits.parse(HEADER + rows, pool, BotKits.personalities())
 
 
-func _session(seed_value: int, level: StringName = &"normal") -> PlaySession:
+func _session(seed_value: int, level: StringName = &"easy") -> PlaySession:
 	var s := PlaySession.new()
 	s.autopilot = true
 	s.settings = Settings.new()
@@ -41,7 +41,7 @@ func _session(seed_value: int, level: StringName = &"normal") -> PlaySession:
 
 func test_parts_by_id_and_odd_case_and_spacing_read() -> void:
 	var red_dot := pool.named("Red Dot")
-	var k := _parse("|  rIfLe  | aeg RIFLE |   %s ,, vertical GRIP ,  | gbb pistol | | CAREFUL , Anchor | 1 | 1 | 1 | 1 |\n" % red_dot.id)
+	var k := _parse("|  rIfLe  | aeg RIFLE |   %s ,, vertical GRIP ,  | gbb pistol | | CAREFUL , Anchor | 1 | 1 | 1 |\n" % red_dot.id)
 	assert_eq(k.problems, [] as Array[String])
 	assert_eq(k.kits.size(), 1)
 	assert_eq(k.kits[0].slots[0].parts.size(), 2)
@@ -49,32 +49,32 @@ func test_parts_by_id_and_odd_case_and_spacing_read() -> void:
 
 
 func test_a_secondary_only_row_is_left_out() -> void:
-	var k := _parse("| Side | | | GBB Pistol | | | 1 | 1 | 1 | 1 |\n")
+	var k := _parse("| Side | | | GBB Pistol | | | 1 | 1 | 1 |\n")
 	assert_eq(k.kits.size(), 0)
 	assert_eq(k.problems.size(), 1)
 	assert_string_contains(k.problems[0], "no Primary")
 
 
 func test_two_power_sources_for_one_replica_are_left_out() -> void:
-	var k := _parse("| Two | AEG Rifle | 11.1 V LiPo Battery, 7.4 V LiPo Battery | | | | 1 | 1 | 1 | 1 |\n")
+	var k := _parse("| Two | AEG Rifle | 11.1 V LiPo Battery, 7.4 V LiPo Battery | | | | 1 | 1 | 1 |\n")
 	assert_eq(k.kits.size(), 0, "two power sources: one slot")
 
 
 func test_weights_all_zero_pick_nothing_and_negative_weight_is_a_problem() -> void:
-	var k := _parse("| Z | AEG Rifle | | | | | 0 | 0 | 0 | 0 |\n| N | AEG Rifle | | | | | -1 | 1 | 1 | 1 |\n")
+	var k := _parse("| Z | AEG Rifle | | | | | 0 | 0 | 0 |\n| N | AEG Rifle | | | | | -1 | 1 | 1 |\n")
 	assert_eq(k.kits.size(), 1)
 	assert_eq(k.problems.size(), 1)
-	for d: StringName in [&"easy", &"normal", &"hard", &"pro"]:
+	for d: StringName in [&"easy", &"normal", &"hard"]:
 		assert_null(k.pick(d, rules, 5))
 
 
 func test_an_infinite_or_nan_weight_is_a_problem() -> void:
-	var k := _parse("| I | AEG Rifle | | | | | inf | 1 | 1 | 1 |\n| N | AEG Rifle | | | | | nan | 1 | 1 | 1 |\n")
+	var k := _parse("| I | AEG Rifle | | | | | inf | 1 | 1 |\n| N | AEG Rifle | | | | | nan | 1 | 1 |\n")
 	assert_eq(k.kits.size(), 0, "%s" % [k.problems])
 
 
 func test_a_pistol_primary_with_the_aeg_as_secondary_swaps_the_slots() -> void:
-	var k := _parse("| Swap | GBB Pistol | | AEG Rifle | | | 1 | 1 | 1 | 1 |\n| Cy | Cyber Pistol | | AEG Rifle | Red Dot | | 1 | 1 | 1 | 1 |\n")
+	var k := _parse("| Swap | GBB Pistol | | AEG Rifle | | | 1 | 1 | 1 |\n| Cy | Cyber Pistol | | AEG Rifle | Red Dot | | 1 | 1 | 1 |\n")
 	assert_eq(k.kits.size(), 2)
 	var kit := BotKits.kit_of(k.kits[0], rules)
 	assert_eq(kit.size(), 2)
@@ -88,7 +88,7 @@ func test_a_pistol_primary_with_the_aeg_as_secondary_swaps_the_slots() -> void:
 
 
 func test_a_kit_of_the_aeg_alone_with_the_pistol_as_primary_only() -> void:
-	var k := _parse("| Solo | GBB Pistol | Red Laser | | | | 1 | 1 | 1 | 1 |\n")
+	var k := _parse("| Solo | GBB Pistol | Red Laser | | | | 1 | 1 | 1 |\n")
 	var kit := BotKits.kit_of(k.kits[0], rules)
 	assert_eq(kit.size(), 1)
 	assert_eq(kit.replicas[0].id, &"pistol")
@@ -140,8 +140,8 @@ func test_a_kitted_silencer_is_heard_less_far_by_other_bots() -> void:
 
 
 func test_the_same_seed_gives_the_same_kits_in_two_sessions() -> void:
-	var a := _session(77, &"hard")
-	var b := _session(77, &"hard")
+	var a := _session(77, &"normal")
+	var b := _session(77, &"normal")
 	await wait_physics_frames(3)
 	assert_eq(a.state.characters.size(), b.state.characters.size())
 	for i in a.state.characters.size():
@@ -159,15 +159,15 @@ func test_different_seeds_give_different_kits_somewhere() -> void:
 	var k := BotKits.shared()
 	var r := LoadoutRules.standard()
 	for sd in range(1, 30):
-		var p1 := k.pick(&"pro", r, Seeds.kit_seed(sd, 5))
-		var p2 := k.pick(&"pro", r, Seeds.kit_seed(sd + 100, 5))
+		var p1 := k.pick(&"hard", r, Seeds.kit_seed(sd, 5))
+		var p2 := k.pick(&"hard", r, Seeds.kit_seed(sd + 100, 5))
 		if p1.kit_name != p2.kit_name:
 			differing = true
 	assert_true(differing)
 
 
 func test_a_rematch_keeps_the_kits() -> void:
-	var s := _session(5, &"pro")
+	var s := _session(5, &"hard")
 	await wait_physics_frames(3)
 	var before: Array = []
 	for c in s.state.characters:
@@ -181,12 +181,12 @@ func test_a_rematch_keeps_the_kits() -> void:
 
 
 func test_a_bots_figure_gets_its_parts_and_a_single_replica_kit_does_not_break() -> void:
-	var s := _session(9, &"pro")
+	var s := _session(9, &"hard")
 	await wait_physics_frames(3)
 	assert_gt(s._bot_parts.size(), 0)
 	assert_eq(s._figures.size(), s.state.characters.size() - 1)
 	var f := FigureView.new()
-	var c := Character.new(50, 1, Vector3.ZERO, 0.0, [BotKits.kit_of(_parse("| L | Cyber Pistol | | | | | 1 | 1 | 1 | 1 |\n").kits[0], rules).replicas[0]] as Array[ReplicaConfig])
+	var c := Character.new(50, 1, Vector3.ZERO, 0.0, [BotKits.kit_of(_parse("| L | Cyber Pistol | | | | | 1 | 1 | 1 |\n").kits[0], rules).replicas[0]] as Array[ReplicaConfig])
 	var parts: Array[Dictionary] = [{}]
 	f.setup(c, Color.RED, s._tuning.hits, null, false, parts)
 	add_child_autofree(f)
@@ -195,7 +195,7 @@ func test_a_bots_figure_gets_its_parts_and_a_single_replica_kit_does_not_break()
 
 
 func test_a_session_with_dev_content_off_never_picks_dev_gear() -> void:
-	var s := _session(3, &"pro")
+	var s := _session(3, &"hard")
 	await wait_physics_frames(3)
 	assert_false(s.state.dev_content)
 	assert_false(s.state.off_record)
@@ -203,7 +203,7 @@ func test_a_session_with_dev_content_off_never_picks_dev_gear() -> void:
 
 func test_the_session_leaves_no_orphans_after_free() -> void:
 	var before := Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)
-	var s := _session(8, &"pro")
+	var s := _session(8, &"hard")
 	await wait_physics_frames(3)
 	s.queue_free()
 	await wait_physics_frames(3)
@@ -221,15 +221,15 @@ func test_levels_md_reads_the_same_after_the_name_helpers_moved() -> void:
 
 func test_a_dev_power_source_in_a_kit_is_carried_only_with_dev_content() -> void:
 	pool.named("11.1 V LiPo Battery").access = &"dev"
-	var k := _parse("| Dev | AEG Rifle | 11.1 V LiPo Battery | | | | 1 | 1 | 1 | 1 |\n")
+	var k := _parse("| Dev | AEG Rifle | 11.1 V LiPo Battery | | | | 1 | 1 | 1 |\n")
 	assert_eq(k.kits.size(), 1, "%s" % [k.problems])
-	assert_null(k.pick(&"normal", rules, 1))
+	assert_null(k.pick(&"easy", rules, 1))
 	rules.dev_content = true
-	var plan := k.pick(&"normal", rules, 1)
+	var plan := k.pick(&"easy", rules, 1)
 	assert_not_null(plan)
 	var kit := BotKits.kit_of(plan, rules)
 	assert_true(kit.dev)
-	var plain := BotKits.kit_of(_parse("| P | AEG Rifle | | | | | 1 | 1 | 1 | 1 |\n").kits[0], rules)
+	var plain := BotKits.kit_of(_parse("| P | AEG Rifle | | | | | 1 | 1 | 1 |\n").kits[0], rules)
 	assert_ne(kit.replicas[0].fire_rate, plain.replicas[0].fire_rate, "the dev battery is fitted")
 
 

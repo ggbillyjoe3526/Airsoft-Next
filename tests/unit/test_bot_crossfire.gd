@@ -1,5 +1,5 @@
 extends GutTest
-## Pro crossfires on defence (FG2b; the browser game's botMovement.ts staggerHold and crossfireSpot): two defenders at
+## Hard crossfires on defence (FG2b; the browser game's botMovement.ts staggerHold and crossfireSpot): two defenders at
 ## one lane point stand apart, a pair that plays as a team in a crossfire on the lane's next point, holding those points
 ## rather than cover beside them; attackers and Elimination are untouched. On Depot, headless
 ## (game/ai/bot_movement.gd).
@@ -71,7 +71,7 @@ func _first_point_beside(b: Bot, mate: Bot, lane: int) -> Vector3:
 
 
 func test_pro_defenders_at_one_point_set_a_crossfire_on_the_next() -> void:
-	var w := _start(&"pro")
+	var w := _start(&"hard")
 	var b := _bot(3)
 	var mate := _bot(4)
 	var crossed := 0
@@ -97,7 +97,7 @@ func test_pro_defenders_at_one_point_set_a_crossfire_on_the_next() -> void:
 
 
 func test_defenders_without_team_play_stand_side_by_side_and_attackers_never_move_aside() -> void:
-	var w := _start(&"normal")
+	var w := _start(&"easy")
 	var b := _bot(3)
 	var first := _first_point_beside(b, _bot(4), 0)
 	assert_almost_eq(Vector2(b.lane_goal.x - first.x, b.lane_goal.z - first.z).length(), config.lane_hold_offset, 1e-3,
@@ -109,7 +109,7 @@ func test_defenders_without_team_play_stand_side_by_side_and_attackers_never_mov
 	var attacker := _bot(0)
 	first = _first_point_beside(attacker, _bot(1), 0)
 	assert_eq(attacker.lane_goal, first, "an attacker walks on to its point")
-	_start(&"pro", RoundState.Mode.ELIMINATION)
+	_start(&"hard", RoundState.Mode.ELIMINATION)
 	var plain := _bot(3)
 	first = _first_point_beside(plain, _bot(4), 0)
 	assert_eq(plain.lane_goal, first, "Elimination untouched")
@@ -117,7 +117,7 @@ func test_defenders_without_team_play_stand_side_by_side_and_attackers_never_mov
 
 ## Whether a teammate holds the bot's lane; the hold-cover gate it feeds is test_fg2b_qa.gd's.
 func test_a_lane_is_shared_while_a_teammate_holds_it() -> void:
-	var w := _start(&"pro")
+	var w := _start(&"hard")
 	var b := _bot(3)
 	var mate := _bot(4)
 	_first_point_beside(b, mate, 0)
