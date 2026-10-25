@@ -65,9 +65,9 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
   replica and part remodels, Depot's set dressing, the art pass) is step 28 (was 32), because the owner must be at
   his PC to connect Blender. Code-only parts, built against today's placeholder models, may still go earlier.
 - **The Blender step covers Depot, human figures and replicas only (owner, 2026-10-24).** Step 28 models Depot's
-  assets (with the range's, which lives in Depot; the tutorial was dropped on 2026-10-25), the human figures with your first-person arms and
-  hands, and the replicas, attachments and accessories. Woodland and Neon Heights stay greybox while they are dev
-  content, and robots (a Dev Easter egg) keep their placeholder.
+  assets (with the range's, which lives in Depot; the tutorial was dropped on 2026-10-25), the human figures with
+  your first-person arms and hands, and the replicas, attachments and accessories. Woodland and Neon Heights stay
+  greybox while they are dev content, and robots (a Dev Easter egg) keep their placeholder.
 - **Deferred features are one step, then Blender (owner, 2026-10-24).** After Woodland, the overtime flag, the
   tutorial, pings, the magazine hand-off, bot callouts and adaptive difficulty are one step 27, in the order its plan
   sets; the owner's Blender work (step 28, formerly 32) starts once step 27 is done.
@@ -329,9 +329,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Difficulty is skill plus a few tactics, never different senses (2026-10-01).** Easy, Normal, Hard and Pro see and
   hear alike. Opponents and teammates have separate difficulties (owner, 2026-10-03).
 - **Normal is the baseline (owner, 2026-10-06).** Tune on Normal, then check that Easy, Hard and Pro still scale.
-- **Adaptive difficulty is a Dev setting that layers over the fixed levels (owner, 2026-10-06; AD1).** It never changes a
-  level's own numbers: the other team's skill is a rating that blends the levels' numbers. Your teammates never adapt,
-  Extraction doesn't, and its matches stay out of the records and give no XP.
+- **Adaptive difficulty is a Dev setting that layers over the fixed levels (owner, 2026-10-06; AD1; dropped, owner
+  2026-10-25).** It never changes a level's own numbers: the other team's skill is a rating that blends the levels'
+  numbers. Your teammates never adapt, Extraction doesn't, and its matches stay out of the records and give no XP.
 - **Against Easy opponents, teammates play Normal (owner, 2026-10-05).** Otherwise teammates follow the opponents'
   level. That pair is the standard match for the records.
 - **Pro is careful, not twitchier (owner, 2026-10-04).** Pro bots hold and pre-aim angles, clear corners, trade and set
@@ -470,12 +470,12 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   choice, and Dev › Time of day plays any map by either. Depot's public night waits for 0.4's Day and Night on every
   map. The Match screen's pick lasts the session (MatchPicks), never saved; Dev › Time of day is saved with the Dev
   settings and, off the map's own, keeps a match out of the records, as the browser's did (WL3).
-- **The practice range and the tutorial are set in Depot (owner, 2026-10-24).** Their design and layout stay as they
-  are, but they are dressed as part of the Depot site with Depot's props, materials, light and skyline, so their assets
-  are modelled with Depot's (the range in WL9, step 26; the tutorial in step 27). The range stands as its own space
-  in the lot west of Depot's yard, not on the match field: its coordinates are Depot's less (-42, -6), unturned, so
-  the sun and Depot's skyline stand round it as round the yard, and Depot's water tower and a shed that stood on that
-  lot moved west in both files (WL9).
+- **The practice range and the tutorial are set in Depot (owner, 2026-10-24; the tutorial dropped, owner
+  2026-10-25).** Their design and layout stay as they are, but they are dressed as part of the Depot site with
+  Depot's props, materials, light and skyline, so their assets are modelled with Depot's (the range in WL9, step 26;
+  the tutorial in step 27). The range stands as its own space in the lot west of Depot's yard, not on the match
+  field: its coordinates are Depot's less (-42, -6), unturned, so the sun and Depot's skyline stand round it as round
+  the yard, and Depot's water tower and a shed that stood on that lot moved west in both files (WL9).
 - **Practice on a public map is public (owner, 2026-10-24: the recommended defaults; WL9).** On a dev map it is dev,
   and Woodland's practice is at night with your weapon torch.
 - **Neon Heights is the third field: a vertical futuristic city with Day and Night (owner, 2026-10-04).** 46 × 30 m,
@@ -617,9 +617,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   only on a map that hosts it, and a rule the mode doesn't read is hidden.
 - **The mode cards' pictures are deleted (owner, 2026-10-17; KI2).** The cards are text boxes since MR1, so the pictures
   were never shown; a picture the player never sees doesn't ship.
-- **The tutorial teaches leaning, and its read cards last 10 s (owner, 2026-10-17, Beta 1 playtest item 33; TT2).** The
-  lean step comes after Crouch: hold Q and E to peek either way, ticked once both sides are done. It teaches peeking,
-  not resting on cover.
+- **The tutorial teaches leaning, and its read cards last 10 s (owner, 2026-10-17, Beta 1 playtest item 33; TT2; the
+  tutorial dropped, owner 2026-10-25).** The lean step comes after Crouch: hold Q and E to peek either way, ticked
+  once both sides are done. It teaches peeking, not resting on cover.
 - **A UI redesign, a Visual redesign, an Audio redesign and a Performance update are planned for later, their versions
   not set (owner, 2026-10-13 and 2026-10-16).** Parked in `docs/IDEAS.md` until he places them, with no work before.
 
