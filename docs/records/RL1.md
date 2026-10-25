@@ -1,6 +1,6 @@
 # RL1 · The release plays the Windows build it ships
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 William asked (2026-10-25) whether a release tag makes a Windows installer for players. It already did: the Release
 workflow exports Windows and Linux on the tag, builds `Airsoft-<tag>-Windows-Setup.exe` with Inno Setup, installs and
@@ -13,7 +13,8 @@ the Windows one, so a Windows-only start failure would have shipped.
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-25 | 1 | Opus 5.5 (thread) | Release dry run on the PR | – | – |
+| 2026-10-25 | 1 | Opus 5.5 (thread) | Release dry run 40194111511 pass: installed Windows game `[smoke] ok` in 33 s, 6 rounds, 5 plates; installer 39.1 MB | Accept 8/8 | – |
+| 2026-10-25 | 1, QA advisory | Opus 5.5 (thread) | failure paths print the log and stdout/stderr (Show-Output) | Accept 8/8 | – |
 
 ## What was built
 
@@ -31,3 +32,12 @@ the Windows one, so a Windows-only start failure would have shipped.
 
 - No code signing: it needs a certificate the owner buys, so it is a KNOWN_ISSUES row, not built.
 - No changelog note: players never see a CI check (CI1 did the same).
+
+## Reviews (2026-10-25)
+
+- **QA Pass** (Sonnet): ran `--log-file` with `--smoke` on the 4.7.2 editor build here (log has the `[boot]` and
+  `[smoke] ok` lines, plain ASCII). Advisories: failure paths printed no stdout/stderr or log on a timeout (fixed,
+  Show-Output); neither export check matches `Failed to load script` as `tools/smoke_test.sh` does, which the `[smoke]
+  ok` requirement covers; `Kill()` leaves child processes, harmless on a throwaway runner.
+- **Performance Pass** (Sonnet): nothing in the shipped build changes; the step's 5 minute cap fits the job's 20.
+- **Critic Accept 8/8** (Opus): no must-fix. Later, both export checks could add `Failed to load script`.

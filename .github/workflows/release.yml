@@ -177,15 +177,17 @@ jobs:
           $p = Start-Process "$dir\Airsoft.exe" -ArgumentList "--headless", "--log-file", "`"$log`"", "--", "--smoke" -PassThru `
             -RedirectStandardOutput "$env:RUNNER_TEMP\windows-smoke.out" -RedirectStandardError "$env:RUNNER_TEMP\windows-smoke.err"
           $null = $p.Handle # keeps the exit code readable after the wait
-          if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "the game didn't finish the smoke run in 5 minutes" }
+          function Show-Output { foreach ($f in "$log", "$env:RUNNER_TEMP\windows-smoke.out", "$env:RUNNER_TEMP\windows-smoke.err") {
+            if (Test-Path $f) { Write-Host "--- $f"; Get-Content $f -Tail 40 } } }
+          if (-not $p.WaitForExit(300000)) { $p.Kill(); Show-Output; throw "the game didn't finish the smoke run in 5 minutes" }
           $text = Get-Content $log -Raw -ErrorAction SilentlyContinue
-          if (-not $text) { throw "the game wrote no log to $log (exit code $($p.ExitCode))" }
+          if (-not $text) { Show-Output; throw "the game wrote no log to $log (exit code $($p.ExitCode))" }
           $errors = Select-String -Path $log -Pattern "SCRIPT ERROR|Parse Error"
           if ($p.ExitCode -ne 0 -or $errors -or $text -notmatch "(?m)^\[smoke\] ok") {
-            Get-Content $log -Tail 40
+            Show-Output
             throw "Windows smoke run failed: exit code $($p.ExitCode), $(@($errors).Count) script errors"
           }
-          if (-not $text.Contains("[boot] Airsoft $env:NAME ")) { Get-Content $log -Tail 40; throw "the title doesn't show $env:NAME" }
+          if (-not $text.Contains("[boot] Airsoft $env:NAME ")) { Show-Output; throw "the title doesn't show $env:NAME" }
           Select-String -Path $log -Pattern "^\[smoke\] ok" | ForEach-Object { $_.Line }
 
       - name: Check the uninstaller removes the game silently
