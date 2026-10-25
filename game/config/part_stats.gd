@@ -1,8 +1,9 @@
 class_name PartStats
 extends RefCounted
 ## data/stats.md's part tables (the browser game's config/optics.ts, lasers.ts and attachments.ts over its stats file):
-## what each optic, grip, laser, magazine, barrel and muzzle part changes, and how far and wide each light shines, by its Key. A part with no row, or a cell
-## that won't read or is out of range, changes nothing there and is reported with its line ("stats.md:80: …").
+## what each optic, grip, laser, magazine, barrel and muzzle part changes, and how far and wide each light shines, by
+## its Key. A part with no row, or a cell that won't read or is out of range, changes nothing there and is reported with
+## its line ("stats.md:80: …").
 
 const KEY_HEADER := "Key"
 const RATTLES_YES := "yes"

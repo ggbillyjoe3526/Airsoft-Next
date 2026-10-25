@@ -1,8 +1,9 @@
 class_name Armament
 extends RefCounted
 ## A character's replicas and what they're doing: magazines, the selector, reloads, draws, the trigger and recoil (the
-## browser game's sim/armament.ts, without its optics, parts, magazine toss, bottomless magazines or vault hold-off;
-## the weapon torch fitted to each replica is here, Torch switches it). Plain data; `step` is the only rule that changes it during play.
+## browser game's sim/armament.ts, without its optics, parts, magazine toss, bottomless magazines or vault hold-off; the
+## weapon torch fitted to each replica is here, Torch switches it). Plain data; `step` is the only rule that changes it
+## during play.
 
 ## Magazines carried for one replica: the one loaded and the spares in the pouch, each with the BBs it has left. A
 ## reload swaps the loaded one for the fullest spare and puts the old one back as it is (no topping up); empties stay

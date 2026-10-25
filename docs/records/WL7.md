@@ -1,13 +1,13 @@
 # WL7 · The weapon torch
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | 3,130 of 3,130 | – | – |
-| 2026-10-25 | 2 | worker | 3,146 of 3,146 | – | QA and performance passed; their fixes: the pools' light only with a torch in your kit, the torch's shadow only with Sun shadows on |
+| 2026-10-25 | 2 | worker | 3,146 of 3,146 | Accept 8/8 | QA and performance passed; their fixes: the pools' light only with a torch in your kit, the torch's shadow only with Sun shadows on |
 
 ## Goal
 
