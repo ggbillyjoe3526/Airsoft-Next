@@ -10,7 +10,7 @@ const GROUND := 0.01
 
 
 ## One part: the section `a` at its start and `b` at its end (the same number of points, joined side by side), its
-## faces `colour`; a cap closes a section unless it is on the ground or shrunk to a point.
+## faces `colour`; a cap closes a section unless it is on the ground or shrunk to a point. A lamp glows at night.
 class Part:
 	extends RefCounted
 	var a: PackedVector3Array = PackedVector3Array()
@@ -18,6 +18,7 @@ class Part:
 	var colour: Color = Color.WHITE
 	var cap_a: bool = true
 	var cap_b: bool = true
+	var lamp: bool = false
 
 
 ## The parts of `p`, the field's middle at `middle` (x, z).
@@ -317,7 +318,9 @@ static func _mast(out: Array[Part], p: SkylinePiece, cfg: SkylineConfig, toward:
 	for i in cfg.mast_lamps:
 		var at := head + across * ((i + 0.5) * lamp - p.width * 0.5) + facing * p.depth * 0.5
 		var face := _rect(lamp * 0.4, cfg.mast_head * 0.35)
-		out.append(sweep(at, at + facing * cfg.proud * 3.0, face, face, cfg.mast_lamp_colour))
+		var glass := sweep(at, at + facing * cfg.proud * 3.0, face, face, cfg.mast_lamp_colour)
+		glass.lamp = true
+		out.append(glass)
 
 
 ## An axis-aligned box from `lo` to `hi`.

@@ -2,7 +2,8 @@ extends GutTest
 ## The skyline (DP3): MapData reads `dressing.skyline`, SkylineView builds what a player can see over the walls
 ## (SkylineSight) as one vertex-coloured mesh faded toward the horizon, with no collider, Depot's landmarks (the watch
 ## tower, the fuselage, four masts) always among it, no colour near a team's hue, the chimneys' smoke from Medium, and
-## a map with no skyline drawn as before.
+## a map with no skyline drawn as before. At night (WL3) it fades to the night horizon, its hue test passes on both
+## horizons, and the masts' lamps glow with no real light.
 
 ## A walled yard: 4 m walls round a 20 m square, a spawn each end; beyond the north wall a 3 m shed (hidden by it), a
 ## 20 m chimney (seen), a kind not built yet and a shed with no height (left out with a warning).
@@ -130,6 +131,50 @@ func test_no_skyline_colour_reads_as_a_team() -> void:
 		assert_eq(team_like, [] as Array[String], "%s: no skyline colour near a team's hue" % id)
 		if v != view:
 			v.free()
+
+
+func test_it_fades_to_the_playing_horizon_and_no_fade_step_reads_as_a_team_by_day_or_night() -> void:
+	var teams := AccessibilityTable.read_file().colours
+	var cfg := play.skyline
+	var parts: Array[SkylineShapes.Part] = []
+	for p in depot.skyline:
+		parts.append_array(SkylineShapes.parts_of(p, cfg, SkylineView.middle_of(depot)))
+	for preset: LightingConfig in [play.lighting, play.night_lighting]:
+		var far_part: Array[SkylineShapes.Part] = [SkylineShapes.box(Vector3(299, 0, -1), Vector3(301, 2, 1),
+				Color(0.6, 0.6, 0.6))]
+		var far: PackedColorArray = SkylineView.mesh_of(far_part, cfg, preset.sky_horizon, Vector2.ZERO).surface_get_arrays(
+				0)[Mesh.ARRAY_COLOR]
+		assert_lt(_gap(far[0], preset.sky_horizon), _gap(Color(0.6, 0.6, 0.6), preset.sky_horizon) * 0.5,
+				"%s: a far piece fades toward its own horizon" % preset.id)
+		var bad: Array[String] = []
+		var horizon := preset.sky_horizon.srgb_to_linear()
+		for part in parts:
+			var own := part.colour.srgb_to_linear()
+			for step in 8:
+				var c := own.lerp(horizon, cfg.fade_most * step / 7.0).linear_to_srgb()
+				if FieldChecks.reads_as_team(c, teams):
+					bad.append("#%s" % part.colour.to_html(false))
+					break
+		assert_eq(bad, [] as Array[String], "%s: no fade step toward its horizon near a team's hue" % preset.id)
+	assert_ne(play.night_lighting.sky_horizon, play.lighting.sky_horizon, "the night has its own horizon")
+
+
+func test_the_masts_lamps_glow_at_night_with_no_real_light() -> void:
+	var night := SkylineView.build(depot, play.skyline, play.night_lighting, body.stand_eye_height)
+	add_child_autofree(night)
+	assert_eq(view.mesh().get_surface_count(), 1, "by day the lamps are part of the one mesh")
+	assert_eq(night.mesh().get_surface_count(), 2, "at night they are a surface of their own")
+	var glow := night.mesh().surface_get_material(1) as StandardMaterial3D
+	assert_true(glow.emission_enabled and glow.emission == play.skyline.mast_lamp_glow, "self-lit in the lamp's glow")
+	assert_true(glow.disable_fog, "through the haze")
+	var lamps: PackedVector3Array = night.mesh().surface_get_arrays(1)[Mesh.ARRAY_VERTEX]
+	assert_eq(lamps.size(), 4 * play.skyline.mast_lamps * 36, "four masts' lamps, 12 triangles a lamp")
+	assert_eq(night.triangle_count(), view.triangle_count(), "the same triangles, split in two")
+	assert_eq(night.find_children("*", "Light3D", true, false).size(), 0, "no real light")
+	assert_eq(night.materials().size(), 3, "both surfaces' and the smoke's, for ShaderPrewarm")
+	var teams := AccessibilityTable.read_file().colours
+	assert_gte(FieldChecks.hue_gap(play.skyline.mast_lamp_glow, teams), FieldStandard.HUE_MARGIN_DEG,
+			"the lamps' glow is off every team's hue")
 
 
 func test_smoke_from_medium_and_frozen_under_reduced_motion() -> void:

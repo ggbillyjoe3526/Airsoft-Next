@@ -2,11 +2,12 @@ class_name MapData
 extends RefCounted
 ## A map's layout as plain data, read from data/maps/<id>.json (the browser game's map/mapTypes.ts, exported by the
 ## salvage): its blocks, its sloping ground (`terrain`, with what its ground is made of), its two ends, its kill height,
-## its named areas and storeys, its ambience, its skyline and, on the range, its targets. MapLevel builds the greybox and
-## the Jolt colliders from it; the simulation reads its ends and targets; SkylineView draws its skyline. A file that
+## its named areas and storeys, its ambience, its skyline, how it is lit (its presets and pools of light) and, on the
+## range, its targets. MapLevel builds the greybox and the Jolt colliders from it; the simulation reads its ends and
+## targets; SkylineView draws its skyline and LightPools its lights. A file that
 ## can't be played (neither a floor block nor terrain, malformed terrain, a missing end, too few spawns for a team) is
 ## refused with the reasons in `problems`; a target that can't stand, a malformed area, skyline piece or ground patch or
-## an unknown ambience is left out with a warning (`warnings`).
+## an unknown ambience, lighting preset or light is left out with a warning (`warnings`).
 
 const DIR := "res://data/maps/"
 ## How far apart (m) two blocks' faces may be and still meet, for rounding in the file.
@@ -35,6 +36,19 @@ class Block:
 	## under its roof, share their piece (MapStyle draws a piece in one colour).
 	var piece: int = 0
 
+
+## One pool of light on a night field (`lights` in the file; the browser's MapLight): a camp fire, a lantern, or a lamp
+## of no kind in its own colour (sRGB), lighting the ground within `radius` m of the point under it.
+class Light:
+	extends RefCounted
+	var position: Vector3 = Vector3.ZERO
+	var radius: float = 1.0
+	var colour: Color = Color.WHITE
+	var kind: StringName = &""
+
+
+## The kinds a light may name (a light naming none is a lamp in its own colour).
+const LIGHT_KINDS: Array[StringName] = [&"fire", &"lantern"]
 
 var id: String = ""
 var display_name: String = ""
@@ -67,6 +81,19 @@ var skyline: Array[SkylinePiece] = []
 ## KickedDust): white at the usual size on a map naming none.
 var kicked_dust_tint: Color = Color.WHITE
 var kicked_dust_scale: float = 1.0
+## `night` in the file (the browser's map.night): whether it says it plays at night, held to its first preset by
+## field.night. The night systems read the playing preset's flag (LightingConfig.night), never this.
+var night: bool = false
+## The lighting presets it offers (`lighting.presets`: LightingConfig.PRESETS), its default first; day alone for a map
+## naming none.
+var lighting_presets: Array[StringName] = [LightingConfig.DAY]
+## `lighting.moonOver`: the point (x, z) the moon hangs over; has_moon_over false on a map naming none.
+var moon_over: Vector2 = Vector2.ZERO
+var has_moon_over: bool = false
+## `lighting.overrides`: its tweaks of a preset, by preset id.
+var lighting_overrides: Dictionary[StringName, LightingConfig.Override] = {}
+## Its pools of light (`lights`), drawn under a night preset, in the file's order.
+var lights: Array[Light] = []
 ## The floor heights (m) of a map built in storeys, lowest first (Neon Heights' 0, 3 and 6); empty on a map of one.
 var storeys: PackedFloat64Array = PackedFloat64Array()
 ## Why the file was refused; empty when it loaded.
@@ -116,6 +143,9 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m._read_storeys(d.get("storeys"))
 	m._read_ambience(d.get("ambience"))
 	m._read_baked_light(d.get("bakedLight"))
+	m.night = d.get("night", false) is bool and bool(d.get("night", false))
+	m._read_lighting(d.get("lighting"))
+	m._read_lights(d.get("lights"))
 	m.skyline = SkylinePiece.read(d.get("dressing"), m.warnings)
 	m._read_kicked_dust(d.get("dressing"))
 	for w in m.warnings:
@@ -128,6 +158,41 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 
 func ok() -> bool:
 	return problems.is_empty()
+
+
+## The preset it plays: Dev › Time of day's `forced` when it names one (any preset, on any map), else the match's `pick`
+## when it offers that one, else its first.
+func preset_played(pick: StringName, forced: StringName = &"") -> StringName:
+	if LightingConfig.PRESETS.has(forced):
+		return forced
+	if lighting_presets.has(pick):
+		return pick
+	return lighting_presets[0]
+
+
+## Whether the Match screen offers it by Day or Night: it offers two presets or more.
+func offers_choice() -> bool:
+	return lighting_presets.size() > 1
+
+
+## The presets `map_id`'s file offers, its default first (day alone when it names none or can't be read), without
+## building the map (the Match page's Day / Night row).
+static func presets_in(map_id: String) -> Array[StringName]:
+	var m := MapData.new()
+	var root: Variant = JSON.parse_string(FileAccess.get_file_as_string(DIR + map_id + ".json"))
+	if root is Dictionary:
+		m._read_lighting((root as Dictionary).get("lighting"))
+	return m.lighting_presets
+
+
+## The middle of its blocks (x, z), where the skyline faces and fades from and the moon is turned from.
+func middle() -> Vector2:
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for b in blocks:
+		lo = lo.min(Vector2(b.center.x - b.size.x * 0.5, b.center.z - b.size.z * 0.5))
+		hi = hi.max(Vector2(b.center.x + b.size.x * 0.5, b.center.z + b.size.z * 0.5))
+	return (lo + hi) * 0.5 if lo.x <= hi.x else Vector2.ZERO
 
 
 ## The top of the highest floor or ramp or the terrain under (x, z), or -INF off them all (for tools and tests).
@@ -346,6 +411,85 @@ func _read_baked_light(raw: Variant) -> void:
 		baked_light_file = file
 	else:
 		warnings.append("bakedLight is not {\"file\": a file name}; drawn without it")
+
+
+## `lighting`: the presets offered (unknown ones left out; none known keeps day), moonOver and each preset's overrides.
+func _read_lighting(raw: Variant) -> void:
+	if raw == null:
+		return
+	var d: Dictionary = raw if raw is Dictionary else {}
+	var offered: Array[StringName] = []
+	var listed: Variant = d.get("presets")
+	for p: Variant in (listed as Array if listed is Array else []):
+		var preset := StringName(str(p))
+		if LightingConfig.PRESETS.has(preset) and not offered.has(preset):
+			offered.append(preset)
+		else:
+			warnings.append("lighting preset %s is not one of %s; left out" % [p, LightingConfig.PRESETS])
+	if not offered.is_empty():
+		lighting_presets = offered
+	elif listed != null:
+		warnings.append("lighting.presets names no preset; played by day")
+	var over: Variant = d.get("moonOver")
+	if over is Dictionary and (over as Dictionary).has("x") and (over as Dictionary).has("z"):
+		moon_over = Vector2(float((over as Dictionary)["x"]), float((over as Dictionary)["z"]))
+		has_moon_over = true
+	var overrides: Variant = d.get("overrides")
+	if overrides is Dictionary:
+		for key: Variant in overrides:
+			var preset := StringName(str(key))
+			if LightingConfig.PRESETS.has(preset) and (overrides as Dictionary)[key] is Dictionary:
+				lighting_overrides[preset] = _override((overrides as Dictionary)[key])
+			else:
+				warnings.append("lighting.overrides.%s is not a preset's tweaks; left out" % key)
+
+
+static func _override(d: Dictionary) -> LightingConfig.Override:
+	var o := LightingConfig.Override.new()
+	var hemi: Dictionary = d.get("hemi") if d.get("hemi") is Dictionary else {}
+	var key: Dictionary = d.get("key") if d.get("key") is Dictionary else {}
+	var sky: Dictionary = d.get("sky") if d.get("sky") is Dictionary else {}
+	var fog: Dictionary = d.get("fog") if d.get("fog") is Dictionary else {}
+	var night_sky: Dictionary = d.get("nightSky") if d.get("nightSky") is Dictionary else {}
+	o.fill = _number(hemi.get("intensity"), NAN)
+	o.key = _number(key.get("intensity"), NAN)
+	o.exposure_scale = _number(d.get("exposureScale"), NAN)
+	o.sky_horizon = _colour(sky.get("horizon"))
+	o.fog_colour = _colour(fog.get("colour"))
+	o.fill_sky = _colour(hemi.get("sky"))
+	o.fill_ground = _colour(hemi.get("ground"))
+	o.stars = int(_number(night_sky.get("stars"), -1.0))
+	return o
+
+
+## `lights`: each {position, radius over 0, colour, kind (optional: LIGHT_KINDS)}; one that isn't is left out.
+func _read_lights(raw: Variant) -> void:
+	if raw == null:
+		return
+	for item: Variant in (raw as Array if raw is Array else []):
+		var d: Dictionary = item if item is Dictionary else {}
+		var l := Light.new()
+		l.position = _vec(d.get("position"))
+		l.radius = _number(d.get("radius"), 0.0)
+		l.colour = _colour(d.get("colour"))
+		l.kind = StringName(str(d.get("kind", "")))
+		if not d.get("position") is Dictionary or l.radius <= 0.0 or l.colour.a <= 0.0 or not (
+				l.kind.is_empty() or LIGHT_KINDS.has(l.kind)):
+			warnings.append("light %s is not {position, radius over 0, colour, kind: one of %s}; left out" % [
+					JSON.stringify(item), LIGHT_KINDS])
+			continue
+		lights.append(l)
+
+
+static func _number(raw: Variant, otherwise: float) -> float:
+	return float(raw) if raw is float or raw is int else otherwise
+
+
+## A colour as the file writes it (0xRRGGBB), or one with alpha 0 when it isn't one.
+static func _colour(raw: Variant) -> Color:
+	if not (raw is float or raw is int):
+		return Color(0, 0, 0, 0)
+	return Color.hex((int(raw) << 8) | 0xff)
 
 
 func _read_kicked_dust(dressing: Variant) -> void:

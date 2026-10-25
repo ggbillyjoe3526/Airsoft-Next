@@ -5,8 +5,7 @@ extends RefCounted
 ## EXCEPTIONS writes down the owner's reason; a check a field fails today is on KNOWN_FAILING with the step that clears
 ## it, and a field the game refuses is on NOT_YET. Test-only (tests/ never ships). No number is raised to pass.
 ##
-## Not ported yet, and where each lands: night and light pools agree (map.night: step 26, Woodland's night play); the
-## overtime flag stands on the floor (step 27, the overtime flag); every block drawn inside its box (the first task
+## Not ported yet, and where each lands: the overtime flag stands on the floor (step 27, the overtime flag); every block drawn inside its box (the first task
 ## that draws a block as more than its box); look-only decor lies flat (map.lookOnly: Neon Heights' new look, 0.4);
 ## the perf gate (map.perf: no Godot perf matrix yet). Not ported at all: map.access and map.modes (the catalog's own
 ## rules, and an information line).
@@ -21,6 +20,8 @@ const BLOCKS := "field.blocks"
 const TEAM_COLOUR := "field.teamColour"
 const AREAS := "field.areas"
 const LANES := "field.lanes"
+## Night and lights agree (the browser's map.night; WL3).
+const NIGHT := "field.night"
 ## The layout's, measured (FC2; the browser's mapLayoutChecks.ts).
 const LANE_WALK := "field.laneWalk"
 const ROUTES := "field.routes"
@@ -29,10 +30,10 @@ const SIGHTLINE := "field.sightline"
 const MIDDLE := "field.middle"
 const FLAG := "field.flag"
 ## FieldChecks.run's (test_field_rules), FieldChecks.layout's (test_field_layout), and both.
-const RULES: Array[String] = [REGISTERED, ROOM, ON_FLOOR, RAMPS, KILL_Y, BLOCKS, TEAM_COLOUR, AREAS, LANES]
+const RULES: Array[String] = [REGISTERED, ROOM, ON_FLOOR, RAMPS, KILL_Y, BLOCKS, TEAM_COLOUR, AREAS, LANES, NIGHT]
 const LAYOUT: Array[String] = [LANE_WALK, ROUTES, SPAWN_SIGHT, SIGHTLINE, MIDDLE, FLAG]
-const CHECKS: Array[String] = [REGISTERED, ROOM, ON_FLOOR, RAMPS, KILL_Y, BLOCKS, TEAM_COLOUR, AREAS, LANES, LANE_WALK,
-		ROUTES, SPAWN_SIGHT, SIGHTLINE, MIDDLE, FLAG]
+const CHECKS: Array[String] = [REGISTERED, ROOM, ON_FLOOR, RAMPS, KILL_Y, BLOCKS, TEAM_COLOUR, AREAS, LANES, NIGHT,
+		LANE_WALK, ROUTES, SPAWN_SIGHT, SIGHTLINE, MIDDLE, FLAG]
 
 ## MAP_STANDARD. Lanes end to end: Depot's three pass, fewer than MIN_LANES fail (no way round), between warns.
 const LANES_STANDARD := 3

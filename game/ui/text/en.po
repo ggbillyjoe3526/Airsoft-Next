@@ -609,6 +609,21 @@ msgstr "PRETEND SLOW FRAMES"
 msgid "DEV_PRETEND_SLOW_FRAMES_HELP"
 msgstr "Counts every frame of a round as slow, so the automatic graphics step down a preset at the round's end (only while the graphics are the automatic pick). Changes nothing else."
 
+msgid "DEV_TIME_OF_DAY"
+msgstr "TIME OF DAY"
+
+msgid "DEV_TIME_OF_DAY_HELP"
+msgstr "The light every map plays under, from the next match: its own (the Match screen's Day or Night), or Day or Night on any map. Off its own, the match stays out of the records."
+
+msgid "DEV_TIME_MAP"
+msgstr "Map's own"
+
+msgid "DEV_TIME_DAY"
+msgstr "Day"
+
+msgid "DEV_TIME_NIGHT"
+msgstr "Night"
+
 msgid "DEV_END_ROUND"
 msgstr "END THE ROUND NOW"
 
@@ -827,6 +842,21 @@ msgstr "Team size"
 
 msgid "RULES_ROUND_TIME"
 msgstr "Round time"
+
+msgid "RULES_TIME_OF_DAY"
+msgstr "Day / Night"
+
+msgid "RULE_DAY"
+msgstr "Day"
+
+msgid "RULE_NIGHT"
+msgstr "Night"
+
+msgid "RULE_TIME_BLURB_DAY"
+msgstr "Sunlight. Everyone can see a long way."
+
+msgid "RULE_TIME_BLURB_NIGHT"
+msgstr "Moonlight and haze. Fires and lanterns light the ground round them."
 
 msgid "RULE_TEAM_BLURB_1"
 msgstr "You against one bot: no teammates, nobody to cover you."

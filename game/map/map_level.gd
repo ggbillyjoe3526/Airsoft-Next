@@ -9,7 +9,8 @@ extends Node3D
 ##
 ## Baked light (DP2, Settings › Graphics › Baked light): with it on, a map naming a bake (BakedLight) is drawn as the same
 ## faces cut into tiles (GreyboxFaces.tile), each vertex's colour darkened by the sky it can't see and warmed by the sun's bounce.
-## Switching it rebuilds the mesh alone; a map with no bake draws as without it.
+## Switching it rebuilds the mesh alone; a map with no bake draws as without it. A bake is checked against the day sun it
+## was baked under, whatever preset plays; at night it draws its sky share alone (no sun to bounce; WL3).
 
 ## The physics layer the level's colliders are on, and the one the movers' bodies are on (nothing collides with them).
 const WORLD_LAYER := 1
@@ -27,6 +28,7 @@ var map: MapData = null
 var _style: MapStyle = null
 var _light: BakeConfig = null
 var _lighting: LightingConfig = null
+var _night: bool = false
 var _material: StandardMaterial3D = null
 var _mesh: MeshInstance3D = null
 ## Whether the mesh drawn is the baked one; the map's bake, loaded when first drawn (`_bake_looked`).
@@ -43,15 +45,17 @@ var _probe_body: RID
 
 
 ## Builds `m`'s greybox and colliders with `style`, for characters shaped as `body`, its baked light (off until
-## `set_baked_light`) drawn with `light` and checked against the sun in `lighting` (null: the built-in ones). Call
-## once, inside the tree.
+## `set_baked_light`) drawn with `light` and checked against the sun in `lighting` (null: the built-in ones), the
+## preset bakes are made under (the day's), not the one playing; `night` draws it with its sky share alone. Call once,
+## inside the tree.
 func build(m: MapData, style: MapStyle, body: BodyConfig, light: BakeConfig = null,
-		lighting: LightingConfig = null) -> void:
+		lighting: LightingConfig = null, night: bool = false) -> void:
 	assert(is_inside_tree(), "MapLevel.build needs the level in the tree (its physics space)")
 	map = m
 	_style = style
 	_light = light if light != null else BakeConfig.new()
 	_lighting = lighting if lighting != null else LightingConfig.new()
+	_night = night
 	name = "Map_%s" % m.id
 	_material = _greybox_material(style)
 	_mesh = _make_mesh()
@@ -245,7 +249,7 @@ func _baked_mesh() -> ArrayMesh:
 	for b in map.blocks:
 		block_linear.append(_style.block_colour(b).srgb_to_linear())
 	var dark := _light.sky_share / BakedLight.FULL
-	var warm := _light.bounce_gain / BakedLight.FULL
+	var warm := 0.0 if _night else _light.bounce_gain / BakedLight.FULL
 	var sky := _bake.sky
 	var bounce := _bake.bounce
 	for v in n:

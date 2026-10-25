@@ -191,7 +191,11 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   the game's AgX tone mapping, held by a night swatch test (2026-10-24, WL3); Neon Heights' neon stays emissive. Under
   night Medium's shadow map follows the view. A bake keeps the day sun it was baked under in its hash, so night never
   marks it stale, and draws its sky share alone at night. Fires and lanterns are yellow-white, at least 20° of hue from
-  every team colour; there is no night brightness setting (owner, 2026-10-24: the recommended defaults).
+  every team colour; there is no night brightness setting (owner, 2026-10-24: the recommended defaults). As built
+  (WL3): the playing preset's one night flag drives every night system; the night horizon is a grey-blue, since a
+  saturated night blue reads as Alpha where the skyline fades into it; the real lights on the nearest pools follow the
+  Mesh detail row (Low 0, Medium 2, High and Ultra 4) until a Graphics row of their own; a map's light of no kind keeps
+  its own colour (Neon Heights' neon), while fires and lanterns take the preset's.
 - **The first start picks a quality preset from the GPU name; only an automatic pick steps down, never a player's choice
   (2026-10-04).** Software rendering starts on Low. A step down happens between rounds and is never saved.
 - **The Blender models are the default everywhere (owner, 2026-10-16, Dev 6 playtest item 1; BD1).** Replicas, parts
@@ -422,7 +426,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Day / Night is the presets a map offers, never a map name (owner, 2026-10-24: the recommended defaults; WL3).**
   Woodland offers Night alone, Neon Heights both, Depot Day; the Match screen shows the row only where there is a
   choice, and Dev › Time of day plays any map by either. Depot's public night waits for 0.4's Day and Night on every
-  map.
+  map. The Match screen's pick lasts the session (MatchPicks), never saved; Dev › Time of day is saved with the Dev
+  settings and, off the map's own, keeps a match out of the records, as the browser's did (WL3).
 - **The practice range and the tutorial are set in Depot (owner, 2026-10-24).** Their design and layout stay as they
   are, but they are dressed as part of the Depot site with Depot's props, materials, light and skyline, so their assets
   are modelled with Depot's (the range in WL9, step 26; the tutorial in step 27).

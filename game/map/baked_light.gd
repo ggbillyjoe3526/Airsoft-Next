@@ -22,8 +22,9 @@ func whole() -> bool:
 	return vertex_count > 0 and sky.size() == vertex_count and bounce.size() == vertex_count * 3
 
 
-## The hash of everything a bake of `m` reads: the bake's version and settings, the sun, and each block's kind, place,
-## size, slope, surface and colour, in the file's order.
+## The hash of everything a bake of `m` reads: the bake's version and settings, the sun it is baked under (`lighting`:
+## the day preset's, whatever preset plays, so a night never marks a bake stale), and each block's kind, place, size,
+## slope, surface and colour, in the file's order.
 static func hash_of(m: MapData, style: MapStyle, lighting: LightingConfig, cfg: BakeConfig) -> String:
 	var parts := PackedStringArray()
 	parts.append("v%d cell %.4f rays %d reach %.4f lift %.4f ground %.4f sun %.4f" % [BakeConfig.VERSION, cfg.cell,

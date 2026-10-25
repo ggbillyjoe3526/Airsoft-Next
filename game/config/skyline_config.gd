@@ -134,10 +134,13 @@ extends Resource
 
 @export_group("Mast")
 ## A floodlight mast: a pole `mast_pole` m square, a head bar the piece's width facing the field with `mast_lamps`
-## lamps (lit at night from step 26).
+## lamps, which glow `mast_lamp_glow` at `mast_lamp_energy` at night (self-lit through the haze, no real light;
+## yellow-white as the lanterns, off Beta's hue).
 @export var mast_colour: Color = Color("8a9096")
 @export var mast_head_colour: Color = Color("3a3e46")
 @export var mast_lamp_colour: Color = Color("d6d6d0")
+@export var mast_lamp_glow: Color = Color8(255, 238, 200)
+@export var mast_lamp_energy: float = 3.0
 @export var mast_pole: float = 0.35
 @export var mast_head: float = 0.9
 @export var mast_lamps: int = 4

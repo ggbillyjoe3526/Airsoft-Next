@@ -107,6 +107,16 @@ Three lighting presets, each shared by every map that uses it and each as readab
 - **Night.** Cool blue moonlight and sky, with warm white floodlight pools from the masts and small warm lamps under
   walkways. Dark between pools, never black: every route stays lit enough to read a figure.
 
+**Night as built (WL3).** `game/config/night_lighting.tres`, from the browser's preset as first guesses: a cool moon
+18° up (turned toward a map's `moonOver`: Woodland's hangs over the Knoll), a navy sky with stars and the moon's disc
+and halo on every quality preset (its own sky shader, `FieldLighting.NIGHT_SKY`), a grey-blue horizon (a bluer one
+reads as Alpha where the skyline fades into it), haze from 20 m, a cool fill and AgX. A map's overrides scale it
+(Woodland: moon 1.35, fill 1.4, exposure 1.55 of the browser's 1.3). Fires (255, 228, 160) and lanterns (255, 232,
+180) are yellow-white pools on the ground with a glow where they hang; the nearest two (Medium) or four (High) are real
+lights. Depot's mast lamps glow (255, 238, 200) with no light of their own. Under night a figure's team paint never
+glows. The swatch test (`tests/unit/test_night_light.gd`) holds earth, wood, skin and team paint readable against the
+night ground; the record (`docs/records/WL3.md`) gives its figures.
+
 **Wet ground.** Puddles sit in low spots and by joints on dry concrete in all three presets, with sharp reflections of
 lights and sky. A puddle is a roughness change on the slab, never a separate surface, and never hides a BB. Its
 reflections come from the sky's environment map and reflection probes, not per-puddle screen-space or planar

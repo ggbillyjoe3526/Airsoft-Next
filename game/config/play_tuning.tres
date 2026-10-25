@@ -21,6 +21,7 @@
 [ext_resource type="Script" path="res://game/config/ambience_bed.gd" id="2_5olvw"]
 [ext_resource type="Script" path="res://game/config/ambience_call.gd" id="3_lbigc"]
 [ext_resource type="Script" path="res://game/config/ambience_config.gd" id="4_q5v06"]
+[ext_resource type="Resource" path="res://game/config/night_lighting.tres" id="15_nl3wl"]
 
 [sub_resource type="Resource" id="Resource_01h5l"]
 script = ExtResource("1_ermsw")
@@ -281,6 +282,7 @@ sound = SubResource("Resource_4l7r4")
 hud = SubResource("Resource_bjbwn")
 map_style = SubResource("Resource_ca7sx")
 lighting = SubResource("Resource_ynup1")
+night_lighting = ExtResource("15_nl3wl")
 baked_light = SubResource("Resource_bk2lt")
 skyline = SubResource("Resource_sk3ln")
 teams = SubResource("Resource_rbn8w")

@@ -319,6 +319,7 @@ func _start_play(smoke_practice: bool = false) -> void:
 	var custom: CustomRules = null if _smoke else _picks.custom_rules(Settings.shared())
 	_play.custom_rules = custom.copy() if custom != null else null
 	_play.map_id = map_id
+	_play.lighting_pick = &"" if _smoke else _picks.lighting
 	_play.player_team = team
 	# --seed replays a match; else a fresh seed each Play (the smoke test keeps one fixed seed, so it plays the same match).
 	if _spot != null:

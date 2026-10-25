@@ -13,7 +13,9 @@ const DEFAULT_PATH := "res://game/config/play_tuning.tres"
 @export var sound: SoundConfig = SoundConfig.new()
 @export var hud: HudConfig = HudConfig.new()
 @export var map_style: MapStyle = MapStyle.new()
+## The day preset and the night (night_lighting.tres); a map plays one of them (LightingConfig.for_map).
 @export var lighting: LightingConfig = LightingConfig.new()
+@export var night_lighting: LightingConfig = LightingConfig.new()
 @export var baked_light: BakeConfig = BakeConfig.new()
 @export var skyline: SkylineConfig = SkylineConfig.new()
 @export var teams: TeamConfig = TeamConfig.new()

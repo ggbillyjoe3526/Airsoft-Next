@@ -10,7 +10,7 @@ extends Node
 ## that a teammate took plays a radio's double click in your ear (on_order). Kit rustles as a crouch, a stand or a lean
 ## starts (FoleyTracker, from the state: bots never hear it); a landing thuds louder and lower the harder it comes down,
 ## with a rustle under a hard one. The referee's whistle (WhistleQueue) on the Interface bus: two short blasts start a
-## round, one long ends it, three more end the match, and the range's Time is one long. The map's ambience: its day beds
+## round, one long ends it, three more end the match, and the range's Time is one long. The map's ambience: its beds by day or night
 ## on the Ambience bus and its calls round the listener (AmbientCalls), positional, at the pool's lowest priority. Your
 ## own sounds play plain; everyone else's from where they happen, and only within reach of the ears the view is through
 ## (the listener): others' steps step_reach and at most step_limit per step_window, their rustle foley_reach and at most
@@ -81,6 +81,8 @@ var _foley: FoleyTracker = FoleyTracker.new()
 ## The referee's whistle: its one voice, on Interface, and the blasts waiting for it.
 var _whistle: AudioStreamPlayer = null
 var _blasts: WhistleQueue = null
+## Plays the ambience's night set (the playing preset's night flag, LightingConfig.night); set before `setup`.
+var night: bool = false
 ## The map's ambience: a voice per bed, and its calls with the match they were last timed for.
 var _beds: Array[AudioStreamPlayer] = []
 var _calls: AmbientCalls = null
@@ -497,11 +499,11 @@ func _load(cue: String) -> StringName:
 	return key
 
 
-## Starts ambience `id`'s day beds, each looping on the Ambience bus at its gain times its loop's stored peak, and
-## makes its calls (timed in play). The night set waits for step 26's Day / Night flag. One copy of each bed, unpanned:
+## Starts ambience `id`'s beds by day or by `night`, each looping on the Ambience bus at its gain times its loop's
+## stored peak, and makes its calls (timed in play). One copy of each bed, unpanned:
 ## a plain voice has no pan for the browser's two copies spread `width` apart.
 func _start_ambience(id: StringName) -> void:
-	var ambience := _cfg.ambiences.set_for(id, false)
+	var ambience := _cfg.ambiences.set_for(id, night)
 	var peaks: Variant = JSON.parse_string(FileAccess.get_file_as_string(SoundConfig.PEAKS_PATH))
 	for bed in ambience.beds:
 		var path := "%s%s.wav" % [SoundConfig.LOOP_DIR, bed.loop]
