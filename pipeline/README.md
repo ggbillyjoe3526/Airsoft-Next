@@ -100,7 +100,7 @@ result) and prints failures and totals only. Run it before QA, after QA's commit
 | `lint` | `gdlint game tests tools` (gdtoolkit 4.5.0, settings in `gdlintrc`) | no findings | both |
 | `unit` | `tools/unit_tests.sh`: every `tests/unit/test_*.gd` through GUT 9.7.1, headless | no failed test, no `SCRIPT ERROR` or `Parse Error` | both |
 | `smoke` | `tools/smoke_test.sh`: imports the project, then runs it headless with `--smoke` (a bot plays a match once bots exist) | no script error, and the run prints `[smoke] ok` | both |
-| `guards` | `tools/match_guards.sh`: every `tests/guards/test_*.gd`, whole bot matches over 16 seeds a field (MG1; CI jobs of their own, Woodland's five, WL10; locally `tools/check.sh --guards`, about two hours) | no failed test, no script error | CI; locally on request |
+| `guards` | `tools/match_guards.sh`: every `tests/guards/test_*.gd`, whole bot matches over 16 seeds a field (MG1; CI jobs of their own, six for the night guards, WL10; locally `tools/check.sh --guards`, about two hours) | no failed test, no script error | CI; locally on request |
 | `notices` | `godot --headless --path . -s res://tools/make_notices.gd` | `THIRD_PARTY_NOTICES.txt` is current | both |
 | `changelog` | `tools/changelog.sh check` | every note in `changelog.d/` is a `### Title` and `- ` bullets | both |
 | `review` | `tools/review_line.sh` on the pull request's description (`.github/workflows/review.yml`) | a docs-only change or a draft skips it; otherwise the `Review:` line gives `critic Accept` (or `auto-accept`), `qa Pass` and `performance Pass` | CI |

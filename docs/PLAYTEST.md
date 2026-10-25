@@ -392,7 +392,8 @@ Woodland stays dev content until you make it public (`data/maps.md`, its Tag) on
 
 - [ ] **A whole night from each camp (WL10).** A 5v5 Elimination as Alpha and one as Beta, so you start once from the
   west camp behind West Hill and once from the east camp behind the Knoll (half time swaps them too). Does either
-  start feel safer or quicker to the fort? The bots' figures lean a little to one end (`docs/records/WL10.md`).
+  start feel safer or quicker to the fort? Bot against bot the east end wins a little more: 53.7 % of rounds at Normal,
+  61.6 % at Hard (`docs/records/WL10.md`).
 - [ ] **The fort and the hut (WL10).** Attack / Defend from both ends: raise the flag at the fort, and defend it. Bots
   still never hunt inside the hut (KNOWN_ISSUES): hide in it late in a round and note how long it keeps you. Do the
   chest-high walls and the hut give attackers and defenders a fair fight?

@@ -388,7 +388,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **The match guards play each field at the team size and time of day it is played (2026-10-25, WL10; Claude's
   defaults).** Woodland at 5v5 (its standard, from `data/maps.md` through `MatchRunner.sized_for`) at night, in
   Elimination and Attack / Defend, 16 seeds at Normal and 8 at Easy, Hard and Pro each, as five CI jobs of 16 matches;
-  Neon Heights by day as before and at night at Normal in both modes; Depot by day. The height guards take a terrain's
+  Neon Heights by day as before and at night at Normal in both modes (a sixth job: the day job takes 18 of its 30
+  minutes); Depot by day. The height guards take a terrain's
   lowest point. The balance report plays Woodland the same way.
 - **A bot holds fire where a teammate could be when its BBs pass (2026-10-25, WL10; Claude's defaults).** A bot
   teammate walking a route counts where the route takes it, round its corners, at its pace and at a run; one in a fight
