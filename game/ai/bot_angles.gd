@@ -1,7 +1,7 @@
 class_name BotAngles
 ## Held angles (the browser game's ai/angles.ts, walls only): where someone would step into view. A bot holding still
 ## fans rays out at eye height across the enemy side and looks for an edge: a ray that stops at a wall next to one that
-## runs on. Someone coming round that corner, or through that doorway, appears just past the edge, so that is where a Pro
+## runs on. Someone coming round that corner, or through that doorway, appears just past the edge, so that is where a Hard
 ## bot aims, at head height. Built from the level's geometry alone: where the enemies are never enters it. Allocates
 ## nothing.
 

@@ -46,7 +46,7 @@ typo never stops the game from starting.
   the middle ones the trade-offs (a quiet muzzle, quick handling or a tighter barrel), and the last ones the strongest
   power (the LiPo battery, Black Gas) and the Cyber Pistol.
 - **The pace** (2026-10-13). A first-to-5 match on Normal gives about 250 XP, so level 1 comes after the first match
-  and level 10 after about 25 matches on Normal (about 17 on Hard, 13 on Pro).
+  and level 10 after about 25 matches on Normal (about 17 on Hard).
 - **At the cap,** XP stops counting until the cap goes up: the Armory and the match summary say so.
 
 ## XP
@@ -75,5 +75,4 @@ content or Dev settings that change how it plays.
 | Easy | 0.5 |
 | Normal | 1 |
 | Hard | 1.5 |
-| Pro | 2 |
 | Custom | 1.5 |

@@ -10,7 +10,7 @@ var mode: String = MatchOptions.MODE_ELIMINATION
 ## PlaySession.TEAM_ALPHA or TEAM_BETA.
 var team: int = PlaySession.TEAM_ALPHA
 ## The other team's level, and your teammates': "" while they follow the opponents' (MatchOptions.teammates_level).
-var bots: String = "normal"
+var bots: String = MatchOptions.DEFAULT_LEVEL
 var teammates: String = ""
 ## MatchOptions.RULES_SKIRMISH or RULES_CUSTOM.
 var rules: String = MatchOptions.RULES_SKIRMISH

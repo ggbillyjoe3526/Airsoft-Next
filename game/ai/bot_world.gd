@@ -91,7 +91,7 @@ func trading(b: Bot) -> bool:
 	return time - b.trade_at < cfg.trade_time
 
 
-## Keeping out of the light (BotSkill.keeps_dark): `g` (a floor point) moved to the nearest dark spot on its own floor,
+## Keeping out of the light (every level): `g` (a floor point) moved to the nearest dark spot on its own floor,
 ## within dark_spot_radius in rings dark_spot_step apart, dark_spot_directions round each; `g` itself by day, outside the
 ## light, or with no dark spot near. The nearest is at the pool's edge, so a bot that stops a little short of it may
 ## stand just inside the light (the browser game's M40: a margin past the edge made defenders too strong).

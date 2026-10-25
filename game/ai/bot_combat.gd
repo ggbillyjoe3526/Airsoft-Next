@@ -67,7 +67,7 @@ static func aim(b: Bot, w: BotWorld, target: Character, eye: Vector3, walking: b
 	elif walking and not (b.mode == Bot.Mode.ADVANCE and not b.hunting and cos(walk_yaw - enemy) < 0.0):
 		_look_yaw = walk_yaw
 	elif not (b.holding and b.skill.holds_angles and _held_angle_look(b, w, eye, enemy, false, INF) != null):
-		# Holding, or walking back along its lane: face the enemy side, sweeping slowly across it while holding. Pro
+		# Holding, or walking back along its lane: face the enemy side, sweeping slowly across it while holding. Hard
 		# aims at the corners someone would come round instead of sweeping.
 		_look_yaw = enemy
 		if b.holding:
@@ -203,7 +203,7 @@ static func flight_time(b: Bot, w: BotWorld, dist: float) -> float:
 ## of fire (_body_in_line) up to where a miss would stop.
 static func _line_of_fire_blocked(b: Bot, w: BotWorld, eye: Vector3, dir: Vector3, dist: float) -> bool:
 	var cfg := w.cfg
-	if not BotSenses.line_clear(w.query, eye, _aim_point) or leaves_in_line(b, w, eye, _aim_point):
+	if not BotSenses.line_clear(w.query, eye, _aim_point) or leaves_in_line(w, eye, _aim_point):
 		return true
 	var reach := miss_reach(cfg, dist)
 	var wall := -1.0
@@ -216,14 +216,14 @@ static func _line_of_fire_blocked(b: Bot, w: BotWorld, eye: Vector3, dir: Vector
 	return _body_in_line(b, w, eye, dir, _friendly_reach(w, eye, dir, dist, wall, stray), dist, stray)
 
 
-## True if the line from `eye` to `aim_point` runs through more bush than `b` shoots through (FO1): more than
-## foliage_fire_through of leaves, or for a bot that fires into them (Easy, BotSkill.fires_into_leaves) as much as stops
-## a BB. A bot can notice someone in a bush close by (close_awareness) and still have no shot at them.
-static func leaves_in_line(b: Bot, w: BotWorld, eye: Vector3, aim_point: Vector3) -> bool:
+## True if the line from `eye` to `aim_point` runs through more bush than a bot shoots through (FO1): more than
+## foliage_fire_through of leaves. A bot can notice someone in a bush close by (close_awareness) and still have no shot
+## at them.
+static func leaves_in_line(w: BotWorld, eye: Vector3, aim_point: Vector3) -> bool:
 	var leaves := w.query.foliage
 	if leaves == null or leaves.is_empty():
 		return false
-	var most := w.tuning.ballistics.leaf_stop_depth if b.skill.fires_into_leaves else w.cfg.foliage_fire_through
+	var most := w.cfg.foliage_fire_through
 	return leaves.depth(eye, aim_point, most) > most
 
 

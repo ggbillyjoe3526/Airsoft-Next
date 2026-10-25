@@ -747,31 +747,22 @@ msgstr "Normal"
 msgid "BOT_HARD"
 msgstr "Hard"
 
-msgid "BOT_PRO"
-msgstr "Pro"
-
 msgid "BOT_EASY_BLURB"
-msgstr "Slow to react, shaky aim. Learn the map."
+msgstr "A fair fight to learn on: their first BBs up close can miss."
 
 msgid "BOT_NORMAL_BLURB"
-msgstr "A fair fight: their first BBs up close can miss."
-
-msgid "BOT_HARD_BLURB"
 msgstr "Quick and steady, each on kit of its own. Get seen first and you're out."
 
-msgid "BOT_PRO_BLURB"
+msgid "BOT_HARD_BLURB"
 msgstr "Tournament-sharp: patient, accurate and well kitted. Slow down and slice every corner."
 
 msgid "BOT_EASY_MATES"
-msgstr "Slow to react, shaky aim: you carry the team."
-
-msgid "BOT_NORMAL_MATES"
 msgstr "They hold their own in a fair fight."
 
-msgid "BOT_HARD_MATES"
+msgid "BOT_NORMAL_MATES"
 msgstr "Quick and steady: they win fights for you."
 
-msgid "BOT_PRO_MATES"
+msgid "BOT_HARD_MATES"
 msgstr "Patient and accurate: they hold their angles and win their duels."
 
 msgid "BOT_XP"
@@ -1847,7 +1838,7 @@ msgid "PRO_TIP_1"
 msgstr "Slice corners: open each one a step at a time, from wide, instead of running past it."
 
 msgid "PRO_TIP_2"
-msgstr "Short peeks: show yourself for a heartbeat and step back. A Pro bot needs a moment to answer, and a quick peek costs you nothing."
+msgstr "Short peeks: show yourself for a heartbeat and step back. A Hard bot needs a moment to answer, and a quick peek costs you nothing."
 
 msgid "PRO_TIP_3"
 msgstr "Listen: a bot on the move is loud. Stand still, hear which way they come, then peek."
@@ -2408,7 +2399,7 @@ msgid "SETTINGS_HUD_SIZE_NOTE"
 msgstr "Everything but the crosshair, hit marker and cue ring. %d to %d %%."
 
 msgid "SETTINGS_WHAT_GOT_YOU_NOTE"
-msgstr "Auto: against Pro bots only."
+msgstr "Auto: against Hard bots only."
 
 msgid "SETTINGS_MINIMAP"
 msgstr "Minimap"

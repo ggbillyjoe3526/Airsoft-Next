@@ -9,11 +9,10 @@ extends Resource
 const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 
 ## Each level's skill (DECISIONS 2026-10-01: difficulty is skill plus a few tactics, never different senses). `skill` is
-## Normal, the baseline every level is tuned from (owner, 2026-10-06).
+## Easy's, the baseline every level is tuned from (owner, 2026-10-06; Normal's until the levels moved up, 2026-10-25).
 @export var skill: BotSkill = BotSkill.new()
-@export var easy_skill: BotSkill = BotSkill.new()
+@export var normal_skill: BotSkill = BotSkill.new()
 @export var hard_skill: BotSkill = BotSkill.new()
-@export var pro_skill: BotSkill = BotSkill.new()
 ## Squad orders: where bot teammates go when a teammate orders them (SquadOrders).
 @export var squad: SquadConfig = SquadConfig.new()
 
@@ -103,8 +102,7 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## Holds fire when its aim line meets a wall within this share of the distance to the target.
 @export var aim_wall_fraction: float = 0.5
 ## Hold fire when the line to the target runs through more than this much bush (m of leaves, FO1): BBs pushed that far
-## in come out well off their line or not at all, so the bot waits for a clearer shot. Easy fires into the leaves anyway,
-## as far as a BB could get through them (BotSkill.fires_into_leaves).
+## in come out well off their line or not at all, so the bot waits for a clearer shot.
 @export var foliage_fire_through: float = 0.25
 
 @export_group("Lanes and holds")
@@ -340,34 +338,25 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var night_torch_seen_from_deg: float = 60.0
 ## How bots work their weapon torch at night (BotTorch, the browser's BOT_TORCH): on fighting someone within
 ## torch_fight_reach (m; or the torch's own reach if shorter) and on the last stretch of a search; off advancing, in
-## cover, at the pole, on orders and between rounds (Easy, which doesn't keep out of the light either, keeps it on while
-## advancing and searching). A state is held torch_min_hold s at least: no strobing.
+## cover, at the pole, on orders and between rounds. A state is held torch_min_hold s at least: no strobing.
 @export var torch_min_hold: float = 1.5
 @export var torch_fight_reach: float = 20.0
-## Keeping out of the light (BotSkill.keeps_dark): a lane point or hunt spot in a light pool moves to the nearest dark
-## spot on its floor within dark_spot_radius (m), tried in rings dark_spot_step (m) apart, dark_spot_directions round
-## each; unmoved if there is none.
+## Keeping out of the light (every level, the browser game's keepsDark): a lane point or hunt spot in a light pool moves
+## to the nearest dark spot on its floor within dark_spot_radius (m), tried in rings dark_spot_step (m) apart,
+## dark_spot_directions round each; unmoved if there is none.
 @export var dark_spot_radius: float = 8.0
 @export var dark_spot_step: float = 1.0
 @export var dark_spot_directions: int = 16
 
 
-## The skill a bot at `level` (MatchOptions.BOT_LEVELS) plays with; Normal's for a level it doesn't know.
+## The skill a bot at `level` (MatchOptions.BOT_LEVELS) plays with; Easy's, the baseline, for a level it doesn't know.
 func skill_for(level: StringName) -> BotSkill:
 	match level:
-		&"easy":
-			return easy_skill
+		&"normal":
+			return normal_skill
 		&"hard":
 			return hard_skill
-		&"pro":
-			return pro_skill
 	return skill
-
-
-## Your teammates' level until you pick one: the opponents', except that Easy opponents give you Normal teammates
-## (owner, 2026-10-05): a new player on Easy needs teammates who win their fights.
-static func teammates_following(opponents: StringName) -> StringName:
-	return &"normal" if opponents == &"easy" else opponents
 
 
 ## The game's bot tuning (bot_tuning.tres), or the built-in values with a warning if it can't be loaded.

@@ -77,7 +77,7 @@ static func _pick_flag_spot(b: Bot, w: BotWorld) -> void:
 	threat.y = pole.y + w.tuning.body.stand_eye_height
 	var taken := BotRoutes.teammate_spots(b, w)
 	if BotCover.find(pole, threat, w, b.rng, b.hold_spot, cfg.flag_guard_radius, 0, true, BotRoutes.taken(), taken,
-			b.skill.keeps_dark):
+			true):
 		b.flag_goal = b.hold_spot.position
 	else:
 		b.flag_goal = _jitter(b, w, pole, cfg.flag_guard_radius)
@@ -283,9 +283,8 @@ static func _next_goal(b: Bot, w: BotWorld) -> bool:
 			b.lane_index = next
 			b.lane_goal = _jitter(b, w, lane[next], w.cfg.lane_jitter)
 			_stagger_hold(b, w)
-			# At night Normal and up hold out of the light pools (BotWorld.out_of_light); Easy stands where its lane says.
-			if b.skill.keeps_dark:
-				b.lane_goal = w.out_of_light(b.lane_goal)
+			# At night it holds out of the light pools (BotWorld.out_of_light).
+			b.lane_goal = w.out_of_light(b.lane_goal)
 			return true
 	# Attack / Defend: a defender holds its last point; an attacker goes for the pole (BotFlag.wants_flag).
 	match BotFlag.role(b, w):
@@ -490,7 +489,7 @@ static func _pick_hold_cover(b: Bot, w: BotWorld) -> bool:
 			-cos(yaw) * cfg.hold_cover_threat_distance)
 	var taken := BotRoutes.teammate_spots(b, w)
 	return BotCover.find(p, threat, w, b.rng, b.hold_spot, cfg.hold_cover_radius, 0, true, BotRoutes.taken(), taken,
-			b.skill.keeps_dark) and b.hold_spot.crouch_only
+			true) and b.hold_spot.crouch_only
 
 
 ## True if a bot teammate on the same lane, within bound_distance, is walking it now (team play: one moves, one covers).

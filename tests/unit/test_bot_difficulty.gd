@@ -1,32 +1,40 @@
 extends GutTest
-## Bot difficulty (DF1): each level's skill from bot_tuning.tres, a level per team (the other team's, and your
-## teammates' following it, Normal against Easy), the records only for the standard pair, and the balance report's
-## bands per level (game/config/bot_config.gd, game/ai/bot_controller.gd, game/play/play_session.gd,
+## Bot difficulty (DF1; three levels since TL1): each level's skill from bot_tuning.tres, a level per team (the other
+## team's, and your teammates' following it), the records only for the standard pair, and the balance report's bands
+## per level (game/config/bot_config.gd, game/ai/bot_controller.gd, game/play/play_session.gd,
 ## tests/balance/balance_report.gd).
 
 var config: BotConfig = BotConfig.load_default()
 
 
 func test_each_level_has_the_browser_games_numbers() -> void:
-	var easy := config.skill_for(&"easy")
-	assert_eq(easy.reaction_time, Vector2(0.6, 1.0))
-	assert_almost_eq(easy.aim_error_start_deg, 8.0, 1e-6)
-	assert_almost_eq(easy.flank_chance, 0.0, 1e-6, "Easy never flanks")
-	var hard := config.skill_for(&"hard")
-	assert_almost_eq(hard.turn_rate, 5.5, 1e-6)
-	assert_almost_eq(hard.lead_factor, 0.7, 1e-6)
-	assert_eq(hard.hold_time, Vector2(0.4, 1.2))
-	var pro := config.skill_for(&"pro")
-	assert_almost_eq(pro.aim_error_settled_deg, 0.75, 1e-6)
-	assert_almost_eq(pro.hunt_memory, 60.0, 1e-6)
+	# Each level moved up a name (owner, 2026-10-25): Easy plays the browser's Normal, Normal its Hard, Hard its Pro.
 	var normal := config.skill_for(&"normal")
-	assert_same(normal, config.skill, "Normal is the baseline")
-	assert_eq(normal.reaction_time, BotSkill.new().reaction_time, "Normal keeps the defaults")
-	assert_same(config.skill_for(&"nonsense"), config.skill, "a level it doesn't know plays Normal")
+	assert_almost_eq(normal.turn_rate, 5.5, 1e-6)
+	assert_almost_eq(normal.lead_factor, 0.7, 1e-6)
+	assert_eq(normal.hold_time, Vector2(0.4, 1.2))
+	var hard := config.skill_for(&"hard")
+	assert_almost_eq(hard.aim_error_settled_deg, 0.75, 1e-6)
+	assert_almost_eq(hard.hunt_memory, 60.0, 1e-6)
+	var easy := config.skill_for(&"easy")
+	assert_same(easy, config.skill, "Easy is the baseline")
+	assert_eq(easy.reaction_time, BotSkill.new().reaction_time, "Easy keeps the defaults")
+	assert_same(config.skill_for(&"nonsense"), config.skill, "a level it doesn't know plays Easy")
+	assert_same(config.skill_for(&"pro"), config.skill, "Pro is no level now: nothing asks for it")
+
+
+func test_only_hard_has_the_tactics() -> void:
+	for level: StringName in [&"easy", &"normal"]:
+		var s := config.skill_for(level)
+		assert_false(s.holds_angles or s.slices_corners or s.team_play, String(level))
+		assert_eq(s.pre_aim_reaction_time, s.reaction_time, String(level))
+	var hard := config.skill_for(&"hard")
+	assert_true(hard.holds_angles and hard.slices_corners and hard.team_play, "Hard holds angles, slices, plays as a team")
+	assert_lt(hard.pre_aim_reaction_time.y, hard.reaction_time.y)
 
 
 func test_each_level_up_reacts_sooner_turns_faster_and_aims_better() -> void:
-	var order: Array[StringName] = [&"easy", &"normal", &"hard", &"pro"]
+	var order: Array[StringName] = [&"easy", &"normal", &"hard"]
 	for i in order.size() - 1:
 		var lo := config.skill_for(order[i])
 		var hi := config.skill_for(order[i + 1])
@@ -40,11 +48,10 @@ func test_each_level_up_reacts_sooner_turns_faster_and_aims_better() -> void:
 		assert_gt(hi.lead_factor, lo.lead_factor, at)
 
 
-func test_teammates_follow_the_other_team_but_play_normal_against_easy() -> void:
-	assert_eq(BotConfig.teammates_following(&"easy"), &"normal")
-	assert_eq(BotConfig.teammates_following(&"normal"), &"normal")
-	assert_eq(BotConfig.teammates_following(&"hard"), &"hard")
-	assert_eq(BotConfig.teammates_following(&"pro"), &"pro")
+func test_teammates_follow_the_other_team_at_every_level() -> void:
+	for level: String in MatchOptions.BOT_LEVELS:
+		assert_eq(MatchOptions.teammates_level(level, ""), level)
+		assert_eq(MatchOptions.teammates_level(level, "hard"), "hard", "a pick stands")
 
 
 func test_each_team_plays_its_own_level() -> void:
@@ -62,18 +69,20 @@ func test_each_team_plays_its_own_level() -> void:
 		assert_same(b.skill, config.skill_for(levels[b.character.team]), "character %d" % b.character.id)
 	var plain := BotController.new(state, -1, r.map, r.nav, r.level.query(), tuning, config)
 	for b in plain.world.bots:
-		assert_same(b.skill, config.skill, "no levels given: everyone plays Normal")
+		assert_same(b.skill, config.skill, "no levels given: everyone plays Easy, the baseline")
 	r.free_level()
 
 
 func test_a_session_gives_your_teammates_their_level_and_records_only_the_standard_pair() -> void:
 	var s := PlaySession.new()
 	s.difficulty = &"easy"
-	assert_eq(s.teammates_level(), &"normal", "Normal teammates against Easy")
+	assert_eq(s.teammates_level(), &"easy", "Easy teammates against Easy")
 	assert_true(s.counts_for_records())
+	s.teammate_difficulty = &"normal"
+	assert_false(s.counts_for_records(), "Normal teammates against Easy would mix a harder match into Easy's record")
 	s.teammate_difficulty = &"easy"
 	assert_eq(s.teammates_level(), &"easy")
-	assert_true(s.counts_for_records(), "teammates at the other team's level count too")
+	assert_true(s.counts_for_records(), "teammates at the other team's level count")
 	s.difficulty = &"hard"
 	assert_false(s.counts_for_records(), "Easy teammates against Hard would mix an easier match into Hard's record")
 	s.teammate_difficulty = &"hard"
@@ -124,11 +133,13 @@ func test_the_balance_report_judges_each_level_by_its_band() -> void:
 		m.rounds.append(r)
 	var ends: Array[String] = ["west", "east"]
 	var matches: Array[MatchRunner.MatchTally] = [m]
+	var easy_band := BalanceReport.figures("Depot", ends, matches, &"easy")
+	assert_string_contains(easy_band[0].label, "Depot, Elimination, Easy")
+	assert_almost_eq(easy_band[0].band_min, 0.35, 1e-6)
+	assert_almost_eq(easy_band[0].band_max, 0.65, 1e-6)
+	assert_eq(BalanceReport.format_band(easy_band[0]), "35–65 %", "a band read back from a Vector2 still rounds right")
 	var hard := BalanceReport.figures("Depot", ends, matches, &"hard")
-	assert_string_contains(hard[0].label, "Depot, Elimination, Hard")
-	assert_almost_eq(hard[0].band_min, 0.35, 1e-6)
-	assert_almost_eq(hard[0].band_max, 0.65, 1e-6)
-	assert_eq(BalanceReport.format_band(hard[0]), "35–65 %", "a band read back from a Vector2 still rounds right")
+	assert_eq(Vector2(hard[0].band_min, hard[0].band_max), Vector2(0.4, 0.6), "Hard keeps Pro's band")
 	var normal := BalanceReport.figures("Depot", ends, matches)
 	assert_almost_eq(normal[0].band_min, BalanceReport.NORMAL_MIN, 1e-6, "Normal by default")
 	var slow := MatchRunner.MatchTally.new()

@@ -24,16 +24,15 @@ sectors its team checked longest ago. In sight of an enemy it fights (strafing),
 cover and peeks over it, or round a tall corner by leaning; it never fires with a teammate in the line, or anywhere a
 teammate could run to before the BBs pass (a sprinting bot also round its route's corners). Shot at, reloading or
 empty, it takes cover. With the enemy gone it searches where it was last seen or heard, sometimes flanking. At night
-Normal and up hold their lane points, hunt and take hold cover out of the light pools (`BotSkill.keeps_dark`); Easy
-stands where its lane says.
+it holds its lane points, hunts and takes hold cover out of the light pools.
 
 In Attack / Defend (`BotFlag`) the attackers walk their lanes just past the middle, then make for the pole: the nearest
 raises the flag, crouched at the rope, while the others guard it from crouch cover near by. The defenders hold their
 lane's first or second point, go after only what they see or hear near the pole, and the two nearest pull the flag down
-once it is off the bottom. Two defenders at one point stand side by side, or, playing as a team (Pro), in a crossfire
+once it is off the bottom. Two defenders at one point stand side by side, or, playing as a team (Hard), in a crossfire
 on the lane's next point.
 
-Each team plays at its level (`BotConfig.skill_for`: Easy, Normal, Hard, Pro). Pro is careful, not twitchier: holding,
+Each team plays at its level (`BotConfig.skill_for`: Easy, Normal, Hard). Hard is careful, not twitchier: holding,
 it aims at the corners someone would step out of (`BotAngles`) and answers someone appearing there sooner; near the
 enemy it walks and slices corners, leaning past a near one; it watches where someone ducked out before going after them,
 and with a threat in mind tops up only from cover. It plays as a team: it goes to trade a teammate it heard call a hit,
@@ -63,9 +62,9 @@ at its level, never how well (`BotPersonality`).
 | `bot.gd` | `Bot`: one bot's own state (mode, contacts, aim, route, lane, cover, timers) and its seeded stream |
 | `bot_brain.gd` | The tick: look, pick a mode (advance, fight, cover, search, flag, order), move, aim, fire, reload |
 | `night_field.gd` | `NightField`: the dark on a field played at night (light pools by floor, the canopy grid, roofs), from the map's data once a match, and who stands in a lit torch's beam; how far someone at a point is made out |
-| `bot_torch.gd` | `BotTorch`: the torch light the bots' sight reads, once a perception interval; each bot's switch by what it is doing (fighting within 20 m, the end of a search; Easy on the move too), held 1.5 s at least |
+| `bot_torch.gd` | `BotTorch`: the torch light the bots' sight reads, once a perception interval; each bot's switch by what it is doing (fighting within 20 m, the end of a search), held 1.5 s at least |
 | `bot_senses.gd`, `bot_hearing.gd` | Sight (view cone, walls, bodies, no more than 0.6 m of bush beyond close awareness, the night's range, which part shows) and hearing (gunfire, feet and further on loud ground, hit calls, near misses, a knock on a noisy prop as a step, a ring off steel faintly; walls judged by `SoundPath`) |
-| `bot_aim.gd`, `bot_combat.gd` | Turning, aim error that settles, lead; bursts, line-of-fire checks (no fire through more than 0.25 m of bush, Easy through what a BB crosses), reloads |
+| `bot_aim.gd`, `bot_combat.gd` | Turning, aim error that settles, lead; bursts, line-of-fire checks (no fire through more than 0.25 m of bush), reloads |
 | `bot_holster.gd` | Holstering on a long, calm sprint through its own half, drawing again on a threat |
 | `bot_angles.gd` | Held angles: the corners and doorways in view where someone would step out, from the level's walls alone |
 | `bot_cover.gd` | Crouch cover and lean spots at tall corners that hide a bot from a threat |

@@ -16,7 +16,7 @@ const TICKS_PER_SECOND := 60
 const HELD_UP_SECONDS := 10
 const HELD_UP_DISTANCE := 0.5
 ## How far (m) from where it was HELD_UP_SECONDS ago a bot that changed errand may stray at any sample and still be held
-## up: well under the 10 m a given-up search walks back (DP1, Depot seed 7 at Pro), well over a bot pacing a doorway.
+## up: well under the 10 m a given-up search walks back (DP1, Depot seed 7 at Pro, now Hard), well over a bot pacing a doorway.
 const HELD_UP_REACH := 2.0
 ## A character that ends a round in play without ever getting this far from its spawn (m) stayed home that round.
 const LEAVES_SPAWN := 8.0

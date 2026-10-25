@@ -150,9 +150,8 @@ func hunt_point(b: Bot, w: BotWorld) -> bool:
 			b.hunt_goal = spot
 	if best == INF and in_view == INF:
 		return false
-	# At night Normal and up hunt out of the light pools (BotWorld.out_of_light).
-	if b.skill.keeps_dark:
-		b.hunt_goal = w.out_of_light(b.hunt_goal)
+	# At night it hunts out of the light pools (BotWorld.out_of_light).
+	b.hunt_goal = w.out_of_light(b.hunt_goal)
 	return true
 
 

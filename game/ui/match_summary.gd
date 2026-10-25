@@ -3,7 +3,7 @@ extends Control
 ## The match summary (concept `summary.png`; the browser game's result screen), once the match's last round table makes
 ## way: under the match's WON / LOST stamp, on the left everyone's numbers for the match (MatchStats, as on Tab), in
 ## the middle the XP card as the HUD already shows it (AR1), on the right your records for this difficulty and mode
-## (SummaryRecords), What got you for each time you were hit (SummaryHits) and the next Pro tip (Pro bots only), and at
+## (SummaryRecords), What got you for each time you were hit (SummaryHits) and the next Pro tip (Hard bots only), and at
 ## the foot "A new match starts shortly · click to start now". The HUD opens it at the match's end and closes it when
 ## the next match starts. At a HUD size too large for the screen's width the HUD holds its panels and the XP card
 ## smaller (`set_fit`).
@@ -144,7 +144,7 @@ func open(state: GameState, stats: MatchStats, you: Character, show_hits: bool, 
 	_tip.text = tip
 
 
-## Your records for `heading` ("Your records · Pro Elimination"): `win_loss` there, with what this match changed
+## Your records for `heading` ("Your records · Hard Elimination"): `win_loss` there, with what this match changed
 ## (`news`; null when it stays out of the records).
 func set_records(records: Records, win_loss: PackedInt32Array, news: Records.News, heading: String) -> void:
 	_records.fill(records, win_loss, news, heading)

@@ -21,7 +21,7 @@ const PARTS_COLUMNS: PackedStringArray = ["Primary parts", "Secondary parts"]
 const GLOW_BBS := Loadout.Glow.NIGHT
 ## Each difficulty (MatchOptions.BOT_LEVELS) and its weight column.
 const WEIGHT_COLUMNS: Dictionary[StringName, String] = {
-	&"easy": "Easy", &"normal": "Normal", &"hard": "Hard", &"pro": "Pro",
+	&"easy": "Easy", &"normal": "Normal", &"hard": "Hard",
 }
 
 

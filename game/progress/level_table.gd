@@ -23,8 +23,7 @@ const CUSTOM := &"custom"
 const DEFAULT_EARN: Dictionary[StringName, int] = {
 	&"match_played": 100, &"match_won": 100, &"round_won": 20, &"hit": 10,
 }
-const DEFAULT_MULTIPLIERS: Dictionary[StringName, float] = {&"easy": 0.5, &"normal": 1.0, &"hard": 1.5, &"pro": 2.0,
-		CUSTOM: 1.5}
+const DEFAULT_MULTIPLIERS: Dictionary[StringName, float] = {&"easy": 0.5, &"normal": 1.0, &"hard": 1.5, CUSTOM: 1.5}
 ## The XP table's Event labels (lower case) and the earn key each one sets.
 const EVENT_LABELS: Dictionary[String, StringName] = {
 	"match played": &"match_played", "match won": &"match_won", "round won": &"round_won",
@@ -245,7 +244,7 @@ func _read_multipliers(t: DataTable) -> void:
 	for row in t.rows:
 		var key := StringName(row.cell(DIFFICULTY_COLUMN).to_lower())
 		if not DEFAULT_MULTIPLIERS.has(key):
-			problems.append("%s: \"%s\" isn't a difficulty (Easy, Normal, Hard, Pro or Custom)" % [t.where(row.line),
+			problems.append("%s: \"%s\" isn't a difficulty (Easy, Normal, Hard or Custom)" % [t.where(row.line),
 					row.cell(DIFFICULTY_COLUMN)])
 			continue
 		if seen.has(key):

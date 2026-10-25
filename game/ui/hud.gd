@@ -101,7 +101,7 @@ var _challenge: HudRangeChallenge = null
 ## feed under the summary.
 var _top: VBoxContainer = null
 var _bottom: VBoxContainer = null
-## "DEPOT · PRO BOTS": the end of the match stamp's line.
+## "DEPOT · HARD BOTS": the end of the match stamp's line.
 var _match_tail := ""
 var _board: HudScoreboard = null
 var _board_wanted: bool = false
@@ -369,13 +369,13 @@ func sound_cues() -> HudSoundCues:
 	return _sound_cues
 
 
-## What the scoreboard's heading says: the map's name and the line after it, and whether the opponents are Pro (its
-## tips show only then).
-func set_board_match(map_name: String, sub: String, pro: bool) -> void:
-	_board.set_match(_names, map_name, sub, pro)
+## What the scoreboard's heading says: the map's name and the line after it, and whether its Pro tips show (opponents
+## at Hard, MatchOptions.TIPS_LEVEL).
+func set_board_match(map_name: String, sub: String, tips: bool) -> void:
+	_board.set_match(_names, map_name, sub, tips)
 
 
-## The end of the match stamp's line ("DEPOT · PRO BOTS").
+## The end of the match stamp's line ("DEPOT · HARD BOTS").
 func set_match_tail(tail: String) -> void:
 	_match_tail = tail.to_upper()
 
@@ -934,7 +934,7 @@ func _round_over(rs: RoundState, e: GameEvent, state_time: float) -> void:
 	_round_result.round_over(rs.number, roundi(played), state_time)
 
 
-## "THE MATCH · ALPHA 5 – 3 BETA · DEPOT · PRO BOTS": your team first.
+## "THE MATCH · ALPHA 5 – 3 BETA · DEPOT · HARD BOTS": your team first.
 func _match_stamp_sub(score: PackedInt32Array) -> String:
 	var you := _player.team
 	var line := tr("SUM_STAMP_SUB") % [tr(_teams.names[you]), score[you], score[1 - you], tr(_teams.names[1 - you])]

@@ -39,7 +39,7 @@ static func runner(test: GutTest, map_id: String, level: StringName, night: bool
 	return r
 
 
-## The name a runner's field, level and time of day print under ("woodland pro night").
+## The name a runner's field, level and time of day print under ("woodland hard night").
 static func label(r: MatchRunner, map_id: String) -> String:
 	return "%s %s%s" % [map_id, r.difficulty, " night" if r.night else ""]
 

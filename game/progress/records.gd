@@ -2,13 +2,17 @@ class_name Records
 extends RefCounted
 ## Local records (the browser game's stats/records.ts): wins and losses per difficulty and mode, the best match accuracy,
 ## the longest run of match wins and the timed challenge's best per course. Records only, never levels or unlocks. Saved
-## through SaveFile at user://records.save (kind "records", version 1), apart from the settings, loadouts and progress;
+## through SaveFile at user://records.save (kind "records", version 2), apart from the settings, loadouts and progress;
 ## a damaged file is set aside and empty records used, one from a newer build is never written over. Fields this build
-## doesn't know are kept.
+## doesn't know are kept. Version 1 is read with its levels moved up (LEVELS_BEFORE_2).
 
 const PATH := "user://records.save"
 const KIND := "records"
-const VERSION := 1
+const VERSION := 2
+## Version 1's difficulty ids as they read since the bots' levels moved up a name (owner, 2026-10-25): each record stays
+## with the bots it was won against. Easy's and old Normal's results, both now Easy's bots or easier, add up; an id not
+## here (Custom, one this build doesn't know) is kept as it is.
+const LEVELS_BEFORE_2: Dictionary[String, String] = {"easy": "easy", "normal": "easy", "hard": "normal", "pro": "hard"}
 const KNOWN_KEYS: Array[String] = ["results", "best_accuracy", "streak", "best_streak", "best_challenge"]
 ## A match counts towards best accuracy only with at least this many BBs fired, so three lucky shots aren't a record
 ## (the browser game's minBBsForAccuracyRecord).
@@ -128,6 +132,22 @@ func load_file(path: String = PATH) -> void:
 		return
 	for p in from_dict(r.data):
 		push_warning("records: " + p)
+	if int(r.version) < 2:
+		move_levels_up()
+
+
+## Version 1's results under the level names they read by now (LEVELS_BEFORE_2); silent, as the player lost nothing.
+func move_levels_up() -> void:
+	var moved: Dictionary[String, PackedInt32Array] = {}
+	for key: String in results:
+		var dot := key.find(".")
+		var level := key.substr(0, dot)
+		var now := result_key(StringName(LEVELS_BEFORE_2.get(level, level)), key.substr(dot + 1))
+		var wl: PackedInt32Array = moved.get(now, PackedInt32Array([0, 0]))
+		wl[0] += results[key][0]
+		wl[1] += results[key][1]
+		moved[now] = wl
+	results = moved
 
 
 func save(path: String = PATH) -> bool:
