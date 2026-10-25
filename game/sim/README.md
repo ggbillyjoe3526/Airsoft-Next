@@ -21,7 +21,8 @@ and, on the range, `test_range_map.gd`).
 | `dev_cheats.gd` | `DevCheats`: the Dev settings that change play (ghost, bottomless magazines, bots hold fire, game speed), End the round now, and the match's record mark |
 | `game_event.gd`, `sim_events.gd` | The tick's events (shots, hits, footsteps, rounds), pooled: the only channel to sound, HUD and effects |
 | `seeds.gd` | Seeded streams: every random draw comes from the match's `RandomNumberGenerator` or one derived from its seed |
-| `world_query.gd`, `ray_hit.gd`, `character_mover.gd` | What the rules ask the level, behind two interfaces (Contracts 4): rays, what is underfoot, and what each of its boxes is (a skip, a crate) |
+| `world_query.gd`, `ray_hit.gd`, `character_mover.gd` | What the rules ask the level, behind two interfaces (Contracts 4): rays, what is underfoot, what each of its boxes is (a skip, a crate) and its bushes (`foliage`) |
+| `foliage.gd`, `leaves.gd` | `Foliage`: a map's bushes, upright ellipsoids with no collider, and the leaves a line crosses (bot sight and fire, a BB's path a tick), filed in a grid; `Leaves`: a BB through leaves keeps 0.35 of its speed and spin a metre and is turned up to 0.5 rad a metre from the match's stream (WL5, FO1) |
 | `prop_noise.gd` | `PropNoise`: noisy props (NP1): a run or sprint into one knocks it (PROP_KNOCK), a BB landing hard on steel rings it (PROP_RING), one quiet time a prop (`GameState.prop_quiet`), nothing random; the table is `NoiseConfig` |
 | `sound_path.gd` | `SoundPath`: the share of rays from an ear to a character's knees and head that the level blocks, and a line stopping short of a surface; the bots' hearing and the player's muffling hear through the same walls |
 | `box_world.gd` | A level of boxes answering both interfaces without a physics engine, for headless tests and tools |
@@ -34,7 +35,7 @@ and, on the range, `test_range_map.gd`).
 | `hit_facts.gd` | `HitFacts`: what the "What got you" card says about a hit on you (where from, how far, moving, held angle, time in view), one record kept by `BotController` |
 | `wind.gd` | The match's breeze, drawn from its seed each match, with gusts and a slow veer |
 | `ricochet.gd` | A BB bouncing off concrete and steel; whether a bounced BB knocks anyone out is the match's rule |
-| `hitbox.gd`, `bb_step.gd` | The hit volume (head, chest, hips leaning; swinging legs) and each tick's BB flight against the level and bodies |
+| `hitbox.gd`, `bb_step.gd` | The hit volume (head, chest, hips leaning; swinging legs) and each tick's BB flight against the level, bushes (0.6 m of leaves over a flight stops a BB) and bodies |
 | `elimination.gd` | Hit calling: alive, calling, walking off, leaving, out |
 | `round.gd`, `round_state.gd` | Rounds in Elimination and Attack / Defend: clock, score, half time, reset, match over; the flag's time-out and overtime; the practice switch (no rounds, no clock) |
 | `range_target.gd`, `range_targets.gd` | Practice range targets: steel plates (front only, on posts), figures with a player's hit volume that fall and rise, pop-ups, movers and swingers on seeded times; BBs stop on them as `TARGET_HIT`; full spares in practice |
@@ -43,5 +44,5 @@ and, on the range, `test_range_map.gd`).
 
 ## Not yet
 
-Bushes and the overtime flag come in later tasks. The walk-off route
+The overtime flag comes in a later task. The walk-off route
 goes round cover on the map's nav grid (`Simulation.nav`, game/nav/); without one it is one straight leg.

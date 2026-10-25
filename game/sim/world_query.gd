@@ -1,7 +1,7 @@
 class_name WorldQuery
 extends RefCounted
-## What the simulation asks the level (docs/ARCHITECTURE.md › Contracts 4): ray casts, what is underfoot and what its
-## boxes are. BoxWorld answers it for headless tests; the map's Jolt implementation answers it in the game. Only
+## What the simulation asks the level (docs/ARCHITECTURE.md › Contracts 4): ray casts, what is underfoot, what its
+## boxes are and where its bushes stand. BoxWorld answers it for headless tests; the map's Jolt implementation answers it in the game. Only
 ## implementations touch the physics engine.
 
 ## The level's boxes by what they are (a skip, a crate, a wall), for the rules that ask what a thing is rather than
@@ -14,6 +14,10 @@ var block_centers: PackedVector3Array = PackedVector3Array()
 var block_halves: PackedVector3Array = PackedVector3Array()
 ## What each is made of (RayHit.Surface), for the dust a knock shakes off it.
 var block_surfaces: PackedInt32Array = PackedInt32Array()
+## The level's bushes (WL5, FO1): no surface a ray meets or a mover is stopped by, only leaves a BB pushes through and
+## a bot can't see far through. Empty unless whoever builds the level hands it the map's (MapLevel from MapData.foliage;
+## tests through BoxWorld.add_bush).
+var foliage: Foliage = Foliage.new()
 
 
 ## The nearest level surface on the segment from `from` to `to`, written into `hit`; false if there is none.

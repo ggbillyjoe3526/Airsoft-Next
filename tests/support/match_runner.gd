@@ -148,6 +148,9 @@ var follow_leader: int = -1
 ## The match's mode: Attack / Defend needs a map with a pole (MapData.has_pole); team 0 attacks first, as in the browser
 ## game's guards.
 var mode: RoundState.Mode = RoundState.Mode.ELIMINATION
+## Called after every tick's step with the state and the bots (a test's own watch, such as what each bot sees through
+## bushes, WL5); none by default.
+var each_tick: Callable = Callable()
 var _kits: BotKits = null
 var _kit_rules: LoadoutRules = null
 var config: BotConfig = null
@@ -283,6 +286,8 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 			order_due = false
 		sim.step(state, commands, DT)
 		bots.observe(state)
+		if each_tick.is_valid():
+			each_tick.call(state, bots)
 		t.ticks += 1
 		_watch_routes(state, bots, t, nav.searches - searched, walk_off_wait)
 		_watch(state, t, round_now)

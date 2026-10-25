@@ -20,3 +20,5 @@ var spin_axis: Vector3 = Vector3.RIGHT
 var mass: float = 0.0
 ## Times it has bounced off a surface: a BB with bounces > 0 is a ricochet.
 var bounces: int = 0
+## Metres of bush leaves it has pushed through so far (Foliage, BBStep): at BallisticsConfig.leaf_stop_depth it stops.
+var leaf: float = 0.0

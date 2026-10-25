@@ -61,6 +61,9 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var rope_gain: float = 0.8
 @export var rope_pitch: float = 0.04
 @export var impact_gain: float = 0.9
+## A BB brushing through a bush's edge and flying on (BB_LEAVES, WL5): the leaves' rustle (impact_leaves) this loud, half
+## a stop in the leaves (which plays at impact_gain).
+@export var leaf_brush_gain: float = 0.45
 @export var impact_pitch: float = 0.1
 @export var body_hit_gain: float = 1.0
 @export var hit_tick_gain: float = 1.0

@@ -56,3 +56,7 @@ extends Resource
 ## Team play (Pro): trades a hit teammate, tells its teammates where it heard someone, moves in pairs along a lane and
 ## pushes late when behind (BotConfig's trade_*, bound_* and late_push_time).
 @export var team_play: bool = false
+## Shooting into bushes (FO1, Easy): fires through the leaves wherever its BBs could still get through
+## (BallisticsConfig.leaf_stop_depth), however far off they come out. Otherwise it holds fire through more than
+## BotConfig.foliage_fire_through of them.
+@export var fires_into_leaves: bool = false

@@ -125,7 +125,27 @@ func _draw(map: MapData, cfg: MinimapConfig, index: int, bases: PackedFloat64Arr
 		_fill(img, _block_rect(p.block), washed[p.look] if p.below else colours[p.look])
 		if p.look == Look.RAISED and not p.below:
 			_draw_rim(img, p, level_floors, edge, cfg)
+	_draw_bushes(img, map.foliage, cfg.bush_colour)
 	return img
+
+
+## Each of `bushes` as a disc of its radius in `colour`: every pixel whose middle is inside it, at least the pixel under
+## its middle.
+func _draw_bushes(img: Image, bushes: Foliage, colour: Color) -> void:
+	var bounds := Rect2i(Vector2i.ZERO, img.get_size())
+	for i in bushes.size():
+		var f := bushes.feet[i]
+		var middle := pixel_of(f.x, f.z)
+		var r := bushes.radii[i] * scale
+		var box := Rect2i(Vector2i(floori(middle.x - r), floori(middle.y - r)), Vector2i(ceili(r * 2.0) + 1,
+				ceili(r * 2.0) + 1)).intersection(bounds)
+		var centre := Vector2i(floori(middle.x), floori(middle.y))
+		if bounds.has_point(centre):
+			img.set_pixelv(centre, colour)
+		for y in range(box.position.y, box.end.y):
+			for x in range(box.position.x, box.end.x):
+				if Vector2(x + HALF, y + HALF).distance_squared_to(middle) <= r * r:
+					img.set_pixel(x, y, colour)
 
 
 ## The dark rim just outside raised floor `p`, `edge` px wide, wherever the floor beyond it (of those this layer draws)

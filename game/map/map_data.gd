@@ -2,12 +2,13 @@ class_name MapData
 extends RefCounted
 ## A map's layout as plain data, read from data/maps/<id>.json (the browser game's map/mapTypes.ts, exported by the
 ## salvage): its blocks, its sloping ground (`terrain`, with what its ground is made of), its two ends, its kill height,
-## its named areas and storeys, its ambience, its skyline, how it is lit (its presets and pools of light) and, on the
-## range, its targets. MapLevel builds the greybox and the Jolt colliders from it; the simulation reads its ends and
-## targets; SkylineView draws its skyline and LightPools its lights. A file that
+## its named areas and storeys, its ambience, its skyline, how it is lit (its presets and pools of light), its bushes
+## (`foliage`) and, on the range, its targets. MapLevel builds the greybox and the Jolt colliders from it and hands its
+## bushes to the simulation's WorldQuery; the simulation reads its ends and targets; SkylineView draws its skyline,
+## LightPools its lights and BushView its bushes. A file that
 ## can't be played (neither a floor block nor terrain, malformed terrain, a missing end, too few spawns for a team) is
-## refused with the reasons in `problems`; a target that can't stand, a malformed area, skyline piece or ground patch or
-## an unknown ambience, lighting preset or light is left out with a warning (`warnings`).
+## refused with the reasons in `problems`; a target that can't stand, a malformed area, skyline piece, ground patch or
+## bush or an unknown ambience, lighting preset or light is left out with a warning (`warnings`).
 
 const DIR := "res://data/maps/"
 ## How far apart (m) two blocks' faces may be and still meet, for rounding in the file.
@@ -65,6 +66,9 @@ var blocks: Array[Block] = []
 ## The ground that rises and falls (`terrain` in the file, its surfaces from `ground`), or null on a map whose ground is
 ## its floor blocks.
 var terrain: TerrainGrid = null
+## Its bushes (`foliage` in the file: upright ellipsoids of leaves on the ground, WL5): no collider and no nav cell, only
+## leaves that hide and stop BBs (Foliage). Empty on a map with none.
+var foliage: Foliage = Foliage.new()
 ## The map's two ends (spawns and dead zones), end 0 first.
 var ends: Array[MapEnd] = []
 var kill_y: float = -10.0
@@ -172,6 +176,7 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m.night = d.get("night", false) is bool and bool(d.get("night", false))
 	m._read_lighting(d.get("lighting"))
 	m._read_lights(d.get("lights"))
+	m._read_foliage(d.get("foliage"))
 	m.skyline = SkylinePiece.read(d.get("dressing"), m.warnings)
 	m._read_kicked_dust(d.get("dressing"))
 	m._read_woods(d.get("dressing"), style)
@@ -506,6 +511,24 @@ func _read_lights(raw: Variant) -> void:
 					JSON.stringify(item), LIGHT_KINDS])
 			continue
 		lights.append(l)
+
+
+## `foliage`: each bush {x, y, z (its foot), radius over 0, height over 0}; one that isn't is left out.
+func _read_foliage(raw: Variant) -> void:
+	if raw == null:
+		return
+	if not raw is Array:
+		warnings.append("foliage is not a list of bushes; none")
+		return
+	for item: Variant in raw:
+		var d: Dictionary = item if item is Dictionary else {}
+		var radius := _number(d.get("radius"), 0.0)
+		var height := _number(d.get("height"), 0.0)
+		var placed := _number(d.get("x"), NAN) + _number(d.get("y"), NAN) + _number(d.get("z"), NAN)
+		if is_nan(placed) or radius <= 0.0 or height <= 0.0:
+			warnings.append("bush %s is not {x, y, z, radius over 0, height over 0}; left out" % JSON.stringify(item))
+			continue
+		foliage.add(_vec(d), radius, height)
 
 
 static func _number(raw: Variant, otherwise: float) -> float:

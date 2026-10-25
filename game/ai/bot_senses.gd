@@ -1,7 +1,8 @@
 class_name BotSenses
 ## What a bot sees (the browser game's ai/perception.ts and botSenses.ts), by the same rules as anyone: a 120° view out
 ## to view_distance, anyone very close whichever way it faces, and a clear line from its eyes (lean included) to the
-## part of the target it looks for, through no wall and no body of someone already hit. Hearing is BotHearing. A bot
+## part of the target it looks for, through no wall, no body of someone already hit and no more than
+## foliage_see_through of bush (WL5; within close_awareness a bush hides no one). Hearing is BotHearing. A bot
 ## knows only what these give it: no wall-hacks, ever (DECISIONS 2026-09-30). Allocates nothing.
 
 ## Lines shorter than this (m) are clear.
@@ -49,23 +50,26 @@ static func visible_part(viewer: Character, target: Character, w: BotWorld) -> f
 	if flat > cfg.view_distance or not in_view(viewer, target.position, cfg):
 		return 0.0
 	var eye := eye_of(viewer, w.tuning)
+	var leafy := flat > cfg.close_awareness
 	var point := body_point(target, w.tuning.hits, cfg.aim_height_fraction)
-	if _sight_clear(eye, point, viewer, target, w):
+	if _sight_clear(eye, point, viewer, target, w, leafy):
 		return cfg.aim_height_fraction
 	point = body_point(target, w.tuning.hits, cfg.head_height_fraction)
-	if _sight_clear(eye, point, viewer, target, w):
+	if _sight_clear(eye, point, viewer, target, w, leafy):
 		return cfg.head_height_fraction
 	return 0.0
 
 
 ## Whether `viewer` would see someone standing at `spot` (a floor point) if anyone were there: within `range`, in view,
-## and a clear line from its eyes to a standing chest there. Hunting by eye: a spot seen empty isn't walked to.
+## and a clear line from its eyes to a standing chest there, through no more than foliage_see_through of bush (someone
+## could be hiding in one). Hunting by eye: a spot seen empty isn't walked to.
 static func sees_spot(viewer: Character, spot: Vector3, range_m: float, w: BotWorld) -> bool:
 	var flat := Vector2(spot.x - viewer.position.x, spot.z - viewer.position.z).length()
 	if flat > range_m or not in_view(viewer, spot, w.cfg):
 		return false
 	var chest := spot + Vector3(0.0, Hitbox.hit_top(0.0, w.tuning.hits) * w.cfg.aim_height_fraction, 0.0)
-	return line_clear(w.query, eye_of(viewer, w.tuning), chest)
+	var eye := eye_of(viewer, w.tuning)
+	return line_clear(w.query, eye, chest) and (flat <= w.cfg.close_awareness or leaves_clear(w, eye, chest))
 
 
 ## Updates what bot `b` sees: the nearest enemy in sight becomes its target, though it stays on the current one while
@@ -153,8 +157,19 @@ static func _aimed_at(b: Bot, w: BotWorld, target: Character, part: float) -> bo
 	return off.length() <= deg_to_rad(w.cfg.pre_aim_cone_deg)
 
 
-static func _sight_clear(eye: Vector3, point: Vector3, viewer: Character, target: Character, w: BotWorld) -> bool:
-	return line_clear(w.query, eye, point) and not _body_in_sight(eye, point, viewer, target, w)
+## True if the line from `a` to `b` runs through no more than foliage_see_through of bush.
+static func leaves_clear(w: BotWorld, a: Vector3, b: Vector3) -> bool:
+	var leaves := w.query.foliage
+	var most := w.cfg.foliage_see_through
+	return leaves == null or leaves.is_empty() or leaves.depth(a, b, most) <= most
+
+
+## A clear line from `eye` to `point`: no wall, no body of someone already hit, and with `leafy` (farther than
+## close_awareness) no more bush than foliage_see_through.
+static func _sight_clear(eye: Vector3, point: Vector3, viewer: Character, target: Character, w: BotWorld,
+		leafy: bool) -> bool:
+	return line_clear(w.query, eye, point) and (not leafy or leaves_clear(w, eye, point)) \
+			and not _body_in_sight(eye, point, viewer, target, w)
 
 
 ## True if the body of someone already hit stands in the line from `a` to `b`: a body stops BBs, and sight too.

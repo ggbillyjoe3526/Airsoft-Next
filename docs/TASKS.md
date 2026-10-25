@@ -4,32 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## WL5 · Bushes hide you and stop BBs (Dev)
-when: build order step 26, after WL1
-tier: core
-perf: required
-touches: game/map/map_data.gd, game/sim/foliage.gd, game/sim/leaves.gd, game/sim/bb_step.gd, game/sim/world_query.gd,
-  game/sim/box_world.gd, game/map/jolt_query.gd, game/config/ballistics_config.gd, game/ai/bot_senses.gd,
-  game/ai/bot_combat.gd, game/config/bot_skill.gd, game/config/bot_tuning.tres, game/play/bush_view.gd,
-  game/play/puff_view.gd, game/play/sim_audio.gd, game/ui/hud.gd, game/ui/minimap_field.gd, game/ui/text/en.po,
-  tests/unit/test_bushes.gd, docs/DECISIONS.md
-contract: Physics behind two interfaces (4); Seeded randomness (5); Data, not literals (6)
-acceptance:
-  1. MapData reads `foliage` (upright ellipsoids); `WorldQuery.foliage` hands them to the simulation. No collider
-     and no nav change: Woodland's grid and level rays are the same with and without them, and a body walks through
-     one without slowing (tested).
-  2. BBs (FO1, the browser's `sim/leaves.ts`): leaves count over the whole flight; 0.6 m stops a BB, the same depth
-     bots can't see through (a test holds them equal); a thinner crossing keeps 0.35 of its speed and spin a metre
-     and turns by up to 0.5 rad a metre from the seeded stream. A world without bushes flies BBs as before.
-  3. Bots see through no more than 0.6 m of leaves and hold fire through more than 0.25 m; Easy fires through as
-     much as a BB could cross. A 5v5 Woodland match keeps every sighting under that depth and finishes its rounds.
-  4. A BB in leaves plays `impact_leaves` with a green puff and 4 to 6 leaves where the line back leaves the bush;
-     through an edge, a quieter rustle and 1 or 2 leaves. "Leaves in the way · step clear to shoot" shows when your
-     own BB stops within 2 m of you. Bushes are drawn as placeholder ellipsoids in one draw and marked on the minimap.
-  5. The match guards pass; the record gives the BB step's time a tick with bushes in a 5v5 firefight.
-status: open
-attempts: 0
-
 ## WL6 · Bots by night (Dev)
 when: build order step 26, after WL3
 tier: core

@@ -24,3 +24,13 @@ extends Resource
 @export var max_lifetime: float = 2.5
 ## BBs in flight at once (the pool's size); a full pool reuses the oldest.
 @export var max_bbs: int = 256
+
+@export_group("Leaves")
+## Bushes (FO1, the browser game's BALLISTICS.leaves; Foliage, Leaves, BBStep): a BB that runs into one pushes through
+## its leaves. Once it has crossed leaf_stop_depth of them (m, counted over its whole flight) it stops there: the same
+## depth bots can't see through (BotConfig.foliage_see_through; a test holds them equal), so a bush you can't see through
+## is cover. One that comes out having crossed less (an edge) flies on, keeping leaf_kept_per_metre of its speed and
+## backspin a metre of leaves (exponential) and thrown off its line by up to leaf_scatter_per_metre radians a metre.
+@export var leaf_stop_depth: float = 0.6
+@export var leaf_kept_per_metre: float = 0.35
+@export var leaf_scatter_per_metre: float = 0.5

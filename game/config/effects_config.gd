@@ -25,6 +25,24 @@ extends Resource
 ## A run into a noisy prop (PROP_KNOCK, NP1): a puff of the prop's dust (its surface's colour) where it was hit, this
 ## many times a BB's (the browser game's PROP_BUMP_DUST), so the knock shows from across the yard. Dust, never debris.
 @export var knock_puff_scale: float = 4.0
+## A BB in a bush's leaves (WL5, FO1): a green puff `leaves_puff_scale` times a BB's and `leaf_stop_count` leaves (a
+## range, inclusive) where the line back leaves the bush; through an edge, `leaf_brush_count` leaves where it came out
+## and no puff. The leaves (PuffView's own pool of `leaf_pool`, one instanced draw) are `leaf_size` m long, thrown out
+## at up to `leaf_throw` m/s, fall at `leaf_fall` m/s swaying `leaf_sway` m/s, come to rest on the ground under the bush
+## and are gone after `leaf_life` s, each in one of `leaf_colours`. Greens off every team's hue (docs/ART.md).
+@export var leaves_puff_colour: Color = Color(0.84, 0.92, 0.66, 0.9)
+@export var leaves_puff_scale: float = 2.0
+@export var leaf_stop_count: Vector2i = Vector2i(4, 6)
+@export var leaf_brush_count: Vector2i = Vector2i(1, 2)
+@export var leaf_pool: int = 64
+@export var leaf_size: float = 0.07
+@export var leaf_throw: float = 0.9
+@export var leaf_fall: float = 0.55
+@export var leaf_sway: float = 0.25
+@export var leaf_life: float = 3.0
+@export var leaf_colours: PackedColorArray = PackedColorArray([
+	Color(0.55, 0.66, 0.3), Color(0.62, 0.7, 0.34), Color(0.46, 0.6, 0.27), Color(0.68, 0.72, 0.36),
+])
 ## Dust in the air round the eye, drifting with the breeze (WindDust): how many specks, how long each lives (s), the box
 ## round the eye they appear in (half extents, m), their size (m) and colour, and how often (s) their drift follows the
 ## wind's gusts.

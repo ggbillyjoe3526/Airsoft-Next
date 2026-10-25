@@ -2,7 +2,8 @@ class_name SimAudio
 extends Node
 ## The match's sound, from the tick's events (docs/ARCHITECTURE.md › Contracts 3): shots with their power part (a
 ## silenced one's shot duller and quieter; its power part and clicks as they are), dry clicks, magazines, the selector,
-## the hop-up dial and draws, BB impacts by surface, footsteps by surface and pace (louder and further on loud ground,
+## the hop-up dial and draws, BB impacts by surface (in a bush's leaves their rustle, quieter for one brushing through an
+## edge, WL5), footsteps by surface and pace (louder and further on loud ground,
 ## by the event's carry), vaults, a run into a noisy prop (its prop_<sound> cue; a BB's ring is its impact), the
 ## flag's rope ratcheting up or down, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
 ## yours, the thump when it's you. On the practice range steel rings and a figure knocks, heard down its whole length,
@@ -70,6 +71,8 @@ var _dry: Dictionary[StringName, StringName] = {}
 var _mag_out: Dictionary[StringName, StringName] = {}
 var _mag_in: Dictionary[StringName, StringName] = {}
 var _impact: Array[StringName] = []
+## A BB in a bush's leaves (BBStep.IN_LEAVES), or brushing through an edge (BB_LEAVES).
+var _leaves: StringName = &""
 var _step: Array[StringName] = []
 ## A noisy prop's cue by NoiseConfig.Sound.
 var _prop: Array[StringName] = []
@@ -118,6 +121,7 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 		_mag_in[p] = _load("magIn_%s" % p)
 	for s in IMPACT_NAMES:
 		_impact.append(_load("impact_%s" % s))
+	_leaves = _load("impact_leaves")
 	for s in SURFACE_NAMES:
 		for k in STEP_NAMES:
 			_step.append(_load("step_%s_%s" % [s, k]))
@@ -188,11 +192,14 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 				if e.target < 0:
 					if _in_reach(e.position, _cfg.max_distance) and _impacts.take(now):
 						var s := clampi(e.value2, 0, _impact.size() - 1)
-						_play(_impact[s], e.position, false, _cfg.impact_gain, Kind.IMPACT, BUS_EFFECTS, 1.0, 0.0, null,
-								true)
+						var cue := _leaves if e.value == BBStep.IN_LEAVES else _impact[s]
+						_play(cue, e.position, false, _cfg.impact_gain, Kind.IMPACT, BUS_EFFECTS, 1.0, 0.0, null, true)
 				else:
 					_play(&"bodyHit", e.position, e.target == player_id, _cfg.body_hit_gain, Kind.HIT, BUS_EFFECTS, 1.0,
 							0.0, state.character(e.target))
+			GameEvent.Kind.BB_LEAVES:
+				if _in_reach(e.position, _cfg.max_distance) and _impacts.take(now):
+					_play(_leaves, e.position, false, _cfg.leaf_brush_gain, Kind.IMPACT, BUS_EFFECTS, 1.0, 0.0, null, true)
 			GameEvent.Kind.RICOCHET_TICK:
 				_play(&"bodyHit", e.position, e.target == player_id, _cfg.body_hit_gain, Kind.HIT, BUS_EFFECTS, 1.0,
 						0.0, state.character(e.target))

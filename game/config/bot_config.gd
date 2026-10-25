@@ -23,8 +23,13 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## Field of view (degrees, full angle) and how far a bot makes someone out (m).
 @export var fov_deg: float = 120.0
 @export var view_distance: float = 40.0
-## Anyone this close is noticed whichever way the bot faces (m): footsteps, breathing, kit.
+## Anyone this close is noticed whichever way the bot faces (m): footsteps, breathing, kit. Bushes hide no one this
+## close.
 @export var close_awareness: float = 2.5
+## How much bush a bot sees someone through (m of leaves along the line, WL5, FO1): someone at the edge of a bush is
+## seen, deeper in or behind one is not. The same as what stops a BB (BallisticsConfig.leaf_stop_depth; a test holds
+## them equal): if you can't see through it, a BB can't get through.
+@export var foliage_see_through: float = 0.6
 ## How far gunfire carries (m).
 @export var hearing_distance: float = 22.0
 ## How far an enemy's footsteps carry (m): running, sprinting, a landing, a vault (DECISIONS 2026-10-13). Walking and
@@ -92,6 +97,10 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var friendly_past_wall: float = 0.8
 ## Holds fire when its aim line meets a wall within this share of the distance to the target.
 @export var aim_wall_fraction: float = 0.5
+## Hold fire when the line to the target runs through more than this much bush (m of leaves, FO1): BBs pushed that far
+## in come out well off their line or not at all, so the bot waits for a clearer shot. Easy fires into the leaves anyway,
+## as far as a BB could get through them (BotSkill.fires_into_leaves).
+@export var foliage_fire_through: float = 0.25
 
 @export_group("Lanes and holds")
 ## Each round a team splits its bots one to a lane, pairs two on one, or stacks them all on one, by these weights.
