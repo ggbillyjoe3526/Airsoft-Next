@@ -561,11 +561,13 @@ func _refresh() -> void:
 
 # --- Building blocks ---
 
-## A scrolling tab page titled `title` (a tab takes its page's name), returned as the column to fill.
+## A scrolling tab page titled `title` (a tab takes its page's name), returned as the column to fill. It scrolls to the
+## control the keyboard or a pad moves focus to.
 func _page(title: String) -> VBoxContainer:
 	var scroll := ScrollContainer.new()
 	scroll.name = title.to_upper()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
 	_tabs.add_child(scroll)
 	var page := VBoxContainer.new()
 	page.size_flags_horizontal = Control.SIZE_EXPAND_FILL

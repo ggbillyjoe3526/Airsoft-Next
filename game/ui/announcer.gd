@@ -4,7 +4,8 @@ extends RefCounted
 ## tick's events into lines in the HUD's own words for HudAnnounce to hand a screen reader. Each hit feed line ("Rook
 ## called HIT · Alpha", "You" for the player), your own hit in its place ("You're hit · Rook"), each round's start
 ## ("Round 3", with the banner's line under it when it has one), each round's end (the stamp, the banner's line and the
-## score, your team first) and the match's end (the stamp and the match's score). Lines that come inside JOIN_WINDOW of
+## score, your team first), the match's end (the stamp and the match's score) and each of your team's callouts the feed
+## shows ("Brick: Two, Crate yard!"). Lines that come inside JOIN_WINDOW of
 ## the first are joined into one message, so a round's end and the match's end, or a burst of hits, are read as one.
 ## Your hit and the match's result make the message assertive (read at once); the rest are polite (read when the reader
 ## is free). Off, nothing is kept. Builds strings only on those events, never per frame.
@@ -119,6 +120,17 @@ func assertive() -> bool:
 ## "Rook called HIT · Alpha": `victim` called the hit on `shooter`'s BB.
 func hit_line(shooter: Character, victim: Character) -> String:
 	return tr("HUD_SR_CALLED_HIT") % [_name(victim), _name(shooter)]
+
+
+## A teammate's callout as the feed shows it, a polite line: `speaker` said `words`. Builds nothing while off.
+func add_call(speaker: Character, words: String) -> void:
+	if on:
+		add(call_line(speaker, words), false)
+
+
+## "Brick: Two, Crate yard!".
+func call_line(speaker: Character, words: String) -> String:
+	return tr("HUD_SR_CALL") % [_name(speaker), words]
 
 
 ## "You're hit · Rook".

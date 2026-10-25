@@ -58,6 +58,12 @@ If the game stutters, lower the preset or the render scale first.
 - **What got you:** Auto, On or Off ([HUD and Minimap](HUD-and-Minimap#what-got-you)).
 - **Minimap:** Rotating or Fixed.
 
+### In development
+
+- **Callouts:** On (the default) shows your teammates' calls in the hit feed with a radio click, and lets you hear
+  enemies close by keying their radios. Off hides the calls and stops every call's click at once; a squad order a
+  teammate takes still clicks.
+
 ## Accessibility
 
 Team colours, gauge patterns, sound cues, reduced motion and screen reader messages: see

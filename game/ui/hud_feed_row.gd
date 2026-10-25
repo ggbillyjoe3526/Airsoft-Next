@@ -2,8 +2,9 @@ class_name HudFeedRow
 extends Control
 ## One hit-feed line (concept `hud-feed.png`): who fired, the BB's trail, who was hit, and their HIT call, on a navy
 ## plate with the shooter's team bar on the left. Names in their team's colour, "You" in white; a teammate's name
-## carries the teammate chevron; your own lines are framed in yellow. One node: everything is drawn, laid out once
-## each time the line changes.
+## carries the teammate chevron; your own lines are framed in yellow. A teammate's callout (CO2, concept
+## `step27/callouts.png`) is a row of its own kind: the team bar, the speaker's chevron and name, a radio glyph and the
+## words. One node: everything is drawn, laid out once each time the line changes.
 
 const HEIGHT := 38.0
 const PAD_LEFT := 12.0
@@ -27,6 +28,17 @@ const BB := 9.0
 const BB_RING := 2.0
 const BB_RING_ALPHA := 0.25
 const DOT_ALPHAS: Array[float] = [0.25, 0.5, 0.75]
+## A call's words: their weight and colour; the radio glyph's box (its body under an antenna), the antenna's width and
+## height, the speaker grille's lines (how many, their height and the gap between them, inset from the body's sides)
+## and its colour.
+const WORDS_WEIGHT := 600
+const RADIO := Vector2(11.0, 18.0)
+const ANTENNA := Vector2(2.0, 5.0)
+const GRILLE_LINES := 3
+const GRILLE_LINE := 1.5
+const GRILLE_GAP := 1.5
+const GRILLE_INSET := 2.5
+const RADIO_ALPHA := 0.85
 
 
 ## One side of a line, as shown: the name, its colour, and whether it is your teammate (with the chevron) or you (in
@@ -47,6 +59,12 @@ class Who:
 var _name_font: Font = null
 var _you_font: Font = null
 var _tag_font: Font = null
+var _words_font: Font = null
+## A callout row: its words, and where they and the radio glyph sit.
+var _call: bool = false
+var _words := ""
+var _words_x: float = 0.0
+var _radio := Rect2()
 var _shooter := ""
 var _victim := ""
 var _shooter_colour := Color.WHITE
@@ -78,6 +96,7 @@ func _init() -> void:
 	_name_font = GameTheme.font(700)
 	_you_font = GameTheme.font(800)
 	_tag_font = GameTheme.spaced_font(800, HudStyle.SPACING_AIM, TAG_SIZE)
+	_words_font = GameTheme.font(WORDS_WEIGHT)
 	_tag_word = HudStyle.caps("HUD_HIT_TAG")
 
 
@@ -95,13 +114,38 @@ func show_line(shooter: Who, victim: Who, bar: Color, mate_colour: Color, framed
 	_bar = bar
 	_mate_colour = mate_colour
 	_framed = framed
+	_call = false
 	_lay_out()
 	queue_redraw()
 
 
-## "Owl · Magpie": the line's words, for tests.
+## Fills the row as `speaker`'s callout (read now, not kept): `words` as said, the bar in `bar` (their team's colour),
+## the chevron in `mate_colour`.
+func show_call(speaker: Who, words_said: String, bar: Color, mate_colour: Color) -> void:
+	_shooter = speaker.text
+	_shooter_colour = speaker.colour
+	_shooter_mate = speaker.mate
+	_shooter_you = speaker.you
+	_victim_mate = false
+	_words = words_said
+	_bar = bar
+	_mate_colour = mate_colour
+	_framed = false
+	_call = true
+	_lay_out_call()
+	queue_redraw()
+
+
+## "Owl · Magpie", or a call's "Brick: Two, Crate yard!": the line's words, for tests.
 func words() -> String:
+	if _call:
+		return "%s: %s" % [_shooter, _words]
 	return "%s · %s" % [_shooter, _victim]
+
+
+## Whether the row shows a callout, for tests.
+func is_call() -> bool:
+	return _call
 
 
 func is_framed() -> bool:
@@ -134,6 +178,20 @@ func _lay_out() -> void:
 	size.x = custom_minimum_size.x
 
 
+func _lay_out_call() -> void:
+	var x := BAR + PAD_LEFT
+	x = _place_name(x, _shooter_mate, _shooter_chevron)
+	_shooter_x = x
+	x += _text_width(_shooter, _shooter_you) + GAP
+	_radio = Rect2(x, (HEIGHT - RADIO.y) * 0.5, RADIO.x, RADIO.y)
+	x += RADIO.x + GAP
+	_words_x = x
+	x += _words_font.get_string_size(_words, HORIZONTAL_ALIGNMENT_LEFT, -1, NAME_SIZE).x
+	_baseline = _centred_baseline(_name_font, NAME_SIZE)
+	custom_minimum_size.x = x + PAD_LEFT # the words as far from the end as the name from the bar
+	size.x = custom_minimum_size.x
+
+
 func _place_name(x: float, mate: bool, chevron: ChevronShape) -> float:
 	if not mate:
 		return x
@@ -158,6 +216,11 @@ func _draw() -> void:
 		_shooter_chevron.paint(self, _mate_colour, false)
 	draw_string(_you_font if _shooter_you else _name_font, Vector2(_shooter_x, _baseline), _shooter,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, NAME_SIZE, _shooter_colour)
+	if _call:
+		_draw_radio()
+		draw_string(_words_font, Vector2(_words_x, _baseline), _words, HORIZONTAL_ALIGNMENT_LEFT, -1, NAME_SIZE,
+				GameTheme.TEXT)
+		return
 	var y := HEIGHT * 0.5
 	var x := _trail_x + DOT * 0.5
 	for a: float in DOT_ALPHAS:
@@ -179,3 +242,17 @@ func _draw() -> void:
 		# Inside the team bar, which stays showing.
 		draw_rect(Rect2(BAR + inset, inset, w - BAR - FRAME_WIDTH, HEIGHT - FRAME_WIDTH),
 				Color(GameTheme.YELLOW, FRAME_ALPHA), false, FRAME_WIDTH)
+
+
+## The radio glyph: a handset's body under its antenna, the speaker grille cut across it.
+func _draw_radio() -> void:
+	var r := _radio
+	var colour := Color(GameTheme.TEXT, RADIO_ALPHA)
+	draw_rect(Rect2(r.position.x + GRILLE_INSET * 0.5, r.position.y, ANTENNA.x, ANTENNA.y), colour)
+	var body := Rect2(r.position.x, r.position.y + ANTENNA.y, r.size.x, r.size.y - ANTENNA.y)
+	draw_rect(body, colour)
+	var cut := HudStyle.backing(1.0, 1.0)
+	var y := body.position.y + GRILLE_INSET
+	for i in GRILLE_LINES:
+		draw_rect(Rect2(body.position.x + GRILLE_INSET, y, body.size.x - GRILLE_INSET * 2.0, GRILLE_LINE), cut)
+		y += GRILLE_LINE + GRILLE_GAP

@@ -39,3 +39,7 @@ never moves the camera, with or without it.
 On by default. A screen reader such as NVDA on Windows or Orca on Linux reads out the match: hit calls ("Rook called
 HIT · You"), your own hit ("You're hit · Rook"), each round's start and end with the score, and the match result. Your
 hit and the result interrupt; the rest wait their turn. Squad orders and the menus are not read yet.
+
+### In development
+
+Your teammates' callouts are read too, each as it shows in the feed ("Rook: Two, Crate yard!"), waiting their turn.

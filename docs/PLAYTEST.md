@@ -561,6 +561,24 @@ pays XP ×1.5.
 - [ ] **XP:** Easy ×0.5, Normal ×1, Hard ×1.5 on the Opponents line and the XP card. Normal now pays ×1 against the
   old Hard's bots: does the pace still feel fair (about 25 matches to level 10 on Normal)?
 
+## Callouts (CO2)
+
+- [ ] **Calls in the feed.** Your teammates' calls show with the hits, newest on top: chevron and name in your team's
+  colour, a small radio, the words ("Rook: Two, Crate yard!"). Do they read at a glance in a fight, or do they crowd
+  the hits out? About 10 to 12 a team a minute: too chatty, or too quiet?
+- [ ] **The radio click.** Each call clicks, panned toward the teammate who made it (at most 60 % to one side). An
+  enemy within 15 m clicks from where they stand, muffled behind a wall. Can you tell a teammate's click from an
+  enemy's, and does the enemy's give away where they are without feeling unfair? Listen in a busy firefight too: an
+  enemy's click shares the field's voices with steps and shots, so one may go missing there.
+- [ ] **Keep and the corner.** On Feed lines › Keep the hits stay all match and the calls still show on top and fade (late in a
+  match the oldest hit hides under a call and comes back after it); bottom left puts
+  the newest call at the bottom. A new round starts with no calls in the feed.
+- [ ] **Off.** Settings › HUD › Callouts Off mid-match (from the pause menu) takes the calls out of the feed and stops
+  the clicks at once; a squad order a teammate takes still clicks. On again shows only calls made after it.
+- [ ] **Screen reader.** With Screen reader messages on (NVDA or Orca), each call is read politely ("Rook: Two, Crate
+  yard!"), never cutting in over your hit.
+- [ ] **Settings › HUD at 1080p** now scrolls a little: the minimap's note sits under the fold. Fine, or worth fitting?
+
 ## Menus
 
 - [ ] **The title screen.** Only "AIRSOFT", the tagline "Call your hit. Go again." and **START**. The build sits small at the bottom right with **Licences** over it, a

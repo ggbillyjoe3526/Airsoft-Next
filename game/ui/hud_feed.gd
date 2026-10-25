@@ -1,8 +1,9 @@
 class_name HudFeed
 extends VBoxContainer
-## The hit feed on screen (concept `hud-feed.png`): HitFeed's lines as HudFeedRows, top right with the newest on top,
-## or bottom left with the newest at the bottom. Rows are made once (one per line the feed can hold) and refilled only
-## when the lines change; each frame only the fading lines' opacity moves.
+## The hit feed on screen (concept `hud-feed.png`): HitFeed's lines as HudFeedRows, hits and your team's callouts
+## (concept `step27/callouts.png`), top right with the newest on top, or bottom left with the newest at the bottom. Rows
+## are made once (one per line the feed can hold) and refilled only when the lines change; each frame only the fading
+## lines' opacity moves.
 
 enum Place { TOP_RIGHT, BOTTOM_LEFT }
 
@@ -56,6 +57,11 @@ func fit(room: float) -> void:
 		_version = -1
 
 
+## Whether the feed is up and has room for its newest line (not hidden, nor held to none under What got you).
+func newest_shows() -> bool:
+	return visible and _cap != 0
+
+
 ## The height of the lines showing (px).
 func lines_height() -> float:
 	var n := shown()
@@ -75,7 +81,7 @@ func refresh(feed: HitFeed, now: float, characters: Array[Character], you: Chara
 	if feed.version != _version:
 		_version = feed.version
 		_fill(feed, characters, you)
-	for i in feed.count():
+	for i in feed.shown():
 		_row_for(i).modulate.a = feed.alpha(i, now)
 
 
@@ -97,11 +103,15 @@ func _fill(feed: HitFeed, characters: Array[Character], you: Character) -> void:
 	var mate_colour := _teams.colours[you.team]
 	for i in _rows.size():
 		var row := _row_for(i)
-		row.visible = i < feed.count() and (_cap < 0 or i < _cap)
+		row.visible = i < feed.shown() and (_cap < 0 or i < _cap)
 		if not row.visible:
 			continue
 		var line := feed.line(i)
 		var shooter := characters[line.shooter]
+		if line.call:
+			_side(_shooter, shooter, you)
+			row.show_call(_shooter, line.words, _teams.colours[shooter.team], mate_colour)
+			continue
 		var victim := characters[line.victim]
 		_side(_shooter, shooter, you)
 		_side(_victim, victim, you)

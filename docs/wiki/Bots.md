@@ -69,3 +69,12 @@ Your teammates carry the AEG Rifle and the GBB Pistol as they come. Bots fire fu
 Attacking bots walk their lanes to just past the middle, then make for the pole. The nearest attacker raises the flag
 crouched at the rope while the others guard it from cover close by. Defenders hold near the pole, go after only what
 they see or hear close to it, and the two nearest run to pull a rising flag down.
+
+## In development
+
+**Callouts:** bots tell their team what they already do, in words in the [hit feed](HUD-and-Minimap#in-development)
+with a radio click, never a voice: a sighting ("Contact, Dock!"), a noise while nobody on the team sees anyone, the
+team's hits ("Two left!", "Last one!"), a reload under fire, setting off after someone, settling at a hold and the
+flag going up. A team speaks one call at a time, a moment apart, the most urgent first; each personality has its own
+lines and talks more or less. Hit players never talk, and what a bot says never changes how anyone plays. You see
+only your own team's words; an enemy close by is heard keying their radio.
