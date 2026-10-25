@@ -37,7 +37,7 @@ it is playtested and made public.
 - **Elimination's overtime flag:** a time-out with nobody ahead puts a flag up near the middle, and the first team to
   touch it wins the round.
 - **Pings** on the middle mouse button, and **asking a teammate for a magazine** when you run low.
-- **Bot callouts:** your teammates call what they see and do in a callout feed, in words, never a voice.
+- **Bot callouts:** your teammates call what they see and do in the hit feed, in words, never a voice.
 
 ### Then: the art pass
 
