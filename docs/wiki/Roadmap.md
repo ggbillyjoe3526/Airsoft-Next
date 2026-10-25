@@ -31,13 +31,14 @@ it is playtested and made public.
 - **The weapon torch:** fit a torch to any replica for night fields. It lights the way and gives you away.
 - **Glowing BBs:** green tracer BBs you can follow in the dark, flying exactly like white ones.
 - **Practice on the dev fields:** Woodland's practice plays at night, with your torch fitted.
+- **Bot callouts** (on for everyone while they're tuned; Settings › HUD › Callouts turns them off): your teammates
+  call what they see and do in the hit feed, in words with a radio click, never a voice.
 
 ### Next
 
 - **Elimination's overtime flag:** a time-out with nobody ahead puts a flag up near the middle, and the first team to
   touch it wins the round.
 - **Pings** on the middle mouse button, and **asking a teammate for a magazine** when you run low.
-- **Bot callouts:** your teammates call what they see and do in the hit feed, in words, never a voice.
 
 ### Then: the art pass
 

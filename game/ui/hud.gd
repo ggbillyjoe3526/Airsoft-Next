@@ -16,8 +16,9 @@ extends Control
 ## line (concept `graphics-step-down.png`, `show_graphics_step`). With Settings › Accessibility's sound cues on, the
 ## ring of markers round the crosshair for the sounds heard (HudSoundCues). The HUD tab's HUD size scales every part
 ## about its anchor but the crosshair, the hit marker and the cue ring (`set_hud_size`); Reduced motion holds the flag
-## warning steady (`set_motion`). Screen reader messages read the hit feed, your hit and the rounds' turns through a
-## live region that is never drawn (HudAnnounce, `set_read_out`). Text is only rebuilt when what it shows changes. No
+## warning steady (`set_motion`). Your team's callouts share the hit feed, each with its speaker and words, gone at a
+## round's start, while Settings › HUD › Callouts is on (`on_calls`). Screen reader messages read the hit feed, the
+## calls, your hit and the rounds' turns through a live region that is never drawn (HudAnnounce, `set_read_out`). Text is only rebuilt when what it shows changes. No
 ## hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 32.0
@@ -90,6 +91,9 @@ var _sound_cues: HudSoundCues = null
 var _cues_on: bool = false
 var _hits := HitFeed.new()
 var _feed: HudFeed = null
+## The callouts read (on_calls): the log, and the serial read up to.
+var _call_log: CalloutLog = null
+var _call_serial: int = 0
 var _announce: HudAnnounce = null
 var _team_markers: HudTeamMarkers = null
 var _round_result: HudRoundResult = null
@@ -413,7 +417,8 @@ func board() -> HudScoreboard:
 
 
 ## Takes the HUD tab's choices `prefs` (kept, so the crosshair and marker follow later changes too; call again after
-## one): the feed's corner and whether its lines fade or stay, the ammo counter, and the panels' opacity.
+## one): the feed's corner and whether its lines fade or stay, the callouts in it, the ammo counter, and the panels'
+## opacity. Callouts switched off take their lines out of the feed at once.
 func apply_prefs(prefs: HudPrefs) -> void:
 	_prefs = prefs
 	var right := prefs.feed_corner == HudPrefs.FeedCorner.TOP_RIGHT
@@ -424,6 +429,8 @@ func apply_prefs(prefs: HudPrefs) -> void:
 	if stay != _hits.stay:
 		_hits.setup(HudPrefs.KEPT_LINES if stay else _cfg.feed_lines, _cfg.feed_line_time, _cfg.feed_fade_time)
 		_hits.stay = stay
+	if not prefs.callouts:
+		_hits.drop_calls()
 	_replica.set_counted(prefs.ammo_counter)
 	if not is_equal_approx(prefs.panel_opacity, _opacity):
 		_opacity = prefs.panel_opacity
@@ -633,6 +640,7 @@ func on_tick(state: GameState) -> void:
 				_round_result.close()
 				hide_what_got_you()
 				_hits.release_kept()
+				_hits.drop_calls() # last round's calls are about last round
 				if e.value == 1:
 					hide_xp()
 					_summary.close()
@@ -655,6 +663,27 @@ func on_tick(state: GameState) -> void:
 				_show_banner(HudStyle.round_stamp(e.value, _player.team), _match_stamp_sub(state.round_state.score),
 						_teams.colours[e.value] if e.value >= 0 else Color.TRANSPARENT)
 	_announce.on_tick(state)
+
+
+## Your team's calls said in `said` (CalloutLog) since the last look: each a line in the feed with the hits' time and
+## fade, and with Screen reader messages on a polite message ("Brick: Two, Crate yard!"). The other team's words never
+## show. While Settings › HUD › Callouts is off they are passed over, never shown late. Allocates nothing but the
+## message's text.
+func on_calls(said: CalloutLog, state: GameState) -> void:
+	if said != _call_log or _call_serial > said.total:
+		_call_log = said
+		_call_serial = said.oldest()
+	var from := maxi(_call_serial, said.oldest())
+	_call_serial = said.total
+	if not _prefs.callouts:
+		return
+	var speakers := state.characters
+	for serial in range(from, said.total):
+		var call := said.entry(serial)
+		if call.team != _player.team or call.speaker_id < 0 or call.speaker_id >= speakers.size():
+			continue
+		_hits.add_call(call.speaker_id, call.line, call.time)
+		_announce.announcer().add_call(speakers[call.speaker_id], call.line)
 
 
 ## The finished match's XP under the banner (`settled`, at the bots' `difficulty`, `progress` as it stands now), until the

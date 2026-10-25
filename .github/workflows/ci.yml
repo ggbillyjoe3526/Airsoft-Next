@@ -166,7 +166,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  # The callouts' guards (CO1): Depot played with and without the bots' callouts, and every map's calls kept to the pace.
+  # The callouts' guards (CO1): every field played with and without the callouts, every map's calls kept to the pace.
   callout-guards:
     name: Callout guards (every map)
     runs-on: ubuntu-latest

@@ -44,17 +44,17 @@ const NUMBER_WORDS: PackedStringArray = [
 const NUMBER_WORDS_LOWER: PackedStringArray = [
 	"none", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
 ]
-## The Pace rows by their first column, with the Pace field each sets and its value without a row.
+## The Pace rows by their first column, with the Pace field each sets (its value without a row is Pace's default).
 const PACE_ROWS: Array[Array] = [
-	["One bot's calls apart", &"bot_gap", 4.0],
-	["The team's calls apart", &"team_gap", 1.5],
-	["The same enemy again after", &"same_enemy_gap", 10.0],
-	["A call waits at most", &"max_wait", 1.5],
+	["One bot's calls apart", &"bot_gap"],
+	["The team's calls apart", &"team_gap"],
+	["The same enemy again after", &"same_enemy_gap"],
+	["A call waits at most", &"max_wait"],
 ]
-## The Marks rows: first column, field, fallback, the most it may be and what that is in words.
+## The Marks rows: first column, field, the most it may be and what that is in words (without a row: Marks' default).
 const MARK_ROWS: Array[Array] = [
-	["A sighting is marked (chance)", &"chance", 0.35, 1.0, "a number from 0 to 1"],
-	["The team's marks apart (s)", &"gap", 12.0, GAP_MAX, "seconds from 0 to 120"],
+	["A sighting is marked (chance)", &"chance", 1.0, "a number from 0 to 1"],
+	["The team's marks apart (s)", &"gap", GAP_MAX, "seconds from 0 to 120"],
 ]
 
 
@@ -107,7 +107,7 @@ class Line:
 				-1:
 					out += parts[k]
 				Fill.AREA:
-					out += area if k > 0 else CalloutsFile.capital(area)
+					out += CalloutsFile.capital(area) if starts[k] == 1 else area
 				Fill.COUNT:
 					out += CalloutsFile.number_word(count, starts[k] == 1)
 				_:
@@ -245,7 +245,8 @@ func _read_pace(t: DataTable) -> void:
 			pace.set(p[1], s)
 	for p in PACE_ROWS:
 		if not done.has(p[1]):
-			problems.append("%s: Pace: no row for %s, so it is %s s" % [t.where(t.line), p[0], _num_text(p[2])])
+			problems.append("%s: Pace: no row for %s, so it is %s s" % [t.where(t.line), p[0],
+					_num_text(float(pace.get(p[1])))])
 
 
 func _read_marks(t: DataTable) -> void:
@@ -260,14 +261,15 @@ func _read_marks(t: DataTable) -> void:
 					_names(MARK_ROWS)])
 		elif done.has(m[1]):
 			problems.append("%s: %s is listed twice" % [t.where(row.line), m[0]])
-		elif not (v >= 0.0 and v <= m[3]):
-			problems.append("%s: %s: \"%s\" is not %s" % [t.where(row.line), m[0], row.cell("Value"), m[4]])
+		elif not (v >= 0.0 and v <= m[2]):
+			problems.append("%s: %s: \"%s\" is not %s" % [t.where(row.line), m[0], row.cell("Value"), m[3]])
 		else:
 			done.append(m[1])
 			marks.set(m[1], v)
 	for m in MARK_ROWS:
 		if not done.has(m[1]):
-			problems.append("%s: Marks: no row for %s, so it is %s" % [t.where(t.line), m[0], _num_text(m[2])])
+			problems.append("%s: Marks: no row for %s, so it is %s" % [t.where(t.line), m[0],
+					_num_text(float(marks.get(m[1])))])
 
 
 func _read_talks(t: DataTable, personalities: Array[StringName]) -> void:

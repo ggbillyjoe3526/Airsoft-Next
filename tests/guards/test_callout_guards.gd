@@ -1,7 +1,8 @@
 extends GutTest
 ## The callouts' guards (CO1; the browser game's depotMatch.callouts.test.ts, CL1): whole bot matches with the shipped
-## data/callouts.md. On the public field (Depot, both modes) a seeded match plays the same with the callouts as without:
-## the same shots, hits, rounds and flag. On every map every call keeps the pace (one a team a tick, the team's and the
+## data/callouts.md. On every field (Depot in both modes, Neon Heights' Attack / Defend by day, Woodland at night) a
+## seeded match plays the same with the callouts as without: the same shots, hits, rounds and flag; a replay says the
+## same calls. On every map every call keeps the pace (one a team a tick, the team's and the
 ## bot's gaps), comes from a bot in play during a live round and fits a feed line, and the calls come at a steady rate;
 ## the rates print beside the browser's for the record. Run by tools/match_guards.sh, a CI job of its own.
 

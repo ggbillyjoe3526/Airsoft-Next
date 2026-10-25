@@ -392,7 +392,7 @@ func _flush(t: int, state: GameState, bots: Array[Bot], live: bool) -> void:
 func _line_count(event: int, personality: StringName, area: String) -> int:
 	var n := 0
 	for l: CalloutsFile.Line in _file.lines[event]:
-		if (l.who == &"" or l.who == personality) and (area != "" or not l.needs_area):
+		if _fits(l, personality, area):
 			n += 1
 	return n
 
@@ -404,12 +404,17 @@ func _line(event: int, personality: StringName, area: String, count: int, left: 
 		return ""
 	var k := _rng.randi_range(0, n - 1)
 	for l: CalloutsFile.Line in _file.lines[event]:
-		if not ((l.who == &"" or l.who == personality) and (area != "" or not l.needs_area)):
+		if not _fits(l, personality, area):
 			continue
 		if k == 0:
 			return l.filled(area, count, left)
 		k -= 1
 	return ""
+
+
+## Whether a bot of `personality` can say line `l` with `area` named or not: its own or Any's, and {area} only with one.
+static func _fits(l: CalloutsFile.Line, personality: StringName, area: String) -> bool:
+	return (l.who == &"" or l.who == personality) and (area != "" or not l.needs_area)
 
 
 ## The index among the bots of the bot playing character `id`, or -1.

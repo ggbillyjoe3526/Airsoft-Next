@@ -8,7 +8,8 @@ extends Node
 ## flag's rope ratcheting up or down, and hits: a tick where a BB hits a body (a ricochet that doesn't count too), the confirmation when it's
 ## yours, the thump when it's you. On the practice range steel rings and a figure knocks, heard down its whole length,
 ## your own target hit plays the confirmation, and the timed challenge's countdown and Go beep. A squad order of yours
-## that a teammate took plays a radio's double click in your ear (on_order). Kit rustles as a crouch, a stand or a lean
+## that a teammate took plays a radio's double click in your ear (on_order); so does each bot callout (on_calls): a
+## teammate's in your ear, panned toward them, an enemy's from where they stand when close, through walls. Kit rustles as a crouch, a stand or a lean
 ## starts (FoleyTracker, from the state: bots never hear it); a landing thuds louder and lower the harder it comes down,
 ## with a rustle under a hard one. The referee's whistle (WhistleQueue) on the Interface bus: two short blasts start a
 ## round, one long ends it, three more end the match, and the range's Time is one long. The map's ambience: its beds by day or night
@@ -38,7 +39,7 @@ const SURFACE_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood
 const IMPACT_NAMES: PackedStringArray = ["concrete", "concrete", "metal", "wood", "earth", "earth", "earth", "earth"]
 const STEP_NAMES: PackedStringArray = ["run", "sprint", "land"]
 ## What a play is, for its pitch and level spread, its priority in the field's pool and how many of its cue may sound.
-enum Kind { SHOT, MECHANISM, STEP, VAULT, ROPE, IMPACT, HIT, STEEL, INTERFACE, RADIO, FOLEY, CALL, PROP }
+enum Kind { SHOT, MECHANISM, STEP, VAULT, ROPE, IMPACT, HIT, STEEL, INTERFACE, RADIO, FOLEY, CALL, PROP, RADIO_CALL }
 ## How far past the ears' distance a call's voice still carries, so the far edge of its ring is never cut off.
 const CALL_SLACK := 1.0
 
@@ -92,6 +93,12 @@ var _calls: AmbientCalls = null
 var _calls_match: int = -1
 ## The squad order outcome last heard (SquadOrders.Outcome.serial).
 var _order_serial: int = 0
+## A teammate's callout click (on_calls): its voices, unattenuated and panned at SoundConfig.radio_pan, the next one to
+## use, and the call log read and the serial read up to.
+var _radio: Array[AudioStreamPlayer3D] = []
+var _radio_next: int = 0
+var _call_log: CalloutLog = null
+var _call_serial: int = 0
 
 
 ## Loads every cue `profiles` (the loadouts' sound profiles, ReplicaConfig.sound_profile) and the field need, makes the
@@ -147,6 +154,14 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 		_own.append(v)
 	_field_pool = VoicePool.new(_field)
 	_own_pool = VoicePool.new(_own)
+	for i in maxi(1, cfg.radio_voices):
+		var v := AudioStreamPlayer3D.new()
+		v.attenuation_model = AudioStreamPlayer3D.ATTENUATION_DISABLED
+		v.max_distance = 0.0 # no limit: a teammate's radio is heard wherever they are
+		v.panning_strength = cfg.radio_pan
+		v.bus = BUS_INTERFACE
+		add_child(v)
+		_radio.append(v)
 	_whistle = AudioStreamPlayer.new()
 	_whistle.bus = BUS_INTERFACE
 	_whistle.volume_db = linear_to_db(cfg.whistle_gain)
@@ -282,6 +297,45 @@ func on_order(outcome: SquadOrders.Outcome, player_id: int) -> void:
 		_play(&"radio_ack", Vector3.ZERO, true, _cfg.radio_ack_gain, Kind.RADIO, BUS_INTERFACE)
 
 
+## The calls said in `said` (CalloutLog) since the last look, each as its radio click (the browser game's radioCall): a
+## teammate's (on `team`) in your ear, panned toward where they stand; an enemy's from where they stand, only within
+## enemy_radio_reach of the listener's ears and muffled through walls. While `on` is false (Settings › HUD › Callouts
+## off) the calls are passed over, never played late. Call after on_tick, which places the ears.
+func on_calls(said: CalloutLog, state: GameState, team: int, on: bool) -> void:
+	if said != _call_log or _call_serial > said.total:
+		_call_log = said
+		_call_serial = said.oldest()
+	var from := maxi(_call_serial, said.oldest())
+	_call_serial = said.total
+	if not on:
+		return
+	for serial in range(from, said.total):
+		var call := said.entry(serial)
+		var c := state.character(call.speaker_id)
+		if c == null:
+			continue
+		if call.team == team:
+			_radio_call(c)
+		else:
+			_play(&"radio_ack", c.eye(_body), false, _cfg.radio_call_enemy_gain, Kind.RADIO_CALL, BUS_EFFECTS, 1.0,
+					_cfg.enemy_radio_reach, c)
+
+
+## Stops every callout's click sounding now (Settings › HUD › Callouts switched off); an order's click plays on.
+func stop_calls() -> void:
+	for v in _radio:
+		v.stop()
+	var clicks: Array = _streams.get(&"radio_ack", [])
+	for v in _field:
+		if v.playing and clicks.has(v.stream):
+			v.stop()
+
+
+## The teammate's callout voices (for tests).
+func radio_voices() -> Array[AudioStreamPlayer3D]:
+	return _radio
+
+
 ## Whether `outcome` is an order from `player_id` that a teammate took (the browser game's orderHeard: a result that
 ## isn't none).
 static func order_taken(outcome: SquadOrders.Outcome, player_id: int) -> bool:
@@ -297,8 +351,25 @@ func _exit_tree() -> void:
 		v.stop()
 	for v in _beds:
 		v.stop()
+	for v in _radio:
+		v.stop()
 	if _whistle != null:
 		_whistle.stop()
+
+
+## A teammate `c`'s callout click on the next radio voice: from where they stand, unattenuated, so it is panned toward
+## them by radio_pan and no further.
+func _radio_call(c: Character) -> void:
+	var variants: Array = _streams[&"radio_ack"]
+	if variants.is_empty() or _radio.is_empty():
+		return
+	var v := _radio[_radio_next]
+	_radio_next = (_radio_next + 1) % _radio.size()
+	v.stream = variants[_variant(&"radio_ack", variants.size())]
+	v.volume_db = linear_to_db(_cfg.radio_call_gain)
+	v.pitch_scale = 1.0 + _rng.randf_range(-_cfg.radio_call_pitch, _cfg.radio_call_pitch)
+	v.global_position = c.eye(_body)
+	v.play()
 
 
 ## How hard a landing at `speed` (m/s down) came down, 0 at `land_min` (the softest that thuds) .. 1 at `cfg`'s
@@ -470,13 +541,13 @@ func _kinds(cfg: SoundConfig) -> void:
 		Kind.VAULT: cfg.vault_pitch, Kind.ROPE: cfg.rope_pitch, Kind.IMPACT: cfg.impact_pitch, Kind.HIT: 0.0,
 		Kind.STEEL: cfg.steel_ring_pitch, Kind.INTERFACE: 0.0, Kind.RADIO: cfg.radio_ack_pitch,
 		Kind.FOLEY: cfg.foley_pitch, Kind.CALL: 0.0, # a call's spread is its own (AmbienceCall.pitch)
-		Kind.PROP: cfg.prop_pitch,
+		Kind.PROP: cfg.prop_pitch, Kind.RADIO_CALL: cfg.radio_call_pitch,
 	}
 	var level: Dictionary[Kind, float] = {
 		Kind.SHOT: cfg.shot_spread_db, Kind.MECHANISM: cfg.mechanism_spread_db, Kind.STEP: cfg.step_spread_db,
 		Kind.VAULT: cfg.vault_spread_db, Kind.ROPE: cfg.rope_spread_db, Kind.IMPACT: cfg.impact_spread_db,
 		Kind.HIT: cfg.hit_spread_db, Kind.STEEL: cfg.steel_ring_spread_db, Kind.INTERFACE: 0.0, Kind.RADIO: 0.0,
-		Kind.FOLEY: cfg.foley_spread_db, Kind.CALL: 0.0, Kind.PROP: cfg.prop_spread_db,
+		Kind.FOLEY: cfg.foley_spread_db, Kind.CALL: 0.0, Kind.PROP: cfg.prop_spread_db, Kind.RADIO_CALL: 0.0,
 	}
 	for k: Kind in pitch:
 		_pitch_spread[k] = pitch[k]

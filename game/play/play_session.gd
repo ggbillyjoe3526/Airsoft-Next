@@ -840,7 +840,7 @@ func entity_count() -> int:
 
 
 ## Hands the tick's events to the bots' ears, the minimap's, the sound cues' (while on) and sound's (through the eyes
-## the view is through), the field's mix, the HUD and the effects.
+## the view is through), the field's mix, the HUD and the effects; the bots' callouts said to sound and the HUD.
 func _after_tick() -> void:
 	_bots.observe(state)
 	var ears := spectated()
@@ -852,6 +852,9 @@ func _after_tick() -> void:
 	_mix.on_tick(state, PLAYER_ID)
 	_audio.on_order(_bots.order_outcome, PLAYER_ID)
 	_hud.on_tick(state)
+	if _bots.callouts != null:
+		_audio.on_calls(_bots.callouts.said, state, player.team, settings.hud.callouts)
+		_hud.on_calls(_bots.callouts.said, state)
 	_hud.set_vault_ready(_vault_ready())
 	_tally.on_tick(state)
 	_stats.after_tick(state, TICK)
@@ -1359,6 +1362,8 @@ func _settle() -> void:
 ## the start and on every change (the settings can open from the pause menu).
 func _apply_hud() -> void:
 	_hud.apply_prefs(settings.hud)
+	if not settings.hud.callouts:
+		_audio.stop_calls()
 	_hud.set_patterns(settings.gauge_patterns)
 	_hud.set_read_out(settings.read_out)
 	# Sound cues switched off stop being fed: what was up goes, so switching on again starts clean.

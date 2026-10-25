@@ -1774,6 +1774,10 @@ msgstr "Lost"
 msgid "HUD_SR_CALLED_HIT"
 msgstr "%s called HIT · %s"
 
+# A teammate's callout, as the feed shows it: who, then the words ("Brick: Two, Crate yard!").
+msgid "HUD_SR_CALL"
+msgstr "%s: %s"
+
 msgid "HUD_SR_YOU_ARE_HIT"
 msgstr "You're hit · %s"
 
@@ -2381,7 +2385,14 @@ msgid "SETTINGS_KEEP"
 msgstr "Keep"
 
 msgid "SETTINGS_FEED_LINES_NOTE"
-msgstr "Fade: each hit shows %d s. Keep: the last %d stay all match."
+msgstr "Fade: each line shows %d s. Keep: the last %d hits stay all match."
+
+# Settings › HUD › Callouts (CO2): your team's calls in the hit feed and the radio clicks.
+msgid "SETTINGS_CALLOUTS"
+msgstr "Callouts"
+
+msgid "SETTINGS_CALLOUTS_NOTE"
+msgstr "Your teammates' calls in the feed, each with a radio click; enemies close by are heard keying their radios."
 
 msgid "SETTINGS_PANELS"
 msgstr "Panels"

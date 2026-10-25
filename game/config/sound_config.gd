@@ -72,6 +72,16 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 ## A teammate's radio keyed twice, in your ear only: a squad order you gave was taken (M22).
 @export var radio_ack_gain: float = 0.5
 @export var radio_ack_pitch: float = 0.02
+## A bot's callout (CO2; the browser game's radioCall, CL1): the same radio click, no voice. A teammate's in your ear on
+## the Interface bus at radio_call_gain, panned toward where they stand at radio_pan of the field's full pan (0
+## centred, 1 as far as a field sound goes) on one of radio_voices; an enemy's from where they stand at
+## radio_call_enemy_gain, only within enemy_radio_reach (m) of your ears and muffled through walls as their other sounds.
+@export var radio_call_gain: float = 0.35
+@export var radio_call_enemy_gain: float = 0.6
+@export var radio_call_pitch: float = 0.04
+@export var radio_pan: float = 0.6
+@export var enemy_radio_reach: float = 15.0
+@export var radio_voices: int = 2
 ## The practice range (M21): steel rings, a plywood figure knocks (an impact on wood), each heard target_reach (m) away,
 ## all the way down the range (its far corner is 74 m from the back).
 @export var target_reach: float = 80.0

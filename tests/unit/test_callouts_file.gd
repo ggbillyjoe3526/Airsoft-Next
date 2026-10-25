@@ -234,6 +234,8 @@ func test_fills_the_area_in_and_numbers_as_words_a_capital_only_where_a_sentence
 	assert_eq(CalloutsFile.fill_line("Contact, {count}, {area}!", "Bay", 2, 0), "Contact, two, Bay!")
 	assert_eq(CalloutsFile.fill_line("Got one! {left} left.", "", 0, 2), "Got one! Two left.")
 	assert_eq(CalloutsFile.fill_line("{area} is clear", "back lot", 0, 0), "Back lot is clear")
+	assert_eq(CalloutsFile.fill_line("Got one. {area} is clear", "back lot", 0, 0), "Got one. Back lot is clear",
+			"an area starting a later sentence is a capital too")
 
 
 func test_says_numbers_to_twelve_in_words_and_digits_past_it() -> void:

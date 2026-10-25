@@ -29,6 +29,14 @@ Teammates wear a chevron in your team's colour over their heads, seen through wa
 hollow when cover hides them, grey with a raised hand once they're hit. Markers never show over enemies and never
 show names.
 
+### In development
+
+**Callouts** share the hit feed: each of your teammates' calls is a line with their chevron and name in your team's
+colour, a small radio and the words ("Rook: Two, Crate yard!"). A call stays and fades like a hit line and counts
+toward the feed's lines; on **Keep** the hits stay and the calls still go, and every call goes when a new round
+starts. Each call clicks over the radio, panned toward the teammate who made it. You never see the other team's
+words, but an enemy within 15 m is heard keying their radio from where they stand, muffled by walls.
+
 ## Scoreboard
 
 Hold **Tab** for the scoreboard over the field while the match keeps playing: the map, mode, bots' level and team
