@@ -13,7 +13,7 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | Script | Area |
 |---|---|
 | `sim_tuning.gd` | Bundles the simulation's configs below |
-| `ballistics_config.gd` | BB flight: air, BB size, hop-up spin, lift, spin decay, lifetime, pool size |
+| `ballistics_config.gd` | BB flight: air, BB size, hop-up spin, lift, spin decay, lifetime, pool size; leaves (the depth that stops a BB, the speed kept and the scatter a metre) |
 | `movement_config.gd`, `accuracy_config.gd`, `body_config.gd` | Paces (the holstered run too), jump, crouch, aiming pace, lean speed and wall clearance; spread by stance and motion; the body's size |
 | `vault_config.gd` | Vaulting: the heights and depth vaulted, reach, the path's speed and tuck, the fire lockout after |
 | `hit_config.gd` | Hit calling, friendly fire and whether ricochets count, the walk-off, the hit volume (head, chest, hips, legs) and the lean's pivot and tilt |
@@ -35,7 +35,7 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `controls_config.gd` | Mouse turn, sensitivity (hip, and a multiplier aimed), invert, slower while zoomed, crouch and aim toggle or hold; the order wheel's orders, keys, names, pointer and Hover or Click; the settings screen writes its values over these |
 | `view_config.gd` | Field of view, the sight's zoom, near and far, the view's roll in a lean, a cut lean's easing, a vault's dip and tip |
 | `viewmodel_config.gd` | The replica in hand: hip and sight positions, sway, kick, sprint carry, draw, the holster, reload cant, wall pull-back, each optic's glass and eye distance |
-| `effects_config.gd` | BB size and colour, the muzzle blend, puffs by surface, a noisy prop's knock puff, the wind dust |
+| `effects_config.gd` | BB size and colour, the muzzle blend, puffs by surface, a noisy prop's knock puff, a bush's green puff and leaves, the wind dust |
 | `sound_config.gd` | Cue and loop folders, gains, pitch and level spreads, distances and reaches, others' steps' and impacts' start limits, voice pools and voices per cue, the field's mix (out of play and the dips), the occlusion numbers (rays, corners, levels, surface gap, reach, far ramp, refresh, ray budget), kit rustle (levels, reach and start limit), landings (how hard a landing must come down to sound hard, its level and pitch then, your own landing's level), the ambience, the referee's whistle (its sound as tools/render_whistle.gd renders it, its level and blast pattern), a silenced shot's muffling, the flag rope's ratchet, the range's steel and how far targets are heard, the challenge's beeps, the squad order radio click, a noisy prop's knock (level, spreads, reach) |
 | `ambience_config.gd`, `ambience_set.gd`, `ambience_bed.gd`, `ambience_call.gd` | Each field's ambience (part of `sound_config.gd`): for the yard, the woods and the city a day and a night set of beds (loop, gain, width, the second copy's offset) and calls (cue, level, pitch spread, gaps, distances, height, seed); the yard for a map naming none or an unknown one |
 | `debug_view_config.gd` | The F4/F5 debug draw: a BB trail's length and colours, the hit volumes' colours and roundness |
@@ -48,7 +48,7 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `lighting_config.gd`, `night_lighting.tres` | The sun, the sky, ambient light, SSAO and exposure, and whether the preset is night (no glow on team paint); by night the haze, stars and moon, the light pools, and a map's `lighting.overrides` (`LightingConfig.for_map`). The day preset is in `play_tuning.tres`, the night one in `night_lighting.tres` |
 | `bake_config.gd` | The baked light (`BakeConfig` on PlayTuning): the bake's tile size, rays, reach, lift, open-ground height and sun reach (in each bake's hash: a change asks for a rebake), and the look's sky share and bounce strength (free to tune) |
 | `skyline_config.gd` | The skyline round a field (`SkylineConfig` on PlayTuning): the fade toward the horizon, the sight check's raised floors, each kind's colours (site colours and greys) and proportions, the treelines, and the chimneys' smoke |
-| `woods_config.gd` | A wood's dressing (`WoodsConfig` on PlayTuning, WL4): the crowns, the forest beyond the fence, grass tufts, puddles and mud, leaf drifts, fallen wood, moss and the night air, with each Mesh detail step's share |
+| `woods_config.gd` | A wood's dressing (`WoodsConfig` on PlayTuning, WL4): the crowns, the forest beyond the fence, grass tufts, puddles and mud, leaf drifts, fallen wood, moss, the night air and the bushes' placeholder look, with each Mesh detail step's share |
 | `figure_config.gd` | The rigged figures (`FigureConfig` on PlayTuning): the files and kinds, the human's four heads, the levels' lines on each Mesh detail and their margin, the shadow twin's level, the team paint's prefix, the model's turn, the Idle clip, the bones read, the robot mix and its salt |
 | `flag_view_config.gd` | Attack / Defend's pole in the world: pole, base, rope, cleat, the flag cloth's size, travel and wave, the reach ring's colours |
 | `range_view_config.gd` | The practice range drawn: plate, post, figure and gear paint and sizes, a hit plate's swing, a figure's fall, the challenge's lit glow and START plate, the floor lines and wall boards |
@@ -58,4 +58,4 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `accessibility_config.gd` | Settings › Accessibility's fixed numbers: the sound cue ring (life, fade, far opacity, markers, radius) and the sound cue size and HUD size sliders' ranges |
 | `bot_config.gd`, `bot_tuning.tres` | How bots play (`BotConfig.load_default()`): senses, aim, firing, lanes and holds, routes, cover, searching, hunting, the holster |
 | `squad_config.gd` | Squad orders (part of `bot_tuning.tres`): Hold here's reach, wall gap, spacing, arrival and move distance |
-| `bot_skill.gd` | How well a bot plays: reaction, turn rate, aim error and settling, lead, bursts, holds (Normal only for now) |
+| `bot_skill.gd` | How well a bot plays: reaction, turn rate, aim error and settling, lead, bursts, holds, whether it fires into bushes (Easy) |

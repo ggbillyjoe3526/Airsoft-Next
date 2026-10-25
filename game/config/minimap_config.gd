@@ -68,6 +68,9 @@ extends Resource
 @export var low_colour: Color = Color(Color("969ca0"), 0.95)
 @export var tall_colour: Color = Color(Color("d6dadc"), 0.98)
 @export var below_storey_colour: Color = Color(Color("080a0e"), 0.55)
+## A bush (WL5): a disc its own size in this muted green, over the ground and cover, on every storey's drawing. Off
+## every team's hue (docs/ART.md).
+@export var bush_colour: Color = Color(Color("4f6e44"), 0.95)
 @export var you_colour: Color = Color("ffffff")
 @export var out_colour: Color = Color(Color("aaaaaa"), 0.8)
 ## The rim drawn just outside a raised floor wherever the floor beyond it is lower (none where a ramp meets it), and how

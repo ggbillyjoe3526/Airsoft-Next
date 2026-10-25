@@ -11,7 +11,8 @@ extends Control
 ## it (HudFlagGauge), the warning while the other team's flag goes up, the marker over the pole with its distance, and
 ## the rounds' own banners. On the practice range (`setup_range`, concepts `step16-range/`): no score bar, rounds or hit
 ## feed; the last BB's readout bottom left (HudRangeReadout) and the timed challenge's bar, ready line and banners
-## (HudRangeChallenge). Under the score bar, for a few seconds after a round's end, the automatic graphics step-down's
+## (HudRangeChallenge). Under the crosshair, when a bush's leaves stop your own BB close in front of you, the line saying
+## so (`leaves_notice_shown`). Under the score bar, for a few seconds after a round's end, the automatic graphics step-down's
 ## line (concept `graphics-step-down.png`, `show_graphics_step`). With Settings › Accessibility's sound cues on, the
 ## ring of markers round the crosshair for the sounds heard (HudSoundCues). The HUD tab's HUD size scales every part
 ## about its anchor but the crosshair, the hit marker and the cue ring (`set_hud_size`); Reduced motion holds the flag
@@ -71,6 +72,8 @@ var _hit_label: Label = null
 var _hit_sub: Label = null
 var _vault_prompt: Label = null
 var _vault_left: float = 0.0
+var _leaves_notice: Label = null
+var _leaves_left: float = 0.0
 var _xp: XpCard = null
 var _watching: Label = null
 var _watching_name: String = ""
@@ -215,6 +218,11 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_vault_prompt.add_theme_constant_override("outline_size", 6)
 	_vault_prompt.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.55))
 	_vault_prompt.visible = false
+	_leaves_notice = HudStyle.label(prompt, GameTheme.SMALL_SIZE, 700, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
+	_leaves_notice.text = tr("HUD_LEAVES_IN_THE_WAY")
+	_leaves_notice.add_theme_constant_override("outline_size", 6)
+	_leaves_notice.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.55))
+	_leaves_notice.visible = false
 	_hit_label = HudStyle.label(middle, GameTheme.HUGE_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	_hit_label.text = tr("HUD_YOU_ARE_HIT")
 	_hit_sub = HudStyle.label(middle, GameTheme.BODY_SIZE, 600, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
@@ -533,6 +541,11 @@ func holds_results() -> bool:
 	return _round_result.holds_results()
 
 
+## Whether "Leaves in the way · step clear to shoot" shows.
+func leaves_notice_shown() -> bool:
+	return _leaves_notice.visible
+
+
 ## Whether a Jump press would vault this tick: the prompt shows, and stays up vault_prompt_hold after.
 func set_vault_ready(ready: bool) -> void:
 	if ready:
@@ -610,6 +623,10 @@ func on_tick(state: GameState) -> void:
 			GameEvent.Kind.HOP_UP:
 				if e.actor == _player.id:
 					_show_hop_up(e.value / 100.0)
+			GameEvent.Kind.BB_IMPACT:
+				if e.actor == _player.id and e.target < 0 and e.value == BBStep.IN_LEAVES \
+						and e.position.distance_to(Lean.eye(_player, _sim.body, _sim.hits)) <= _cfg.leaves_notice_near:
+					_leaves_left = _cfg.leaves_notice_time
 			GameEvent.Kind.ROUND_START:
 				_round_result.close()
 				hide_what_got_you()
@@ -675,6 +692,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		_step_left -= delta
 		_step_line.visible = _step_left > 0.0
 	_vault_prompt.visible = _vault_left > 0.0 and in_play
+	_leaves_left = maxf(0.0, _leaves_left - delta)
+	_leaves_notice.visible = _leaves_left > 0.0 and in_play
 	# The round's stamp stays up as long as the table under it, the match's banner as long as the XP.
 	if _stats != null:
 		_round_result.update(state, _stats, _player)

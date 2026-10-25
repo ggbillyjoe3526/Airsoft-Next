@@ -1,8 +1,8 @@
 extends GutTest
 ## A tick of every BB in flight: flight, then the level and the bodies (game/sim/bb_step.gd; the browser game's
-## sim/bbs.test.ts, bbsFirstBody.test.ts and bodyStopAndAim.test.ts). Bushes, Ghosts and leans come with their tasks,
-## and their cases with them; ricochets and wind are in test_ricochet.gd and test_wind.gd, range targets in
-## test_range_targets.gd.
+## sim/bbs.test.ts, bbsFirstBody.test.ts and bodyStopAndAim.test.ts). Ghosts and leans come with their tasks, and their
+## cases with them; bushes are in test_bushes.gd, ricochets and wind in test_ricochet.gd and test_wind.gd, range
+## targets in test_range_targets.gd.
 
 const DT := 1.0 / 60.0
 const KILL_Y := -10.0

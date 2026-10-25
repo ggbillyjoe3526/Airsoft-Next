@@ -27,6 +27,7 @@ search_walk_distance = 4.0
 flank_chance = 0.0
 hunt_memory = 20.0
 pre_aim_reaction_time = Vector2(0.6, 1)
+fires_into_leaves = true
 
 [sub_resource type="Resource" id="Resource_hard1"]
 script = ExtResource("2_bskl1")

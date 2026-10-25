@@ -172,6 +172,19 @@ extends Resource
 @export var mote_glow: float = 0.35
 @export var mote_edge: float = 1.5
 
+@export_group("Bushes")
+## The map's bushes (MapData.foliage, WL5; BushView) as placeholder ellipsoids, every one in a single instanced draw on
+## every preset: a sphere of `bush_sides` sides and `bush_rings` rings stretched to each bush, in one of `bush_colours`,
+## each up to `bush_jitter` lighter or darker, as rough as `bush_roughness`; marked on the minimap in
+## MinimapConfig.bush_colour. The art pass gives them leaves (step 32).
+@export var bush_colours: PackedColorArray = PackedColorArray([
+	Color("4a6b3a"), Color("3f5f34"), Color("56763f"), Color("44663c"),
+])
+@export var bush_jitter: float = 0.1
+@export var bush_sides: int = 12
+@export var bush_rings: int = 6
+@export var bush_roughness: float = 0.95
+
 @export_group("Look")
 ## The floor's pieces (leaves, wood, moss) and the tufts take light as this rough.
 @export var roughness: float = 0.9

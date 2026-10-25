@@ -73,6 +73,10 @@ Woodland's look in placeholders (WL4, `WoodsView` from `WoodsConfig`), until the
   30 to 60 m; puddles and mud as a darker, glossier skin on the slope (water glossy, mud duller, both off the team
   hues); leaf drifts by the trunks, fallen branches, twigs and short logs by the feet of blocks (out of lanes and
   spawns), moss on the top and north side of half the logs.
+- **Bushes** (WL5, `BushView`). Each of the map's bushes a low sphere stretched to its size, a seeded pick of four
+  mid greens up to 10 % lighter or darker, all in one draw on every preset; a BB stopped in one throws a pale green
+  puff and 4 to 6 yellow-green leaves that fall to its foot, one through an edge a leaf or two. The minimap marks each
+  as a muted green disc.
 - **The night air.** Fireflies by the logs and water, and pale motes round the eye, self-lit, the Wind dust row's
   share; still and steady under Reduced motion.
 - **Colours** are greens, browns and greys, every one more than 20 degrees from a team's hue or greyer than 0.3
@@ -209,6 +213,6 @@ The figures (step 23, FI1-FI7; every bot on every preset, DECISIONS BD1):
 The wood (WL4): `WoodsShapes` (`game/play/woods_shapes.gd`) places every part from `MapData`'s `dressing` with
 seeded order and colours, as plain data; `WoodsView` draws it (instanced cones, tuft tiles, one puddle mesh of two
 surfaces, one floor mesh, one night-air draw) and follows the Mesh detail and Wind dust rows; `SkylineShapes` builds
-the treelines. Pictures: `tools/map_pictures.gd` renders `assets/maps/woodland.jpg` with it on High.
+the treelines; `BushView` (`game/play/bush_view.gd`) draws the bushes the simulation reads (`MapData.foliage`). Pictures: `tools/map_pictures.gd` renders `assets/maps/woodland.jpg` with it on High.
 
 The browser game's version is in `legacy/browser/docs/ART.md`.

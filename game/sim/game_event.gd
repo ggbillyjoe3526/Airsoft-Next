@@ -12,7 +12,7 @@ enum Kind {
 	RELOAD_REFUSED, ## actor pressed reload with no spare fuller than the loaded magazine (slot).
 	DRAW, ## actor started bringing up the replica in slot.
 	FIRE_MODE, ## actor's selector on slot moved to value (ReplicaConfig.FireMode).
-	BB_IMPACT, ## actor's BB stopped at position: on the level (target -1, value2 the RayHit.Surface; direction its velocity as it landed) or a body not knocked out.
+	BB_IMPACT, ## actor's BB stopped at position: on the level (target -1, value2 the RayHit.Surface; direction its velocity as it landed), in a bush's leaves (target -1, value BBStep.IN_LEAVES; direction its unit path, reach the leaves it crossed) or a body not knocked out.
 	BB_LOST, ## actor's BB fell out of the level or flew past its lifetime at position.
 	CHARACTER_HIT, ## actor's BB hit target at position, flying along direction: target is out and calls the hit.
 	FOOTSTEP, ## actor's footstep (value: Footstep) on surface (value2: RayHit.Surface), carrying carry × as far; LAND: direction, down at its speed.
@@ -30,6 +30,7 @@ enum Kind {
 	SQUAD_ORDER_REFUSED, ## actor's squad order value came while it was out or between rounds; value2 1: from the wheel.
 	PROP_KNOCK, ## actor ran into noisy prop target (WorldQuery block index) at position: value its NoiseConfig.Sound, value2 its RayHit.Surface, heard out to reach.
 	PROP_RING, ## actor's BB rang noisy prop target at position, landing hard on steel: value its NoiseConfig.Sound, heard faintly out to reach.
+	BB_LEAVES, ## actor's BB came out of a bush's edge at position, flying along direction (before the leaves turned it), and flies on.
 }
 
 ## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.

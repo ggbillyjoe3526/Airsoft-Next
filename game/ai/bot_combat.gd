@@ -198,11 +198,12 @@ static func flight_time(b: Bot, w: BotWorld, dist: float) -> float:
 	return t if t < INF else 0.0
 
 
-## True if `b` must hold fire along `dir` from `eye` at a target `dist` m away: cover on the line to the aim point, a
-## wall close in front along the aim, or a body in the line of fire (_body_in_line) up to where a miss would stop.
+## True if `b` must hold fire along `dir` from `eye` at a target `dist` m away: cover on the line to the aim point, more
+## leaves in the way than it shoots through (leaves_in_line), a wall close in front along the aim, or a body in the line
+## of fire (_body_in_line) up to where a miss would stop.
 static func _line_of_fire_blocked(b: Bot, w: BotWorld, eye: Vector3, dir: Vector3, dist: float) -> bool:
 	var cfg := w.cfg
-	if not BotSenses.line_clear(w.query, eye, _aim_point):
+	if not BotSenses.line_clear(w.query, eye, _aim_point) or leaves_in_line(b, w, eye, _aim_point):
 		return true
 	var reach := dist + cfg.friendly_beyond_target
 	var wall := -1.0
@@ -213,6 +214,17 @@ static func _line_of_fire_blocked(b: Bot, w: BotWorld, eye: Vector3, dir: Vector
 		return true
 	var stray := _stray_per_metre(b, cfg)
 	return _body_in_line(b, w, eye, dir, _friendly_reach(w, eye, dir, dist, wall, stray), dist, stray)
+
+
+## True if the line from `eye` to `aim_point` runs through more bush than `b` shoots through (FO1): more than
+## foliage_fire_through of leaves, or for a bot that fires into them (Easy, BotSkill.fires_into_leaves) as much as stops
+## a BB. A bot can notice someone in a bush close by (close_awareness) and still have no shot at them.
+static func leaves_in_line(b: Bot, w: BotWorld, eye: Vector3, aim_point: Vector3) -> bool:
+	var leaves := w.query.foliage
+	if leaves == null or leaves.is_empty():
+		return false
+	var most := w.tuning.ballistics.leaf_stop_depth if b.skill.fires_into_leaves else w.cfg.foliage_fire_through
+	return leaves.depth(eye, aim_point, most) > most
 
 
 ## How far `b`'s BBs may stray off its aim line (m per m flown): friendly_spread_sigmas of the spread it shoots with now.

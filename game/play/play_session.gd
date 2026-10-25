@@ -124,6 +124,8 @@ var _pools: LightPools = null
 var _skyline: SkylineView = null
 ## A wood's crowns and dressing, or null on a map with neither (WoodsView, WL4).
 var _woods: WoodsView = null
+## The map's bushes, or null on a map with none (BushView, WL5).
+var _bushes: BushView = null
 ## Scratch for the vault prompt's look ahead each tick.
 var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
@@ -293,6 +295,9 @@ func _build_level() -> void:
 	_woods = WoodsView.build(_map, _play.woods, _play.skyline, _light, _play.map_style)
 	if _woods != null:
 		add_child(_woods)
+	_bushes = BushView.build(_map, _play.woods)
+	if _bushes != null:
+		add_child(_bushes)
 
 
 func _build_teams() -> void:
@@ -524,7 +529,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	_bbs.setup(_play.effects, state.bbs.bbs.size())
 	add_child(_bbs)
 	_puffs = PuffView.new()
-	_puffs.setup(_play.effects)
+	_puffs.setup(_play.effects, _map.foliage)
 	add_child(_puffs)
 	_dust = WindDust.new()
 	_dust.setup(_play.effects)
@@ -577,6 +582,8 @@ func _build_views(ui: CanvasLayer) -> void:
 		first_use.append_array(_pools.materials())
 	if _woods != null:
 		first_use.append_array(_woods.materials())
+	if _bushes != null:
+		first_use.append_array(_bushes.materials())
 	# the sky (by night its own shader) is no speck: it is the background of the prewarm's frames, so it compiles there
 	var warm := ShaderPrewarm.new()
 	warm.setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE), figure_materials)
@@ -775,10 +782,14 @@ func _after_tick() -> void:
 				_kicked.footfall(e.value, e.position, _eyes.global_position)
 			GameEvent.Kind.BB_IMPACT:
 				impacts += 1
-				if e.target < 0:
-					_puffs.impact(e.position, e.value2)
-				else:
+				if e.target >= 0:
 					_puffs.body_hit(e.position)
+				elif e.value == BBStep.IN_LEAVES:
+					_puffs.leaves_stop(e.position, e.direction, e.reach)
+				else:
+					_puffs.impact(e.position, e.value2)
+			GameEvent.Kind.BB_LEAVES:
+				_puffs.leaves_brush(e.position, e.direction)
 			GameEvent.Kind.CHARACTER_HIT:
 				_puffs.body_hit(e.position)
 				if e.target == PLAYER_ID:

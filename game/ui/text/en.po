@@ -54,6 +54,9 @@ msgstr "Ricochet: play on"
 msgid "HUD_VAULT"
 msgstr "%s to vault"
 
+msgid "HUD_LEAVES_IN_THE_WAY"
+msgstr "Leaves in the way · step clear to shoot"
+
 msgid "HUD_HOLSTERED"
 msgstr "Holstered"
 

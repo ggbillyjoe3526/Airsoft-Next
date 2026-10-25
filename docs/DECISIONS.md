@@ -438,6 +438,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Bushes hide you and stop BBs, but not people (2026-10-15, FO1; Claude's defaults; replaces "Bushes hide but BBs
   pass").** The same 0.6 m of leaves, counted over a BB's whole flight, hides a player from bots and stops the BB (a
   test holds the two equal); a BB crossing less is thrown off its line. Numbers: `legacy/browser/docs/records/FO1.md`.
+- **Bushes live in the simulation through `WorldQuery.foliage`, never in Jolt or the nav grid (2026-10-25, WL5).**
+  MapData reads a map's `foliage`, MapLevel hands it to JoltQuery; BBs, bot sight and bot fire count its leaves, the
+  view only draws them (BushView, one draw) and the minimap marks them. FO1's numbers are data (`BallisticsConfig`
+  leaves, `BotConfig.foliage_*`, Easy's `fires_into_leaves`); a world without bushes flies BBs as before.
 - **Practice has moving targets and a timed challenge, on the range or any map (2026-10-13, M93, M94; Claude's
   defaults).** The timed challenge is off by default, switched in Practice's pause menu: a START plate, a 3 s
   countdown, then 60 s of lit targets. On a map there are no bots: targets stand where the other team's bots would

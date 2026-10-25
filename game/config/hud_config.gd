@@ -23,6 +23,11 @@ extends Resource
 ## centre (px).
 @export var vault_prompt_hold: float = 0.15
 @export var vault_prompt_drop: float = 56.0
+## "Leaves in the way · step clear to shoot" under the vault prompt when a bush's leaves stop your own BB within
+## leaves_notice_near (m) of your eyes (WL5, FO1): you're in or right behind one, which hides you but stops your shots.
+## Up this long (s).
+@export var leaves_notice_near: float = 2.0
+@export var leaves_notice_time: float = 1.4
 @export var hop_band: float = 0.15
 @export var hop_range: float = 60.0
 ## A ricochet that ticks you (when ricochets don't count) says so this long (s).
