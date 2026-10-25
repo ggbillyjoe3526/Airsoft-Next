@@ -1,12 +1,12 @@
 # CO1 · Bot callouts: who calls what, and when
 
-**Review:** not yet
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-25 | 1 | worker | see Gate | – | – |
+| 2026-10-25 | 1 | worker | see Gate | Accept 8/8 | – |
 
 ## Goal
 
@@ -103,6 +103,14 @@ five; 1.4 µs a line, performance review), and the ring's lines are replaced, st
   every event of the browser's list called somewhere).
 - The figures above from the guard's output and two scratch runs (not kept).
 - Not verified: anything on screen or heard; CO2 shows and plays the calls.
+
+## Advisories left
+
+- **Bots call about 11 a team a minute at Normal** (QA, critic): above the browser's 5.5 to 11.4, from the three-level
+  change and today's map sizes, not the port; how chatty it feels is CO2's playtest once calls show.
+- **Reloading is almost never called in play** (0 to 1 reloads in 180 s); only the unit tests raise it.
+- **Small code notes ride with CO2** (critic): {area} capitalised only at a line's start, Pace's defaults written
+  twice, a filter repeated in `_line` and `_line_count`, the callout-guards comments still saying Depot only.
 
 ## Gate
 
