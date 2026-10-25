@@ -6,6 +6,8 @@ var active: bool = false
 ## Grows with every BB fired, so presentation can tell a reused slot holds a new BB.
 var serial: int = 0
 var owner_id: int = -1
+## The loadout slot of the replica that fired it (-1: none), for presentation (Glowing BBs, WL8). Never read in flight.
+var slot: int = -1
 var position: Vector3 = Vector3.ZERO
 ## Where it was at the start of the last tick: the segment checked for hits, and for drawing between ticks.
 var prev_position: Vector3 = Vector3.ZERO

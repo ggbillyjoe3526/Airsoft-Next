@@ -288,6 +288,7 @@ func carried(loadout: Loadout) -> Kit:
 		kit.replicas.append(r)
 		kit.bb_weights.append(t.bb_weight)
 		kit.paints.append(t.paint)
+		kit.glow_bbs.append(loadout.glow_of(id))
 		kit.parts.append(keys)
 		kit.lights.append(light)
 		kit.capped.append(energy > limit)

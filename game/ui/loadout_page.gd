@@ -61,6 +61,7 @@ func _init(saved_in: SavedLoadouts = null, settings_in: Settings = null) -> void
 	_customise.tab_shown.connect(_refresh_after_tab)
 	_customise.paint_picked.connect(_pick_paint)
 	_customise.bb_weight_set.connect(_set_weight)
+	_customise.glow_picked.connect(_pick_glow)
 	_customise.hop_up_set.connect(_set_hop_up)
 	_customise.power_picked.connect(_pick_power)
 	_customise.part_picked.connect(_pick_part)
@@ -267,6 +268,12 @@ func _set_weight(grams: float) -> void:
 	var id := _facts.item(_slot).id
 	if not is_equal_approx(saved.rules.snap_bb_weight(grams), _facts.tune(_slot).bb_weight):
 		saved.rules.set_bb_weight(saved.carried(), id, grams)
+		saved.mark_changed()
+
+
+## Glowing BBs for the replica being customised (WL8): kept with the loadout, drawing only.
+func _pick_glow(choice: Loadout.Glow) -> void:
+	if _facts.has(_slot) and saved.carried().set_glow(_facts.item(_slot).id, choice):
 		saved.mark_changed()
 
 

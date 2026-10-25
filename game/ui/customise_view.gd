@@ -5,14 +5,17 @@ extends Control
 ## each greyed with the mount it needs on a replica that can't take one; LIGHT greyed LATER while no light is on offer:
 ## the Weapon Torch is dev while Woodland is, WL7), the replica's picture with the
 ## tab's controls under it and the Performance sheet on the right. COLOUR: the eight bold schemes, the four plain colours and
-## the Realistic colours switch. BBs: the weight and hop-up sliders with the hop-up's flight. POWER: the power sources that
+## the Realistic colours switch. BBs: the weight slider with Glowing BBs under it (At Night, Always, Off: WL8), and the
+## hop-up's slider with its flight. POWER: the power sources that
 ## fit. A part tab (PartPage): the slot as it comes and each part that fits, with its figures. The picture shows the parts
-## fitted. Each control only sends a signal (`paint_picked`, `bb_weight_set`, `hop_up_set`, `power_picked`, `part_picked`,
-## `realistic_toggled`); the page owner makes the edit and calls `refresh`.
+## fitted. Each control only sends a signal (`paint_picked`, `bb_weight_set`, `glow_picked`, `hop_up_set`, `power_picked`,
+## `part_picked`, `realistic_toggled`); the page owner makes the edit and calls `refresh`.
 
 signal back_requested
 signal paint_picked(paint: StringName)
 signal bb_weight_set(grams: float)
+## A Glowing BBs choice was picked (Loadout.Glow).
+signal glow_picked(choice: Loadout.Glow)
 signal hop_up_set(dial: float)
 signal power_picked(id: String)
 ## A part card was picked: the part slot (Pool.PART_TABLES) and the part's ID, "" for the slot as it comes.
@@ -118,6 +121,10 @@ const POWER_STAT_SIZE := 15
 const POWER_STAT_GAP := 18
 ## The weight slider's and the dial's ticks (the concept's three marks under each).
 const HOP_TICKS: Array[String] = ["CUSTOMISE_HOP_OFF", "CUSTOMISE_HOP_HALF", "CUSTOMISE_HOP_FULL"]
+## Each Glowing BBs choice's words and the line under them, in Loadout.Glow's order.
+const GLOW_KEYS: Array[String] = ["CUSTOMISE_GLOW_NIGHT", "CUSTOMISE_GLOW_ALWAYS", "CUSTOMISE_GLOW_OFF"]
+const GLOW_BLURBS: Array[String] = ["CUSTOMISE_GLOW_NIGHT_BLURB", "CUSTOMISE_GLOW_ALWAYS_BLURB",
+		"CUSTOMISE_GLOW_OFF_BLURB"]
 
 var tab: Tab = Tab.COLOUR
 
@@ -146,6 +153,8 @@ var _realistic: MenuToggle = null
 var _weight: LoadoutSlider = null
 var _weight_big: Label = null
 var _weight_note: Label = null
+var _glow_bbs: MenuChoice = null
+var _glow_blurb: Label = null
 var _hop: LoadoutSlider = null
 var _hop_big: Label = null
 var _hop_note: Label = null
@@ -221,6 +230,14 @@ func realistic_toggle() -> MenuToggle:
 
 func weight_slider() -> LoadoutSlider:
 	return _weight
+
+
+func glow_choice() -> MenuChoice:
+	return _glow_bbs
+
+
+func glow_blurb() -> Label:
+	return _glow_blurb
 
 
 func hop_slider() -> LoadoutSlider:
@@ -304,6 +321,9 @@ func refresh(slot: Loadout.Slot, realistic: bool) -> void:
 	_weight.put(t.bb_weight)
 	_weight_big.text = tr("LOADOUT_GRAMS") % t.bb_weight
 	_weight_note.text = tr("CUSTOMISE_AS_IT_COMES") % (tr("LOADOUT_GRAMS") % base.bb_weight)
+	var glow := f.saved.carried().glow_of(item.id)
+	_glow_bbs.put(glow)
+	_glow_blurb.text = tr(GLOW_BLURBS[glow])
 	_hop.put(t.hop_up)
 	_hop_big.text = tr("CUSTOMISE_PERCENT") % roundi(t.hop_up * 100.0)
 	_hop_note.text = tr("CUSTOMISE_AS_IT_COMES") % (tr("CUSTOMISE_PERCENT") % roundi(base.hop_up_dial * 100.0))
@@ -630,6 +650,24 @@ func _build_bbs() -> Control:
 	_weight_big = weight_column.get_node("Big/Value") as Label
 	_weight_note = weight_column.get_node("Big/Note") as Label
 	_weight.value_changed.connect(func(v: float) -> void: bb_weight_set.emit(v))
+	var glow_gap := Control.new()
+	glow_gap.custom_minimum_size = Vector2(0.0, TOGGLE_TOP)
+	weight_column.add_child(glow_gap)
+	weight_column.add_child(_sub_head(tr("CUSTOMISE_GLOW_BBS"), ""))
+	var words := PackedStringArray()
+	for key in GLOW_KEYS:
+		words.append(tr(key))
+	_glow_bbs = MenuChoice.new(words)
+	_glow_bbs.name = "GlowBbs"
+	_glow_bbs.picked.connect(func(i: int) -> void: glow_picked.emit(i as Loadout.Glow))
+	var choice_wrap := MenuParts.padded(0, SUB_GAP, 0, 0)
+	choice_wrap.add_child(_glow_bbs)
+	weight_column.add_child(choice_wrap)
+	_glow_blurb = MenuParts.text("", BLURB_SIZE, 600, GameTheme.MUTED)
+	_glow_blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var blurb_wrap := MenuParts.padded(0, BLURB_GAP, 0, 0)
+	blurb_wrap.add_child(_glow_blurb)
+	weight_column.add_child(blurb_wrap)
 	page.add_child(weight_column)
 	var hop_column := VBoxContainer.new()
 	hop_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL

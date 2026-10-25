@@ -381,4 +381,4 @@ func _fire(c: Character, r: ReplicaConfig, eye: Vector3, kick_scale: float, pool
 	# and it never hits its owner. Presentation draws it leaving the muzzle.
 	var grams := bb_weights[active]
 	pool.spawn(c.id, eye, dir, Ballistics.muzzle_velocity(r, rules, grams), Ballistics.hop_up_lift(r, hop_ups[active], rules),
-			Ballistics.bb_mass(r, grams), tuning.ballistics.spin_per_hop)
+			Ballistics.bb_mass(r, grams), tuning.ballistics.spin_per_hop, active)

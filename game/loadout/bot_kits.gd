@@ -16,6 +16,9 @@ const SUITS_COLUMN := "Suits"
 ## Each replica column, primary first, and its parts column.
 const REPLICA_COLUMNS: PackedStringArray = ["Primary", "Secondary"]
 const PARTS_COLUMNS: PackedStringArray = ["Primary parts", "Secondary parts"]
+## Every bot, on both teams, loads its BBs the default way (the browser's BOT_GLOW_BBS): glowing on night fields only.
+## Bots don't use the Loadout, so this is the rule, not a kit's pick.
+const GLOW_BBS := Loadout.Glow.NIGHT
 ## Each difficulty (MatchOptions.BOT_LEVELS) and its weight column.
 const WEIGHT_COLUMNS: Dictionary[StringName, String] = {
 	&"easy": "Easy", &"normal": "Normal", &"hard": "Hard", &"pro": "Pro",
@@ -190,6 +193,7 @@ static func kit_of(plan: Plan, rules: LoadoutRules) -> Kit:
 		kit.paints.resize(plan.slots.size())
 		kit.parts.resize(plan.slots.size())
 		kit.lights.resize(plan.slots.size())
+		kit.glow_bbs.resize(plan.slots.size())
 		kit.capped.resize(plan.slots.size())
 	for r in kit.replicas:
 		if r.fire_modes.has(ReplicaConfig.FireMode.AUTO):

@@ -1203,6 +1203,27 @@ msgstr "Heavier BBs hold their line in the wind and keep a little more energy, b
 msgid "CUSTOMISE_HOP_BLURB"
 msgstr "Backspin that lifts the BB to fly flat. Too little and it drops early; too much and it climbs. Turn it in a match with 4 and 5."
 
+msgid "CUSTOMISE_GLOW_BBS"
+msgstr "GLOWING BBS"
+
+msgid "CUSTOMISE_GLOW_NIGHT"
+msgstr "At Night"
+
+msgid "CUSTOMISE_GLOW_ALWAYS"
+msgstr "Always"
+
+msgid "CUSTOMISE_GLOW_OFF"
+msgstr "Off"
+
+msgid "CUSTOMISE_GLOW_NIGHT_BLURB"
+msgstr "Glowing BBs on night fields, white BBs by day. They fly the same: green, larger at range, with a streak."
+
+msgid "CUSTOMISE_GLOW_ALWAYS_BLURB"
+msgstr "Glowing BBs on every field: every shot easy to follow, by day too."
+
+msgid "CUSTOMISE_GLOW_OFF_BLURB"
+msgstr "White BBs on every field, at night too."
+
 msgid "CUSTOMISE_POWER_HEAD"
 msgstr "POWER SOURCE"
 

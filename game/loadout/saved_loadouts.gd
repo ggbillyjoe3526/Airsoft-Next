@@ -4,7 +4,8 @@ extends RefCounted
 ## current one is the loadout carried and every edit goes to it, so there is no Save button (docs/DECISIONS.md ›
 ## Loadout). Saved through SaveFile at user://loadouts.save (kind "loadouts", version 1), apart from the settings.
 ## A missing file is one default loadout. A damaged file, or one of a newer version, falls back to that with
-## `load_message`; a saved value that won't do keeps its default and warns. Fields this build doesn't know are kept.
+## `load_message`; a saved value that won't do keeps its default and warns. Fields this build doesn't know are kept. A
+## loadout saved before Glowing BBs (WL8) loads them At Night on every replica.
 
 ## Sent after any change to the loadouts or which one is current.
 signal changed
@@ -224,6 +225,19 @@ func _loadout_from(entry: Dictionary, problems: Array[String]) -> Loadout:
 				l.tunes[str(id)] = ReplicaTune.from_dict(t, rules.default_tune(it))
 			else:
 				problems.append("%s: a setup for \"%s\" won't read: dropped" % [l.name, id])
+	# Glowing BBs (WL8): a save from before them has none, so every replica loads them At Night. Only a replica has them.
+	var glow: Variant = entry.get("glow")
+	if glow is Dictionary:
+		var picks := glow as Dictionary
+		for id: Variant in picks:
+			var choice := Loadout.GLOW_NAMES.find(str(picks[id])) if picks[id] is String else -1
+			var it := rules.pool.item(str(id))
+			if choice >= 0 and it != null and it.kind == Pool.Kind.REPLICA:
+				l.glow[str(id)] = choice as Loadout.Glow
+			else:
+				problems.append("%s: Glowing BBs \"%s\" for \"%s\" won't read: At Night" % [l.name, picks[id], id])
+	elif glow != null:
+		problems.append("%s: Glowing BBs won't read: At Night" % l.name)
 	problems.append_array(rules.clean(l))
 	return l
 
