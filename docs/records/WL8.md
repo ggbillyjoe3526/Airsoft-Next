@@ -1,13 +1,13 @@
 # WL8 · Glowing BBs
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | 3,149 of 3,149 | – | – |
-| 2026-10-25 | 2 | worker | 3,166 of 3,166 | – | QA and performance passed with fixes asked: white BBs paid for the glow test; a `glow` entry was kept for a non-replica |
+| 2026-10-25 | 2 | worker | 3,166 of 3,166 | Accept 8/8 | QA and performance passed with fixes asked: white BBs paid for the glow test; a `glow` entry was kept for a non-replica |
 
 ## Goal
 

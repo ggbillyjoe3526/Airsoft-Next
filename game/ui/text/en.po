@@ -1216,7 +1216,7 @@ msgid "CUSTOMISE_GLOW_OFF"
 msgstr "Off"
 
 msgid "CUSTOMISE_GLOW_NIGHT_BLURB"
-msgstr "Glowing BBs on night fields, white BBs by day. They fly the same: green, larger at range, with a longer streak."
+msgstr "Glowing BBs on night fields, white BBs by day. They fly the same: green, larger at range, with a streak."
 
 msgid "CUSTOMISE_GLOW_ALWAYS_BLURB"
 msgstr "Glowing BBs on every field: every shot easy to follow, by day too."

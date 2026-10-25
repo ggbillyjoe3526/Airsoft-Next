@@ -4,24 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## WL8 · Glowing BBs (Dev)
-when: build order step 26, after WL3
-tier: ui
-perf: required
-touches: game/loadout/loadout.gd, game/loadout/saved_loadouts.gd, game/loadout/bot_kits.gd,
-  game/ui/customise_view.gd, game/ui/part_options.gd, game/play/bb_view.gd, game/config/effects_config.gd,
-  game/ui/text/en.po, tests/unit/test_glow_bbs.gd, docs/PLAYTEST.md
-contract: Simulation and presentation (1); Saves (8)
-acceptance:
-  1. Customise, beside BB weight: Glowing BBs, At Night (the default), Always or Off, per replica and saved; an old
-     save reads At Night. Bots load At Night.
-  2. A glowing BB is drawn green (157, 255, 122) with a green streak (92, 255, 74), never under 0.0045 rad across,
-     its streak 0.05 s long, on every preset, with no halo; white BBs draw as before.
-  3. It is presentation only: a seeded match plays the same with every choice (tested).
-  4. Pictures by day (Always) and at night are posted.
-status: open
-attempts: 0
-
 ## WL9 · The practice range set in Depot, and practice on any map (Dev)
 when: build order step 26, after WL1 (Woodland's at night after WL7)
 tier: core
