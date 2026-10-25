@@ -301,6 +301,23 @@ func test_route_searches_keep_to_the_budget_and_the_rest_wait_for_the_next_tick(
 	assert_eq(_wanted(w), 3, "a walk-off due takes the tick's first search")
 
 
+func test_a_victim_still_vaulting_leaves_the_bots_their_search() -> void:
+	var w := _world(2, 1)
+	var victim := w.characters[1]
+	victim.walk_off_route_pending = true
+	victim.vault.active = true
+	assert_false(Elimination.walk_off_due(victim, w.nav), "not planned until it lands")
+	BotRoutes.plan(w, w.characters, 0)
+	assert_eq(w.bots[0].route_state, Bot.RouteState.OK, "a bot gets the tick's search while the victim vaults")
+	victim.vault.active = false
+	assert_true(Elimination.walk_off_due(victim, w.nav))
+	BotRoutes.want(w.bots[0], w.characters[1].position, w.cfg)
+	w.bots[0].route_state = Bot.RouteState.WANTED
+	BotRoutes.plan(w, w.characters, 0)
+	assert_eq(w.bots[0].route_state, Bot.RouteState.WANTED, "once it has landed, its walk-off goes first")
+	assert_false(Elimination.walk_off_due(victim, null), "no grid, no search to leave it")
+
+
 func test_at_6v6_on_woodland_no_bot_waits_a_second_for_a_route() -> void:
 	var tuning := SimTuning.load_default().duplicate() as SimTuning
 	tuning.rounds = tuning.rounds.duplicate() as RoundConfig
@@ -343,7 +360,7 @@ func test_a_session_freed_while_its_grid_builds_waits_for_the_task() -> void:
 	session.map_id = "woodland"
 	session.staged = true
 	add_child(session)
-	await wait_until(func() -> bool: return session._nav_task >= 0, LOAD_LIMIT)
+	assert_true(await wait_until(func() -> bool: return session._nav_task >= 0, LOAD_LIMIT), "the nav grid task starts within LOAD_LIMIT s")
 	assert_gte(session._nav_task, 0)
 	remove_child(session)
 	assert_eq(session._nav_task, -1, "waited for as it left the tree")

@@ -20,15 +20,16 @@ static func want(b: Bot, goal: Vector3, cfg: BotConfig) -> void:
 
 
 ## Plans the routes of the bots that want one, round-robin from `cursor`, while the tick's search budget lasts
-## (NavConfig.search_budget, the browser's planRoutes): a walk-off waiting in `characters` takes the tick's first search
-## (Elimination plans it in the simulation step), and a bot over the budget waits for the next tick. A bot out of play,
+## (NavConfig.search_budget, the browser's planRoutes): a walk-off the simulation step will plan this tick takes the
+## tick's first search (Elimination.walk_off_due: not a victim still mid-vault, nor with no grid), and a bot over the
+## budget waits for the next tick. A bot out of play,
 ## or failed lately (BotConfig.route_retry_delay), is passed over. Each wanted route is stamped when first seen
 ## (Bot.route_asked_at), for its wait. Returns the cursor for the next tick: the bot after the last one served, so no bot
 ## waits behind another twice.
 static func plan(w: BotWorld, characters: Array[Character], cursor: int) -> int:
 	var budget := w.tuning.nav.search_budget
 	for c in characters:
-		if c.walk_off_route_pending:
+		if Elimination.walk_off_due(c, w.nav):
 			budget -= 1
 			break
 	for b in w.bots:

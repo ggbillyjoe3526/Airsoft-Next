@@ -144,7 +144,7 @@ func test_menus_rebuilt_after_a_match_leave_no_orphans_and_keep_picks_and_focus(
 	var nodes_before := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
 	for round_i in 2:
 		main._start_play()
-		await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT)
+		assert_true(await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT), "the match loads within LOAD_LIMIT s")
 		assert_null(main._loading)
 		await wait_physics_frames(5)
 		main._play._open_pause()
@@ -165,7 +165,7 @@ func test_settings_connections_do_not_grow_across_matches() -> void:
 	var base := Settings.shared().changed.get_connections().size()
 	for i in 3:
 		main._start_play()
-		await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT)
+		assert_true(await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT), "the match loads within LOAD_LIMIT s")
 		await wait_physics_frames(3)
 		main._play._leave()
 		await wait_process_frames(3)
@@ -183,7 +183,7 @@ func test_esc_and_focus_loss_during_loading_do_nothing() -> void:
 	session.notification(NOTIFICATION_APPLICATION_FOCUS_OUT)
 	assert_false(get_tree().paused, "the tree is not paused mid-load")
 	watch_signals(session)
-	await wait_until(func() -> bool: return get_signal_emit_count(session, "started") > 0, LOAD_LIMIT)
+	assert_true(await wait_until(func() -> bool: return get_signal_emit_count(session, "started") > 0, LOAD_LIMIT), "the build starts the match within LOAD_LIMIT s")
 	assert_signal_emit_count(session, "started", 1)
 	assert_false(get_tree().paused)
 

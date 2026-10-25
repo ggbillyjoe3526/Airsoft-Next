@@ -62,6 +62,12 @@ static func plan_walk_off_routes(characters: Array[Character], nav: NavGrid = nu
 	return false
 
 
+## Whether `c`'s walk-off route is planned this tick with a search on `nav` (plan_walk_off_routes: one waiting, not
+## mid-vault, and a grid to search), so the bots' route budget leaves it the tick's first search (BotRoutes.plan).
+static func walk_off_due(c: Character, nav: NavGrid) -> bool:
+	return c.walk_off_route_pending and not c.vault.active and nav != null
+
+
 ## Fills `out` with what an eliminated character does instead of its controller's command: stand still with the hand up
 ## while calling, walk the route to the dead zone, then stand there. Never fires, aims, reloads or switches, whatever a
 ## reused command held before (browser audit SIM-11). The walk is `forward` = HitConfig.walk_off_speed with no walk

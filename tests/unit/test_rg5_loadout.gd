@@ -260,7 +260,7 @@ func test_the_entry_scene_takes_you_to_the_loadout_and_back_to_the_same_spot() -
 	main._picks.map_id = "range"
 	main._picks.mode = MatchOptions.MODE_PRACTICE
 	main._start_play()
-	await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT)
+	assert_true(await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT), "the match loads within LOAD_LIMIT s")
 	var play: PlaySession = main._play
 	assert_true(play.practice)
 	play.player.position = Vector3(1.5, 0.0, -3.0)

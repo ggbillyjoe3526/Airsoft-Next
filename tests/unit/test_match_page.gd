@@ -342,7 +342,7 @@ func test_woodland_builds_staged_at_its_standard_size_and_runs() -> void:
 	session.staged = true
 	watch_signals(session)
 	add_child_autofree(session)
-	await wait_until(func() -> bool: return get_signal_emit_count(session, "started") > 0, LOAD_LIMIT)
+	assert_true(await wait_until(func() -> bool: return get_signal_emit_count(session, "started") > 0, LOAD_LIMIT), "the build starts the match within LOAD_LIMIT s")
 	assert_signal_emit_count(session, "started", 1)
 	assert_not_null(session.state, "Woodland loads and builds")
 	if session.state == null:

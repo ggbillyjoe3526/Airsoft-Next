@@ -364,6 +364,10 @@ static func _build_nav(out: Array[NavGrid], map: MapData, tuning: SimTuning) -> 
 func _take_nav() -> void:
 	WorkerThreadPool.wait_for_task_completion(_nav_task)
 	_nav_task = -1
+	if _nav_out.is_empty():
+		push_error("PlaySession: the nav grid task left no grid; building it here")
+		_sim.nav = NavGrid.build(_map, _tuning.nav, _tuning.body)
+		return
 	_sim.nav = _nav_out.pop_back()
 
 
