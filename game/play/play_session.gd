@@ -84,8 +84,9 @@ var custom_rules: CustomRules = null
 var counts: bool = false
 ## What the last finished match gave, once counted (null before).
 var settled: PlayerTally.Settled = null
-## Practice on the range (M21): `map_id`'s targets, you alone (no bots, no rounds, a team of one), a ricochet of your
-## own only ticking you, `mode` practice; no XP or match records. Set before it enters the tree, as the map is.
+## Practice (M21; on any field, M94): the range's own targets, or on a field targets where the other team would play
+## (PracticeSpots), you alone from end 0's first spawn (no bots, no rounds, a team of one), a ricochet of your own only
+## ticking you, `mode` practice; no XP or match records. Set before it enters the tree, as the map is.
 var practice: bool = false
 ## Practice: the timed challenge on from the start (the pause menu's switch; set_challenge changes it in play).
 var challenge_on: bool = false
@@ -206,6 +207,8 @@ var _flag: FlagView = null
 var _colours: TeamColours = null
 ## Practice: the targets and the range's markings; the smoke test's pilot on the range.
 var _targets_view: RangeTargetsView = null
+## Practice on the range itself (its file lays out its targets and its markings stand), not on a field.
+var _on_range: bool = false
 var _pilot: RangePilot = null
 ## Your kit was picked with levelling off: every match it plays stays out of the records, even after it is turned on.
 var _kit_unlocked_all: bool = false
@@ -314,6 +317,8 @@ func _build_teams() -> void:
 func _build_views_and_start() -> void:
 	if not _map.ok():
 		return
+	if practice:
+		_lay_out_targets(_map)
 	_build_views(_ui)
 	# With the pilot on, a bot plays your character too.
 	var nobody := -1
@@ -337,6 +342,8 @@ func _build_views_and_start() -> void:
 	_apply_motion()
 	_apply_graphics(GraphicsApply.drawn_or(settings))
 	_sim.start_match(state)
+	if practice:
+		_place_at_start()
 	_after_tick()
 	if resume != null:
 		_resume_spot()
@@ -351,7 +358,8 @@ func _build_views_and_start() -> void:
 	_hud.set_board_match(map_name, tr("HUD_BOARD_SUB") % [tr(MatchOptions.MODE_NAME[mode]), bots, size, size],
 			difficulty == &"pro")
 	_hud.set_match_tail(tr("SUM_MATCH_TAIL") % [map_name, bots])
-	if not practice:
+	# A field's minimap in practice too (nobody to hear); the range is a corridor you see whole.
+	if not _on_range:
 		_hud.setup_minimap(_map, _play.minimap, _heard, map_name, state.characters.size())
 	_capture()
 
@@ -443,7 +451,7 @@ func _start_simulation(map: MapData) -> void:
 	_bot_parts.clear()
 	_bot_config = BotConfig.load_default()
 	if practice:
-		_start_practice(map)
+		_start_practice()
 		return
 	var ids := PackedInt32Array()
 	var teams := PackedInt32Array()
@@ -476,18 +484,51 @@ func _start_simulation(map: MapData) -> void:
 		_commands.append(PlayerCommand.new())
 
 
-## Practice's state: no rounds, the map's targets laid out on the match's stream, and the timed challenge on the map's
-## course with its best so far (kept only when the session counts), on if asked for.
-func _start_practice(map: MapData) -> void:
+## Practice's state: no rounds and nobody but you; its targets wait for the nav grid (_lay_out_targets).
+func _start_practice() -> void:
 	mode = MatchOptions.MODE_PRACTICE
 	state.round_state.practice = true
-	state.targets = RangeTargets.create(map.targets, _tuning, state.rng)
+	_commands.append(PlayerCommand.new())
+
+
+## Practice's targets, once the nav grid is built, laid out on the match's stream: the range's own (its file's
+## `targets`), or on a field where the other team would play (PracticeSpots, from the map's data alone). The timed
+## challenge runs on the map's course with its best so far (kept only when the session counts), on if asked for and the
+## map has room for its START plate; on a field it lights only targets in your sight (RangeChallenge.Sight).
+func _lay_out_targets(map: MapData) -> void:
+	_on_range = not map.targets.is_empty()
+	var specs := map.targets if _on_range else PracticeSpots.layout(map, _sim.nav, _level.query(), _tuning)
+	state.targets = RangeTargets.create(specs, _tuning, state.rng)
 	var challenge := state.challenge
 	challenge.course = map_id
 	challenge.player_id = PLAYER_ID
 	challenge.best = _records().challenge_best(map_id) if counts else 0
+	if not _on_range:
+		var sight := RangeChallenge.Sight.new()
+		sight.query = _level.query()
+		sight.watcher = player
+		sight.body = _tuning.body
+		sight.hits = _tuning.hits
+		sight.reach = _tuning.targets.field_sight_reach
+		challenge.sight = sight
 	set_challenge(challenge_on)
-	_commands.append(PlayerCommand.new())
+
+
+## Practice starts you at end 0's first spawn (Alpha's round 1 start, whatever team you picked), facing the START plate
+## on a field where one stands (it may be turned a little from the spawn's way to stand in plain sight).
+func _place_at_start() -> void:
+	var s := PracticeSpots.start_of(_map)
+	if s == null:
+		return
+	var yaw := s.yaw
+	if not _on_range:
+		for t in state.targets:
+			if t.start:
+				yaw = t.yaw
+	player.end = 0
+	player.spawn_position = s.position + Vector3(0.0, _tuning.body.rest_gap, 0.0)
+	player.spawn_yaw = yaw
+	player.respawn()
 
 
 ## Practice's rules on a copy of `base` (SimTuning.load_default() is shared, never written): a team of one, and a BB of
@@ -565,9 +606,11 @@ func _build_views(ui: CanvasLayer) -> void:
 	var sign_font := GameTheme.font(800)
 	var range_materials: Array[Material] = []
 	if practice:
-		var marks := RangeView.new()
-		add_child(marks)
-		marks.setup(_play.range_view, _tuning.targets, sign_font)
+		# The range's markings (its lines, lane signs and distance boards) stand only on the range.
+		if _on_range:
+			var marks := RangeView.new()
+			add_child(marks)
+			marks.setup(_play.range_view, _tuning.targets, sign_font)
 		_targets_view = RangeTargetsView.new()
 		add_child(_targets_view)
 		_targets_view.setup(state.targets, _play.range_view, _tuning, sign_font)
@@ -637,7 +680,7 @@ func _build_views(ui: CanvasLayer) -> void:
 	_hud.setup_sound_cues(_cues, _access)
 	_hud.setup_orders(_play.controls)
 	if practice:
-		_hud.setup_range(_tuning.targets)
+		_hud.setup_range(_tuning.targets, not _on_range, _map.kill_y)
 	# Over the field while the HUD is hidden, under the pause menu.
 	var skip_layer := Control.new()
 	skip_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -1186,7 +1229,7 @@ func what_got_you_shown() -> bool:
 func _show_practice_pause() -> void:
 	var listed := MapCatalog.shared().find(map_id)
 	_pause.set_practice(listed.display_name if listed != null else _map.display_name, challenge_on,
-			state.challenge.best)
+			state.challenge.best, RangeChallenge.has_start(state.targets))
 
 
 ## The pause menu's Timed challenge switch: the challenge follows, and the choice is saved with the settings (a session

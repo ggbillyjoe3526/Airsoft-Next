@@ -485,9 +485,9 @@
  "dressing": {
   "seed": 2113,
   "clutter": {
-   "dirt": 0.5,
-   "junk": 0.3,
-   "litter": 0.2
+   "dirt": 0.55,
+   "junk": 0.45,
+   "litter": 0.3
   },
   "puddles": [
    {
@@ -510,8 +510,8 @@
    }
   ],
   "marks": {
-   "logos": 0,
-   "walls": 0.3
+   "logos": 0.45,
+   "walls": 0.2
   },
   "strips": [
    {
@@ -561,105 +561,386 @@
   ],
   "skyline": [
    {
-    "kind": "hill",
-    "x": -6,
-    "z": -112,
-    "width": 120,
-    "depth": 36,
-    "height": 14
-   },
-   {
-    "kind": "hill",
-    "x": -58,
-    "z": -40,
-    "width": 34,
-    "depth": 70,
+    "kind": "shed",
+    "x": 34,
+    "z": -38,
+    "width": 26,
+    "depth": 14,
     "height": 9
    },
    {
-    "kind": "treeline",
-    "points": [
-     {
-      "x": -34,
-      "z": 18
-     },
-     {
-      "x": -36,
-      "z": -30
-     },
-     {
-      "x": -32,
-      "z": -84
-     }
-    ],
-    "height": 13,
-    "depth": 7
-   },
-   {
-    "kind": "treeline",
-    "points": [
-     {
-      "x": 36,
-      "z": 10
-     },
-     {
-      "x": 34,
-      "z": -40
-     },
-     {
-      "x": 38,
-      "z": -90
-     }
-    ],
-    "height": 12,
-    "depth": 7
-   },
-   {
     "kind": "shed",
-    "x": -24,
-    "z": 16,
-    "width": 14,
-    "depth": 8,
-    "height": 5
-   },
-   {
-    "kind": "shed",
-    "x": 26,
-    "z": -8,
-    "width": 10,
-    "depth": 7,
-    "height": 4.5,
+    "x": 82,
+    "z": 37,
+    "width": 22,
+    "depth": 12,
+    "height": 8,
     "turned": true
    },
    {
     "kind": "waterTower",
-    "x": 30,
-    "z": 24,
-    "width": 6,
-    "depth": 6,
+    "x": -24,
+    "z": -26,
+    "width": 7,
+    "depth": 7,
+    "height": 22
+   },
+   {
+    "kind": "crane",
+    "x": 64,
+    "z": -34,
+    "width": 24,
+    "depth": 9,
     "height": 18
+   },
+   {
+    "kind": "containers",
+    "x": 0,
+    "z": 16,
+    "width": 6.1,
+    "depth": 2.5,
+    "height": 7.8,
+    "turned": true
+   },
+   {
+    "kind": "containers",
+    "x": 2,
+    "z": 28,
+    "width": 6.1,
+    "depth": 2.5,
+    "height": 5.2
+   },
+   {
+    "kind": "containers",
+    "x": 88,
+    "z": -6,
+    "width": 12.2,
+    "depth": 2.5,
+    "height": 5.2,
+    "turned": true
+   },
+   {
+    "kind": "chimney",
+    "x": 96,
+    "z": -28,
+    "width": 3,
+    "depth": 3,
+    "height": 34,
+    "smoke": true
+   },
+   {
+    "kind": "chimney",
+    "x": 12,
+    "z": 53,
+    "width": 2.6,
+    "depth": 2.6,
+    "height": 28,
+    "smoke": true
    },
    {
     "kind": "powerLine",
     "points": [
      {
-      "x": -70,
-      "z": -96
-     },
-     {
       "x": -20,
-      "z": -92
+      "z": 46
      },
      {
-      "x": 30,
-      "z": -95
+      "x": 20,
+      "z": 48
      },
      {
-      "x": 75,
-      "z": -90
+      "x": 60,
+      "z": 50
+     },
+     {
+      "x": 100,
+      "z": 47
      }
     ],
-    "height": 13
+    "height": 14
+   },
+   {
+    "kind": "containers",
+    "x": 56,
+    "z": -31,
+    "width": 12.2,
+    "depth": 2.5,
+    "height": 7.8
+   },
+   {
+    "kind": "shed",
+    "x": 68,
+    "z": -56,
+    "width": 32,
+    "depth": 16,
+    "height": 12,
+    "colour": 13226966
+   },
+   {
+    "kind": "shed",
+    "x": -25,
+    "z": -52,
+    "width": 22,
+    "depth": 14,
+    "height": 8,
+    "colour": 14141864
+   },
+   {
+    "kind": "crane",
+    "x": 98,
+    "z": 8,
+    "width": 9,
+    "depth": 26,
+    "height": 17
+   },
+   {
+    "kind": "containers",
+    "x": 94,
+    "z": 2,
+    "width": 6.1,
+    "depth": 2.5,
+    "height": 7.8
+   },
+   {
+    "kind": "containers",
+    "x": 100,
+    "z": 12,
+    "width": 6.1,
+    "depth": 2.5,
+    "height": 10.4
+   },
+   {
+    "kind": "containers",
+    "x": 92,
+    "z": 20,
+    "width": 12.2,
+    "depth": 2.5,
+    "height": 5.2,
+    "turned": true
+   },
+   {
+    "kind": "silo",
+    "x": 56,
+    "z": 50,
+    "width": 24,
+    "depth": 6,
+    "height": 21
+   },
+   {
+    "kind": "shed",
+    "x": 24,
+    "z": 62,
+    "width": 20,
+    "depth": 12,
+    "height": 9,
+    "colour": 12175311
+   },
+   {
+    "kind": "shed",
+    "x": -20,
+    "z": 6,
+    "width": 14,
+    "depth": 34,
+    "height": 11,
+    "colour": 14275782
+   },
+   {
+    "kind": "shed",
+    "x": 18,
+    "z": -112,
+    "width": 54,
+    "depth": 22,
+    "height": 15,
+    "colour": 13094096
+   },
+   {
+    "kind": "shed",
+    "x": 164,
+    "z": 34,
+    "width": 24,
+    "depth": 46,
+    "height": 14,
+    "colour": 14012612
+   },
+   {
+    "kind": "shed",
+    "x": -76,
+    "z": -40,
+    "width": 26,
+    "depth": 40,
+    "height": 12,
+    "colour": 13226966
+   },
+   {
+    "kind": "shed",
+    "x": -54,
+    "z": 98,
+    "width": 40,
+    "depth": 22,
+    "height": 11
+   },
+   {
+    "kind": "shed",
+    "x": 88,
+    "z": 124,
+    "width": 46,
+    "depth": 20,
+    "height": 13,
+    "colour": 14141864
+   },
+   {
+    "kind": "silo",
+    "x": 152,
+    "z": -54,
+    "width": 6,
+    "depth": 22,
+    "height": 26
+   },
+   {
+    "kind": "chimney",
+    "x": 138,
+    "z": -90,
+    "width": 4,
+    "depth": 4,
+    "height": 48,
+    "smoke": true
+   },
+   {
+    "kind": "chimney",
+    "x": 146,
+    "z": -94,
+    "width": 3.4,
+    "depth": 3.4,
+    "height": 42
+   },
+   {
+    "kind": "waterTower",
+    "x": -68,
+    "z": 46,
+    "width": 8,
+    "depth": 8,
+    "height": 26
+   },
+   {
+    "kind": "crane",
+    "x": 42,
+    "z": -90,
+    "width": 30,
+    "depth": 10,
+    "height": 24
+   },
+   {
+    "kind": "powerLine",
+    "points": [
+     {
+      "x": -128,
+      "z": -74
+     },
+     {
+      "x": -68,
+      "z": -94
+     },
+     {
+      "x": -8,
+      "z": -134
+     },
+     {
+      "x": 62,
+      "z": -144
+     },
+     {
+      "x": 132,
+      "z": -134
+     },
+     {
+      "x": 192,
+      "z": -104
+     }
+    ],
+    "height": 26
+   },
+   {
+    "kind": "hill",
+    "x": 2,
+    "z": -169,
+    "width": 160,
+    "depth": 40,
+    "height": 14,
+    "colour": 6255700
+   },
+   {
+    "kind": "hill",
+    "x": 192,
+    "z": 126,
+    "width": 120,
+    "depth": 50,
+    "height": 18,
+    "colour": 6255700
+   },
+   {
+    "kind": "hill",
+    "x": -108,
+    "z": 126,
+    "width": 110,
+    "depth": 50,
+    "height": 12,
+    "colour": 6715482
+   },
+   {
+    "kind": "watchTower",
+    "x": 46,
+    "z": -17,
+    "width": 5.2,
+    "depth": 5.2,
+    "height": 12.4
+   },
+   {
+    "kind": "fuselage",
+    "x": 76,
+    "z": 8,
+    "width": 4.4,
+    "depth": 24,
+    "height": 9
+   },
+   {
+    "kind": "mast",
+    "x": 14.5,
+    "z": -12.5,
+    "width": 2.4,
+    "depth": 0.5,
+    "height": 14
+   },
+   {
+    "kind": "mast",
+    "x": 14.5,
+    "z": 24.5,
+    "width": 2.4,
+    "depth": 0.5,
+    "height": 14
+   },
+   {
+    "kind": "mast",
+    "x": 69.5,
+    "z": -12.5,
+    "width": 2.4,
+    "depth": 0.5,
+    "height": 14
+   },
+   {
+    "kind": "mast",
+    "x": 69.5,
+    "z": 24.5,
+    "width": 2.4,
+    "depth": 0.5,
+    "height": 14
+   },
+   {
+    "kind": "containers",
+    "x": 44.8,
+    "z": -2.4,
+    "width": 17.2,
+    "depth": 2.4,
+    "height": 5.2
    }
   ],
   "motes": {
@@ -668,10 +949,6 @@
   "kickedDust": {
    "tint": 12171184,
    "scale": 1
-  },
-  "plane": {
-   "height": 90,
-   "every": 150
   }
  },
  "keepClear": [

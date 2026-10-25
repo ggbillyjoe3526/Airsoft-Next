@@ -27,6 +27,37 @@ class Run:
 	var helped: bool = false
 
 
+## Which targets a run may light on a field (M94, the browser game's seesTarget): only those in the watcher's sight
+## (nothing solid between their eye and the target's middle) and no further than `reach`, each lit for how far it is from
+## where they stand. Set once by whoever lays the field out; null on the range, where any target lights for its marked
+## distance. Testing a target allocates nothing.
+class Sight:
+	extends RefCounted
+	var query: WorldQuery = null
+	## Whose eye: the player.
+	var watcher: Character = null
+	var body: BodyConfig = null
+	var hits: HitConfig = null
+	## The furthest a lit target stands (m).
+	var reach: float = 0.0
+	var _hit: RayHit = RayHit.new()
+
+	## Whether `t` is in the watcher's sight now: a plate's middle, or a figure's chest (lower when it crouches).
+	func sees(t: RangeTarget) -> bool:
+		var eye := watcher.eye(body)
+		var aim := t.home
+		if t.kind == RangeTarget.Kind.FIGURE:
+			aim = Vector3(t.home.x, t.floor_y + (hits.torso_bottom + hits.torso_top) * 0.5
+					- (hits.crouch_drop if t.crouched else 0.0), t.home.z)
+		if eye.distance_to(aim) > reach:
+			return false
+		return not query.ray(eye, aim, _hit)
+
+	## How far `t` stands from the watcher across the floor (m).
+	func away(t: RangeTarget) -> float:
+		return Vector2(t.home.x - watcher.position.x, t.home.z - watcher.position.z).length()
+
+
 var phase: Phase = Phase.OFF
 ## Where the best is kept (Records.best_challenge): the map's id, "range" on the range.
 var course: String = ""
@@ -45,6 +76,8 @@ var last: Run = null
 ## A Dev setting that changes play (DevCheats.any) was on at some point since the START plate was shot: the run is not
 ## a best, as such a match goes into no records.
 var helped: bool = false
+## On a field, which targets may light and for how long (Sight); null on the range.
+var sight: Sight = null
 ## `last`'s object, filled at each run's end (nothing allocated in a tick).
 var _run: Run = Run.new()
 ## The targets that can light this tick, by index (lit_one), and how many: grown once, never shrunk.
@@ -171,26 +204,28 @@ func _start_shot(targets: Array[RangeTarget], events: SimEvents) -> bool:
 	return false
 
 
-## Lights one target picked at random (from `rng`) among those that can light, for its lit time; false when none can.
+## Lights one target picked at random (from `rng`) among those that can light (and, on a field, that you can see), for
+## its lit time; false when none can.
 func _light_one(targets: Array[RangeTarget], cfg: RangeConfig, rng: RandomNumberGenerator) -> bool:
 	if _candidates.size() < targets.size():
 		_candidates.resize(targets.size())
 	var n := 0
 	for i in targets.size():
-		if _can_light(targets[i], cfg):
+		if _can_light(targets[i], cfg) and (sight == null or sight.sees(targets[i])):
 			_candidates[n] = i
 			n += 1
 	if n == 0:
 		return false
 	var t := targets[_candidates[mini(n - 1, int(rng.randf() * n))]]
-	t.lit = _lit_time(t, cfg)
+	t.lit = _lit_time(t, cfg, sight.away(t) if sight != null else t.distance)
 	return true
 
 
-## The target's lit time when it lights: longer for a far one (the BB's flight), and a lying pop-up's rise on top.
-static func _lit_time(t: RangeTarget, cfg: RangeConfig) -> float:
+## The target's lit time when it lights, `metres` away (its marked distance on the range, from where you stand on a
+## field): longer for a far one (the BB's flight), and a lying pop-up's rise on top.
+static func _lit_time(t: RangeTarget, cfg: RangeConfig, metres: float) -> float:
 	var rise := cfg.rise_time if t.motion == RangeTarget.Motion.POPUP and t.down > 0.0 else 0.0
-	return cfg.challenge_lit_time + cfg.challenge_lit_per_metre * t.distance + rise
+	return cfg.challenge_lit_time + cfg.challenge_lit_per_metre * metres + rise
 
 
 ## Whether `t` can light now: in play, not lit or resting, and standing (or a held pop-up lying ready to rise).

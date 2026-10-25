@@ -154,7 +154,8 @@ func follow(state: GameState, watched: Character, yaw: float, fraction: float, t
 	var rs := state.round_state
 	if rs.number != _round:
 		_round = rs.number
-		_round_label.text = tr("HUD_ROUND") % _round
+		# Practice on a field has no rounds: its caption says Practice.
+		_round_label.text = tr("MODE_PRACTICE") if rs.practice else tr("HUD_ROUND") % _round
 	for c in state.characters:
 		if c.team != watched.team or c == watched:
 			continue

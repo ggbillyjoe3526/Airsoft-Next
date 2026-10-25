@@ -113,9 +113,9 @@ func test_a_greyed_map_card_ignores_the_keyboard() -> void:
 		Input.parse_input_event(ev)
 		await wait_process_frames(1)
 	assert_eq(page.picks.map_id, before)
-	# Mode cards that are not built stay dead too.
 	assert_eq(page.picks.bots, "normal")
-	assert_true(page.mode_card("practice").disabled)
+	# Every field hosts Practice (WL9).
+	assert_false(page.mode_card("practice").disabled)
 	assert_false(page.mode_card("attack_defend").disabled, "the playable pick has a pole")
 
 

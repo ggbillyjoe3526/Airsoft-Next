@@ -491,6 +491,18 @@ The Match screen's Practice card, then Start practice.
 
 - [ ] **The range.** Alone behind a painted line facing three lanes: steel plates, standing figures, crouched ones, 10
   m to 60 m marked. No whistle, clock or score.
+- [ ] **The range is in Depot's site (WL9).** Same lanes, plates, figures, movers, swingers and timed challenge as
+  before, but over the walls you see Depot's world: its masts, watch tower, cranes, sheds, water tower and smoking
+  chimneys (the yard is off to your right), not hills and pines. Your old best still shows in the pause menu.
+- [ ] **Practice on any field (WL9).** Pick Depot (Woodland and Neon Heights under Dev content), then Practice: no
+  bots, no score, you start at Alpha's first spawn facing a START plate a few metres ahead. Targets stand where Beta
+  would play: on lane points watching back down their lane, at Beta's spawns, along the lanes; crouched ones behind
+  low cover, plates, movers and swingers. Do any stand somewhere silly (in a wall, floating, facing a wall)? The
+  readout says how far from you a BB landed; the minimap reads "Depot · Practice".
+- [ ] **The challenge on a field.** Switch Timed challenge on and shoot START: only targets you can see from where
+  you stand light, none past 50 m. Depot keeps its own best, apart from the range's.
+- [ ] **Woodland practice at night (WL9).** With Dev content on and the torch fitted, practise on Woodland: it is
+  night, T works your torch, and a figure 10 m out is easy to find by it.
 - [ ] **Reload and Esc › Loadout.** The spare gauges never run down. Change the BB weight or hop-up, go back and
   Resume: you're where you stood with the new setup. Walk downrange: nothing stops you.
 - [ ] **Dev help isn't a best (BP5).** Switch Timed challenge on, then set Game speed or Bottomless magazines before

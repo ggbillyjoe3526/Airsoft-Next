@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Unit tests (Gut, addons/gut): the test_*.gd under tests/unit, headless, in two parts of about the same time (CI1):
-# part 1 the files before test_fl (test_a* to test_fi*, test_bots.gd's whole bot matches among them), part 2 the rest.
-# Each part is a Godot run of its own with its own limit; CI runs them as two jobs side by side. Settings live in
+# Unit tests (Gut, addons/gut): the test_*.gd under tests/unit, headless, in three parts of about the same time (CI1,
+# WL9): part 1 the files before test_de (test_a* to test_da*, test_bots.gd's whole bot matches among them), part 2 from
+# test_de to before test_re (test_range* among them), part 3 the rest.
+# Each part is a Godot run of its own with its own limit; CI runs them as three jobs side by side. Settings live in
 # .gutconfig.json. Prints each failure as "FAIL: <file> <test>: <message>" and the totals, the whole output in
 # unit-<part>.log; fails if any test fails or any script error is printed.
-# Usage: tools/unit_tests.sh [1|2]      (both parts in turn without one; GODOT=/path/to/godot to override)
+# Usage: tools/unit_tests.sh [1|2|3]    (all three parts in turn without one; GODOT=/path/to/godot to override)
 set -uo pipefail
 GODOT="${GODOT:-godot}"
 cd "$(dirname "$0")/.."
@@ -13,21 +14,24 @@ if [ -z "${1:-}" ]; then
   failed=0
   "$0" 1 || failed=1
   "$0" 2 || failed=1
+  "$0" 3 || failed=1
   exit $failed
 fi
 part="$1"
-if [ "$part" != 1 ] && [ "$part" != 2 ]; then
-  echo "FAIL: no unit test part '$part' (1 or 2)"; exit 1
+if [ "$part" != 1 ] && [ "$part" != 2 ] && [ "$part" != 3 ]; then
+  echo "FAIL: no unit test part '$part' (1, 2 or 3)"; exit 1
 fi
 LOG="unit-$part.log"
 
-# This part's files by name, byte by byte whatever the locale: part 1 sorts before test_fl, part 2 from it on.
+# This part's files by name, byte by byte whatever the locale: part 1 sorts before test_de, part 2 from test_de to
+# before test_re, part 3 from test_re on.
 files=()
 while IFS= read -r f; do
   files+=("res://$f")
 done < <(find tests/unit -name 'test_*.gd' | LC_ALL=C sort | LC_ALL=C awk -v part="$part" '{
   name = $0; sub(/.*\//, "", name)
-  if ((name < "test_fl") == (part == 1)) print
+  at = name < "test_de" ? 1 : (name < "test_re" ? 2 : 3)
+  if (at == part) print
 }')
 if [ "${#files[@]}" -eq 0 ]; then
   echo "FAIL: no test files in unit test part $part"; exit 1
@@ -37,7 +41,7 @@ list="$(IFS=,; echo "${files[*]}")"
 # Always import first, so a new class_name or asset is known to the tests whatever ran before.
 "$GODOT" --headless --path . --import > import.log 2>&1
 
-# A part takes about six minutes on a cloud session (CI1); the limit only catches a hang, inside the CI job's 20
+# A part takes about six minutes on a cloud session (CI1, WL9); the limit only catches a hang, inside the CI job's 20
 # minutes.
 timeout 1080 "$GODOT" --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir= -gtest="$list" > "$LOG" 2>&1
 status=$?

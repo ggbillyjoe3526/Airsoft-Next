@@ -63,7 +63,8 @@ var _settings: Settings = null
 var _tuning: SimTuning = null
 ## The map the round tuning was read for.
 var _tuned_map: String = ""
-## The mode last picked on a field, given back when a field is picked again after the Range's Practice took over.
+## The mode you had on a field when the Range took over with its Practice, given back when a field is picked again
+## ("" when the Range didn't take over: Practice picked on a field stays picked on the next field).
 var _field_mode: String = ""
 var _play_tuning: PlayTuning = null
 var _catalog: MapCatalog = null
@@ -572,11 +573,14 @@ func _refresh() -> void:
 		_map_cards[id].set_picked(id == picks.map_id)
 	var entry := _catalog.find(picks.map_id)
 	var pole: bool = _poles.get(picks.map_id, false)
-	if picks.mode != MatchOptions.MODE_PRACTICE:
-		_field_mode = picks.mode
-	elif MatchOptions.mode_pickable(_field_mode, entry, pole):
+	var on_field := entry != null and entry.kind != &"range"
+	if on_field and not _field_mode.is_empty():
+		# The Range's Practice gives way: to your field's mode, or the field's first where that can't be picked.
 		picks.mode = _field_mode
+		_field_mode = ""
 	if not MatchOptions.mode_pickable(picks.mode, entry, pole):
+		if not on_field and _field_mode.is_empty():
+			_field_mode = picks.mode
 		for mode in MatchOptions.MODES:
 			if MatchOptions.mode_pickable(mode, entry, pole):
 				picks.mode = mode

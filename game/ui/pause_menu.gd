@@ -190,9 +190,11 @@ func set_match(map_name: String, mode_name: String, round_number: int, match_see
 
 
 ## Practice, on the map `map_name`: "Practice · Range", with " · timed challenge" while the challenge is `on` and
-## " · best N" once it has a best (`best` above 0). Shows the Timed challenge switch and Leave practice, and no seed.
-func set_practice(map_name: String, on: bool, best: int) -> void:
+## " · best N" once it has a best (`best` above 0). Shows the Timed challenge switch (unless the map has no room for its
+## START plate: `can_challenge` false) and Leave practice, and no seed.
+func set_practice(map_name: String, on: bool, best: int, can_challenge: bool = true) -> void:
 	_set_practice(true)
+	_challenge.visible = can_challenge
 	_challenge_on = on
 	_subtitle_lead.text = tr("MODE_PRACTICE")
 	_subtitle.text = practice_line(map_name, on, best)
