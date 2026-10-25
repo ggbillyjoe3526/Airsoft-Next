@@ -490,7 +490,7 @@ static func flag(m: FieldMeasure) -> Result:
 
 ## Elimination's overtime flag (the browser's overtimeFlagCheck; OV1): on walkable floor, out of the bushes (no leaves
 ## from just over its foot to a standing eye), and each end's mean walk from its spawns within FieldStandard.WALK_SPREAD
-## of the other's (past it a look, past WALK_SPREAD_WARN a failure), both inside the overtime's time at a run (else a
+## of the other's (past it a failure: the task's 15 %, stricter than the middle's look), both inside the overtime's time at a run (else a
 ## look). A field without one warns: a clock run out level is a draw at once there.
 static func overtime_flag(m: FieldMeasure) -> Result:
 	var map := m.map
@@ -513,11 +513,8 @@ static func overtime_flag(m: FieldMeasure) -> Result:
 	var spread := maxf(a, b) / minf(a, b) - 1.0
 	var says := "From its spawns, end 0 walks %s m to the overtime flag (%s) and end 1 %s m: %s %% apart" % [num(a, 1),
 			at(spot), num(b, 1), num(spread * 100.0, 0)]
-	if spread > FieldStandard.WALK_SPREAD_WARN:
-		return Result.new(FieldStandard.OVERTIME_FLAG, Status.FAIL, "%s, more than %s %%. One end gets there first." % [
-				says, num(FieldStandard.WALK_SPREAD_WARN * 100.0, 0)])
 	if spread > FieldStandard.WALK_SPREAD:
-		return Result.new(FieldStandard.OVERTIME_FLAG, Status.WARN, "%s, past the standard %s %%. Worth a look in play." % [
+		return Result.new(FieldStandard.OVERTIME_FLAG, Status.FAIL, "%s, more than %s %%. One end gets there first." % [
 				says, num(FieldStandard.WALK_SPREAD * 100.0, 0)])
 	if run > tuning.overtime.time:
 		return Result.new(FieldStandard.OVERTIME_FLAG, Status.WARN, "%s, %s s at a run: longer than the overtime's %s s."

@@ -232,6 +232,39 @@ func test_an_overtime_flag_by_one_end_fails_and_none_warns() -> void:
 	assert_string_contains(r.text, "a draw at once")
 
 
+func test_an_overtime_flag_past_15_percent_fails_not_warns() -> void:
+	var m := _depot()
+	# Walk the spot towards end 1's spawns, half a metre at a time on floor that passes, until the ends' walks to it are
+	# more than 15 % apart: in the middle check's warning band, the overtime flag's check fails.
+	var c1 := Vector3.ZERO
+	for s in m.ends[1].spawns:
+		c1 += s.position / m.ends[1].spawns.size()
+	var step := Vector3(c1.x - m.overtime_flag.x, 0.0, c1.z - m.overtime_flag.z).normalized() * 0.5
+	var spread := 0.0
+	var r: FieldChecks.Result = null
+	for i in 60:
+		m.overtime_flag += step
+		var k := depot_nav.node_at(m.overtime_flag + Vector3.UP)
+		if k < 0:
+			continue
+		m.overtime_flag.y = depot_nav.floor_y[k]
+		if not FieldChecks.off_floor(m, depot_nav, "spot", m.overtime_flag).is_empty():
+			continue
+		var measure := _measure(m, depot_nav)
+		var ow := measure.overtime_walks()
+		var a := FieldMeasure.mean(ow[0])
+		var b := FieldMeasure.mean(ow[1])
+		spread = maxf(a, b) / minf(a, b) - 1.0
+		if spread > FieldStandard.WALK_SPREAD:
+			r = FieldChecks.overtime_flag(measure)
+			break
+	assert_between(spread, FieldStandard.WALK_SPREAD, FieldStandard.WALK_SPREAD_WARN, "in the middle's warning band")
+	assert_not_null(r, "a spot past 15 % found")
+	if r != null:
+		assert_eq(r.status, FieldChecks.Status.FAIL, r.text)
+		assert_string_contains(r.text, "more than 15 %")
+
+
 func test_an_overtime_flag_off_the_floor_or_in_a_bush_fails() -> void:
 	var m := _depot()
 	m.overtime_flag += Vector3(0, 0.5, 0)

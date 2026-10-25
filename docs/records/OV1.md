@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-25 | 1 | worker | see Gate | – | – |
+| 2026-10-25 | 1 | worker | see Gate; QA Pass, performance Pass | – | – |
+| 2026-10-25 | 1, review fixes | worker | the touched tests and gdlint pass | – | QA/coordinator: End the round now wording, field.overtimeFlag fails past 15 %, KNOWN_ISSUES row, advisories |
 
 ## Goal
 
@@ -30,19 +31,20 @@ files `plan/step27-deferred.md` › The overtime flag.
 - `Round._step_elimination_clock` (the browser's stepEliminationClock): with the flag up, a touch ends the round
   `RoundEnd.OVERTIME_FLAG` (appended), its time out a draw on time; at the buzzer, on a map with a spot and time left,
   the flag goes up with an OVERTIME event (appended to `GameEvent.Kind`) at its foot; otherwise a draw at once, as
-  before. `run_clock_out` (Dev › End the round now) also runs the flag's time out, so a flag up ends as on time and one
-  not up never goes up. `Round.longest_overtime(tuning, mode)`: the rope's 15 s in Attack / Defend, the flag's 30 s in
+  before. `run_clock_out` (Dev › End the round now) also runs the flag's time out, so a flag up ends as a draw (unless a team
+  has a hand on it that tick: the touch is checked first and takes the round, pinned by `test_ov1_qa.gd`) and one not
+  up never goes up. `Round.longest_overtime(tuning, mode)`: the rope's 15 s in Attack / Defend, the flag's 30 s in
   Elimination.
 - The guards' round cap (`MatchGuard.longest_round`) adds the mode's longest overtime, and Elimination's guard now
   checks it too; `MatchRunner`'s tally marks a round that went to the flag and counts touches, and the Elimination
   guard prints both.
 - `field.overtimeFlag` (`FieldChecks.overtime_flag`, the browser's overtimeFlagCheck): on walkable floor (the on-floor
   test, now `FieldChecks.off_floor`, shared with `field.onFloor`, which lists the spot too), out of the bushes, each
-  end's mean walk from its spawns within 15 % (a look to 25 %, then a failure), inside the overtime's time at a run
+  end's mean walk from its spawns within 15 % (past it a failure, as the task asks; the browser looked to 25 %), inside the overtime's time at a run
   (else a look); a field without a spot warns.
 - Tests: `test_overtime_flag.gd` (19: the browser's overtimeFlag.test.ts and overtimeFlag.edges.test.ts cases, never
   in practice, a seeded fight the same with a spot or without, a tick with the flag up allocating nothing);
-  `test_field_layout.gd` +3 (every field's spot passes; a spot by one end fails, none warns; off the floor or in a bush
+  `test_field_layout.gd` +4 (every field's spot passes; a spot by one end fails, none warns; past 15 % fails; off the floor or in a bush
   fails); `test_field_rules.gd` +1 (the spots read; one lifted fails on-floor); `test_match_runner.gd` +1 (short
   rounds go to the flag and are tallied within the cap; the two clock tests run without it); `test_torch_qa.gd`'s
   event-order case now has OVERTIME appended after TORCH.
@@ -64,6 +66,8 @@ files `plan/step27-deferred.md` › The overtime flag.
   Defend's guard cap at 15 s instead of loosening it to 30.
 - **`touched_by` compares squared distances:** the same edge as the browser's `hypot <= reach` (tested at exactly 1 m)
   with no square root in the tick.
+- **Past 15 % fails outright** (review fix): the task's acceptance says "within 15 %"; the middle check's warning band
+  (15 to 25 %) would let a spot through that the criterion refuses.
 - **No spot moved:** all three pass as they stand (below), so the browser's spots stay.
 - **The spot is also one of `field.onFloor`'s points,** as in the browser's mapRules, and `field.overtimeFlag` checks
   the floor itself, so the check stands alone in the layout's list.
@@ -106,11 +110,21 @@ is OV2's to match.
 
 ## Verified
 
-- `test_overtime_flag.gd` 19, `test_field_layout.gd` 14, `test_field_rules.gd` 18, `test_match_runner.gd` 10,
+- `test_overtime_flag.gd` 19, `test_ov1_qa.gd` 8 (QA's), `test_field_layout.gd` 15, `test_field_rules.gd` 18, `test_match_runner.gd` 10,
   `test_round.gd`, `test_flag.gd`, `test_fg1_qa.gd` and `test_simulation.gd` pass.
 - `tools/match_guards.sh test_match_guards` (5 tests), `test_woodland_guards elimination_at_normal` and
   `test_callout_guards` (4) pass; the Attack / Defend guards are left to CI (their rules and cap are unchanged).
 - Not verified: how it plays with a person (nothing shows yet); PLAYTEST › Rounds and matches › Overtime flag.
+
+## Advisories left
+
+- **The flag-down path in `Round.step` costs about 0.7 µs a tick** (performance): inline the check if a profile ever
+  shows it.
+- **`OvertimeFlag.step` scans every character while the flag is up** (performance): a few dozen at most, nothing
+  allocated.
+- **The clock sits at 0:00 through overtime and the round's table counts only the clock** until OV3 draws it.
+- **End the round now with a hand on a raised flag gives the toucher the round,** not a draw (QA): the touch is checked
+  before the time, as in the browser; kept and pinned.
 
 ## Gate
 

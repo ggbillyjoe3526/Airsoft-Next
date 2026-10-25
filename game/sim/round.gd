@@ -105,7 +105,8 @@ static func _step_elimination_clock(rs: RoundState, characters: Array[Character]
 
 
 ## Runs a live round's clock and any overtime out, so the next tick ends it as on time by the mode's own rule (the Dev
-## tab's End the round now): Elimination's overtime flag doesn't go up for it, or comes down as a draw if it is up.
+## tab's End the round now): Elimination's overtime flag doesn't go up for it; if it is up it comes down as a draw,
+## unless a team has a hand on it that tick, which takes the round (the touch is checked before the time).
 ## False when no round is live.
 static func run_clock_out(rs: RoundState) -> bool:
 	if not rs.is_live():
