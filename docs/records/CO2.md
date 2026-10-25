@@ -7,7 +7,8 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | 3310 / 3310 | – | – |
-| 2026-10-25 | 2 | worker | see Gate | – | fix round 1: QA blocking 1 fixed (on Keep a call pushed a hit out of a feed full of hits) |
+| 2026-10-25 | 2 | worker | 3325 / 3325 | Retry 7/8 | fix round 1: QA blocking 1 fixed (on Keep a call pushed a hit out of a feed full of hits) |
+| 2026-10-25 | 3 | worker | see Gate | – | fix round 2: critic check 1 (Keep feed refused calls) fixed |
 
 ## Goal
 
@@ -19,9 +20,11 @@ through walls; Settings › HUD › Callouts to switch them off; the screen read
 ## Approach
 
 - `HitFeed` (`game/ui/hit_feed.gd`): a line is a hit or a call (`call`, `words`); `add_call` fills the newest line
-  as `add` does (one `_front`), so a call keeps the hits' time and fade and counts toward the lines. On Keep a call
-  still ages and fades while the hits stay, and a full feed loses its oldest call before any hit. `drop_calls` takes
-  the calls out, the hits keeping their order.
+  as `add` does (one `_front`), so a call keeps the hits' time and fade and counts toward the lines shown. On Keep a
+  call still ages and fades while the hits stay: the feed holds `max_lines` hits and up to `max_lines` calls beside
+  them (its fixed pool made twice `max_lines` at setup), shows the newest `max_lines` (`shown`), and a hit a call moves
+  past them is hidden, not dropped, until the call ages out (fix round 2). `drop_calls` takes the calls out, the hits
+  keeping their order.
 - `HudFeedRow` (`game/ui/hud_feed_row.gd`): `show_call` lays a call row out once: the team bar, the speaker's chevron
   and name (your team's colour, as a hit's names), a drawn radio glyph (a handset under its antenna, the grille cut
   across it) and the words in white, weight 600. `HudFeed._fill` fills a call row from the line; rows stay the ones made
@@ -64,8 +67,11 @@ through walls; Settings › HUD › Callouts to switch them off; the screen read
 
 - **A round's start drops the calls only:** the hits keep their rules (Keep holds them all match, Fade ages them), so
   "the feed is cleared at a round's start" is read as the call lines; last round's calls are stale.
-- **On Keep a full feed drops its oldest call, and with no call in it the new call is left out:** Keep promises the
-  hits stay, so a call never pushes one out (fix round 1); a hit still pushes out the oldest hit as before.
+- **On Keep a call shows on top of a full feed by hiding the oldest hit, not dropping it:** Keep promises the hits
+  stay and the calls still go, so the feed holds both and shows the newest 10; the hidden hit comes back when the call
+  ages out. A call takes only an older call's place, a hit only an older hit's (fix round 2).
+- **A call is read to the screen reader only while the feed is up to show it** (`HudFeed.newest_shows`: not under the
+  summary, on the range, or held to no lines under What got you).
 - **The teammate's click uses its own two 3D voices** on Interface, not the plain pool: a plain voice has no pan, and
   the bus layout is not touched (no panner bus).
 - **Callouts said while Off are skipped, not queued:** switching On shows only calls made after it.
@@ -122,6 +128,18 @@ In `screenshots/step27/` (project files), each a real match on Depot with bots p
   usual width; `SimAudio.stop_calls` no longer builds a throwaway default array; the Risks above note the click at a
   round's end and the enemy's click in the field's pool.
 
+## Fix round 2 (attempt 3)
+
+- Critic check 1: fix round 1 made a full Keep feed refuse every call, so after about two rounds a Keep player saw no
+  more calls. Now `HitFeed` has a fixed pool of twice `max_lines`: on Keep it holds `max_lines` hits and up to
+  `max_lines` calls, `_make_room` frees only a line of the new line's own kind (the oldest not kept), and `shown()`
+  is the newest `max_lines`, which `HudFeed` draws. A call always shows on top; the hit it moves past the tenth row is
+  hidden and shows again when the call ages out. Fade is as before (the oldest line not kept goes).
+- `Hud.on_calls` reads a call aloud only when `HudFeed.newest_shows()`.
+- Tests: `test_callouts_feed.gd` (25): a call over ten kept hits and the tenth back after it ages out (the feed, and
+  the HUD's rows), calls taking each other's place, never a hit's; `test_co2_qa.gd`'s Keep test also asserts the call
+  is line 0 and the hit hidden, not dropped.
+
 ## Files outside `touches`
 
 - `game/config/callouts_file.gd`, `game/ai/callouts.gd`, `tests/guards/test_callout_guards.gd`,
@@ -138,7 +156,11 @@ in 337 s, part 3 911 in 318 s (3,310, all passing); the smoke test (a whole matc
 errors); the licence notices. The match guards were not run: the director's only changes are an area's capital and a shared line filter (the
 same lines and the same draws), held by `test_callouts.gd` and `test_callouts_file.gd`.
 
-Fix round 1: `tools/check.sh` on the fix (on `0c54a6a`, QA's tests over CO2 rebased onto `a334f81`; this record's
-edit uncommitted), on the 4-core container, passed in about 1,125 s: gdlint, the changelog notes and the wiki; unit
+Fix round 1: `tools/check.sh` on `3f86ab4` (the fix over QA's `0c54a6a`, CO2 rebased onto `a334f81`), on the 4-core container, passed in about 1,125 s: gdlint, the changelog notes and the wiki; unit
 tests part 1 844 tests in 348 s, part 2 1,570 in 334 s, part 3 911 in 331 s (3,325, all passing, `test_co2_qa.gd` 4 of
 4 among them); the smoke test; the licence notices.
+
+Fix round 2: `tools/check.sh` on `f5c4c2e` (the Keep fix; this record's edit the only change since), on the 4-core
+container, passed in about 1,115 s: gdlint, the changelog notes and the wiki; unit tests part 1 846 tests in 341 s,
+part 2 1,570 in 333 s, part 3 911 in 328 s (3,327, all passing, `test_callouts_feed.gd` 25 and `test_co2_qa.gd` 4
+among them); the smoke test; the licence notices.
