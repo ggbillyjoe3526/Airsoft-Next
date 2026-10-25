@@ -1,12 +1,12 @@
 # WL5 · Bushes hide you and stop BBs
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-25 | 1 | worker | 3,074 of 3,074 | – | – |
+| 2026-10-25 | 1 | worker | 3,074 of 3,074 | Accept 8/8 | – |
 
 ## Goal
 
@@ -131,6 +131,8 @@ sixth tick (each bot against each enemy in view range), 26 of them through some 
   each): no round held up or on time.
 - BushView casts sun shadows across the whole map in one unculled draw a cascade (performance; Low has no sun shadows,
   so check Medium and up on the owner's PC).
+- Foliage's static scratch is shared by every instance (safe single-threaded, as BBStep); a leaf's upward throw is
+  dropped, so leaves never pop up out of a bush (critic).
 - `Foliage.leaf_floor` walks every bush once a leaf event; grid it if bushes pass a few hundred (performance).
 
 ## For the owner to test
