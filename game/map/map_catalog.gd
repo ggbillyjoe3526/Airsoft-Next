@@ -1,15 +1,18 @@
 class_name MapCatalog
 extends RefCounted
 ## Which maps there are and which are listed (data/maps.md, the browser game's map/maps.ts MAPS): each map's name,
-## kind (a match field or the practice range) and tag. A map tagged dev is listed only while the Dev settings' Dev
-## content switch is on, and a match on one stays out of the records (docs/DECISIONS.md › Content tags and dev
-## content). An unreadable row is left out with a warning; with no file at all, Depot alone is listed.
+## kind (a match field or the practice range), tag and team sizes. A map tagged dev is listed only while the Dev
+## settings' Dev content switch is on, and a match on one stays out of the records (docs/DECISIONS.md › Content tags and
+## dev content). An unreadable row is left out with a warning; an unreadable team size keeps its built-in value with a
+## warning; with no file at all, Depot alone is listed.
 
 const PATH := "res://data/maps.md"
 const FILE_NAME := "maps.md"
 const TABLE := "Maps"
 const KINDS: Array[StringName] = [&"field", &"range"]
 const TAGS: Array[StringName] = [&"public", &"dev"]
+## The team size columns, smallest, standard and largest (the browser game's teamSize min, standard and max).
+const SIZE_COLUMNS: PackedStringArray = ["Min", "Standard", "Max"]
 
 
 class Entry:
@@ -19,6 +22,19 @@ class Entry:
 	var kind: StringName = &"field"
 	var tag: StringName = &"public"
 	var blurb: String = ""
+	## Players a side it offers, from team_min to team_max, and the size it plays unless another is picked (Skirmish
+	## always plays it). Built in: Depot's, the game's first field.
+	var team_min: int = 1
+	var team_standard: int = 3
+	var team_max: int = 3
+
+	## Whether a match of `team_size` a side can be played here.
+	func allows(team_size: int) -> bool:
+		return team_size >= team_min and team_size <= team_max
+
+	## The size played when `picked` is asked for: it where the map allows it, else the map's standard.
+	func team_size_for(picked: int) -> int:
+		return picked if allows(picked) else team_standard
 
 
 ## Every readable row, in the file's order.
@@ -75,8 +91,36 @@ static func parse(text: String) -> MapCatalog:
 		elif m.find(e.id) != null:
 			m.problems.append("%s: %s is listed twice" % [at, e.id])
 		else:
+			_read_sizes(e, row, at, m.problems, table)
 			m.entries.append(e)
+	for column in SIZE_COLUMNS:
+		if not table.has_column(column):
+			m.problems.append("%s: no \"%s\" column: every map keeps its built-in team sizes" % [FILE_NAME, column])
 	return m
+
+
+## `e`'s team sizes from `row`: each a size the Match screen offers (CustomRules.TEAM_SIZES), else its built-in value
+## kept with a problem; three that aren't smallest, standard, largest in order all keep their built-in values.
+## A column the table lacks is reported once, not per row (parse).
+static func _read_sizes(e: Entry, row: DataTable.Row, at: String, problems: Array[String], table: DataTable) -> void:
+	var sizes := PackedInt32Array([e.team_min, e.team_standard, e.team_max])
+	var built_in := sizes.duplicate()
+	for i in SIZE_COLUMNS.size():
+		if not table.has_column(SIZE_COLUMNS[i]):
+			continue
+		var raw := row.cell(SIZE_COLUMNS[i])
+		if not raw.is_valid_int() or not CustomRules.TEAM_SIZES.has(raw.to_int()):
+			problems.append("%s: %s \"%s\" is not a team size of %d to %d: %s keeps %d" % [at, SIZE_COLUMNS[i], raw,
+					CustomRules.TEAM_SIZES[0], CustomRules.TEAM_SIZES[-1], e.id, sizes[i]])
+			continue
+		sizes[i] = raw.to_int()
+	if sizes[0] > sizes[1] or sizes[1] > sizes[2]:
+		problems.append("%s: team sizes %d, %d, %d are not smallest, standard, largest: %s keeps %d, %d, %d" % [at,
+				sizes[0], sizes[1], sizes[2], e.id, built_in[0], built_in[1], built_in[2]])
+		sizes = built_in
+	e.team_min = sizes[0]
+	e.team_standard = sizes[1]
+	e.team_max = sizes[2]
 
 
 ## The entry for `map_id`, or null.

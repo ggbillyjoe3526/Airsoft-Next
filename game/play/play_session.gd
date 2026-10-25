@@ -2,8 +2,9 @@ class_name PlaySession
 extends Node3D
 ## A match on a map, played: the level built from its data, the simulation stepped once a physics tick with the
 ## player's command and the bots' (BotController), and everything else drawn from its state and events every rendered
-## frame (the camera, the replica in hand, BBs, puffs, the other players, sound and the HUD). You play Alpha with two bot
-## teammates against three bots on Beta, Elimination rounds to five wins. Esc pauses; losing focus pauses too. Emits
+## frame (the camera, the replica in hand, BBs, puffs, the other players, sound and the HUD). You play Alpha with bot
+## teammates against bots on Beta, as many a side as the map plays (data/maps.md: Depot three, Woodland five or six),
+## Elimination rounds to five wins. Esc pauses; losing focus pauses too. Emits
 ## `left` when the player leaves to the title screen. The Dev settings in force apply here and follow every change
 ## (game speed, bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions, Retro pixels, End the
 ## round now): the cheats through the simulation (DevCheats), the views built only while on. The graphics drawn follow
@@ -15,8 +16,9 @@ extends Node3D
 ## watched; when they run slow the next round's end steps the pick one preset down for the run (never saved, never
 ## mid-round) and the HUD says so. Once a match; not in practice or the smoke test.
 ## The build is four steps (the map, the level, the teams, the views). Staged, one runs each rendered frame and
-## `progressed` reports each, for the loading screen; `started` follows the frame the match is first drawn. Not staged,
-## all four run in `_ready` (tests and tools).
+## `progressed` reports each, for the loading screen; `started` follows the frame the match is first drawn. Staged, the
+## nav grid (about 2 s on Woodland) is built on a worker thread, so the loading screen keeps drawing, and the teams step
+## ends once it is in. Not staged, all four run in `_ready` (tests and tools).
 
 signal left
 ## Practice: the Loadout was asked for (its key, or the pause menu's row); the entry screen takes `practice_spot`, frees
@@ -141,6 +143,9 @@ var _ui: CanvasLayer = null
 ## The next build step, and whether the match runs (all built) or is waiting to be seen once.
 var _step: int = 0
 var _running: bool = false
+## Staged: the worker thread task building the nav grid (-1: none under way), and where it puts the grid.
+var _nav_task: int = -1
+var _nav_out: Array[NavGrid] = []
 var _first_frame_due: bool = false
 var _pacer: TickPacer = TickPacer.new()
 ## Spectate any bot: on, and who it follows (-1: the next to be picked); the trigger last tick, to move on per pull.
@@ -225,8 +230,15 @@ func _build_step() -> void:
 			_build_level()
 		2:
 			_build_teams()
+			if _nav_task >= 0:
+				return
 		3:
 			_build_views_and_start()
+	_end_step()
+
+
+## The step under way is done: reported, and the next one is due.
+func _end_step() -> void:
 	_step += 1
 	var next := STEP_KEYS[_step] if _step < STEP_KEYS.size() else ""
 	progressed.emit(_step, STEP_KEYS.size(), next)
@@ -236,8 +248,8 @@ func _load_map() -> void:
 	_tuning = SimTuning.load_default()
 	if practice:
 		_tuning = practice_tuning(_tuning)
-	elif custom_rules != null:
-		_tuning = custom_rules.applied_to(_tuning)
+	else:
+		_tuning = MatchOptions.match_tuning(_tuning, MapCatalog.shared().find(map_id), custom_rules)
 	_play = PlayTuning.load_default()
 	_map = MapData.load_map(map_id, _play.map_style, _tuning.rounds.team_size)
 	_ui = CanvasLayer.new()
@@ -328,7 +340,13 @@ func _bot_kit_rules() -> LoadoutRules:
 func _advance_build() -> void:
 	if _step >= STEP_KEYS.size():
 		return
-	_build_step()
+	if _nav_task >= 0:
+		if not WorkerThreadPool.is_task_completed(_nav_task):
+			return
+		_take_nav()
+		_end_step()
+	else:
+		_build_step()
 	if _step >= STEP_KEYS.size():
 		if _map.ok():
 			_running = true
@@ -337,9 +355,29 @@ func _advance_build() -> void:
 			started.emit()
 
 
+## On a worker thread: `map`'s nav grid into `out`. Pure data (NavGrid's contract), so nothing else is touched.
+static func _build_nav(out: Array[NavGrid], map: MapData, tuning: SimTuning) -> void:
+	out.append(NavGrid.build(map, tuning.nav, tuning.body))
+
+
+## The worker thread's nav grid, once its task is done, handed to the simulation.
+func _take_nav() -> void:
+	WorkerThreadPool.wait_for_task_completion(_nav_task)
+	_nav_task = -1
+	if _nav_out.is_empty():
+		push_error("PlaySession: the nav grid task left no grid; building it here")
+		_sim.nav = NavGrid.build(_map, _tuning.nav, _tuning.body)
+		return
+	_sim.nav = _nav_out.pop_back()
+
+
 func _start_simulation(map: MapData) -> void:
 	_sim = Simulation.new(_tuning, _level.query(), _level.mover(_tuning.body), map.ends, map.kill_y)
-	_sim.nav = NavGrid.build(map, _tuning.nav, _tuning.body)
+	if staged:
+		_nav_out.clear()
+		_nav_task = WorkerThreadPool.add_task(_build_nav.bind(_nav_out, map, _tuning), false, "Nav grid")
+	else:
+		_sim.nav = NavGrid.build(map, _tuning.nav, _tuning.body)
 	state = GameState.new(match_seed, _tuning)
 	_heard = MinimapHearing.new(_play.minimap)
 	_cues = SoundCues.new(_access, _play.sound)
@@ -919,6 +957,11 @@ func _notification(what: int) -> void:
 
 
 func _exit_tree() -> void:
+	# Freed while the nav grid builds (the window closed on the loading screen): the task is waited for, never left.
+	if _nav_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_nav_task)
+		_nav_task = -1
+		_nav_out.clear()
 	ReplicaPaint.clear()
 	if settings != null and settings.changed.is_connected(_apply_dev):
 		settings.changed.disconnect(_apply_dev)

@@ -12,12 +12,16 @@ warning; a map with no row is not listed.
 - **Id** is the map file's name without `.json`.
 - **Kind** is `field` for a match map (listed in the Map choice) or `range` for the practice range (listed beside the fields, with Practice as its only mode).
 - **Tag** is `public` or `dev`.
+- **Min**, **Standard** and **Max** are the players a side it offers (the browser game's teamSize): the Match screen's
+  Team size row shows Min to Max, Skirmish plays Standard, and picking the map sets Standard unless the saved Custom
+  size is one it offers. Each is a whole number from 1 to 6, in that order; one that isn't keeps its built-in value
+  (Depot's 1, 3, 3) with a warning. The map needs a spawn and a dead-zone spot an end for each player of Max.
 
 ## Maps
 
-| Id | Name | Kind | Tag | Blurb |
-|---|---|---|---|---|
-| depot | Depot | field | public | An abandoned warehouse yard. |
-| woodland | Woodland | field | dev | A wide wood with a hill, at night. |
-| neonHeights | Neon Heights | field | dev | A neon city block on three floors. |
-| range | Range | range | public | Targets 10 to 60 m. No bots, no score. |
+| Id | Name | Kind | Tag | Min | Standard | Max | Blurb |
+|---|---|---|---|---|---|---|---|
+| depot | Depot | field | public | 1 | 3 | 3 | An abandoned warehouse yard. |
+| woodland | Woodland | field | dev | 5 | 5 | 6 | A wide wood with a hill, at night. |
+| neonHeights | Neon Heights | field | dev | 1 | 4 | 5 | A neon city block on three floors. |
+| range | Range | range | public | 1 | 1 | 1 | Targets 10 to 60 m. No bots, no score. |

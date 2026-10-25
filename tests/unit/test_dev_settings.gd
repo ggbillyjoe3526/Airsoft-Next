@@ -263,9 +263,10 @@ func test_woodland_and_neon_heights_are_listed_only_with_dev_content() -> void:
 
 
 func test_a_bad_catalogue_row_is_left_out_and_reported() -> void:
-	var text := "## Maps\n\n| Id | Name | Kind | Tag | Blurb |\n|---|---|---|---|---|\n" \
-			+ "| a | A | field | public | x |\n| b | B | field | secret | x |\n| c | C | arena | dev | x |\n" \
-			+ "| a | A again | field | dev | x |\n| | D | field | dev | x |\n"
+	var text := "## Maps\n\n| Id | Name | Kind | Tag | Min | Standard | Max | Blurb |\n|---|---|---|---|---|---|---|---|\n" \
+			+ "| a | A | field | public | 1 | 3 | 3 | x |\n| b | B | field | secret | 1 | 3 | 3 | x |\n" \
+			+ "| c | C | arena | dev | 1 | 3 | 3 | x |\n| a | A again | field | dev | 1 | 3 | 3 | x |\n" \
+			+ "| | D | field | dev | 1 | 3 | 3 | x |\n"
 	var cat := MapCatalog.parse(text)
 	assert_eq(cat.entries.size(), 1)
 	assert_eq(cat.problems.size(), 4)

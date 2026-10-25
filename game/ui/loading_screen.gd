@@ -2,7 +2,8 @@ class_name LoadingScreen
 extends CanvasLayer
 ## The loading screen (concept `loading.png`): from PLAY until the match draws its first frame. The map's picture
 ## fills the screen under a shade that deepens toward the foot; over it the kicker ("ELIMINATION · 3 V 3 · YOU'RE
-## ALPHA"), the map's name and line, a yellow bar and the step under way with the share done. It sits on a canvas layer
+## ALPHA"), the map's name and line, a yellow bar and the step under way with the share done; the step's own stretch of
+## the bar pulses while it runs (Woodland's nav grid takes about 2 s on a worker thread). It sits on a canvas layer
 ## above the match's own interface, takes every click, and is freed by whoever made it once the match runs.
 
 ## Above the match's interface layer (PlaySession's).
@@ -20,6 +21,10 @@ const BLURB_TOP_GAP := 14
 const BAR_TOP_GAP := 48
 const BAR_HEIGHT := 10.0
 const BAR_TRACK := Color(1.0, 1.0, 1.0, 0.12)
+## The step under way: its stretch of the bar in yellow, its opacity swinging between these once a period (s).
+const PULSE_LOW := 0.15
+const PULSE_HIGH := 0.55
+const PULSE_PERIOD := 1.2
 const STEP_SIZE := 18
 const STEP_TOP_GAP := 14
 ## The shade's opacity of the page colour, foot to top: (position from the foot, opacity).
@@ -31,6 +36,8 @@ var _kicker: Label = null
 var _title: Label = null
 var _blurb: Label = null
 var _fill: ColorRect = null
+var _pending: ColorRect = null
+var _pulse: float = 0.0
 var _step: Label = null
 var _percent: Label = null
 var _picture: TextureRect = null
@@ -75,6 +82,9 @@ func setup(map_id: String, map_name: String, blurb: String, kicker: String) -> v
 func set_progress(done: int, total: int, step_text: String) -> void:
 	var share := clampf(float(done) / maxf(1.0, float(total)), 0.0, 1.0)
 	_fill.anchor_right = share
+	_pending.anchor_left = share
+	_pending.anchor_right = clampf(float(done + 1) / maxf(1.0, float(total)), 0.0, 1.0)
+	_pending.visible = done < total
 	_step.text = step_text
 	_percent.text = tr("LOAD_PERCENT") % roundi(share * 100.0)
 
@@ -107,6 +117,18 @@ func percent_text() -> String:
 ## The bar's filled share, 0 to 1.
 func progress() -> float:
 	return _fill.anchor_right
+
+
+## The step under way's stretch of the bar: its opacity now (0 while none is under way).
+func pulse() -> float:
+	return _pending.modulate.a if _pending.visible else 0.0
+
+
+func _process(delta: float) -> void:
+	if not _pending.visible:
+		return
+	_pulse = fmod(_pulse + delta, PULSE_PERIOD)
+	_pending.modulate.a = lerpf(PULSE_LOW, PULSE_HIGH, 0.5 - 0.5 * cos(TAU * _pulse / PULSE_PERIOD))
 
 
 func _shade() -> Control:
@@ -168,6 +190,13 @@ func _block() -> Control:
 	_fill.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	track.add_child(_fill)
+	_pending = ColorRect.new()
+	_pending.name = "Pending"
+	_pending.color = GameTheme.YELLOW
+	_pending.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_pending.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pending.modulate.a = PULSE_LOW
+	track.add_child(_pending)
 	block.add_child(track)
 	block.add_child(_space(STEP_TOP_GAP))
 	var row := HBoxContainer.new()

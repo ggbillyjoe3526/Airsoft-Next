@@ -1,9 +1,10 @@
 class_name RoundConfig
 extends Resource
-## Elimination match flow (the browser game's config/hits.ts ROUNDS): 3v3 rounds against the clock, first to 5 round
+## Elimination match flow (the browser game's config/hits.ts ROUNDS): rounds against the clock, first to 5 round
 ## wins, ends swapped at half time. Read by game/sim/round.gd.
 
-## Players per team, the player's included.
+## Players per team, the player's included: a map the catalogue doesn't list. A listed map plays its own standard
+## size, or the Custom size it offers (data/maps.md, MatchOptions.team_size).
 @export var team_size: int = 3
 ## Round length (s). A round that runs out with players left on both sides is a draw, played again.
 @export var round_time: float = 150.0

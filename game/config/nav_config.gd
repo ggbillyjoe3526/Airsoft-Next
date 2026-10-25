@@ -25,6 +25,11 @@ extends Resource
 @export var search_greed: float = 1.5
 ## Points random_walkable_near tries before it gives up and returns the point it was asked about.
 @export var hunt_tries: int = 8
+## Route searches a tick, the bots' and the walk-offs' together (the browser's NAV.searchBudget, 8,000 node expansions,
+## about 2 to 2.6 ms there). AStar3D runs a search whole and can't count or pause its expansions, so the budget counts
+## searches: one on Woodland costs about the browser's budget (mean 1.8 to 4.0 ms, WL1). A walk-off due takes the
+## tick's first; a search over the budget waits for the next tick. At 6v6 on Woodland no bot waits 1 s (WL2).
+@export var search_budget: int = 1
 
 
 ## The distance a walkable cell's centre keeps from every block and drop (m): the body's radius plus the margin.

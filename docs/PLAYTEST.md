@@ -333,7 +333,7 @@ flagpole stands in the walled loading bay. Three lanes lead there: **Dock Road**
 
 A wide wood: 120 × 80 m on a gentle slope up to the Knoll and its log fort, with three lanes (Pine Belt, Meadow,
 Creek with the cabin). Turn on Settings › Dev › Dev content, then pick it on Play. Step 26 builds it in greybox: since
-WL1 it loads and plays by day at today's team size (3v3); night, bushes, the torch and 5v5 / 6v6 follow (WL2 to WL10).
+WL1 it loads and plays by day, since WL2 at 5v5 (6v6 under Custom); night, bushes and the torch follow (WL3 to WL10).
 
 - [ ] **Walk the slopes (WL1).** Run up, down and across the Knoll's west face and West Hill: no jump is ever needed,
   you never slide when you stop or stand crouched on the face, your feet stay on the ground going downhill, and
@@ -352,6 +352,16 @@ WL1 it loads and plays by day at today's team size (3v3); night, bushes, the tor
   every slope walks, none needs a jump.
 - [ ] **Bots on the slopes (WL1).** Bots walk all three lanes up to the fort and fight on the hill; none gets stuck on
   a slope or a log. The minimap draws the whole field as ground with the trees, logs and fence on it.
+- [ ] **5v5 and 6v6 (WL2).** Pick Woodland: Skirmish says 5v5 and plays it; under Custom the Team size row offers 5v5
+  and 6v6 only. Play a 6v6: twelve players, each starting on a spot of their own; everyone hit walks to a spot of
+  their own in the dead zone; every bot has a name on the scoreboard. Does the field feel busy enough at 5v5, too
+  crowded at 6v6? Do bots ever stand waiting before they move off (they should set off at once)?
+- [ ] **Loading Woodland (WL2).** The loading bar's current stretch pulses while "Placing the teams" shows (the nav
+  grid builds behind it) and the window stays responsive; a shorter stop of about a second remains as the views are
+  built. Note how long the whole load takes on your PC.
+- [ ] **Frame time at 5v5 and 6v6 (WL2).** With `--perf`, a 6v6 on Woodland on Low and on High: the overlay's frame
+  time (ms and max) in a busy moment and a quiet one, and the `[perf-summary]` line at exit; the same at 5v5. The cloud
+  measured draw calls only (Compatibility on a software renderer: `docs/records/WL2.md`).
 
 Once the rest of step 26 lands:
 
@@ -366,7 +376,7 @@ Once the rest of step 26 lands:
   and lanterns give you away.
 - [ ] **The look and sound (the owner's models).** Bark trunks, log walls and log piles, plank fences; wind in the
   pines, insects, a distant owl, a crackle at each fire.
-- [ ] **5v5 and 6v6 (WL2)**, the torch (WL7) and glowing BBs (WL8): their checks come with them.
+- [ ] **The torch (WL7) and glowing BBs (WL8):** their checks come with them.
 
 ### Neon Heights (the Maps Update)
 
@@ -422,8 +432,12 @@ You're on Alpha (blue) with two bot teammates against three Beta (orange) bots b
 Play › Match. The Rules row comes first: Skirmish (the standard match) or Custom, which
 opens every row (the Modes Update adds the other rule sets).
 
-- [ ] **The rows.** Rounds to win (3 to 10), Round time (1:30 to 5:00), Team size (1v1 to 3v3; larger on Neon Heights
-  and Woodland with Dev content), Opponents, Teammates, Friendly fire and Ricochets count.
+- [ ] **The rows.** Rounds to win (3 to 10), Round time (1:30 to 5:00), Team size (the picked map's own: Depot 1v1
+  to 3v3, Neon Heights 1v1 to 5v5, Woodland 5v5 or 6v6, with Dev content), Opponents, Teammates, Friendly fire and
+  Ricochets count.
+- [ ] **Team size follows the map (WL2).** Custom 3v3 on Depot, pick Woodland: it shows 5v5; back to Depot: 3v3
+  again, and after a restart still 3v3. Skirmish plays each map's standard: Depot 3v3, Neon Heights 4v4, Woodland
+  5v5.
 - [ ] **A 1v1, a 2v2, first to 3.** The scoreboard and pips match the sizes; first to 3 swaps ends after round 2 and
   ends at 3. Do rounds feel too long or quick at that size?
 - [ ] **Opponents Easy, Teammates Hard.** Your teammates win clearly more often. The rules text says this match won't

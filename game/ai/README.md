@@ -62,14 +62,15 @@ at its level, never how well (`BotPersonality`).
 | `bot_holster.gd` | Holstering on a long, calm sprint through its own half, drawing again on a threat |
 | `bot_angles.gd` | Held angles: the corners and doorways in view where someone would step out, from the level's walls alone |
 | `bot_cover.gd` | Crouch cover and lean spots at tall corners that hide a bot from a threat |
-| `bot_movement.gd`, `bot_routes.gd` | Lanes, holds, hunting, searching, strafing, keeping apart; following nav routes |
+| `bot_movement.gd`, `bot_routes.gd` | Lanes, holds, hunting, searching, strafing, keeping apart; planning nav routes within the tick's search budget and following them |
 | `round_planner.gd` | Each round's team plans and lanes (a flanker's own, an anchor's short one, attackers to the middle, defenders their first points), and hunt spots from the team's memory |
 | `bot_flag.gd` | Attack / Defend: each bot's side, which attacker raises the flag and which defenders pull it down, when a bot wants the pole |
 | `squad_orders.gd`, `squad_order_book.gd` | Squad orders: carrying each out (Follow me's spots and pace, Hold here's spot and each holder's place, Regroup); the orders in force, handed out and ended |
 | `bot_roster.gd`, `bot_personality.gd` | Each bot's name and personality for a match; a personality laid over the level's skill, and its habits |
 
-Nothing allocates per tick once warm. Route searches (`NavGrid.find_route`) are queued, one a tick, shared with walk-off
-routes.
+Nothing allocates per tick once warm. Route searches (`NavGrid.find_route`) are queued round-robin and kept to
+`NavConfig.search_budget` a tick (one, the browser's NAV.searchBudget counted in searches: AStar3D can't pause one), a
+walk-off due taking the tick's first (`BotRoutes.plan`, WL2). At 6v6 on Woodland a bot waits at most 0.08 s for its route.
 
 ## Not yet
 

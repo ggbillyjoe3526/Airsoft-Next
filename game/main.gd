@@ -357,10 +357,9 @@ func _show_loading(map_id: String, team: int) -> void:
 			MatchOptions.kicker(_play.mode, _team_size(), team))
 
 
-## Players per team in the match starting: its Custom switch, else the round tuning's.
+## Players per team in the match starting: what its map plays under its rules (MatchOptions.team_size).
 func _team_size() -> int:
-	var custom := _play.custom_rules
-	return custom.team_size if custom != null else SimTuning.load_default().rounds.team_size
+	return MatchOptions.team_size(MapCatalog.shared().find(_play.map_id), _play.custom_rules)
 
 
 func _free_loading() -> void:

@@ -4,7 +4,8 @@ extends VBoxContainer
 ## SKIRMISH | CUSTOM picker, the picked one's blurb, and under it Skirmish's rules as chips or Custom's five rows (team
 ## size, first to, round time, friendly fire, ricochets), each with its blurb. A Custom change lands in the settings'
 ## CustomRules and is saved at once; `changed` tells the page, which re-reads the round tuning. The pick itself goes
-## into the MatchPicks.
+## into the MatchPicks. The Team size row offers only the picked map's sizes (data/maps.md) and lights the size played:
+## the saved one where the map offers it, else the map's standard; the saved size changes only when one is picked.
 
 ## The rule set or a Custom switch changed.
 signal changed
@@ -341,16 +342,31 @@ func _edited() -> void:
 	changed.emit()
 
 
-## Shows the settings' Custom switches on the rows.
+## The team sizes the Team size row offers now (the picked map's), smallest first.
+func offered_sizes() -> Array[int]:
+	var out: Array[int] = []
+	for i in CustomRules.TEAM_SIZES.size():
+		if _team_size.button(i).visible:
+			out.append(CustomRules.TEAM_SIZES[i])
+	return out
+
+
+## Shows the settings' Custom switches on the rows: the team size as played on the picked map (the round tuning's),
+## among the sizes that map offers.
 func _show_switches() -> void:
 	var r := _settings.custom_rules
-	_team_size.put(CustomRules.TEAM_SIZES.find(r.team_size))
+	var map := MapCatalog.shared().find(_picks.map_id)
+	var played := _tuning.rounds.team_size
+	for i in CustomRules.TEAM_SIZES.size():
+		var n := CustomRules.TEAM_SIZES[i]
+		_team_size.button(i).visible = n == played or (map != null and map.allows(n))
+	_team_size.put(CustomRules.TEAM_SIZES.find(played))
 	_wins.put(CustomRules.WINS_NEEDED.find(r.wins_needed))
 	_round_time.set_value_no_signal(r.round_time)
 	_clock.text = MatchOptions.clock_text(r.round_time)
 	_friendly_fire.put(int(r.friendly_fire))
 	_ricochets.put(int(r.ricochets_count))
-	_subs["TEAM"].text = MatchOptions.choice_blurb("TEAM", r.team_size)
+	_subs["TEAM"].text = MatchOptions.choice_blurb("TEAM", played)
 	_subs["WINS"].text = MatchOptions.choice_blurb("WINS", r.wins_needed)
 	_subs["FRIENDLY_FIRE"].text = MatchOptions.choice_blurb("FRIENDLY_FIRE", int(r.friendly_fire))
 	_subs["RICOCHETS"].text = MatchOptions.choice_blurb("RICOCHETS", int(r.ricochets_count))

@@ -1,7 +1,8 @@
 class_name BotController
 extends RefCounted
 ## Drives every character but the player (the browser game's ai/bot.ts updateBots): before each simulation step it
-## plans at most one route (the nav search is the costly part, so bots queue for it), then writes each bot's
+## plans the routes the tick's search budget allows (NavConfig.search_budget: the nav search is the costly part, so
+## bots queue for it; BotRoutes.plan), then writes each bot's
 ## PlayerCommand; after the step it lets the bots hear what happened, hands out the squad orders given in it and gives
 ## each new round a fresh plan. Bots are just another controller: they act only through their commands (ARCHITECTURE
 ## contract 2). Pure: no nodes.
@@ -72,7 +73,7 @@ func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	for c in state.characters:
 		if Elimination.is_in_play(c):
 			w.mark_visited(c.team, c.position)
-	_plan_one_route(state)
+	_next_route = BotRoutes.plan(w, state.characters, _next_route)
 	if w.mode == RoundState.Mode.ATTACK_DEFEND:
 		# Retakers matter only once the flag is off the bottom (BotFlag.wants_flag).
 		if w.flag.progress > 0.0:
@@ -194,33 +195,6 @@ func _sync_round(state: GameState) -> void:
 	world.mode = rs.mode
 	world.attackers = rs.attackers
 	world.flag = rs.flag
-
-
-## Plans the route of the next bot that wants one (round-robin), unless a walk-off route is waiting: the walk-off shares
-## the tick's one search.
-func _plan_one_route(state: GameState) -> void:
-	var w := world
-	for c in state.characters:
-		if c.walk_off_route_pending:
-			return
-	var n := w.bots.size()
-	for i in n:
-		var b := w.bots[(_next_route + i) % n]
-		if b.route_state != Bot.RouteState.WANTED or w.time < b.route_retry_at \
-				or not Elimination.is_in_play(b.character):
-			continue
-		_next_route = (_next_route + i + 1) % n
-		var from := b.character.position
-		if w.nav.find_route(from, b.route_goal, b.route, w.time >= b.vaults_off_until):
-			b.route_state = Bot.RouteState.OK
-			b.route_from = from
-			b.route_leg = 0
-			b.stuck_for = 0.0
-		else:
-			b.route.clear()
-			b.route_state = Bot.RouteState.FAILED
-			b.route_retry_at = w.time + w.cfg.route_retry_delay
-		return
 
 
 ## The field's walkable extent (its sloping ground, floors and ramps) and a height over all of it, for drawing hunt

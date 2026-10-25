@@ -74,6 +74,9 @@ var route_from: Vector3 = Vector3.ZERO
 var route_goal: Vector3 = Vector3.ZERO
 var route_state: RouteState = RouteState.NONE
 var route_retry_at: float = -INF
+## When the planner first saw the route wanted now (match time, BotRoutes.plan), -INF while none is: a bot's wait in
+## the queue runs from it (or from route_retry_at, if later).
+var route_asked_at: float = -INF
 ## Seconds it has walked slower than BotConfig.stuck_speed.
 var stuck_for: float = 0.0
 ## Walking the first half of a route's vault leg this tick (BotRoutes.follow): straight at it, Jump once it's there.
@@ -220,6 +223,7 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	route_leg = 0
 	route_state = RouteState.NONE
 	route_retry_at = -INF
+	route_asked_at = -INF
 	stuck_for = 0.0
 	vault_leg = false
 	vaults_off_until = -INF

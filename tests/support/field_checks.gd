@@ -74,9 +74,11 @@ static func registered(entry: MapCatalog.Entry, map: MapData) -> Result:
 			[entry.display_name, map.blocks.size()])
 
 
-## A spawn and a dead-zone spot per player at each end, for the largest team (CustomRules.TEAM_SIZES).
+## A spawn and a dead-zone spot per player at each end, for the largest team the map offers (data/maps.md's Max, WL2;
+## one the catalogue doesn't list, the largest the Match screen offers: CustomRules.TEAM_SIZES).
 static func room(map: MapData) -> Result:
-	var need: int = CustomRules.TEAM_SIZES.max()
+	var listed := MapCatalog.shared().find(map.id)
+	var need: int = listed.team_max if listed != null else CustomRules.TEAM_SIZES.max()
 	var short := PackedStringArray()
 	for e in map.ends.size():
 		var end := map.ends[e]

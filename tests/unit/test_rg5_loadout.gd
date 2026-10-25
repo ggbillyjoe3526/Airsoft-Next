@@ -3,6 +3,8 @@ extends GutTest
 ## and its place in Settings, the pause menu's row, the menus as the Loadout alone with BACK TO PRACTICE, the spot the
 ## range comes back on, the key doing nothing in a match, and the picks being the one loadout the next match carries.
 
+## Seconds a staged build may take (its nav grid builds on a worker thread, so frames are no measure).
+const LOAD_LIMIT := 20.0
 const MAIN := preload("res://game/main.tscn")
 const LOADOUTS := "user://test_rg5_loadouts.save"
 const SETTINGS := "user://test_rg5_settings.save"
@@ -258,10 +260,7 @@ func test_the_entry_scene_takes_you_to_the_loadout_and_back_to_the_same_spot() -
 	main._picks.map_id = "range"
 	main._picks.mode = MatchOptions.MODE_PRACTICE
 	main._start_play()
-	var frames := 0
-	while main._loading != null and frames < 60:
-		await wait_process_frames(1)
-		frames += 1
+	assert_true(await wait_until(func() -> bool: return main._loading == null, LOAD_LIMIT), "the match loads within LOAD_LIMIT s")
 	var play: PlaySession = main._play
 	assert_true(play.practice)
 	play.player.position = Vector3(1.5, 0.0, -3.0)

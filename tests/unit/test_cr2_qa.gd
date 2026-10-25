@@ -106,11 +106,12 @@ func test_every_custom_team_size_leaves_the_depot_playable() -> void:
 	picks.rules = CUSTOM
 	var settings := Settings.new()
 	var page := _page(picks, settings)
-	for i in CustomRules.TEAM_SIZES.size():
-		page.rules_box().team_size_choice().button(i).pressed.emit()
+	assert_eq(page.rules_box().offered_sizes(), [1, 2, 3] as Array[int], "Depot's sizes")
+	for n in page.rules_box().offered_sizes():
+		page.rules_box().team_size_choice().button(CustomRules.TEAM_SIZES.find(n)).pressed.emit()
 		assert_false(page.play_button().disabled)
 		assert_eq(picks.map_id, "depot")
-		assert_eq(page.map_check_size(), CustomRules.TEAM_SIZES[i])
+		assert_eq(page.map_check_size(), n)
 
 
 func test_freeing_and_rebuilding_the_page_keeps_the_picks_and_leaks_nothing() -> void:
