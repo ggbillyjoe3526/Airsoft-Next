@@ -225,13 +225,14 @@ func test_the_page_lays_out_at_small_and_4k_sizes() -> void:
 	assert_not_null(host)
 
 
-func test_the_cyber_pistol_can_be_carried_but_no_part_fits_it() -> void:
+func test_the_cyber_pistol_can_be_carried_but_no_part_fits_it_but_the_torch() -> void:
 	settings.dev_enabled = true
 	settings.dev.dev_content = true
 	saved.rules.dev_content = true
 	assert_true(saved.rules.equip(saved.carried(), Loadout.Slot.SECONDARY, CYBER), "playable since CP1")
 	for t: StringName in Pool.PART_TABLES.values():
-		assert_true(saved.rules.parts_for(CYBER, t).is_empty())
+		# The weapon torch fits every replica (WL7; RM8 modelled the Cyber Pistol's).
+		assert_eq(saved.rules.parts_for(CYBER, t).size(), 1 if t == Pool.LIGHT_SLOT else 0, str(t))
 
 
 func test_switching_loadouts_with_a_part_tab_open_keeps_the_tab_and_shows_that_loadouts_parts() -> void:

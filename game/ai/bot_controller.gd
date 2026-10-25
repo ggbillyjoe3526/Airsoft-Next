@@ -80,9 +80,12 @@ func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 			BotFlag.pick_retakers(w)
 		BotFlag.pick_raiser(w)
 	var hold_fire := state.cheats.bots_hold_fire
+	# Who the weapon torches light, for this interval's looks (a night field only, WL7).
+	BotTorch.refresh(w)
 	for b in w.bots:
 		var cmd := commands[b.character.id]
 		BotBrain.think(b, w, cmd, dt)
+		BotTorch.step(b, w, cmd)
 		if hold_fire:
 			cmd.fire = false
 

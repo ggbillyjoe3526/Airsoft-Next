@@ -13,7 +13,7 @@ extends RefCounted
 ## Characters without a command keep their view and stand still; hit characters follow the hit-calling routine instead
 ## of their command, and once out and standing in the dead zone they are only timed. A squad order in a command becomes
 ## an event for the bots' controller and changes nothing here. A run into a noisy prop knocks it, and a BB landing hard
-## on steel rings it (PropNoise, NP1).
+## on steel rings it (PropNoise, NP1). The weapon torch switches after the replica (Torch); hit, it goes out.
 
 var tuning: SimTuning = null
 var query: WorldQuery = null
@@ -77,11 +77,14 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		c.prev_yaw = c.yaw
 		c.prev_pitch = c.pitch
 		_squad_order(c, commands, live, state.events)
+		var in_play := Elimination.is_in_play(c)
+		# Hit, the torch goes out as the hand goes up (silently: the hit call is the sound).
+		if not in_play:
+			Torch.put_out(c)
 		# Out and standing in the dead zone: only its clock runs (audit SIM-15).
 		if Elimination.is_parked(c):
 			Elimination.step(c, tuning.hits, dt)
 			continue
-		var in_play := Elimination.is_in_play(c)
 		var cmd: PlayerCommand = null
 		if in_play:
 			cmd = commands[c.id] if c.id >= 0 and c.id < commands.size() else null
@@ -90,6 +93,8 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		if cmd == null:
 			cmd = _idle
 			cmd.reset(c.yaw, c.pitch)
+		# The torch's thumb switch works through a vault too (the vault's own command drops other presses until its end).
+		var toggle_torch := in_play and cmd.toggle_torch
 		# A Jump press at a low obstacle vaults it instead; while vaulting only the view follows the command, the trigger
 		# stays as it was and other presses wait for the vault's end (BP5).
 		if in_play and not c.vault.active:
@@ -123,6 +128,8 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		# BBs leave from the eyes, wherever a lean puts them; none through a vault or the moment after it.
 		Armament.step(c, cmd, Lean.eye(c, tuning.body, tuning.hits), kick, live and c.fire_lockout <= 0.0, state.bbs,
 				state.rng, state.events, tuning, dt, 0.0 if c.vault.active else c.fire_lockout)
+		# After the armament: a switch or holster this tick to no light in hand puts the torch out.
+		Torch.step(c, toggle_torch, state.events, dt)
 	var first_bb_event := state.events.count
 	BBStep.step(state.bbs, state.characters, query, tuning, kill_y, not live, ends, state.events, dt,
 			state.wind.at(state.time), state.rng, state.targets)

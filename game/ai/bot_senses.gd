@@ -3,7 +3,8 @@ class_name BotSenses
 ## to view_distance, anyone very close whichever way it faces, and a clear line from its eyes (lean included) to the
 ## part of the target it looks for, through no wall, no body of someone already hit and no more than
 ## foliage_see_through of bush (WL5; within close_awareness a bush hides no one); at night no further than the light
-## round the target lets it be made out (WL6, NightField). Hearing is BotHearing. A bot knows only what these give it:
+## round the target lets it be made out (WL6, NightField), or a weapon torch: lit by a beam, or its own lit torch
+## pointed at the viewer (WL7). Hearing is BotHearing. A bot knows only what these give it:
 ## no wall-hacks, ever (DECISIONS 2026-09-30). Allocates nothing.
 
 ## Lines shorter than this (m) are clear.
@@ -49,12 +50,18 @@ static func in_dark_range(flat: float, at: Vector3, w: BotWorld) -> bool:
 	return w.night == null or flat <= w.night.sight_range(at)
 
 
+## Whether `viewer` can make `target`, `flat` m away (level), out in the dark: always by day; on a field played at night
+## within the light round the target or, if further, by torchlight (NightField.range_between).
+static func made_out(flat: float, viewer: Character, target: Character, w: BotWorld) -> bool:
+	return w.night == null or flat <= w.night.range_between(viewer, target)
+
+
 ## Which part of `target` `viewer` can see now, as a share of its height: the chest (aim_height_fraction) if it shows,
 ## else the head (head_height_fraction), else 0.
 static func visible_part(viewer: Character, target: Character, w: BotWorld) -> float:
 	var cfg := w.cfg
 	var flat := Vector2(target.position.x - viewer.position.x, target.position.z - viewer.position.z).length()
-	if flat > cfg.view_distance or not in_dark_range(flat, target.position, w) \
+	if flat > cfg.view_distance or not made_out(flat, viewer, target, w) \
 			or not in_view(viewer, target.position, cfg):
 		return 0.0
 	var eye := eye_of(viewer, w.tuning)

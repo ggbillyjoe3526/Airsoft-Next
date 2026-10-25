@@ -31,6 +31,7 @@ and, on the range, `test_range_map.gd`).
 | `lean.gd` | Q / E held: the one lean geometry (eyes, BB origin, hit volume, camera, figure, bot vision), stopped short of walls |
 | `vault.gd`, `vault_state.gd` | Jump at a low obstacle: finding one with level rays, the path through the mover, fire held after, presses kept |
 | `armament.gd` | Magazines, the fire selector, the hop-up dial, the holster, trigger, reloads, draws, recoil and seeded spread |
+| `torch.gd` | `Torch`: the weapon torch on the replica in hand (`Armament.lights`, night only), switched by the command's `toggle_torch` with a `TORCH` event; out when holstered, on a replica without one, when hit and at each round start |
 | `bb.gd`, `bb_pool.gd`, `air_model.gd`, `ballistics.gd` | BBs in flight: drag by Reynolds number through the moving air, hop-up's Magnus lift, one midpoint step a tick |
 | `hit_facts.gd` | `HitFacts`: what the "What got you" card says about a hit on you (where from, how far, moving, held angle, time in view), one record kept by `BotController` |
 | `wind.gd` | The match's breeze, drawn from its seed each match, with gusts and a slow veer |

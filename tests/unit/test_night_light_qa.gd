@@ -81,7 +81,11 @@ func test_changing_the_graphics_mid_match_changes_the_real_lights_and_frees_them
 	for preset: StringName in [&"low", &"medium", &"high", &"ultra", &"low", &"high"]:
 		var quality := GraphicsTable.shared().preset(preset)
 		session._apply_graphics(quality)
-		assert_eq(pools.real_lights().size(), session.lighting().real_lights_for(quality.mesh_detail), String(preset))
+		# Your weapon torch's real spot takes one of the preset's real lights from Medium up (WL7).
+		var torch := 0 if session._eyes.torch() == null else 1
+		assert_eq(torch, 0 if preset == &"low" else 1, "the torch's spot: %s" % preset)
+		assert_eq(pools.real_lights().size() + torch, session.lighting().real_lights_for(quality.mesh_detail),
+				String(preset))
 	for i in 30:
 		pools.update(Vector3(-50.0, 2.0, -10.0), 0.05)
 	session._apply_graphics(GraphicsTable.shared().preset(&"low"))

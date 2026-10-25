@@ -3,7 +3,8 @@ class_name GraphicsApply
 ## knobs (render scale and upscaler, edge and temporal smoothing, texture filtering, mesh detail) and the
 ## RenderingServer's sun-shadow map and filter; `apply_field` sets the match's sun, its environment's ambient occlusion
 ## and the wind and kicked dust, without rebuilding them, and the level's baked light (its mesh alone);
-## `contact_shadows` says whether the figures draw theirs (no sun shadows). `apply_settings`
+## `contact_shadows` says whether the figures draw theirs (no sun shadows), `torch_mode` how your own weapon torch is
+## drawn and `pool_lights` how many real lights that leaves the light pools. `apply_settings`
 ## (SettingsApply.apply_graphics: at start and on a change in Settings › Graphics, in the menus or from the pause menu)
 ## draws only values that differ from those drawn (`equals`), never per frame, and tells the match through the Server's
 ## `applied`: a new shadow map is a hitch, so the tab's sliders apply on release.
@@ -27,6 +28,8 @@ const ANISOTROPY: Array[int] = [Viewport.ANISOTROPY_DISABLED, Viewport.ANISOTROP
 ## Each MeshDetail as the viewport's mesh_lod_threshold (px of error a simpler mesh may show; the engine's default 1 is
 ## High, the look before the presets; lower is finer).
 const MESH_LOD: Array[float] = [4.0, 2.0, 1.0, 0.5]
+## From this Mesh detail up your own weapon torch's real spot casts shadows (High and Ultra, data/graphics.md).
+const TORCH_SHADOWS_FROM := GraphicsQuality.MeshDetail.HIGH
 ## Each ShadowSoftness as the sun's shadow filter: Softer is the engine's default (SOFT_LOW), so High keeps its look.
 const SOFTNESS: Array[int] = [RenderingServer.SHADOW_QUALITY_HARD, RenderingServer.SHADOW_QUALITY_SOFT_VERY_LOW,
 		RenderingServer.SHADOW_QUALITY_SOFT_LOW, RenderingServer.SHADOW_QUALITY_SOFT_HIGH]
@@ -221,3 +224,20 @@ static func apply_field(values: GraphicsQuality, lighting: FieldLighting, dust: 
 ## Whether the figures draw their contact shadows with `values`: where the sun casts none.
 static func contact_shadows(values: GraphicsQuality) -> bool:
 	return not values.sun_shadows
+
+
+## How your own weapon torch is drawn at night with `values` (WL7): a real spot while the preset gives `lighting`'s
+## night at least one real light (Medium and up, LightingConfig.real_lights_for), casting shadows from
+## TORCH_SHADOWS_FROM; else a haze (TorchBeams).
+static func torch_mode(values: GraphicsQuality, lighting: LightingConfig) -> TorchBeams.Mode:
+	if lighting.real_lights_for(values.mesh_detail) < 1:
+		return TorchBeams.Mode.HAZE
+	return TorchBeams.Mode.SHADOWED if values.mesh_detail >= TORCH_SHADOWS_FROM else TorchBeams.Mode.SPOT
+
+
+## The real lights `lighting`'s light pools get with `values`: the preset's, less the one your torch's real spot takes
+## on a field where a torch may be lit (`torches`).
+static func pool_lights(values: GraphicsQuality, lighting: LightingConfig, torches: bool) -> int:
+	var real := lighting.real_lights_for(values.mesh_detail)
+	var torch := 1 if torches and torch_mode(values, lighting) != TorchBeams.Mode.HAZE else 0
+	return maxi(0, real - torch)

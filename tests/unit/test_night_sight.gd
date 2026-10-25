@@ -334,7 +334,10 @@ func test_a_5v5_night_match_on_woodland_keeps_every_sighting_in_range_and_finish
 						watch.seen_lit += 1
 					else:
 						watch.seen_dark += 1
+	# Sight by the dark alone: the torches' own light is test_torch.gd's (WL7).
+	woodland.lights = MatchRunner.Lights.NONE
 	var tally := woodland.play(3, 900.0)
+	woodland.lights = MatchRunner.Lights.BY_RULE
 	woodland.each_tick = Callable()
 	gut.p("Woodland 5v5 at night: %d rounds in %.0f s, %d hits; %d sightings sampled, %d hidden by the dark, %d seen lit, %d seen in the dark"
 			% [tally.rounds.size(), tally.ticks * DT, tally.hits, watch.sampled, watch.hidden, watch.seen_lit,

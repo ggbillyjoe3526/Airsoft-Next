@@ -1,7 +1,7 @@
 class_name PartStats
 extends RefCounted
 ## data/stats.md's part tables (the browser game's config/optics.ts, lasers.ts and attachments.ts over its stats file):
-## what each optic, grip, laser, magazine, barrel and muzzle part changes, by its Key. A part with no row, or a cell
+## what each optic, grip, laser, magazine, barrel and muzzle part changes, and how far and wide each light shines, by its Key. A part with no row, or a cell
 ## that won't read or is out of range, changes nothing there and is reported with its line ("stats.md:80: …").
 
 const KEY_HEADER := "Key"
@@ -42,6 +42,11 @@ const TABLES: Array[Dictionary] = [
 		{"header": "Handling (×)", "field": &"handling", "kind": Kind.SCALE, "min": 0.2, "max": 5.0},
 		{"header": "Heard from (×)", "field": &"heard", "kind": Kind.SCALE, "min": 0.0, "max": 5.0},
 	]},
+	{"heading": "Lights", "slot": &"light", "columns": [
+		{"header": "Reach (m)", "field": &"reach", "kind": Kind.SCALE, "min": 1.0, "max": 200.0},
+		{"header": "Beam (°)", "field": &"beam", "kind": Kind.SCALE, "min": 1.0, "max": 120.0},
+		{"header": "Spill (°)", "field": &"spill", "kind": Kind.SCALE, "min": 1.0, "max": 170.0},
+	]},
 ]
 
 
@@ -66,6 +71,10 @@ class Part:
 	## Energy as a share (0.1 is +10 %), and how far its shots are heard.
 	var energy: float = 0.0
 	var heard: float = 1.0
+	## A light's reach (m) and its hotspot's and spill's full angles (degrees); 0: it lights nothing.
+	var reach: float = 0.0
+	var beam: float = 0.0
+	var spill: float = 0.0
 
 
 ## Each slot's rows: slot → Key → Part.

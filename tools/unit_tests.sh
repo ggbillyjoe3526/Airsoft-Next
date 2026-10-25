@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Unit tests (Gut, addons/gut): the test_*.gd under tests/unit, headless, in two parts of about the same time (CI1):
-# part 1 the files before test_f (test_a* to test_e*, test_bots.gd's whole bot matches among them), part 2 the rest.
+# part 1 the files before test_fl (test_a* to test_fi*, test_bots.gd's whole bot matches among them), part 2 the rest.
 # Each part is a Godot run of its own with its own limit; CI runs them as two jobs side by side. Settings live in
 # .gutconfig.json. Prints each failure as "FAIL: <file> <test>: <message>" and the totals, the whole output in
 # unit-<part>.log; fails if any test fails or any script error is printed.
@@ -21,13 +21,13 @@ if [ "$part" != 1 ] && [ "$part" != 2 ]; then
 fi
 LOG="unit-$part.log"
 
-# This part's files by name, byte by byte whatever the locale: part 1 sorts before test_f, part 2 from it on.
+# This part's files by name, byte by byte whatever the locale: part 1 sorts before test_fl, part 2 from it on.
 files=()
 while IFS= read -r f; do
   files+=("res://$f")
 done < <(find tests/unit -name 'test_*.gd' | LC_ALL=C sort | LC_ALL=C awk -v part="$part" '{
   name = $0; sub(/.*\//, "", name)
-  if ((name < "test_f") == (part == 1)) print
+  if ((name < "test_fl") == (part == 1)) print
 }')
 if [ "${#files[@]}" -eq 0 ]; then
   echo "FAIL: no test files in unit test part $part"; exit 1

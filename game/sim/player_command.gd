@@ -36,6 +36,8 @@ var holster: bool = false
 ## (picked again there, the order in force stays; its key again cancels it).
 var squad_order: SquadOrder.Kind = SquadOrder.Kind.NONE
 var order_from_wheel: bool = false
+## Switch the weapon torch on the replica in hand on or off (one-shot; Torch). Nothing without a light in hand.
+var toggle_torch: bool = false
 
 
 ## Back to no input, looking along (yaw, pitch).
@@ -58,6 +60,7 @@ func reset(view_yaw: float = 0.0, view_pitch: float = 0.0) -> void:
 	holster = false
 	squad_order = SquadOrder.Kind.NONE
 	order_from_wheel = false
+	toggle_torch = false
 
 
 func copy_from(other: PlayerCommand) -> void:
@@ -79,3 +82,4 @@ func copy_from(other: PlayerCommand) -> void:
 	holster = other.holster
 	squad_order = other.squad_order
 	order_from_wheel = other.order_from_wheel
+	toggle_torch = other.toggle_torch

@@ -18,6 +18,8 @@ const VALUES: Dictionary[StringName, Dictionary] = {
 	&"carried": {"decimals": 0, "higher": true},
 	&"reload": {"decimals": 2, "higher": false},
 	&"draw": {"decimals": 2, "higher": false},
+	&"reach": {"decimals": 0, "higher": true},
+	&"spill": {"decimals": 0, "higher": true},
 }
 ## The pieces of a card's numbers line: the translation key of its words (each %s is a figure) and the figures in it.
 const PIECES: Dictionary[StringName, Dictionary] = {
@@ -30,6 +32,8 @@ const PIECES: Dictionary[StringName, Dictionary] = {
 	&"magazine": {"fmt": "PART_FIG_MAGAZINE", "values": [&"capacity", &"carried"]},
 	&"reload": {"fmt": "PART_FIG_RELOAD", "values": [&"reload"]},
 	&"draw": {"fmt": "PART_FIG_DRAW", "values": [&"draw"]},
+	&"reach": {"fmt": "PART_FIG_REACH", "values": [&"reach"]},
+	&"spill": {"fmt": "PART_FIG_SPILL", "values": [&"spill"]},
 }
 ## Each slot's card line: the pieces always shown, and the ones added when the part changes them.
 const SLOT_PIECES: Dictionary[StringName, Array] = {
@@ -39,6 +43,7 @@ const SLOT_PIECES: Dictionary[StringName, Array] = {
 	&"magazine": [&"magazine", &"reload"],
 	&"barrel": [&"energy", &"spread"],
 	&"muzzle": [&"energy", &"heard"],
+	&"light": [&"reach", &"spill"],
 }
 const SLOT_EXTRA_PIECES: Dictionary[StringName, Array] = {
 	&"magazine": [&"draw"],
@@ -48,7 +53,7 @@ const SLOT_EXTRA_PIECES: Dictionary[StringName, Array] = {
 ## Slots whose parts carry the slot's name in theirs ("Hi-Cap Magazine"): the cards drop it ("Hi-Cap").
 const SHORT_NAME_SLOTS: Array[StringName] = [&"magazine"]
 ## Slots with nothing there as it comes: their tab line is dim ("None").
-const EMPTY_SLOTS: Array[StringName] = [&"grip", &"laser"]
+const EMPTY_SLOTS: Array[StringName] = [&"grip", &"laser", &"light"]
 const SEPARATOR := " · "
 const RATTLES_VALUE := &"rattles"
 
@@ -91,6 +96,16 @@ static func short_name(part: Pool.Item) -> String:
 		if part.display_name.ends_with(word):
 			return part.display_name.trim_suffix(word)
 	return part.display_name
+
+
+## True if any replica could take a part in `part_slot` now (on offer: a dev one only with Dev content on). A slot with
+## none, such as the light while it is dev and Dev content is off, shows as coming LATER.
+func offered(part_slot: StringName) -> bool:
+	var rules := _facts.rules()
+	for it in rules.pool.replicas:
+		if not rules.pool.parts_for(it, part_slot, rules.dev_content).is_empty():
+			return true
+	return false
 
 
 ## True if replica `slot` of the loadout can take a part in `part_slot`.
@@ -169,6 +184,10 @@ func _measure(slot: Loadout.Slot, item: Pool.Item, part_slot: StringName, part: 
 	values[&"reload"] = r.reload_time
 	values[&"draw"] = r.draw_time
 	values[RATTLES_VALUE] = r.rattles
+	# A light's reach and beam as it shines at night (none: nothing lit).
+	var light: Torch.Light = kit.lights[slot] if slot < kit.lights.size() else null
+	values[&"reach"] = light.reach if light != null else 0.0
+	values[&"spill"] = light.spill_deg if light != null else 0.0
 	return values
 
 

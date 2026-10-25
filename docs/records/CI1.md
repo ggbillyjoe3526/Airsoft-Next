@@ -20,8 +20,9 @@
   faster than none on the session files (`test_range_play`, `test_play_session_state`), and 2 s slower on
   `test_figure_hands_qa`. `tools/match_guards.sh` reads the same `.gutconfig.json`, so the guards get the hook too:
   safe, they only await physics frames and pure simulation, so at most they run a little faster.
-- **Two parts** (`tools/unit_tests.sh [1|2]`): part 1 is every `tests/unit/test_*.gd` sorted before `test_f` (72
-  files, test_bots.gd's whole bot matches among them), part 2 the rest (171 files), each a Godot run of its own with
+- **Two parts** (`tools/unit_tests.sh [1|2]`): part 1 is every `tests/unit/test_*.gd` sorted before `test_fl` (98
+  files, test_bots.gd's whole bot matches among them), part 2 the rest (157 files; WL7 moved the boundary from
+  `test_f`, 72 and 171 files then, when part 2 had grown to some 550 s against part 1's 350), each a Godot run of its own with
   its own 1,080 s limit; without a part the script runs both in turn. `tools/check.sh` runs them as two gates and
   sums the totals over `unit-1.log` and `unit-2.log`; CI runs part 1 in the job that also runs the smoke test and the
   notices ("Unit tests part 1, smoke test, notices", job id `godot` kept) and part 2 in a job of its own ("Unit tests

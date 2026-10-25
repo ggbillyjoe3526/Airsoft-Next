@@ -106,7 +106,7 @@ func test_a_bush_free_world_leaves_the_stream_alone() -> void:
 
 func test_the_leaves_event_is_appended_after_every_older_kind() -> void:
 	assert_eq(GameEvent.Kind.BB_LEAVES, GameEvent.Kind.PROP_RING + 1, "no older id shifts")
-	assert_eq(GameEvent.Kind.values().max(), GameEvent.Kind.BB_LEAVES, "and it is the last")
+	assert_eq(GameEvent.Kind.TORCH, GameEvent.Kind.BB_LEAVES + 1, "and the next kind (WL7's) comes after it")
 
 
 func test_a_foliage_entry_that_is_not_a_list_is_ignored_with_a_warning() -> void:

@@ -116,7 +116,7 @@ func test_settings_changed_only_from_a_new_players() -> void:
 	s.sensitivity = 2.1
 	s.team_colours = TeamColours.Set.HIGH_CONTRAST
 	assert_eq(ReportFacts.settings_text(s.to_dict(), fresh.to_dict()), "fov 100, sensitivity 2.1, team_colours high_contrast")
-	s.bindings.rebind(&"reload", KEY_T)
+	s.bindings.rebind(&"reload", KEY_U)
 	s.vsync = false
 	s.volumes[&"Master"] = 0.5
 	s.first_start_seen = true

@@ -1,8 +1,8 @@
 class_name Armament
 extends RefCounted
 ## A character's replicas and what they're doing: magazines, the selector, reloads, draws, the trigger and recoil (the
-## browser game's sim/armament.ts, without its optics, parts, torch, magazine toss, bottomless magazines or
-## vault hold-off). Plain data; `step` is the only rule that changes it during play.
+## browser game's sim/armament.ts, without its optics, parts, magazine toss, bottomless magazines or vault hold-off;
+## the weapon torch fitted to each replica is here, Torch switches it). Plain data; `step` is the only rule that changes it during play.
 
 ## Magazines carried for one replica: the one loaded and the spares in the pouch, each with the BBs it has left. A
 ## reload swaps the loaded one for the fullest spare and puts the old one back as it is (no topping up); empties stay
@@ -74,6 +74,9 @@ var burst_shots_left: int = 0
 var modes: Array[ReplicaConfig.FireMode] = []
 var hop_ups: PackedFloat64Array = PackedFloat64Array()
 var bb_weights: PackedFloat64Array = PackedFloat64Array()
+## Each slot's weapon light (Torch.Light; null: none). Set as the match is built, only on a field played at night
+## (Kit.lights_for); empty or short: no light on the slots past its end.
+var lights: Array[Torch.Light] = []
 
 
 ## A fresh armament for `loadout`: full magazines, each replica's selector and dial as it comes, and the BB weight
@@ -120,6 +123,13 @@ func reset_fire_modes() -> void:
 func reset_hop_ups() -> void:
 	for i in replicas.size():
 		hop_ups[i] = replicas[i].hop_up_dial
+
+
+## The light on the replica in hand, or null: none fitted, or the replica is holstered (the torch goes out, M92).
+func light_in_hand() -> Torch.Light:
+	if holstered or active >= lights.size():
+		return null
+	return lights[active]
 
 
 ## The replica in hand, or null with an empty loadout.
