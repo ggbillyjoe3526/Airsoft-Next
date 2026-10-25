@@ -355,6 +355,8 @@ def gen_xp(_arg: str) -> str:
 
 def team_sizes(m: dict) -> str:
     lo, std, hi = m["Min"], m["Standard"], m["Max"]
+    if m["Kind"] == "range":
+        return "solo"
     if lo == hi:
         return f"{lo}v{lo}"
     return f"{lo}v{lo} to {hi}v{hi} (usual {std}v{std})"

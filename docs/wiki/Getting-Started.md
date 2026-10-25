@@ -53,7 +53,7 @@ on its own, and the title screen says so once. Mouse and keyboard; there is no c
    blasts.
 4. Move with **W A S D**, aim with the right mouse button, fire with the left. One BB hit takes anyone out, you
    included.
-5. Take out the whole other team to win the round. First to 5 rounds wins the match.
+5. Take out the whole other team to win the round. First to <!-- wiki:config round_config.wins_needed --> rounds wins the match.
 
 Then read [How to Play](How-to-Play), set your keys in [Controls](Controls), and try the
 [Practice Range](Practice-Range) to learn how BBs fly.

@@ -8,7 +8,7 @@ member of your team; everyone else is a [bot](Bots). A match is played in rounds
 - **Elimination:** take out the whole other team to win the round.
 - **Attack / Defend:** the attackers raise their flag on the defenders' pole, or the defenders hold out.
 
-The first team to 5 round wins takes the match, and the teams swap ends at half time so neither keeps the better end.
+The first team to <!-- wiki:config round_config.wins_needed --> round wins takes the match, and the teams swap ends at half time so neither keeps the better end.
 [Modes](Modes) has the full rules, including Custom matches where you set them yourself.
 
 ## One hit and you're out
@@ -37,7 +37,7 @@ is played again under the same number.
 
 ### Skipping the rest of the round
 
-Once you're out, hold **Jump** for half a second and the rest of the round plays at six times speed with the HUD
+Once you're out, hold **Jump** for half a second and the rest of the round plays at <!-- wiki:config play_tuning.skip_speed --> times speed with the HUD
 hidden. A hint at the bottom of the screen reminds you, using your own Jump key, and the pause menu has **Skip to next
 round** while you can skip.
 

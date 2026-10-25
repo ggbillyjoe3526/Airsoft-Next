@@ -96,7 +96,7 @@ The rules are in the repository: [VISION](https://github.com/ggbillyjoe3526/Airs
 
 The wiki's pages live in the repository, in
 [`docs/wiki/`](https://github.com/ggbillyjoe3526/Airsoft-Next/tree/main/docs/wiki), and are reviewed in pull requests
-like the code. Numbers are never typed into a page: the stats, parts, unlocks, XP, maps, keys, graphics presets, bot
+like the code. Table numbers are never typed into a page: the stats, parts, unlocks, XP, maps, keys, graphics presets, bot
 kits and rules tables are read from the game's own files by `tools/wiki.py`, and Patch Notes is written from the
 changelog notes. On every merge to `main`, the Wiki workflow builds the pages and publishes them here. A pull request
 that changes what players see updates the page that describes it, and CI fails if a link breaks, a page leaves the

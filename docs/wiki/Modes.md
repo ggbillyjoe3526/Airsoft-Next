@@ -55,7 +55,7 @@ when you go back to a field.
    round's table slides in with everyone's hits, BBs fired and time in play. Click to start the next round sooner.
 3. Several long blasts end the match. After the last round's table, the match summary shows the result, everyone's
    numbers, your XP and records ([HUD and Minimap](HUD-and-Minimap#the-match-summary)).
-4. The next match starts 15 seconds after the summary appears, or at once when you click. That click never fires a
+4. The next match starts <!-- wiki:config play_tuning.rematch_delay --> seconds after the summary appears, or at once when you click. That click never fires a
    shot.
 
 The pause menu (Esc) shows the map, mode and round, the match's seed, and has **Quit match** to leave.

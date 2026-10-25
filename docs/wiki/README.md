@@ -11,7 +11,7 @@ edit here.
 
 ## Generated parts
 
-Numbers are never typed into a page. A marker on its own line, or inside a sentence, is replaced at build time by
+Table numbers are never typed into a page, and a rule number in a sentence uses `wiki:config` where the game has it as a tuning value. A marker on its own line, or inside a sentence, is replaced at build time by
 `tools/wiki.py` with what the game's own files say:
 
 | Marker | Becomes | Read from |
