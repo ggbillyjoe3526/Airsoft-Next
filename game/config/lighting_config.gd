@@ -162,12 +162,12 @@ func pool_colour(kind: StringName, colour: Color) -> Color:
 	return colour
 
 
-## Whether it draws the night sky (stars and the moon) instead of the day's.
 ## The mean of a hemisphere fill's sky and ground colours (sRGB), on linear RGB: Godot's ambient has one colour.
 static func _hemi_mean(sky: Color, ground: Color) -> Color:
 	return sky.srgb_to_linear().lerp(ground.srgb_to_linear(), 0.5)
 
 
+## Whether it draws the night sky (stars and the moon) instead of the day's.
 func night_sky() -> bool:
 	return stars > 0 or moon_size > 0.0
 
