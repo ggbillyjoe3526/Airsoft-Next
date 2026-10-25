@@ -14,6 +14,8 @@ const PACE_SEED := 1
 const PACE_SECONDS := 180.0
 const SAME_SEED := 2
 const SAME_SECONDS := 120.0
+## QA's additions (the other fields, a replay) play this long.
+const OTHER_SECONDS := 90.0
 ## The events every map's runs call somewhere between them (the browser's list).
 const CALLED: Array[int] = [
 	CalloutsFile.Event.CONTACT, CalloutsFile.Event.DOWN, CalloutsFile.Event.LAST_ONE, CalloutsFile.Event.HEARD,
@@ -95,6 +97,53 @@ func test_depot_plays_the_same_with_the_callouts_as_without() -> void:
 		assert_eq(_rounds(talking), _rounds(quiet), at)
 		gut.p("%s, seed %d, %d s: %d shots, %d hits, %d rounds, the same with %d calls" % [at, SAME_SEED,
 				SAME_SECONDS, quiet.shots, quiet.hits, quiet.rounds.size(), heard.calls])
+
+
+func test_neon_heights_and_woodland_play_the_same_with_the_callouts_as_without() -> void:
+	# QA (CO1): the same check on the other two fields, Neon Heights' Attack / Defend by day and Woodland at night.
+	for run: Array in [["neonHeights", RoundState.Mode.ATTACK_DEFEND], ["woodland", RoundState.Mode.ELIMINATION]]:
+		var r: MatchRunner = await MatchGuard.runner(self, run[0], &"normal", false, run[1])
+		r.talk = false
+		var quiet := r.play(SAME_SEED, OTHER_SECONDS)
+		r.talk = true
+		var heard := Heard.new()
+		r.each_tick = heard.on_tick
+		var talking := r.play(SAME_SEED, OTHER_SECONDS)
+		var at := MatchGuard.label(r, run[0])
+		r.free_level()
+		assert_gt(heard.calls, 3, "%s: the bots talk" % at)
+		assert_eq(heard.problems, PackedStringArray(), at)
+		assert_eq([talking.shots, talking.hits, talking.ticks], [quiet.shots, quiet.hits, quiet.ticks], at)
+		assert_gt(quiet.shots, 0, "%s: shots were fired" % at)
+		assert_eq(talking.hits_by, quiet.hits_by, at)
+		assert_eq(talking.farthest, quiet.farthest, at)
+		assert_eq(_rounds(talking), _rounds(quiet), at)
+		gut.p("%s, seed %d, %d s: %d shots, %d hits, %d rounds, the same with %d calls" % [at, SAME_SEED,
+				OTHER_SECONDS, quiet.shots, quiet.hits, quiet.rounds.size(), heard.calls])
+
+
+func test_the_same_seed_says_the_same_calls_in_the_same_order() -> void:
+	# QA (CO1): a replay repeats the calls (speaker, event, line, time), and another seed says something else.
+	var r: MatchRunner = await MatchGuard.runner(self, "depot", &"normal", false)
+	var runs: Array[Array] = [[], [], []]
+	var seeds: Array[int] = [SAME_SEED, SAME_SEED, SAME_SEED + 1]
+	for k in 3:
+		var out: Array = runs[k]
+		var seen: Array[int] = [0]
+		r.each_tick = func(_state: GameState, bots: BotController) -> void:
+			var ring := bots.callouts.said
+			for n in range(seen[0], ring.total):
+				var c := ring.entry(n)
+				out.append("%.3f %d %d %s" % [c.time, c.speaker_id, c.event, c.line])
+			seen[0] = ring.total
+		r.play(seeds[k], OTHER_SECONDS)
+	var first := runs[0]
+	var again := runs[1]
+	var other := runs[2]
+	r.free_level()
+	assert_gt(first.size(), 5, "the bots talk")
+	assert_eq(first, again, "the same seed, the same calls")
+	assert_ne(first, other, "another seed, other play")
 
 
 func test_every_map_keeps_the_pace_from_bots_in_play_at_a_steady_rate() -> void:
