@@ -122,6 +122,8 @@ var _light: LightingConfig = null
 var _pools: LightPools = null
 ## The skyline round the field, or null on a map without one (SkylineView).
 var _skyline: SkylineView = null
+## A wood's crowns and dressing, or null on a map with neither (WoodsView, WL4).
+var _woods: WoodsView = null
 ## Scratch for the vault prompt's look ahead each tick.
 var _vault_probe: VaultState = VaultState.new()
 var _figures: Array[FigureView] = []
@@ -288,6 +290,9 @@ func _build_level() -> void:
 	_pools = LightPools.build(_map, _light)
 	if _pools != null:
 		add_child(_pools)
+	_woods = WoodsView.build(_map, _play.woods, _play.skyline, _light, _play.map_style)
+	if _woods != null:
+		add_child(_woods)
 
 
 func _build_teams() -> void:
@@ -570,6 +575,8 @@ func _build_views(ui: CanvasLayer) -> void:
 		first_use.append_array(_skyline.materials())
 	if _pools != null:
 		first_use.append_array(_pools.materials())
+	if _woods != null:
+		first_use.append_array(_woods.materials())
 	# the sky (by night its own shader) is no speck: it is the background of the prewarm's frames, so it compiles there
 	var warm := ShaderPrewarm.new()
 	warm.setup(_eyes.camera, first_use, FigureView.make_sign(sign_font, Color.WHITE), figure_materials)
@@ -869,6 +876,8 @@ func _process(delta: float) -> void:
 		_skyline.update(wind, delta)
 	if _pools != null:
 		_pools.update(_eyes.global_position, delta)
+	if _woods != null:
+		_woods.update(_eyes.global_position)
 	if _targets_view != null:
 		_targets_view.update(state.targets, fraction, delta)
 	var eye := _eyes.global_position
@@ -1267,12 +1276,14 @@ func _apply_motion() -> void:
 		_skyline.set_motion(motion)
 	if _pools != null:
 		_pools.set_motion(motion)
+	if _woods != null:
+		_woods.set_motion(motion)
 	_hud.set_motion(motion)
 
 
 ## The graphics drawn, onto the field: at the start and whenever they change (the settings can open from the pause menu).
 func _apply_graphics(values: GraphicsQuality) -> void:
-	GraphicsApply.apply_field(values, _lighting, _dust, null, _level, _kicked)
+	GraphicsApply.apply_field(values, _lighting, _dust, null, _level, _kicked, _woods)
 	var contact := GraphicsApply.contact_shadows(values)
 	for f in _figures:
 		f.set_contact_shadow(contact)

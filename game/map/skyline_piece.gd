@@ -6,12 +6,13 @@ extends RefCounted
 ## own when `has_colour` is false). A chimney with `smoke` smokes; a power line runs its pylons through `points`.
 ## Plain data: no collider, no nav cell.
 
-## The kinds SkylineShapes builds. A map's other kinds (Neon Heights' towers, the range's treelines) wait for their
-## own dressing and are left out without a warning.
+## The kinds SkylineShapes builds. A map's other kinds (Neon Heights' towers) wait for their own dressing and are left
+## out without a warning.
 const KINDS: Array[StringName] = [&"shed", &"waterTower", &"crane", &"containers", &"chimney", &"silo", &"powerLine",
-		&"hill", &"watchTower", &"fuselage", &"mast"]
-## The kinds laid out along `points` instead of standing at one spot.
-const LINES: Array[StringName] = [&"powerLine"]
+		&"hill", &"watchTower", &"fuselage", &"mast", &"treeline"]
+## The kinds laid out along `points` instead of standing at one spot; a treeline's band is `depth` m deep across them
+## (0 in the file without one: a row).
+const LINES: Array[StringName] = [&"powerLine", &"treeline"]
 
 var kind: StringName = &""
 var at: Vector2 = Vector2.ZERO
@@ -53,8 +54,9 @@ static func read(dressing: Variant, warnings: Array[String]) -> Array[SkylinePie
 			for q: Variant in pts if pts is Array else []:
 				if q is Dictionary:
 					p.points.append(Vector2(_number(q, "x"), _number(q, "z")))
-			if p.points.size() < 2 or not p.height > 0.0 or _any_nan(p.points):
-				warnings.append("skyline entry %d (%s) needs two points and a height; left out" % [i, kind])
+			p.depth = _number(d, "depth") if d.has("depth") else 0.0
+			if p.points.size() < 2 or not p.height > 0.0 or _any_nan(p.points) or not p.depth >= 0.0:
+				warnings.append("skyline entry %d (%s) needs two points, a height and no negative depth; left out" % [i, kind])
 				continue
 		else:
 			p.at = Vector2(_number(d, "x"), _number(d, "z"))

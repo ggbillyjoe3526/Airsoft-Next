@@ -47,6 +47,15 @@ class Light:
 	var kind: StringName = &""
 
 
+## A puddle or a patch of mud on the ground (`dressing.puddles` in the file; the browser's DressingPuddle): `size` m
+## (x across, z deep) round `at` (x, z). Look only (WoodsView).
+class Puddle:
+	extends RefCounted
+	var at: Vector2 = Vector2.ZERO
+	var size: Vector2 = Vector2.ONE
+	var mud: bool = false
+
+
 ## The kinds a light may name (a light naming none is a lamp in its own colour).
 const LIGHT_KINDS: Array[StringName] = [&"fire", &"lantern"]
 
@@ -81,6 +90,23 @@ var skyline: Array[SkylinePiece] = []
 ## KickedDust): white at the usual size on a map naming none.
 var kicked_dust_tint: Color = Color.WHITE
 var kicked_dust_scale: float = 1.0
+## A wood's dressing (WL4; `dressing` in the file, the browser's MapDressing; WoodsView draws it, nothing else reads
+## it): its seed; the share of squares by a foot with a leaf drift and of slots along a foot with a fallen branch,
+## twigs or a log (`woods`); the moss on the logs' tops, its colour and the share of logs (`moss`); the puddles; the
+## fireflies over the field at night (`fireflies.count`) and the tint of the motes in the air (`motes.tint`, sRGB;
+## has_motes false without one); the grass tufts' height (`grass.height`, m) and the trees in the wood beyond the fence
+## (`forest.trees`). Each 0 or empty on a map naming none; a malformed one is left out with a warning.
+var dressing_seed: int = 0
+var leaf_drifts: float = 0.0
+var fallen: float = 0.0
+var moss: Color = Color.WHITE
+var moss_share: float = 0.0
+var puddles: Array[Puddle] = []
+var fireflies: int = 0
+var motes_tint: Color = Color.WHITE
+var has_motes: bool = false
+var grass_height: float = 0.0
+var forest_trees: int = 0
 ## `night` in the file (the browser's map.night): whether it says it plays at night, held to its first preset by
 ## field.night. The night systems read the playing preset's flag (LightingConfig.night), never this.
 var night: bool = false
@@ -148,6 +174,7 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m._read_lights(d.get("lights"))
 	m.skyline = SkylinePiece.read(d.get("dressing"), m.warnings)
 	m._read_kicked_dust(d.get("dressing"))
+	m._read_woods(d.get("dressing"))
 	for w in m.warnings:
 		push_warning("MapData: " + w)
 	var pole: Variant = d.get("flag")
@@ -505,6 +532,79 @@ func _read_kicked_dust(dressing: Variant) -> void:
 		return
 	kicked_dust_tint = Color.hex((int(tint) << 8) | 0xff)
 	kicked_dust_scale = float(size)
+
+
+func _read_woods(dressing: Variant) -> void:
+	if not dressing is Dictionary:
+		return
+	var d: Dictionary = dressing
+	dressing_seed = int(_number(d.get("seed"), 0.0))
+	var woods: Dictionary = _block_of(d, "woods", ["leaves", "fallen"])
+	leaf_drifts = _share(woods.get("leaves", 0.0), "dressing.woods.leaves")
+	fallen = _share(woods.get("fallen", 0.0), "dressing.woods.fallen")
+	var moss_block: Dictionary = _block_of(d, "moss", ["colour", "share"])
+	if not moss_block.is_empty():
+		var c := _colour(moss_block.get("colour"))
+		if c.a == 0.0:
+			warnings.append("dressing.moss.colour is not a colour; no moss")
+		else:
+			moss = c
+			moss_share = _share(moss_block.get("share", 0.0), "dressing.moss.share")
+	var pools: Variant = d.get("puddles", [])
+	for i in (pools as Array).size() if pools is Array else 0:
+		var raw: Variant = (pools as Array)[i]
+		var q: Dictionary = raw if raw is Dictionary else {}
+		var p := Puddle.new()
+		p.at = Vector2(_number(q.get("x"), NAN), _number(q.get("z"), NAN))
+		p.size = Vector2(_number(q.get("width"), NAN), _number(q.get("depth"), NAN))
+		var mud: Variant = q.get("mud", false)
+		if is_nan(p.at.x) or is_nan(p.at.y) or not (p.size.x > 0.0 and p.size.y > 0.0) or not mud is bool:
+			warnings.append("dressing.puddles %d needs x, z, a width and depth over 0 (mud true or false); left out" % i)
+			continue
+		p.mud = mud
+		puddles.append(p)
+	if not pools is Array:
+		warnings.append("dressing.puddles is not a list; no puddles")
+	fireflies = _count(_block_of(d, "fireflies", ["count"]).get("count", 0), "dressing.fireflies.count")
+	forest_trees = _count(_block_of(d, "forest", ["trees"]).get("trees", 0), "dressing.forest.trees")
+	var grass: Variant = _block_of(d, "grass", ["height"]).get("height", 0.0)
+	grass_height = maxf(_number(grass, -1.0), 0.0)
+	if _number(grass, -1.0) < 0.0:
+		warnings.append("dressing.grass.height is not a height; no grass")
+	var motes: Dictionary = _block_of(d, "motes", ["tint"])
+	if not motes.is_empty():
+		var tint := _colour(motes.get("tint"))
+		has_motes = tint.a > 0.0
+		motes_tint = tint if has_motes else Color.WHITE
+		if not has_motes:
+			warnings.append("dressing.motes.tint is not a colour; no motes")
+
+
+## `d[key]` when it is an object (empty when absent), or empty with a warning naming `fields` when it is something else.
+func _block_of(d: Dictionary, key: String, fields: PackedStringArray) -> Dictionary:
+	var raw: Variant = d.get(key)
+	if raw == null or raw is Dictionary:
+		return raw if raw != null else {}
+	warnings.append("dressing.%s is not {%s}; left out" % [key, ", ".join(fields)])
+	return {}
+
+
+## A share, 0 to 1: anything else is 0 with a warning naming `what`.
+func _share(raw: Variant, what: String) -> float:
+	var v := _number(raw, -1.0)
+	if v < 0.0 or v > 1.0:
+		warnings.append("%s is not a share from 0 to 1; none" % what)
+		return 0.0
+	return v
+
+
+## A count, a whole number 0 or more: anything else is 0 with a warning naming `what`.
+func _count(raw: Variant, what: String) -> int:
+	var v := _number(raw, -1.0)
+	if v < 0.0 or v != floorf(v):
+		warnings.append("%s is not a whole number; none" % what)
+		return 0
+	return int(v)
 
 
 static func _spots(list: Variant) -> Array[SpawnPoint]:
