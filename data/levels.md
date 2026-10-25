@@ -51,7 +51,7 @@ typo never stops the game from starting.
 
 ## XP
 
-What a finished match gives. The practice range and the tutorial give none, and nor does a match that uses dev
+What a finished match gives. The practice range gives none, and nor does a match that uses dev
 content or Dev settings that change how it plays.
 
 | Event | XP |

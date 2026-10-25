@@ -65,12 +65,17 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
   replica and part remodels, Depot's set dressing, the art pass) is step 28 (was 32), because the owner must be at
   his PC to connect Blender. Code-only parts, built against today's placeholder models, may still go earlier.
 - **The Blender step covers Depot, human figures and replicas only (owner, 2026-10-24).** Step 28 models Depot's
-  assets (with the range's and the tutorial's, which live in Depot), the human figures with your first-person arms and
-  hands, and the replicas, attachments and accessories. Woodland and Neon Heights stay greybox while they are dev
-  content, and robots (a Dev Easter egg) keep their placeholder.
+  assets (with the range's, which lives in Depot; the tutorial was dropped on 2026-10-25), the human figures with
+  your first-person arms and hands, and the replicas, attachments and accessories. Woodland and Neon Heights stay
+  greybox while they are dev content, and robots (a Dev Easter egg) keep their placeholder.
 - **Deferred features are one step, then Blender (owner, 2026-10-24).** After Woodland, the overtime flag, the
   tutorial, pings, the magazine hand-off, bot callouts and adaptive difficulty are one step 27, in the order its plan
   sets; the owner's Blender work (step 28, formerly 32) starts once step 27 is done.
+- **No tutorial and no adaptive difficulty (owner, 2026-10-25).** "I want to completely remove the tutorial from the
+  game. The player can learn how to play at their own pace in practice modes." and "I also want to remove adaptive
+  difficulty. I'll focus on the preset difficulties." Neither was built in this game; step 27 keeps the overtime flag,
+  pings, the magazine hand-off and bot callouts, and step 28 models the range's assets with Depot's but no tutorial's.
+  The tutorial's older rulings below stay as history.
 - **Kept features (owner, 2026-10-05).** Grenades (Replica Update) and skins (Progression Update), with greyed Loadout
   placeholders; suppressor sounds (Replica Update); Capture the Flag as a possible Modes Update mode.
 - **The Dev 6 playtest's additions and removals stand (owner, 2026-10-16).** Added: an in-match hop-up control, a
@@ -324,9 +329,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Difficulty is skill plus a few tactics, never different senses (2026-10-01).** Easy, Normal, Hard and Pro see and
   hear alike. Opponents and teammates have separate difficulties (owner, 2026-10-03).
 - **Normal is the baseline (owner, 2026-10-06).** Tune on Normal, then check that Easy, Hard and Pro still scale.
-- **Adaptive difficulty is a Dev setting that layers over the fixed levels (owner, 2026-10-06; AD1).** It never changes a
-  level's own numbers: the other team's skill is a rating that blends the levels' numbers. Your teammates never adapt,
-  Extraction doesn't, and its matches stay out of the records and give no XP.
+- **Adaptive difficulty is a Dev setting that layers over the fixed levels (owner, 2026-10-06; AD1; dropped, owner
+  2026-10-25).** It never changes a level's own numbers: the other team's skill is a rating that blends the levels'
+  numbers. Your teammates never adapt, Extraction doesn't, and its matches stay out of the records and give no XP.
 - **Against Easy opponents, teammates play Normal (owner, 2026-10-05).** Otherwise teammates follow the opponents'
   level. That pair is the standard match for the records.
 - **Pro is careful, not twitchier (owner, 2026-10-04).** Pro bots hold and pre-aim angles, clear corners, trade and set
@@ -350,7 +355,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   is unchanged. Keeping out of the light (`BotSkill.keeps_dark`, Normal and up) moves a lane point or hunt spot to the
   nearest dark spot on its floor within 8 m, its edge, no margin, and passes over hold and flag-guard cover in a pool;
   a fight's cover, the raiser's spot at the pole and squad orders ignore the light. The headless runner plays a
-  night-only map (Woodland) at night; Neon Heights keeps its day guards until WL10's night guards.
+  night-only map (Woodland) at night; Neon Heights' guards play it by day and, at Normal, at night (WL10).
 - **The weapon torch is a part in the Light slot, fitted at night only and switched through the command (2026-10-25,
   WL7; the browser's M33h and botTorch.ts; owner's defaults of 2026-10-24, the rest Claude's).** It fits every replica
   (RM8 modelled each one's), is dev while Woodland is (a dev light marks only night matches as dev), and by day isn't
@@ -385,6 +390,18 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   speed over the last 0.5 s, with the gap to the leader grown by 0.25 m at most, is chasing, not left behind: one back
   from cover can't gain on a leader sprinting at its own top speed, and bots never outrun the player's sprint. Stuck,
   standing, lost or slower followers still fail it (`MatchRunner.chasing`).
+- **The match guards play each field at the team size and time of day it is played (2026-10-25, WL10; Claude's
+  defaults).** Woodland at 5v5 (its standard, from `data/maps.md` through `MatchRunner.sized_for`) at night, in
+  Elimination and Attack / Defend, 16 seeds at Normal and 8 at Easy, Hard and Pro each, as five CI jobs of 16 matches;
+  Neon Heights by day as before and at night at Normal in both modes (a sixth job: the day job takes 18 of its 30
+  minutes); Depot by day. The height guards take a terrain's
+  lowest point. The balance report plays Woodland the same way.
+- **A bot holds fire where a teammate could be when its BBs pass (2026-10-25, WL10; Claude's defaults).** A bot
+  teammate walking a route counts where the route takes it, round its corners, at its pace and at a run; one in a fight
+  anywhere a run (`friendly_mate_speed`) takes it during the flight, since it strafes either way, breaks for cover or
+  sets off when its fight ends; the player straight on, as before. A miss flies on 25 m past the target and at least
+  60 m from the shooter (`friendly_carry`: a level BB from the eye lands 40 to 53 m out, farther down a slope; the
+  browser's 25 m past the target alone let a near shot hit a teammate 33 m beyond it on Woodland).
 
 ## Maps and modes
 
@@ -453,12 +470,12 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   choice, and Dev › Time of day plays any map by either. Depot's public night waits for 0.4's Day and Night on every
   map. The Match screen's pick lasts the session (MatchPicks), never saved; Dev › Time of day is saved with the Dev
   settings and, off the map's own, keeps a match out of the records, as the browser's did (WL3).
-- **The practice range and the tutorial are set in Depot (owner, 2026-10-24).** Their design and layout stay as they
-  are, but they are dressed as part of the Depot site with Depot's props, materials, light and skyline, so their assets
-  are modelled with Depot's (the range in WL9, step 26; the tutorial in step 27). The range stands as its own space
-  in the lot west of Depot's yard, not on the match field: its coordinates are Depot's less (-42, -6), unturned, so
-  the sun and Depot's skyline stand round it as round the yard, and Depot's water tower and a shed that stood on that
-  lot moved west in both files (WL9).
+- **The practice range and the tutorial are set in Depot (owner, 2026-10-24; the tutorial dropped, owner
+  2026-10-25).** Their design and layout stay as they are, but they are dressed as part of the Depot site with
+  Depot's props, materials, light and skyline, so their assets are modelled with Depot's (the range in WL9, step 26;
+  the tutorial in step 27). The range stands as its own space in the lot west of Depot's yard, not on the match
+  field: its coordinates are Depot's less (-42, -6), unturned, so the sun and Depot's skyline stand round it as round
+  the yard, and Depot's water tower and a shed that stood on that lot moved west in both files (WL9).
 - **Practice on a public map is public (owner, 2026-10-24: the recommended defaults; WL9).** On a dev map it is dev,
   and Woodland's practice is at night with your weapon torch.
 - **Neon Heights is the third field: a vertical futuristic city with Day and Night (owner, 2026-10-04).** 46 × 30 m,
@@ -600,9 +617,9 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   only on a map that hosts it, and a rule the mode doesn't read is hidden.
 - **The mode cards' pictures are deleted (owner, 2026-10-17; KI2).** The cards are text boxes since MR1, so the pictures
   were never shown; a picture the player never sees doesn't ship.
-- **The tutorial teaches leaning, and its read cards last 10 s (owner, 2026-10-17, Beta 1 playtest item 33; TT2).** The
-  lean step comes after Crouch: hold Q and E to peek either way, ticked once both sides are done. It teaches peeking,
-  not resting on cover.
+- **The tutorial teaches leaning, and its read cards last 10 s (owner, 2026-10-17, Beta 1 playtest item 33; TT2; the
+  tutorial dropped, owner 2026-10-25).** The lean step comes after Crouch: hold Q and E to peek either way, ticked
+  once both sides are done. It teaches peeking, not resting on cover.
 - **A UI redesign, a Visual redesign, an Audio redesign and a Performance update are planned for later, their versions
   not set (owner, 2026-10-13 and 2026-10-16).** Parked in `docs/IDEAS.md` until he places them, with no work before.
 

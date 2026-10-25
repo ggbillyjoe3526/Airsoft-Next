@@ -215,7 +215,7 @@ static func with_held_presses(v: VaultState, cmd: PlayerCommand, out: PlayerComm
 ## One tick of a vault under way, in place of the movement step: the view turns with `cmd`; the body follows the vault's
 ## path through `mover` (rising onto the top, eased, then across it at the vault's speed with a slight arc). Clear of
 ## the far side it hands over to the movement step, falling at the vault's speed with a push down; held back by
-## something the plan didn't see, it gives up and falls where it is.
+## something the plan didn't see (lifted higher than the path is not held back), it gives up and falls where it is.
 static func step(c: Character, cmd: PlayerCommand, tuning: SimTuning, dt: float, mover: CharacterMover) -> void:
 	var v := c.vault
 	var cfg := tuning.vault
@@ -251,7 +251,11 @@ static func step(c: Character, cmd: PlayerCommand, tuning: SimTuning, dt: float,
 	# Carried through the vault, and up again only a moment after it.
 	c.fire_lockout = cfg.fire_lockout
 
-	if (desired - corrected).length() > cfg.blocked_at:
+	# Lifted higher than the path (the mover stepping the body onto the top early, from a vault begun against the face)
+	# is not held back: the path catches up with it.
+	var held := desired - corrected
+	held.y = maxf(held.y, 0.0)
+	if held.length() > cfg.blocked_at:
 		v.active = false
 		c.velocity.y = minf(0.0, c.velocity.y)
 	elif v.time >= v.end:

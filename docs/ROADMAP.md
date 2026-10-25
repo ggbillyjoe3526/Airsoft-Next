@@ -78,7 +78,7 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 12. **Bot difficulty.** Easy and Hard per team, then Pro; bot names and personalities (`data/bots.md`);
     DF1 (Easy and Hard, a level per team), DF2a and DF2b (Pro's own habits, then its team play), MN3 (Opponents and
     Teammates on the Match screen; concepts first, `concepts/step12-bots/`), BN1 (names and personalities).
-    Adaptive difficulty moved to the end, step 27.
+    Adaptive difficulty moved to the end, then was dropped (owner, 2026-10-25).
 13. **Attack / Defend** (browser OT1's mode; the overtime flag moved to the end, step 27). FG1 (the flag's rules),
     FG2 (bots), FG2b (Pro crossfires on defence), FG3 (the pole, HUD and Match card; concepts first).
 14. **Match info.** The hit feed (one feed, placeable) with teammate markers, WON, LOST or DRAW, the scoreboard on
@@ -86,7 +86,7 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
     ammo counter and HUD opacity options, and skipping the round while you are out.
 15. **Custom matches and rule sets.** Rounds, round time, team size, friendly fire, ricochets; Skirmish and Custom.
 16. **The practice range.** Plates, figures, moving targets and the Timed challenge, and the Loadout from practice
-    (the tutorial moved to the end, step 27).
+    (the tutorial moved to the end, then was dropped: owner, 2026-10-25).
 17. **Squad orders.** Three orders and the wheel (pings and the magazine hand-off moved to the end, step 27).
 18. **The minimap** (bot callouts moved to the end, step 27).
 19. **Sound pass.** Muffling through walls and while out, ducking on hits and whistles, voice pools with spread
@@ -109,12 +109,12 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 Last, at the owner's word (2026-10-22): the features he named, then everything that needs Blender, which he must be
 at his PC to connect.
 
-27. **The deferred features, one step (owner, 2026-10-24).** The overtime flag (browser OT1); the tutorial, sixteen
-    steps; pings on the middle mouse button and the magazine hand-off (asking for and tossing a magazine); bot
-    callouts; adaptive difficulty as a Dev setting (AD1). The tutorial is set in Depot, its layout unchanged. Built
-    in the order the plan sets.
+27. **The deferred features, one step (owner, 2026-10-24).** The overtime flag (browser OT1); pings on the middle
+    mouse button and the magazine hand-off (asking for and tossing a magazine); bot callouts. Built in the order the
+    plan sets. The tutorial and adaptive difficulty were dropped (owner, 2026-10-25): players learn at their own pace
+    in practice, and the preset levels stay.
 28. **Blender work, at the owner's PC** (was step 32; it starts once step 27 is done, owner 2026-10-24). His models
-    for Depot's assets, including the practice range's and the tutorial's, which are set in Depot; the human figures
+    for Depot's assets, including the practice range's, which is set in Depot; the human figures
     with your first-person arms and hands (bare or gloved, by figure and skin), fitted hit areas and Inspect on Y;
     and every replica, attachment and accessory, at higher quality than today's placeholders, built small for the
     browser (owner, 2026-10-18 and 2026-10-24). Woodland and Neon Heights stay greybox while they are dev content.

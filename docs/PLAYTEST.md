@@ -244,7 +244,7 @@ unlocks is in `data/levels.md`; the Armory shows it in the game.
   N: X / Y XP" over a bar. A loss gives less.
 - [ ] **A level up.** Your first finished standard match takes you to level 1: the summary says "Level 1!" and
   "Unlocked: Red Dot", and the Red Dot is in Customise with no lock.
-- [ ] **No XP.** The range and the tutorial give none; a match with a dev map or mode, or a Dev aid on, says why it
+- [ ] **No XP.** The range gives none; a match with a dev map or mode, or a Dev aid on, says why it
   gave none.
 - [ ] **Settings › Dev › Disable levelling.** The badge goes, the Armory says levelling is off, and the Loadout and
   Customise offer everything unlocked. A match gives no XP and stays out of your records.
@@ -338,7 +338,8 @@ A wide wood: 120 × 80 m on a gentle slope up to the Knoll and its log fort, wit
 Creek with the cabin). Turn on Settings › Dev › Dev content, then pick it on Play. Step 26 builds it in greybox: since
 WL1 it loads and plays, since WL2 at 5v5 (6v6 under Custom), since WL3 at night, since WL4 with crowns, a forest,
 grass, puddles and fireflies, since WL5 with bushes, since WL6 with bots by night, since WL7 with the weapon torch,
-since WL8 with glowing BBs; the rest follows (WL9 and WL10).
+since WL8 with glowing BBs, since WL9 with practice; since WL10 the match guards and the balance report play it.
+Woodland stays dev content until you make it public (`data/maps.md`, its Tag) once you are happy with it.
 
 - [ ] **Walk the slopes (WL1).** Run up, down and across the Knoll's west face and West Hill: no jump is ever needed,
   you never slide when you stop or stand crouched on the face, your feet stay on the ground going downhill, and
@@ -388,6 +389,27 @@ since WL8 with glowing BBs; the rest follows (WL9 and WL10).
 - [ ] **Frame time at 5v5 and 6v6 (WL2).** With `--perf`, a 6v6 on Woodland on Low and on High: the overlay's frame
   time (ms and max) in a busy moment and a quiet one, and the `[perf-summary]` line at exit; the same at 5v5. The cloud
   measured draw calls only (Compatibility on a software renderer: `docs/records/WL2.md`).
+
+- [ ] **A whole night from each camp (WL10).** A 5v5 Elimination as Alpha and one as Beta, so you start once from the
+  west camp behind West Hill and once from the east camp behind the Knoll (half time swaps them too). Does either
+  start feel safer or quicker to the fort? Bot against bot the east end wins a little more: 53.7 % of rounds at Normal,
+  61.6 % at Hard (`docs/records/WL10.md`).
+- [ ] **The fort and the hut (WL10).** Attack / Defend from both ends: raise the flag at the fort, and defend it. Bots
+  still never hunt inside the hut (KNOWN_ISSUES): hide in it late in a round and note how long it keeps you. Do the
+  chest-high walls and the hut give attackers and defenders a fair fight?
+- [ ] **The ravine (WL10).** Take the creek lane along the dry ravine from each end: is it a real flank, or a trap the
+  bots shoot down into?
+- [ ] **Bushes, the torch and glowing BBs together (WL10).** In one match: hide deep in a bush, then fight with the torch
+  on and off (T). With it off, can you still follow your glowing BBs and see who shoots at you? With it on, do the
+  bots find you faster (they should, from about 40 m)?
+- [ ] **Teammates' fire (WL10).** Play alongside bot teammates at 5v5 and 6v6: a bot never knocks out you or another
+  teammate. Do they now hold fire too often when a teammate fights near the enemy, or far behind it?
+- [ ] **6v6 (WL10).** A Custom 6v6 at Normal and at Pro: does the fort get too crowded, and do rounds still end before
+  the clock?
+- [ ] **Frame time on every preset (WL10).** With `--perf`, a 5v5 and a 6v6 on Low, Medium, High and Ultra: the
+  overlay's frame time in a firefight and on a quiet walk, against Low's 60 FPS (16.7 ms). The cloud measured draws,
+  triangles and the CPU's share only (`docs/records/WL10.md`); the frame time is your GPU's.
+- [ ] **Make Woodland public (owner).** When it plays well: its Tag in `data/maps.md` from `dev` to `public`.
 
 Once the rest of step 26 lands:
 
@@ -508,19 +530,6 @@ The Match screen's Practice card, then Start practice.
 - [ ] **Dev help isn't a best (BP5).** Switch Timed challenge on, then set Game speed or Bottomless magazines before
   the START plate: the result says "not kept (Dev settings)".
 
-### Tutorial
-
-- [ ] **The title screen** offers Tutorial under START on a clean save until you finish it or start a first match.
-- [ ] **Play it through.** The coach says "Tutorial · 1 of 16 · Look around" and moves on as you do each thing (look,
-  walk, ring a plate, knock down a figure at 50 m, reload, selector, aim, crouch, lean, sprint-fire, vault, switch
-  replica, then four cards to read); finished steps tick green. Does any step feel stuck or unclear?
-- [ ] **Lean (TT2).** After Crouch, the Lean card names Q and E (your bindings); it ticks only once you have peeked
-  both ways, in either order.
-- [ ] **Short and quick (TT1, TT2).** Every card is a sentence or two; the four read cards fill a thin bar and move on
-  after 10 s.
-- [ ] **Esc mid-tutorial.** The pause menu names your step and offers Skip step and Skip tutorial; quitting at step 5
-  and starting again resumes there. Rebinding reload changes the coach's key.
-
 ### Extraction (the Modes Update)
 
 Your squad against a home team on a timed run, rebuilt with its rework for the Modes Update (`docs/ROADMAP.md` ›
@@ -540,8 +549,7 @@ XP ×2.
 
 ## Menus
 
-- [ ] **The title screen.** Only "AIRSOFT", the tagline "Call your hit. Go again." and **START**; on a clean save a
-  **Tutorial** button under START. The build sits small at the bottom right with **Licences** over it, a
+- [ ] **The title screen.** Only "AIRSOFT", the tagline "Call your hit. Go again." and **START**. The build sits small at the bottom right with **Licences** over it, a
   **Fullscreen** button at the bottom left. Licences shows Godot's licence and every add-on's.
 - [ ] **The top bar** on every screen after the title: MATCH, LOADOUT, ARMORY, SETTINGS, your level and XP bar on the
   right, the current place marked.
@@ -586,8 +594,6 @@ XP ×2.
 - [ ] **Hit marker** (M97). Off by default: the hit tick sounds but no X. On: a bold red X
   pops over the crosshair and fades; scale, thickness, outline and colour change it at once. Is the default easy to
   see on every map?
-- [ ] **Replay tutorial** (Settings › Gameplay, M97). Starts the tutorial at its first step, even after you finished
-  it; from a match's pause menu it asks first, then leaves the match (not recorded).
 - [ ] **HUD size and opacity** (Settings › HUD). 150 % scales the replica panel, score bar, minimap, feed,
   banners, wheel and markers, each from its own corner or edge, nothing leaving the screen at 1280×720 or 4K; 80 %
   shrinks them the same way. The crosshair, hit marker and sound cue ring keep their size; the flag and teammate
@@ -643,7 +649,7 @@ file) and a "Dev settings" box that shows the Dev tab.
   two ("R was Reload: Reload is now Space"); Backspace clears (Move forward keeps one); the wheel and side buttons
   bind; Reset All asks first. By keyboard only: Tab to a box, Enter, press a key.
 - [ ] **Your keyboard layout** (AZERTY or QWERTZ). Move forward shows as Z (AZERTY) and the order
-  wheel as W or Y; the tutorial and reload hint use the same letters.
+  wheel as W or Y; the reload hint uses the same letters.
 - [ ] **Display.** Field of view starts at 90° (120° shows more at the sides, 80° less). Fullscreen (or F10) goes
   fullscreen and back with play carrying on ([Builds and the desktop](#builds-and-the-desktop)). No Tone mapping row
   here or in Graphics.

@@ -20,10 +20,12 @@ fire, a miss's flight past the target included. Hit calls are the simulation's: 
 
 Each round the `RoundPlanner` gives each team a plan (split over the map's lanes, a pair on one, or all stacked) and
 each bot a lane to walk from its end, holding at its points and keeping with its team; past the lane it hunts the
-sectors its team checked longest ago. In sight of an enemy it fights (strafing), or first gets behind close crouch cover
-and peeks over it, or round a tall corner by leaning. Shot at, reloading or empty, it takes cover. With the enemy gone
-it searches where it was last seen or heard, sometimes flanking. At night Normal and up hold their lane points, hunt
-and take hold cover out of the light pools (`BotSkill.keeps_dark`); Easy stands where its lane says.
+sectors its team checked longest ago. In sight of an enemy it fights (strafing), or first gets behind close crouch
+cover and peeks over it, or round a tall corner by leaning; it never fires with a teammate in the line, or anywhere a
+teammate could run to before the BBs pass (a sprinting bot also round its route's corners). Shot at, reloading or
+empty, it takes cover. With the enemy gone it searches where it was last seen or heard, sometimes flanking. At night
+Normal and up hold their lane points, hunt and take hold cover out of the light pools (`BotSkill.keeps_dark`); Easy
+stands where its lane says.
 
 In Attack / Defend (`BotFlag`) the attackers walk their lanes just past the middle, then make for the pole: the nearest
 raises the flag, crouched at the rope, while the others guard it from crouch cover near by. The defenders hold their

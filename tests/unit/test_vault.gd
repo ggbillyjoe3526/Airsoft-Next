@@ -30,6 +30,20 @@ class StuckMover:
 		return Vector3.ZERO
 
 
+## Lifts the body onto the 0.85 m wall's top on the first move, as the mover's step does for a vault begun against
+## the face; moves freely after.
+class LiftingMover:
+	extends CharacterMover
+
+	var lifted := false
+
+	func move(c: Character, desired: Vector3) -> Vector3:
+		if lifted:
+			return desired
+		lifted = true
+		return Vector3(desired.x, 0.85 - c.position.y, desired.z)
+
+
 ## A world of boxes, each [center, size].
 func level(boxes: Array) -> BoxWorld:
 	var w := BoxWorld.new(body)
@@ -262,6 +276,20 @@ func test_rises_onto_the_top_crosses_it_and_hands_over_to_a_fall_past_the_far_si
 	assert_eq(ticks, ceili(v.end / DT - 1e-6))
 	assert_almost_eq(-c.position.z, v.far, 1e-4)
 	assert_almost_eq(c.velocity.z, -v.speed, 1e-4)
+	assert_eq(c.velocity.y, -cfg.drop_speed)
+
+
+func test_a_body_lifted_onto_the_top_early_carries_on_over_it_and_never_stays_there() -> void:
+	var c := started()
+	var v := c.vault
+	var lift := LiftingMover.new()
+	var ticks := 0
+	while c.vault.active and ticks < 60:
+		Vault.step(c, PlayerCommand.new(), tuning, DT, lift)
+		ticks += 1
+	assert_true(lift.lifted)
+	assert_eq(ticks, ceili(v.end / DT - 1e-6), "the vault runs its course")
+	assert_almost_eq(-c.position.z, v.far, 1e-4, "and ends past the far side, not on the top")
 	assert_eq(c.velocity.y, -cfg.drop_speed)
 
 

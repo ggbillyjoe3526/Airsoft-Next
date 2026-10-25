@@ -152,8 +152,7 @@ var mode: RoundState.Mode = RoundState.Mode.ELIMINATION
 ## bushes, WL5); none by default.
 var each_tick: Callable = Callable()
 ## Played at night (WL6): the bots see by the map's NightField, built once each match. On by default for a map that
-## offers no day (Woodland); a map that offers both (Neon Heights) stays on its day guards until night guards come
-## (WL10).
+## offers no day (Woodland); on a map that offers both (Neon Heights) a test sets it for the night (WL10's night guards).
 var night: bool = false
 ## Who carries a weapon torch (WL7): by rule every bot at night and none by day (BY_RULE, the game's), nobody, or every
 ## bot even by day (ALWAYS: a day match with torches fitted must play exactly as one without).
@@ -165,7 +164,8 @@ var config: BotConfig = null
 var map: MapData = null
 var level: MapLevel = null
 var nav: NavGrid = null
-## The lowest floor's top and the highest block's top on the map (m), for the height guards.
+## The lowest floor's top (or the terrain's lowest point, WL10) and the highest block's or terrain's top on the map (m),
+## for the height guards.
 var lowest_floor: float = INF
 var highest_top: float = -INF
 
@@ -189,6 +189,24 @@ func _init(parent: Node, map_id: String, sim_tuning: SimTuning = null, bot_confi
 		highest_top = maxf(highest_top, top)
 		if b.kind == &"floor" or b.rise != MapData.Rise.NONE:
 			lowest_floor = minf(lowest_floor, top if b.rise == MapData.Rise.NONE else b.center.y - b.size.y * 0.5)
+	if map.terrain != null:
+		var heights := map.terrain.height_range()
+		lowest_floor = minf(lowest_floor, heights.x)
+		highest_top = maxf(highest_top, heights.y)
+
+
+## The round tuning a match on `map_id` plays in the guards and the balance report: `base` (the loaded tuning by
+## default) where the map offers its team size, else a copy at the map's standard size (data/maps.md, as
+## MapCatalog.Entry.team_size_for picks for the game): Depot and Neon Heights at 3, Woodland at 5.
+static func sized_for(map_id: String, base: SimTuning = null) -> SimTuning:
+	var t := base if base != null else SimTuning.load_default()
+	var entry := MapCatalog.shared().find(map_id)
+	if entry == null or entry.allows(t.rounds.team_size):
+		return t
+	var sized := t.duplicate() as SimTuning
+	sized.rounds = t.rounds.duplicate() as RoundConfig
+	sized.rounds.team_size = entry.team_size_for(t.rounds.team_size)
+	return sized
 
 
 ## Team `team`'s level.

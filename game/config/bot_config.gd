@@ -83,12 +83,17 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## Swaps a magazine below this share of a full one when nobody is in sight.
 @export var tactical_reload_fraction: float = 0.35
 ## Never fires with a teammate this close to the line of fire (m, beyond their hit volume), widened by this many of the
-## replica's spreads per metre flown, and checked where a teammate on the move would be at this pace (m/s, a run).
+## replica's spreads per metre flown, nor anywhere a teammate in play could run to at this pace (m/s) by the time the
+## BBs pass (BotCombat, WL10; one sprinting faster, also where its pace and route take it).
 @export var friendly_margin: float = 0.3
 @export var friendly_spread_sigmas: float = 2.0
 @export var friendly_mate_speed: float = 4.2
-## A miss flies on: a teammate up to this far (m) past the target counts too, unless a wall stops the line first.
+## A miss flies on: a teammate up to this far (m) past the target counts too, and up to friendly_carry from the shooter
+## however near the target (a BB fired level from the eye lands 53 m out from the stock AEG, 50 from the cyber, 40 from
+## the pistol; more down a slope: Woodland's guards saw a teammate 33 m past a target 23 m off knocked out, WL10),
+## unless a wall stops the line first.
 @export var friendly_beyond_target: float = 25.0
+@export var friendly_carry: float = 60.0
 ## What the aim line meets is a wall only if it also stands this much higher there (m): BBs sail over low cover.
 @export var friendly_wall_clearance: float = 0.6
 ## That raised check looks from this far (m) before the point, to as far past it.

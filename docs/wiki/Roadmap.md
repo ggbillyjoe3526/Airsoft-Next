@@ -36,14 +36,12 @@ it is playtested and made public.
 
 - **Elimination's overtime flag:** a time-out with nobody ahead puts a flag up near the middle, and the first team to
   touch it wins the round.
-- **A tutorial**, set in Depot.
 - **Pings** on the middle mouse button, and **asking a teammate for a magazine** when you run low.
 - **Bot callouts:** your teammates call what they see and do in a callout feed, in words, never a voice.
-- **Adaptive difficulty**, to try out as a Dev setting.
 
 ### Then: the art pass
 
-The greybox goes. Finished models for Depot and everything in it (the range and the tutorial too), human figures
+The greybox goes. Finished models for Depot and everything in it (the range too), human figures
 with first-person arms and hands, and every replica, part and accessory, all made for the game and checked in play
 under its own lighting.
 
