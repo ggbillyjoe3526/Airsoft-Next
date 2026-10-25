@@ -93,8 +93,8 @@ and how far everyone went equal).
 The director's cost, timed around a second director listening to a match without callouts (seed 1, 180 s, Normal,
 the 4-core container): Depot 20.6 to 21.1 µs a tick, Neon Heights 20.9 to 22.5, Woodland 32.3 (60.9 before the
 sighting skip). One tick a match over 1 ms (1.2 and 2.1 ms, a tick with one event and nothing said: the container's
-scheduler). A warm tick makes no object, and the said line is the only string (the ring's lines replaced, static
-memory no higher after 200 calls).
+scheduler). A warm tick makes no object; a tick that says a line builds a few strings for it (about two joins, up to
+five; 1.4 µs a line, performance review), and the ring's lines are replaced, static memory no higher after 200 calls.
 
 ## Verified
 
