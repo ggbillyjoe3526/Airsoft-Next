@@ -152,6 +152,9 @@ it is an owner ruling or binds later tasks, and keep going.
   finished history in `docs/archive/`.
 - Each pull request adds one note, `changelog.d/<short-name>.md`, written by the changelog agent; never edit
   `CHANGELOG.md` in a pull request (parallel pull requests would conflict). `docs/FEATURES.md` is kept by the same agent.
+- **The wiki** (owner, 2026-10-25): a change players notice updates its page in `docs/wiki/` in the same pull request
+  (`docs/wiki/README.md`). Tables and Patch Notes are generated from the data and the notes; the Wiki workflow
+  publishes to the GitHub wiki on every merge. No dev content outside Roadmap and In development; robots never.
 
 ## 10. Tone Check
 

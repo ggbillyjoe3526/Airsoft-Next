@@ -112,6 +112,13 @@ release description:
   `changelog.d/<short-name>.md`, written by the changelog agent: a `### Title` line, then `- ` bullets in player words
   (`changelog.d/README.md`). Never edit `CHANGELOG.md` in a pull request (parallel pull requests would conflict); CI
   runs `tools/changelog.sh check`.
+- **The wiki is part of done** (owner, 2026-10-25). A pull request with a change players will notice (a mechanic,
+  rule, screen, setting, control, map, mode, bot behaviour or roadmap step) updates the `docs/wiki/` page that
+  describes it in the same pull request, in player words (`docs/wiki/README.md`). Table numbers come from the data through
+  `tools/wiki.py`'s markers, never typed in, and Patch Notes is generated from `changelog.d/`. CI runs
+  `python3 tools/wiki.py check` (links, sidebar, dev content kept to Roadmap and In development, every public item
+  named) and warns when a changelog note comes without a wiki change; `.github/workflows/wiki.yml` publishes the pages
+  to the GitHub wiki on every merge to `main`. Docs-only and internal changes need no wiki edit.
 - **Who merges.** Every pull request is merged by its own thread, never by the owner (owner, 2026-10-16: "You should
   be merging. Not me"). A code pull request merges once CI is green and the review agents passed (its `Review:` line);
   a docs-only one once CI is green.

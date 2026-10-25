@@ -31,6 +31,8 @@ reading logs, condensing output) to Haiku agents, several at once where it split
 6. **Changelog**: spawn `changelog` with the task id and title, the pull request title, a player-words summary, the
    kind (new, changed, fixed, internal), the FEATURES heading or none, and the task's decisions. It writes one
    `changelog.d/<short-name>.md` note and edits `docs/FEATURES.md`; nobody edits `CHANGELOG.md` in a pull request.
+   Then update the `docs/wiki/` page that describes what players will notice (`docs/wiki/README.md`) and run
+   `python3 tools/wiki.py check`.
 7. **Record**: a deliberate balance change first runs the headless balance figures for what it touches and quotes
    them. Write `docs/records/<id>.md` (format in `docs/records/README.md`: the review line, a row per attempt, the
    decisions, the known issues left), mark the task done where `docs/ROADMAP.md` lists it, delete its block from

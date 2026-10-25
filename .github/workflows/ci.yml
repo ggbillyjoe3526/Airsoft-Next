@@ -1,9 +1,10 @@
 name: Checks
 
-# Every pull request and every push to main: lint the scripts, check the changelog notes, run the GUT unit tests (in two
-# parts side by side, CI1), import the project and run the headless smoke test, check the licence notices are current,
-# and play the match guards (whole bot matches over 16 seeds, Elimination and Attack / Defend each a job of their own;
-# pipeline/README.md › The checks). Fails on any script error or failed test. The Review line is checked by review.yml.
+# Every pull request and every push to main: lint the scripts, check the changelog notes and the wiki, run the GUT unit
+# tests (in two parts side by side, CI1), import the project and run the headless smoke test, check the licence notices
+# are current, and play the match guards (whole bot matches over 16 seeds, Elimination and Attack / Defend each a job of
+# their own; pipeline/README.md › The checks). Fails on any script error or failed test. The Review line is checked by
+# review.yml.
 on:
   pull_request:
   push:
@@ -161,3 +162,9 @@ jobs:
       - name: Changelog notes (changelog.d/README.md)
         if: success() || failure()
         run: tools/changelog.sh check
+
+      - name: Wiki (docs/wiki/README.md)
+        if: success() || failure()
+        env:
+          BASE: ${{ github.base_ref }}
+        run: python3 tools/wiki.py check ${BASE:+--base "origin/$BASE"}

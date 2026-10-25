@@ -1,0 +1,70 @@
+# HUD and Minimap
+
+The HUD shows what matters and nothing else: the score and clock, your replica and magazines, who hit whom, and
+where your team is. It always reflects the real state of the match. Much of it can be tuned in **Settings › HUD**
+([Settings](Settings#hud)).
+
+## The top bar
+
+Each team's score as pips filling toward the win, the round clock, the round number and the target ("FIRST TO 5").
+In Attack / Defend it adds **ATK** and **DEF** tags and the **FLAG** gauge, and "OT" on the clock in overtime. Big
+slanted banners call the round start, half time with the ends swapped, and who took the round or the match.
+
+## The replica panel
+
+Bottom right: your BB count, the fire-mode chips (**S**, **B**, **A**: single, burst, auto) with the current one lit,
+and a gauge for every magazine you carry, the loaded one first, then your spares, fullest first. An empty magazine
+shows dark, so you can read them without colour. A low magazine turns yellow, and **HOLSTERED**, **RELOADING**,
+**LAST MAG** or **OUT OF BBS** show when they apply. Turning the hop-up dial shows its setting here for a moment.
+
+The crosshair opens with your spread, so it tells you how steady you are.
+
+## Hit feed and teammate markers
+
+The hit feed (top right, or bottom left if you like) shows each hit: who fired, the BB trail, who was hit and their
+red **HIT** call with a raised hand, in team colours. Your own lines say "You" and are framed in yellow, and your own
+hit stays framed until the next round.
+
+Teammates wear a chevron in your team's colour over their heads, seen through walls: solid when you can see them,
+hollow when cover hides them, grey with a raised hand once they're hit. Markers never show over enemies and never
+show names.
+
+## Scoreboard
+
+Hold **Tab** for the scoreboard over the field while the match keeps playing: the map, mode, bots' level and team
+size, the round and its time, each team's score and players still in, and every player's hits this round, hits, times
+hit, BBs fired, accuracy and time in play. Players out this round are greyed with an **OUT** tag.
+
+## What got you
+
+When your hit is called, a card on the left shows the shooter's name and side, how far away they were and a dial of
+the shot's line, whether they were holding that angle, how long you were in their view and whether you were moving,
+then that bot's personality note. **Settings › HUD › What got you** is Auto (only against Pro bots, the default), On
+or Off.
+
+## The match summary
+
+After the last round: a **WON** or **LOST** stamp with the score, map and bots; every player's numbers for the whole
+match; your XP card with any level-up; your records for that bot level and mode with **NEW RECORD** tags; What got you
+for the last five times you were hit; and, against Pro bots, the next Pro tip.
+
+## The minimap
+
+Top left, the minimap shows the field from above:
+
+- You are the **white arrow**; teammates are dots in your team's colour, grey once hit.
+- The other team shows only where your side **heard** them: a dashed ring for footsteps, a disc for a shot, fading
+  after a few seconds. Steps carry about 22 m and shots about 60 m.
+- The area you stand in is named at the top, with the map and round under it.
+- In Attack / Defend the pole shows while the round is live, and your Hold Here spot shows as a diamond.
+- **Rotating** (the default) turns the field so the way you look is up; **Fixed** keeps north up. Pick it in
+  Settings › HUD › Minimap.
+- Once you are out, the minimap follows the teammate you watch.
+
+## Sounds that carry information
+
+Everything you hear is positioned where it happened. Sounds from behind a wall are duller and quieter; round a corner
+or behind a low barrier they're only half muffled, so you can still tell where they are. Your own sounds, your hit
+tick and the referee's whistle are never muffled. Kit rustles when someone nearby crouches or leans, and landings
+thud harder the further the drop. For a visual version of these sounds, see
+[Sound cues](Accessibility#sound-cues).
