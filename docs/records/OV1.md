@@ -1,13 +1,13 @@
 # OV1 · The overtime flag's rules
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | see Gate; QA Pass, performance Pass | – | – |
-| 2026-10-25 | 1, review fixes | worker | the touched tests and gdlint pass | – | QA/coordinator: End the round now wording, field.overtimeFlag fails past 15 %, KNOWN_ISSUES row, advisories |
+| 2026-10-25 | 1, review fixes | worker | the touched tests and gdlint pass | Accept 8/8 | QA/coordinator: End the round now wording, field.overtimeFlag fails past 15 %, KNOWN_ISSUES row, advisories |
 
 ## Goal
 

@@ -4,34 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## OV1 · The overtime flag's rules (Dev)
-when: build order step 27, after CO1 (may run beside CO2)
-tier: core
-perf: required
-touches: game/config/overtime_config.gd, game/config/sim_tuning.gd, game/config/sim_tuning.tres, game/sim/round.gd,
-  game/sim/round_state.gd, game/sim/overtime_flag.gd, game/sim/game_event.gd, game/map/map_data.gd, data/maps/,
-  game/sim/README.md, tests/support/field_checks.gd, tests/support/field_standard.gd, tests/support/field_measure.gd,
-  tests/support/match_guard.gd, tests/support/match_runner.gd, tests/unit/test_overtime_flag.gd,
-  tests/unit/test_field_rules.gd, tests/unit/test_field_layout.gd, docs/DECISIONS.md
-contract: Events (3); Data, not literals (6)
-acceptance:
-  1. MapData reads `overtimeFlag`; OvertimeConfig (time 30 s, reach 1 m, reach height 1 m) is in SimTuning.
-     RoundState carries the flag (up, foot, time left, contested), reset at each round's start.
-  2. Elimination: the clock running out with both teams in play on a map with a spot puts the flag up (an OVERTIME
-     event at the foot). The first team with a player in play within reach of the foot (feet within reach height) wins
-     the round (`RoundEnd.OVERTIME_FLAG`, appended); players of both teams there hold each other off; untouched for its
-     time, the round is a draw, played again; a wipe-out while it is up still wins. Attack / Defend, practice and a map
-     with no spot play exactly as before (tested).
-  3. Dev › End the round now ends a round with the flag up as on time. The flag's time counts in the longest a round
-     can run (the guards' round cap, `MatchRunner`).
-  4. `field.overtimeFlag`: each map's spot stands on walkable floor and is walked to from each end's spawns within
-     15 % of each other. Depot, Woodland and Neon Heights pass, or a failing spot moves to the nearest floor that
-     passes; the record gives each map's two walks and any spot moved.
-  5. The browser's `overtimeFlag.test.ts` and `overtimeFlag.edges.test.ts` cases pass in GUT; a tick with the flag up
-     allocates nothing.
-status: open
-attempts: 0
-
 ## OV2 · Bots go for the overtime flag (Dev)
 when: build order step 27, after OV1
 tier: core
