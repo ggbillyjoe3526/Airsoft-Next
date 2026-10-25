@@ -1,13 +1,13 @@
 # WL4 · Woodland's look in placeholders
 
-**Review:** qa Pass · performance Pass · critic pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | 3027 / 3027 | – | – |
-| 2026-10-25 | 2 | worker | 3047 / 3047 | – | Fix round on QA and performance advisories: counts capped, the match test blind to a leak |
+| 2026-10-25 | 2 | worker | 3047 / 3047 | Accept 7/8 | Fix round on QA and performance advisories: counts capped, the match test blind to a leak |
 
 ## Goal
 
@@ -167,6 +167,8 @@ QA (`pipeline/out/qa-report.md`) and performance (`pipeline/out/performance.md`)
 - The view's 180 ms build stays on the main thread behind the loading screen (performance: acceptable).
 - Neon Heights' night motes are a visible change on a map the task doesn't name; the owner may want them off
   (`dressing.motes` out of its file).
+- `game/play/woods_shapes.gd` is 703 lines over six parts, with a few untyped pair lists (critic, check 7): split the
+  floor and puddles into their own file, with small typed classes for the pairs, when WL5 adds bushes here.
 
 ## Checks
 
