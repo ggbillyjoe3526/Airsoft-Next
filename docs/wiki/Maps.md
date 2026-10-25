@@ -41,6 +41,7 @@ The minimap names the area you stand in. Depot's areas:
 
 ## Range
 
-**The practice range:** steel plates, figures and moving targets from 10 to 60 m, with no bots and no score. It sits on
-the Match screen beside the fields, with Practice as its only mode. Everything about it is on
+**The practice range:** lanes of steel plates, figures and moving targets, with no bots and no score, in its own lot
+beside Depot's yard and under the same sky. It sits on the Match screen beside the fields, with Practice as its only
+mode. Every field hosts Practice too, with targets where the other team would play. Everything about both is on
 [Practice Range](Practice-Range).

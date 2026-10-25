@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1 | worker | pass, 3,174 of 3,174 (parts 307 s, 402 s and 325 s) | – | – |
+| 2026-10-25 | 2, fix round | worker | pass, 3,189 of 3,189 (parts 362 s, 357 s and 369 s) | – | QA and performance advisories |
 
 ## Goal
 
@@ -117,7 +118,12 @@ and `test_mn2_qa` (it asserted Practice greyed on a field, which WL9 changes).
   CI step names, `docs/PROCESS.md` and `docs/records/CI1.md`. One gate run on the way stopped at the 1,080 s limit in
   `test_holster_edges.gd`'s `before_all` (Depot's level and nav grid); it passes alone in 1 s and part 2 passed on a
   rerun, so it is noted, not chased.
-- Gate: FIX_GATE
+- **The wiki** (rebased onto main with the wiki, #118): `Practice-Range` (the range in Depot's site, a new Practice on a
+  field section, a best per map, and `images/range-in-depot.jpg`, 41 KB), `Maps` (the Range), `Modes` (Practice) and
+  `Roadmap` (Built; In development now names Woodland's practice at night in place of the range's move).
+  `tools/check.sh` and `ci.yml` keep both the wiki check and the three unit parts.
+- Gate: `tools/check.sh` passes after the rebase (gdlint, changelog notes, wiki, the three unit parts in 362, 357 and
+  369 s, smoke test, licence notices): 3,189 of 3,189 tests.
 
 ## Verified
 
