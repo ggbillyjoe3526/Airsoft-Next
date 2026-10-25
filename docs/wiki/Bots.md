@@ -22,7 +22,7 @@ Easy); "Follow opponents" puts them back.
 
 | Level | How it plays |
 | --- | --- |
-| **Easy** | Reacts slower, aims shakier and never flanks. |
+| **Easy** | Reacts slower, aims shakier and flanks only if its personality is Flanker. |
 | **Normal** | The standard bot. |
 | **Hard** | Reacts faster, aims steadier, leads moving targets more, takes cover more and flanks more often. |
 | **Pro** | Careful, not twitchier: aims at the corners and doorways you would step out of, and plays as a team. |

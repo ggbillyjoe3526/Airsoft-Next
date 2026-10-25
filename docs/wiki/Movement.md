@@ -8,7 +8,7 @@ stand and how quietly you get there win more fights than fast hands.
 <!-- wiki:movement -->
 
 - **Run** is how you move when you press nothing else.
-- **Walk** (hold Shift) is slow and silent, and as steady to shoot from as standing still.
+- **Walk** (hold Shift) is slow and silent, and almost as steady to shoot from as standing still.
 - **Crouch** (hold C or Ctrl) makes you a small target and hides you behind waist-high cover. Moving crouched is
   silent too, so you can sneak up on a bot that hasn't seen you.
 - **Sprint** (hold Alt) is fastest and loudest. You can still fire, but your shots spread wide.

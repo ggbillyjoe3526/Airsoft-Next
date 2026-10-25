@@ -296,6 +296,10 @@ def gen_parts(which: str) -> str:
     by_id = {i.get("Key") or i.get("ID"): i for i in items} | {i["ID"]: i for i in items}
     levels = unlock_levels()
     stat_cols = [c for c in (rows[0] if rows else {}) if c not in ("Key", "ID", "Name")]
+    have = {row.get("Key") or row.get("ID") for row in rows}
+    for item in items:
+        if item["Access"] == "public" and item.get("Key", item["ID"]) not in have and item["ID"] not in have:
+            raise WikiError(f"{rel(path)} › {heading.lstrip('# ')} has no row for '{item['Name']}'")
     out = []
     for row in rows:
         ident = row.get("Key") or row.get("ID")
@@ -327,12 +331,14 @@ def gen_unlocks(_arg: str) -> str:
     path = DATA / "levels.md"
     public = public_names()
     rows = []
+    total = 0
     for r in md_table(path, "## Levels"):
+        total += int(cell(r, "XP", path))
         names = [n.strip() for n in cell(r, "Unlocks", path).split(",") if n.strip() in public]
         if names:
             level = int(r["Level"])
-            rows.append([f"**{level}**" + (" (start)" if level == 0 else ""), cell(r, "XP", path), ", ".join(names)])
-    return table(["Level", "XP needed", "Unlocks"], rows)
+            rows.append([f"**{level}**" + (" (start)" if level == 0 else ""), r["XP"], total, ", ".join(names)])
+    return table(["Level", "XP for this level", "XP in all", "Unlocks"], rows)
 
 
 def gen_xp(_arg: str) -> str:
@@ -613,9 +619,16 @@ def expand(name: str, text: str) -> str:
             out.append(line)
     # A marker inside a sentence, such as `<!-- wiki:version -->`, is replaced in place.
     joined = "\n".join(out) + "\n"
-    return re.sub(r"<!-- wiki:([a-z-]+)(?: ([A-Za-z0-9_.-]+))? -->",
-                  lambda m: GENERATORS[m.group(1)](m.group(2) or "") if m.group(1) in GENERATORS else m.group(0),
-                  joined)
+
+    def inline(m: re.Match) -> str:
+        if m.group(1) not in GENERATORS:
+            raise WikiError(f"docs/wiki/{name}.md: unknown marker '{m.group(0)}'. Markers: {', '.join(GENERATORS)}")
+        return GENERATORS[m.group(1)](m.group(2) or "")
+
+    joined = re.sub(r"<!-- wiki:([a-z-]+)(?: ([A-Za-z0-9_.-]+))? -->", inline, joined)
+    if "<!-- wiki:" in joined:
+        raise WikiError(f"docs/wiki/{name}.md: a '<!-- wiki:' marker isn't written as '<!-- wiki:name arg -->'")
+    return joined
 
 
 # --- Patch notes -------------------------------------------------------------------------------------------------
@@ -645,7 +658,7 @@ def render_notes(text: str, terms: list) -> str:
     public, dev = [], []
     merged: dict = {}
     for title, bullets in note_blocks(text):
-        if title.lower() == "internal":
+        if title.lower() == "internal" or HIDDEN_RE.search(title):
             continue
         bullets = [b for b in bullets if not HIDDEN_RE.search(b)]
         whole_dev = mentions(title, terms)
@@ -832,7 +845,7 @@ def check(base: str = "") -> int:
         try:
             if build(out) != 0:
                 return 1
-        except (WikiError, subprocess.CalledProcessError, OSError, ValueError) as e:
+        except (WikiError, subprocess.CalledProcessError, OSError, ValueError, KeyError, AttributeError) as e:
             print(f"::error::The wiki can't be built: {e}")
             return 1
         bad = check_built(out)

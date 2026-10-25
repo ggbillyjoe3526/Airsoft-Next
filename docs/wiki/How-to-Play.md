@@ -81,7 +81,7 @@ last BB and closes as the new magazine seats.
 
 How still you are decides how tight your shots group, by the same rule for you and the bots:
 
-- Standing still and crouched is tightest. Walking with **Shift** is as steady as standing.
+- Standing still and crouched is tightest. Walking with **Shift** is almost as steady as standing.
 - Running, sprinting and jumping are loosest. You can fire while sprinting, but your shots spread wide and kick
   harder.
 - Aiming down the sights (right mouse) halves your spread. Every replica has iron sights; an optic replaces them
