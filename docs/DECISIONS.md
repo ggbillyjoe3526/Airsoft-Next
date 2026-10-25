@@ -65,12 +65,17 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
   replica and part remodels, Depot's set dressing, the art pass) is step 28 (was 32), because the owner must be at
   his PC to connect Blender. Code-only parts, built against today's placeholder models, may still go earlier.
 - **The Blender step covers Depot, human figures and replicas only (owner, 2026-10-24).** Step 28 models Depot's
-  assets (with the range's and the tutorial's, which live in Depot), the human figures with your first-person arms and
+  assets (with the range's, which lives in Depot; the tutorial was dropped on 2026-10-25), the human figures with your first-person arms and
   hands, and the replicas, attachments and accessories. Woodland and Neon Heights stay greybox while they are dev
   content, and robots (a Dev Easter egg) keep their placeholder.
 - **Deferred features are one step, then Blender (owner, 2026-10-24).** After Woodland, the overtime flag, the
   tutorial, pings, the magazine hand-off, bot callouts and adaptive difficulty are one step 27, in the order its plan
   sets; the owner's Blender work (step 28, formerly 32) starts once step 27 is done.
+- **No tutorial and no adaptive difficulty (owner, 2026-10-25).** "I want to completely remove the tutorial from the
+  game. The player can learn how to play at their own pace in practice modes." and "I also want to remove adaptive
+  difficulty. I'll focus on the preset difficulties." Neither was built in this game; step 27 keeps the overtime flag,
+  pings, the magazine hand-off and bot callouts, and step 28 models the range's assets with Depot's but no tutorial's.
+  The tutorial's older rulings below stay as history.
 - **Kept features (owner, 2026-10-05).** Grenades (Replica Update) and skins (Progression Update), with greyed Loadout
   placeholders; suppressor sounds (Replica Update); Capture the Flag as a possible Modes Update mode.
 - **The Dev 6 playtest's additions and removals stand (owner, 2026-10-16).** Added: an in-match hop-up control, a

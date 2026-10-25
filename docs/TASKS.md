@@ -24,20 +24,3 @@ acceptance:
      BBs, 6v6). The owner makes Woodland public when he is happy.
 status: open
 attempts: 0
-
-## AD1 · Adaptive difficulty (Dev)
-when: build order step 27, with the other deferred features (owner, 2026-10-24)
-tier: core
-perf: optional
-touches: game/ai/, game/config/, game/save/dev_settings.gd, game/ui/settings_screen.gd, game/play/play_session.gd,
-  game/ui/xp_card.gd, game/progress/, tests/
-contract: Data, not literals (6); Saves (8)
-acceptance:
-  1. A Dev switch makes the other team's skill a rating that blends the levels' numbers (the browser game's
-     adaptiveDifficulty.ts): up a little after a round or match you win, down after one you lose, within its limits;
-     the on/off habits come from the nearest level and stay fixed through a match. It never changes a level's own
-     numbers (DECISIONS 2026-10-06).
-  2. Your teammates never adapt; an adaptive match gives no XP and stays out of the records.
-  3. The rating is saved and the end-of-match card says where the next match starts.
-status: open
-attempts: 0

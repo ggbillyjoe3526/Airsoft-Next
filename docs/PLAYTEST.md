@@ -244,7 +244,7 @@ unlocks is in `data/levels.md`; the Armory shows it in the game.
   N: X / Y XP" over a bar. A loss gives less.
 - [ ] **A level up.** Your first finished standard match takes you to level 1: the summary says "Level 1!" and
   "Unlocked: Red Dot", and the Red Dot is in Customise with no lock.
-- [ ] **No XP.** The range and the tutorial give none; a match with a dev map or mode, or a Dev aid on, says why it
+- [ ] **No XP.** The range gives none; a match with a dev map or mode, or a Dev aid on, says why it
   gave none.
 - [ ] **Settings › Dev › Disable levelling.** The badge goes, the Armory says levelling is off, and the Loadout and
   Customise offer everything unlocked. A match gives no XP and stays out of your records.
@@ -530,19 +530,6 @@ The Match screen's Practice card, then Start practice.
 - [ ] **Dev help isn't a best (BP5).** Switch Timed challenge on, then set Game speed or Bottomless magazines before
   the START plate: the result says "not kept (Dev settings)".
 
-### Tutorial
-
-- [ ] **The title screen** offers Tutorial under START on a clean save until you finish it or start a first match.
-- [ ] **Play it through.** The coach says "Tutorial · 1 of 16 · Look around" and moves on as you do each thing (look,
-  walk, ring a plate, knock down a figure at 50 m, reload, selector, aim, crouch, lean, sprint-fire, vault, switch
-  replica, then four cards to read); finished steps tick green. Does any step feel stuck or unclear?
-- [ ] **Lean (TT2).** After Crouch, the Lean card names Q and E (your bindings); it ticks only once you have peeked
-  both ways, in either order.
-- [ ] **Short and quick (TT1, TT2).** Every card is a sentence or two; the four read cards fill a thin bar and move on
-  after 10 s.
-- [ ] **Esc mid-tutorial.** The pause menu names your step and offers Skip step and Skip tutorial; quitting at step 5
-  and starting again resumes there. Rebinding reload changes the coach's key.
-
 ### Extraction (the Modes Update)
 
 Your squad against a home team on a timed run, rebuilt with its rework for the Modes Update (`docs/ROADMAP.md` ›
@@ -562,8 +549,7 @@ XP ×2.
 
 ## Menus
 
-- [ ] **The title screen.** Only "AIRSOFT", the tagline "Call your hit. Go again." and **START**; on a clean save a
-  **Tutorial** button under START. The build sits small at the bottom right with **Licences** over it, a
+- [ ] **The title screen.** Only "AIRSOFT", the tagline "Call your hit. Go again." and **START**. The build sits small at the bottom right with **Licences** over it, a
   **Fullscreen** button at the bottom left. Licences shows Godot's licence and every add-on's.
 - [ ] **The top bar** on every screen after the title: MATCH, LOADOUT, ARMORY, SETTINGS, your level and XP bar on the
   right, the current place marked.
@@ -608,8 +594,6 @@ XP ×2.
 - [ ] **Hit marker** (M97). Off by default: the hit tick sounds but no X. On: a bold red X
   pops over the crosshair and fades; scale, thickness, outline and colour change it at once. Is the default easy to
   see on every map?
-- [ ] **Replay tutorial** (Settings › Gameplay, M97). Starts the tutorial at its first step, even after you finished
-  it; from a match's pause menu it asks first, then leaves the match (not recorded).
 - [ ] **HUD size and opacity** (Settings › HUD). 150 % scales the replica panel, score bar, minimap, feed,
   banners, wheel and markers, each from its own corner or edge, nothing leaving the screen at 1280×720 or 4K; 80 %
   shrinks them the same way. The crosshair, hit marker and sound cue ring keep their size; the flag and teammate
@@ -665,7 +649,7 @@ file) and a "Dev settings" box that shows the Dev tab.
   two ("R was Reload: Reload is now Space"); Backspace clears (Move forward keeps one); the wheel and side buttons
   bind; Reset All asks first. By keyboard only: Tab to a box, Enter, press a key.
 - [ ] **Your keyboard layout** (AZERTY or QWERTZ). Move forward shows as Z (AZERTY) and the order
-  wheel as W or Y; the tutorial and reload hint use the same letters.
+  wheel as W or Y; the reload hint uses the same letters.
 - [ ] **Display.** Field of view starts at 90° (120° shows more at the sides, 80° less). Fullscreen (or F10) goes
   fullscreen and back with play carrying on ([Builds and the desktop](#builds-and-the-desktop)). No Tone mapping row
   here or in Graphics.
