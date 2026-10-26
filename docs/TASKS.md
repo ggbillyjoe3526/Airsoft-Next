@@ -4,32 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## OV2 · Bots go for the overtime flag (Dev)
-when: build order step 27, after OV1
-tier: core
-perf: required
-touches: game/config/bot_skill.gd, game/config/bot_config.gd, game/config/bot_tuning.tres, game/config/bots_file.gd,
-  data/bots.md, game/ai/bot.gd, game/ai/bot_brain.gd, game/ai/bot_movement.gd, game/ai/bot_flag.gd,
-  game/ai/bot_aim.gd, game/ai/bot_personality.gd, game/ai/callouts.gd, game/ai/README.md,
-  game/play/bot_intent_view.gd, tests/unit/test_overtime_bots.gd, tests/guards/test_flag_guards.gd,
-  docs/KNOWN_ISSUES.md, docs/wiki/Bots.md
-contract: Commands (2); Seeded randomness (5); Data, not literals (6)
-acceptance:
-  1. BotSkill gains `overtime_reaction`: Easy 0.5 to 1.2 s, Normal 0.3 to 0.7, Hard 0.2 to 0.5 (the browser's Normal,
-     Hard and Pro). With the flag up, each bot not fighting sets off after its reaction by the flag run Attack / Defend
-     uses, aimed at the spot; a fight comes first.
-  2. bots.md's Watches the flag first plays: such a bot holds cover near the flag aiming at it for its seconds, unless
-     it is the last of its team in play or BotConfig's last seconds (10 s) remain, when every bot goes in. A bot that
-     would flank (Flank chance) goes round a side point 6 m off the line and 6 m short of the flag when 15 m or more
-     out. An ordered bot keeps its order, as at the pole.
-  3. Each team's bot nearest the flag calls Overtime once, naming the area (CO1's director and its callouts.md rows).
-  4. The browser's `overtimeBots.test.ts` cases pass in GUT. A guard plays Depot with 25 s rounds over the guard seeds
-     and the bots take the flag in most overtimes (the record gives the share); the match guards still pass.
-  5. The record quotes the balance figures for Elimination on every map and level; KNOWN_ISSUES' Watches the flag first
-     row goes.
-status: open
-attempts: 0
-
 ## OV3 · The overtime flag on screen and in sound (Dev)
 when: build order step 27, after OV1
 tier: ui

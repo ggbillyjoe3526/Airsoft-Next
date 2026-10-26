@@ -54,8 +54,9 @@ and Rules as NOT USED, and keeps your picks for your next match.
 **The overtime flag:** in Elimination, a clock run out with players left on both sides puts a flag up near the middle
 of the map, and the first team to touch it, within <!-- wiki:config overtime_config.reach --> m of its foot, wins the
 round. Players of both teams at it hold each other off, and a team knocked out while it is up still loses. Untouched
-for <!-- wiki:config overtime_config.time --> seconds, the round is a draw, played again. Its rules are in; the flag
-itself, its whistles and banner, and bots going for it come next. Attack / Defend has none.
+for <!-- wiki:config overtime_config.time --> seconds, the round is a draw, played again. Bots go for it a moment after
+it goes up, still fighting anyone they see ([Bots](Bots#in-development)). Its rules and the bots' run are in; the flag
+itself, its whistles and banner come next. Attack / Defend has none.
 
 ## Round flow
 

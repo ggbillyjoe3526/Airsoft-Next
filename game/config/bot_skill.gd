@@ -56,3 +56,6 @@ extends Resource
 ## Team play (Hard): trades a hit teammate, tells its teammates where it heard someone, moves in pairs along a lane and
 ## pushes late when behind (BotConfig's trade_*, bound_* and late_push_time).
 @export var team_play: bool = false
+## Elimination's overtime flag (OV2): how long after it goes up the bot sets off for it (s), the whistle taken in. Easy
+## is slowest, Hard quickest (the browser game's Normal, Hard and Pro).
+@export var overtime_reaction: Vector2 = Vector2(0.5, 1.2)

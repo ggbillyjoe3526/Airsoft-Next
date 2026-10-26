@@ -13,6 +13,14 @@ static func look_pitch(from: Vector3, to: Vector3) -> float:
 	return atan2(to.y - from.y, Vector2(to.x - from.x, to.z - from.z).length())
 
 
+## The way `b` faces holding still: a bot watching the overtime flag from cover (OV2) at the flag from its spot, every
+## other the enemy's side.
+static func hold_yaw(b: Bot, w: BotWorld) -> float:
+	if b.mode == Bot.Mode.FLAG and b.flag_guard and w.overtime_flag.up:
+		return look_yaw(b.flag_goal, w.overtime_flag.foot)
+	return w.enemy_yaw(b.character.team)
+
+
 ## Aim error size (rad) `since` seconds after picking up a target `dist` m away that crosses the view at `sideways` m/s:
 ## large at first, settling over the skill's settle time; worse while the bot moves or the target does. The starting
 ## error is never under aim_error_start_metres off the target, so up close the first BBs can miss.

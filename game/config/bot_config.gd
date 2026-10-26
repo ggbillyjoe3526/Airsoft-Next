@@ -302,6 +302,18 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var flag_guard_radius: float = 6.0
 @export var flag_guard_threat_distance: float = 10.0
 
+@export_group("Overtime flag")
+## Elimination's overtime flag (OV2; the browser game's botsSquad.ts OVERTIME): each bot sets off for its foot after its
+## skill's overtime_reaction (a touch wins); one that watches the flag first (bots.md) guards it from cover as an
+## attacker guards the pole, until this many seconds of the overtime are left or fewer, when every bot goes in.
+@export var overtime_go_by: float = 10.0
+## A bot whose flank roll (the skill's flank_chance, once an overtime) came up, at least overtime_flank_min_distance (m)
+## from the flag, goes round by a point overtime_flank_offset (m) to one side of the straight way and
+## overtime_flank_back (m) short of the flag first, so it comes at the flag from the side.
+@export var overtime_flank_min_distance: float = 15.0
+@export var overtime_flank_offset: float = 6.0
+@export var overtime_flank_back: float = 6.0
+
 @export_group("Hunting")
 ## Once its lane is swept a bot hunts: the field in square sectors (m), the stalest of this many random spots (each
 ## drawn in at most this many tries), each metre nearer the middle counting like this many seconds staler.

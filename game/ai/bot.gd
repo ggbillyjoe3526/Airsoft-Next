@@ -166,6 +166,11 @@ var retake: bool = false
 var raiser: bool = false
 var flag_goal: Vector3 = Vector3.ZERO
 var flag_guard: bool = false
+## Elimination's overtime flag (OV2): when it sets off for the flag (s of match time: the flag going up plus its skill's
+## overtime_reaction; INF until it is up), and whether this overtime it goes round the side (its flank_chance, drawn as
+## the flag goes up and used once).
+var overtime_at: float = INF
+var overtime_flank: bool = false
 ## A squad order from a teammate in play (SquadOrders; NONE: it plays the team plan): which, from whom, its place among
 ## the teammates given it (which spot is its own), the spot it makes for and the way it looks once there.
 var order: SquadOrder.Kind = SquadOrder.Kind.NONE
@@ -263,6 +268,8 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	retake = false
 	raiser = false
 	flag_guard = false
+	overtime_at = INF
+	overtime_flank = false
 	order = SquadOrder.Kind.NONE
 	order_giver = null
 	order_rush = false

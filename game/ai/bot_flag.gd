@@ -1,7 +1,8 @@
 class_name BotFlag
 ## Attack / Defend for bots (the browser game's ai/bot.ts flagRole and wantsFlag, roundPlanner.ts pickRetakers and
 ## pickRaiser): which side of the pole a bot's team is on, which defenders go to pull the flag down, which attacker
-## raises it while the others guard, and when a bot wants the pole. Where it walks there is BotMovement's flag mode.
+## raises it while the others guard, and when a bot wants the pole; in Elimination, when a bot goes for the overtime flag
+## (OV2). Where it walks there is BotMovement's flag mode.
 ## Allocates nothing.
 
 enum Role { NONE, ATTACK, DEFEND }
@@ -20,14 +21,21 @@ static func holds_post(b: Bot, w: BotWorld) -> bool:
 
 
 ## True if `b` should be at the pole now: an attacker that has swept its lane, or a defender picked to retake while the
-## flag is off the bottom (the flag on its pole is in plain view). The others hold their posts.
+## flag is off the bottom (the flag on its pole is in plain view). The others hold their posts. In Elimination's
+## overtime (OV2), every bot once its reaction to the flag going up is over (Bot.overtime_at), while the round is live:
+## the flag comes before chasing noises, as the pole does.
 static func wants_flag(b: Bot, w: BotWorld) -> bool:
 	match role(b, w):
 		Role.ATTACK:
 			return b.lane_done
 		Role.DEFEND:
 			return w.flag.progress > 0.0 and b.retake
-	return false
+	return w.overtime_flag.up and w.live and w.time >= b.overtime_at
+
+
+## Where flag mode heads: Elimination's overtime flag while it is up (its foot), else Attack / Defend's pole.
+static func spot(w: BotWorld) -> Vector3:
+	return w.overtime_flag.foot if w.overtime_flag.up else w.flag.position
 
 
 ## Each tick: the `retakers` defending bots in play nearest the pole are the ones who go to pull the flag down; the rest

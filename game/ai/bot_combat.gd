@@ -66,10 +66,11 @@ static func aim(b: Bot, w: BotWorld, target: Character, eye: Vector3, walking: b
 		pass
 	elif walking and not (b.mode == Bot.Mode.ADVANCE and not b.hunting and cos(walk_yaw - enemy) < 0.0):
 		_look_yaw = walk_yaw
-	elif not (b.holding and b.skill.holds_angles and _held_angle_look(b, w, eye, enemy, false, INF) != null):
-		# Holding, or walking back along its lane: face the enemy side, sweeping slowly across it while holding. Hard
-		# aims at the corners someone would come round instead of sweeping.
-		_look_yaw = enemy
+	elif not (b.holding and b.skill.holds_angles and _held_angle_look(b, w, eye, BotAim.hold_yaw(b, w), false, INF)
+			!= null):
+		# Holding, or walking back along its lane: face the enemy side (watching the overtime flag, the flag), sweeping
+		# slowly across it while holding. Hard aims at the corners someone would come round instead of sweeping.
+		_look_yaw = BotAim.hold_yaw(b, w)
 		if b.holding:
 			_look_yaw += sin(TAU * b.team_wait / cfg.hold_sweep_period) * deg_to_rad(cfg.hold_sweep_deg)
 	BotAim.step(b, _look_yaw, _look_pitch, 0.0, 0.0, cfg, dt)

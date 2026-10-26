@@ -49,21 +49,32 @@ static func enter_flag(b: Bot, w: BotWorld) -> void:
 	_pick_flag_spot(b, w)
 
 
-## Flag mode: whether `b` guards the pole from cover rather than going to it (an attacker that isn't raising).
+## Flag mode: whether `b` guards the pole from cover rather than going to it (an attacker that isn't raising); in
+## Elimination's overtime, whether it watches the flag first (BotPersonality.overtime_watching).
 static func _guards_flag(b: Bot, w: BotWorld) -> bool:
+	if w.overtime_flag.up:
+		return BotPersonality.overtime_watching(b, w)
 	return BotFlag.role(b, w) == BotFlag.Role.ATTACK and not b.raiser
 
 
 ## The raiser (and a defender pulling the flag down) stands at a random spot within flag_stand of the pole; a guard
 ## takes crouch cover within flag_guard_radius of it, hidden from where an enemy was last known (or from a point
-## flag_guard_threat_distance towards the defenders' side), or failing that a random spot that far out.
+## flag_guard_threat_distance towards the defenders' side), or failing that a random spot that far out. In
+## Elimination's overtime (OV2) a bot heads for the flag's very foot (a touch wins), round the side first if its flank
+## roll came up, and one watching the flag first guards it as an attacker guards the pole.
 static func _pick_flag_spot(b: Bot, w: BotWorld) -> void:
 	var cfg := w.cfg
-	var pole := w.flag.position
+	var pole := BotFlag.spot(w)
 	b.flag_guard = _guards_flag(b, w)
 	b.team_wait = 0.0
 	b.flanking = false
 	BotRoutes.drop(b)
+	if not b.flag_guard and w.overtime_flag.up:
+		b.flag_goal = pole
+		if b.overtime_flank:
+			b.overtime_flank = false
+			_overtime_flank_point(b, w, pole)
+		return
 	if not b.flag_guard:
 		b.flag_goal = _jitter(b, w, pole, cfg.flag_stand)
 		return
@@ -84,12 +95,45 @@ static func _pick_flag_spot(b: Bot, w: BotWorld) -> void:
 	b.hold_crouch = _crouched_view_clear(b, w, b.flag_goal)
 
 
+## Overtime (OV2): the way to the flag at `flag` goes round by a point overtime_flank_offset to one side of the straight
+## way and overtime_flank_back short of the flag (walkable, on the flag's floor), so it comes at it from the side; none
+## from closer than overtime_flank_min_distance, or where neither side has floor.
+static func _overtime_flank_point(b: Bot, w: BotWorld, flag: Vector3) -> void:
+	var cfg := w.cfg
+	var p := b.character.position
+	var flat := Vector2(flag.x - p.x, flag.z - p.z)
+	var d := flat.length()
+	if d < cfg.overtime_flank_min_distance:
+		return
+	var u := flat / d
+	var first := 1.0 if b.rng.randf() < 0.5 else -1.0
+	for i in 2:
+		var side := first if i == 0 else -first
+		var x := flag.x - u.x * cfg.overtime_flank_back - u.y * cfg.overtime_flank_offset * side
+		var z := flag.z - u.y * cfg.overtime_flank_back + u.x * cfg.overtime_flank_offset * side
+		if not _on_same_floor(w, flag, x, z):
+			continue
+		b.flank_goal = Vector3(x, w.nav.floor_at(Vector3(x, flag.y, z)), z)
+		b.flanking = true
+		return
+
+
 ## Flag mode: to the spot by the pole (or the guard spot) and stay there, crouched working the rope, or holding guard.
+## In overtime, round the side first when flanking (_overtime_flank_point).
 static func _flag(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> bool:
 	var cfg := w.cfg
-	# The raiser changed (hit, or the player took the rope): raise, or guard, instead.
+	# The raiser changed (hit, or the player took the rope), or an overtime watch is over: raise, or guard, instead.
 	if b.flag_guard != _guards_flag(b, w):
 		_pick_flag_spot(b, w)
+	if b.flanking:
+		BotRoutes.want(b, b.flank_goal, cfg)
+		if BotRoutes.follow(b, w, dt):
+			return true
+		if b.route_state == Bot.RouteState.WANTED:
+			return false
+		# Round the side (or no way round): now straight on for the flag.
+		b.flanking = false
+		BotRoutes.drop(b)
 	var p := b.character.position
 	var arrive := cfg.cover_arrive if b.flag_guard else cfg.flag_arrive
 	if Vector2(b.flag_goal.x - p.x, b.flag_goal.z - p.z).length() <= arrive:
@@ -100,7 +144,7 @@ static func _flag(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> bool:
 		else:
 			cmd.crouch = true
 		return false
-	var pole := w.flag.position
+	var pole := BotFlag.spot(w)
 	if b.route_state == Bot.RouteState.FAILED:
 		if not b.flag_guard and (b.flag_goal.x != pole.x or b.flag_goal.z != pole.z):
 			# No way to that spot: try the foot of the pole itself.
@@ -466,7 +510,7 @@ static func _start_hold(b: Bot, w: BotWorld) -> void:
 ## True if crouched eyes at `at` see hold_look_distance towards the enemy: worth crouching to hold there. Behind crouch
 ## cover they don't, so it holds standing and looks over it.
 static func _crouched_view_clear(b: Bot, w: BotWorld, at: Vector3) -> bool:
-	var yaw := w.enemy_yaw(b.character.team)
+	var yaw := BotAim.hold_yaw(b, w)
 	var floor_y := w.nav.floor_at(at)
 	var eye := Vector3(at.x, (at.y if is_nan(floor_y) else floor_y) + w.tuning.body.crouch_eye_height, at.z)
 	var look := eye + Vector3(-sin(yaw), 0.0, -cos(yaw)) * w.cfg.hold_look_distance

@@ -34,7 +34,7 @@ it is playtested and made public.
 - **Bot callouts** (on for everyone while they're tuned; Settings › HUD › Callouts turns them off): your teammates
   call what they see and do in the hit feed, in words with a radio click, never a voice.
 - **Elimination's overtime flag:** a time-out with players left on both sides puts a flag up near the middle, and the
-  first team to touch it wins the round. Its rules are in; the flag on screen and bots going for it come next.
+  first team to touch it wins the round. Its rules are in and bots go for it; the flag on screen comes next.
 
 ### Next
 
