@@ -93,6 +93,9 @@ Contact mark on an enemy brought 13 m out:
   freed with the HUD, and a real match showing it on screen, on the minimap and piping.
 - Touched files' tests (19 files, 274 tests) pass: callouts feed and QA, minimap, HUD prefs and size, MM4, SO4,
   settings, whistle, pings, footsteps, sound mix, flag play, overtime flag play, What got you, AC1/AC5/AC6.
+- `tools/check.sh` (2026-10-26): gdlint, changelog notes, wiki, unit parts 2 and 3, smoke test and licence notices
+  pass; part 1 failed only `test_assets.gd`'s cue count (394, now 395 with the pip), fixed and that file rerun green
+  (3442 of 3443 passing before the fix).
 - gdlint clean on every changed file; the pictures above, looked at.
 - Not verified: how the pip sounds on speakers or headphones, and the pop's feel at real frame rates (PLAYTEST ›
   Ping markers).
