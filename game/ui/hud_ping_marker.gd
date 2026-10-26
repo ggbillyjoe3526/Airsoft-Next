@@ -131,11 +131,6 @@ func pinned() -> bool:
 	return _pinned
 
 
-## Where it sits on the screen: the plate when pinned, else the glyph and its words.
-func occupied() -> Rect2:
-	return get_rect() if visible else Rect2()
-
-
 ## Its words ("PING · 9 M"), or "" while hidden: for tests.
 func text() -> String:
 	return _words.text if visible else ""
