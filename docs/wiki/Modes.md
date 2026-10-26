@@ -55,8 +55,10 @@ and Rules as NOT USED, and keeps your picks for your next match.
 of the map, and the first team to touch it, within <!-- wiki:config overtime_config.reach --> m of its foot, wins the
 round. Players of both teams at it hold each other off, and a team knocked out while it is up still loses. Untouched
 for <!-- wiki:config overtime_config.time --> seconds, the round is a draw, played again. Bots go for it a moment after
-it goes up, still fighting anyone they see ([Bots](Bots#in-development)). Its rules and the bots' run are in; the flag
-itself, its whistles and banner come next. Attack / Defend has none.
+it goes up, still fighting anyone they see ([Bots](Bots#in-development)). Three quick whistle blasts and an
+**OVERTIME · TOUCH THE FLAG** banner say it is up; the flag rises out of the ground, a chequered off-white and dark
+cloth on a short pole with a ring on the floor at its reach, and the clock shows **OT** and the flag's time left. Once
+touched, its cloth and ring take that team's colour and the banner says **FLAG TOUCHED**. Attack / Defend has none.
 
 ## Round flow
 
