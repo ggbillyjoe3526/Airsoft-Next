@@ -93,12 +93,37 @@ none drawn; every round within its clock and 30 s. Across the nine runs above no
 Easy and 56 at Hard; Neon Heights 120, 59 and 56; none to the flag), since a match that never reaches overtime never
 reads the flag or draws its rolls.
 
-BALANCE
+## Balance
+
+`balance_run.gd` on `cf790d7` (the code as committed), Elimination only, Normal on 32 seeds and Easy and Hard on 16, as
+one process a map; reports in the project files, `pipeline/runs/OV2/attempt-1/`.
+
+| Map | Figures | Outside | Within noise | Near an edge | In band | Rounds run out the clock (Normal, Easy, Hard) |
+|---|---|---|---|---|---|---|
+| Depot | 34 | 0 | 0 | 8 | 8 | 0 of 243, 0 of 130, 0 of 118 |
+| Neon Heights | 34 | 0 | 2 | 4 | 10 | 0, 0, 0 |
+WOODLAND
+
+**No round reached overtime, so every figure is the base's:** Depot's Hard ends 56.4 / 43.6 % and Easy's Alpha 59 of
+130 decided, Neon Heights' Normal ends 42.6 / 57.4 % (the two within noise, as TL1 recorded them) and Easy's Alpha
+40.3 %; Easy's mean round against Normal's 1.17 × on Depot, 1.19 × on Neon Heights, as TL1's. Overtime changes the
+balance only in the rare round that runs out the clock, which none of these did.
 
 ## Verified
 
-VERIFIED
+- `test_overtime_bots.gd` 12, `test_tl1_qa.gd` 7 (each level's skill now pins its overtime reaction too) pass.
+- `tools/match_guards.sh`: `test_match_guards` (5; the figures above, OV1's exactly), `test_flag_guards` (3: Depot
+  A/D 124 rounds and 12 captures, Neon Heights 111 and 21, both as before; the overtime guard as above; 455 s on a
+  loaded container) and `test_callout_guards` (4) pass. The night guards are left to CI: a match there that never
+  reaches overtime plays as before, and bots honour the same line-of-fire checks and night sight on the way to the
+  flag (nothing in either changed).
+- Not verified: how it plays against a person (PLAYTEST › Rounds and matches › Bots go for the overtime flag); nothing
+  shows on screen until OV3.
 
 ## Gate
 
-GATE
+`tools/check.sh` on `7ab9322` (OV2 on OV1's branch), on the 4-core container beside two balance runs, 1,120 s: gdlint,
+the changelog notes, the wiki, the smoke test and the licence notices passed; unit tests part 1 840 tests in 347 s and
+part 2 1,606 in 337 s, all passing; part 3 failed one of 911, `test_tl1_qa.gd`'s pin of every skill field (the new
+`overtime_reaction`). With that pin updated (`c8a110d`), part 3 again: 911 of 911 in 335 s (3,357 tests, all
+passing).
