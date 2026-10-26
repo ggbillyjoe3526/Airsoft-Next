@@ -106,7 +106,7 @@ Engine renders of a real `PlaySession` on Depot (Compatibility), the clock run o
   banner for 2.4 s, the flag shown, OT 0:25 on the bar and the board; the marker's words and pinning, the minimap's
   glyph live only; FLAG TOUCHED and the played time, a draw as before; the toucher's colour in the pause; the screen
   reader's lines; the whistle pattern and SimAudio on the Interface bus.
-- The touched suites pass: `test_flag_play`, `test_hud_minimap`, `test_scoreboard`, `test_whistle_queue`,
+- The full gate (below), and before it the touched suites: `test_flag_play`, `test_hud_minimap`, `test_scoreboard`, `test_whistle_queue`,
   `test_announcer`, `test_hud_style`, `test_round_result`, `test_overtime_flag`, `test_ov1_qa`, `test_fg1_qa` and the
   QA suites that read the HUD.
 - `python3 tools/wiki.py check` and `tools/changelog.sh check` pass.
@@ -115,4 +115,8 @@ Engine renders of a real `PlaySession` on Depot (Compatibility), the clock run o
 
 ## Gate
 
-Pending.
+`tools/check.sh` on `e5d1d8b` (OV3 on OV2's branch), on the 4-core container: gdlint, the changelog notes, the wiki,
+the smoke test and the licence notices passed; unit tests part 1 846 tests in 343 s and part 3 911 in 340 s, all
+passing; part 2 failed one of 1,633, `test_play_session.gd`'s count of the prewarm's specks (Depot's Elimination now
+warms the overtime flag's cloth and ring). With that count taking them (`71ccabf`), part 2 again: 1,633 of 1,633 in
+360 s (3,390 tests, all passing). No part near 570 s.
