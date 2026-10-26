@@ -120,9 +120,11 @@ func test_the_late_materials_are_drawn_once_at_the_start_and_then_freed() -> voi
 	assert_gt(figures, 0)
 	var skyline := fresh._skyline.materials().size() if fresh._skyline != null else 0
 	var site := fresh._site.materials().size() if fresh._site != null else 0
-	assert_eq(prewarm.get_child_count(), 9 + skyline + site + 2 * figures,
+	var overtime := fresh.overtime_flag_view().materials().size() if fresh.overtime_flag_view() != null else 0
+	assert_eq(prewarm.get_child_count(), 9 + skyline + site + overtime + 2 * figures,
 			"a BB, a glowing BB and its streak (WL8), a puff, a gas puff, kicked dust, the contact shadow, a wind speck,"
-			+ " the sign, the skyline's, the site dress's (DD1) and each figure material solid and fading")
+			+ " the sign, the skyline's, the site dress's (DD1), the overtime flag's (OV3) and each figure material solid"
+			+ " and fading")
 	await wait_process_frames(ShaderPrewarm.FRAMES + 1)
 	assert_false(is_instance_valid(prewarm), "gone once its frames are drawn")
 
