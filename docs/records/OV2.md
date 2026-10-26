@@ -1,12 +1,12 @@
 # OV2 · Bots go for the overtime flag
 
-**Review:** pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-26 | 1 | worker | see Gate | – | – |
+| 2026-10-26 | 1 | worker | see Gate; QA Pass, performance Pass | Accept 7/8 | – |
 
 ## Goal
 
@@ -120,6 +120,17 @@ balance only in the rare round that runs out the clock, which none of these did.
   flag (nothing in either changed).
 - Not verified: how it plays against a person (PLAYTEST › Rounds and matches › Bots go for the overtime flag); nothing
   shows on screen until OV3.
+
+## Advisories left
+
+- **The overtime flank point copies the search's side-point loop** (critic, check 7): `_overtime_flank_point` repeats
+  `start_search`'s loop in `bot_movement.gd` with other config fields; merge both into one `_side_point` helper when the
+  file is next touched.
+- **Hard on Woodland ends most overtimes in a wipe-out** (19 of 26, QA, critic): the owner's playtest decides.
+- **Woodland's overtime tick is 0.8 to 0.95 ms** (performance): up from 0.6 ms because every bot fights at the flag,
+  not slower code; the fight mode's cost is the one to watch with more bots or a bigger map.
+- **The flag's `up` stays true after the round is decided** (QA): harmless today (`wants_flag` checks `w.live`); a later
+  reader of `up` between rounds should check it too.
 
 ## Gate
 
