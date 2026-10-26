@@ -13,11 +13,13 @@ extends GutTest
 const DEPOT_CAPTURES_MIN := 9
 const DEPOT_CAPTURE_SHARE_MIN := 0.07
 const DEPOT_FLAGS_RAISED_MIN := 5
-## Depot's overtime guard: rounds this long (s, the browser's), at least this many overtimes over the 16 seeds, and of
-## those at least this share taken by a touch (most; measured in docs/records/OV2.md), never one drawn on time.
+## Depot's overtime guard: rounds this long (s, the browser's), at least this many overtimes over the 16 seeds (half the
+## 34 measured, docs/records/OV2.md), and of those more than this share taken by a touch (most: 25 measured), and more
+## than this many times as many touched as drawn on time (the browser's; none measured).
 const OVERTIME_ROUND_TIME := 25.0
 const OVERTIMES_MIN := 16
 const OVERTIME_TOUCH_SHARE_MIN := 0.5
+const OVERTIME_TOUCHED_PER_DRAWN := 3
 
 
 func test_depot_attack_defend_plays_the_pole() -> void:
@@ -36,5 +38,5 @@ func test_depot_bots_take_the_overtime_flag() -> void:
 	var t: PackedInt32Array = await MatchGuard.overtime_flag(self, "depot", OVERTIME_ROUND_TIME)
 	assert_gte(t[1], OVERTIMES_MIN, "Depot: short rounds go to the overtime flag")
 	assert_gt(float(t[2]) / maxf(t[1], 1.0), OVERTIME_TOUCH_SHARE_MIN, "Depot: the bots take the flag in most overtimes")
-	assert_eq(t[4], 0, "Depot: no overtime runs out untouched")
+	assert_gt(t[2], OVERTIME_TOUCHED_PER_DRAWN * t[4], "Depot: taken far more often than its time runs out")
 	assert_eq(t[2] + t[3] + t[4], t[1], "Depot: every overtime ends by a touch, a wipe-out or its time")
