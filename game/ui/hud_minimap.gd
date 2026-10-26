@@ -4,7 +4,8 @@ extends Control
 ## the browser game's M23, M34c and M83): a square panel top left with the field round the character the view is through,
 ## the area they stand in at its top left and "Depot · Round 2" under it. It shows you as a white arrow, your teammates as
 ## dots in the team's colour (grey once hit, an arrow up or down on another storey, pinned to the edge when off the
-## panel), Attack / Defend's pole while the round is live, your Hold here's spot as a diamond, and the other team only as
+## panel), Attack / Defend's pole while the round is live, Elimination's overtime flag (a chequered flag) while it
+## stands in a live round, your Hold here's spot as a diamond, and the other team only as
 ## the patches where your side last heard them (MinimapHearing). Rotating turns the field so the way you look is up;
 ## Fixed keeps north (the map's -z) up and turns the arrow. The field is drawn once a match (MinimapField, one picture per
 ## storey) and the panel only places it, so a frame allocates nothing. `View` draws everything over the picture; the
@@ -172,6 +173,8 @@ func follow(state: GameState, watched: Character, yaw: float, fraction: float, t
 					_heard.shade(p))
 	if rs.mode == RoundState.Mode.ATTACK_DEFEND and rs.attackers >= 0 and rs.is_live():
 		_view.set_pole(Vector2(rs.pole.x, rs.pole.z))
+	elif rs.overtime_flag.up and rs.is_live():
+		_view.set_pole(Vector2(rs.overtime_flag.foot.x, rs.overtime_flag.foot.z), true)
 	if holding:
 		_view.set_hold(Vector2(hold.x, hold.z))
 	_view.queue_redraw()
@@ -226,6 +229,9 @@ class View:
 	var _flag_line := PackedVector2Array([Vector2(0.0, -15.0), Vector2(11.0, -11.0), Vector2(0.0, -7.0),
 			Vector2(0.0, -15.0)])
 	const POLE_TOP := Vector2(0.0, -15.0)
+	## The overtime flag's chequered cloth (px from its foot, as the pole's flag), its checks across and down.
+	const CHEQUER := Rect2(0.0, -15.0, 12.0, 8.0)
+	const CHEQUER_CHECKS := Vector2i(3, 2)
 	const POLE_COLOUR := Color("e6ebf2")
 	const YOU_COLOUR := Color("ffffff")
 	## Stroke widths (px) the concept gives: the outlines under the arrows, the pole, the hold and a dot's ring.
@@ -276,6 +282,8 @@ class View:
 	var _patch_count: int = 0
 	var _pole_on: bool = false
 	var _pole: Vector2 = Vector2.ZERO
+	var _chequered: bool = false
+	var _dark_checks: Array[Rect2] = []
 	var _hold_on: bool = false
 	var _hold: Vector2 = Vector2.ZERO
 	var _you_on: bool = true
@@ -298,6 +306,11 @@ class View:
 		_patches.resize(capacity)
 		_patch_radii.resize(capacity)
 		_patch_alphas.resize(capacity)
+		var cell := CHEQUER.size / Vector2(CHEQUER_CHECKS)
+		for j in CHEQUER_CHECKS.y:
+			for i in CHEQUER_CHECKS.x:
+				if (i + j) % 2 == 1:
+					_dark_checks.append(Rect2(CHEQUER.position + cell * Vector2(i, j), cell))
 		_patch_shots.resize(capacity)
 		var gradient := Gradient.new()
 		# Opaque to the disc's edge, then clear: the texture is a square round a circle.
@@ -352,9 +365,11 @@ class View:
 		_patch_shots[_patch_count] = 1 if shot else 0
 		_patch_count += 1
 
-	func set_pole(at: Vector2) -> void:
+	## Attack / Defend's pole at the world's `at`, or with `chequered` Elimination's overtime flag.
+	func set_pole(at: Vector2, chequered: bool = false) -> void:
 		_pole_on = true
 		_pole = at
+		_chequered = chequered
 
 	func set_hold(at: Vector2) -> void:
 		_hold_on = true
@@ -462,14 +477,25 @@ class View:
 		draw_polyline(_diamond, _team, HOLD_WIDTH, true)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-	## The pole: a yellow flag on a white staff, its foot a dot.
+	## The pole: a yellow flag on a white staff, its foot a dot; the overtime flag's cloth chequered off-white and dark,
+	## its foot off-white.
 	func _draw_pole(at: Vector2) -> void:
 		draw_set_transform(at, 0.0, Vector2.ONE)
 		draw_line(Vector2.ZERO, POLE_TOP, _cfg.ink, POLE_INK, true)
-		draw_colored_polygon(_flag, _cfg.ink)
-		draw_polyline(_flag_line, _cfg.ink, FLAG_INK, true)
+		if _chequered:
+			draw_rect(CHEQUER, _cfg.ink, false, FLAG_INK)
+		else:
+			draw_colored_polygon(_flag, _cfg.ink)
+			draw_polyline(_flag_line, _cfg.ink, FLAG_INK, true)
 		draw_line(Vector2.ZERO, POLE_TOP, POLE_COLOUR, POLE_WIDTH, true)
-		draw_colored_polygon(_flag, GameTheme.YELLOW)
-		draw_circle(Vector2.ZERO, POLE_BASE, GameTheme.YELLOW)
+		var foot := GameTheme.YELLOW
+		if _chequered:
+			foot = HudFlagGlyph.CHECK_PALE
+			draw_rect(CHEQUER, foot)
+			for r in _dark_checks:
+				draw_rect(r, HudFlagGlyph.CHECK_DARK)
+		else:
+			draw_colored_polygon(_flag, foot)
+		draw_circle(Vector2.ZERO, POLE_BASE, foot)
 		draw_arc(Vector2.ZERO, POLE_BASE, 0.0, TAU, POLE_ARC_POINTS, _cfg.ink, POLE_BASE_INK, true)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

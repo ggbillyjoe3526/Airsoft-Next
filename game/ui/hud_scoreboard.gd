@@ -97,9 +97,10 @@ func update(state: GameState, stats: MatchStats, you: Character, show: bool) -> 
 	if not show:
 		return
 	var rs := state.round_state
-	# In Attack / Defend's overtime the clock stands at 0 and the OT countdown runs instead (as the score bar shows).
-	var overtime := rs.mode == RoundState.Mode.ATTACK_DEFEND and rs.clock <= 0.0 and rs.overtime > 0.0 and rs.is_live()
-	var second := -1 - HudStyle.overtime_left(rs.overtime, _max_overtime) if overtime else ceili(rs.clock)
+	# In overtime (Attack / Defend's at the rope, Elimination's at the flag) the clock stands at 0 and the OT countdown
+	# runs instead (as the score bar shows).
+	var overtime := HudStyle.overtime_clock(rs, _max_overtime)
+	var second := -1 - overtime if overtime >= 0 else ceili(rs.clock)
 	var in_play := 0
 	for c in state.characters:
 		if Elimination.is_in_play(c):

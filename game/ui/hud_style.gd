@@ -178,15 +178,41 @@ static func side_round_sub(number: int, half_time_after: int, attacking: bool) -
 	return caps("HUD_TAKE_FLAG" if attacking else "HUD_HOLD_POLE")
 
 
-## Attack / Defend's round end by the flag or the clock: "FLAG RAISED" / "ALPHA TAKE THE ROUND", or "DEFENDED" /
-## "TIME'S UP · BETA HELD THE POLE".
+## A round's end by a flag: Attack / Defend's by the flag or the clock, "FLAG RAISED" / "ALPHA TAKE THE ROUND", or
+## "DEFENDED" / "TIME'S UP · BETA HELD THE POLE"; Elimination's overtime flag touched, "FLAG TOUCHED" / "ALPHA TAKE THE
+## ROUND".
 static func flag_round_won(reason: GameEvent.RoundEnd) -> String:
-	return caps("HUD_FLAG_RAISED" if reason == GameEvent.RoundEnd.CAPTURED else "HUD_DEFENDED")
+	match reason:
+		GameEvent.RoundEnd.CAPTURED:
+			return caps("HUD_FLAG_RAISED")
+		GameEvent.RoundEnd.OVERTIME_FLAG:
+			return caps("HUD_FLAG_TOUCHED")
+	return caps("HUD_DEFENDED")
 
 
 static func flag_round_sub(reason: GameEvent.RoundEnd, team_name_key: String) -> String:
-	var key := &"HUD_ROUND_WON" if reason == GameEvent.RoundEnd.CAPTURED else &"HUD_HELD_POLE"
+	var won := reason == GameEvent.RoundEnd.CAPTURED or reason == GameEvent.RoundEnd.OVERTIME_FLAG
+	var key := &"HUD_ROUND_WON" if won else &"HUD_HELD_POLE"
 	return (TranslationServer.translate(key) % TranslationServer.translate(team_name_key)).to_upper()
+
+
+## Whether a round that ended for `reason` in `mode` ended by a flag (flag_round_won's lines): Attack / Defend's other
+## than by eliminations, or Elimination's overtime flag touched.
+static func ended_by_flag(mode: RoundState.Mode, reason: GameEvent.RoundEnd) -> bool:
+	if reason == GameEvent.RoundEnd.OVERTIME_FLAG:
+		return true
+	return mode == RoundState.Mode.ATTACK_DEFEND and reason != GameEvent.RoundEnd.ELIMINATED
+
+
+## The overtime seconds the clock shows after "OT" while the live round in `rs` is in overtime, or -1 when it isn't:
+## Attack / Defend's once time has run out while the attackers work the rope (`max_overtime` less what was played), or
+## Elimination's while the overtime flag stands (its time left). The score bar and the scoreboard's heading both read it.
+static func overtime_clock(rs: RoundState, max_overtime: float) -> int:
+	if not rs.is_live():
+		return -1
+	if rs.mode == RoundState.Mode.ATTACK_DEFEND:
+		return overtime_left(rs.overtime, max_overtime) if rs.clock <= 0.0 and rs.overtime > 0.0 else -1
+	return maxi(0, ceili(rs.overtime_flag.left)) if rs.overtime_flag.up else -1
 
 
 ## The overtime left on the clock (whole seconds, never below 0): `max_overtime` less what has been played.
@@ -195,7 +221,8 @@ static func overtime_left(overtime: float, max_overtime: float) -> int:
 
 
 ## The round's stamp from your side: WON, LOST or DRAW (`winner` -1), and the line under it: "ROUND 4 · ALPHA TAKE
-## THE ROUND", "ROUND 3 · FLAG RAISED · ALPHA TAKE THE ROUND", or a draw's "ROUND 5 · THE ROUND IS PLAYED AGAIN".
+## THE ROUND", "ROUND 3 · FLAG RAISED · ALPHA TAKE THE ROUND" ("FLAG TOUCHED" at the overtime flag), or a draw's
+## "ROUND 5 · THE ROUND IS PLAYED AGAIN".
 static func round_stamp(winner: int, your_team: int) -> String:
 	if winner < 0:
 		return caps("HUD_ROUND_DRAW")

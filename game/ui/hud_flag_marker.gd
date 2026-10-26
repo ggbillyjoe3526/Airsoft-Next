@@ -21,6 +21,9 @@ const EDGE_SIZE := 22
 ## The HUD's size (Hud.set_hud_size): the view's screen points are divided by it, as the HUD's root is scaled by it.
 var hud_size: float = 1.0
 var _cfg: HudConfig = null
+## The anchor's height over the foot (m): the pole's, or the overtime flag's.
+var _height: float = 0.0
+var _glyph: HudFlagGlyph = null
 var _plate: PanelContainer = null
 var _distance: Label = null
 var _metres: int = -1
@@ -60,6 +63,7 @@ class Chevron:
 
 func setup(cfg: HudConfig) -> void:
 	_cfg = cfg
+	_height = cfg.flag_marker_height
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
 	_plate = PanelContainer.new()
@@ -73,9 +77,9 @@ func setup(cfg: HudConfig) -> void:
 	row.add_theme_constant_override("separation", GAP)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_plate.add_child(row)
-	var glyph := HudFlagGlyph.new(HudStyle.MARKER_SIZE, GameTheme.YELLOW)
-	glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(glyph)
+	_glyph = HudFlagGlyph.new(HudStyle.MARKER_SIZE, GameTheme.YELLOW)
+	_glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(_glyph)
 	var title := HudStyle.label(row, HudStyle.MARKER_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_LEFT,
 			HudStyle.SPACING_AIM)
 	title.text = HudStyle.caps("HUD_FLAG")
@@ -83,6 +87,18 @@ func setup(cfg: HudConfig) -> void:
 			HudStyle.SPACING_AIM)
 	_plate.resized.connect(_fit)
 	_build_edge()
+
+
+## The marker over Elimination's overtime flag: the chequered glyph, anchored HudConfig.overtime_marker_height over its
+## foot.
+func use_overtime() -> void:
+	_glyph.chequered = true
+	_height = _cfg.overtime_marker_height
+
+
+## Whether the plate carries the overtime flag's chequered glyph, for tests.
+func chequered() -> bool:
+	return _glyph.chequered
 
 
 ## Places the marker over the pole at `pole` as seen by `camera`, inside `area` (the HUD's size); hidden when `show` is
@@ -103,7 +119,7 @@ func place(camera: Camera3D, pole: Vector3, show: bool, area: Vector2, pin: Vect
 		_metres = metres
 		_distance.text = tr("HUD_FLAG_DISTANCE") % metres
 		_edge_distance.text = _distance.text.to_upper()
-	var top := pole + Vector3.UP * _cfg.flag_marker_height
+	var top := pole + Vector3.UP * _height
 	var behind := camera.is_position_behind(top)
 	var at := Vector2.ZERO if behind else camera.unproject_position(top) / hud_size
 	var to_left := camera.global_basis.x.dot(top - eye) < 0.0 if behind else at.x < 0.0

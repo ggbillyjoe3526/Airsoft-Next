@@ -12,8 +12,8 @@ extends Node
 ## callout (on_calls): a teammate's in your ear, panned toward them, an enemy's from where they stand when close,
 ## through walls. Kit rustles as a crouch, a stand or a lean starts (FoleyTracker, from the state: bots never hear it);
 ## a landing thuds louder and lower the harder it comes down, with a rustle under a hard one. The referee's whistle
-## (WhistleQueue) on the Interface bus: two short blasts start a round, one long ends it, three more end the match, and
-## the range's Time is one long. The map's ambience: its beds by day or night on the Ambience bus and its calls round
+## (WhistleQueue) on the Interface bus: two short blasts start a round, three quick short ones put Elimination's
+## overtime flag up, one long ends a round, three more end the match, and the range's Time is one long. The map's ambience: its beds by day or night on the Ambience bus and its calls round
 ## the listener (AmbientCalls), positional, at the pool's lowest priority. Your own sounds play plain; everyone else's
 ## from where they happen, and only within reach of the ears the view is through (the listener): others' steps
 ## step_reach and at most step_limit per step_window, their rustle foley_reach and at most foley_limit per foley_window,
@@ -278,6 +278,8 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 			GameEvent.Kind.ROUND_START when not state.round_state.practice:
 				_whistle.stop()
 				_blasts.round_start(now)
+			GameEvent.Kind.OVERTIME:
+				_blasts.overtime(now)
 			GameEvent.Kind.ROUND_OVER:
 				_blasts.round_over(now)
 			GameEvent.Kind.MATCH_OVER:
