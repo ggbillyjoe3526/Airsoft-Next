@@ -59,6 +59,7 @@ func test_the_next_round_starts_with_the_flag_down_and_idle() -> void:
 	rs.overtime_flag.raise(rs.overtime_spot)
 	await wait_process_frames(2)
 	rs.phase = RoundState.Phase.OVER
+	rs.timer = 1000.0 # the pause must outlast a loaded machine's catch-up ticks
 	rs.winner = 0
 	rs.reason = GameEvent.RoundEnd.OVERTIME_FLAG
 	await wait_process_frames(2)
