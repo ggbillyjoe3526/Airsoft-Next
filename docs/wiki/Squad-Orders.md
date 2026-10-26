@@ -25,3 +25,16 @@ view.
 - Orders do nothing on the [Practice Range](Practice-Range), where there's nobody to order.
 
 All four keys can be rebound in Settings › Controls ([Controls](Controls)).
+
+## In development
+
+**Pings:** press the **middle mouse button** (Squad: ping a spot in Settings › Controls) to mark where your crosshair
+meets the field, up to <!-- wiki:config ping_config.reach --> m away, for your bot teammates; the sky marks nothing.
+An opponent under your crosshair that you can see is marked as a contact instead, and counts as a threat. Your
+teammates take a ping as somewhere worth a look, kept in mind for <!-- wiki:config bot_config.ping_memory --> seconds
+unless they see or hear something newer: one sets off to check it the way it plays (a rusher runs, a careful bot walks
+in), and one under your order, at its post or holding watches it instead. A teammate in a fight, in cover or with
+someone in sight carries on. One of them answers in the hit feed, "Going to your ping" or "Watching your ping" in its
+own words. You have one ping at a time and a double click is one ping; pings clear each round and do nothing while you
+are out or on the [Practice Range](Practice-Range). Nothing marks the spot on screen yet: the answer is the sign it was
+taken.

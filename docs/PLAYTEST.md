@@ -667,9 +667,12 @@ pays XP ×1.5.
 - [ ] **The order wheel (hold Z).** Five items round the crosshair (Need a Mag upper left), each with its key. The
   view stays still while a pointer lights the order it's on; let go on one to give it, or without moving to give none.
   Walking continues; firing needs a new pull after. Orders > Click points and clicks instead.
-- [ ] **Pings (middle mouse).** Ping the floor or a wall: a team-coloured ring with "Ping · 24 m", on the minimap too,
-  fading after about 8 s. A teammate answers once and one goes to look, each its own way; ping the sky: nothing. A
-  visible opponent gets an orange "Contact" diamond (one hidden in a bush or the dark isn't marked). Settings › HUD ›
+- [ ] **Pings (middle mouse, PN1).** Ping the floor 20 to 30 m ahead: one teammate answers once in the feed ("Going to
+  your ping" in its own words) and goes to look, each its own way (a rusher runs, a careful bot walks in); give Follow
+  me first and one says it watches it instead and they stay with you. Ping the sky: nothing, and no answer. A double
+  click is one ping. Ping a visible opponent: they come looking for them as a threat; one in a bush or the dark is just
+  a spot. Do they keep at a ping too long (20 s) or drop it too soon? No marker or pip yet: PN2 draws a team-coloured
+  ring with "Ping · 24 m", an orange "Contact" diamond and the minimap's, fading after about 8 s, and Settings › HUD ›
   Ping markers Off hides the markers only.
 - [ ] **Ask for a mag (H).** With less than one full magazine in your pouch the line under the crosshair says "Low on
   BBs · H to ask for a mag". H: the nearest teammate says "Mag coming!", comes and tosses a magazine you see arc into

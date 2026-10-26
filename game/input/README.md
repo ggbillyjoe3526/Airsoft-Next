@@ -5,7 +5,8 @@ held keys and every press since the last tick into the player's `PlayerCommand`,
 lost. It reads nothing while the mouse is free, so a menu click never fires. Default bindings are project.godot's input
 map, by physical key (WASD on any layout): move WASD or arrows, walk Shift, sprint Alt, crouch C or Ctrl, jump Space
 (at a low obstacle it vaults), lean Q and E, fire and aim the mouse buttons, reload R, fire mode B, replicas 1, 2 and the
-mouse wheel, scoreboard Tab, squad orders Follow me F, Hold here X, Regroup V and the order wheel Z (held), pause Esc,
+mouse wheel, scoreboard Tab, squad orders Follow me F, Hold here X, Regroup V and the order wheel Z (held), ping the
+middle mouse button, pause Esc,
 the reserved debug keys F3 (overlay), F4 (BB paths) and F5 (hit areas). Rebinding is in Settings (below). Crouch is held (`ControlsConfig.crouch_toggle` on makes it a toggle, which a sprint or jump
 press stands up from); aim is held (`ControlsConfig.aim_toggle` on makes it a toggle); lean is always held. Tuning: `ControlsConfig`
 (`aim_sensitivity` multiplies the turn while the sight is up). The settings screen writes its values into it, and
@@ -18,6 +19,9 @@ top); feet still move, the mouse wheel switches nothing, and fire and aim need a
 default) gives the order pointed at on letting go, Click only on a click (a click gives it either way); the wheel's
 orders, keys and names are `ControlsConfig` data, Hover or Click a saved setting. It closes giving nothing on pause or
 focus loss (`release`), once you are out, and on the range (`allow_orders`). The wheel on screen is the HUD's (`HudOrderWheel`).
+
+Ping (PN1, the middle mouse button, "Squad: ping a spot"): a press fills the next tick's `PlayerCommand.ping` once,
+dead on the range as the order keys are (`allow_orders`); the simulation drops one while you are out or between rounds.
 
 | File | What it holds |
 |---|---|

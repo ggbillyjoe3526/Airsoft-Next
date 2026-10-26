@@ -35,10 +35,12 @@ it is playtested and made public.
   call what they see and do in the hit feed, in words with a radio click, never a voice.
 - **Elimination's overtime flag:** a time-out with players left on both sides puts a flag up near the middle, and the
   first team to touch it wins the round. Its rules are in and bots go for it; the flag on screen comes next.
+- **Pings** on the middle mouse button: mark a spot or an enemy for your bot teammates, and one goes to look or
+  watches it, and says so. The markers on screen and on the minimap come next.
 
 ### Next
 
-- **Pings** on the middle mouse button, and **asking a teammate for a magazine** when you run low.
+- **Asking a teammate for a magazine** when you run low.
 
 ### Then: the art pass
 
