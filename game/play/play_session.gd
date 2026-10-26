@@ -1033,7 +1033,10 @@ func _process(delta: float) -> void:
 		var ot := rs.overtime_flag
 		_overtime_flag.refresh(ot, OvertimeFlagView.toucher_of(rs), delta)
 		_overtime_flag.face(_eyes.global_position)
-		_hud.place_flag_marker(_eyes.camera, ot.foot, ot.up and rs.is_live())
+		# Placed only while it stands in a live round; hidden once, then left alone.
+		var standing := ot.up and rs.is_live()
+		if standing or _hud.flag_marker_shown():
+			_hud.place_flag_marker(_eyes.camera, ot.foot, standing)
 	_hud.set_watching(_bots.name_of(watched.id) if watched != player else "")
 	_show_orders(watched, delta)
 	if _intents != null:

@@ -15,6 +15,8 @@ const BASE_SEGMENTS := 24
 const RING_LIFT := 0.025
 const EDGE_LIFT := 0.024
 const FITTINGS_ROUGHNESS := 0.7
+## The cloth turns only when the view has moved round it by more than this (radians).
+const FACE_EPSILON := 0.001
 ## The rise's easing: out, so it pops up and settles.
 const RISE_EASE := 0.4
 
@@ -119,7 +121,9 @@ func face(eye: Vector3) -> void:
 		return
 	var d := eye - global_position
 	if d.x * d.x + d.z * d.z > 0.0:
-		_standing.rotation.y = atan2(d.x, d.z)
+		var angle := atan2(d.x, d.z)
+		if absf(angle - _standing.rotation.y) > FACE_EPSILON:
+			_standing.rotation.y = angle
 
 
 ## The team that touched the flag in `rs` (it took the round, and the flag still stands through the pause after it), or

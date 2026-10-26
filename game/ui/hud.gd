@@ -851,6 +851,11 @@ func flag_marker_text() -> String:
 	return _flag_marker.text()
 
 
+## Whether the flag marker shows (over the flag or pinned to a side).
+func flag_marker_shown() -> bool:
+	return _flag_marker.visible
+
+
 ## Squad orders (SO4): Hold here's marker, and over it the order wheel round the crosshair. `controls` has the wheel's
 ## orders, keys and reach. The wheel builds itself when it first opens, so a session that never gives an order (the
 ## range) pays nothing.
