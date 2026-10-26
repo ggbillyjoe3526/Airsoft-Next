@@ -1,13 +1,13 @@
 # OV3 · The overtime flag on screen and in sound
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-26 | 1 | worker | see Gate | – | – |
-| 2026-10-26 | 1, fix round 1: QA blocking 1 fixed | worker | see Gate | – | QA: a round won the tick after the flag goes up let the overtime blasts cut its long blast; performance advisories |
+| 2026-10-26 | 1 | worker | see Gate; QA Fail (blocking 1), performance Pass | – | – |
+| 2026-10-26 | 1, fix round 1: QA blocking 1 fixed | worker | see Gate; QA re-check Pass | Accept 8/8 | QA: a round won the tick after the flag goes up let the overtime blasts cut its long blast; performance advisories |
 
 ## Goal
 
@@ -121,6 +121,15 @@ Engine renders of a real `PlaySession` on Depot (Compatibility), the clock run o
 - `python3 tools/wiki.py check` and `tools/changelog.sh check` pass.
 - Not verified: how it looks and sounds in play and its frame time on the Low preset (PLAYTEST › The overtime flag on
   screen and in sound).
+
+## Advisories left
+
+- **The HUD's flag glyph keeps its own copy of the flag's two colours** (critic): `hud_flag_glyph.gd` repeats
+  `FlagViewConfig.overtime_pale` and `overtime_dark`, so retuning the config leaves the glyphs behind; read the config
+  when the file is next touched.
+- **A few rewrapped lines run past 120 columns** (critic): `sim_audio.gd:16`, `hud.gd:13`, the test file's header.
+- **The idle ring is faint on Depot's pale concrete** (critic): the owner's eye in play.
+- **The cloth's facing skips turns under 0.001 rad** (QA): invisible.
 
 ## Gate
 

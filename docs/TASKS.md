@@ -4,34 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## OV3 · The overtime flag on screen and in sound (Dev)
-when: build order step 27, after OV1
-tier: ui
-perf: required
-touches: game/play/overtime_flag_view.gd, game/play/flag_view.gd, game/play/flag_cloth.gdshader,
-  game/config/flag_view_config.gd, game/play/play_session.gd, game/play/whistle_queue.gd, game/play/sim_audio.gd,
-  game/config/sound_config.gd, game/ui/hud.gd, game/ui/hud_score.gd, game/ui/hud_flag_marker.gd,
-  game/ui/hud_flag_glyph.gd, game/ui/hud_minimap.gd, game/ui/hud_round_result.gd, game/ui/hud_style.gd,
-  game/ui/hud_scoreboard.gd, game/ui/announcer.gd, game/config/hud_config.gd, game/config/play_tuning.tres,
-  game/ui/text/en.po, tests/unit/, tests/support/field_checks.gd, docs/wiki/Modes.md,
-  docs/wiki/HUD-and-Minimap.md, docs/PLAYTEST.md
-contract: Simulation and presentation (1); Data, not literals (6)
-acceptance:
-  1. As `concepts/step27/overtime-flag.png`: the flag rises from the ground in 0.8 s at the spot (none under Reduced
-     motion), a chequered off-white (238, 234, 224) and dark cloth on a short pole with a 1 m reach ring round its foot;
-     once touched, cloth and ring take the toucher's team colour. Scenery only: no collider, BBs pass through. The
-     cloth and ring pass the team-colour hue test until touched.
-  2. Three short whistle blasts and the banner OVERTIME · TOUCH THE FLAG for 2.4 s; the score bar's clock reads OT and
-     the flag's time left; the scoreboard's heading counts it as Attack / Defend's does.
-  3. The marker over the flag is Attack / Defend's plate with the chequered glyph ("FLAG · 12 M"), seen through cover,
-     pinned under the minimap when off screen; the minimap shows the glyph at the spot.
-  4. A round won at the flag ends with FLAG TOUCHED and the team's line; untouched, DRAW as today. Screen reader
-     messages read the overtime and its result.
-  5. Built once a match and hidden until the flag goes up; a frame with it down allocates nothing. Pictures of the flag
-     up and touched on Depot are posted.
-status: open
-attempts: 0
-
 ## PN1 · Pings: the mark, and how bot teammates take it (Dev)
 when: build order step 27, after OV3
 tier: core
