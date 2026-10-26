@@ -139,10 +139,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _orders_allowed and _order_key(event):
 		return
-	if event.is_action(PING):
-		if _orders_allowed:
-			_ping_latch = true
-		return
 	if event.is_action(ORDER_WHEEL):
 		if not _wheel.open: # a second key bound to the wheel doesn't recentre it
 			_open_wheel()
@@ -173,6 +169,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_hop_steps -= 1
 	elif event.is_action(HOP_UP_MORE):
 		_hop_steps += 1
+	elif event.is_action(PING):
+		_ping_latch = _ping_latch or _orders_allowed
 	elif event.is_action(NEXT_SLOT):
 		_slot_steps += 1
 		_slot_latch = -1
