@@ -20,8 +20,9 @@ extends Control
 ## marker and the cue ring (`set_hud_size`); Reduced motion holds the flag warning steady (`set_motion`). Your team's
 ## callouts share the hit feed, each with its speaker and words, gone at a round's start, while Settings › HUD ›
 ## Callouts is on (`on_calls`). Screen reader messages read the hit feed, the calls, your hit and the rounds' turns
-## through a live region that is never drawn (HudAnnounce, `set_read_out`). Text is only rebuilt when what it shows
-## changes. No hints teaching the controls (owner, 2026-10-16).
+## through a live region that is never drawn (HudAnnounce, `set_read_out`). Your team's pings show as markers over the
+## field (HudPingMarkers, `place_pings`) and on the minimap while Settings › HUD › Ping markers is on (PN2). Text is
+## only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
 
 const MARGIN := 32.0
 ## The replica panel's lane, bottom right: as wide as its hop-up note, as tall as its notes and panel.
@@ -88,6 +89,9 @@ var _order_wheel: HudOrderWheel = null
 var _hold_marker: HudHoldMarker = null
 var _hold_slots := HudHoldMarker.Slots.new()
 var _minimap: HudMinimap = null
+## Your team's ping markers (PN2), and where the ones pinned at a side go.
+var _pings: HudPingMarkers = null
+var _ping_stack := HudPingMarkers.Stack.new()
 ## The sound cue ring round the crosshair (AC4), and whether Settings › Accessibility has it on.
 var _sound_cues: HudSoundCues = null
 var _cues_on: bool = false
@@ -209,6 +213,9 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_flag_marker = HudFlagMarker.new()
 	add_child(_flag_marker)
 	_flag_marker.setup(_cfg)
+	# The ping markers, one per teammate made in setup_field, placed each frame (place_pings).
+	_pings = HudPingMarkers.new()
+	add_child(_pings)
 	# Banners and the hit call, centre.
 	var middle := VBoxContainer.new()
 	_place(middle, Vector4(0.5, 0.0, 0.5, 0.5), Rect2(-MIDDLE_WIDTH * 0.5, 0.0, MIDDLE_WIDTH, -MIDDLE_RAISE))
@@ -312,6 +319,10 @@ func range_challenge() -> HudRangeChallenge:
 func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, characters: Array[Character],
 		stats: MatchStats) -> void:
 	_team_markers.setup(_cfg, body, query, characters, _player)
+	_pings.setup(_cfg, _sim.pings.lifetime, characters, _player, _teams.colours[_player.team],
+			_teams.colours[1 - _player.team])
+	_pings.hud_size = _hud_size
+	HudStyle.restyle(_pings, _opacity)
 	_feed.set_names(names)
 	_round_result.set_names(names)
 	_summary.set_names(names)
@@ -327,16 +338,21 @@ func setup_minimap(map: MapData, cfg: MinimapConfig, heard: MinimapHearing, map_
 	add_child(_minimap)
 	move_child(_minimap, _team_markers.get_index() + 1)
 	move_child(_flag_marker, _minimap.get_index()) # the map is drawn over the marker, never the other way round
+	move_child(_pings, _minimap.get_index())
 	_minimap.setup(cfg, _teams, map, heard, map_name, characters, _cfg.minimap_margin)
 	HudStyle.restyle(_minimap, _opacity)
 
 
 ## Follows the character `watched` (whose eyes the view is through) on the minimap, looking `yaw`, `fraction` of the way
-## through the tick, with your Hold here at `hold` while `holding`. Allocates nothing.
+## through the tick, with your Hold here at `hold` while `holding`, and the pings of their team up in `book` (null:
+## none) while Settings › HUD › Ping markers is on. Allocates nothing.
 func update_minimap(state: GameState, watched: Character, yaw: float, fraction: float, holding: bool,
-		hold: Vector3) -> void:
-	if _minimap != null:
-		_minimap.follow(state, watched, yaw, fraction, _prefs.minimap_turn, holding, hold)
+		hold: Vector3, book: Pings = null) -> void:
+	if _minimap == null:
+		return
+	_minimap.follow(state, watched, yaw, fraction, _prefs.minimap_turn, holding, hold)
+	if book != null and _prefs.ping_markers:
+		_minimap.add_pings(book, watched.team, state.time, _sim.pings.lifetime, _cfg.ping_fade)
 
 
 func minimap() -> HudMinimap:
@@ -451,6 +467,7 @@ func set_hud_size(hud_size: float) -> void:
 		_keep_own_size(_sound_cues)
 	_team_markers.hud_size = s
 	_flag_marker.hud_size = s
+	_pings.hud_size = s
 	if _hold_marker != null:
 		_hold_marker.hud_size = s
 	queue_redraw()
@@ -464,6 +481,7 @@ func hud_size() -> float:
 ## change.
 func set_motion(motion: MotionScale) -> void:
 	_pulse_share = clampf(motion.hud_pulse, 0.0, 1.0)
+	_pings.pops = motion.hud_pulse > 0.0
 
 
 ## Scales `root` (a full-screen Control) by `by` about the top left, keeping it as large as its parent over the scale:
@@ -892,6 +910,45 @@ func place_hold_marker(camera: Camera3D, spot: Vector3, show: bool) -> void:
 	slots.flag = _flag_marker.occupied()
 	slots.panel = _minimap.panel_rect() if _minimap != null else Rect2()
 	_hold_marker.place(camera, spot, show, size, slots.flag, slots)
+
+
+## Places your team's pings up in `book` at `now` (s of match time) as `camera` sees them (HudPingMarkers): pinned at a
+## side under the flag's and Hold here's plates there. Hidden when `show` is false (you watch someone else), with
+## Settings › HUD › Ping markers off, the scoreboard up or the match's summary. Call after the flag and Hold here's
+## markers are placed. Allocates nothing.
+func place_pings(camera: Camera3D, book: Pings, now: float, show: bool) -> void:
+	var on := show and _prefs.ping_markers and not _board.visible and not _summary.visible
+	if not on:
+		_pings.hide_all()
+		return
+	var stack := _ping_stack
+	var gap := _cfg.ping_stack_gap
+	stack.left = pin_point()
+	stack.floor_y = _left_stack_floor()
+	stack.right_top = pin_right_top()
+	stack.right_x = stack.left.x
+	var flag := _flag_marker.occupied()
+	var side := _flag_marker.pinned_side()
+	if side < 0:
+		stack.left.y = maxf(stack.left.y, flag.end.y + gap)
+	elif side > 0:
+		stack.right_top = maxf(stack.right_top, flag.end.y + gap)
+	if _hold_marker != null and _hold_marker.visible:
+		var hold := _hold_marker.get_rect()
+		if _hold_marker.pin == HudHoldMarker.Pin.LEFT and hold.position.x < size.x * 0.5:
+			stack.left.y = maxf(stack.left.y, hold.end.y + gap)
+		elif _hold_marker.pin == HudHoldMarker.Pin.LEFT or _hold_marker.pin == HudHoldMarker.Pin.RIGHT:
+			stack.right_top = maxf(stack.right_top, hold.end.y + gap)
+	_pings.place(camera, book, now, true, size, stack)
+
+
+## Hides the ping markers at once (the pause menu opening).
+func hide_pings() -> void:
+	_pings.hide_all()
+
+
+func ping_markers() -> HudPingMarkers:
+	return _pings
 
 
 ## Puts the wheel away (the pause menu opening).

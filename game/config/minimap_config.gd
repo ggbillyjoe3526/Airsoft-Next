@@ -98,6 +98,11 @@ extends Resource
 @export var shot_ring_width: float = 1.6
 ## The hold diamond's fill, as a share of the team colour.
 @export var hold_fill: float = 0.4
+## A ping (PN2): a spot's ring this big (px, its radius) and this wide in the team's colour, a contact's diamond this
+## big (px, middle to tip) in the other team's; each pinned to the panel's rim mark_pad inside when off it.
+@export var ping_ring_radius: float = 5.5
+@export var ping_ring_width: float = 2.4
+@export var ping_diamond: float = 7.0
 ## The area label's backing, as a share of the HUD's navy (the panel and caption are solid); all follow the panels'
 ## opacity.
 @export var label_backing: float = 0.82

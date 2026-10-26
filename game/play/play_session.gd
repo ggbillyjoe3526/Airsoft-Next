@@ -858,7 +858,8 @@ func entity_count() -> int:
 
 
 ## Hands the tick's events to the bots' ears, the minimap's, the sound cues' (while on) and sound's (through the eyes
-## the view is through), the field's mix, the HUD and the effects; the bots' callouts said to sound and the HUD.
+## the view is through), the field's mix, the HUD and the effects; your ping's pip and the bots' callouts said to sound,
+## the callouts to the HUD.
 func _after_tick() -> void:
 	_bots.observe(state)
 	var ears := spectated()
@@ -869,6 +870,7 @@ func _after_tick() -> void:
 	_audio.on_tick(state, PLAYER_ID, ears)
 	_mix.on_tick(state, PLAYER_ID)
 	_audio.on_order(_bots.order_outcome, PLAYER_ID)
+	_audio.on_ping(_bots.pings, PLAYER_ID)
 	_hud.on_tick(state)
 	if _bots.callouts != null:
 		_audio.on_calls(_bots.callouts.said, state, player.team, settings.hud.callouts)
@@ -1022,7 +1024,8 @@ func _process(delta: float) -> void:
 	_hud.update(state, _input.zoom, delta)
 	_hud.place_team_markers(_eyes.camera, state.characters, watched, fraction)
 	var yaw := _view_yaw(watched, fraction)
-	_hud.update_minimap(state, watched, yaw, fraction, _bots.hold_spot(PLAYER_ID), _bots.orders.held_middle)
+	_hud.update_minimap(state, watched, yaw, fraction, _bots.hold_spot(PLAYER_ID), _bots.orders.held_middle,
+			_bots.pings)
 	_hud.place_sound_cues(watched, yaw, fraction)
 	if _flag != null:
 		var rs := state.round_state
@@ -1039,6 +1042,8 @@ func _process(delta: float) -> void:
 			_hud.place_flag_marker(_eyes.camera, ot.foot, standing)
 	_hud.set_watching(_bots.name_of(watched.id) if watched != player else "")
 	_show_orders(watched, delta)
+	# After the flag's and Hold here's markers, so pinned pings stack under them; through your own eyes only.
+	_hud.place_pings(_eyes.camera, _bots.pings, state.time, watched == player)
 	if _intents != null:
 		_intents.update(state, fraction)
 	if _first_frame_due:
@@ -1172,6 +1177,7 @@ func _open_pause() -> void:
 	_input.release()
 	_hud.show_board(false)
 	_hud.close_order_wheel()
+	_hud.hide_pings()
 	# The hint comes back on resume naming Jump's key as bound then (Settings can rebind it); a hold starts over.
 	_hud.set_skip_hint(false)
 	_skip_armed = false
