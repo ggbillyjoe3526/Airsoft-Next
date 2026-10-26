@@ -25,6 +25,9 @@ var held_middle: Vector3:
 		return orders.held_middle
 ## The bots' callouts (null with them off): what they call to their team, read off what they do after each step.
 var callouts: Callouts = null
+## The ping book (PN1): each character's ping, a press resolved into a spot or a contact, or a teammate's mark from a
+## Contact call; cleared each round. The presentation reads it.
+var pings: Pings = null
 
 
 ## Bots for every character in `state` but `player_id` (-1: everyone), on `map` with its nav grid and level rays, each
@@ -62,8 +65,10 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 	_measure_field(map)
 	w.setup_sectors(w.planner.bounds_lo, w.planner.bounds_hi)
 	orders = SquadOrderBook.new(w)
+	pings = Pings.new(state.characters, tuning.pings)
 	if talk:
 		callouts = Callouts.new(CalloutsFile.shared(), config.callouts, map.areas, state.match_seed)
+		callouts.pings = pings
 
 
 ## Writes each bot's command for this tick into `commands` (indexed by character id). With the Dev settings' Bots hold
@@ -124,9 +129,10 @@ func card_note_of(character_id: int) -> String:
 
 
 ## What the bots heard in the step just taken (or the match's start), a hit on the player kept for "What got you", the
-## squad orders given in it handed out (an order ends once its giver is out, and for a bot that is out), each bot's
-## time to set off for the overtime flag once it is up, a fresh plan when a round has started (no order outlasts a
-## round), and last what the bots call of it all (Callouts).
+## squad orders given in it handed out (an order ends once its giver is out, and for a bot that is out), each ping
+## made a ping and taken by the pinger's bot teammates (Pings), each bot's time to set off for the overtime flag once it
+## is up, a fresh plan and no pings when a round has started (no order outlasts a round), and last what the bots call of
+## it all (Callouts).
 func observe(state: GameState) -> void:
 	BotHearing.observe(state, world)
 	var events := state.events
@@ -143,6 +149,8 @@ func observe(state: GameState) -> void:
 			orders.refused(e.actor)
 		elif e.kind == GameEvent.Kind.OVERTIME:
 			_overtime(state.time)
+		elif e.kind == GameEvent.Kind.PING:
+			_ping(e, state.time)
 	orders.update()
 	if state.events.count_of(GameEvent.Kind.ROUND_START) > 0:
 		_new_round(state)
@@ -194,6 +202,17 @@ func _record_hit(state: GameState, shooter_id: int, bounced: bool) -> void:
 	last_hit.record(state.time, victim, shooter, bounced, known, held, seen_for, world.cfg.hit_moving_speed)
 
 
+## A PING event `e` at `time` (PN1): the pinger's ping in the book (Pings.place) and, if it marks anything, taken by
+## each of their bot teammates (Pings.take: a bot fighting, in cover or with a target in view doesn't).
+func _ping(e: GameEvent, time: float) -> void:
+	var p := pings.place(e, time, world)
+	if p == null:
+		return
+	for b in world.bots:
+		if b.character.team == p.team and b.character.id != p.owner:
+			Pings.take(b, p, world)
+
+
 ## Elimination's overtime flag went up at `time` (OV2): each bot sets off for it once it has taken in the whistle (its
 ## skill's overtime_reaction), and draws now whether it goes round the side (its flank_chance), on its own stream.
 func _overtime(time: float) -> void:
@@ -204,6 +223,7 @@ func _overtime(time: float) -> void:
 
 func _new_round(state: GameState) -> void:
 	orders.clear()
+	pings.clear()
 	world.time = state.time
 	_sync_round(state)
 	world.clear_sectors()

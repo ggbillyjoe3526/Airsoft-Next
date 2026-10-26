@@ -52,6 +52,9 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var hearing_contact_time: float = 2.0
 ## How long (s) a bot keeps after someone it lost sight or sound of before it forgets them.
 @export var memory_time: float = 6.0
+## How long (s) a bot keeps a teammate's ping in mind (PN1, Pings): longer than memory_time, so a far ping is still
+## worth the walk; real news of an enemy (a sighting, a noise) writes over it sooner.
+@export var ping_memory: float = 20.0
 ## An enemy BB landing this close (m) puts a bot under fire for suppression_time (s): it wants cover.
 @export var suppression_radius: float = 1.6
 @export var suppression_time: float = 0.4

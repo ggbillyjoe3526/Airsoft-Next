@@ -4,36 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## PN1 · Pings: the mark, and how bot teammates take it (Dev)
-when: build order step 27, after OV3
-tier: core
-perf: required
-touches: project.godot, game/input/key_bindings.gd, game/input/player_input.gd, game/input/README.md,
-  game/sim/player_command.gd, game/sim/simulation.gd, game/sim/game_event.gd, game/config/ping_config.gd,
-  game/config/sim_tuning.gd, game/config/sim_tuning.tres, game/ai/pings.gd, game/ai/bot.gd, game/ai/bot_brain.gd,
-  game/ai/bot_hearing.gd, game/ai/bot_world.gd, game/ai/bot_controller.gd, game/ai/callouts.gd,
-  game/config/bot_config.gd, game/config/bot_tuning.tres, game/ai/README.md, game/ui/text/en.po,
-  tests/unit/test_pings.gd, tests/unit/test_key_bindings.gd, docs/wiki/Squad-Orders.md, docs/wiki/Controls.md
-contract: Commands (2); Events (3); Data, not literals (6); Headless (9)
-acceptance:
-  1. `ping` on the middle mouse button in the input map and KeyBindings, rebindable, named "Squad: ping a spot"; the
-     defaults test still agrees with `project.godot`. A press fills the next tick's `PlayerCommand.ping` once; at most
-     one a character each 0.25 s. Dead on the range and while you are out.
-  2. The simulation turns it into a PING event: where the view's ray (recoil and all) meets the field within 120 m,
-     or nothing for the sky. It changes no state.
-  3. `BotController` resolves it (the browser's `ai/pings.ts`): an enemy within 2.5° of chest or head (0.5 m up close),
-     nearer than what lies behind and seen by `BotSenses.visible_part` is a contact; else the spot is the nearest
-     walkable floor within 3 m, looked for 0.4 m back toward the pinger. One ping each, kept 8 s, cleared each round,
-     in a reused ping book the HUD reads.
-  4. Bot teammates take it as a noise heard exactly there, kept 20 s (BotConfig's ping memory); a contact also counts as
-     a threat; a bot in a fight, in cover or with a target in view ignores it. One teammate answers: the nearest that
-     sets off says Going to your ping, else the nearest that took it says Watching your ping (CO1's rows).
-  5. A teammate's Contact call marks the enemy for you as a contact ping by callouts.md's Marks (chance, the team's
-     gap), on the callouts' stream, so marks change neither the lines nor play. The browser's `pings.test.ts` and
-     `matchSessionPings.test.ts` cases pass in GUT; a tick with pings allocates nothing.
-status: open
-attempts: 0
-
 ## PN2 · Ping markers, the minimap and the pip (Dev)
 when: build order step 27, after PN1
 tier: ui

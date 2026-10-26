@@ -12,7 +12,7 @@ extends RefCounted
 ## spares instead.
 ## Characters without a command keep their view and stand still; hit characters follow the hit-calling routine instead
 ## of their command, and once out and standing in the dead zone they are only timed. A squad order in a command becomes
-## an event for the bots' controller and changes nothing here. A run into a noisy prop knocks it, and a BB landing hard
+## an event for the bots' controller and changes nothing here, and so does a ping (PN1). A run into a noisy prop knocks it, and a BB landing hard
 ## on steel rings it (PropNoise, NP1). The weapon torch switches after the replica (Torch); hit, it goes out.
 
 var tuning: SimTuning = null
@@ -35,6 +35,8 @@ var _eliminated: PlayerCommand = PlayerCommand.new()
 ## presses made during it (Vault).
 var _vaulting: PlayerCommand = PlayerCommand.new()
 var _after_vault: PlayerCommand = PlayerCommand.new()
+## Where a ping's view met the field (one at a time).
+var _ping_hit: RayHit = RayHit.new()
 
 
 func _init(sim_tuning: SimTuning, world: WorldQuery, character_mover: CharacterMover, map_ends: Array[MapEnd],
@@ -130,6 +132,8 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 				state.rng, state.events, tuning, dt, 0.0 if c.vault.active else c.fire_lockout)
 		# After the armament: a switch or holster this tick to no light in hand puts the torch out.
 		Torch.step(c, toggle_torch, state.events, dt)
+		# A ping looks where the view is now, after the turn and the shot's kick.
+		_ping(c, commands, live and not state.round_state.practice, state.events)
 	var first_bb_event := state.events.count
 	BBStep.step(state.bbs, state.characters, query, tuning, kill_y, not live, ends, state.events, dt,
 			state.wind.at(state.time), state.rng, state.targets)
@@ -158,3 +162,24 @@ static func _squad_order(c: Character, commands: Array[PlayerCommand], live: boo
 	e.actor = c.id
 	e.value = cmd.squad_order
 	e.value2 = 1 if cmd.order_from_wheel else 0
+
+
+## A ping in `c`'s command this tick (PN1), from a character in play in a `live` round (never on the range): a PING
+## event along its view, recoil and all, from its eyes, saying where that view meets the field within PingConfig.reach
+## (or nothing: the sky). The bots' controller makes it a ping (Pings); nothing changes here.
+func _ping(c: Character, commands: Array[PlayerCommand], live: bool, events: SimEvents) -> void:
+	var cmd: PlayerCommand = commands[c.id] if c.id >= 0 and c.id < commands.size() else null
+	if cmd == null or not cmd.ping or not live:
+		return
+	var eye := Lean.eye(c, tuning.body, tuning.hits)
+	var pitch := clampf(c.pitch + c.armament.recoil, -PI * 0.5, PI * 0.5)
+	var flat := cos(pitch)
+	var dir := Vector3(-sin(c.yaw) * flat, sin(pitch), -cos(c.yaw) * flat)
+	var reach := tuning.pings.reach
+	var e := events.add(GameEvent.Kind.PING)
+	e.actor = c.id
+	e.position = eye
+	e.direction = dir
+	if reach > 0.0 and query.ray(eye, eye + dir * reach, _ping_hit):
+		e.value = 1
+		e.reach = _ping_hit.fraction * reach

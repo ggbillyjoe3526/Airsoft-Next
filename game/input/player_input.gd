@@ -9,7 +9,8 @@ extends Node
 ## wheel: the mouse moves its own pointer (OrderWheelPointer) instead of the view, the mouse wheel switches nothing, feet
 ## still move, and fire and aim need a fresh press once it closes. The order pointed at is given on letting go of the key
 ## (Hover) or on a click (either way); the wheel closes giving nothing on pause or focus loss (`release`) and once
-## orders can't be given (`allow_orders`).
+## orders can't be given (`allow_orders`). Ping (PN1) fills the next tick's ping once, dead where the order keys are (on
+## the range); the simulation drops one while you are out.
 
 ## The actions in project.godot's input map.
 const FORWARD := &"move_forward"
@@ -36,6 +37,8 @@ const TORCH := &"torch"
 const SCOREBOARD := &"scoreboard"
 ## Held, the order wheel is open (the order keys are data: ControlsConfig.wheel_keys).
 const ORDER_WHEEL := &"order_wheel"
+## Ping where you look, for your bot teammates (PN1).
+const PING := &"ping"
 
 ## The view, absolute (rad): yaw 0 looks down -Z and turns left positive; pitch up positive.
 var view_yaw: float = 0.0
@@ -66,6 +69,8 @@ var _aim_held_back: bool = false
 ## The squad order keyed or picked on the wheel since the last tick, and whether it came from the wheel.
 var _order_latch: SquadOrder.Kind = SquadOrder.Kind.NONE
 var _order_from_wheel: bool = false
+## Ping pressed since the last tick.
+var _ping_latch: bool = false
 ## Orders can be given (allow_orders): the keys, and the wheel only while `_wheel_allowed` too.
 var _orders_allowed: bool = true
 var _wheel_allowed: bool = true
@@ -90,6 +95,7 @@ func allow_orders(keys: bool, wheel_ok: bool) -> void:
 	_wheel_allowed = keys and wheel_ok
 	if not keys:
 		_order_latch = SquadOrder.Kind.NONE
+		_ping_latch = false
 	if not _wheel_allowed and _wheel.open:
 		_close_wheel()
 
@@ -163,6 +169,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_hop_steps -= 1
 	elif event.is_action(HOP_UP_MORE):
 		_hop_steps += 1
+	elif event.is_action(PING):
+		_ping_latch = _ping_latch or _orders_allowed
 	elif event.is_action(NEXT_SLOT):
 		_slot_steps += 1
 		_slot_latch = -1
@@ -292,13 +300,15 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	_clear_latches()
 
 
-## Writes the squad order keyed or picked since the last tick into `cmd`, once. `fill` does; while a bot plays for you
-## (the smoke test) the play scene calls it alone.
+## Writes the squad order keyed or picked since the last tick, and a ping pressed since, into `cmd`, once. `fill`
+## does; while a bot plays for you (the smoke test) the play scene calls it alone.
 func fill_order(cmd: PlayerCommand) -> void:
 	cmd.squad_order = _order_latch
 	cmd.order_from_wheel = _order_from_wheel
+	cmd.ping = _ping_latch
 	_order_latch = SquadOrder.Kind.NONE
 	_order_from_wheel = false
+	_ping_latch = false
 
 
 ## Ignores the fire button until it is let go: a click that moved the round on is not the next round's first shot.
@@ -327,3 +337,4 @@ func _clear_latches() -> void:
 	_hop_steps = 0
 	_order_latch = SquadOrder.Kind.NONE
 	_order_from_wheel = false
+	_ping_latch = false

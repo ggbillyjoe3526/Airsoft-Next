@@ -1874,6 +1874,9 @@ msgstr "SQUAD: HOLD HERE"
 msgid "ACT_ORDER_REGROUP"
 msgstr "SQUAD: REGROUP"
 
+msgid "ACT_PING"
+msgstr "SQUAD: PING A SPOT"
+
 msgid "ACT_LOADOUT"
 msgstr "LOADOUT (PRACTICE)"
 

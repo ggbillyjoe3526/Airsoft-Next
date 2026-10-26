@@ -66,6 +66,10 @@ var heard_other: Vector3 = Vector3.ZERO
 var heard_other_at: float = -INF
 ## Last near miss from an enemy BB.
 var suppressed_at: float = -INF
+## A teammate's ping it took (PN1, Pings.take): when (-INF: none this round) and its floor spot. It is the bot's
+## last-known spot until real news writes another, kept in mind BotConfig.ping_memory (ping_in_mind).
+var ping_at: float = -INF
+var ping_spot: Vector3 = Vector3.ZERO
 
 ## Its route: waypoints, the one it walks to, where the leg began, the goal and the route's state.
 var route: PackedVector3Array = PackedVector3Array()
@@ -224,6 +228,7 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	sprint_run = 0.0
 	sprint_gap = 0.0
 	suppressed_at = -INF
+	ping_at = -INF
 	route.clear()
 	route_leg = 0
 	route_state = RouteState.NONE
@@ -286,9 +291,20 @@ func last_seen_at() -> float:
 	return contact.seen_at if contact != null else -INF
 
 
-## Something seen or heard is still in mind (BotConfig.memory_time).
+## Something seen or heard is still in mind (BotConfig.memory_time), or a teammate's ping it took (ping_in_mind).
 func threat_in_mind(time: float, cfg: BotConfig) -> bool:
-	return has_last_known and time - maxf(last_seen_at(), heard_at) < cfg.memory_time
+	return has_last_known and (time - maxf(last_seen_at(), heard_at) < cfg.memory_time or ping_in_mind(time, cfg))
+
+
+## A teammate's ping is what it has in mind (PN1): taken within BotConfig.ping_memory and still its last-known spot
+## (real news since, a sighting, a noise or a teammate's, writes another; a search that got there and looked forgets it).
+func ping_in_mind(time: float, cfg: BotConfig) -> bool:
+	return time - ping_at < cfg.ping_memory and on_ping_spot()
+
+
+## Whether its last-known spot is still the one a teammate's ping gave it, however long ago.
+func on_ping_spot() -> bool:
+	return has_last_known and ping_at > -INF and last_known == ping_spot
 
 
 ## Takes up the enemy heard during a fight now that the fight is over, if that is recent. True if there was one.

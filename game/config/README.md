@@ -24,6 +24,7 @@ leaves out ships as null and the exported game crashes. `tests/unit/test_saved_c
 | `flag_config.gd` | Attack / Defend's flag: reach, raise and lower times, overtime, rope steps |
 | `overtime_config.gd` | Elimination's overtime flag (OV1): its time, the reach from its foot and the reach in height |
 | `footstep_config.gd` | Strides and landings |
+| `ping_config.gd` | Pings (PN1): how far a ping reaches, the cone and reach that make an enemy under the view a contact, the spot's snap and back-off, how long a ping is kept and the gap between one character's pings |
 | `noise_config.gd` | Noisy props and loud ground (NP1): which block kinds knock and ring, how far each carries, the knock's speed, touch and facing, the quiet time, the ring's speed and margin, how far steps carry on each ground |
 | `nav_config.gd` | The nav grid: cell size, clearance margin, snapping, the search's greed, line sampling |
 | `replica_rules_config.gd` | Recoil recovery, the trigger, BB weight, the hop-up dial's range and notch, the draw from the holster |

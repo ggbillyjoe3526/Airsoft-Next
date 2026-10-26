@@ -22,6 +22,7 @@ const DEFAULT_PATH := "res://game/config/sim_tuning.tres"
 @export var replica_rules: ReplicaRulesConfig = ReplicaRulesConfig.new()
 @export var nav: NavConfig = NavConfig.new()
 @export var noise: NoiseConfig = NoiseConfig.new()
+@export var pings: PingConfig = PingConfig.new()
 
 
 ## The game's tuning (sim_tuning.tres), or the built-in values with a warning if it can't be loaded.

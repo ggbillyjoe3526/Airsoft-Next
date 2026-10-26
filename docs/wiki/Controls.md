@@ -17,6 +17,11 @@ so W A S D stays W A S D on any keyboard layout.
 - **Loadout (practice)** opens the Loadout from the [Practice Range](Practice-Range); in a match it does nothing.
 - **Hop-up less** and **Hop-up more** turn the hop-up dial on the replica in your hands ([How to Play](How-to-Play#hop-up)).
 
+### In development
+
+- **Squad: ping a spot** (the middle mouse button) marks where you look for your bot teammates
+  ([Squad Orders](Squad-Orders#in-development)).
+
 ## Keys you can't change
 
 | Key | What it does |

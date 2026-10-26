@@ -79,6 +79,7 @@ at its level, never how well (`BotPersonality`).
 | `bot_flag.gd` | Attack / Defend: each bot's side, which attacker raises the flag and which defenders pull it down, when a bot wants the pole; when it goes for Elimination's overtime flag, and where flag mode heads |
 | `squad_orders.gd`, `squad_order_book.gd` | Squad orders: carrying each out (Follow me's spots and pace, Hold here's spot and each holder's place, Regroup); the orders in force, handed out and ended |
 | `bot_roster.gd`, `bot_personality.gd` | Each bot's name and personality for a match; a personality laid over the level's skill, and its habits |
+| `pings.gd` | `Pings`: the ping book (PN1), one ping per character, a press resolved into a spot (the floor in front of what the view met) or a contact (an enemy under the view the bots' sight rules let you see), kept 8 s and cleared each round, and a Contact call's mark; `Pings.take`, how a bot teammate takes one (a noise heard there, kept `ping_memory`) |
 | `callouts.gd`, `callout_log.gd` | `Callouts`: what the bots call to their team (`data/callouts.md`), read off what they do after each step on a seeded stream of its own, never writing a bot or the state; `CalloutLog`: the calls said, a fixed ring the presentation reads |
 
 Nothing allocates per tick once warm. Route searches (`NavGrid.find_route`) are queued round-robin and kept to
