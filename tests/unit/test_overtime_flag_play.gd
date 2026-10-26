@@ -1,7 +1,7 @@
 extends GutTest
 ## Elimination's overtime flag on screen and in sound (OV3; concept `overtime-flag.png`): the flag built once a match
-## and hidden until it goes up, rising in 0.8 s (at once under Reduced motion), chequered off-white and dark with its
-## ring, both in the toucher's colour once touched and clear of the team hues until then, scenery only; the three short
+## and hidden until it goes up, rising in 0.8 s (at once under Reduced motion), its cloth turned to the view, chequered
+## off-white and dark with its ring, both in the toucher's colour once touched and clear of the team hues until then, scenery only; the three short
 ## whistle blasts and the banner; the score bar's and the scoreboard's OT; the marker with the chequered glyph and the
 ## minimap's; FLAG TOUCHED, the round's table and the screen reader's lines; nothing allocated with it down.
 
@@ -64,6 +64,18 @@ func test_hidden_until_it_goes_up_then_it_rises_in_its_time() -> void:
 	flag.reset(OvertimeConfig.new())
 	view.refresh(flag, -1, DT)
 	assert_false(view.visible, "down again for the next round")
+
+
+func test_its_cloth_turns_to_face_the_view() -> void:
+	var view := _view()
+	view.face(Vector3(20.0, 1.7, 1.6))
+	assert_eq(view.facing(), 0.0, "down: nothing turns")
+	view.refresh(_up(OvertimeFlag.new()), -1, DT)
+	for eye: Vector3 in [Vector3(14.0, 1.7, 1.6), Vector3(2.0, 1.7, 13.6), Vector3(-10.0, 1.7, -10.4)]:
+		view.face(eye)
+		var normal := Vector3.BACK.rotated(Vector3.UP, view.facing())
+		var towards := Vector3(eye.x - 2.0, 0.0, eye.z - 1.6).normalized()
+		assert_almost_eq(normal.dot(towards), 1.0, 1e-4, "the cloth's face towards %s" % eye)
 
 
 func test_under_reduced_motion_it_stands_at_once() -> void:

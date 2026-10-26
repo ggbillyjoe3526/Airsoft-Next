@@ -5,8 +5,9 @@ extends Node3D
 ## touch's reach (OvertimeConfig.reach). Built once a match and hidden until the flag goes up; then it rises out of the
 ## ground in FlagViewConfig.overtime_rise (at once under Reduced motion: `rises` false). The ring is off-white, yellow
 ## while both teams are at it; once a team touches the flag its cloth's off-white checks and the ring take that team's
-## colour. Scenery only: no collider, so BBs pass through. Reads the round state; owns no rule. A frame with the flag
-## down does nothing, and one with it up only moves what changed.
+## colour. Its cloth turns to face the view (`face`), so it is never seen edge-on as a bare stick. Scenery only: no
+## collider, so BBs pass through. Reads the round state; owns no rule. A frame with the flag down does nothing, and one
+## with it up only moves what changed.
 
 const POLE_SEGMENTS := 16
 const BASE_SEGMENTS := 24
@@ -111,6 +112,16 @@ func refresh(flag: OvertimeFlag, toucher: int, delta: float) -> void:
 	_ring_mat.albedo_color = Color(ring, _cfg.ring_alpha)
 
 
+## Turns the pole and cloth about the pole so the cloth's face is towards `eye` (the view's position); nothing while the
+## flag is down.
+func face(eye: Vector3) -> void:
+	if not _up:
+		return
+	var d := eye - global_position
+	if d.x * d.x + d.z * d.z > 0.0:
+		_standing.rotation.y = atan2(d.x, d.z)
+
+
 ## The team that touched the flag in `rs` (it took the round, and the flag still stands through the pause after it), or
 ## -1.
 static func toucher_of(rs: RoundState) -> int:
@@ -122,6 +133,11 @@ static func toucher_of(rs: RoundState) -> int:
 ## The materials drawn first in a match (ShaderPrewarm), so the flag's first sight never hitches.
 func materials() -> Array[Material]:
 	return [_cloth_mat, _ring_mat]
+
+
+## The way the cloth faces (radians about the pole), for tests.
+func facing() -> float:
+	return _standing.rotation.y
 
 
 ## How far up it has risen (0 just up, 1 standing), for tests.
