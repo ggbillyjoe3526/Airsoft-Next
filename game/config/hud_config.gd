@@ -41,6 +41,11 @@ extends Resource
 @export var flag_marker_hide_within: float = 5.0
 @export var flag_marker_edge: float = 36.0
 @export var flag_warning_pulse: float = 1.6
+## Elimination's overtime flag (concept `overtime-flag.png`; the browser game's overtimeMessageTime): the banner
+## OVERTIME · TOUCH THE FLAG shows this long (s) as it goes up, and the marker sits this high over its foot (m; its short
+## pole stands FlagViewConfig.overtime_pole_height).
+@export var overtime_banner_time: float = 2.4
+@export var overtime_marker_height: float = 2.9
 ## The hit feed (concept `hud-feed.png`; the browser game's HIT_FEED): at most feed_lines lines, each up feed_line_time
 ## (s, simulation time, so a pause holds it), fading over its last feed_fade_time; kept feed_margin from the screen's
 ## corner (px: x from the side, y from the top or the bottom), feed_gap (px) between lines. A feed in the bottom left

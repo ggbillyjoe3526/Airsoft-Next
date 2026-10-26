@@ -270,11 +270,10 @@ One BB hit puts anyone out. A round lasts up to 2:30 and the first team to 5 rou
 - [ ] **End a round.** A banner says who won, the score updates and the next round starts by itself. The first round
   after starting the game opens with the referee's two short whistle blasts.
 - [ ] **Overtime flag (OV1, the rules; OT1).** In Elimination, hide until the clock runs out with both teams in (a
-  Custom match at Round time 1:30 is quickest): the round goes on for 30 s with the clock at 0:00. Stand within a metre
+  Custom match at Round time 1:30 is quickest): the round goes on for 30 s with the clock at OT. Stand within a metre
   of the spot (Depot: by the Box's east wall, just east of the middle; Neon Heights: on Neon Avenue by the middle;
   Woodland: the east meadow by the middle) and your team wins the round at once; with an enemy there too nobody wins;
-  untouched, a draw and the round replays. Nothing marks it yet: the three whistles, "Overtime · touch the flag" and
-  the chequered flag come with OV3. Does 30 s feel right? Attack / Defend has none.
+  untouched, a draw and the round replays. Does 30 s feel right? Attack / Defend has none.
 - [ ] **Bots go for the overtime flag (OV2).** As above, with Dev settings › Bot intentions on: within about a second
   of the clock running out every bot heads for the spot ("At the flag"), Easy slowest and Hard quickest, and still
   fights anyone it sees on the way; an anchor or a careful bot first crouches in cover a few metres from the flag
@@ -282,6 +281,16 @@ One BB hit puts anyone out. A round lasts up to 2:30 and the first team to 5 rou
   flanker far out sometimes comes in round one side. An order you give (Follow me, Hold here) still holds. On each team
   the bot nearest the flag calls it in the feed ("Overtime! Flag's up, …"). Does a lone player get a fair race to the
   flag, and does hiding near it feel like a stand-off rather than a free win?
+- [ ] **The overtime flag on screen and in sound (OV3).** As above, on Depot: as the clock runs out, three quick short
+  whistle blasts and the banner OVERTIME · TOUCH THE FLAG for about 2.4 s; the flag rises out of the ground in under a
+  second (with Settings › Accessibility › Reduced motion on it is simply there), a chequered off-white and dark cloth
+  on a short pole with a ring on the floor a metre round it; walk round it: the cloth always shows you its face. The
+  clock reads OT 0:30 and counts down, as does Tab's heading; the FLAG · N m marker with the chequered flag sits over
+  it, seen through walls, and pins under the minimap when you turn away; the minimap shows the chequered flag. Shoot
+  it: BBs pass through. Touch it: the cloth and ring turn your team's colour and the banner says WON · FLAG TOUCHED;
+  with an enemy at it too the ring turns yellow. With Screen reader messages on, "Overtime · Touch the flag" and the
+  round's end with "Flag touched" are read. On the Low preset, is 60 fps held with the flag up (F3)? Does the flag
+  read at a glance from across the map, and are the whistles clear over a firefight?
 - [ ] **Overtime banner (BP5).** It fits on one line at 1280 px wide; the feed (hits and callouts) hides while Tab is
   up.
 - [ ] **Finish a match.** The Match summary ([HUD and match info](#hud-and-match-info)), then the result screen. Go

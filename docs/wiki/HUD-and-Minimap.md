@@ -37,6 +37,11 @@ toward the feed's lines; on **Keep** the hits stay and the calls still go: a cal
 it moves out of sight comes back when the call goes. Every call goes when a new round starts. Each call clicks over the radio, panned toward the teammate who made it. You never see the other team's
 words, but an enemy within 15 m is heard keying their radio from where they stand, muffled by walls.
 
+**The overtime flag** ([Modes](Modes#in-development)): while it stands the clock and the scoreboard show **OT** and its
+time left, a **FLAG** marker with a chequered flag and the distance sits over it, seen through cover and pinned under
+the minimap when it is off screen, and the minimap shows the chequered flag at its spot. A round won there ends with
+**FLAG TOUCHED** and the team that took it.
+
 ## Scoreboard
 
 Hold **Tab** for the scoreboard over the field while the match keeps playing: the map, mode, bots' level and team

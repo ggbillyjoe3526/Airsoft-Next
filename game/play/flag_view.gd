@@ -45,8 +45,8 @@ func setup(cfg: FlagViewConfig, teams: TeamConfig, foot: Vector3, reach: float) 
 	rope_mat.albedo_color = cfg.rope_colour
 	rope_mat.roughness = ROPE_ROUGHNESS
 	var h := cfg.pole_height
-	_add(_cylinder(cfg.pole_radius, cfg.pole_radius, h, POLE_SEGMENTS), alu, Vector3(0.0, h * 0.5, 0.0))
-	_add(_cylinder(cfg.base_radius.y, cfg.base_radius.x, cfg.base_height, BASE_SEGMENTS), dark,
+	_add(cylinder(cfg.pole_radius, cfg.pole_radius, h, POLE_SEGMENTS), alu, Vector3(0.0, h * 0.5, 0.0))
+	_add(cylinder(cfg.base_radius.y, cfg.base_radius.x, cfg.base_height, BASE_SEGMENTS), dark,
 			Vector3(0.0, cfg.base_height * 0.5, 0.0))
 	var ball := SphereMesh.new()
 	ball.radius = cfg.finial_radius
@@ -55,7 +55,7 @@ func setup(cfg: FlagViewConfig, teams: TeamConfig, foot: Vector3, reach: float) 
 	var rope_h := h - cfg.cloth_low
 	for side: float in [-1.0, 1.0]:
 		# The ropes and the cleat are too thin to shade anything: no shadow pass for them.
-		var rope := _add(_cylinder(cfg.rope_radius, cfg.rope_radius, rope_h, ROPE_SEGMENTS), rope_mat,
+		var rope := _add(cylinder(cfg.rope_radius, cfg.rope_radius, rope_h, ROPE_SEGMENTS), rope_mat,
 				Vector3(0.0, cfg.cloth_low + rope_h * 0.5, side * cfg.rope_offset))
 		rope.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var cleat := BoxMesh.new()
@@ -69,16 +69,14 @@ func setup(cfg: FlagViewConfig, teams: TeamConfig, foot: Vector3, reach: float) 
 	_cloth_mat.set_shader_parameter(&"wave", cfg.cloth_wave)
 	_cloth_mat.set_shader_parameter(&"waves", cfg.cloth_waves)
 	_cloth_mat.set_shader_parameter(&"wave_speed", cfg.cloth_wave_speed)
-	_cloth = _add(_cloth_mesh(cfg.cloth_size, cfg.cloth_droop), _cloth_mat, Vector3(cfg.pole_radius, cfg.cloth_low, 0.0))
+	_cloth = _add(cloth_mesh(cfg.cloth_size, cfg.cloth_droop), _cloth_mat, Vector3(cfg.pole_radius, cfg.cloth_low, 0.0))
 	_cloth.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	_ring_mat = _flat(cfg.ring_idle)
-	var ring := _add(_ring_mesh(reach - cfg.ring_width, reach), _ring_mat, Vector3(0.0, RING_LIFT, 0.0))
+	_ring_mat = flat(cfg.ring_idle)
+	var ring := _add(ring_mesh(reach - cfg.ring_width, reach), _ring_mat, Vector3(0.0, RING_LIFT, 0.0))
 	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var edge := MeshInstance3D.new()
-	var st := _ring_tool(reach, reach + cfg.ring_edge_width)
-	_ring_into(st, reach - cfg.ring_width - cfg.ring_edge_width, reach - cfg.ring_width)
-	edge.mesh = st.commit()
-	edge.material_override = _flat(cfg.ring_edge)
+	edge.mesh = ring_edge_mesh(reach, cfg.ring_width, cfg.ring_edge_width)
+	edge.material_override = flat(cfg.ring_edge)
 	edge.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	edge.position.y = EDGE_LIFT
 	add_child(edge)
@@ -133,7 +131,8 @@ func _add(mesh: Mesh, material: Material, at: Vector3) -> MeshInstance3D:
 	return m
 
 
-func _flat(colour: Color) -> StandardMaterial3D:
+## An unlit, see-through material in `colour`, both faces drawn (the rings).
+static func flat(colour: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -142,7 +141,8 @@ func _flat(colour: Color) -> StandardMaterial3D:
 	return m
 
 
-static func _cylinder(top: float, bottom: float, height: float, segments: int) -> CylinderMesh:
+## A cylinder `height` (m) tall, radius `top` and `bottom` (m), with `segments` round it and one ring.
+static func cylinder(top: float, bottom: float, height: float, segments: int) -> CylinderMesh:
 	var c := CylinderMesh.new()
 	c.top_radius = top
 	c.bottom_radius = bottom
@@ -153,19 +153,26 @@ static func _cylinder(top: float, bottom: float, height: float, segments: int) -
 
 
 ## A flat ring from `inner` to `outer` (m) on the floor.
-static func _ring_mesh(inner: float, outer: float) -> ArrayMesh:
-	return _ring_tool(inner, outer).commit()
+static func ring_mesh(inner: float, outer: float) -> ArrayMesh:
+	return ring_tool(inner, outer).commit()
 
 
-static func _ring_tool(inner: float, outer: float) -> SurfaceTool:
+## The thin dark edges either side of a ring `width` (m) wide inside `reach` (m), each `edge_width` (m).
+static func ring_edge_mesh(reach: float, width: float, edge_width: float) -> ArrayMesh:
+	var st := ring_tool(reach, reach + edge_width)
+	ring_into(st, reach - width - edge_width, reach - width)
+	return st.commit()
+
+
+static func ring_tool(inner: float, outer: float) -> SurfaceTool:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_normal(Vector3.UP)
-	_ring_into(st, inner, outer)
+	ring_into(st, inner, outer)
 	return st
 
 
-static func _ring_into(st: SurfaceTool, inner: float, outer: float) -> void:
+static func ring_into(st: SurfaceTool, inner: float, outer: float) -> void:
 	for i in RING_SEGMENTS:
 		var a := Vector3(cos(TAU * i / RING_SEGMENTS), 0.0, sin(TAU * i / RING_SEGMENTS))
 		var b := Vector3(cos(TAU * (i + 1) / RING_SEGMENTS), 0.0, sin(TAU * (i + 1) / RING_SEGMENTS))
@@ -175,7 +182,7 @@ static func _ring_into(st: SurfaceTool, inner: float, outer: float) -> void:
 
 ## The cloth as a grid `size` (m) from the pole outwards, its foot at 0, its free edge `droop` (m) lower; UV.x 0 at the
 ## pole, UV.y 0 at the top.
-static func _cloth_mesh(size: Vector2, droop: float) -> ArrayMesh:
+static func cloth_mesh(size: Vector2, droop: float) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_normal(Vector3.BACK)

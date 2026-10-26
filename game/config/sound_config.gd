@@ -169,12 +169,21 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var round_start_gap: float = 1.6
 @export var match_over_blasts: int = 3
 @export var match_over_gap: float = 1.3
+## Elimination's overtime flag going up (the browser game's overtimeWhistle): overtime_blasts short blasts, each
+## starting overtime_gap blast-lengths after the one before.
+@export var overtime_blasts: int = 3
+@export var overtime_gap: float = 1.5
 
 
 ## When round start blast `i` (0-based, of round_start_blasts; each whistle_short long) starts, in seconds after the
 ## first.
 func round_start_blast(i: int) -> float:
 	return whistle_short * round_start_gap * i
+
+
+## When overtime blast `i` (0-based, of overtime_blasts; each whistle_short long) starts, in seconds after the first.
+func overtime_blast(i: int) -> float:
+	return whistle_short * overtime_gap * i
 
 
 ## When extra match-over blast `i` (0-based, of match_over_blasts; each whistle_long long) starts, in seconds after the

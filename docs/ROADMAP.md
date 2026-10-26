@@ -118,7 +118,7 @@ at his PC to connect.
     minimap, pip), MH1 (the hand-off's rules), MH2 (bots ask and bring), MH3 (H, the wheel, the line, the toss). The
     tutorial and adaptive difficulty were dropped (owner, 2026-10-25): players learn at their own pace in practice,
     and the preset levels stay.
-28. **Blender work, at the owner's PC** (was step 32; it starts once step 27 is done, owner 2026-10-24). His models
+28. **Blender work, at the owner's PC** (was step 32; deferred to a date the owner names, not started when step 27 is done, owner 2026-10-26). His models
     for Depot's assets, including the practice range's, which is set in Depot; the human figures
     with your first-person arms and hands (bare or gloved, by figure and skin), fitted hit areas and Inspect on Y;
     and every replica, attachment and accessory, at higher quality than today's placeholders, built small for the

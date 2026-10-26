@@ -49,8 +49,8 @@ func test_a_new_round_cuts_what_is_left_and_a_full_queue_drops_rather_than_grows
 	assert_eq(queue.waiting(), cfg.round_start_blasts, "the match's blasts cut")
 	for i in 20:
 		queue.round_over(1.0)
-	# Room for the longest pattern (a round's and the match's end) and the range's Time, never more.
-	assert_eq(queue.waiting(), maxi(cfg.round_start_blasts, 1 + cfg.match_over_blasts) + 1)
+	# Room for the longest pattern (the overtime's blasts with a round's and the match's end) and the range's Time.
+	assert_eq(queue.waiting(), maxi(cfg.round_start_blasts, cfg.overtime_blasts + 1 + cfg.match_over_blasts) + 1)
 
 
 func test_sim_audio_blows_the_round_start_and_cuts_the_last_blast() -> void:

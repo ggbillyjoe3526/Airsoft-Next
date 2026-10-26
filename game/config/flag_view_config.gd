@@ -42,3 +42,25 @@ extends Resource
 @export var ring_contested: Color = Color("ffe14d")
 @export var ring_edge: Color = Color("0c1424", 0.55)
 @export var ring_edge_width: float = 0.04
+
+## Elimination's overtime flag as drawn (OvertimeFlagView; concept `/mnt/project-files/concepts/step27/overtime-flag.png`,
+## the browser game's FLAG_VISUALS overtime lines): a short pole on a weighted base, its cloth chequered off-white and
+## dark, and the ring at the touch's reach (OvertimeConfig.reach). No team hue on it while it stands (the 20° rule):
+## once touched the off-white checks and the ring take the toucher's team colour. Scenery only, as the pole is.
+## The pole: height and radius (m), its base's radius at the bottom and top and height (m).
+@export var overtime_pole_height: float = 2.3
+@export var overtime_pole_radius: float = 0.028
+@export var overtime_base_radius: Vector2 = Vector2(0.26, 0.22)
+@export var overtime_base_height: float = 0.08
+## The cloth: width and height (m), its top this far under the pole's top (m), and the checks across and down.
+@export var overtime_cloth_size: Vector2 = Vector2(0.96, 0.64)
+@export var overtime_cloth_drop: float = 0.06
+@export var overtime_checks: Vector2i = Vector2i(6, 4)
+## The checks' off-white (238, 234, 224) and dark.
+@export var overtime_pale: Color = Color8(238, 234, 224)
+@export var overtime_dark: Color = Color8(38, 40, 44)
+## The ring while nobody has touched it (off-white; ring_contested while both teams are at it, then the toucher's).
+@export var overtime_ring_idle: Color = Color8(238, 234, 224)
+## The rise out of the ground as it goes up (s; none under Reduced motion), from this share of its height.
+@export var overtime_rise: float = 0.8
+@export var overtime_rise_from: float = 0.02

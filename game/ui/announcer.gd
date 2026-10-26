@@ -4,8 +4,9 @@ extends RefCounted
 ## tick's events into lines in the HUD's own words for HudAnnounce to hand a screen reader. Each hit feed line ("Rook
 ## called HIT · Alpha", "You" for the player), your own hit in its place ("You're hit · Rook"), each round's start
 ## ("Round 3", with the banner's line under it when it has one), each round's end (the stamp, the banner's line and the
-## score, your team first), the match's end (the stamp and the match's score) and each of your team's callouts the feed
-## shows ("Brick: Two, Crate yard!"). Lines that come inside JOIN_WINDOW of
+## score, your team first), Elimination's overtime flag going up ("Overtime · touch the flag", as its banner), the
+## match's end (the stamp and the match's score) and each of your team's callouts the feed shows ("Brick: Two, Crate
+## yard!"). Lines that come inside JOIN_WINDOW of
 ## the first are joined into one message, so a round's end and the match's end, or a burst of hits, are read as one.
 ## Your hit and the match's result make the message assertive (read at once); the rest are polite (read when the reader
 ## is free). Off, nothing is kept. Builds strings only on those events, never per frame.
@@ -70,6 +71,8 @@ func on_tick(state: GameState) -> void:
 			GameEvent.Kind.ROUND_START:
 				if not state.round_state.practice:
 					add(round_start_line(state.round_state, e.value), false)
+			GameEvent.Kind.OVERTIME:
+				add(overtime_line(), false)
 			GameEvent.Kind.ROUND_OVER:
 				if not state.round_state.practice:
 					add(round_over_line(state.round_state, e.value, e.value2 as GameEvent.RoundEnd), false)
@@ -151,16 +154,24 @@ func round_start_line(rs: RoundState, number: int) -> String:
 	return title + PART + tr(&"HUD_HALF_TIME") if half else title
 
 
+## Elimination's overtime flag going up, as its banner says it: "Overtime · Touch the flag".
+func overtime_line() -> String:
+	return tr(&"HUD_OVERTIME") + PART + tr(&"HUD_TOUCH_FLAG")
+
+
 ## A round's end as its banner says it, and the score after it: "Won · Round 3 · Alpha take the round · Alpha 2 – 1
-## Beta"; by the flag "Lost · Round 3 · Flag raised · Beta take the round · …"; "Draw · Round 3 · The round is played
-## again · …". `winner` -1 for a draw.
+## Beta"; by the flag "Lost · Round 3 · Flag raised · Beta take the round · …" (at the overtime flag "Flag touched");
+## "Draw · Round 3 · The round is played again · …". `winner` -1 for a draw.
 func round_over_line(rs: RoundState, winner: int, reason: GameEvent.RoundEnd) -> String:
 	var parts := PackedStringArray([_stamp(winner), tr(&"HUD_ROUND") % rs.number])
 	if winner < 0:
 		parts.append(tr(&"HUD_ROUND_DRAW_SUB"))
 	else:
 		var team := tr(_teams.names[winner])
-		if rs.mode == RoundState.Mode.ATTACK_DEFEND and reason != GameEvent.RoundEnd.ELIMINATED:
+		if reason == GameEvent.RoundEnd.OVERTIME_FLAG:
+			parts.append(tr(&"HUD_FLAG_TOUCHED"))
+			parts.append(tr(&"HUD_ROUND_WON") % team)
+		elif rs.mode == RoundState.Mode.ATTACK_DEFEND and reason != GameEvent.RoundEnd.ELIMINATED:
 			var captured := reason == GameEvent.RoundEnd.CAPTURED
 			parts.append(tr(&"HUD_FLAG_RAISED" if captured else &"HUD_DEFENDED"))
 			parts.append(tr(&"HUD_ROUND_WON" if captured else &"HUD_HELD_POLE") % team)

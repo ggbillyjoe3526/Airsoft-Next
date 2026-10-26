@@ -204,6 +204,9 @@ var _pretend_slow: bool = false
 var _stats: MatchStats = MatchStats.new()
 ## Attack / Defend's pole; null in Elimination.
 var _flag: FlagView = null
+## Elimination's overtime flag, built once a match on a map with a spot for it and hidden until it goes up; null
+## otherwise (Attack / Defend, practice, a map without a spot).
+var _overtime_flag: OvertimeFlagView = null
 ## The team colour set this match draws (Settings › Accessibility), resolved once at Play: a change in Settings shows
 ## from the next match.
 var _colours: TeamColours = null
@@ -653,6 +656,11 @@ func _build_views(ui: CanvasLayer) -> void:
 		_flag.setup(_play.flag, _colours.figures, state.round_state.pole, _tuning.flag.radius)
 		add_child(_flag)
 		first_use.append_array(_flag.materials())
+	elif state.round_state.has_overtime_spot and not practice:
+		_overtime_flag = OvertimeFlagView.new()
+		_overtime_flag.setup(_play.flag, _colours.figures, state.round_state.overtime_spot, _tuning.overtime.reach)
+		add_child(_overtime_flag)
+		first_use.append_array(_overtime_flag.materials())
 	first_use.append_array(_hands.prewarm_glass())
 	first_use.append_array(range_materials)
 	if _skyline != null:
@@ -691,6 +699,8 @@ func _build_views(ui: CanvasLayer) -> void:
 	_hud.setup(_play.hud, _colours.hud, _play.view, _tuning, player)
 	_hud.setup_sound_cues(_cues, _access)
 	_hud.setup_orders(_play.controls)
+	if _overtime_flag != null:
+		_hud.use_overtime_flag()
 	if practice:
 		_hud.setup_range(_tuning.targets, not _on_range, _map.kill_y)
 	# Over the field while the HUD is hidden, under the pause menu.
@@ -816,6 +826,11 @@ func hud() -> Hud:
 
 func flag_view() -> FlagView:
 	return _flag
+
+
+## Elimination's overtime flag (null in Attack / Defend, practice or on a map without a spot): for tests.
+func overtime_flag_view() -> OvertimeFlagView:
+	return _overtime_flag
 
 
 ## The enemy patches your side heard, for the minimap.
@@ -1013,6 +1028,15 @@ func _process(delta: float) -> void:
 		var rs := state.round_state
 		_flag.refresh(rs.flag, rs.attackers)
 		_hud.place_flag_marker(_eyes.camera, rs.pole, rs.attackers >= 0 and rs.is_live())
+	elif _overtime_flag != null:
+		var rs := state.round_state
+		var ot := rs.overtime_flag
+		_overtime_flag.refresh(ot, OvertimeFlagView.toucher_of(rs), delta)
+		_overtime_flag.face(_eyes.global_position)
+		# Placed only while it stands in a live round; hidden once, then left alone.
+		var standing := ot.up and rs.is_live()
+		if standing or _hud.flag_marker_shown():
+			_hud.place_flag_marker(_eyes.camera, ot.foot, standing)
 	_hud.set_watching(_bots.name_of(watched.id) if watched != player else "")
 	_show_orders(watched, delta)
 	if _intents != null:
@@ -1379,7 +1403,8 @@ func _apply_hud() -> void:
 
 
 ## Settings › Accessibility's Reduced motion (On, or Follow system while the display asks for it), at the start and on
-## every change: how much of the view's and the replica's movements, the wind dust and the HUD's pulse are drawn.
+## every change: how much of the view's and the replica's movements, the wind dust and the HUD's pulse are drawn, and
+## whether the overtime flag rises out of the ground or stands at once.
 func _apply_motion() -> void:
 	var motion := MotionScale.of(settings.reduces_motion_now())
 	_eyes.set_motion(motion)
@@ -1391,6 +1416,8 @@ func _apply_motion() -> void:
 		_pools.set_motion(motion)
 	if _woods != null:
 		_woods.set_motion(motion)
+	if _overtime_flag != null:
+		_overtime_flag.rises = not settings.reduces_motion_now()
 	_hud.set_motion(motion)
 
 

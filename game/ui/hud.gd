@@ -8,7 +8,9 @@ extends Control
 ## match starts, and whose eyes you watch through once you are out (or with the Dev settings' Spectate any bot) at the
 ## bottom. In Attack / Defend (concepts `hud-attack.png`, `hud-defend.png`, `round-end.png`): the ATK / DEF tags and the
 ## overtime clock on the score bar, the flag gauge under it (HudFlagGauge), the warning while the other team's flag goes
-## up, the marker over the pole with its distance, and the rounds' own banners. On the practice range (`setup_range`,
+## up, the marker over the pole with its distance, and the rounds' own banners. In Elimination's overtime (concept
+## `overtime-flag.png`): the banner OVERTIME · TOUCH THE FLAG, the clock's OT and the flag's time left, the marker over
+## the flag with its chequered glyph (`use_overtime_flag`) and FLAG TOUCHED on a round won there. On the practice range (`setup_range`,
 ## concepts `step16-range/`): no score bar, rounds or hit feed; the last BB's readout bottom left (HudRangeReadout) and
 ## the timed challenge's bar, ready line and banners (HudRangeChallenge). Under the crosshair, when a bush's leaves stop
 ## your own BB close in front of you, the line saying so (`leaves_notice_shown`). Under the score bar, for a few seconds
@@ -656,6 +658,9 @@ func on_tick(state: GameState) -> void:
 							HudStyle.side_round_sub(e.value, _rounds.half_time_after, attacking))
 				else:
 					_show_banner(HudStyle.round_title(e.value), HudStyle.round_sub(e.value, _rounds.half_time_after))
+			GameEvent.Kind.OVERTIME:
+				_show_banner(HudStyle.caps("HUD_OVERTIME"), HudStyle.caps("HUD_TOUCH_FLAG"))
+				_banner_left = _cfg.overtime_banner_time
 			GameEvent.Kind.ROUND_OVER:
 				_round_over(state.round_state, e, state.time)
 			GameEvent.Kind.MATCH_OVER:
@@ -768,9 +773,9 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 			_replica.hide_hop()
 	var rs := state.round_state
 	var flag_mode := rs.mode == RoundState.Mode.ATTACK_DEFEND
-	var in_overtime := flag_mode and rs.clock <= 0.0 and rs.overtime > 0.0 and rs.is_live()
-	if in_overtime:
-		_score.set_clock(HudStyle.overtime_left(rs.overtime, _sim.flag.max_overtime), true)
+	var overtime := HudStyle.overtime_clock(rs, _sim.flag.max_overtime)
+	if overtime >= 0:
+		_score.set_clock(overtime, true)
 	else:
 		_score.set_clock(ceili(rs.clock))
 	_score.set_score(rs.score[0], rs.score[1])
@@ -790,8 +795,14 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	queue_redraw()
 
 
+## The flag marker is over Elimination's overtime flag this match (its chequered glyph and height): call once, after
+## setup, on a map with a spot for it.
+func use_overtime_flag() -> void:
+	_flag_marker.use_overtime()
+
+
 ## Places the marker over the pole at `pole` as seen by `camera` (HudFlagMarker); hidden outside Attack / Defend
-## (`show` false).
+## (`show` false). In Elimination (use_overtime_flag) `pole` is the overtime flag's foot, shown while it stands.
 func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool) -> void:
 	_flag_marker.place(camera, pole, show, size, pin_point(), pin_right_top(), _left_stack_floor())
 
@@ -838,6 +849,11 @@ func pin_right_top() -> float:
 ## The marker's words ("FLAG · 24 m"), or "" while it is hidden: for tests.
 func flag_marker_text() -> String:
 	return _flag_marker.text()
+
+
+## Whether the flag marker shows (over the flag or pinned to a side).
+func flag_marker_shown() -> bool:
+	return _flag_marker.visible
 
 
 ## Squad orders (SO4): Hold here's marker, and over it the order wheel round the crosshair. `controls` has the wheel's
@@ -956,12 +972,15 @@ func _show_hop_up(dial: float) -> void:
 ## and how it was won, and the round's table under it soon after.
 func _round_over(rs: RoundState, e: GameEvent, state_time: float) -> void:
 	var reason := e.value2 as GameEvent.RoundEnd
-	var by_flag := rs.mode == RoundState.Mode.ATTACK_DEFEND and reason != GameEvent.RoundEnd.ELIMINATED
+	var by_flag := HudStyle.ended_by_flag(rs.mode, reason)
 	var key := _teams.names[e.value] if e.value >= 0 else ""
 	_show_banner(HudStyle.round_stamp(e.value, _player.team),
 			HudStyle.round_stamp_sub(rs.number, e.value, key, by_flag, reason),
 			_teams.colours[e.value] if e.value >= 0 else Color.TRANSPARENT)
+	# With the overtime played: Attack / Defend's at the rope, or Elimination's at the flag (its time less what is left).
 	var played := _rounds.round_time - rs.clock + (rs.overtime if is_finite(rs.overtime) else 0.0)
+	if rs.overtime_flag.up:
+		played += _sim.overtime.time - rs.overtime_flag.left
 	_round_result.round_over(rs.number, roundi(played), state_time)
 
 

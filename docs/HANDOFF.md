@@ -1,6 +1,6 @@
 # Handoff
 
-What is happening now (as of 2026-10-22), for a session picking up the work. The plan is `docs/ROADMAP.md`, the
+What is happening now (as of 2026-10-26), for a session picking up the work. The plan is `docs/ROADMAP.md`, the
 rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
 
 ## Now
@@ -31,10 +31,12 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
   the pause menu, saved in `user://settings.save`.
 - **The debug view is done (DV1):** F3 also shows the match seed, your position and the entity count, F4 draws BB paths
   and F5 hit areas in the world (made only while on, keys reserved), and `-- --seed <n>` replays a match.
-- **Next:** steps 1 to 11 of `docs/ROADMAP.md` › Build order are built, and step 12's DF1, DF2a and DF2b. BN1 (names
-  and personalities) is next, then MN3 once its concepts are approved, then step 13. The owner moved the overtime flag,
-  pings and the magazine hand-off, bot callouts and all Blender work to the end (steps 27 and 28; 2026-10-22); the
-  tutorial and adaptive difficulty, moved there too, were dropped (2026-10-25). Version names wait until the owner picks them up again (owner, 2026-10-18).
+- **Step 27 is under way (owner resumed it 2026-10-26).** Steps 1 to 26 are built (parity with the browser's 0.1
+  Beta 1), plus three bot levels. Step 27 so far: bot callouts (CO1, CO2; #124, #125), the overtime flag's rules
+  (OV1; #126) and bots going for it (OV2; #127) are merged; OV3 (the flag on screen and in sound) is next to merge,
+  then PN1, PN2, MH1, MH2, MH3 (`docs/TASKS.md`).
+- **The Blender work (step 28) is deferred to a date the owner names** (owner, 2026-10-26): when step 27 is done,
+  stop and report; don't start Blender import work.
 - **Waiting on the owner:** his play-through of `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
 - **Crouch and aim are both held** (owner, 2026-10-18), changed in the Depot thread.
 

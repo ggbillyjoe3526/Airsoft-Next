@@ -120,6 +120,15 @@ msgstr "· %d m"
 msgid "HUD_FLAG_GOING_UP"
 msgstr "Their flag is going up!"
 
+msgid "HUD_OVERTIME"
+msgstr "Overtime"
+
+msgid "HUD_TOUCH_FLAG"
+msgstr "Touch the flag"
+
+msgid "HUD_FLAG_TOUCHED"
+msgstr "Flag touched"
+
 msgid "HUD_HOLD_MARKER"
 msgstr "Hold · %d m"
 
