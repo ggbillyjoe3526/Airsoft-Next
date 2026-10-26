@@ -3,7 +3,8 @@ extends RefCounted
 ## The HUD tab's choices (concept `hud-options.png`; the browser game's settings/hudPrefs.ts), saved with the settings
 ## under "hud": the crosshair (shape, colour, size, thickness, gap, opacity, dynamic or static spread, outline), the hit
 ## marker (on or off, colour, size), the ammo counter, where the hit feed sits and whether its lines fade or stay, your
-## team's callouts in it (on or off; a file from before them loads on), the navy panels' opacity, how the minimap turns
+## team's callouts in it (on or off; a file from before them loads on), the ping markers (on or off, PN2; a file from
+## before them loads on), the navy panels' opacity, how the minimap turns
 ## and the HUD's size. The crosshair's colours leave out blue and orange,
 ## the teams'. Each value saved is checked on its own and falls back to its default.
 
@@ -46,6 +47,8 @@ var feed_corner: FeedCorner = FeedCorner.TOP_RIGHT
 var feed_lines: FeedLines = FeedLines.FADE
 ## Your teammates' callouts in the feed and their radio clicks, and the other team's close by (CO2).
 var callouts: bool = true
+## Your team's ping markers over the field and on the minimap (PN2); off, pings and their answers go on unmarked.
+var ping_markers: bool = true
 var panel_opacity: float = 1.0
 var minimap_turn: MinimapTurn = MinimapTurn.ROTATING
 ## The whole HUD's scale but the crosshair's (AccessibilityConfig.HUD_SIZE_RANGE, 1 = as drawn), on top of the window's
@@ -66,8 +69,8 @@ func to_dict() -> Dictionary:
 		"shape": int(shape), "colour": colour, "size": size, "thickness": thickness, "gap": gap, "opacity": opacity,
 		"dynamic": dynamic, "outline": outline, "marker": marker, "marker_colour": marker_colour,
 		"marker_size": marker_size, "ammo_counter": ammo_counter, "feed_corner": int(feed_corner),
-		"feed_lines": int(feed_lines), "callouts": callouts, "panel_opacity": panel_opacity,
-		"minimap_turn": int(minimap_turn), "hud_size": hud_size,
+		"feed_lines": int(feed_lines), "callouts": callouts, "ping_markers": ping_markers,
+		"panel_opacity": panel_opacity, "minimap_turn": int(minimap_turn), "hud_size": hud_size,
 	}
 
 
@@ -89,6 +92,7 @@ func from_dict(data: Dictionary) -> void:
 	feed_corner = _pick(data, "feed_corner", d.feed_corner, FeedCorner.size()) as FeedCorner
 	feed_lines = _pick(data, "feed_lines", d.feed_lines, FeedLines.size()) as FeedLines
 	callouts = _flag(data, "callouts", d.callouts)
+	ping_markers = _flag(data, "ping_markers", d.ping_markers)
 	panel_opacity = _number(data, "panel_opacity", d.panel_opacity, PANEL_OPACITY_RANGE)
 	minimap_turn = _pick(data, "minimap_turn", d.minimap_turn, MinimapTurn.size()) as MinimapTurn
 	# Between the slider's steps reads as the nearest step.
