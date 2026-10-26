@@ -12,6 +12,7 @@ const BRICK := 1
 const ROOK := 2
 const DASH := 3
 const SAVE := "user://test_ping_markers_settings.save"
+const Renderer := preload("res://tools/render_whistle.gd")
 
 var _teams := TeamConfig.new()
 var _cfg := HudConfig.new()
@@ -295,8 +296,10 @@ func test_the_pip_is_the_browsers_recipe() -> void:
 	var cfg := SoundConfig.new()
 	assert_eq(cfg.ping_pip_hz, 1700.0)
 	assert_eq(cfg.ping_pip_length, 0.08)
-	var pip := preload("res://tools/render_whistle.gd").pip(cfg)
+	var pip := Renderer.pip(cfg)
 	assert_eq(pip.size(), roundi(0.08 * 44100.0))
+	assert_true(FileAccess.get_file_as_bytes("res://assets/audio/cues/ping_pip_1.wav") == Renderer.wav(pip),
+			"the cue is SoundConfig's pip (re-render it)")
 	var stream := load("res://assets/audio/cues/ping_pip_1.wav") as AudioStreamWAV
 	assert_not_null(stream)
 	assert_almost_eq(stream.get_length(), 0.08, 0.002)
