@@ -1,12 +1,12 @@
 # PN1 · Pings: the mark, and how bot teammates take it
 
-**Review:** pending (critic, QA, performance)
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-26 | 1 | worker | see Gate | – | – |
+| 2026-10-26 | 1 | worker | see Gate; QA Pass (4 tests), performance Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -100,6 +100,17 @@ mark and the bots' response, kept in a ping book; PN2 draws it. Plan: project fi
 - Not verified: how it plays with a person (middle mouse, the answer's timing): PLAYTEST › Squad orders and minimap ›
   Pings.
 
+## Advisories left
+
+- **The spot ping's floor snap costs 0.4-1.2 ms on the real maps** (performance, critic): `pings.gd:152`
+  (`NavGrid.nearest_walkable`, 3 m). Fine at four presses a second at most; cap the search or keep the last spot if
+  anything ever pings more often.
+- **A bot notes a ping one tick before the ping book does** (critic): `Pings.take` uses the bots' last think time and
+  `place` the time after the step; harmless, and the teammate's answer relies on it. Worth a one-line comment when
+  `pings.gd` is next touched.
+- **A real noise close to a taken ping keeps the ping's spot** (QA): a KNOWN_ISSUES row, for the playtest.
+- **With Dev's spectate-bots on, a waiting ping press sits until the next round** (QA): Dev only.
+
 ## Gate
 
 `tools/check.sh` on `bd27fbb` (PN1 on OV3's branch), on the 4-core container shared with another tree's gate, 1,207 s:
@@ -107,3 +118,5 @@ gdlint, the changelog notes, the wiki, the smoke test and the licence notices pa
 part 2 in 380 s, all passing; part 3 failed one of 911, `test_so3_qa.gd`'s mouse button as the wheel's key (the test
 puts the wheel on the middle button, which the ping held first in the input's chain). With the ping after the wheel
 (`4478d8f`), part 3 again: 911 of 911 in 364 s (3,422 tests, all passing). No part near 570 s.
+
+After the reviews: `test_pn1_qa.gd` 4 of 4, `test_pings.gd` 23 of 23, `test_key_bindings.gd` passing; CI green on `6ab02f4`.
