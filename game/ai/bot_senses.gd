@@ -57,11 +57,11 @@ static func made_out(flat: float, viewer: Character, target: Character, w: BotWo
 
 
 ## Which part of `target` `viewer` can see now, as a share of its height: the chest (aim_height_fraction) if it shows,
-## else the head (head_height_fraction), else 0.
-static func visible_part(viewer: Character, target: Character, w: BotWorld) -> float:
+## else the head (head_height_fraction), else 0. Out to view_distance, or `reach` m when given (a player's ping, PN1).
+static func visible_part(viewer: Character, target: Character, w: BotWorld, reach: float = -1.0) -> float:
 	var cfg := w.cfg
 	var flat := Vector2(target.position.x - viewer.position.x, target.position.z - viewer.position.z).length()
-	if flat > cfg.view_distance or not made_out(flat, viewer, target, w) \
+	if flat > (cfg.view_distance if reach < 0.0 else reach) or not made_out(flat, viewer, target, w) \
 			or not in_view(viewer, target.position, cfg):
 		return 0.0
 	var eye := eye_of(viewer, w.tuning)

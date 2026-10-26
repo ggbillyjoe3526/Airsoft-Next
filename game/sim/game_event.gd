@@ -33,6 +33,7 @@ enum Kind {
 	BB_LEAVES, ## actor's BB came out of a bush's edge at position, flying along direction (before the leaves turned it), and flies on.
 	TORCH, ## actor switched the weapon torch on the replica in slot on (value 1) or off (value 0); off too as the replica goes away.
 	OVERTIME, ## Elimination's clock ran out with both teams in play: the overtime flag is up at position (its foot).
+	PING, ## actor (in play, the round live) pinged along direction (unit) from its eyes at position: value 1 where its view met the field reach m off (within PingConfig.reach), value 0 for nothing there (the sky).
 }
 
 ## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.
@@ -58,7 +59,7 @@ var direction: Vector3 = Vector3.ZERO
 ## How far a footstep carries as a share of its kind's usual reach (NoiseConfig.ground: run, sprint and landing steps on
 ## gravel and steel plate 1.35; anything else 1).
 var carry: float = 1.0
-## How far a prop's knock or ring is heard (m).
+## How far a prop's knock or ring is heard (m); how far off a ping's view met the field (m).
 var reach: float = 0.0
 
 

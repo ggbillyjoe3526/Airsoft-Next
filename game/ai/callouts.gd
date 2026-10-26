@@ -10,8 +10,10 @@ extends RefCounted
 ## for a sighting, the same enemy's gap, then rolled against its chance (× the personality's Talks). The team says one
 ## call at a time, at least Pace's team gap apart, the most urgent first (higher in When they call): the others wait in
 ## a short queue (CalloutConfig.queue, the least urgent dropped when it is full), each dropped after Pace's wait, or when
-## a gap it waited through now stops it. Hit players never talk. Tagged (Extraction), the answers to a ping and the
-## magazine hand-off are read from the file but not raised yet: their systems raise them.
+## a gap it waited through now stops it. Hit players never talk. A player's ping is answered by one teammate (Going to
+## your ping, Watching your ping), and a Contact call may mark its enemy in the ping book (Pings; callouts.md › Marks) on
+## a stream of its own, so marks never change the lines. Tagged (Extraction) and the magazine hand-off are read from the
+## file but not raised yet: their systems raise them.
 
 const TEAMS := 2
 ## The events any teammate may say (the one nearest to where it happened), not only the bot it happened to: its own
@@ -29,6 +31,9 @@ const ANSWERS: Array[int] = [
 ]
 ## The events that say how many are left: a newer hit makes any still waiting out of date.
 const COUNTS: Array[int] = [CalloutsFile.Event.DOWN, CalloutsFile.Event.LAST_ONE, CalloutsFile.Event.TAGGED]
+## The marks' stream is the callouts' seed with these bits flipped too (the browser game's MARK_SALT), so marking a
+## sighting or not never changes which lines are said.
+const MARK_XOR := 0x3a7c5
 
 
 ## A call waiting for its team's gap: the event, the bot (index into the bots), what its line fills in, the enemy a
@@ -46,7 +51,8 @@ class Pending:
 
 
 ## Per team: when it last said anything and each event, when it last called each enemy (by character index), the last
-## noise it called and where, and its queue.
+## noise it called and where, its queue, the last ping it answered (the time its bots took it) and when it last marked a
+## sighting.
 class TeamTalk:
 	extends RefCounted
 	var said_at: float = -INF
@@ -55,14 +61,19 @@ class TeamTalk:
 	var heard_area: String = ""
 	var heard_at: float = -INF
 	var queue: Array[Pending] = []
+	var ping_answered: float = -INF
+	var marked_at: float = -INF
 
 
 ## The calls said, for the presentation.
 var said: CalloutLog = null
+## The ping book a Contact call marks its enemy in (BotController's; null marks nothing).
+var pings: Pings = null
 var _file: CalloutsFile = null
 var _cfg: CalloutConfig = null
 var _areas: Array[MapAreas.Area] = []
 var _rng: RandomNumberGenerator = null
+var _mark_rng: RandomNumberGenerator = null
 var _teams: Array[TeamTalk] = []
 ## Per bot (index into the bots): when it last spoke, its mode and whether it was at its post last tick, and whether it
 ## called its hold this round.
@@ -83,6 +94,7 @@ func _init(file: CalloutsFile, cfg: CalloutConfig, areas: Array[MapAreas.Area], 
 	_cfg = cfg
 	_areas = areas
 	_rng = Seeds.stream(Seeds.callout_seed(seed_value))
+	_mark_rng = Seeds.stream(Seeds.callout_seed(seed_value) ^ MARK_XOR)
 	said = CalloutLog.new(cfg.log_size)
 	for t in TEAMS:
 		var talk := TeamTalk.new()
@@ -108,10 +120,12 @@ func observe(state: GameState, w: BotWorld) -> void:
 		elif live:
 			_on_event(e, state, bots)
 	if live:
+		for t in TEAMS:
+			_answer_ping(t, w)
 		for i in bots.size():
 			_watch(i, state, w)
 	for t in TEAMS:
-		_flush(t, state, bots, live)
+		_flush(t, state, w, live)
 	for i in bots.size():
 		_last_mode[i] = bots[i].mode
 		_was_at_post[i] = 1 if bots[i].at_post else 0
@@ -152,6 +166,8 @@ func _reset() -> void:
 		talk.heard_at = -INF
 		for p in talk.queue:
 			p.until = -INF
+		talk.ping_answered = -INF
+		talk.marked_at = -INF
 	_said_at.fill(-INF)
 	_held_called.fill(0)
 
@@ -243,13 +259,14 @@ func _watch(i: int, state: GameState, w: BotWorld) -> void:
 	if fresh >= 0:
 		var event := CalloutsFile.Event.CONTACTS if seen >= 2 else CalloutsFile.Event.CONTACT
 		_offer(t, event, i, bots, area_of(chars[fresh].position), seen, 0, fresh)
-	# A noise heard in this tick's hearing (stamped with the bots' time), while nobody on the team has anyone in sight.
-	if b.heard_at == w.time and b.has_last_known and seen == 0 and not _team_sees(t, bots):
+	# A noise heard in this tick's hearing (stamped with the bots' time), while nobody on the team has anyone in sight; a
+	# ping isn't one.
+	if b.heard_at == w.time and b.has_last_known and seen == 0 and not b.on_ping_spot() and not _team_sees(t, bots):
 		var area := area_of(b.last_known)
 		if area != talk.heard_area or _now - talk.heard_at >= pace.same_enemy_gap:
 			_offer(t, CalloutsFile.Event.HEARD, i, bots, area, 0, 0, -1)
-	# Setting off to where someone was.
-	if b.mode == Bot.Mode.SEARCH and _last_mode[i] != Bot.Mode.SEARCH:
+	# Setting off to where someone was; not to a ping, which the team's answer to it already said.
+	if b.mode == Bot.Mode.SEARCH and _last_mode[i] != Bot.Mode.SEARCH and not b.on_ping_spot():
 		var event := CalloutsFile.Event.CHECKING
 		if BotPersonality.pushes_in(b):
 			event = CalloutsFile.Event.PUSHING
@@ -260,6 +277,39 @@ func _watch(i: int, state: GameState, w: BotWorld) -> void:
 	if b.at_post and _was_at_post[i] == 0 and _held_called[i] == 0:
 		_held_called[i] = 1
 		_offer(t, CalloutsFile.Event.HOLDING, i, bots, area_of(me.position), 0, 0, -1)
+
+
+## A player's ping that team `t`'s bots took (Pings.take) and have thought on since (taken before this tick's think):
+## one of them says what it does. Going to your ping by the one nearest the spot that set off to look (a search for
+## it), else Watching your ping by the nearest of the others that took it (under an order, at a post, holding). The spot
+## names the area.
+func _answer_ping(t: int, w: BotWorld) -> void:
+	var talk := _teams[t]
+	var bots := w.bots
+	var newest := talk.ping_answered
+	for b in bots:
+		if b.character.team == t and Elimination.is_in_play(b.character) and b.ping_at > newest \
+				and b.ping_at < w.time:
+			newest = b.ping_at
+	if newest == talk.ping_answered:
+		return
+	talk.ping_answered = newest
+	var speaker := -1
+	var going := false
+	var best := INF
+	for i in bots.size():
+		var b := bots[i]
+		if b.character.team != t or not Elimination.is_in_play(b.character) or b.ping_at != newest:
+			continue
+		var goes := b.mode == Bot.Mode.SEARCH and b.on_ping_spot()
+		var d := Vector2(b.character.position.x - b.ping_spot.x, b.character.position.z - b.ping_spot.z).length()
+		if (goes and not going) or (goes == going and d < best):
+			speaker = i
+			going = goes
+			best = d
+	if speaker >= 0:
+		var event := CalloutsFile.Event.PING_GOING if going else CalloutsFile.Event.PING_WATCHING
+		_offer(t, event, speaker, bots, area_of(bots[speaker].ping_spot), 0, 0, -1)
 
 
 ## Whether any bot on `team` has an enemy in sight now.
@@ -356,7 +406,8 @@ func _allowed(talk: TeamTalk, event: int, i: int, bots: Array[Bot], area: String
 
 ## Says team `t`'s most urgent waiting call once its team gap has passed. A call too old, or one a gap now stops (its
 ## caller hit, or a teammate called the same since), goes.
-func _flush(t: int, state: GameState, bots: Array[Bot], live: bool) -> void:
+func _flush(t: int, state: GameState, w: BotWorld, live: bool) -> void:
+	var bots := w.bots
 	var talk := _teams[t]
 	var ready := _now - talk.said_at >= _file.pace.team_gap
 	var next: Pending = null
@@ -391,6 +442,28 @@ func _flush(t: int, state: GameState, bots: Array[Bot], live: bool) -> void:
 			if k == next.enemy or (contact != null and c.team != t and _now - contact.seen_at <= _cfg.in_sight):
 				talk.enemy_at[k] = _now
 	said.add(b.character.id, t, next.event as CalloutsFile.Event, text, _now)
+	_mark(talk, next, b, state, w)
+
+
+## Whether a sighting just said marks the enemy it calls for the team (callouts.md › Marks): the speaker still sees them,
+## the team hasn't marked one within the gap, and the chance comes up on the marks' own stream. A mark goes in the ping
+## book as the speaker's contact ping (Pings.mark).
+func _mark(talk: TeamTalk, said_call: Pending, b: Bot, state: GameState, w: BotWorld) -> void:
+	var marks := _file.marks
+	if pings == null or said_call.enemy < 0 or marks.chance <= 0.0 or _now - talk.marked_at < marks.gap \
+			or (said_call.event != CalloutsFile.Event.CONTACT and said_call.event != CalloutsFile.Event.CONTACTS):
+		return
+	var chars := state.characters
+	if said_call.enemy >= chars.size():
+		return
+	var enemy := chars[said_call.enemy]
+	var contact: Bot.Contact = b.contacts[enemy.id] if enemy.id >= 0 and enemy.id < b.contacts.size() else null
+	if not Elimination.is_in_play(enemy) or contact == null or _now - contact.seen_at > _cfg.in_sight:
+		return
+	if _mark_rng.randf() >= marks.chance:
+		return
+	talk.marked_at = _now
+	pings.mark(b.character, enemy, _now, w)
 
 
 ## How many of `event`'s lines a bot of `personality` can say, with `area` named or not ("" leaves out {area} lines).

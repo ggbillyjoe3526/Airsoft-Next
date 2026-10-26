@@ -38,6 +38,9 @@ var squad_order: SquadOrder.Kind = SquadOrder.Kind.NONE
 var order_from_wheel: bool = false
 ## Switch the weapon torch on the replica in hand on or off (one-shot; Torch). Nothing without a light in hand.
 var toggle_torch: bool = false
+## Ping where the view looks, for this character's bot teammates (one-shot; PN1): the simulation turns it into a PING
+## event and the bots' controller into a ping (Pings).
+var ping: bool = false
 
 
 ## Back to no input, looking along (yaw, pitch).
@@ -61,6 +64,7 @@ func reset(view_yaw: float = 0.0, view_pitch: float = 0.0) -> void:
 	squad_order = SquadOrder.Kind.NONE
 	order_from_wheel = false
 	toggle_torch = false
+	ping = false
 
 
 func copy_from(other: PlayerCommand) -> void:
@@ -83,3 +87,4 @@ func copy_from(other: PlayerCommand) -> void:
 	squad_order = other.squad_order
 	order_from_wheel = other.order_from_wheel
 	toggle_torch = other.toggle_torch
+	ping = other.ping

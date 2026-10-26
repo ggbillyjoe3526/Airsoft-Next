@@ -17,6 +17,7 @@
 [ext_resource type="Script" path="res://game/config/wind_config.gd" id="15_m1e1h"]
 [ext_resource type="Script" path="res://game/config/noise_config.gd" id="16_np4dp"]
 [ext_resource type="Script" path="res://game/config/overtime_config.gd" id="17_ov1fl"]
+[ext_resource type="Script" path="res://game/config/ping_config.gd" id="18_pn1pg"]
 
 [sub_resource type="Resource" id="Resource_glb71"]
 script = ExtResource("1_41pkq")
@@ -68,6 +69,9 @@ script = ExtResource("16_np4dp")
 [sub_resource type="Resource" id="Resource_ov1fl"]
 script = ExtResource("17_ov1fl")
 
+[sub_resource type="Resource" id="Resource_pn1pg"]
+script = ExtResource("18_pn1pg")
+
 [resource]
 script = ExtResource("9_6ush2")
 ballistics = SubResource("Resource_m1e1h")
@@ -86,3 +90,4 @@ footsteps = SubResource("Resource_4ixof")
 replica_rules = SubResource("Resource_s74fg")
 nav = SubResource("Resource_n4v1g")
 noise = SubResource("Resource_np4dp")
+pings = SubResource("Resource_pn1pg")
