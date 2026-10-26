@@ -10,7 +10,7 @@ extends Node
 ## down its whole length, your own target hit plays the confirmation, and the timed challenge's countdown and Go beep. A
 ## squad order of yours that a teammate took plays a radio's double click in your ear (on_order); so does each bot
 ## callout (on_calls): a teammate's in your ear, panned toward them, an enemy's from where they stand when close,
-## through walls. Kit rustles as a crouch, a stand or a lean starts (FoleyTracker, from the state: bots never hear it);
+## through walls. Your own ping placed plays a soft pip in your ear (on_ping, PN2); a teammate's answer is its callout. Kit rustles as a crouch, a stand or a lean starts (FoleyTracker, from the state: bots never hear it);
 ## a landing thuds louder and lower the harder it comes down, with a rustle under a hard one. The referee's whistle
 ## (WhistleQueue) on the Interface bus: two short blasts start a round, three quick short ones put Elimination's
 ## overtime flag up, one long ends a round, three more end the match, and the range's Time is one long. The map's ambience: its beds by day or night on the Ambience bus and its calls round
@@ -93,6 +93,9 @@ var _calls: AmbientCalls = null
 var _calls_match: int = -1
 ## The squad order outcome last heard (SquadOrders.Outcome.serial).
 var _order_serial: int = 0
+## Your ping heard (on_ping): the ping book's serial read up to, and when your last ping that piped was placed.
+var _ping_serial: int = 0
+var _ping_at: float = -INF
 ## A teammate's callout click (on_calls): its voices, unattenuated and panned at SoundConfig.radio_pan, the next one to
 ## use, and the call log read and the serial read up to.
 var _radio: Array[AudioStreamPlayer3D] = []
@@ -136,7 +139,7 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 		_prop.append(_load("prop_%s" % s))
 	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault",
 			"foley_holster", "magRattle", "rope_up", "rope_down", "steelRing", "radio_ack", "foley_crouch", "foley_stand",
-			"foley_lean", "whistle_short", "whistle_long", "torchClick"]:
+			"foley_lean", "whistle_short", "whistle_long", "torchClick", "ping_pip"]:
 		_load(cue)
 	_set_muffle(cfg.muffled_cutoff_hz)
 	for i in cfg.field_voices:
@@ -297,6 +300,19 @@ func on_order(outcome: SquadOrders.Outcome, player_id: int) -> void:
 	_order_serial = outcome.serial
 	if order_taken(outcome, player_id):
 		_play(&"radio_ack", Vector3.ZERO, true, _cfg.radio_ack_gain, Kind.RADIO, BUS_INTERFACE)
+
+
+## The pip, in your ear only, when `player_id`'s own ping in `book` (Pings) was placed since the last call (the browser
+## game's pingPlaced): a press that pings nothing, and a teammate's mark, play nothing.
+func on_ping(book: Pings, player_id: int) -> void:
+	if book == null or book.placed == _ping_serial:
+		return
+	_ping_serial = book.placed
+	var p := book.of(player_id)
+	if p == null or p.marked or p.at == -INF or p.at == _ping_at:
+		return
+	_ping_at = p.at
+	_play(&"ping_pip", Vector3.ZERO, true, _cfg.ping_pip_gain, Kind.INTERFACE, BUS_INTERFACE)
 
 
 ## The calls said in `said` (CalloutLog) since the last look, each as its radio click (the browser game's radioCall): a

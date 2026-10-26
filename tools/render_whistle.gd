@@ -1,7 +1,8 @@
 extends SceneTree
 ## Renders the referee's pea whistle (the browser game's whistle.ts, which played it live) from SoundConfig's whistle
 ## numbers in play_tuning.tres to assets/audio/cues/whistle_short_<n>.wav and whistle_long_<n>.wav: 16-bit mono
-## 44.1 kHz like the other cues, whistle_variants of each, the warble's phase moved round its cycle from one to the next.
+## 44.1 kHz like the other cues, whistle_variants of each, the warble's phase moved round its cycle from one to the next;
+## and the ping's pip (PN2; the browser game's whistle.beep at AUDIO.pingPip, on the same output) to ping_pip_1.wav.
 ## No display needed:
 ##   godot --headless --path . -s res://tools/render_whistle.gd
 ## then `godot --headless --path . --import` and commit the files with their .import files. An argument after `--`
@@ -12,6 +13,7 @@ const OUT_DIR := "res://assets/audio/cues/"
 ## The blasts rendered, each the stem of its files.
 const SHORT := "whistle_short"
 const LONG := "whistle_long"
+const PIP := "ping_pip"
 
 
 func _initialize() -> void:
@@ -34,6 +36,15 @@ func _run() -> void:
 			file.store_buffer(wav(samples(cfg, length_of(cfg, stem), v)))
 			file.close()
 			print("[render_whistle] %s" % path)
+	var pip_path := "%s%s_1.wav" % [out, PIP]
+	var pip_file := FileAccess.open(pip_path, FileAccess.WRITE)
+	if pip_file == null:
+		push_error("render_whistle: %s could not be written (%s)" % [pip_path, error_string(FileAccess.get_open_error())])
+		failed = true
+	else:
+		pip_file.store_buffer(wav(pip(cfg)))
+		pip_file.close()
+		print("[render_whistle] %s" % pip_path)
 	quit(1 if failed else 0)
 
 
@@ -62,6 +73,25 @@ static func samples(cfg: SoundConfig, seconds: float, variant: int) -> PackedFlo
 		out[i] = sin(phase) * gain
 		var hz := cfg.whistle_hz * (1.0 + cfg.whistle_warble_depth * sin(TAU * cfg.whistle_warble_hz * t + warble_phase))
 		phase = fmod(phase + TAU * hz / RATE, TAU)
+	return out
+
+
+## The ping's pip: a plain sine at ping_pip_hz (no warble: an electronic tone, not a whistle), ping_pip_length long,
+## faded in over whistle_attack and out over the last whistle_release as the browser's beep was, at full scale (the
+## level is ping_pip_gain, set as it plays).
+static func pip(cfg: SoundConfig) -> PackedFloat32Array:
+	var seconds := cfg.ping_pip_length
+	var count := roundi(seconds * RATE)
+	var out := PackedFloat32Array()
+	out.resize(count)
+	for i in count:
+		var t := float(i) / RATE
+		var gain := 1.0
+		if t < cfg.whistle_attack:
+			gain = t / cfg.whistle_attack
+		elif t > seconds - cfg.whistle_release:
+			gain = (seconds - t) / cfg.whistle_release
+		out[i] = sin(TAU * cfg.ping_pip_hz * t) * gain
 	return out
 
 

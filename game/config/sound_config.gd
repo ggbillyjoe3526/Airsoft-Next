@@ -82,6 +82,13 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var radio_pan: float = 0.6
 @export var enemy_radio_reach: float = 15.0
 @export var radio_voices: int = 2
+## Your ping placed (PN2; the browser game's AUDIO.pingPip, PG1): one short soft pip in your ear on the Interface bus,
+## lower and quieter than the shot timer so it reads as a mark, not a countdown. A plain sine at ping_pip_hz,
+## ping_pip_length (s) long with the whistle's attack and release, rendered by tools/render_whistle.gd as ping_pip_1 and
+## played at ping_pip_gain (the browser's volume, as whistle_gain is).
+@export var ping_pip_gain: float = 0.13
+@export var ping_pip_hz: float = 1700.0
+@export var ping_pip_length: float = 0.08
 ## The practice range (M21): steel rings, a plywood figure knocks (an impact on wood), each heard target_reach (m) away,
 ## all the way down the range (its far corner is 74 m from the back).
 @export var target_reach: float = 80.0
