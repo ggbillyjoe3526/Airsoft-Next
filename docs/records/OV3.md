@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-26 | 1 | worker | see Gate | – | – |
+| 2026-10-26 | 1, fix round 1: QA blocking 1 fixed | worker | see Gate | – | QA: a round won the tick after the flag goes up let the overtime blasts cut its long blast; performance advisories |
 
 ## Goal
 
@@ -47,7 +48,7 @@ screen reader's lines. Plan: project files `plan/step27-deferred.md` › The ove
 - The cloth turning to the view is a readability call, not physics: walking round it, it turns with you.
 - The touched colour is read from `RoundState.reason` and `winner`, which carry the last round's result into the next
   live round; `toucher_of` only reads them once the round is over and the flag still up, and a test pins that.
-- The flag adds 5 draw calls while up (below); nothing while down.
+- The flag and its HUD add about 24 draws on High while it stands, 36 under the banner (below); nothing while down.
 
 ## Defaults taken
 
@@ -65,6 +66,8 @@ screen reader's lines. Plan: project files `plan/step27-deferred.md` › The ove
   up (Attack / Defend's 3.7 m over a 3.4 m pole, scaled).
 - **The ring is off-white, yellow while both teams are at it, then the toucher's,** as the browser's ring and
   Attack / Defend's contested yellow.
+- **A round's end drops any overtime blasts still waiting** (fix round 1, QA): its long blast and the match's are the
+  referee's last word; the queue's room fits the overtime's three with a round's and the match's end.
 - **No mix dip under the overtime blasts:** the round start's short blasts don't dip either; only the long ones do.
 - **No separate minimap glyph or marker class:** the pole's drawing and Attack / Defend's plate take a chequered mode,
   as the task's touches name, so the pinning and placing rules stay one.
@@ -73,20 +76,26 @@ screen reader's lines. Plan: project files `plan/step27-deferred.md` › The ove
 
 ## Measurements
 
-Draw calls, objects and primitives in a frame (Compatibility under xvfb, 1920 × 1080, Depot from 12 m, the default
-preset), the flag up and then hidden on the same paused frame:
+Draw calls in a frame (Compatibility under xvfb, 1920 × 1080, Depot, Elimination, bots idle; performance review's
+run against OV2's `4823dfa`): flag down / flag standing / the same frame with the 3D flag hidden.
 
-| Flag | Draw calls | Objects | Primitives |
-|---|---|---|---|
-| Up | 173 | 658 | 43,643 |
-| Hidden | 168 | 653 | 42,659 |
+| Preset | Down | Standing | Flag hidden | The flag | Main, same state |
+|---|---|---|---|---|---|
+| Low | 130 | 151 | 146 | +5 (984 triangles) | – |
+| Medium | 140 | 167 | 156 | +11 | – |
+| High | 140 | 164 | 156 | +8 (1,392 triangles) | 140 standing, 148 on the banner frame |
+| Ultra | 143 | 167 | 159 | +8 | – |
 
-The flag costs 5 draw calls (pole, base, cloth, ring, edge) and about 980 triangles while up, nothing while down (it is
-hidden, and `refresh` returns at once). The rest of that frame's 168 is the field and HUD as before (the 150-call
-ceiling is the owner's High-preset line from a baseline still to be measured; DECISIONS › Performance budgets). A
-frame with it down allocates nothing (`test_overtime_flag_play.gd`, 600 refreshes, OBJECT_COUNT unchanged); the
-whistle queue keeps its fixed size (5). Frame time with it up on the Low preset needs the owner's hardware (PLAYTEST ›
-The overtime flag on screen and in sound).
+The flag is 5 draws on Low (pole, base, cloth, ring, edge) and 8 on High and Ultra, where the pole, base and cloth also
+draw in the sun's shadow pass; Medium's 11 is unattributed (its shadow settings differ). The overtime HUD (the OT clock,
+the marker plate, the minimap glyph) adds about 16 more, and the banner 12 more for its 2.4 s: High's overtime frame
+is 164 (176 with the banner) against main's 140, over the owner's 150-draw High line only during overtime (that line is
+his Forward+ count; this is Compatibility's). A KNOWN_ISSUES row says so. Flag-down frames equal main's (140), and
+`refresh` returns at once with it down; the marker is placed only while it stands (or once to hide it), and the cloth
+turns only when the view's angle moves. Triangles stay under 116 K (the 1.5 million target). A frame with it down
+allocates nothing (`test_overtime_flag_play.gd`, 600 refreshes, OBJECT_COUNT unchanged); the whistle queue keeps a fixed
+size (8: the overtime's three, a round's end and the match's three, and the range's Time). Frame time with it up on the
+Low preset needs the owner's hardware (PLAYTEST › The overtime flag on screen and in sound).
 
 ## Pictures
 
