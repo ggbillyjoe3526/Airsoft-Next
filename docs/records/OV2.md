@@ -102,11 +102,12 @@ one process a map; reports in the project files, `pipeline/runs/OV2/attempt-1/`.
 |---|---|---|---|---|---|---|
 | Depot | 34 | 0 | 0 | 8 | 8 | 0 of 243, 0 of 130, 0 of 118 |
 | Neon Heights | 34 | 0 | 2 | 4 | 10 | 0, 0, 0 |
-WOODLAND
+| Woodland | 34 | 0 | 2 | 2 | 12 | 0 of 248, 0 of 124, 0 of 124 |
 
 **No round reached overtime, so every figure is the base's:** Depot's Hard ends 56.4 / 43.6 % and Easy's Alpha 59 of
 130 decided, Neon Heights' Normal ends 42.6 / 57.4 % (the two within noise, as TL1 recorded them) and Easy's Alpha
-40.3 %; Easy's mean round against Normal's 1.17 × on Depot, 1.19 × on Neon Heights, as TL1's. Overtime changes the
+40.3 %, Woodland's Normal ends 42.3 / 57.7 % (within noise, as TL1's), Hard's 45.2 / 54.8 % and Easy's Alpha 49.2 %;
+Easy's mean round against Normal's 1.17 × on Depot, 1.19 × on Neon Heights and 1.26 × on Woodland, as TL1's. Overtime changes the
 balance only in the rare round that runs out the clock, which none of these did.
 
 ## Verified
