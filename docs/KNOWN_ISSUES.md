@@ -22,6 +22,7 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 | Bots | Hard's held angles (`BotAngles`) don't see bushes: the browser stopped an angle's ray where it entered leaves and added bush edges as corners (angles.ts, angleFeatures.test.ts); sight and fire do read them (WL5) | can wait | 2026-10-25 |
 | Bots | Bots have no magazine sharing: MH1 to MH3 (`docs/DECISIONS.md` › Bots and balance) | can wait | 2026-10-18 |
 | Play | A ping shows nothing on screen and plays no pip yet, and a teammate's Contact mark is only in the ping book: a teammate's answer in the feed is the only sign a ping was taken until PN2 draws the markers (PN1) | can wait | 2026-10-26 |
+| Play | A real noise within 2 s of a ping a bot took, and close to its spot, counts as the same news: the bot keeps the ping's spot in mind (up to 20 s) and makes no Heard call for it (PN1 QA) | can wait | 2026-10-26 |
 | Play | A middle click while the order wheel is open pings where the view was left, as the wheel holds the view still (PN1) | can wait | 2026-10-26 |
 | Bots | Names show on the Dev tab's bot intentions and the spectating line only, never over heads (owner, 2026-10-20) | can wait | 2026-10-20 |
 | Bots | A cross-map route on Depot costs 1.2–1.5 ms on average and up to 6.4 ms (`NavGrid.find_route`, measured headless), over the 1 ms aim: about half the native search, half the string-pulling in GDScript. Plan at most one route a tick | can wait | 2026-10-18 |

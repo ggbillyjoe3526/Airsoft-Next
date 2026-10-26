@@ -83,6 +83,9 @@ mark and the bots' response, kept in a ping book; PN2 draws it. Plan: project fi
 - A ping resolved and taken by two teammates: about 21 µs (a spot) and 23 µs (a contact) on the open test field,
   2,000 each (scratch timing, CPU shared with another tree's gate). A press is at most one per 0.25 s; the search it
   starts is planned within the routes' tick budget as any other.
+- On the real maps a spot ping's floor snap (`NavGrid.nearest_walkable`, 3 m) costs 0.41-0.43 ms median, 0.52-0.66 ms
+  p90 and 1.2 ms at most on Depot and Woodland (performance check); four a second at most, about 2.5 % of a tick.
+  A match tick costs the same as before: Woodland 5v5 2,163 µs against 2,299 µs, Depot 3v3 790 µs against 787 µs.
 - Ticks with a ping every half second, spots and contacts in turn, allocate no object (`test_pings.gd`).
 
 ## Verified
