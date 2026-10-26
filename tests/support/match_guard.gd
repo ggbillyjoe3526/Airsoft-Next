@@ -21,7 +21,8 @@ const BELOW_FLOOR := 0.25
 const ABOVE_TOP := 2.0
 ## Longest time off the ground outside a vault (s): a drop off the tallest crate is about 0.7 s.
 const LONGEST_AIR := 1.0
-## Attack / Defend: a round never lasts past the clock and the longest overtime by more than a tick or two (s).
+## A round never lasts past the clock and its mode's longest overtime (Round.longest_overtime: Attack / Defend's rope,
+## Elimination's flag) by more than a tick or two (s).
 const ROUND_SLACK := 0.1
 
 
@@ -51,8 +52,11 @@ static func elimination(test: GutTest, map_id: String, level: StringName = &"nor
 		night: bool = false) -> void:
 	var r: MatchRunner = await runner(test, map_id, level, night)
 	var name := label(r, map_id)
+	var longest := longest_round(r.tuning, RoundState.Mode.ELIMINATION)
 	var rounds := 0
 	var on_time := 0
+	var overtimes := 0
+	var touches := 0
 	var ricochets := 0
 	var knocks := 0
 	var rings := 0
@@ -62,17 +66,22 @@ static func elimination(test: GutTest, map_id: String, level: StringName = &"nor
 		test.assert_true(m.finished, "%s: the match is won" % at)
 		rounds += m.rounds.size()
 		on_time += m.on_time()
+		overtimes += m.overtimes()
+		touches += m.flag_touches()
 		ricochets += m.friendly_ricochets
 		knocks += m.knocks
 		rings += m.rings
 		for id in m.farthest.size():
 			test.assert_gt(m.farthest[id], MatchRunner.LEAVES_SPAWN, "%s: character %d leaves its spawn" % [at, id])
+		for round_tally in m.rounds:
+			test.assert_lte(round_tally.seconds, longest, "%s: no round runs past the clock and its overtime" % at)
 		_heights(test, r, m, at)
 		test.assert_eq(m.stayed_home, 0, "%s: every bot leaves its spawn each round" % at)
 		test.assert_lte(m.held_up, HELD_UP_MAX, "%s: bots aren't held up on their way" % at)
 		test.assert_eq(m.friendly_hits, 0, "%s: no bot knocks out a teammate" % at)
-	test.gut.p("%s: %d rounds over %d seeds, %d on time, %d teammates reached by a bounce, %d knocks and %d rings"
-			% [name, rounds, seeds, on_time, ricochets, knocks, rings])
+	test.gut.p(("%s: %d rounds over %d seeds, %d on time, %d to the overtime flag (%d touched), %d teammates reached "
+			+ "by a bounce, %d knocks and %d rings") % [name, rounds, seeds, on_time, overtimes, touches, ricochets, knocks,
+			rings])
 	test.assert_gt(rounds, 0)
 	test.assert_lt(float(on_time) / maxf(rounds, 1.0), STALLED_ROUNDS_MAX, "%s: rounds settle, not stand-offs" % name)
 	r.free_level()
@@ -86,7 +95,7 @@ static func attack_defend(test: GutTest, map_id: String, level: StringName = &"n
 	var r: MatchRunner = await runner(test, map_id, level, night, RoundState.Mode.ATTACK_DEFEND)
 	test.assert_true(r.map.has_pole, "%s has a pole" % map_id)
 	var name := label(r, map_id) + " A/D"
-	var longest := r.tuning.rounds.round_time + r.tuning.flag.max_overtime + ROUND_SLACK
+	var longest := longest_round(r.tuning, RoundState.Mode.ATTACK_DEFEND)
 	var rounds := 0
 	var captures := 0
 	var raised := 0
@@ -111,6 +120,11 @@ static func attack_defend(test: GutTest, map_id: String, level: StringName = &"n
 	test.assert_lt(float(on_time) / maxf(rounds, 1.0), STALLED_ROUNDS_MAX, "%s: rounds settle, not stand-offs" % name)
 	r.free_level()
 	return PackedInt32Array([rounds, captures, raised, on_time])
+
+
+## The longest a round in `mode` may run (s): its clock, the mode's longest overtime and a tick or two.
+static func longest_round(tuning: SimTuning, mode: RoundState.Mode) -> float:
+	return tuning.rounds.round_time + Round.longest_overtime(tuning, mode) + ROUND_SLACK
 
 
 ## Nobody falls through the floor, flies, stays in the air or leaves the level.

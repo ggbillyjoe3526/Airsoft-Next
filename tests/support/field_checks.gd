@@ -109,6 +109,8 @@ static func points(map: MapData) -> Dictionary[String, Vector3]:
 			out["lane %d point %d" % [l + 1, i + 1]] = map.lanes[l][i]
 	if map.has_pole:
 		out["the flag"] = map.pole
+	if map.has_overtime_flag:
+		out["the overtime flag"] = map.overtime_flag
 	return out
 
 
@@ -119,22 +121,31 @@ static func on_floor(map: MapData, nav: NavGrid) -> Result:
 	var all := points(map)
 	var off := PackedStringArray()
 	for what in all:
-		var p := all[what]
-		var k := nav.node_at(p)
-		var floor := nav.floor_y[k] if k >= 0 else NAN
-		var ground := map.terrain.height_at(p.x, p.z) if map.terrain != null else NAN
-		if not is_nan(ground) and absf(floor - ground) <= FieldStandard.MAX_RAMP_SLOPE * nav.cell:
-			floor = ground
-		if k < 0:
-			off.append("%s at %s is off the map" % [what, at(p)])
-		elif absf(p.y - floor) > FieldStandard.ON_FLOOR_SLACK:
-			off.append("%s at %s is %s m off the floor" % [what, at(p), num(p.y - floor)])
-		elif nav.walkable[k] != 1:
-			off.append("%s at %s is where nobody can stand" % [what, at(p)])
+		var says := off_floor(map, nav, what, all[what])
+		if not says.is_empty():
+			off.append(says)
 	if not off.is_empty():
 		return Result.new(FieldStandard.ON_FLOOR, Status.FAIL, _list(off) + ".")
 	return Result.new(FieldStandard.ON_FLOOR, Status.PASS, "All %d spawns, dead-zone spots, lane points and flags stand on walkable floor."
 			% all.size())
+
+
+## Where `what` at `p` stands wrong, in words ("" on walkable floor): off the map, more than
+## FieldStandard.ON_FLOOR_SLACK off the nav floor under it (on sloping ground, the ground right under it), or where nobody
+## can stand.
+static func off_floor(map: MapData, nav: NavGrid, what: String, p: Vector3) -> String:
+	var k := nav.node_at(p)
+	var floor := nav.floor_y[k] if k >= 0 else NAN
+	var ground := map.terrain.height_at(p.x, p.z) if map.terrain != null else NAN
+	if not is_nan(ground) and absf(floor - ground) <= FieldStandard.MAX_RAMP_SLOPE * nav.cell:
+		floor = ground
+	if k < 0:
+		return "%s at %s is off the map" % [what, at(p)]
+	if absf(p.y - floor) > FieldStandard.ON_FLOOR_SLACK:
+		return "%s at %s is %s m off the floor" % [what, at(p), num(p.y - floor)]
+	if nav.walkable[k] != 1:
+		return "%s at %s is where nobody can stand" % [what, at(p)]
+	return ""
 
 
 ## Every ramp FieldStandard.MAX_RAMP_SLOPE (1:2) or gentler.
@@ -352,11 +363,13 @@ static func lanes(map: MapData) -> Result:
 
 ## The layout's checks on one field (FC2; the browser's mapLayoutChecks.ts), judged on `m`'s figures: its lanes walk,
 ## its routes are whole, the spawn yards unseen, the longest sightline within `limit` (FieldStandard.sightline_limit;
-## `reason` the exception's, "" for Depot's standard), the middle fair, and on a field with a flag the head start.
+## `reason` the exception's, "" for Depot's standard), the middle fair, on a field with a flag the head start, and the
+## overtime flag's spot.
 static func layout(m: FieldMeasure, limit: float, reason: String) -> Array[Result]:
 	var out: Array[Result] = [lane_walk(m), routes(m), spawn_sight(m), sightline(m, limit, reason), middle(m)]
 	if m.map.has_pole:
 		out.append(flag(m))
+	out.append(overtime_flag(m))
 	return out
 
 
@@ -473,6 +486,41 @@ static func flag(m: FieldMeasure) -> Result:
 				% [says, at(m.map.pole)])
 	return Result.new(FieldStandard.FLAG, Status.PASS, "%s (at least %s), and it is out of sight of the attackers' spawn."
 			% [says, num(FieldStandard.FLAG_HEAD_START)])
+
+
+## Elimination's overtime flag (the browser's overtimeFlagCheck; OV1): on walkable floor, out of the bushes (no leaves
+## from just over its foot to a standing eye), and each end's mean walk from its spawns within FieldStandard.WALK_SPREAD
+## of the other's (past it a failure: the task's 15 %, stricter than the middle's look), both inside the overtime's time at a run (else a
+## look). A field without one warns: a clock run out level is a draw at once there.
+static func overtime_flag(m: FieldMeasure) -> Result:
+	var map := m.map
+	if not map.has_overtime_flag:
+		return Result.new(FieldStandard.OVERTIME_FLAG, Status.WARN, "It has no overtime flag: an Elimination round that runs out of time level is a draw at once.")
+	var spot := map.overtime_flag
+	var off := off_floor(map, m.nav, "The overtime flag", spot)
+	if not off.is_empty():
+		return Result.new(FieldStandard.OVERTIME_FLAG, Status.FAIL, off + ".")
+	if map.foliage.depth(spot + Vector3.UP * FieldStandard.OVERTIME_FOOT_CLEAR, spot + Vector3.UP * m.stand_eye) > 0.0:
+		return Result.new(FieldStandard.OVERTIME_FLAG, Status.FAIL, "The overtime flag at %s stands in a bush, where nobody sees it."
+				% at(spot))
+	var ow := m.overtime_walks()
+	var a := FieldMeasure.mean(ow[0])
+	var b := FieldMeasure.mean(ow[1])
+	if not is_finite(a) or not is_finite(b):
+		return Result.new(FieldStandard.OVERTIME_FLAG, Status.FAIL, "An end can't walk to the overtime flag at %s." % at(spot))
+	var tuning := SimTuning.load_default()
+	var run := maxf(a, b) / tuning.movement.run_speed
+	var spread := maxf(a, b) / minf(a, b) - 1.0
+	var says := "From its spawns, end 0 walks %s m to the overtime flag (%s) and end 1 %s m: %s %% apart" % [num(a, 1),
+			at(spot), num(b, 1), num(spread * 100.0, 0)]
+	if spread > FieldStandard.WALK_SPREAD:
+		return Result.new(FieldStandard.OVERTIME_FLAG, Status.FAIL, "%s, more than %s %%. One end gets there first." % [
+				says, num(FieldStandard.WALK_SPREAD * 100.0, 0)])
+	if run > tuning.overtime.time:
+		return Result.new(FieldStandard.OVERTIME_FLAG, Status.WARN, "%s, %s s at a run: longer than the overtime's %s s."
+				% [says, num(run, 1), num(tuning.overtime.time, 0)])
+	return Result.new(FieldStandard.OVERTIME_FLAG, Status.PASS, "%s (within the standard %s %%), %s s at a run, inside the overtime's %s s."
+			% [says, num(FieldStandard.WALK_SPREAD * 100.0, 0), num(run, 1), num(tuning.overtime.time, 0)])
 
 
 ## The middle of an end's spawns, on the ground plane.

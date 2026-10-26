@@ -301,6 +301,14 @@ func flag_walks() -> Array[PackedFloat64Array]:
 	return _measured["flag_walks"]
 
 
+## Each end's walks from its spawns to the overtime flag (OV1); empty on a field without one.
+func overtime_walks() -> Array[PackedFloat64Array]:
+	if not _measured.has("overtime_walks"):
+		var none: Array[PackedFloat64Array] = []
+		_measured["overtime_walks"] = walks_to(map.overtime_flag) if map.has_overtime_flag else none
+	return _measured["overtime_walks"]
+
+
 ## Whether a standing eye in the attackers' (end 0) spawn yard sees standing eye height over the flag's foot.
 func flag_seen() -> bool:
 	if not _measured.has("flag_seen"):
@@ -333,6 +341,10 @@ func summary() -> String:
 		out += "; flag walks %s and %s m (%s times), %s" % [FieldChecks.num(mean(fw[0]), 1),
 				FieldChecks.num(mean(fw[1]), 1), FieldChecks.num(mean(fw[0]) / mean(fw[1])),
 				"seen" if flag_seen() else "unseen"]
+	if map.has_overtime_flag:
+		var ow := overtime_walks()
+		out += "; overtime flag %s, walks %s and %s m" % [FieldChecks.at(map.overtime_flag),
+				FieldChecks.num(mean(ow[0]), 1), FieldChecks.num(mean(ow[1]), 1)]
 	return out
 
 

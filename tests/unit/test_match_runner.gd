@@ -25,6 +25,7 @@ func test_clock_rounds_are_recorded_as_draws_and_counted_on_time() -> void:
 	var tuning := SimTuning.load_default().duplicate(true) as SimTuning
 	tuning.rounds.round_time = 4.0
 	var r := await _runner("depot", tuning)
+	r.overtime_flag = false
 	var m := r.play(SEED, 40.0)
 	assert_gt(m.rounds.size(), 2, "several short rounds played")
 	assert_eq(m.on_time(), m.rounds.size(), "nobody reaches anybody in four seconds")
@@ -38,10 +39,27 @@ func test_clock_rounds_are_recorded_as_draws_and_counted_on_time() -> void:
 	r.free_level()
 
 
+func test_a_clock_run_out_level_puts_the_overtime_flag_up_and_is_tallied() -> void:
+	var tuning := SimTuning.load_default().duplicate(true) as SimTuning
+	tuning.rounds.round_time = 2.0
+	tuning.overtime.time = 1.0
+	var r := await _runner("depot", tuning)
+	var m := r.play(SEED, 20.0)
+	assert_gt(m.rounds.size(), 1, "several short rounds played")
+	assert_eq(m.overtimes(), m.rounds.size(), "every round goes to the flag: nobody reaches anybody in two seconds")
+	assert_eq(m.flag_touches(), 0, "nobody reaches the flag in a second either")
+	for round_tally: MatchRunner.RoundTally in m.rounds:
+		assert_eq(round_tally.reason, GameEvent.RoundEnd.TIME, "untouched, a draw")
+		assert_lte(round_tally.seconds, MatchGuard.longest_round(tuning, RoundState.Mode.ELIMINATION))
+		assert_gt(round_tally.seconds, tuning.rounds.round_time + tuning.overtime.time - 0.1, "its time is played")
+	r.free_level()
+
+
 func test_a_bot_that_never_gets_away_from_its_spawn_stays_home() -> void:
 	var tuning := SimTuning.load_default().duplicate(true) as SimTuning
 	tuning.rounds.round_time = 1.0
 	var r := await _runner("depot", tuning)
+	r.overtime_flag = false
 	var m := r.play(SEED, 12.0)
 	assert_gt(m.rounds.size(), 1, "several one-second rounds played")
 	assert_gt(m.stayed_home, 0, "nobody gets 8 m from spawn in a second")

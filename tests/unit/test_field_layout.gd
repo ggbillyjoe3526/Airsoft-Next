@@ -1,8 +1,9 @@
 extends GutTest
 ## The field layout (FC2; the browser game's content/mapChecks.test.ts, its layout half): FieldMeasure measures every
 ## field row of data/maps.md once, on its MapLevel's JoltQuery (the BBs' own ray) and its NavGrid, and FieldChecks.layout
-## judges the figures, each field failing exactly its FieldStandard.KNOWN_FAILING layout checks; then each check fails
-## on its own fault in a copy of Depot's data, measured on a BoxWorld of its blocks.
+## judges the figures, each field failing exactly its FieldStandard.KNOWN_FAILING layout checks and every field's overtime
+## flag passing (OV1); then each check fails on its own fault in a copy of Depot's data, measured on a BoxWorld of its
+## blocks.
 
 var catalog: MapCatalog
 var style: MapStyle
@@ -205,3 +206,73 @@ func test_a_flag_in_sight_of_the_attackers_fails_flag() -> void:
 	var r := FieldChecks.flag(_measure(m))
 	assert_eq(r.status, FieldChecks.Status.FAIL, r.text)
 	assert_string_contains(r.text, "can be seen from the attackers' spawn")
+
+
+func test_every_fields_overtime_flag_passes() -> void:
+	for id in results:
+		var list: Array[FieldChecks.Result] = []
+		list.assign(results[id])
+		var r := _only(list, FieldStandard.OVERTIME_FLAG)
+		assert_not_null(r, id)
+		if r != null:
+			gut.p("%s %s" % [id, r])
+			assert_eq(r.status, FieldChecks.Status.PASS, "%s: %s" % [id, r.text])
+
+
+func test_an_overtime_flag_by_one_end_fails_and_none_warns() -> void:
+	var m := _depot()
+	var s := m.ends[1].spawns[0].position
+	m.overtime_flag = Vector3(s.x - 4.0, s.y, s.z)
+	var r := FieldChecks.overtime_flag(_measure(m, depot_nav))
+	assert_eq(r.status, FieldChecks.Status.FAIL, r.text)
+	assert_string_contains(r.text, "One end gets there first")
+	m.has_overtime_flag = false
+	r = FieldChecks.overtime_flag(_measure(m, depot_nav))
+	assert_eq(r.status, FieldChecks.Status.WARN, r.text)
+	assert_string_contains(r.text, "a draw at once")
+
+
+func test_an_overtime_flag_past_15_percent_fails_not_warns() -> void:
+	var m := _depot()
+	# Walk the spot towards end 1's spawns, half a metre at a time on floor that passes, until the ends' walks to it are
+	# more than 15 % apart: in the middle check's warning band, the overtime flag's check fails.
+	var c1 := Vector3.ZERO
+	for s in m.ends[1].spawns:
+		c1 += s.position / m.ends[1].spawns.size()
+	var step := Vector3(c1.x - m.overtime_flag.x, 0.0, c1.z - m.overtime_flag.z).normalized() * 0.5
+	var spread := 0.0
+	var r: FieldChecks.Result = null
+	for i in 60:
+		m.overtime_flag += step
+		var k := depot_nav.node_at(m.overtime_flag + Vector3.UP)
+		if k < 0:
+			continue
+		m.overtime_flag.y = depot_nav.floor_y[k]
+		if not FieldChecks.off_floor(m, depot_nav, "spot", m.overtime_flag).is_empty():
+			continue
+		var measure := _measure(m, depot_nav)
+		var ow := measure.overtime_walks()
+		var a := FieldMeasure.mean(ow[0])
+		var b := FieldMeasure.mean(ow[1])
+		spread = maxf(a, b) / minf(a, b) - 1.0
+		if spread > FieldStandard.WALK_SPREAD:
+			r = FieldChecks.overtime_flag(measure)
+			break
+	assert_between(spread, FieldStandard.WALK_SPREAD, FieldStandard.WALK_SPREAD_WARN, "in the middle's warning band")
+	assert_not_null(r, "a spot past 15 % found")
+	if r != null:
+		assert_eq(r.status, FieldChecks.Status.FAIL, r.text)
+		assert_string_contains(r.text, "more than 15 %")
+
+
+func test_an_overtime_flag_off_the_floor_or_in_a_bush_fails() -> void:
+	var m := _depot()
+	m.overtime_flag += Vector3(0, 0.5, 0)
+	var r := FieldChecks.overtime_flag(_measure(m, depot_nav))
+	assert_eq(r.status, FieldChecks.Status.FAIL, r.text)
+	assert_string_contains(r.text, "off the floor")
+	m = _depot()
+	m.foliage.add(m.overtime_flag, 1.5, 2.0)
+	r = FieldChecks.overtime_flag(_measure(m, depot_nav))
+	assert_eq(r.status, FieldChecks.Status.FAIL, r.text)
+	assert_string_contains(r.text, "stands in a bush")

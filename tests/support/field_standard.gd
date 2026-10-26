@@ -5,8 +5,8 @@ extends RefCounted
 ## EXCEPTIONS writes down the owner's reason; a check a field fails today is on KNOWN_FAILING with the step that clears
 ## it, and a field the game refuses is on NOT_YET. Test-only (tests/ never ships). No number is raised to pass.
 ##
-## Not ported yet, and where each lands: the overtime flag stands on the floor (step 27, the overtime flag); every block drawn inside its box (the first task
-## that draws a block as more than its box); look-only decor lies flat (map.lookOnly: Neon Heights' new look, 0.4);
+## Not ported yet, and where each lands: every block drawn inside its box (the first task that draws a block as more
+## than its box); look-only decor lies flat (map.lookOnly: Neon Heights' new look, 0.4);
 ## the perf gate (map.perf: no Godot perf matrix yet). Not ported at all: map.access and map.modes (the catalog's own
 ## rules, and an information line).
 
@@ -29,11 +29,14 @@ const SPAWN_SIGHT := "field.spawnSight"
 const SIGHTLINE := "field.sightline"
 const MIDDLE := "field.middle"
 const FLAG := "field.flag"
+## Elimination's overtime flag (the browser's map.overtimeFlag; OV1): on walkable floor, out of the bushes, and fair to
+## both ends as the middle is.
+const OVERTIME_FLAG := "field.overtimeFlag"
 ## FieldChecks.run's (test_field_rules), FieldChecks.layout's (test_field_layout), and both.
 const RULES: Array[String] = [REGISTERED, ROOM, ON_FLOOR, RAMPS, KILL_Y, BLOCKS, TEAM_COLOUR, AREAS, LANES, NIGHT]
-const LAYOUT: Array[String] = [LANE_WALK, ROUTES, SPAWN_SIGHT, SIGHTLINE, MIDDLE, FLAG]
+const LAYOUT: Array[String] = [LANE_WALK, ROUTES, SPAWN_SIGHT, SIGHTLINE, MIDDLE, FLAG, OVERTIME_FLAG]
 const CHECKS: Array[String] = [REGISTERED, ROOM, ON_FLOOR, RAMPS, KILL_Y, BLOCKS, TEAM_COLOUR, AREAS, LANES, NIGHT,
-		LANE_WALK, ROUTES, SPAWN_SIGHT, SIGHTLINE, MIDDLE, FLAG]
+		LANE_WALK, ROUTES, SPAWN_SIGHT, SIGHTLINE, MIDDLE, FLAG, OVERTIME_FLAG]
 
 ## MAP_STANDARD. Lanes end to end: Depot's three pass, fewer than MIN_LANES fail (no way round), between warns.
 const LANES_STANDARD := 3
@@ -42,13 +45,17 @@ const MIN_LANES := 2
 const LONGEST_SIGHTLINE := 34.0
 ## Nobody within this of one end's spawns sees anyone within it of the other's, standing or crouched (m) (FC2).
 const SPAWN_YARD_RADIUS := 5.0
-## Each end's walk to the middle: the longer within this share of the shorter passes, within WALK_SPREAD_WARN warns (FC2).
+## Each end's walk to the middle and to the overtime flag: the longer within this share of the shorter passes, within
+## WALK_SPREAD_WARN warns (FC2, OV1).
 const WALK_SPREAD := 0.15
 const WALK_SPREAD_WARN := 0.25
 ## Attack / Defend: the attackers' walk to the flag at least this many times the defenders' (FC2).
 const FLAG_HEAD_START := 1.6
-## How far a spawn, dead-zone spot, lane point or flag may sit from the nav floor under it (m).
+## How far a spawn, dead-zone spot, lane point, flag or overtime flag may sit from the nav floor under it (m).
 const ON_FLOOR_SLACK := 0.05
+## The overtime flag's bush test starts this far over its foot (m): ground cover at the foot hides nothing (the
+## browser's FLAG_FOOT_CLEAR).
+const OVERTIME_FOOT_CLEAR := 0.1
 ## How far a look-only block may stand proud of its floor (m) (not ported yet: see the header).
 const DECOR_PROUD := 0.05
 ## Floors and walls drawn edge to edge are grown a centimetre a side to meet, so neighbours overlap by up to 2 cm; two

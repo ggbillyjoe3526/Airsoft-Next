@@ -132,6 +132,18 @@ func test_a_spawn_lifted_half_a_metre_fails_on_floor() -> void:
 	assert_string_contains(r.text, "end 0 spawn 1 at %s is 0.5 m off the floor" % FieldChecks.at(p + Vector3(0, 0.5, 0)))
 
 
+func test_each_field_reads_its_overtime_flag_and_one_lifted_fails_on_floor() -> void:
+	for id in maps:
+		assert_true(maps[id].has_overtime_flag, "%s has a spot for the overtime flag" % id)
+	var m := _depot()
+	assert_eq(m.overtime_flag, Vector3(2.0, 0.0, 1.6), "Depot's spot, as in its file")
+	assert_false(MapData.load_map("range", style, 1).has_overtime_flag, "the range has none")
+	m.overtime_flag += Vector3(0, 0.5, 0)
+	var r := FieldChecks.on_floor(m, navs["depot"])
+	assert_eq(r.status, FieldChecks.Status.FAIL)
+	assert_string_contains(r.text, "the overtime flag at %s is 0.5 m off the floor" % FieldChecks.at(m.overtime_flag))
+
+
 func test_a_ramp_of_one_in_one_and_a_half_fails_ramps() -> void:
 	var m := _depot()
 	var ramp: MapData.Block = null

@@ -75,6 +75,10 @@ var kill_y: float = -10.0
 ## Attack / Defend's flagpole, by end 1 (`flag` in the file); has_pole false on a map without one.
 var pole: Vector3 = Vector3.ZERO
 var has_pole: bool = false
+## Elimination's overtime flag, its foot near the middle (`overtimeFlag` in the file, OT1); has_overtime_flag false on a
+## map without one (a clock run out level is then a draw at once).
+var overtime_flag: Vector3 = Vector3.ZERO
+var has_overtime_flag: bool = false
 ## The lanes bots walk (walkable points from end 0's side to end 1's), in the file's order.
 var lanes: Array[PackedVector3Array] = []
 ## The practice range's targets (`targets` in the file: config/range.ts rangeLayout()'s specs), in the file's order;
@@ -189,6 +193,9 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	var pole: Variant = d.get("flag")
 	m.has_pole = pole is Dictionary and (pole as Dictionary).has("x") and (pole as Dictionary).has("z")
 	m.pole = _vec(d.get("flag"))
+	var spot: Variant = d.get("overtimeFlag")
+	m.has_overtime_flag = spot is Dictionary and (spot as Dictionary).has("x") and (spot as Dictionary).has("z")
+	m.overtime_flag = _vec(spot)
 	return m
 
 

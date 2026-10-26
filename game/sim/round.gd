@@ -1,12 +1,14 @@
 class_name Round
-## Match flow in rounds (the browser game's sim/round.ts: Elimination and Attack / Defend; no overtime flag or
-## Extraction yet). Rounds against the clock: a team with members but nobody in play loses the round; both out at once
-## is a draw, played again under the same number. Elimination: the clock running out with both sides standing is a draw
-## too. Attack / Defend (RoundState.mode): the attackers also win by raising their flag on the pole (Flag), and the
-## time-out goes to the defenders, after up to FlagConfig.max_overtime while the attackers still work the rope. After
-## RoundConfig.reset_delay everyone respawns for the next round, until a team has wins_needed wins and a lead of win_by:
-## the match is over until start_match. Ends swap after half_time_after decided rounds, so an uneven map is fair over a
-## match. start_match sets a match up before the first tick; step runs once a tick and allocates nothing.
+## Match flow in rounds (the browser game's sim/round.ts: Elimination and Attack / Defend; no Extraction yet). Rounds
+## against the clock: a team with members but nobody in play loses the round; both out at once is a draw, played again
+## under the same number. Elimination: the clock running out with both sides standing puts the overtime flag up at the
+## map's spot (OvertimeFlag), and the first team to touch it wins; untouched for OvertimeConfig.time, or on a map with no
+## spot, it is a draw too. Attack / Defend (RoundState.mode): the attackers also win by raising their flag on the pole
+## (Flag), and the time-out goes to the defenders, after up to FlagConfig.max_overtime while the attackers still work
+## the rope. After RoundConfig.reset_delay everyone respawns for the next round, until a team has wins_needed wins and
+## a lead of win_by: the match is over until start_match. Ends swap after half_time_after decided rounds, so an uneven
+## map is fair over a match. start_match sets a match up before the first tick; step runs once a tick and allocates
+## nothing.
 
 
 ## A new match from round 1: scores cleared, fire selectors back to their defaults, every character placed at its team's end and respawned, no BBs in flight,
@@ -59,8 +61,8 @@ static func step(rs: RoundState, characters: Array[Character], ends: Array[MapEn
 		_end_round(rs, winner, GameEvent.RoundEnd.ELIMINATED, tuning.rounds, events)
 	elif rs.mode == RoundState.Mode.ATTACK_DEFEND:
 		_step_flag_clock(rs, characters, tuning, events, dt)
-	elif rs.clock <= 0.0:
-		_end_round(rs, -1, GameEvent.RoundEnd.TIME, tuning.rounds, events)
+	else:
+		_step_elimination_clock(rs, characters, tuning, events, dt)
 
 
 ## Attack / Defend once nobody is wiped out: the flag raised wins it for the attackers; at the buzzer the defenders win,
@@ -80,14 +82,44 @@ static func _step_flag_clock(rs: RoundState, characters: Array[Character], tunin
 		_end_round(rs, 1 - rs.attackers, GameEvent.RoundEnd.TIME, tuning.rounds, events)
 
 
+## Elimination once nobody is wiped out: while the overtime flag is up, the first team to touch it wins, and its time
+## run out untouched is a draw; at the buzzer the flag goes up at the map's spot (an OVERTIME event at its foot), or on a
+## map with no spot, or with its time already out (End the round now), the round is a draw.
+static func _step_elimination_clock(rs: RoundState, characters: Array[Character], tuning: SimTuning,
+		events: SimEvents, dt: float) -> void:
+	var flag := rs.overtime_flag
+	if flag.up:
+		var taken := flag.step(characters, tuning.overtime, dt)
+		if taken >= 0:
+			_end_round(rs, taken, GameEvent.RoundEnd.OVERTIME_FLAG, tuning.rounds, events)
+		elif flag.left <= 0.0:
+			_end_round(rs, -1, GameEvent.RoundEnd.TIME, tuning.rounds, events)
+		return
+	if rs.clock > 0.0:
+		return
+	if not rs.has_overtime_spot or flag.left <= 0.0:
+		_end_round(rs, -1, GameEvent.RoundEnd.TIME, tuning.rounds, events)
+		return
+	flag.raise(rs.overtime_spot)
+	events.add(GameEvent.Kind.OVERTIME).position = rs.overtime_spot
+
+
 ## Runs a live round's clock and any overtime out, so the next tick ends it as on time by the mode's own rule (the Dev
-## tab's End the round now). False when no round is live.
+## tab's End the round now): Elimination's overtime flag doesn't go up for it; if it is up it comes down as a draw,
+## unless a team has a hand on it that tick, which takes the round (the touch is checked before the time).
+## False when no round is live.
 static func run_clock_out(rs: RoundState) -> bool:
 	if not rs.is_live():
 		return false
 	rs.clock = 0.0
 	rs.overtime = INF
+	rs.overtime_flag.left = 0.0
 	return true
+
+
+## The most a round in `mode` can run past its clock (s): Attack / Defend's rope overtime, or Elimination's flag.
+static func longest_overtime(tuning: SimTuning, mode: RoundState.Mode) -> float:
+	return tuning.flag.max_overtime if mode == RoundState.Mode.ATTACK_DEFEND else tuning.overtime.time
 
 
 ## Ends the wait between rounds now, so the next tick starts the next round (a click on the round's table). False when
@@ -185,6 +217,7 @@ static func _start_round(rs: RoundState, characters: Array[Character], ends: Arr
 	rs.attackers = attackers_in_round(number, tuning.rounds, rs.first_attackers) \
 			if rs.mode == RoundState.Mode.ATTACK_DEFEND else -1
 	rs.flag.reset(rs.pole)
+	rs.overtime_flag.reset(tuning.overtime)
 	place_teams(rs, characters, ends, tuning)
 	for c in characters:
 		c.respawn()
