@@ -86,7 +86,16 @@ part (both maps, about 4 000 shots, 12 s).
 
 ## Measurements
 
-FRAME_COST
+- **Pressed depth:** no extra pass, draw or node: each replica surface draws once with a material copy (one shader
+  variant shared by all of them, compiled as the hands are first drawn). Frame time under Compatibility on the
+  container's software GL (llvmpipe, 1080p, other workers' Godot running beside it) with 60 BBs in view, 60 frames a
+  case, two rounds: pressed or not, trails or not, every case 346–552 ms a frame, the same case varying more between
+  rounds (356 to 552 ms) than any two cases differ; no difference to measure there, and none expected on a GPU.
+- **The BB draw** (`BBView.update`, headless, 2 000 frames, 200 BBs in flight, a near-full fight): 1.0 ms a frame
+  with the trails, 0.60 ms without (the white BB's size floor costs a distance a BB). About 2 µs a BB for its trail,
+  so about 0.06 ms at a typical 30 in flight. Nothing allocated while drawing (`test_bb_sight.gd`).
+- **Trail draw:** one more instanced draw (alpha-blended, 16 x 1 gradient texture made once), hidden with no white BB
+  in flight.
 
 ## Pictures
 
@@ -104,8 +113,26 @@ Woodland plays at night, where BBs glow by default; its white BBs draw as Depot'
 
 ## Verified
 
-VERIFIED
+- New: `test_hands_feel.gd` (6: trigger held on a sprint squares it at the hip within 0.06 s and holds; a shot holds
+  it 0.35 s then the carry returns; every hands surface pressed while the shared paints and models' own stay
+  untouched; depth scale 1 draws as before; aimed at a wall the sight stays put, at the hip it eases back),
+  `test_bb_sight.gd` (6: rimmed shader and size floor; the trail's opacity, fade, length and width; none at opacity
+  0; nothing made while drawing; your BB never drawn past a wall 3 m off (drawn 0.65 m past it before); the across-
+  flight offset), `test_bb_walls.gd` (thin walls on both maps, no BB through). `test_holster.gd`'s sprint test now
+  pins +10 % holstered and back to the armed sprint once drawn.
+- Updated on purpose: `test_glow_bbs.gd` (four draws, the white BB's shader), `test_play_session.gd` (prewarm counts
+  the trail), `test_replica_paint.gd` and `test_lo3_qa.gd` (read the paint through `ReplicaView.painted`).
+- gdlint clean on every changed `.gd`; `tools/unit_tests.sh` 1, 2 and 3: 872 + 1787 + 912, all pass;
+  `tools/smoke_test.sh` passes (`[smoke] ok frames=2942 … shots=441 impacts=721 rounds=9`, zero script errors);
+  `python3 tools/wiki.py check` and `tools/changelog.sh check` pass.
+- Bots and sprint speed: no AI code reads `sprint_speed` (grep); the follow guard's chase test scales with it.
+  `tools/match_guards.sh test_match_guards` passes 4 of 4 (Depot Elimination at Normal on 16 seeds, Easy and Hard
+  on 8, the follow-the-leader guard, the magazine hand-off on Depot and Woodland). Woodland's and Attack / Defend's
+  guards (hours here) are left to CI.
+- Not verified (feel, for the owner): whether the raise on firing at a sprint reads right; whether the holstered
+  sprint feels faster enough at +10 %; the BB's rim and trail on Forward+ at the owner's resolution (renders here are
+  Compatibility); whether the replica pressed over a wall looks natural. PLAYTEST › Movement, Aiming and optics, BBs.
 
 ## Gate
 
-GATE
+Worker's runs, 2026-10-29: see Verified. CI runs the whole gate and the match guards on the head.
