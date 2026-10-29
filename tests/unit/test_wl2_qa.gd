@@ -7,7 +7,6 @@ const LOAD_LIMIT := 20.0
 
 func _session_6v6() -> PlaySession:
 	var settings := Settings.new(PlayTuning.new())
-	settings.dev_enabled = true
 	var custom := CustomRules.new()
 	custom.team_size = 6
 	var session := PlaySession.new()
@@ -107,7 +106,6 @@ func test_the_saved_size_survives_depot_woodland_depot() -> void:
 	var picks := MatchPicks.new()
 	picks.rules = MatchOptions.RULES_CUSTOM
 	var settings := Settings.new()
-	settings.dev_enabled = true
 	settings.custom_rules.team_size = 2
 	var page := _page(picks, settings)
 	await wait_process_frames(1)

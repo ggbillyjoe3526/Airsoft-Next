@@ -25,7 +25,7 @@ func _long_info() -> BugReport.ReportInfo:
 	for i in 40:
 		changed.append("hud.setting_%d %d" % [i, i])
 	info.settings_changed = ", ".join(changed)
-	info.dev_settings = "on: game_speed 2, ghost on, bottomless on"
+	info.dev_settings = "game_speed 2, ghost on, bottomless on"
 	return info
 
 

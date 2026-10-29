@@ -718,9 +718,17 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   its weapon torch, which a night field needs (every bot carries one there), so a Woodland match counts for the records
   and XP; Neon Heights was cut. Dev content still hides whatever a row tags dev. (Before: Woodland and Neon Heights dev
   until the owner made each public, 2026-10-05, Woodland confirmed 2026-10-24.)
-- **Dev settings apply only while their box is ticked (owner, 2026-10-04).** Game speed, Bottomless magazines, Ghost
-  and Disable levelling keep a match out of the records and give no XP for the rest of that match. Debug info, BB paths
-  and Retro pixels change only what you see.
+- **The Dev tab is always there, with no box and no hidden unlock (owner, 2026-10-29: "Dev should always be on and not
+  hidden").** Its switches apply whenever they are set, and every one starts off, so the game plays the same until
+  someone turns one on. A cheat (Game speed, Bottomless magazines, Ghost, Bots hold fire, Bots run low on BBs, Spectate
+  any bot, Bot intentions, Time of day, Disable levelling) still keeps a match out of the records and gives no XP for
+  the rest of that match; Retro pixels changes only what you see. A save from before with the box unticked has its
+  switches turned off once at load (FB3). Dev-only content (dev-tagged maps and gear, the robots Easter egg) stays
+  behind its own switch. (Before: the switches applied only while a Dev settings box under the tabs was ticked, owner
+  2026-10-04.)
+- **Step 27's features are public from 0.1 Dev 1 (2026-10-29, the feedback pass; FB3).** Bot callouts, Elimination's
+  overtime flag, pings with their markers and the magazine hand-off are part of the game, no longer in development,
+  each with its own Settings › HUD switch (Callouts, Ping markers, Mag hand-off) on by default.
 - **New replicas and parts go through the content toolkit (owner, 2026-10-05).** Its content check
   (`docs/content/README.md`): a fail blocks going public; a warning needs the owner's OK. A new item's team wins 40 to
   60 % of decided rounds on public maps, modes and levels. An item allowed stronger, a part better at everything, a

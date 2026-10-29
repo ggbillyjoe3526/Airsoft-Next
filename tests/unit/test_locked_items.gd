@@ -103,7 +103,6 @@ func test_disable_levelling_unlocks_everything_on_the_page() -> void:
 
 
 func test_an_open_loadout_page_is_built_again_when_levelling_changes_under_the_settings() -> void:
-	settings.dev_enabled = true
 	var menus := MenuScreen.new(MatchPicks.new(), settings)
 	add_child_autofree(menus)
 	menus.show_loadout()

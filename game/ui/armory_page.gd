@@ -33,7 +33,7 @@ func _init(settings_in: Settings = null, progress_in: Progress = null, records_i
 	records = records_in if records_in != null else Records.shared()
 	theme = GameTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var dev := settings.active_dev()
+	var dev := settings.dev
 	_signature = _now()
 	_facts = ArmoryFacts.new(progress.table, pool if pool != null else Pool.shared(), progress.xp,
 			dev.disable_levelling, dev.dev_content)
@@ -101,7 +101,7 @@ func stale() -> bool:
 
 
 func _now() -> String:
-	var dev := settings.active_dev()
+	var dev := settings.dev
 	return "%s:%s:%d:%d" % [dev.disable_levelling, dev.dev_content, progress.xp, progress.unlocked.size()]
 
 

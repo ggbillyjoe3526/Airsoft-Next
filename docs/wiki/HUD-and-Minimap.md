@@ -29,33 +29,40 @@ Teammates wear a chevron in your team's colour over their heads, seen through wa
 hollow when cover hides them, grey with a raised hand once they're hit. Markers never show over enemies and never
 show names.
 
-### In development
+### Callouts
 
-**Callouts** share the hit feed: each of your teammates' calls is a line with their chevron and name in your team's
-colour, a small radio and the words ("Rook: Two, Crate yard!"). A call stays and fades like a hit line and counts
-toward the feed's lines; on **Keep** the hits stay and the calls still go: a call shows on top, and the oldest hit
-it moves out of sight comes back when the call goes. Every call goes when a new round starts. Each call clicks over the radio, panned toward the teammate who made it. You never see the other team's
-words, but an enemy within 15 m is heard keying their radio from where they stand, muffled by walls.
+Your [bot teammates' callouts](Bots#callouts) share the hit feed: each of your teammates' calls is a line with their
+chevron and name in your team's colour, a small radio and the words ("Rook: Two, Crate yard!"). A call stays and fades
+like a hit line and counts toward the feed's lines; on **Keep** the hits stay and the calls still go: a call shows on
+top, and the oldest hit it moves out of sight comes back when the call goes. Every call goes when a new round starts.
+Each call clicks over the radio, panned toward the teammate who made it. You never see the other team's words, but an
+enemy within 15 m is heard keying their radio from where they stand, muffled by walls.
 
-**The overtime flag** ([Modes](Modes#in-development)): while it stands the clock and the scoreboard show **OT** and its
+## The overtime flag
+
+While Elimination's [overtime flag](Modes#the-overtime-flag) stands, the clock and the scoreboard show **OT** and its
 time left, a **FLAG** marker with a chequered flag and the distance sits over it, seen through cover and pinned under
 the minimap when it is off screen, and the minimap shows the chequered flag at its spot. A round won there ends with
 **FLAG TOUCHED** and the team that took it.
 
-**Ping markers** ([Squad Orders](Squad-Orders)): your ping is a ring in your team's colour just over the floor with
-**PING** and its distance under it ("PING · 9 M"), and a soft pip in your ear. A teammate's Contact mark is a diamond
-in the other team's colour over the enemy's head where they were seen ("CONTACT · 13 M"); it stays there and never
-follows them. Markers are seen through cover, pop in, stay 7 seconds and fade over the last one. Off screen they are
-pinned inside the edge under the minimap with an arrow the way they are. They hide while you watch a teammate, with
-the scoreboard up and in the pause menu. Settings › HUD › Ping markers turns them off.
+## Ping markers
 
-**The magazine hand-off** ([Squad Orders](Squad-Orders#in-development)): one line under the crosshair says what it is
-doing, never which key to press: who needs a mag and how far ("Rook needs a mag · 12 m"), underlined in your team's
-colour once they are close enough for a toss; whose is coming ("Brick is bringing you a mag"); what you caught
-("+1 mag from Brick · 60 BBs", without the BBs while the ammo counter is off); and why a press did nothing, for a
-couple of seconds. The line hides while the order wheel is open. A small magazine sits by the chevron of a teammate
-asking you for one or bringing you one. Settings › HUD › Mag hand-off turns the line and the magazines off; Screen
-reader messages read the line's notices.
+Your [ping](Squad-Orders#pings) is a ring in your team's colour just over the floor with **PING** and its distance
+under it ("PING · 9 M"), and a soft pip in your ear. A teammate's Contact mark is a diamond in the other team's colour
+over the enemy's head where they were seen ("CONTACT · 13 M"); it stays there and never follows them. Markers are seen
+through cover, pop in, stay 7 seconds and fade over the last one. Off screen they are pinned inside the edge under the
+minimap with an arrow the way they are. They hide while you watch a teammate, with the scoreboard up and in the pause
+menu. Settings › HUD › Ping markers turns them off.
+
+## The magazine hand-off
+
+For [Need a Mag](Squad-Orders#need-a-mag), one line under the crosshair says what the hand-off is doing, never which
+key to press: who needs a mag and how far ("Rook needs a mag · 12 m"), underlined in your team's colour once they are
+close enough for a toss; whose is coming ("Brick is bringing you a mag"); what you caught ("+1 mag from Brick · 60
+BBs", without the BBs while the ammo counter is off); and why a press did nothing, for a couple of seconds. The line
+hides while the order wheel is open. A small magazine sits by the chevron of a teammate asking you for one or bringing
+you one. Settings › HUD › Mag hand-off turns the line and the magazines off; Screen reader messages read the line's
+notices.
 
 ## Scoreboard
 
@@ -85,7 +92,8 @@ Top left, the minimap shows the field from above:
   after a few seconds. Steps carry about 22 m and shots about 60 m.
 - The area you stand in is named at the top, with the map and round under it.
 - In Attack / Defend the pole shows while the round is live, and your Hold Here spot shows as a diamond.
-- In development: your team's pings show as the same ring or diamond, on the minimap's edge when they are off it.
+- Your team's pings show as the same ring or diamond, on the minimap's edge when they are off it, and the overtime
+  flag as a chequered flag at its spot.
 - **Rotating** (the default) turns the field so the way you look is up; **Fixed** keeps north up. Pick it in
   Settings › HUD › Minimap.
 - Once you are out, the minimap follows the teammate you watch.

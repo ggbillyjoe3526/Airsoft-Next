@@ -11,7 +11,6 @@ const LOAD_LIMIT := 20.0
 
 func _page(dev_content: bool) -> MatchPage:
 	var settings := Settings.new()
-	settings.dev_enabled = dev_content
 	settings.dev.dev_content = dev_content
 	var page := MatchPage.new(MatchPicks.new(), settings)
 	add_child_autofree(page)

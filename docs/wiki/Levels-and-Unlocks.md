@@ -24,7 +24,7 @@ A finished match pays:
   divided by 5 (never more than in full).
 - A first-to-5 match on Normal gives about 250 XP, so the first level comes after your first match and the top level
   after about 25 matches on Normal (fewer on Hard).
-- The [Practice Range](Practice-Range) gives no XP, and nor does a match played with Dev settings that change how it
+- The [Practice Range](Practice-Range) gives no XP, and nor does a match played with a Dev setting that changes how it
   plays.
 
 After the last round, the match summary lists the match's XP line by line, and a level-up card names what you

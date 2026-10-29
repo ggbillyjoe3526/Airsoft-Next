@@ -14,26 +14,16 @@ then **0.1**, which opens **Early Access**. Each build is posted on the
 ### Built
 
 Depot, Woodland at night with the weapon torch and glowing BBs, the AEG Rifle, the GBB Pistol and the Cyber Pistol,
-every part and power source, the Loadout, levels and the Armory, Easy, Normal and Hard bots with names, personalities
-and kits, Elimination, Attack / Defend and Custom matches, the practice range in Depot's site, Practice on any field and
-the timed challenge, squad orders, the minimap, the hit feed, scoreboard and match summary, the sound pass, graphics
-presets, accessibility options, the save file screen, the crash screen and bug reports. The rest of this wiki describes
-all of it.
-
-### In development
-
-Being built now, and in the game as each part lands.
-
-- **Bot callouts** (on for everyone while they're tuned; Settings › HUD › Callouts turns them off): your teammates
-  call what they see and do in the hit feed, in words with a radio click, never a voice.
-- **Elimination's overtime flag:** a time-out with players left on both sides puts a flag up near the middle, and the
-  first team to touch it wins the round. Its rules are in and bots go for it; the flag on screen comes next.
-- **Pings** on the middle mouse button: mark a spot or an enemy for your bot teammates, and one goes to look or
-  watches it, and says so, with a marker on screen and on the minimap.
+every part and power source, the Loadout, levels and the Armory, Easy, Normal and Hard bots with names, personalities,
+kits and callouts, Elimination with its overtime flag, Attack / Defend and Custom matches, the practice range in Depot's
+site, Practice on any field and the timed challenge, squad orders, pings and the magazine hand-off, the minimap, the
+hit feed, scoreboard and match summary, the sound pass, graphics presets, accessibility options, the save file screen,
+the crash screen and bug reports. The rest of this wiki describes all of it.
 
 ### Next
 
-- **Asking a teammate for a magazine** when you run low.
+- **0.1 Dev 2:** Depot and Woodland redesigned and dressed with free models and textures, and a basic **smoke bomb**
+  and **flash bomb**, thrown by bots too.
 
 ### Then: the art pass
 

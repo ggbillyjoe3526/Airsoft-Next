@@ -22,7 +22,7 @@ Round: 4 (live), score 2–1, tick 11523, 3:12 in
 Screen: in play
 Player: at (12.4, 0.0, -8.1) facing 212°, crouched, AEG Rifle 17/60, 3 spare
 Frames: last 10 s 141 fps average, worst 38 ms, 2 hitches
-Dev settings: off
+Dev settings: none
 Settings changed: fov 100, sensitivity 2.1, team_colours high_contrast
 Recent errors (1):
   SCRIPT ERROR res://game/ui/hud_feed.gd:88 (_add_row): Invalid access to key "name" ×3
@@ -46,7 +46,7 @@ Seed: 48213
 Match: Depot · Elimination · Standard rules · 3v3 · Normal
 Round: 4 had started, score 2–1
 Screen: in play
-Dev settings: off
+Dev settings: none
 Settings changed: fov 100, sensitivity 2.1, team_colours high_contrast
 Recent errors (1):
   SCRIPT ERROR res://game/ui/hud_feed.gd:88 (_add_row): Invalid access to key "name" ×3
@@ -76,7 +76,7 @@ static func picture_info(crash: bool = false) -> BugReport.ReportInfo:
 	info.seed_text = "48213"
 	info.match_text = "Depot · Elimination · Standard rules · 3v3 · Normal"
 	info.screen = "in play"
-	info.dev_settings = "off"
+	info.dev_settings = "none"
 	info.settings_changed = "fov 100, sensitivity 2.1, team_colours high_contrast"
 	info.errors = PackedStringArray([ERROR])
 	if crash:

@@ -505,7 +505,6 @@ func test_the_pools_give_your_torch_a_real_light_only_when_you_carry_one_and_for
 	var medium := GraphicsTable.shared().preset(&"medium")
 	var real := PlayTuning.load_default().night_lighting.real_lights_for(medium.mesh_detail)
 	var settings := Settings.new()
-	settings.dev_enabled = true
 	settings.dev.dev_content = true
 	var bare := PlaySession.new()
 	bare.map_id = "woodland"
@@ -615,7 +614,6 @@ var _saved: SavedLoadouts = null
 func _customise(dev: bool) -> CustomiseView:
 	_saved = SavedLoadouts.new(_rules(dev))
 	var settings := Settings.new()
-	settings.dev_enabled = dev
 	settings.dev.dev_content = dev
 	var page := LoadoutPage.new(_saved, settings)
 	page.save_path = LOADOUTS

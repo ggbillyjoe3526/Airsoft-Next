@@ -1,7 +1,7 @@
 class_name DevSettings
 extends RefCounted
-## The Dev tab's switches (the browser game's config/dev.ts), saved with the settings. They apply only while the Dev
-## settings box is ticked (owner, 2026-10-04): `Settings.active_dev()` is these then, else the defaults. Game speed,
+## The Dev tab's switches (the browser game's config/dev.ts), saved with the settings. They apply whenever they are set:
+## the tab is always there and every switch starts off (owner, 2026-10-29; before, a Dev settings box). Game speed,
 ## bottomless magazines, ghost, bots hold fire, bots run low on BBs, spectate any bot, bot intentions and Disable levelling keep a match
 ## out of the records and give it no XP (DevCheats); Dev content lists maps tagged dev and keeps a match on one out
 ## too; Retro pixels changes only the look, and Robots (the hidden Easter egg, owner 2026-10-24) only who is drawn as

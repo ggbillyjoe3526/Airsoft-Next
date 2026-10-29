@@ -8,7 +8,6 @@ var s: Settings = null
 
 func before_each() -> void:
 	s = Settings.new(PlayTuning.new())
-	s.dev_enabled = true
 
 
 func _play(autopilot: bool = true) -> void:

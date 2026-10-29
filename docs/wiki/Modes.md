@@ -6,9 +6,19 @@ one round before the win, so the deciding round is always played in the second h
 
 ## Elimination
 
-The classic: **take out the whole other team** to win the round. If both teams are knocked out at once, or the clock
-runs out with players left on both sides, the round is a draw and is played again under the same number (but see
-[In development](#in-development)).
+The classic: **take out the whole other team** to win the round. If both teams are knocked out at once, the round is a
+draw and is played again under the same number. If the clock runs out with players left on both sides, the round goes
+to [the overtime flag](#the-overtime-flag).
+
+### The overtime flag
+
+A clock run out with players left on both sides puts a flag up near the middle of the map, and the first team to touch it, within <!-- wiki:config overtime_config.reach --> m of its foot, wins the
+round. Players of both teams at it hold each other off, and a team knocked out while it is up still loses. Untouched
+for <!-- wiki:config overtime_config.time --> seconds, the round is a draw, played again. Bots go for it a moment after
+it goes up, still fighting anyone they see ([Bots](Bots#the-overtime-flag)). Three quick whistle blasts and an
+**OVERTIME · TOUCH THE FLAG** banner say it is up; the flag rises out of the ground, a chequered off-white and dark
+cloth on a short pole with a ring on the floor at its reach, and the clock shows **OT** and the flag's time left. Once
+touched, its cloth and ring take that team's colour and the banner says **FLAG TOUCHED**. Attack / Defend has none.
 
 ## Attack / Defend
 
@@ -48,17 +58,6 @@ Practice has no bots, no score and no XP, just targets and a timed challenge. It
 [Practice Range](Practice-Range)'s only mode, and every field hosts it too, with targets where the other team would play
 ([Practice on a field](Practice-Range#practice-on-a-field)). While Practice is picked the Match screen shows Team, Bots
 and Rules as NOT USED, and keeps your picks for your next match.
-
-## In development
-
-**The overtime flag:** in Elimination, a clock run out with players left on both sides puts a flag up near the middle
-of the map, and the first team to touch it, within <!-- wiki:config overtime_config.reach --> m of its foot, wins the
-round. Players of both teams at it hold each other off, and a team knocked out while it is up still loses. Untouched
-for <!-- wiki:config overtime_config.time --> seconds, the round is a draw, played again. Bots go for it a moment after
-it goes up, still fighting anyone they see ([Bots](Bots#in-development)). Three quick whistle blasts and an
-**OVERTIME · TOUCH THE FLAG** banner say it is up; the flag rises out of the ground, a chequered off-white and dark
-cloth on a short pole with a ring on the floor at its reach, and the clock shows **OT** and the flag's time left. Once
-touched, its cloth and ring take that team's colour and the banner says **FLAG TOUCHED**. Attack / Defend has none.
 
 ## Round flow
 

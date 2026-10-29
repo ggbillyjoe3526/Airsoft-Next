@@ -157,9 +157,9 @@ never players.
   item 24).
 - [ ] **Hit call.** Hit a bot: the HIT! sign, the hand up, the replica hanging; readable at 20 to 30 m.
 - [ ] **Robots, the Dev Easter egg** (RB1). Settings has no Looks tab and nothing outside the Dev tab names robots.
-  Start a match: everyone is human. Tick the Dev settings box and turn on Settings › Dev › Robots (off at first) in
-  the pause menu: this match is unchanged; start the next one: both teams mix humans and robots. Untick the Dev
-  settings box (or turn Robots off) and the match after is all human again.
+  Start a match: everyone is human. Turn on Settings › Dev › Robots (off at first) in the pause menu: this match is
+  unchanged; start the next one: both teams mix humans and robots. Turn Robots off and the match after is all human
+  again.
 - [ ] **Hit flinch.** Hit a bot side-on, then one from behind (with Dev › Robots on, try a robot too): its upper body
   snaps the way the BB flew (sideways, then forward) and eases back upright in under half a second while the hand
   goes up; a far bot's flinch is as quick. Get hit yourself: the replica jolts and drops out of view in a quarter of a
@@ -363,7 +363,7 @@ it loads and plays, since WL2 at 5v5 (6v6 under Custom), since WL3 at night, sin
 puddles and fireflies, since WL5 with bushes, since WL6 with bots by night, since WL7 with the weapon torch, since WL8
 with glowing BBs, since WL9 with practice; since WL10 the match guards and the balance report play it.
 
-- [ ] **Woodland is public and Neon Heights gone (NR1).** With Settings › Dev settings off, the Match screen shows
+- [ ] **Woodland is public and Neon Heights gone (NR1).** With Settings › Dev › Dev content off, the Match screen shows
   Depot, Woodland and the Range, and no DEV tag on Woodland; nowhere offers Neon Heights. Play a Woodland match to the
   end: it counts on your records and gives XP. Your bots and the other team carry torches there.
 
@@ -694,7 +694,12 @@ pays XP ×1.5.
 ## Settings and controls
 
 Settings opens on Controls, with tabs across the top (Controls, Audio, Display, Graphics, HUD, Accessibility, Save
-file) and a "Dev settings" box that shows the Dev tab.
+file, Dev).
+
+- [ ] **The Dev tab is always there (FB3).** On a new save the Dev tab is the last tab, with no "Dev settings" box
+  under the tabs, and every switch is off: a match plays and counts as before. Turn on Ghost: it applies at once, and
+  the match summary says "No XP: Dev settings or dev content were used in this match." An old save that had the box
+  unticked comes back with every Dev switch off.
 
 - [ ] **Search and notes.** Typing "shadow" shows only matching rows with "N settings found"; pointing at a row says
   what it does, and in Graphics what it costs.
@@ -712,8 +717,8 @@ file) and a "Dev settings" box that shows the Dev tab.
   here or in Graphics.
 - [ ] **Dev group.** Debug info, BB paths, Game speed (25 % to 200 %), Bottomless magazines and Ghost (BBs pass
   through you) change play; with any on, the summary says Dev settings kept the match out of your records.
-- [ ] **Settings › Dev › Tone mapping** (RV2). Neutral by default; AgX and ACES change the colours at once. Untick the
-  Dev settings box and the colours go back to Neutral at once; a match played with AgX still counts.
+- [ ] **Settings › Dev › Tone mapping** (RV2). Neutral by default; AgX and ACES change the colours at once, and the
+  colours go back to Neutral when you set it back; a match played with AgX still counts.
 - [ ] **Dev playtesting aids** (M90). **+500 XP**, **Level up** and **Reset level** change your level at once and
   survive a reload. **Time of day** plays the map under the other light; **Bots hold fire**.
 - [ ] **Settings › Dev › Retro look** (M96, back on the Dev tab since ST1). Off by default; On gives chunky pixels and

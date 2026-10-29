@@ -88,7 +88,6 @@ func test_practice_is_offered_on_every_field() -> void:
 
 func test_practice_picked_on_a_field_stays_picked_on_the_next_field() -> void:
 	var settings := Settings.new()
-	settings.dev_enabled = true
 	settings.dev.dev_content = true
 	var page := MatchPage.new(MatchPicks.new(), settings)
 	add_child_autofree(page)

@@ -44,7 +44,7 @@ func _info() -> BugReport.ReportInfo:
 	info.seed_text = "48213"
 	info.match_text = "Depot · Elimination · Standard rules · 3v3 · Normal"
 	info.screen = "in play"
-	info.dev_settings = "off"
+	info.dev_settings = "none"
 	info.settings_changed = "fov 100"
 	info.note_chars = config.note_chars
 	info.errors = PackedStringArray(["SCRIPT ERROR res://game/ui/hud_feed.gd:88 (_add_row): Invalid access ×3"])

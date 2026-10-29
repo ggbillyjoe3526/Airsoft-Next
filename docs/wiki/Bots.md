@@ -77,25 +77,29 @@ Attacking bots walk their lanes to just past the middle, then make for the pole.
 crouched at the rope while the others guard it from cover close by. Defenders hold near the pole, go after only what
 they see or hear close to it, and the two nearest run to pull a rising flag down.
 
-## In development
+## Callouts
 
-**Callouts:** bots tell their team what they already do, in words in the [hit feed](HUD-and-Minimap#in-development)
+Bots tell their team what they already do, in words in the [hit feed](HUD-and-Minimap#callouts)
 with a radio click, never a voice: a sighting ("Contact, Dock!"), a noise while nobody on the team sees anyone, the
 team's hits ("Two left!", "Last one!"), a reload under fire, setting off after someone, settling at a hold and the
 flag going up. A team speaks one call at a time, a moment apart, the most urgent first; each personality has its own
 lines and talks more or less. Hit players never talk, and what a bot says never changes how anyone plays. You see
 only your own team's words; an enemy close by is heard keying their radio.
 
-**The overtime flag:** when Elimination's [overtime flag](Modes#in-development) goes up, every bot sets off to touch
+## The overtime flag
+
+When Elimination's [overtime flag](Modes#the-overtime-flag) goes up, every bot sets off to touch
 it a moment after the whistles (slowest on Easy, quickest on Hard), still fighting anyone it sees on the way. Anchors
 and careful bots first watch it from cover close by, aiming at it, for a few seconds, unless they are the last of their
 team or the overtime is nearly over; a flanker may come at it round the side. A bot you gave an order keeps to it. On
 each team the bot nearest the flag calls it, naming where it stands.
 
-**Magazines:** a bot running low on BBs for its rifle asks the nearest teammate within 30 m who has one to spare,
+## Magazines
+
+A bot running low on BBs for its rifle asks the nearest teammate within 30 m who has one to spare,
 saying "Need a mag!". A bot asked, by a teammate or by you, calls "Mag coming!", sprints over while it is far, runs the
 last metres and tosses it once you are in reach and in sight; a bot never gives away its last full spare of the replica
 it fights with, but hands over its unused pistol's freely. A bot that asked you walks up to you and waits for your toss;
 one that asked another bot waits where it is. A fight or cover comes first, then bringing one, then your squad order,
 then waiting for one; the same at every level. A catch gets a "Thanks for the mag!" now and then. You toss yours, and ask
-for one, with [Need a Mag](Squad-Orders#in-development).
+for one, with [Need a Mag](Squad-Orders#need-a-mag).

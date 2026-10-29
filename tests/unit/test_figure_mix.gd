@@ -2,7 +2,7 @@ extends GutTest
 ## FI1: who is drawn as a robot (game/play/figures/figure_mix.gd), and the rigged figures in a match on Depot
 ## (game/play/play_session.gd, figure_view.gd; every figure since FI7): half of each team robots from the match seed on
 ## a stream of its own, a body for each, the match's own draws untouched by building them, no orphans left. RB1: a match
-## is humans only unless Settings › Dev › Robots is on (with the Dev settings box ticked).
+## is humans only unless Settings › Dev › Robots is on.
 
 const SALT := 0x5f3759df
 const THREE_V_THREE := [0, 0, 0, 1, 1, 1]
@@ -19,9 +19,8 @@ func after_each() -> void:
 	get_tree().paused = false
 
 
-## Settings › Dev › Robots and the Dev settings box, both on or both off.
+## Settings › Dev › Robots on or off.
 func _mix(on: bool) -> void:
-	s.dev_enabled = on
 	s.dev.robots = on
 
 
@@ -197,9 +196,6 @@ func test_a_match_is_humans_only_until_the_dev_switch_mixes_robots_in() -> void:
 	assert_eq(_arms(off).arms_kind, FigureMix.HUMAN)
 	for b: FigureBody in _bodies(off):
 		assert_ne(b.head, &"", "every body drawn is a human's")
-	s.dev.robots = true
-	var box_off := await _play()
-	assert_false(box_off.figure_kinds.has(FigureMix.ROBOT), "the switch alone, with the Dev box off, mixes none in")
 	_mix(true)
 	var on := await _play()
 	assert_true(on.figure_kinds.has(FigureMix.ROBOT), "Dev › Robots on mixes robots in")

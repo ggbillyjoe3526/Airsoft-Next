@@ -1,4 +1,4 @@
-### Pings (in development)
+### Pings
 - Press the middle mouse button (Squad: ping a spot in Settings › Controls) to mark where your crosshair meets the field, up to 120 m away, for your bot teammates. An opponent you can see under the crosshair is marked as a contact instead; the sky marks nothing.
 - Your teammates take a ping as somewhere worth a look for 20 s: one sets off to check it the way it plays, or watches it when it is under your order or holding a post, and one of them answers in the feed ("Going to your ping", "Watching your ping"). A teammate in a fight carries on.
 - One ping each at a time, a double click is one ping, and pings clear each round. They do nothing while you are out or on the range. A teammate calling Contact may also mark that enemy for you.

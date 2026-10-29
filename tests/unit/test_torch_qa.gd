@@ -31,7 +31,6 @@ func _kit_with_torch() -> Kit:
 
 func _settings(dev: bool) -> Settings:
 	var s := Settings.new()
-	s.dev_enabled = dev
 	s.dev.dev_content = dev
 	return s
 

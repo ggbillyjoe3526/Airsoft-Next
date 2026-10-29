@@ -57,9 +57,6 @@ If the game stutters, lower the preset or the render scale first.
 - **HUD size** from 80 % to 150 %. The crosshair and hit marker keep their size.
 - **What got you:** Auto, On or Off ([HUD and Minimap](HUD-and-Minimap#what-got-you)).
 - **Minimap:** Rotating or Fixed.
-
-### In development
-
 - **Callouts:** On (the default) shows your teammates' calls in the hit feed with a radio click, and lets you hear
   enemies close by keying their radios. Off hides the calls and stops every call's click at once; a squad order a
   teammate takes still clicks.
@@ -80,6 +77,5 @@ Your save, its folder and its restore points: see [Saving and Bug Reports](Savin
 
 ## Dev settings
 
-The **Dev settings** box shows a Dev tab of tools for testing the game, such as game speed and spectating bots. They
-apply only while the box is ticked, and a match played with one that changes how it plays stays out of your records
-and gives no XP. [Development](Development#dev-settings) lists them.
+The **Dev** tab holds tools for testing the game, such as game speed and spectating bots. Every one is off until you
+turn it on, and a match played with one that changes how it plays stays out of your records and gives no XP. [Development](Development#dev-settings) lists them.

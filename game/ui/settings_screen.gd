@@ -4,7 +4,7 @@ extends Control
 ## Audio (a volume for each bus), Display (SettingsDisplayPage: the window, the frame rate, the view), Graphics
 ## (SettingsGraphicsPage), HUD (SettingsHudPage), Accessibility (SettingsAccessPage) and Save file (SettingsSavePage:
 ## restore points, Undo and delete, which restart the game, so only from the title's settings); and an eighth, Dev,
-## shown while the Dev settings box under the tabs is ticked (its switches apply only then; docs/DECISIONS.md › Content
+## always there, each of its switches off until you turn it on (owner, 2026-10-29; docs/DECISIONS.md › Content
 ## tags and dev content). Opened from the title screen and the pause menu; works while the tree is paused. Every change
 ## is applied at once through SettingsApply and saved: a slider a moment after it stops moving, anything else straight
 ## away, and the last change always on close. Esc or Back closes it. While it is open, keys the controls don't use stop
@@ -77,7 +77,6 @@ var _access_page: SettingsAccessPage = null
 ## Save file's tab page, and the tab built in it the first time it shows (it reads the save; most visits never do).
 var _save_tab: VBoxContainer = null
 var _save_page: SettingsSavePage = null
-var _dev_box: CheckButton = null
 var _dev_page: Control = null
 var _dev_checks: Dictionary[StringName, CheckButton] = {}
 ## Dev › Time of day: the map's own, then each preset (DEV_TIMES).
@@ -127,10 +126,6 @@ func _ready() -> void:
 	_build_access()
 	_build_save()
 	_build_dev()
-	_dev_box = CheckButton.new()
-	_dev_box.text = tr("DEV_SETTINGS_BOX")
-	_dev_box.toggled.connect(_on_dev_box)
-	box.add_child(_dev_box)
 	_note = Label.new()
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_note)
@@ -470,12 +465,6 @@ func _build_dev_checks(page: VBoxContainer) -> void:
 	crash.pressed.connect(_ask_crash)
 
 
-func _on_dev_box(on: bool) -> void:
-	settings.dev_enabled = on
-	_show_dev_tab()
-	_changed(true)
-
-
 func _on_dev_switch(on: bool, field: StringName) -> void:
 	settings.dev.set(field, on)
 	_changed(true)
@@ -516,14 +505,6 @@ func _on_crash() -> void:
 		OS.crash(DEV_CRASH)
 
 
-## The Dev tab shows only while its box is ticked; hiding it while it is open goes back to the first tab.
-func _show_dev_tab() -> void:
-	var index := _dev_page.get_parent().get_index()
-	if not settings.dev_enabled and _tabs.current_tab == index:
-		_tabs.current_tab = 0
-	_tabs.set_tab_hidden(index, not settings.dev_enabled)
-
-
 ## Runs `apply` on the settings, then saves (at once if `immediate`).
 func _applied(apply: Callable, immediate: bool = false) -> void:
 	apply.call(settings)
@@ -550,8 +531,6 @@ func _refresh() -> void:
 	_graphics_page.refresh()
 	_hud_page.refresh()
 	_access_page.refresh()
-	_dev_box.set_pressed_no_signal(settings.dev_enabled)
-	_show_dev_tab()
 	set_slider(_speed, settings.dev.game_speed * 100.0)
 	for field: StringName in DEV_SWITCHES:
 		set_check(_dev_checks[field], settings.dev.get(field) as bool)

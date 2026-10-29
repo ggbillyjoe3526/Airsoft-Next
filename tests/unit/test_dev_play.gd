@@ -9,7 +9,6 @@ var s: Settings = null
 
 func before_each() -> void:
 	s = Settings.new(PlayTuning.new())
-	s.dev_enabled = true
 
 
 func after_each() -> void:
@@ -26,7 +25,6 @@ func _play(map_id: String = "depot", autopilot: bool = true) -> void:
 
 
 func test_nothing_on_plays_on_the_record() -> void:
-	s.dev_enabled = false
 	await _play()
 	assert_false(session.state.off_record)
 	assert_false(session.state.dev_content)
@@ -56,14 +54,15 @@ func test_bots_hold_fire_and_nobody_shoots() -> void:
 	assert_false(session.state.cheats.bots_hold_fire, "follows the settings while playing")
 
 
-func test_changes_while_playing_reach_the_match_and_off_the_box_turns_them_all_off() -> void:
+func test_changes_while_playing_reach_the_match_and_off_turns_them_off() -> void:
 	await _play()
 	s.dev.ghost = true
 	s.dev.bottomless = true
 	s.mark_changed()
 	assert_true(session.player.ghost)
 	assert_true(session.player.armament.bottomless)
-	s.dev_enabled = false
+	s.dev.ghost = false
+	s.dev.bottomless = false
 	s.mark_changed()
 	assert_false(session.player.ghost)
 	assert_false(session.player.armament.bottomless)
@@ -133,7 +132,6 @@ func test_end_the_round_from_the_pause_menu() -> void:
 
 
 func test_a_dev_map_counts_as_dev_content() -> void:
-	s.dev_enabled = false
 	var was := DevContent.use_map("depot")
 	await _play("depot")
 	DevContent.restore_map(was)

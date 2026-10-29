@@ -1,5 +1,5 @@
 ### Dev tab
-- Settings has a Dev settings box. Tick it to show a Dev tab. Its switches only apply while it is ticked.
+- Settings has a Dev tab, always there, with every switch off until you turn it on.
 - The Dev tab has Game speed, from 25% to 200%.
 - Dev content shows maps that are still being built.
 - Bottomless magazines, Ghost (BBs pass through you), Bots hold fire and Retro pixels (chunky pixels and a small dithered palette).

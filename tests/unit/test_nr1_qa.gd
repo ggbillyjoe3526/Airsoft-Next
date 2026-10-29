@@ -43,7 +43,6 @@ func test_the_torch_is_a_night_light_for_bots_without_dev_content() -> void:
 
 func test_a_woodland_night_match_counts_on_the_record() -> void:
 	var s := Settings.new(PlayTuning.new())
-	s.dev_enabled = false
 	var session := PlaySession.new()
 	session.settings = s
 	session.map_id = "woodland"

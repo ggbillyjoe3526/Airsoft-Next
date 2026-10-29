@@ -86,7 +86,6 @@ func test_the_pause_menu_seed_survives_a_huge_seed_and_beta() -> void:
 
 func test_a_greyed_map_card_ignores_the_keyboard() -> void:
 	var settings := Settings.new()
-	settings.dev_enabled = true
 	settings.dev.dev_content = true
 	var page := MatchPage.new(MatchPicks.new(), settings)
 	add_child_autofree(page)
@@ -121,7 +120,6 @@ func test_a_greyed_map_card_ignores_the_keyboard() -> void:
 
 func test_dev_content_off_with_a_dev_map_picked_keeps_a_playable_pick_and_play_enabled() -> void:
 	var settings := Settings.new()
-	settings.dev_enabled = true
 	settings.dev.dev_content = true
 	var was := DevContent.use_map()
 	var picks := MatchPicks.new()

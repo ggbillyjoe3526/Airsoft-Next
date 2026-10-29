@@ -5,7 +5,7 @@ extends Node3D
 ## frame (the camera, the replica in hand, BBs, puffs, the other players, sound and the HUD). You play Alpha with bot
 ## teammates against bots on Beta, as many a side as the map plays (data/maps.md: Depot three, Woodland five or six),
 ## Elimination rounds to five wins. Esc pauses; losing focus pauses too. Emits
-## `left` when the player leaves to the title screen. The Dev settings in force apply here and follow every change
+## `left` when the player leaves to the title screen. The Dev settings apply here and follow every change
 ## (game speed, bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions, Retro pixels, End the
 ## round now): the cheats through the simulation (DevCheats), the views built only while on. The graphics drawn follow
 ## too (GraphicsApply's `applied`: the sun's shadows, ambient occlusion and the wind dust), without rebuilding the field.
@@ -285,7 +285,7 @@ func _load_map() -> void:
 		_tuning = MatchOptions.match_tuning(_tuning, MapCatalog.shared().find(map_id), custom_rules)
 	_play = PlayTuning.load_default()
 	_map = MapData.load_map(map_id, _play.map_style, _tuning.rounds.team_size)
-	var dev := (settings if settings != null else Settings.shared()).active_dev()
+	var dev := (settings if settings != null else Settings.shared()).dev
 	_light = lighting_for(_map, _play, lighting_pick, dev.time_of_day)
 	_ui = CanvasLayer.new()
 	_ui.name = "Interface"
@@ -388,7 +388,7 @@ func opponent_team() -> int:
 ## what you have unlocked never changes them.
 func _bot_kit_rules() -> LoadoutRules:
 	var rules := LoadoutRules.standard()
-	rules.dev_content = (settings if settings != null else Settings.shared()).active_dev().dev_content
+	rules.dev_content = (settings if settings != null else Settings.shared()).dev.dev_content
 	return rules
 
 
@@ -443,9 +443,9 @@ func _start_simulation(map: MapData) -> void:
 	if kit == null:
 		var s := settings if settings != null else Settings.shared()
 		var saved := SavedLoadouts.shared()
-		saved.rules.follow_progress(Progress.shared(), s.active_dev().disable_levelling)
-		kit = saved.carried_kit(s.active_dev().dev_content)
-		_kit_unlocked_all = s.active_dev().disable_levelling
+		saved.rules.follow_progress(Progress.shared(), s.dev.disable_levelling)
+		kit = saved.carried_kit(s.dev.dev_content)
+		_kit_unlocked_all = s.dev.disable_levelling
 	state.dev_content = state.dev_content or kit.dev_under(_light.night)
 	player = Character.new(PLAYER_ID, player_team, Vector3.ZERO, 0.0, kit.replicas, kit.bb_weights)
 	# Your weapon light is fitted only at night (WL7): by day the kit plays exactly as one without.
@@ -1534,9 +1534,9 @@ func _step_graphics_down() -> void:
 	_hud.show_graphics_step(tr(GraphicsNotice.PRESET_KEY % String(below).to_upper()), _watch.config.step_notice_seconds)
 
 
-## The Dev settings in force, put into play: the cheats into the simulation, and the views they ask for built or freed.
+## The Dev settings, put into play: the cheats into the simulation, and the views they ask for built or freed.
 func _apply_dev() -> void:
-	var dev := settings.active_dev()
+	var dev := settings.dev
 	DevCheats.apply(state, dev.cheats(), PLAYER_ID)
 	# No bots to follow on the range: you keep playing.
 	_spectate_any = dev.spectate_bots and not practice
@@ -1564,7 +1564,7 @@ func _reset_flinches() -> void:
 		f.reset_flinch()
 
 
-## Settings › Dev › Robots (the Easter egg, RB1; everyone is human while it or the Dev settings box is off), read at the
+## Settings › Dev › Robots (the Easter egg, RB1; everyone is human while it is off), read at the
 ## start of every match (a rematch too, so a change made while paused shows from the next match) and a practice: each
 ## character's kind from the match seed, your own going to the arms (step 32 draws them). Returns the characters whose
 ## kind changed.
@@ -1572,7 +1572,7 @@ func _pick_kinds() -> Array[int]:
 	var teams := PackedInt32Array()
 	for c in state.characters:
 		teams.append(c.team)
-	var robots := (settings if settings != null else Settings.shared()).active_dev().robots
+	var robots := (settings if settings != null else Settings.shared()).dev.robots
 	var before := figure_kinds
 	figure_kinds = FigureMix.pick(state.match_seed, teams, robots, _play.figures.robot_salt)
 	_hands.arms_kind = figure_kinds[PLAYER_ID]

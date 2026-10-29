@@ -398,7 +398,7 @@ func _padded(left: float, top: float, right: float, bottom: float) -> MarginCont
 ## The map cards for the maps on offer now (public fields, dev ones too while Dev content is on). Rebuilt only when
 ## that list changes, since Settings reports every slider move.
 func _list_maps() -> void:
-	var fields := _catalog.listed(_settings.active_dev().dev_content)
+	var fields := _catalog.listed(_settings.dev.dev_content)
 	var offered := PackedStringArray()
 	for e in fields:
 		offered.append(e.id)

@@ -107,7 +107,6 @@ func test_a_session_whose_models_went_missing_still_plays_calls_and_rematches() 
 	assert_true(target._sign.visible, "the sign works with no body")
 	# A rematch with the mix flipped: figures whose kind changes are handed models that cannot supply a body.
 	p._figure_models = none
-	s.dev_enabled = true
 	s.dev.robots = not s.dev.robots
 	s.mark_changed()
 	p._rematch_left = 0.0
@@ -146,7 +145,6 @@ func test_an_old_save_file_holding_rigged_figures_loads_clean_from_disk() -> voi
 	var loaded := Settings.new(PlayTuning.new())
 	loaded.load_file(SAVE)
 	assert_eq(loaded.load_message, "", "no complaint")
-	assert_true(loaded.dev_enabled)
 	var fresh := DevSettings.new().to_dict()
 	assert_eq(loaded.dev.to_dict(), fresh, "no stray setting turned on by the old key")
 	assert_false((loaded.to_dict()["dev"] as Dictionary).has("rigged_figures"), "and dropped when saved again")
