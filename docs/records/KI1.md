@@ -1,12 +1,13 @@
 # KI1 · Fix the contained known issues before 0.1 Dev 1
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified and Gate | – | – |
+| 2026-10-29 | 1 | worker | see Verified and Gate; QA Pass (20 tests), performance Pass | Retry 7/8 | check 5: the session node cleared the bots' orders at match end (Contract 1) |
+| 2026-10-29 | 2: BotController ends the orders at MATCH_OVER | thread | test_so4_qa, test_ki1_qa, test_play_session 54/54 | Accept 8/8 | – |
 
 ## Goal
 
@@ -84,6 +85,17 @@ stale rows, and keeps the rest.
   (`/mnt/project-files/screenshots/dev1-feedback/KI1-woodland-card.png`).
 - Not verified: how the lean gap sounds, and the remembered picks across a real quit and launch on the owner's PC
   (PLAYTEST lists both).
+
+## Advisories left
+
+- **A number written as a string in map data** (QA): `_vec` now reads `"2"` as 0, silently for blocks and lanes; no
+  shipped map has one.
+- **A raw `@` or space in a password inside a web address** (QA): the tail after it can survive the scrub when the
+  host has no dot; both are malformed addresses.
+- **A junk remembered map or team is dropped without a warning** (QA), and the launch path that remembers them has no
+  end-to-end test, since headless runs skip it (QA, critic). The picks are saved at PLAY before the map is known to
+  load; the recall's catalogue check and the Match page's fallback cover a map that fails (critic).
+- **`bot_controller.gd:156`** is 133 characters wide (critic).
 
 ## Gate
 
