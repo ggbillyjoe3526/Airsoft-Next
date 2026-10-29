@@ -1,24 +1,26 @@
-Task: FB3 · The Dev settings always available, and step 27's features public
+Task: FB2 · New first-start defaults from the 0.1 Dev 1 playtest (fix)
 Attempt: 1 of 4
-Head: fe8cdfd (worker's full gate on 3ba7e39; c603add..fe8cdfd add only the record, QA's tests and reports; QA ran the new tests and the smoke test on 7ff3e66)
+Head: 9ee2355 (QA re-check's targeted runs green on f7cf5b2, smoke and wiki/changelog checks green; the full three-part gate on this head was still running at part 1: merge waits on it or CI)
 Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
 Score: 8/8 → Accept
 Evidence:
-1. Box gone, tab always there: settings_screen.gd -_dev_box/_on_dev_box/_show_dev_tab (@@ -127, -470, -516, -550); switches apply whenever set: every active_dev() reader now reads `dev` (play_session.gd:288,391,446-448,1539,1575; armory_page.gd:36,104; loadout_page.gd:43,46,117; match_page.gd:401; menu_screen.gd:49), defaults unchanged (DevSettings untouched); records: DevCheats unchanged, test_fb3_qa.gd:133,148; old unticked save reset once: settings.gd:224-225; Dev-only content behind its own switch (robots, dev_content, bots_low read from `dev`, all default off; test_fb3_qa.gd:164); step 27 public in FEATURES and wiki (Roadmap Built, page moves, "(Dev)" dropped); DECISIONS records the 2026-10-29 ruling and step 27.
-2. No contract in ARCHITECTURE › Contracts names active_dev or dev_enabled; Settings.active_dev() removal is internal, no reader left (grep game/ tools/ tests/).
-3. No hot-path change: a field read replaces a method call; _apply_dev stays signal-driven (play_session.gd:1537).
-4. test_dev_settings.gd test_the_dev_tab_is_always_there_with_no_box_under_the_tabs fails on main (tab hidden for a new player); test_an_old_save_with_the_box_unticked_has_its_switches_reset_once fails on main (unticked save kept its switches).
-5. Typed (settings.gd:224 `box_unticked: bool`), no new constants in gameplay, one static (_dev_defaults) fewer.
-6. Owner's ruling applied as worded; every switch starts off so a new player's game is unchanged; robots stay out of public text.
-7. Pure removal; no new nodes or connections; no UIDs or node paths touched.
-8. Records, changelog note, wiki pages, PLAYTEST line, DECISIONS all updated; nothing beyond the ruling and step 27's docs.
-Advisories (non-blocking):
-- en.po DEV_INTRO (touched here) and wiki Development.md › Dev settings still list only some cheats; DECISIONS now names Bots run low on BBs, Time of day and Disable levelling too. Align the wording in a later pass.
-- tests/unit/test_mh1_qa.gd.uid is added with no mention in the record: a missing .uid committed, harmless hygiene.
-- An unticked old save keeps `dev_enabled: false` on disk until the next save and resets in memory each load (QA): same result every time.
-- A switch left on now persists with no box as a reminder (performance); the match summary's No XP line is the only cue.
+1. Volumes 1/0.7/1/0.3/0.4 game/save/settings.gd:27-33; Exclusive and V-Sync off :43-44, read by the initialisers :76-77, :93 and from_dict :255-257; edge smoothing off on all four presets data/graphics.md:40 and game/config/graphics_table.gd:35; Reset is from_dict({}) (settings.gd reset_save), so it gets the new values; old saves moved once, migrate_defaults :171-194.
+2. No contract touched: saves still go through SaveFile (contract 8); the settings file's version 1→2 is internal and bundles accept v1 (QA).
+3. New code is event-driven only: set_menus (main.gd:132, :373, :394, :428), apply_frame_rate on focus and Settings changes, menu_cap reads two values and allocates nothing (settings_apply.gd:94-104). migrate_defaults runs once per file load.
+4. test_settings.gd:51-57 (defaults) and the new v1 migration tests fail on main; test_settings_apply menu-cap and F11 tests fail without `Screens.menus`; QA's 24 + 11 tests were mutation-checked.
+5. Settings stays plain state; SettingsApply applies; cap rate and fallback in DisplayConfig (display_config.gd:14,16), not code numbers; all typed. The `menus` flag joins the existing static `_screens` (as `focused` did), not new hidden state.
+6. Settings-only change; quieter mix and no MSAA suit the pillars; no assets.
+7. Small additions; migration and old-default constants named (VOLUME_DEFAULTS_V1 and friends); nothing to free.
+8. Records, DECISIONS, wiki Settings, PLAYTEST, changelog note all updated; no KNOWN_ISSUES row resolved by it.
+Advisories (not blocking):
+- The menu cap (fix round 1) is behaviour the owner did not ask for: a sensible default (taken in the record, switchable in DisplayConfig), but tell him in the pull request; DECISIONS' FB2 ruling does not mention it.
+- A map that fails to load emits `started` (play_session.gd:412), so its refusal screen draws uncapped (QA advisory 1).
+- performance.md judged 120992d, not fix round 1; I read the fix's paths myself (check 3). `if version >= 2` (settings.gd:172) could read a named constant; settings_apply.gd:76 doc comment is 177 characters.
+- A v1 player who chose Windowed, V-Sync on or exactly 80 % effects is moved too (indistinguishable from the default; recorded).
 Owner should test in the game:
-- Settings on a new save: Dev is the last tab, no "Dev settings" box, every switch Off; all eight tabs fit at your window size.
-- Turn on Ghost in a match: it applies at once and the summary says No XP; turn it off and the next match counts.
-- Your own save (box unticked before): every Dev switch comes back Off.
-- Callouts, pings, the overtime flag and the magazine hand-off play as before, with their Settings › HUD switches.
+- A fresh save (delete user://settings.save) on Windows opens in exclusive fullscreen on the screen it starts on, with no long flash of the maximised window first.
+- Settings › Display shows V-Sync off; Graphics shows the FOR YOUR CARD preset with Edge smoothing Off; Audio reads 100/70/100/30/40.
+- Your existing save: volumes you never touched now read the new values; Window mode is Exclusive.
+- Pick Windowed, press F11: back to exclusive fullscreen; alt-tab out and back behaves.
+- F3 on the title and menus reads no more than your screen's refresh rate; in a match it follows your Frame rate limit.
+- Does the new mix (effects 70 %, ambience 30 %, interface 40 %) sound right in a match?
