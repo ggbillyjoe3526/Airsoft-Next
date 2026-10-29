@@ -313,3 +313,71 @@ func test_opening_and_closing_quit_game_the_settings_and_the_title_again_leaves_
 	assert_eq(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT), orphans)
 	assert_eq(bar.wordmark().pressed.get_connections().size(), 1, "one listener on the wordmark")
 	assert_eq(main._menus.title_requested.get_connections().size(), 1)
+
+
+# --- Fix round 1: what the fixes must not break ----------------------------------------------------------------------
+
+func test_the_focus_falls_back_to_the_screens_own_control_when_the_remembered_one_is_gone() -> void:
+	var main: Node = await _boot()
+	main._show_menus()
+	await wait_process_frames(2)
+	main.ask_quit()
+	await wait_process_frames(2)
+	main._quit_prompt._before = null
+	main._quit_prompt.close()
+	await wait_process_frames(2)
+	assert_not_null(_focus(), "the Match page gives the keyboard to a control of its own (no script error)")
+	main._show_title()
+	await wait_process_frames(2)
+	main.ask_quit()
+	await wait_process_frames(2)
+	main._quit_prompt._before = null
+	main._quit_prompt.close()
+	await wait_process_frames(2)
+	assert_eq(_focus(), main._title.start_button(), "the title gives it to START")
+
+
+func test_a_group_whose_members_are_all_hidden_or_toggle_every_frame_stays_sane() -> void:
+	var box := VBoxContainer.new()
+	add_child_autofree(box)
+	var a := Button.new()
+	a.text = "ONE"
+	var b := Button.new()
+	b.text = "A MUCH LONGER TWO"
+	box.add_child(a)
+	box.add_child(b)
+	var group := ButtonWidth.group([a, b])
+	var listeners := b.visibility_changed.get_connections().size()
+	a.visible = false
+	b.visible = false
+	await wait_process_frames(2)
+	assert_eq(group.width(), 0.0, "nothing showing, no width to keep")
+	for i in 20:
+		b.visible = not b.visible
+		a.visible = not b.visible
+		await wait_process_frames(1)
+	b.visible = true
+	a.visible = true
+	await wait_process_frames(3)
+	assert_almost_eq(a.size.x, b.size.x, 0.5)
+	assert_almost_eq(b.size.x, b.get_minimum_size().x, 0.5, "the long one is whole again")
+	assert_eq(b.visibility_changed.get_connections().size(), listeners, "no listener added by toggling")
+
+
+func test_escape_in_the_name_field_cancels_the_rename_and_the_next_escape_asks_quit_game() -> void:
+	var main: Node = await _boot()
+	main._show_menus()
+	main._menus.top_bar().tab_button(TopBar.Tab.LOADOUT).pressed.emit()
+	await wait_process_frames(3)
+	var page: LoadoutPage = main._menus.loadout_page()
+	page.strip().start_rename()
+	await wait_process_frames(2)
+	await _key(KEY_ESCAPE)
+	assert_eq(page.strip().mode, LoadoutStrip.Mode.NORMAL, "one Esc cancels the rename")
+	assert_null(main._quit_prompt, "and asks nothing")
+	await _key(KEY_ESCAPE)
+	assert_not_null(main._quit_prompt, "the next one asks")
+	main._quit_prompt.close()
+	await wait_process_frames(2)
+	main._menus.leave_loadout()
+	await wait_process_frames(2)
