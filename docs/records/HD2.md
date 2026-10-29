@@ -1,13 +1,13 @@
 # HD2 · HIT! over the score bar when your hit ends the round (Dev 1 bug pass)
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-29 | 1 | worker | see Verified; QA Fail (2 blocking), performance Pass | – | – |
-| 2026-10-29 | 1, fix round 1: cards fitted to the height left, stack from MARGIN under the summary, stale slot cleared | worker | see Fix round 1 | – | – |
+| 2026-10-29 | 1, fix round 1: cards fitted to the height left, stack from MARGIN under the summary, stale slot cleared | worker | see Fix round 1; QA Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -68,6 +68,15 @@ top; the stack was taller than the room under the score bar, so it grew into the
 - **Perf advisory taken:** the slot's height is measured once, as it is first held, not every frame.
 - Verified: `test_hd2_qa.gd` (QA's, unedited) and `test_hd2_hit_call_stack.gd` 12 pass; the HUD size, hunt, style, Mag
   hand-off and orders HUD tests 102 pass in all; `unit_tests.sh 1` 885/885; smoke passes; gdlint clean.
+
+## Advisories left
+
+- **The match banner jumps up about 110 px** when the round table gives way to the match summary (the bar hides);
+  the slot holds it still only as the hit call ends (critic). An owner check.
+- **A hit call arriving while a banner is up** pushes the banner down by the call's height; nothing overlaps (QA).
+- **The fit runs in `update`** but only reads cached sizes and writes a scale when it changes; the performance run
+  predates fix round 1, judged by reading (critic).
+- `hud.gd` is 1257 lines; a Beta tidy could move the stack and card placement into a helper (critic).
 
 ## Gate
 
