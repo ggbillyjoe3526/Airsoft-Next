@@ -143,8 +143,7 @@ func test_a_skyline_without_chimney_smoke_ignores_the_smoke_switches() -> void:
 func test_the_other_maps_load_without_a_skyline_warning() -> void:
 	for id: String in ["woodland", "range", "depot"]:
 		var m := MapData.load_map(id, play.map_style, 1)
-		for w in m.warnings:
-			assert_false("skyline" in w, "%s: %s" % [id, w])
+		assert_eq(m.warnings.filter(func(w: String) -> bool: return "skyline" in w), [], id)
 
 
 func test_a_bad_entry_of_a_known_kind_warns_and_odd_files_never_crash() -> void:
