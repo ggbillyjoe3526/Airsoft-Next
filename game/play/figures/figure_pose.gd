@@ -188,10 +188,11 @@ func switch_share(back: bool) -> float:
 	return 1.0 - _config.switch_pistol_from if back else _config.switch_pistol_from
 
 
-## The share of the aim clips' blend (-1 AimDown .. 1 AimUp) for the pitch, raised towards AimUp at a wall.
+## The share of the aim clips' blend (-1 AimDown .. 1 AimUp) for the pitch; at a wall, towards level (the high ready
+## turns the level hold, FigureReady).
 func aim_blend() -> float:
 	var blend := clampf(pitch / _config.aim_pitch, -1.0, 1.0) if _config.aim_pitch > 0.0 else 0.0
-	return lerpf(blend, 1.0, raise)
+	return lerpf(blend, 0.0, raise)
 
 
 ## How far (rad) the spine leans the aim beyond what the clips turn the replica (aim_reach of the blend's pitch); at a
@@ -199,11 +200,6 @@ func aim_blend() -> float:
 func aim_lean() -> float:
 	var blend := clampf(pitch / _config.aim_pitch, -1.0, 1.0) if _config.aim_pitch > 0.0 else 0.0
 	return lerpf(pitch - _config.aim_reach * _config.aim_pitch * blend, _config.raise_lean, raise)
-
-
-## How far (rad) the arms turn the replica up at a wall (FigureConfig.raise_arms of the raise).
-func arm_raise() -> float:
-	return _config.raise_arms * raise
 
 
 static func _is_pistol(a: Armament, slot: int) -> bool:

@@ -166,8 +166,9 @@ never players.
   item 24).
 - [ ] **Hit call.** Hit a bot: the HIT! sign, the hand up, the replica hanging straight down; readable at 20 to 30 m.
 - [ ] **Bots at walls.** Watch a bot hold at a wall, a crate stack or a container, and one crouched behind a crate:
-  its replica tips up, muzzle high, both hands on it, never through the wall, and comes down level as it steps away
-  or fires. Natural, or does the swing up catch the eye?
+  its replica stands up in front of its face, muzzle high, both hands on it under the head (never like a hit call),
+  never through the wall, and comes down level as it steps away or fires. Natural, or does the swing up catch the
+  eye?
 - [ ] **Robots, the Dev Easter egg** (RB1). Settings has no Looks tab and nothing outside the Dev tab names robots.
   Start a match: everyone is human. Turn on Settings › Dev › Robots (off at first) in the pause menu: this match is
   unchanged; start the next one: both teams mix humans and robots. Turn Robots off and the match after is all human

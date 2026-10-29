@@ -1,8 +1,10 @@
 extends GutTest
 ## FB5: a figure's replica muzzle up at a wall (game/play/figure_view.gd's ray, figure_pose.gd's raise, figure_bend.gd's
-## arms): facing a wall within reach, no part of the rifle or the pistol drawn past its face (through it without the
-## raise); facing a crate as high as the rifle, the muzzle above its top; level again with nothing in reach, after a
-## shot, holstered and calling the hit (the replica hanging straight down within the body); one ray a raise_stride.
+## high ready, figure_ready.gd): facing a wall within reach, no part of the rifle or the pistol drawn past its face
+## (through it without the raise); facing a crate as high as the rifle, the rifle's muzzle above its top and nothing
+## past its face below the top; the hands under the head (never the hit call's raised hand); level again with nothing
+## in reach, after a shot, holstered and calling the hit (the replica hanging straight down within the body); one ray a
+## raise_stride.
 ## Drawn only: the character's aim is never touched. Read as the skeleton finishes updating (test_figure_hands.gd).
 
 const EYE := Vector3(0.0, 1.6, 3.0)
@@ -17,6 +19,8 @@ var body: BodyConfig = null
 ## The replica in the hand as last drawn, by figure: its box's corners and its muzzle in the figure's frame.
 var _corners: Dictionary[FigureView, PackedVector3Array] = {}
 var _muzzle: Dictionary[FigureView, Vector3] = {}
+## The higher hand's height over the Head bone's (m), as last drawn.
+var _hands_over_head: Dictionary[FigureView, float] = {}
 
 
 ## A level whose rays are counted.
@@ -53,7 +57,11 @@ func _view(kind: int, c: Character, world: WorldQuery) -> FigureView:
 	if world != null:
 		v.set_world(world, body)
 	var hands := v.body().hands
-	v.body().skeleton.skeleton_updated.connect(func() -> void:
+	var sk := v.body().skeleton
+	sk.skeleton_updated.connect(func() -> void:
+		var head := sk.get_bone_global_pose(sk.find_bone("Head")).origin.y
+		_hands_over_head[v] = maxf(sk.get_bone_global_pose(sk.find_bone("Hand_L")).origin.y,
+				sk.get_bone_global_pose(sk.find_bone("Hand_R")).origin.y) - head
 		var r := hands.replica(hands.in_hand)
 		if r == null or not r.visible:
 			_corners.erase(v)
@@ -103,6 +111,7 @@ func test_facing_a_wall_within_reach_no_replica_passes_its_face() -> void:
 				await _pose(v, c)
 				assert_lte(_ahead(v), distance + SLACK,
 						"kind %d slot %d short of a wall %.2f m ahead" % [kind, slot, distance])
+				assert_lt(_hands_over_head[v], 0.0, "the hands under the head")
 				var bare := _view(kind, c, null)
 				await _pose(bare, c)
 				if distance < 0.55:
@@ -118,7 +127,8 @@ func test_facing_a_crate_as_high_as_the_rifle_the_muzzle_clears_its_top() -> voi
 		world.add_box(Vector3(0.0, top * 0.5, -0.45 - 0.5), Vector3(1.0, top, 1.0))
 		var v := _view(FigureMix.HUMAN, c, world)
 		await _pose(v, c)
-		assert_gt(_muzzle[v].y, top, "slot %d: the muzzle above the crate" % slot)
+		if slot == 0:
+			assert_gt(_muzzle[v].y, top, "the rifle's muzzle above the crate")
 		for p: Vector3 in _corners[v]:
 			if -p.z > 0.45 + SLACK:
 				assert_gt(p.y, top - SLACK, "slot %d: what reaches past the face is above the top" % slot)

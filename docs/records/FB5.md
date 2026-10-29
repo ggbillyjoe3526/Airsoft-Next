@@ -25,10 +25,13 @@ would move routes and the bot guards, so the fix is drawn only.
   at `raise_full` (0.35 m, the capsule's edge). A shot holds it at none for `raise_fire_hold` (0.35 s), so a bot never
   fires from a raised replica. One `RayHit` a figure, made once; nothing allocated a frame.
 - **The pose** (`figure_pose.gd` `raise`, eased over `settle_raise` 0.08 s and snapped with the rest; `figure_body.gd`;
-  `figure_bend.gd` `raise_arms`). Raised, the aim clips blend to AimUp, the spine's aim lean goes to `raise_lean` (0.05
-  rad back), and both arms (Shoulder_L, Shoulder_R, so the hands, the replica on Grip_R and a reload's magazine on
-  Hand_L with them) turn up `raise_arms` (0.65 rad) about the midpoint of the upper arms: the muzzle near upright at the
-  chest, both hands on it. As far as the aim shows (not while calling, walking off, vaulting or holstered). The hit
+  `figure_bend.gd` `high_ready`; `figure_ready.gd`, new). Raised, the aim clips blend to level and the spine's aim lean
+  to `raise_lean` (0.05 rad back); then FigureReady turns the replica with both hands about the grip, `raise_angle`
+  (1.35 rad) muzzle up, canted `raise_cant` (1.3 rad, the magazine out to the right, not into the wall) and drawn
+  `raise_back` 0.2 m and `raise_down` 0.2 m in to the chest, and each arm reaches its hand's new place by two-bone IK
+  (upper arm and forearm turned in the elbow's own plane, the hand given the replica's turn), so the replica on Grip_R
+  and a reload's magazine on Hand_L follow. Fully raised the rifle stands upright in front of the face, the hands at
+  chest and chin height. As far as the aim shows (not while calling, walking off, vaulting or holstered). The hit
   volume, the sim's aim and every route are untouched.
 - **The hit call and walk-off** (`figure_config.gd` `hang_tilt` 0.25 → 0). Checked as asked: hanging 0.25 rad forward,
   the rifle reached 0.52 m ahead (0.46 m at the muzzle, knee high) and 0.44 m walking off; straight down, 0.36 m and
@@ -36,20 +39,23 @@ would move routes and the bot guards, so the fix is drawn only.
 - **Tuning** in `FigureConfig` (all of the above). `tools/figure_bench.gd` gives its figures the level and takes
   `--no-raise` for a before and after.
 
-Measured reach (the replica's box corners ahead of the figure's middle, human and robot alike, standing):
+Measured reach (m; the replica's box corners ahead of the figure's middle, a human standing; the robot shares the
+skeleton and measured the same, and the tests run both):
 
 | Wall at (m) | 1.2 | 1.0 | 0.9 | 0.8 | 0.7 | 0.6 | 0.5 | 0.4 | 0.35 |
 |---|---|---|---|---|---|---|---|---|---|
 | Rifle before | 0.98 | 0.98 | 0.98 | 0.98 | 0.98 | 0.98 | 0.98 | 0.98 | 0.98 |
-| Rifle after | 0.99 | 0.88 | 0.77 | 0.66 | 0.54 | 0.45 | 0.39 | 0.36 | 0.35 |
-| Pistol after (0.60 before) | 0.60 | 0.60 | 0.60 | 0.60 | 0.60 | 0.46 | 0.25 | 0.12 | 0.10 |
+| Rifle after | 0.97 | 0.82 | 0.71 | 0.59 | 0.48 | 0.40 | 0.34 | 0.31 | 0.30 |
+| Pistol after (0.60 before) | 0.60 | 0.60 | 0.60 | 0.60 | 0.60 | 0.49 | 0.36 | 0.29 | 0.28 |
 
 ## Defaults taken
 
-- **Arms turned about the shoulders' midpoint, not a new clip:** Blender isn't on this machine, and turning both arms
-  together keeps both hands on the replica; each shoulder joint moves about 5 cm, which the skin takes.
-- **A small spine lean (0.05 rad), not the aim's:** the aim clips past 60° lean the whole upper body back (27° at
-  60°), which read as falling over and put the drawn head 18 cm behind the hit head.
+- **IK in code, not a new clip:** Blender isn't on this machine. A first try turned both whole arms up about the
+  shoulders: it cleared walls, but the left hand ended over the head (1.9 m), which reads as a hit call, and so does
+  pitching the aim past AimUp (the body leans back 27° at 60°, the drawn head 18 cm behind the hit head). Turning the
+  replica about the grip and reaching for it keeps the hands under the head (the tests ask it).
+- **Canted 1.3 rad:** upright, the magazine pointed straight ahead into the wall (a picture showed it at 0.9 rad);
+  canted out it reaches 0.30 m, inside the body's 0.32 m.
 - **Starts at 1.25 m, eased out:** the box round the tilting rifle swings out before it rises clear; a linear blend
   from 1.05 m let it 7–10 cm into a wall between 0.6 and 0.9 m.
 - **The ray 0.2 m under the eyes:** the rifle's hands and magazine sit 0.1–0.3 m under the eye line, so a 1.5 m stack
@@ -62,8 +68,8 @@ Measured reach (the replica's box corners ahead of the figure's middle, human an
 ## Verified
 
 - `tests/unit/test_figure_raise.gd` (new, 6): a rifle and a pistol, human and robot, at walls 0.9 / 0.6 / 0.45 / 0.35
-  m: nothing past the face (box corners within 3 cm), and through it without the raise; a 1.5 m crate: the muzzle above
-  its top and all past the face above it; level with a wall 2 m off; a shot holds it level and it rises after;
+  m: nothing past the face (box corners within 3 cm), the hands under the head, and through it without the raise; a
+  1.5 m crate: the rifle's muzzle above its top and all past the face above it (the pistol stays short of it); level with a wall 2 m off; a shot holds it level and it rises after;
   holstered nothing, calling the hit within 0.4 m; one ray a stride. With the raise taken out, 3 of the 6 fail.
 - Cost: see Performance.
 

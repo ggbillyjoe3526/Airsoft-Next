@@ -173,7 +173,7 @@ func animate(pose: FigurePose, hits: HitConfig, delta: float, fired: bool = fals
 	var aiming := pose.upper_weight() * (1.0 - pose.holster_weight)
 	bend.aim_lean = pose.aim_lean() * aiming
 	# Muzzle up at a wall (FB5), as far as the aim shows.
-	bend.arm_raise = pose.arm_raise() * aiming
+	bend.high_ready = pose.raise * aiming
 	hands.show_hands(pose.in_hand, pose.slung, pose.hanging)
 	hands.feet = pose.feet
 	hands.velocity = pose.velocity

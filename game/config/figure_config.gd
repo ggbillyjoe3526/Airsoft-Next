@@ -92,11 +92,12 @@ extends Resource
 @export var aim_reach: float = 0.55
 ## Muzzle up at a wall (FB5): armed, the replica reaches about 1.0 m ahead (a pistol 0.6 m) of the 0.32 m body, so with
 ## level geometry within raise_reach_rifle (raise_reach_pistol) along the aim, from raise_drop below the eyes, the
-## drawn upper body blends to a high ready by how close it is, fully raised at raise_full (m): the aim clips to AimUp,
-## the spine leant raise_lean (rad) back and both arms (raise_bones) turned raise_arms (rad) up about the midpoint of
-## raise_pivots. The ray looks raise_lead (s) ahead at the figure's speed, once every raise_stride poses; the blend
-## settles in settle_raise (s); a shot keeps the replica level for raise_fire_hold (s). Drawn only: the aim, the hit
-## volume and the routes never move.
+## drawn upper body blends to a high ready by how close it is, fully raised at raise_full (m): the aim clips to level,
+## the spine leant raise_lean (rad) back, and the replica (FigureReady) turned raise_angle (rad) muzzle up about the
+## grip, canted raise_cant (rad, the magazine out to the right) and drawn raise_back and raise_down (m) in to the chest,
+## the arms (raise_arm_bones: upper arm, forearm, hand, an arm at a time) reaching for it. The ray looks raise_lead (s)
+## ahead at the figure's speed, once every raise_stride poses; the blend settles in settle_raise (s); a shot keeps the
+## replica level for raise_fire_hold (s). Drawn only: the aim, the hit volume and the routes never move.
 @export var raise_reach_rifle: float = 1.25
 @export var raise_reach_pistol: float = 0.7
 @export var raise_full: float = 0.35
@@ -106,9 +107,12 @@ extends Resource
 @export var settle_raise: float = 0.08
 @export var raise_fire_hold: float = 0.35
 @export var raise_lean: float = 0.05
-@export var raise_arms: float = 0.65
-@export var raise_bones: PackedStringArray = PackedStringArray(["Shoulder_L", "Shoulder_R"])
-@export var raise_pivots: PackedStringArray = PackedStringArray(["UpperArm_L", "UpperArm_R"])
+@export var raise_angle: float = 1.35
+@export var raise_cant: float = 1.3
+@export var raise_back: float = 0.2
+@export var raise_down: float = 0.2
+@export var raise_arm_bones: PackedStringArray = PackedStringArray(["UpperArm_R", "Forearm_R", "Hand_R", "UpperArm_L",
+		"Forearm_L", "Hand_L"])
 ## The draw from one replica to another, time-scaled to the replica's draw time (the sidecar's fitTo). Made rifle to
 ## pistol, the pistol in the hand from switch_pistol_from of it; to a rifle it plays backwards, the rifle in the hand
 ## from 1 - switch_pistol_from.
