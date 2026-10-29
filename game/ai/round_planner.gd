@@ -114,9 +114,9 @@ func in_enemy_half(b: Bot) -> bool:
 ## A walkable spot worth checking for `b`'s team into b.hunt_goal: of a few random walkable spots, the one in the sector
 ## the team checked longest ago (a check older than the skill's hunt_memory counts as never), nearer the middle of the
 ## field first: there the other team, sweeping its own lane the other way, comes back through. A spot the bot sees empty
-## from where it stands is checked there and then, and picked only if every spot drawn was one. Spots in a region of the
-## nav grid the bot's can't reach are drawn again. At night a bot that keeps dark moves its pick out of the light. False
-## if none turned up.
+## from where it stands is checked there and then, and picked only if every spot drawn was one. A spot is on the highest
+## walkable floor over it a route from the bot reaches (inside a hut, not on its roof); one with none is drawn again. At
+## night a bot that keeps dark moves its pick out of the light. False if none turned up.
 func hunt_point(b: Bot, w: BotWorld) -> bool:
 	var cfg := w.cfg
 	var team := b.character.team
@@ -130,13 +130,11 @@ func hunt_point(b: Bot, w: BotWorld) -> bool:
 	while found < cfg.hunt_candidates and tries < cfg.hunt_candidates * cfg.hunt_tries_per_candidate:
 		tries += 1
 		var spot := Vector3(b.rng.randf_range(bounds_lo.x, bounds_hi.x), top_y, b.rng.randf_range(bounds_lo.y, bounds_hi.y))
-		if not w.nav.is_walkable_at(spot):
-			continue
-		# A spot no route reaches (a roof): drawn again.
-		if home >= 0 and not w.nav.linked(home, w.nav.node_at(spot), true):
+		var k := _reached_floor(w.nav, home, w.nav.node_at(spot))
+		if k < 0:
 			continue
 		found += 1
-		spot.y = w.nav.floor_at(spot)
+		spot.y = w.nav.floor_y[k]
 		var score := maxf(w.visited_at(team, spot), stale) + Vector2(spot.x - mid.x, spot.z - mid.z).length() \
 				* cfg.hunt_middle_bias
 		if cfg.hunt_clear_range > 0.0 and BotSenses.sees_spot(b.character, spot, cfg.hunt_clear_range, w):
@@ -153,6 +151,18 @@ func hunt_point(b: Bot, w: BotWorld) -> bool:
 	# At night it hunts out of the light pools (BotWorld.out_of_light).
 	b.hunt_goal = w.out_of_light(b.hunt_goal)
 	return true
+
+
+## The highest walkable floor of `top`'s cell at or under `top` a route from node `home` reaches (on foot or vaulting;
+## any walkable one when `home` is -1), or -1.
+static func _reached_floor(nav: NavGrid, home: int, top: int) -> int:
+	if top < 0:
+		return -1
+	var c := nav.node_cell[top]
+	for k in range(top, nav.cell_start[c] - 1, -1):
+		if nav.walkable[k] == 1 and (home < 0 or nav.linked(home, k, true)):
+			return k
+	return -1
 
 
 func _pick_plan(cfg: BotConfig) -> Plan:
