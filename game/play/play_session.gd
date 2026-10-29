@@ -662,6 +662,8 @@ func _build_views(ui: CanvasLayer) -> void:
 	var first_use: Array[Material] = [_bbs.drawn_material(), _puffs.drawn_material(), _gas.drawn_material(),
 			_kicked.drawn_material(), contact.material, _dust.drawn_material()]
 	first_use.append_array(_bbs.glow_materials())
+	if _bbs.trail_material() != null:
+		first_use.append(_bbs.trail_material())
 	if _mag_tosses != null:
 		first_use.append_array(_mag_tosses.materials())
 	if state.round_state.mode == RoundState.Mode.ATTACK_DEFEND:

@@ -145,7 +145,7 @@ func test_the_cyber_pistol_stays_unpainted_even_when_a_bad_paint_is_passed() -> 
 	for node: Node in v._held[0].root.find_children("*", "MeshInstance3D", true, false):
 		var m := node as MeshInstance3D
 		for i in m.mesh.get_surface_count():
-			assert_null(m.get_surface_override_material(i), "%s keeps its own colours" % node.name)
+			assert_null(v.painted(m, i), "%s keeps its own colours" % node.name)
 
 
 func test_sessions_with_painted_views_leave_no_nodes_or_cache() -> void:

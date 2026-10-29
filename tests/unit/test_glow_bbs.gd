@@ -141,11 +141,12 @@ func test_a_glowing_bb_is_green_with_its_streak_and_a_white_one_draws_as_before(
 	_fire(pool, 1, 0, 0.02)
 	view.update(pool, 0, Vector3.ZERO, 0.0, PlaySession.TICK, Vector3.ZERO)
 	var draws := view.draws()
-	assert_eq(draws.size(), 3, "white BBs, glowing balls and streaks: no halo")
-	assert_eq(view.get_child_count(), 2)
+	assert_eq(draws.size(), 4, "white BBs, glowing balls and streaks, and the white BBs' trails (FB4): no halo")
+	assert_eq(view.get_child_count(), 3)
 	assert_eq(draws[0].multimesh.visible_instance_count, 1, "one white BB")
-	var white := draws[0].multimesh.mesh.surface_get_material(0) as StandardMaterial3D
-	assert_eq(white.albedo_color, cfg.bb_colour, "white as before")
+	var white := draws[0].multimesh.mesh.surface_get_material(0) as ShaderMaterial
+	assert_eq(white.get_shader_parameter(&"colour"), cfg.bb_colour, "white as before, rimmed (FB4)")
+	assert_eq(draws[3].multimesh.visible_instance_count, 1, "its trail; none for the glowing ones")
 	assert_eq(draws[1].multimesh.visible_instance_count, 2, "two glowing BBs")
 	assert_eq(draws[2].multimesh.visible_instance_count, 2, "a streak each")
 	assert_true(draws[1].visible and draws[2].visible)

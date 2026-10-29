@@ -103,6 +103,7 @@ func add_window(model: Node3D, optic: Node3D, key: StringName, sight_line: Vecto
 	w.material.shader = SHADER
 	w.material.set_shader_parameter(&"glass", _port.get_texture())
 	w.material.set_shader_parameter(&"mark", 0 if _cfg.optic_mark.get(key, MARK_DOT) == MARK_DOT else 1)
+	w.material.set_shader_parameter(&"z_clip_scale", _cfg.depth_scale)
 	w.disc = MeshInstance3D.new()
 	w.disc.name = "Glass"
 	w.disc.mesh = quad

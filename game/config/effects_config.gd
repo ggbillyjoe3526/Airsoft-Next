@@ -7,6 +7,18 @@ extends Resource
 ## A BB drawn this wide (m): larger than a real 6 mm BB so it reads at range.
 @export var bb_size: float = 0.012
 @export var bb_colour: Color = Color(1.0, 0.98, 0.92)
+## A white BB is drawn `bb_colour` where it faces you and `bb_rim_colour` round its edge (from where it faces you less
+## than `bb_rim_from`, the cosine), so it reads on pale walls and sky as well as dark ones. It is never narrower on
+## screen than `bb_min_angle` radians across its radius (about two pixels at 1080p), and
+## leaves a faint trail (`bb_trail_opacity` at the BB, fading to nothing) back along `bb_trail_time` s of its flight
+## (never longer than its flight so far), `bb_trail_angle` radians of view wide: a BB, easy to follow, never a tracer
+## (the owner's 0.1 Dev 1 note 11). A trail opacity of 0 draws none.
+@export var bb_rim_colour: Color = Color(0.35, 0.34, 0.32)
+@export var bb_rim_from: float = 0.55
+@export var bb_min_angle: float = 0.002
+@export var bb_trail_time: float = 0.012
+@export var bb_trail_angle: float = 0.0012
+@export var bb_trail_opacity: float = 0.35
 ## Glowing BBs (WL8, the browser game's BB_VISUALS.glowInDark; Loadout.Glow): glow-in-the-dark green (`glow_colour`, lit
 ## itself, nothing drawn round it), never narrower on screen than `glow_min_angle` radians across its radius, with a
 ## streak `glow_streak_colour` at `glow_streak_opacity` back along its flight `glow_streak_time` s of it (never longer than

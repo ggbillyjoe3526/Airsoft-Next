@@ -56,9 +56,10 @@ Play › Mode Elimination on Depot, Match › Opponents Normal. Set the mouse se
 - [ ] **Hold Shift and move.** You walk slowly and silently, and the crosshair closes to about its standing-still
   size. Is the gain clear enough?
 - [ ] **Press 3, then run.** Holstered, you run faster than with the replica out (5.4 m/s against 4.2); with Left Alt
-  the sprint is the same as armed, never faster. Fast enough now?
+  the sprint is a little faster than armed too (6.9 m/s against 6.3). Fast enough now?
 - [ ] **Hold Left Alt and fire while sprinting.** It fires, but the spread is far wider and the rifle climbs faster;
-  let go of the trigger and it drops back into the carry.
+  the rifle comes up out of the carry at once, pointing where you aim, never angled down while you fire; a moment
+  after your last shot it drops back into the carry.
 - [ ] **Press C.** You crouch, slow and silent, and C again stands you up; Left Alt or Space also stands you up. With
   Settings › Controls › Crouch key on Hold, you crouch only while C is held.
 - [ ] **Hold Q, then E, beside a wall or crate.** You lean round it; against a wall the lean stops short, so you never
@@ -105,6 +106,8 @@ The rifle comes with flip-up iron sights; a red dot or a 2× scope is a part you
 - [ ] **Reload or switch to the pistol while aiming.** The sight drops and comes back if you still hold right click.
 - [ ] **Fit the 2× scope and aim.** It comes up a little slower than the red dot; the rifle stays in view with the
   world twice as close through its glass, a fine crosshair and a red centre dot.
+- [ ] **Stand against a wall and look at it, at the hip and aimed.** The replica draws over the wall, never into it;
+  aimed, the sight stays at your eye. Easy to read, or does it look stuck to the screen?
 - [ ] **Press Esc in a match.** The pause menu has no Loadout: parts are set between matches (the range's has one).
 
 ## BBs
@@ -116,6 +119,8 @@ The rifle comes with flip-up iron sights; a red dot or a 2× scope is a part you
   tipping.
 - [ ] **Do the same aiming, and with the pistol.** BBs leave the muzzle under the sight and rise into the dot or
   crosshair.
+- [ ] **Follow your BBs and a bot's against a pale wall and the sky.** A white BB is a small bright ball with a darker
+  edge and a faint short trail, easy to follow out to 30 m, and still reads as a BB, never a tracer.
 
 ### Hop-up, flight and wind
 
@@ -138,6 +143,8 @@ never players.
 - [ ] **BBs stop on everything.** Shoot crates, container sides, wall tops and corners, the dock and its steel ramps,
   a gabion, the toilets: every BB stops or bounces at the surface, never inside or through it (Settings › Dev › BB
   paths).
+- [ ] **Shoot a wall from 2 to 5 m.** Each BB vanishes at the wall's face where its puff shows, never a hand's width
+  past it.
 - [ ] **Fire at concrete or a container at an angle.** BBs glance off and fly on, slower; into a crate they stop.
 - [ ] **Ricochets count Off (the default).** A bounced BB that hits you shows "Ricochet · doesn't count, play on"; one
   of yours that reaches a bot shows a grey puff and "Your BB ricocheted · doesn't count".

@@ -11,8 +11,10 @@ stand and how quietly you get there win more fights than fast hands.
 - **Walk** (hold Shift) is slow and silent, and almost as steady to shoot from as standing still.
 - **Crouch** (hold C or Ctrl) makes you a small target and hides you behind waist-high cover. Moving crouched is
   silent too, so you can sneak up on a bot that hasn't seen you.
-- **Sprint** (hold Alt) is fastest and loudest. You can still fire, but your shots spread wide.
-- **Holstered** (press 3) you run a little faster than with your replica out, never faster than a sprint.
+- **Sprint** (hold Alt) is fastest and loudest. You can still fire, but your shots spread wide; your replica comes up
+  out of the carry, pointing where you aim, while you fire.
+- **Holstered** (press 3) you run a little faster than with your replica out, never faster than a sprint, and your
+  sprint is a little faster too.
 
 Running, sprinting, vaulting and landing all make noise that players and bots hear. Running or landing on gravel or
 steel carries further, and so does running into a noisy prop such as a steel skip or a container ([Maps](Maps#depot)).

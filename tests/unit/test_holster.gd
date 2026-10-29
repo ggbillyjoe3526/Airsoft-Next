@@ -1,7 +1,7 @@
 extends GutTest
 ## The holster (the browser game's sim/holster.test.ts, M92), driven through Simulation.step as a player's and a bot's
 ## commands are: 3 puts the replica away (nothing fires or aims), a fresh trigger pull, aim press, reload or slot draws
-## it again, slower than a switch, and holstered you run faster, never past the sprint.
+## it again, slower than a switch, and holstered you run faster, never past the sprint, and sprint a tenth faster.
 
 const DT := 1.0 / 60.0
 const KILL_Y := -10.0
@@ -191,12 +191,31 @@ func test_the_holstered_run_sits_between_the_armed_run_and_the_sprint() -> void:
 	assert_almost_eq(_horizontal(), m.run_speed, 0.01, "back to the run once drawn")
 
 
-func test_a_holstered_sprint_is_the_same_sprint() -> void:
+func test_a_holstered_sprint_is_a_tenth_faster_than_the_armed_sprint() -> void:
+	var m := tuning.movement
+	assert_almost_eq(m.holster_sprint_scale, 1.1, 1e-6, "the owner's 0.1 Dev 1 note 12: a little faster")
+	run(90, func(cmd: PlayerCommand) -> void:
+		cmd.forward = 1.0
+		cmd.sprint = true)
+	assert_almost_eq(_horizontal(), m.sprint_speed, 0.01, "armed, the sprint")
 	holster()
 	run(90, func(cmd: PlayerCommand) -> void:
 		cmd.forward = 1.0
 		cmd.sprint = true)
-	assert_almost_eq(_horizontal(), tuning.movement.sprint_speed, 0.01)
+	assert_almost_eq(_horizontal(), m.sprint_speed * m.holster_sprint_scale, 0.01, "holstered, faster")
+	assert_gt(_horizontal(), m.holster_run_speed, "and faster than the holstered run")
+	tick(func(cmd: PlayerCommand) -> void:
+		cmd.forward = 1.0
+		cmd.sprint = true
+		cmd.fire = true)
+	run(90, func(cmd: PlayerCommand) -> void:
+		cmd.forward = 1.0
+		cmd.sprint = true)
+	assert_almost_eq(_horizontal(), m.sprint_speed, 0.01, "drawn again, back to the armed sprint")
+
+
+func test_the_holstered_run_never_passes_the_armed_sprint() -> void:
+	holster()
 	var cfg := MovementConfig.new()
 	cfg.holster_run_speed = cfg.sprint_speed + 3.0
 	c.sprinting = false

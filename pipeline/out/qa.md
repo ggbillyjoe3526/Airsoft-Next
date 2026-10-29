@@ -1,33 +1,55 @@
-Task: KI1 · QA commit b8f929b · Verdict: Pass
+Task: FB4 · QA commit afa6430 · Verdict: Pass
+Scope: raise on the run, holstered sprint, BB sight and drawn place, pressed hands depth (notes 5, 7, 11, 12). Head f2c8846.
 
 Blocking: none.
 
-Advisory:
-- game/main.gd:300-304 · `_keeps_picks` was inserted between `_start_play`'s doc comment and its function, so "Opens the match picked..." now documents `_keeps_picks` and `_start_play` has none. Move the helper above that comment.
-- game/report/report_scrub.gd (CREDENTIALS_IN_URL) · a password holding a raw "@" or a space leaks its tail: `https://user:p@ss@localhost/` gives `<credentials>@ss@localhost` (with a dotted host the e-mail pass takes "ss@host", so only the dotless host leaks); `user:pass word@h` is untouched. Both are malformed URLs (the "@" should be %40); over-scrubbing rule says tolerable, listed for a KNOWN_ISSUES row if wanted.
-- game/map/map_data.gd `_vec` · a numeric string coordinate ("2") now reads 0 where `float("2")` read 2. No shipped map has one (grepped data/maps); the spots (`flag`, `overtimeFlag`) warn, blocks and lanes do not.
-- game/progress/progress.gd `from_dict` · a junk `last_map` / `last_team` is dropped without a problem line (the other fields push one). Harmless.
-- Remembered picks are off in headless (main.gd `_keeps_picks`), so the launch path (recall in `_ready`, remember at PLAY, no file on first launch) has no end-to-end test; the pieces are tested.
+Advisory (for KNOWN_ISSUES or a later polish pass):
+1. replica_view.gd:180 a held trigger keeps the replica up on a sprint even when nothing fires: a semi replica with the
+   trigger held, an empty magazine, or the whole reload (the reload cant then sits on the raised pose, no carry).
+   Harmless, but a sprint-reload with the mouse held never shows the low carry. Trigger: sprint, hold fire, press R.
+2. replica_view.gd:134 the early return when not visible (eliminated) stops `_fire_hold` ticking down, so a shot just
+   before elimination can hold the replica up for up to 0.35 s after the next spawn. Cosmetic.
+3. viewmodel_config.gd:77 `depth_scale` has no range: 0 collapses the hands onto one depth (parts z-fight each other),
+   negative values flip it. `sprint_fire_raise` of 0 gives 0/0 = NaN on a zero-length frame (the same hole `carry_time`
+   already has). Both are tuning values nobody sets; an @export_range would close them.
+4. optic_glass.gdshader:30-31 the comment line is duplicated.
+5. bb_view.gd (trail): a ricochet's trail is drawn back along the new heading, so for its first frames it points into the
+   surface it left (hidden by depth, but a straight stub, not the bent path). Cosmetic; BB path is correct.
+6. A own BB now appears at the eye plane beside the barrel, so its first drawn frame is 0 to 1.5 m ahead of the eye
+   (low right), not at the muzzle tip. Intended by the fix; the owner may notice a BB that no longer starts at the barrel.
+7. Not checkable here (Forward+ and a real GPU): SSAO is on in the field presets and reads the depth buffer, where the
+   hands now sit pressed to a quarter; a dark halo round the replica or on the wall behind it is possible. The glass
+   shader writes POSITION.z by hand (`mix(w, z, scale)`) to match the engine's z clip scale; verified on Compatibility
+   only. Both go to the owner's list: aim the 2x scope and hip-fire against a wall, look for a halo and for the glass
+   sitting in its scope.
 
-Checked and fine: Range or Practice remembered (page opens on Practice, a field pick restores the field's mode); Woodland remembered with Dev content off (falls to Depot, team kept); a map removed or junk-named (Depot); a team that is junk/2/0.5/true/"1"/null/1e30 (Alpha, map kept); first launch with no file and a save from before the field (defaults, unknown keys kept on write); a newer-version file (never written over); Reset level keeps the picks; a damaged file forgets them; the bundle/restore/import path stores the file generically (SaveBundle reads it with Progress.from_dict). Lean gap: counted from the last rustle (not the last try), per character, a crouch never held back, a new cast starts with no gap, SimAudio passes `foley_lean_gap` on; the clock is `state.time`, monotonic per match, and SimAudio is made per match. Ping: pressed before the wheel opens in the same tick still goes; pressed while open does not; wheel closing in the same tick; a wheel that cannot open does not block it. Scrub: linear on 100,000-character lines (no "@", "://" runs, unclosed users), "@" in a path/query and `res://` left alone. Depot hunt floor: over 4,000 random columns 2,610 draw as before on the same floor and 0 change (no new floor), so Depot is unchanged; in the hut it is the worker's test.
+Checked and fine: holstered trigger held or a shot then holster never lifts the carry; reload, switch, holster, draw and
+shots in one sprint stay finite and settle on the same pose as a fresh view; sprint stop with the trigger down never dips
+below the hip; the holstered pace is never slower in any stance (sprint x walk x crouch x lean), walking and crouching gain
+nothing, the plain sprint is 1.1x, lean slows it smoothly, aim-walk scales it; no code but movement.gd reads
+sprint_speed (grep), bots never fire on a sprint (bot_combat.gd:141) so the third-person figures need no raise; wiki table
+generates and `wiki.py check` passes; every surface of AEG (scope, silencer, long barrel, hi-cap), pistol (laser,
+silencer, extended) and the Cyber Pistol is a BaseMaterial3D pressed, the scope's glass disc presses its own; Realistic
+colours press the realistic paint, shared paints, models' own and a figure's replica stay unpressed, copies free with the view;
+a drawn own BB is never ahead along its flight for 400 random muzzles; a full mixed pool draws once each, trails on white only;
+a stopped BB takes its ball and trail; trail never longer than the BB has flown.
 
-Tests (all new in tests/unit/test_ki1_qa.gd, 20 tests, how each fails without the feature):
-- :23 older save / unknown keys kept beside picks · fails if `to_dict` drops `_extra` or from_dict reads picks from a file without them
-- :37 junk team leaves the map, junk map leaves the team · fails without the 0/1 and catalogue checks
-- :53 JSON float team 1.0 · fails if the team check required an int
-- :58 range remembered opens on Practice · fails if recall didn't reach the page
-- :72 Woodland remembered, Dev content off · fails without the page's fallback keeping the team
-- :87 remembered map the catalogue refuses falls back · fails without `_keep_a_playable_map`
-- :105 newer-version file never written over · fails if `remember_picks` saved over it
-- :116 Reset level keeps picks, damaged file forgets · fails if reset cleared them
-- :132 SimAudio gives the tracker `foley_lean_gap` · fails without the `lean_gap` line (stays 0)
-- :141 gap counts from the last rustle, crouch unaffected · fails with no gap (all heard)
-- :163 a new cast forgets the gap · fails without the `_lean_at` reset
-- :200-:236 ping beside the wheel (before it opens, same tick close, cannot open) · the same-tick close case fails without the `not _wheel.open` check
-- :253-:279 scrub shapes, no-credential URLs, linear on long lines · fail without the scrub / with a backtracking regex
-- :288-:305 spot numbers in any form, non-object spots · fail without `_spot`
-- :312 Depot hunt floor same as before, new floors reached · fails if `_reached_floor` changed Depot's floor for a spot already drawn
+Tests added: tests/unit/test_fb4_qa.gd (15). Each was run against a scratch copy with the feature stubbed out:
+ :76 holstered trigger no raise · removing `not a.holstered` fails it
+ :93 reload/switch/holster sequence, finite and back to the carry · a `_fire_hold` that never decays fails it
+ :146 no dip stopping a sprint with the trigger down · (guards the carry rate change; passes on main as well)
+ :164 stance table · :192 lean/aim · dropping holster_sprint_scale fails both
+ :211 every surface pressed (parts, glass) · :242 Realistic colours · :280 freed with the view · :303 two views/figure
+   paint untouched · removing `_press_depth(model)` fails all four; :211 and :269 also fail without the glass uniform
+ :269 glass follows depth_scale · removing the uniform set fails it
+ :322 never ahead along the flight · using the raw muzzle offset fails it; :343 a bot's BB is not offset
+ :352 full mixed pool, trails white only · :377 stopped BB · disabling the trail instances fails both; :397 trail length
+   bounded by age and following the heading (pure helper check, passes on main for the age bound)
 
-Counts: test_ki1_qa 20/20; with the touched files (foley_tracker, order_wheel_input, pn1_qa, levels, report_scrub, ov1_qa, match_page) 136/136 in 12.8 s; gdlint clean. Not run (machine loaded, worker ran them): the full parts, smoke_test, tools/check.sh.
+Counts: test_fb4_qa 15/15, 1375 asserts; targeted run (that file plus hands_feel, bb_sight, bb_walls, holster, glow_bbs,
+replica_paint, lo3_qa, at3_qa, movement) 115/115, 2077 asserts, 20 s. gdlint clean. tools/smoke_test.sh passes (frames=2625,
+zero script errors). Raw output: pipeline/out/qa/fb4-targeted.txt. Not run (machine load, worker ran them green):
+full parts 1-3, match guards.
 
-Could not test (owner's list): remembered picks across a real quit and launch (headless skips them); how the lean gap sounds; the Woodland card picture and the hut hunt by eye.
+For the owner (needs a display): the raise reads right on a sprint-fire; +10 % holstered sprint is felt; BB rim and trail on
+Forward+; the replica over a wall, and item 7 above.
