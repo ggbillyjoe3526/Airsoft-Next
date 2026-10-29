@@ -28,15 +28,18 @@ const MARGIN := 32.0
 ## The replica panel's lane, bottom right: as wide as its hop-up note, as tall as its notes and panel.
 const PANEL_LANE := Vector2(340.0, 230.0)
 const TOP_WIDTH := 800.0
-## The banners' and hit call's box: this wide, centred, from the screen's top down to this far above the crosshair, its
-## words at its bottom (so at a large HUD size a tall banner never leaves the screen's top).
+## The hit call's and banners' stack: this wide, centred, hanging this far under the score bar's column (so the step-down
+## line, the flag gauge or a large HUD size push it down and it never covers the score bar), the HIT! call and its walk-off
+## line first and a banner under them. Without a score bar (the range) it starts MARGIN down.
 const MIDDLE_WIDTH := 1500.0
-const MIDDLE_RAISE := 200.0
-## The finished match's XP (XpCard) hangs this far under the banner.
+const MIDDLE_GAP := 12.0
+## The finished match's XP (XpCard) and the round's table hang this far under the stack.
 const XP_GAP := 28.0
 ## The match summary's row (its panels either side of the XP card) keeps this far from the screen's sides (px): at a
 ## HUD size too large for the width the row is held smaller (MatchSummary.set_fit). At 100 % on 1920 it fits as built.
 const SUMMARY_EDGE := 16.0
+## The least share the cards under the stack are held to when the height left is short (never invisible).
+const CARDS_FIT_FLOOR := 0.25
 ## "What got you" on the left, its top-left corner (px): under the minimap's caption when there is a minimap (the
 ## range has none: CARD_TOP).
 const CARD_LEFT := 32.0
@@ -74,6 +77,11 @@ var _score: HudScore = null
 var _banner: HudBanner = null
 var _hit_label: Label = null
 var _hit_sub: Label = null
+## The hit call and banner stack (`_seat_middle`), the empty slot that keeps a banner where it is as the hit call ends,
+## and the height of that slot, and whether it is held (the hit call and a banner have shown together).
+var _middle: VBoxContainer = null
+var _hit_hold: Control = null
+var _hit_held: bool = false
 var _vault_prompt: Label = null
 var _vault_left: float = 0.0
 var _leaves_notice: Label = null
@@ -221,10 +229,14 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	add_child(_pings)
 	# Banners and the hit call, centre.
 	var middle := VBoxContainer.new()
-	_place(middle, Vector4(0.5, 0.0, 0.5, 0.5), Rect2(-MIDDLE_WIDTH * 0.5, 0.0, MIDDLE_WIDTH, -MIDDLE_RAISE))
+	_middle = middle
+	_place(middle, Vector4(0.5, 0.0, 0.5, 0.0), Rect2(-MIDDLE_WIDTH * 0.5, MARGIN, MIDDLE_WIDTH, 0.0))
 	middle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	middle.alignment = BoxContainer.ALIGNMENT_END
 	add_child(middle)
+	_hit_hold = Control.new()
+	_hit_hold.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hit_hold.visible = false
+	middle.add_child(_hit_hold)
 	# The vault prompt, just under the crosshair.
 	var prompt := VBoxContainer.new()
 	_place(prompt, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-TOP_WIDTH * 0.5, cfg.vault_prompt_drop, TOP_WIDTH, 0.0))
@@ -251,14 +263,15 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	middle.add_child(_banner)
 	# The round's table, under the stamp where the match's XP goes.
 	_round_result = HudRoundResult.new()
-	_place(_round_result, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(0.0, XP_GAP - MIDDLE_RAISE, 0.0, 0.0))
+	_place(_round_result, Vector4(0.5, 0.5, 0.5, 0.5), Rect2())
 	_round_result.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	add_child(_round_result)
 	_round_result.setup(cfg, teams, sim.rounds, teams.colours[player.team])
+	_round_result.pivot_offset_ratio = Vector2(0.5, 0.0) # held smaller about its top middle (_fit_round_result)
 	# The match's summary, its panels either side of the XP card and level with it.
 	_summary = MatchSummary.new()
 	add_child(_summary)
-	_summary.setup(teams, teams.colours[player.team], XP_GAP - MIDDLE_RAISE)
+	_summary.setup(teams, teams.colours[player.team], 0.0)
 	# The scoreboard while Tab is held, over everything in the middle.
 	_board = HudScoreboard.new()
 	_place(_board, Vector4(0.5, 0.0, 0.5, 0.0), Rect2(0.0, BOARD_TOP, 0.0, 0.0))
@@ -284,6 +297,11 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_announce = HudAnnounce.new()
 	add_child(_announce)
 	_announce.setup(teams, player, _rounds.half_time_after)
+	# The stack follows the score bar's column; the cards under it follow the stack and the screen's height.
+	top.resized.connect(_seat_middle)
+	middle.sort_children.connect(_hang_cards)
+	resized.connect(_hang_cards)
+	_seat_middle()
 
 
 ## Makes this the practice range's HUD: no score bar, rounds or hit feed, and the readout and the timed challenge in
@@ -302,6 +320,7 @@ func setup_range(range_cfg: RangeConfig, on_field: bool = false, kill_y: float =
 	_readout = HudRangeReadout.new()
 	lane.add_child(_readout)
 	_readout.setup(range_cfg, _player.id, on_field, kill_y)
+	_seat_middle()
 	_challenge = HudRangeChallenge.new()
 	add_child(_challenge)
 	_challenge.setup(range_cfg, _player.id)
@@ -522,13 +541,31 @@ static func scale_root(root: Control, by: float) -> void:
 	root.set_anchor_and_offset(SIDE_BOTTOM, 1.0 / by, 0.0)
 
 
-## Holds the summary's panels and the XP card at the share of their size that fits the screen's width (1 when they
-## fit as built), so a large HUD size never pushes them off the sides.
+## Holds the summary's panels and the XP card at the share of their size that fits the screen's width and what is left of
+## its height under the stack (1 when they fit as built), so a large HUD size or a tall stack never pushes them off.
 func _fit_summary() -> void:
 	var fit := minf(1.0, (size.x - SUMMARY_EDGE * 2.0) / _summary.row_width())
+	var tallest := _summary.column_height()
+	if _xp != null:
+		tallest = maxf(tallest, _xp.get_combined_minimum_size().y)
+	fit = minf(fit, _height_fit(tallest))
 	_summary.set_fit(fit)
 	if _xp != null:
 		_xp.scale = Vector2.ONE * fit
+
+
+## Holds the round's table and its hint at the share of their size that fits what is left of the height under the stack.
+func _fit_round_result() -> void:
+	var fit := _height_fit(_round_result.get_combined_minimum_size().y)
+	if not is_equal_approx(_round_result.scale.x, fit):
+		_round_result.scale = Vector2.ONE * fit
+
+
+## The share (CARDS_FIT_FLOOR..1) of `height` (px) that fits between the cards' top, XP_GAP under the stack's foot, and
+## the screen's bottom edge less SUMMARY_EDGE.
+func _height_fit(height: float) -> float:
+	var room := size.y - SUMMARY_EDGE - (_middle.position.y + _middle.size.y + XP_GAP)
+	return clampf(room / maxf(height, 1.0), CARDS_FIT_FLOOR, 1.0)
 
 
 ## `c` (a full-screen child) undoes the HUD's size: as large as the screen and drawn at 1.
@@ -749,9 +786,10 @@ func on_calls(said: CalloutLog, state: GameState) -> void:
 func show_xp(settled: PlayerTally.Settled, difficulty: StringName, progress: Progress) -> void:
 	hide_xp()
 	_xp = XpCard.new(settled, difficulty, progress, Pool.shared())
-	_place(_xp, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-XpCard.WIDTH * 0.5, XP_GAP - MIDDLE_RAISE, XpCard.WIDTH, 0.0))
+	_place(_xp, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-XpCard.WIDTH * 0.5, 0.0, XpCard.WIDTH, 0.0))
 	_xp.pivot_offset_ratio = Vector2(0.5, 0.0) # held smaller about its top middle with the summary (_fit_summary)
 	add_child(_xp)
+	_hang_cards()
 	HudStyle.restyle(_xp, _opacity)
 	_xp.visible = not _round_result.holds_results()
 
@@ -789,9 +827,14 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		_board.update(state, _stats, _player, _board_wanted)
 	if _xp != null:
 		_xp.visible = not _round_result.holds_results()
+	var summary_was_up := _summary.visible
 	_summary.visible = _summary.is_open() and not _round_result.holds_results()
+	if _summary.visible != summary_was_up:
+		_seat_middle()
 	if _summary.visible or _xp != null:
 		_fit_summary()
+	if _round_result.visible:
+		_fit_round_result()
 	if _minimap != null:
 		_minimap.visible = not _summary.visible
 	if _sound_cues != null:
@@ -808,8 +851,18 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		_banner_left -= delta
 		if _banner_left <= 0.0:
 			_banner.visible = false
-	_hit_label.visible = not in_play and c.status != Character.Status.OUT
-	_hit_sub.visible = _hit_label.visible
+	var hit_call := not in_play and c.status != Character.Status.OUT
+	_hit_label.visible = hit_call
+	_hit_sub.visible = hit_call
+	# A banner up with the hit call keeps its place as the call ends: an empty slot as tall as the call stays above it
+	# (measured once, as the slot is first held; `_show_banner` drops it for a banner shown with no call up).
+	if hit_call and _banner.visible and not _hit_held:
+		_hit_held = true
+		_hit_hold.custom_minimum_size.y = _hit_label.get_combined_minimum_size().y + _hit_sub.get_combined_minimum_size().y \
+				+ _middle.get_theme_constant("separation")
+	elif not _banner.visible:
+		_hit_held = false
+	_hit_hold.visible = _hit_held and not hit_call
 	# The crosshair's gap is the spread a shot really has now (two standard deviations), on this screen at this zoom.
 	_show_cross = in_play and c.aim_raise < 0.5 and not a.replicas.is_empty() and not a.holstered
 	if _show_cross:
@@ -1093,6 +1146,9 @@ func _match_stamp_sub(score: PackedInt32Array) -> String:
 func _show_banner(text: String, sub: String, colour: Color = Color.TRANSPARENT) -> void:
 	_banner.show_text(text, sub, colour)
 	_banner_left = _cfg.banner_time
+	if _hit_held and not _hit_label.visible:
+		_hit_held = false
+		_hit_hold.visible = false
 
 
 ## The automatic graphics step-down's line under the score bar for `seconds`: "GRAPHICS  Set to `preset_name` to keep
@@ -1158,6 +1214,35 @@ func _build_skip_hint(parent: Control) -> void:
 	var words := HudStyle.label(row, SKIP_SIZE, 700, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_LEFT)
 	words.text = tr("HUD_SKIP_HOLD")
 	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+
+## Seats the hit call and banner stack under the score bar's column (`_top`: the bar, "First to N" and whatever shows
+## under them), or MARGIN from the top where there is no bar (the range, and while the match summary hides it). Runs when
+## that column's size changes or the summary opens or closes.
+func _seat_middle() -> void:
+	var edge := MARGIN
+	if _readout == null and not _summary.visible:
+		edge = _top.position.y + _top.size.y + MIDDLE_GAP
+	_middle.offset_top = edge
+	_middle.offset_bottom = edge
+	_hang_cards()
+
+
+## Hangs the finished match's XP, the round's table and the match summary XP_GAP under the stack's foot (they are
+## anchored at the screen's middle, so offsets from it) and fits them to the height left. Runs when the stack's place or
+## layout or the screen's size changes.
+func _hang_cards() -> void:
+	var y := _middle.position.y + _middle.size.y + XP_GAP - size.y * 0.5
+	_round_result.offset_top = y
+	_round_result.offset_bottom = y
+	if _xp != null:
+		_xp.offset_top = y
+		_xp.offset_bottom = y
+	_summary.set_top(y)
+	if _summary.visible or _xp != null:
+		_fit_summary()
+	if _round_result.visible:
+		_fit_round_result()
 
 
 ## Anchors `c` at `anchors` (left, top, right, bottom shares of the screen) with `rect` as offsets from them.

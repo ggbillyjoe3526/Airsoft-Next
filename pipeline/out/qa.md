@@ -1,10 +1,17 @@
-Task: FB5 · QA commit (see git log, "FB5 QA: re-check after fix round 1") · Verdict: Pass
+Task: HD2 · QA re-check after fix round 1 (worker bf3b903) · Verdict: Pass
 
-Re-check of da12d89 (fix round 1).
-- Blocking (stale raise after hide/show): fixed. `animate` drops the old target on a snap; test_hidden_and_shown_again_the_raise_is_not_stale passes unedited, both ray parities. Shown again right at a wall (new test, both parities): the raise is either fully on at once (a ray this pose) or level then eased up, 0.19, 0.34, 0.46 ... 0.89 over 12 poses; never a step half way, never falling. No pop level-then-up beyond that ease.
-- Raise rest (0.001): a target hovering near none cannot flicker. The target is exactly 0.0 only with no level in reach; at the edge of reach it is tiny but positive, so the raise follows it and the IK stays on with an amount near 0 (continuous). New test sways a figure across the reach edge for 60 poses at three edge distances: no pose-to-pose jump over 0.05. The snap to exactly 0 only fires with target 0.0, below 0.001 (a 0.001 jump at most).
-- Round-start snap: `_snap` is only set by set_body and hiding, so a round start eases off over 0.08 s as before; the first pose of a figure is level, then eased up.
-- First-shot puff advisory: wording corrected in the record plus a PLAYTEST question, no code change; accepted as advisory.
-Tests: test_figure_raise_qa 10 tests, test_figure_raise, test_figure_pose: 35 of 35 pass, 1.6 s; gdlint clean. Earlier smoke and the 92 touched-file tests were run on the pre-fix tree; the worker reports 246/246 test_fi*.gd and smoke OK on da12d89 (not re-run by me).
-Added: test_shown_again_at_a_wall_it_is_raised_... (no step, both parities; would fail with a stale raise or a half-way pop) and test_a_wall_at_the_edge_of_reach_never_makes_the_raise_flicker (guard).
-Advisory unchanged: a gas puff on the first shot of a burst starts at the still-raised muzzle.
+Both blocking findings are fixed.
+1. Cards on screen: at 150% with the hit call and banner up (720p, 1080p, 4K, 21:9, 4:3) the XP card, summary panels and round table all sit inside the screen. The stack hangs from MARGIN while the summary hides the score bar, and `_fit_summary` / `_fit_round_result` shrink the cards to the height left.
+2. Stale slot: the next round's banner now sits right under the score bar after a round-ending hit (ROUND 2 at 143, was 287).
+
+Worst case, 150% HUD size, level-up card, call + banner
+- Summary (bar hidden, step line up): fit 0.665, about 1.0 effective with the HUD size, so text keeps its 17 px.
+- Round table under the call, banner, step-down line: scale 0.62 (0.93 effective, about 16 px text). With the flag gauge as well (Attack / Defend): 0.49 (0.74 effective, about 12 px text), still readable and on screen.
+- Only when the capture warning is forced on as well does it reach the 0.25 floor (about 6 px), which cannot happen at a round's end (the warning needs a live round).
+- The floor never clips: the table at 0.25 still ends inside the screen.
+Scaling about the top middle: the summary panels, XP card and round table are all mouse-ignore (no buttons), so nothing to click where drawn. The summary's click to start the next match is handled elsewhere.
+Refit: HUD size and window changes mid-summary (80 / 150%, 16:9, 4:3, 21:9) keep every card inside the screen (new test).
+Picture: /mnt/project-files/screenshots/dev1-feedback/hd2-qa-150-cards.png (150%, call, banner, step line, flag gauge, round table). The table is on screen and small but legible.
+
+Tests: tests/unit/test_hd2_qa.gd 10 tests (two new: refit mid-summary, readable round table), all pass with test_hd2_hit_call_stack (14 tests, 0 failing). gdlint clean. Full unit_tests.sh and smoke: worker reports 885/885 and OK; not re-run.
+Advisory: a hit call arriving while a banner is up pushes the banner down by the call's height (no overlap).
