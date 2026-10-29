@@ -126,3 +126,41 @@ func test_a_reload_that_ends_empty_with_no_spare_keeps_the_slide_locked() -> voi
 	a.reload_left = 0.0
 	_frame()
 	assert_true(_pistol().slide_locked, "nothing to load: it stays back")
+
+
+func test_a_reload_started_during_the_last_shots_fire_clip_still_locks_the_slide() -> void:
+	# KI2: a reload begun before slide_lock_after of the last shot's Fire clip ran with the slide forward.
+	a.active = 1
+	_frame()
+	var home := _pistol().slide.position
+	view.on_shot()
+	a.ammo[1].mag = 0
+	_frame()
+	assert_false(_pistol().slide_locked, "the Fire clip has only just started")
+	var r := a.replicas[1]
+	a.reload_left = r.reload_time * 0.9
+	_frame()
+	assert_true(_pistol().slide_locked, "the reload of an empty magazine holds the slide back")
+	assert_almost_eq(_pistol().slide.position, _pistol().slide_back, Vector3.ONE * 0.0001)
+	a.reload_left = r.reload_time * 0.5
+	_frame()
+	assert_almost_eq(_pistol().slide.position, _pistol().slide_back, Vector3.ONE * 0.0001, "still back mid-reload")
+	a.reload_left = r.reload_time * (1.0 - cfg.slide_release_at) * 0.5
+	_frame()
+	assert_false(_pistol().slide_locked, "released near the end")
+	a.reload_left = 0.0
+	a.ammo[1].mag = r.mag_size
+	_frame()
+	assert_false(_pistol().slide_locked)
+	assert_almost_eq(_pistol().slide.position, home, Vector3.ONE * 0.0001, "home once loaded")
+
+
+func test_a_reload_of_a_part_full_magazine_leaves_the_slide_forward() -> void:
+	a.active = 1
+	a.ammo[1].mag = 3
+	_frame()
+	var home := _pistol().slide.position
+	a.reload_left = a.replicas[1].reload_time * 0.5
+	_frame()
+	assert_false(_pistol().slide_locked)
+	assert_almost_eq(_pistol().slide.position, home, Vector3.ONE * 0.0001)

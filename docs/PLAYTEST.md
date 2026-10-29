@@ -90,6 +90,8 @@ The rifle holds 60 BBs and the pistol 18, each with 4 magazines a round. Nothing
 - [ ] **Empty the GBB Pistol.** On the last BB its slide locks back and stays back; through the reload the magazine
   goes in first and the slide closes near the end. The gauges under the count show every magazine: the loaded one
   first, spares fullest first, an empty one dark.
+- [ ] **Empty the GBB Pistol and press R the instant the last BB goes.** The slide still snaps back and stays back
+  through the reload, closing near the end as above.
 
 ## Aiming and optics
 

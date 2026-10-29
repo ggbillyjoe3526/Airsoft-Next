@@ -240,16 +240,16 @@ static func slide_held_back(a: Armament) -> bool:
 	return not a.replicas.is_empty() and a.mag() == 0 and a.reload_left <= 0.0
 
 
-## Locks the slide back once the last shot's cycle has run, keeps it back through a reload until slide_release_at of
-## the way, and lets it home once the magazine has BBs again.
+## Locks the slide back once the last shot's cycle has run, keeps it back through a reload of an empty magazine until
+## slide_release_at of the way, and lets it home once the magazine has BBs again.
 func _pose_slide(held: Held, a: Armament) -> void:
 	if a.reload_left > 0.0:
+		# The magazine is swapped at the reload's end, so an empty one now was empty when it began: the slide is back,
+		# even when the reload cut the last shot's Fire clip short of slide_lock_after (KI2).
+		var progress := 1.0 - a.reload_left / maxf(a.replica().reload_time, 0.001)
+		held.slide_locked = a.mag() == 0 and progress < _cfg.slide_release_at
 		if held.slide_locked:
-			var progress := 1.0 - a.reload_left / maxf(a.replica().reload_time, 0.001)
-			if progress < _cfg.slide_release_at:
-				held.slide.position = held.slide_back
-			else:
-				held.slide_locked = false
+			held.slide.position = held.slide_back
 		return
 	var lock := slide_held_back(a)
 	if lock and not held.slide_locked:
