@@ -111,10 +111,8 @@ func update(pool: BBPool, player_id: int, muzzle_offset: Vector3, fraction: floa
 	for bb in pool.bbs:
 		if not bb.active:
 			continue
-		var at := bb.prev_position.lerp(bb.position, fraction)
+		var at := drawn_at(_cfg, bb, player_id, muzzle_offset, fraction, tick)
 		var age := bb.age + fraction * tick
-		if bb.owner_id == player_id and age < _cfg.muzzle_join_time:
-			at += across_flight(muzzle_offset, bb.velocity) * (1.0 - age / _cfg.muzzle_join_time)
 		if not (_any and _glows(bb)):
 			multimesh.set_instance_transform(n, ball(_cfg, at, eye, _cfg.bb_min_angle))
 			n += 1
@@ -138,6 +136,17 @@ func update(pool: BBPool, player_id: int, muzzle_offset: Vector3, fraction: floa
 	if _trails != null:
 		_trails.multimesh.visible_instance_count = t
 		_trails.visible = t > 0
+
+
+## Where `bb` is drawn at `fraction` between ticks `tick` s apart: `player_id`'s own from `muzzle_offset` (the muzzle
+## less the eye) at first, joining its true path from the side (across_flight) over `cfg.muzzle_join_time`.
+static func drawn_at(cfg: EffectsConfig, bb: BB, player_id: int, muzzle_offset: Vector3, fraction: float,
+		tick: float) -> Vector3:
+	var at := bb.prev_position.lerp(bb.position, fraction)
+	var age := bb.age + fraction * tick
+	if bb.owner_id == player_id and age < cfg.muzzle_join_time:
+		at += across_flight(muzzle_offset, bb.velocity) * (1.0 - age / cfg.muzzle_join_time)
+	return at
 
 
 ## The part of `offset` square to `velocity`'s line (all of it with no velocity): a BB drawn from the muzzle joins its

@@ -29,7 +29,8 @@ func _cyber() -> ReplicaConfig:
 	return r
 
 
-## The override on the first surface of `model` (or below it) whose own material is named `part`, or null.
+## The paint on the first surface of `model` (or below it) whose own material is named `part` (ReplicaView.painted: as
+## painted, before the hands press its depth), or null.
 func _override(model: Node, part: StringName) -> Material:
 	var meshes := model.find_children("*", "MeshInstance3D", true, false)
 	meshes.push_front(model)
@@ -40,8 +41,16 @@ func _override(model: Node, part: StringName) -> Material:
 		for i in mesh_node.mesh.get_surface_count():
 			var own := mesh_node.mesh.surface_get_material(i)
 			if own != null and own.resource_name == part:
-				return mesh_node.get_surface_override_material(i)
+				return _painted(mesh_node, i)
 	return null
+
+
+## The paint on surface `i` of `mesh_node`: in the hands, as painted before its depth was pressed (null: its own).
+func _painted(mesh_node: MeshInstance3D, i: int) -> Material:
+	var n: Node = mesh_node
+	while n != null and not n is ReplicaView:
+		n = n.get_parent()
+	return (n as ReplicaView).painted(mesh_node, i) if n != null else mesh_node.get_surface_override_material(i)
 
 
 func _colour(m: Material) -> Color:
@@ -98,7 +107,7 @@ func test_the_cyber_pistol_keeps_its_own_colours() -> void:
 	for node: Node in view._held[0].root.find_children("*", "MeshInstance3D", true, false):
 		var mesh_node := node as MeshInstance3D
 		for i in mesh_node.mesh.get_surface_count():
-			assert_null(mesh_node.get_surface_override_material(i), "%s surface %d keeps its own" % [node.name, i])
+			assert_null(_painted(mesh_node, i), "%s surface %d keeps its own" % [node.name, i])
 	# Realistic colours: a dark grey slab and plain grey lines, nothing glowing; its metal keeps the model's own.
 	var own := _hands([_cyber()] as Array[ReplicaConfig], [ReplicaSchemes.OWN] as Array[StringName], true)
 	var slab := _override(own._held[0].root, &"CyberSlab") as StandardMaterial3D
