@@ -322,10 +322,13 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Cover heights: full cover is at least 2.4 m and crouch cover exactly 1.2 m; no walkable ledge sits between 0.15 m
   and jump height (2026-09-28).** Crouched eyes (1.09 m) hide behind 1.2 m cover and standing eyes (1.66 m) shoot over
   it. Crouch cover is unclimbable (tested).
-- **3 holsters the replica (1 primary, 2 secondary, rebindable): moving holstered is faster, never past the sprint, and
-  the draw from the holster slower (owner, 2026-10-06, 2026-10-16 and 2026-10-17; M92, MV1, MV2).** Holstered run
-  5.4 m/s against 4.2 with the replica out; sprint 6.3 either way. A draw takes 1.8 times the replica's own. Bots
-  holster only on a calm sprint through their own half.
+- **3 holsters the replica (1 primary, 2 secondary, rebindable): moving holstered is faster, the run never past the
+  sprint, and the draw from the holster slower (owner, 2026-10-06, 2026-10-16 and 2026-10-17; M92, MV1, MV2).**
+  Holstered run 5.4 m/s against 4.2 with the replica out. A draw takes 1.8 times the replica's own. Bots holster only
+  on a calm sprint through their own half.
+- **A holstered sprint is faster than the armed one (owner, 2026-10-29; 0.1 Dev 1 playtest note 12, FB4).** Default
+  a tenth (MovementConfig.holster_sprint_scale: 6.93 m/s against 6.3), for players and bots alike; the browser game
+  had none.
 - **Vaulting is Jump at a low obstacle, with no key of its own (owner, 2026-10-12; M102).** Obstacles 0.6 to 0.95 m
   over your floor, at most 1 m deep, heading within 70° of where you look; crouch cover never qualifies. Anywhere else
   Jump is a jump. A vault takes about 0.4 s, carries the replica and holds fire 0.3 s after; crouched, you can't vault.

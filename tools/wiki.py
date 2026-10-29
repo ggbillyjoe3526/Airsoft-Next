@@ -532,6 +532,8 @@ def gen_movement(_arg: str) -> str:
             ("Run", m["run_speed"], "heard by players and bots nearby"),
             ("Run, holstered", m["holster_run_speed"], "heard by players and bots nearby"),
             ("Sprint", m["sprint_speed"], "heard further"),
+            ("Sprint, holstered", round(float(m["sprint_speed"]) * float(m["holster_sprint_scale"]), 2),
+             "heard further"),
         ]
         rows = [[f"**{name}**", f"{float(v):g} m/s", noise] for name, v, noise in paces]
         jump = float(m["jump_speed"]) ** 2 / (2 * float(m["gravity"]))

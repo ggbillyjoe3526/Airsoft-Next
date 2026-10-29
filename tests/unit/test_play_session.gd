@@ -122,8 +122,8 @@ func test_the_late_materials_are_drawn_once_at_the_start_and_then_freed() -> voi
 	var site := fresh._site.materials().size() if fresh._site != null else 0
 	var overtime := fresh.overtime_flag_view().materials().size() if fresh.overtime_flag_view() != null else 0
 	var mags := fresh._mag_tosses.materials().size() if fresh._mag_tosses != null else 0
-	assert_eq(prewarm.get_child_count(), 9 + skyline + site + overtime + mags + 2 * figures,
-			"a BB, a glowing BB and its streak (WL8), a puff, a gas puff, kicked dust, the contact shadow, a wind speck,"
+	assert_eq(prewarm.get_child_count(), 10 + skyline + site + overtime + mags + 2 * figures,
+			"a BB, its trail (FB4), a glowing BB and its streak (WL8), a puff, a gas puff, kicked dust, the contact shadow, a wind speck,"
 			+ " the sign, the skyline's, the site dress's (DD1), the overtime flag's (OV3), the tossed magazines' (MH3)"
 			+ " and each figure material solid and fading")
 	await wait_process_frames(ShaderPrewarm.FRAMES + 1)

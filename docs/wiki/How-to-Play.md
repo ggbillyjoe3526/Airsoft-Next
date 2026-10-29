@@ -47,6 +47,8 @@ Nothing in Airsoft is hitscan. Every BB leaves the muzzle at a real speed, slows
 its backspin (the **hop-up**), so you can watch it fly and lead a moving target.
 
 - The AEG Rifle stays on target to about **38 m**, the GBB Pistol to about **26 m**. Past that, aim a little higher.
+- A white BB in flight is drawn a little larger than life with a faint short trail, so you can follow it against a
+  pale wall or the sky.
 - BBs puff on what they hit, in its colour: metal, wood, concrete or earth.
 - A BB stops on a body, a crate or the ground. Off concrete and steel containers it **ricochets**.
 - [Replicas](Replicas) differ in how fast their BBs leave the barrel, how fast they fire and how they handle, never in
