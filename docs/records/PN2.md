@@ -72,6 +72,22 @@ HUD › Ping markers.
 - `Hud.place_pings`, headless, 10 characters: 5.5 µs a frame with no ping up, 24 µs with 5 up (mixed field and pinned).
 - No object or node made over 100 frames with none up, and no object with two up (one pinned); markers made once
   (`test_markers_are_made_once_one_per_teammate`).
+- Draw calls (performance review, fix round 1; Compatibility under Xvfb, 1920 × 1080, Depot, Elimination, bots idle,
+  the view as in the pictures, three of your team's pings up: two spots and a contact; the most in 8 frames):
+
+  | Frame | Before | After |
+  |---|---|---|
+  | No ping up | 81 | 81 |
+  | 3 up over the field | 120 (+39) | 94 (+13) |
+  | 3 up pinned at the side | 123 (+42) | 97 (+16) |
+  | 3 up, Ping markers Off | 81 | 81 |
+
+  The reviewer's frame (another view) read 132 → 172; the same cut there is about 132 → 145. What changed: a ring or
+  diamond and its ink is one triangle array (`HudPingMarker.Mark`) instead of two antialiased strokes and a transform,
+  on the field, on a pinned plate and on the minimap; over the field a marker draws its glyph and words itself, one
+  canvas item instead of three (8 nodes a marker before, 6 now, of which only the pinned plate's 5 draw and only while
+  pinned); the hidden plate's words are only shaped when it pins; `set_age` writes scale and alpha only when they
+  change. The look is unchanged in the pictures but for the diamond's ink edge, a little crisper than the polyline's.
 
 ## Pictures
 

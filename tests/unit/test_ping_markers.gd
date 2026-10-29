@@ -410,3 +410,19 @@ func test_a_ping_in_a_match_shows_on_screen_and_the_minimap_and_pips() -> void:
 	session._open_pause()
 	assert_false(m.visible, "hidden in the pause menu")
 	session._resume()
+
+
+func test_over_the_field_it_is_one_drawn_item_and_the_plate_is_filled_only_when_pinned() -> void:
+	_ping(YOU, Vector3(0.0, 0.0, -9.0))
+	_place(1.0)
+	var m := _marker()
+	var drawn := 0
+	for c: CanvasItem in m.find_children("*", "CanvasItem", true, false):
+		if c.is_visible_in_tree():
+			drawn += 1
+	assert_eq(drawn, 0, "the glyph and words are the marker's own drawing")
+	assert_eq(m._edge_words.text, "", "the hidden plate's words are never shaped")
+	_ping(YOU, Vector3(-60.0, 0.0, -10.0))
+	_place(1.0)
+	assert_true(m.pinned())
+	assert_eq(m._edge_words.text, "PING · 61 M")

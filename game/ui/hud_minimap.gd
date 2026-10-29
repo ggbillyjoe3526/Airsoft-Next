@@ -301,8 +301,9 @@ class View:
 	var _ping_contacts := PackedByteArray()
 	var _ping_alphas := PackedFloat32Array()
 	var _ping_count: int = 0
-	var _ping_diamond := PackedVector2Array()
-	var _ping_outline := PackedVector2Array()
+	## A ping's ring and diamond with their ink, each one triangle array (one draw call; HudPingMarker.Mark).
+	var _ping_ring: HudPingMarker.Mark = null
+	var _ping_diamond: HudPingMarker.Mark = null
 	var _you_on: bool = true
 
 	## `textures` are the layers (one per storey) of a drawing at `field_scale` px/m whose top left is the world's
@@ -332,10 +333,8 @@ class View:
 		_pings.resize(capacity)
 		_ping_contacts.resize(capacity)
 		_ping_alphas.resize(capacity)
-		var d := cfg.ping_diamond
-		_ping_diamond = PackedVector2Array([Vector2(0.0, -d), Vector2(d, 0.0), Vector2(0.0, d), Vector2(-d, 0.0)])
-		_ping_outline = PackedVector2Array([Vector2(0.0, -d), Vector2(d, 0.0), Vector2(0.0, d), Vector2(-d, 0.0),
-				Vector2(0.0, -d)])
+		_ping_ring = HudPingMarker.Mark.ring(cfg.ping_ring_radius, cfg.ping_ring_width, RING_INK, RIM_ARC_POINTS)
+		_ping_diamond = HudPingMarker.Mark.diamond(cfg.ping_diamond, OUTLINE)
 		var gradient := Gradient.new()
 		# Opaque to the disc's edge, then clear: the texture is a square round a circle.
 		gradient.offsets = PackedFloat32Array([0.0, DISC_MID, DISC_EDGE, 1.0])
@@ -521,17 +520,13 @@ class View:
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	## A ping: a contact's diamond in the other team's colour, or a spot's ring in the team's, each on a dark outline.
+	## One draw call each.
 	func _draw_ping(at: Vector2, contact: bool, alpha: float) -> void:
 		var ink := Color(_cfg.ink, _cfg.ink.a * alpha)
 		if contact:
-			draw_set_transform(at, 0.0, Vector2.ONE)
-			draw_colored_polygon(_ping_diamond, Color(_enemy, alpha))
-			draw_polyline(_ping_outline, ink, OUTLINE, true)
-			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-			return
-		var r := _cfg.ping_ring_radius
-		draw_arc(at, r, 0.0, TAU, RIM_ARC_POINTS, ink, _cfg.ping_ring_width + RING_INK * 2.0, true)
-		draw_arc(at, r, 0.0, TAU, RIM_ARC_POINTS, Color(_team, alpha), _cfg.ping_ring_width, true)
+			_ping_diamond.draw(self, at, Color(_enemy, alpha), ink)
+		else:
+			_ping_ring.draw(self, at, Color(_team, alpha), ink)
 
 	## The pole: a yellow flag on a white staff, its foot a dot; the overtime flag's cloth chequered off-white and dark,
 	## its foot off-white.
