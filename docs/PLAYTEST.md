@@ -12,7 +12,7 @@ has. The checks are carried from the browser game, whose guide (with the reasons
 
 You need a Windows or Linux desktop computer with a graphics card that runs Vulkan or Direct3D 12.
 
-- **A release (the usual way).** Open the GitHub release named in the README (github.com/ggbillyjoe3526/Airsoft-Next
+- **A release (the usual way).** Open the GitHub release named in the README (github.com/ggbillyjoe3526/airsoft
   › Releases) and download one of:
   - **Windows installer** (`.exe`): run it and start Airsoft from the Start menu. Uninstall it from Windows Settings ›
     Apps; your save stays.

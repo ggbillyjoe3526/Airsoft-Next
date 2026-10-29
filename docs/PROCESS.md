@@ -15,8 +15,8 @@ ends, time passes or small improvements pile up.
 - **The format stays exactly as it was.** Only the count resets: the stages, names and tags below are the ones the
   browser game used.
 - **The browser versions are history, not a starting point.** The browser game's tags (`0.1-dev.1` to `0.1-dev.6`,
-  then `0.1-beta.1`) live only in the frozen `ggbillyjoe3526/Airsoft` repository. This repository never imports them,
-  and nothing here continues from Beta 1.
+  then `0.1-beta.1`) lived only in the frozen browser repository, no longer on GitHub. This repository never imports
+  them, and nothing here continues from Beta 1.
 - **To tell them apart in writing,** say "the browser game's 0.1 Beta 1" for its builds. A bare version here always
   means a Godot build.
 

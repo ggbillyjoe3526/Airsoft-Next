@@ -9,7 +9,7 @@ in `docs/PROCESS.md`.
 - **Building the game.** The game restarted on 2026-10-18 as an installable desktop game built with Godot and
   Blender. The core slice is built; the rest of 0.1 follows in the [build order](#build-order) below, and version
   names wait until the owner picks them up again (owner, 2026-10-18). The browser game it replaces stopped at its 0.1
-  Beta 1, frozen in `ggbillyjoe3526/Airsoft`.
+  Beta 1; its old repository is no longer on GitHub, and its code is in `legacy/browser/`.
 - **Last tag:** none yet. The owner creates tags.
 - **0.1 Dev 1 is the core slice:** Depot, the AEG Rifle and the GBB Pistol, bots and Elimination. The rest of 0.1
   ([What 0.1 is](#what-01-is)) follows in later Dev builds, rebuilt from the browser game's rules and tests.
@@ -124,8 +124,8 @@ at his PC to connect.
     and every replica, attachment and accessory, at higher quality than today's placeholders, built small for the
     browser (owner, 2026-10-18 and 2026-10-24). Woodland and Neon Heights stay greybox while they are dev content.
     Here because the rig standard, every replica and part (9 to 11) and the field checklist with Depot's final
-    layout (24, 25) have settled by then, so he models against final requirements once. The thread reminds him,
-    with what is settled to model, when step 27 is done.
+    layout (24, 25) have settled by then, so he models against final requirements once. When step 27 is done the
+    thread reports and asks what comes next; it doesn't raise the Blender work until he names the date.
 
 ## Builds
 

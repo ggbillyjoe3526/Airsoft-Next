@@ -1,6 +1,6 @@
 # The wiki
 
-This folder is the source of the game's GitHub wiki (<https://github.com/ggbillyjoe3526/Airsoft-Next/wiki>). Each
+This folder is the source of the game's GitHub wiki (<https://github.com/ggbillyjoe3526/airsoft/wiki>). Each
 `.md` file is one page, named like `Parts-and-Power.md` (dashes become spaces in the title). `Home.md` is the front
 page, `_Sidebar.md` the menu on every page and `_Footer.md` the line under it. This README and `.gdignore` are never
 published.

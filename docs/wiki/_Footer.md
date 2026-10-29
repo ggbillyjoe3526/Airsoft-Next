@@ -1,1 +1,1 @@
-Airsoft · [Download](https://github.com/ggbillyjoe3526/Airsoft-Next/releases) · [Patch Notes](Patch-Notes) · [Roadmap](Roadmap) · This wiki is rebuilt from the game's own files on every change, so its numbers are the ones you play with. Edit it in the repository's `docs/wiki/`, not here.
+Airsoft · [Download](https://github.com/ggbillyjoe3526/airsoft/releases) · [Patch Notes](Patch-Notes) · [Roadmap](Roadmap) · This wiki is rebuilt from the game's own files on every change, so its numbers are the ones you play with. Edit it in the repository's `docs/wiki/`, not here.

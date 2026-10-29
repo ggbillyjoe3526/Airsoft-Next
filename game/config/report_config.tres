@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_rpcfg")
-issue_url = "https://github.com/ggbillyjoe3526/Airsoft-Next/issues/new"
+issue_url = "https://github.com/ggbillyjoe3526/airsoft/issues/new"
 max_url_chars = 8000
 keep_steps = PackedInt32Array(10, 3, 0)
 drop_fields = PackedStringArray("Settings changed", "Dev settings")

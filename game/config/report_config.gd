@@ -8,7 +8,7 @@ extends Resource
 const DEFAULT_PATH := "res://game/config/report_config.tres"
 
 ## A new issue on the game's repository: the address the title and body are added to.
-@export var issue_url: String = "https://github.com/ggbillyjoe3526/Airsoft-Next/issues/new"
+@export var issue_url: String = "https://github.com/ggbillyjoe3526/airsoft/issues/new"
 ## The longest address sent (GitHub answers 414 a little above 8,000 characters; Windows' ShellExecute is untested
 ## past it, so this drops if the owner's PC refuses: 2,000 still holds the note and the main fields).
 @export var max_url_chars: int = 8000

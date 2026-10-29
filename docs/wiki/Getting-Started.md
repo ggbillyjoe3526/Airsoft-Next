@@ -3,7 +3,7 @@
 ## Download
 
 Every version is posted on the
-[Releases page](https://github.com/ggbillyjoe3526/Airsoft-Next/releases), with its [Patch Notes](Patch-Notes).
+[Releases page](https://github.com/ggbillyjoe3526/airsoft/releases), with its [Patch Notes](Patch-Notes).
 <!-- wiki:latest -->
 
 Each release has three downloads, named after the version (here `0.1-dev.1`):

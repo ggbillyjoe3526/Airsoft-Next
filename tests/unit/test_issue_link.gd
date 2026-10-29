@@ -2,7 +2,7 @@ extends GutTest
 ## IssueLink (SV4): the address, its title and body, the fence, and each cut step as the browser game cut it: lists
 ## 10, 3, 0, then Settings changed and Dev settings, then the first lines that fit; and a report too long for any.
 
-const BASE := "https://github.com/ggbillyjoe3526/Airsoft-Next/issues/new"
+const BASE := "https://github.com/ggbillyjoe3526/airsoft/issues/new"
 const BugReportTest := preload("res://tests/unit/test_bug_report.gd")
 
 var _config: ReportConfig

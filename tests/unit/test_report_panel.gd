@@ -183,7 +183,7 @@ func test_report_opens_issue_links_address_once_and_copies_the_whole_report_once
 	panel.report_button().pressed.emit()
 	assert_eq(opened.size(), 1, "the opener once")
 	assert_eq(opened[0], IssueLink.make(info, config).url, "IssueLink's address")
-	assert_string_contains(opened[0], "https://github.com/ggbillyjoe3526/Airsoft-Next/issues/new?title=Bug%3A+Bot")
+	assert_string_contains(opened[0], "https://github.com/ggbillyjoe3526/airsoft/issues/new?title=Bug%3A+Bot")
 	assert_eq(copied.size(), 1, "the clipboard once")
 	assert_eq(copied[0], BugReport.write(info), "the whole report, note and all")
 	assert_eq(panel.status_text(), "✓ Opened GitHub in your browser. The whole report is copied too.")
