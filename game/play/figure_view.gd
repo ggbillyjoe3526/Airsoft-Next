@@ -60,6 +60,7 @@ var _world: WorldQuery = null
 var _body_config: BodyConfig = null
 var _wall: RayHit = null
 var _raise_wait: int = 0
+var _raise_stride: int = 1
 var _since_shot: float = INF
 
 
@@ -73,6 +74,7 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, font: Font,
 	_floor_y = c.position.y
 	var cfg := figures if figures != null else FigureConfig.new()
 	_flinch = FigureFlinch.new(cfg)
+	_raise_stride = maxi(cfg.raise_stride, 1)
 	_hits = hits
 	_team = c.team
 	_team_colour = team_colour
@@ -125,7 +127,7 @@ func set_world(query: WorldQuery, body_config: BodyConfig) -> void:
 	_body_config = body_config
 	if _wall == null:
 		_wall = RayHit.new()
-	_raise_wait = absi(character_id)
+	_raise_wait = absi(character_id) % _raise_stride
 
 
 ## The figure drawn, or null.
@@ -319,18 +321,16 @@ func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 
 ## How far (0..1) the replica is raised at the level ahead of `c`'s aim, as `_pose` read it (FB5): by how close the
 ## level comes within the replica's reach (ahead of the figure's speed by raise_lead), eased out, one ray every
-## raise_stride poses;
-## none for a replica held level after a shot, holstered, out of the hand or out of play.
+## raise_stride poses; none for a replica held level after a shot, holstered, out of the hand or out of play.
 func _raise_target(c: Character) -> float:
 	var cfg := _pose.config()
 	if _world == null or c.status != Character.Status.ALIVE or _pose.in_hand < 0 or _pose.holster > 0.0 \
 			or _since_shot < cfg.raise_fire_hold:
-		_raise_wait = 0
 		return 0.0
 	if _raise_wait > 0:
 		_raise_wait -= 1
 		return _pose.raise_target
-	_raise_wait = cfg.raise_stride - 1
+	_raise_wait = _raise_stride - 1
 	var yaw := rotation.y
 	var h := Character.eye_height(_pose.crouch, _body_config)
 	var from := _pose.feet + Vector3(0.0, h - cfg.raise_drop, 0.0) \
