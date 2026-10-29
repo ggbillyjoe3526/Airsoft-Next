@@ -646,6 +646,8 @@ pays XP ×1.5.
 - [ ] **Round end stamp.** WON, LOST or DRAW stamps at the end of a round and stays 2 s, then the round's table holds
   about 4 s before the next round (RE1); a click after half a second moves on. Long enough to read, never a wait?
   A click held through the skip fires nothing until you let go; at 720 px the word sits clear of a two-line banner.
+- [ ] **HIT! under the score bar** (HD2). Get hit as the last of your side (stand still): HIT!, the walk-off line and
+  LOST stack under the score bar, none over the clock, and LOST does not jump when the walk-off ends. Try 150 % HUD size.
 - [ ] **Feed position** (Settings › HUD). Bottom left moves the feed there; top right is the default.
 - [ ] **Hit feed.** Hits and callouts share one feed, top right, newest on top: "Beta 2 called HIT · Alpha 3" with names
   in team colours; lines about you say "You"; friendly fire says FRIENDLY and a ricochet RICOCHET.

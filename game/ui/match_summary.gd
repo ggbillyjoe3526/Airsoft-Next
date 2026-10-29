@@ -113,6 +113,15 @@ func set_fit(fit: float) -> void:
 	_side.scale = Vector2.ONE * fit
 
 
+## Moves the panels to start `top` px under the screen's middle (the XP card moves with them in the HUD).
+func set_top(top: float) -> void:
+	if is_equal_approx(top, _top):
+		return
+	_top = top
+	_pin(_table, -(XpCard.WIDTH * 0.5 + GAP) * _fit, _top, Control.GROW_DIRECTION_BEGIN)
+	_pin(_side, (XpCard.WIDTH * 0.5 + GAP) * _fit, _top, Control.GROW_DIRECTION_END)
+
+
 func fit() -> float:
 	return _fit
 
