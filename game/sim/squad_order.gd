@@ -4,5 +4,6 @@ class_name SquadOrder
 ## bots' controller hands it out (BotController, SquadOrders). An order holds until it is given again, its giver is out,
 ## or the round ends; Team plan ends it at once.
 
-## NONE: no order this tick. TEAM_PLAN: back to the team plan (the order wheel's Team Plan).
-enum Kind { NONE, FOLLOW, HOLD, REGROUP, TEAM_PLAN }
+## NONE: no order this tick. TEAM_PLAN: back to the team plan (the order wheel's Team Plan). MAG: the order wheel's Need
+## a Mag (MH3), never given as an order: PlayerInput turns it into the command's mag_hand_off (MagShare).
+enum Kind { NONE, FOLLOW, HOLD, REGROUP, TEAM_PLAN, MAG }
