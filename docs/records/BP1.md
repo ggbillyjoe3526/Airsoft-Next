@@ -93,11 +93,22 @@ under the crosshair, and the plate is hidden while the wheel is open. The fix is
   logged; it fails without the fix (6 of 7 pass then). With the fix, 7 of 7 pass.
 - **A headless start** (`godot --headless --path . --quit`, fresh user folder) printed the two NUL lines before the
   fix and prints none after it. Exit 0, with no error or warning.
-- **The match guards:** see Gate.
+- **The match guards** (`tools/match_guards.sh`, run because the bots' hand-off walks change). All pass:
+  - `test_match_guards` passed 4 of 4, including "a bot put low gets a magazine within 10 s on Depot and
+    Woodland". Depot played 121 rounds over 16 seeds at Normal, 65 over 8 at Easy and 56 over 8 at Hard, with
+    0 on time.
+  - `test_woodland_guards` ran in its five CI parts, each passing. Elimination played 125 rounds at Normal, 64 at
+    Easy and 64 at Hard. Attack / Defend played 130 rounds at Normal (4 captures), 59 at Easy (8) and 61 at Hard (3).
+    Every part had 0 on time.
 - gdlint is clean on every changed `.gd`.
 - **Not verified:** how often a shipped map puts something at eye height on a hand-off line (Woodland's hut windows
   are the likeliest). Watch a bot bring a magazine across a window or under a beam.
 
 ## Gate
 
-GATE_PENDING
+Worker's run, 2026-10-29, on a shared machine:
+
+- **Unit tests:** `tools/unit_tests.sh` parts 1, 2 and 3 passed 867, 1780 and 914 tests (3561 in all). The first try
+  at part 1 timed out at the 1080 s limit with the machine's load at 12, and the rerun passed.
+- **Smoke:** `tools/smoke_test.sh` passed (`[smoke] ok … rounds=8 orders=3 mags=2`, zero script errors).
+- **Other gates:** `python3 tools/wiki.py check` OK, `tools/changelog.sh check` OK, and gdlint clean.
