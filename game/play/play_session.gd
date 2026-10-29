@@ -961,8 +961,6 @@ func _after_tick() -> void:
 					round_started.emit(e.value, state.round_state.score)
 			GameEvent.Kind.MATCH_OVER:
 				matches_played += 1
-				# No round follows to end your orders, so Hold here's marker would stay over the results.
-				_bots.orders.clear()
 				_rematch_left = _play.rematch_delay
 				var tip := tr(HudScoreboard.tip_for(state.round_state.number + 1)) if difficulty == MatchOptions.TIPS_LEVEL else ""
 				_hud.open_summary(state, what_got_you_shown(), tip)

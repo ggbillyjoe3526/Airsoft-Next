@@ -3,8 +3,9 @@ extends RefCounted
 ## Kit rustle from the body's movements (the browser game's audio/foley.ts, M92): read from each character's crouch and
 ## lean and their values a tick before, once per movement: a crouch, a stand or a lean away from upright starting, not
 ## every tick it goes on. Leaning back to upright is quiet; a lean starting within `lean_gap` (s) of that character's
-## last lean rustle is quiet too (a lean against a wall restarts at each turn); anyone out of play is still. Presentation only: no event, so
-## bots never hear a rustle (the sound pass plan's question 7). Putting the replica away is the HOLSTER event's sound.
+## last lean rustle is quiet too (a lean against a wall restarts at each turn); anyone out of play is still.
+## Presentation only: no event, so bots never hear a rustle (the sound pass plan's question 7). Putting the replica away
+## is the HOLSTER event's sound.
 
 ## What started this tick, as flags in `moves`.
 enum Move { NONE = 0, CROUCH = 1, STAND = 2, LEAN = 4 }

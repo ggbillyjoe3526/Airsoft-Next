@@ -153,7 +153,7 @@ func card_note_of(character_id: int) -> String:
 ## What the bots heard in the step just taken (or the match's start), a hit on the player kept for "What got you", the
 ## squad orders given in it handed out (an order ends once its giver is out, and for a bot that is out), each ping
 ## made a ping and taken by the pinger's bot teammates (Pings), each bot's time to set off for the overtime flag once it
-## is up, a fresh plan and no pings when a round has started (no order outlasts a round), and last what the bots call of
+## is up, a fresh plan and no pings when a round has started (no order outlasts a round or the match), and last what the bots call of
 ## it all (Callouts).
 func observe(state: GameState) -> void:
 	BotHearing.observe(state, world)
@@ -173,6 +173,9 @@ func observe(state: GameState) -> void:
 			_overtime(state.time)
 		elif e.kind == GameEvent.Kind.PING:
 			_ping(e, state.time)
+		elif e.kind == GameEvent.Kind.MATCH_OVER:
+			# No round follows to end the orders, so Hold here's marker would stay over the results.
+			orders.clear()
 	orders.update()
 	if state.events.count_of(GameEvent.Kind.ROUND_START) > 0:
 		_new_round(state)
