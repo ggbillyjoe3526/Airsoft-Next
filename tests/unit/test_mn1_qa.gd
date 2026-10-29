@@ -55,7 +55,10 @@ func test_after_settings_close_enter_still_reaches_play() -> void:
 	var main: Node = await _boot()
 	main._show_menus()
 	main._menus.top_bar().tab_button(TopBar.Tab.SETTINGS).pressed.emit()
-	await _esc()
+	await wait_process_frames(1)
+	main._settings_screen._back.pressed.emit() # Esc now asks QUIT GAME? in the menus; Back closes the settings
+	await wait_process_frames(2)
+	assert_null(main._settings_screen)
 	assert_eq(get_viewport().gui_get_focus_owner(), main._menus.match_page().play_button())
 
 
