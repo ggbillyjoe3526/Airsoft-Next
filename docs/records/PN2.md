@@ -1,12 +1,13 @@
 # PN2 · Ping markers, the minimap and the pip
 
-**Review:** pending (critic, QA, performance)
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-26 | 1 | worker | see Verified | – | – |
+| 2026-10-26 | 1 | worker | see Verified; QA Pass (8 tests), performance Pass (draw-call finding) | – | – |
+| 2026-10-29 | 1, fix round 1: fewer draw calls; QA advisories 1-2 | worker | QA re-check Pass | Accept 8/8 | performance: +40 draw calls with 3 pings up |
 
 ## Goal
 
@@ -102,7 +103,8 @@ Contact mark on an enemy brought 13 m out:
 
 ## Verified
 
-- `tests/unit/test_ping_markers.gd` 21 pass: ring and diamond, colours, words, anchors, never following, pop / 7 s /
+- `tests/unit/test_ping_markers.gd` 22 pass (21, plus one after the fix round: a field marker draws itself and the
+  pinned plate's words fill only when pinned): ring and diamond, colours, words, anchors, never following, pop / 7 s /
   fade, Reduced motion, pinned left / right / behind and under a pinned flag, hidden spectating / scoreboard / pause /
   Off, other team's never, HUD size and opacity, the minimap's (and Off), the rim, the pip once for your own ping only,
   the pip file matching SoundConfig, the setting (default, saved, old file, the tab's row), made once, no allocation,
@@ -115,3 +117,17 @@ Contact mark on an enemy brought 13 m out:
 - gdlint clean on every changed file; the pictures above, looked at.
 - Not verified: how the pip sounds on speakers or headphones, and the pop's feel at real frame rates (PLAYTEST ›
   Ping markers).
+- After the fix rounds (2026-10-29, on main 3a72ac7): `test_ping_markers.gd` 22 and `test_pn2_qa.gd` 8, 30 of 30;
+  the minimap, minimap field and HUD prefs tests, the smoke test and gdlint pass. CI runs the whole gate on the head.
+
+## Advisories left
+
+- **`HudPingMarker.Mark` lives in the marker's script but the minimap draws with it too** (critic): move it to its
+  own file when either is next touched.
+- **`plate_size()` runs twice a frame while a marker is pinned** (critic); cheap.
+- **The rim test checks `_pin`, not a far ping drawn on the minimap's rim** (critic).
+- **A few comment lines pass 120 columns** (critic): `sim_audio.gd:13`, `settings_hud_page.gd:8`, `hud_minimap.gd:8`.
+- **The after-fix draw calls (81 to 94 on the worker's view) are the worker's measurement** (critic); performance
+  measured the first build (132 to 172).
+- **A hit teammate's ping stays up for the rest of its 8 s** (QA): PN1's book; the diamond is still useful.
+- **During the pop, `set_age` writes the scale every frame** (QA): a double compared with a float read-back; harmless.
