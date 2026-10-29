@@ -59,7 +59,7 @@ Play › Mode Elimination on Depot, Match › Opponents Normal. Set the mouse se
   the sprint is a little faster than armed too (6.9 m/s against 6.3). Fast enough now?
 - [ ] **Hold Left Alt and fire while sprinting.** It fires, but the spread is far wider and the rifle climbs faster;
   the rifle comes up out of the carry at once, pointing where you aim, never angled down while you fire; a moment
-  after you let go of the trigger it drops back into the carry.
+  after your last shot it drops back into the carry.
 - [ ] **Press C.** You crouch, slow and silent, and C again stands you up; Left Alt or Space also stands you up. With
   Settings › Controls › Crouch key on Hold, you crouch only while C is held.
 - [ ] **Hold Q, then E, beside a wall or crate.** You lean round it; against a wall the lean stops short, so you never

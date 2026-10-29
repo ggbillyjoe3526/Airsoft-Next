@@ -1,13 +1,13 @@
 # FB4 · Feel fixes from the 0.1 Dev 1 playtest (notes 5, 7, 11, 12)
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-29 | 1 | worker | see Verified; QA Pass (2 advisories), performance Pass | – | – |
-| 2026-10-29 | 1, fix round 1: the raise follows real shots only, a hidden view drops it | worker | see Fix round 1 | – | – |
+| 2026-10-29 | 1, fix round 1: the raise follows real shots only, a hidden view drops it | worker | see Fix round 1 | Accept 8/8 | – |
 
 ## Goal
 
@@ -142,6 +142,16 @@ Woodland plays at night, where BBs glow by default; its white BBs draw as Depot'
 - Run: gdlint clean; `test_hands_feel` (8), `test_motion_scale`, `test_replica_paint`, `test_lo3_qa`,
   `test_figure_flinch`, `test_slide_lock`, `test_parts_in_play`, `test_bb_sight`, `test_holster`: 99 of 99. The full
   parts are left to CI (the machine is loaded).
+
+## Advisories left
+
+- **`sprint_fire_raise` and `depth_scale`** in `viewmodel_config.gd` have no `@export_range`; 0 would give NaN or a
+  flat depth (QA, critic). Neither is set outside the config.
+- **Pressed replica materials are not prewarmed** (performance): a replica whose material flags differ from the held
+  one could compile on its first switch, as on main.
+- **BBView costs about 2 us a BB** (performance): +0.42 ms at 200 in flight; cap the trail by distance if the pool
+  is ever flown full.
+- The fix round was checked by the critic, not a second QA run (two small advisory fixes, each with a failing test).
 
 ## Gate
 

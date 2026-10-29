@@ -1,6 +1,6 @@
 ### Playtest fixes: firing on the run, walls and seeing your BBs
 - Firing while you sprint brings your replica up out of the carry at once, pointing where you aim; it drops back a
-  moment after you let go of the trigger.
+  moment after your last shot.
 - Holstered, your sprint is a little faster than with your replica out (a tenth), for bots too.
 - Your replica no longer sinks into a wall you stand against: it draws over the wall, and aimed, the sight stays at
   your eye.
