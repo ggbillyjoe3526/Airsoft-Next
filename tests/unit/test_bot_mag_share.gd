@@ -381,6 +381,74 @@ func test_a_wall_between_doesnt_stop_the_giver_on_its_far_side() -> void:
 	assert_eq(tosses, [Vector2i(2, 1)] as Array[Vector2i])
 
 
+## Something at eye height only (a lintel, a beam) across z = BEAM_Z, between BEAM_LOW and BEAM_HIGH (m): it blocks
+## a giver's eye-to-chest line over 2 m but not a line from a little lower down (the throw point).
+class EyeBeam:
+	extends WorldQuery
+	const BEAM_Z := -0.5
+	const BEAM_LOW := 1.4
+	const BEAM_HIGH := 1.6
+
+	func ray(from: Vector3, to: Vector3, hit: RayHit) -> bool:
+		if (from.z - BEAM_Z) * (to.z - BEAM_Z) > 0.0:
+			return false
+		var t := (BEAM_Z - from.z) / (to.z - from.z)
+		var y := lerpf(from.y, to.y, t)
+		if y < BEAM_LOW or y > BEAM_HIGH:
+			return false
+		hit.fraction = t
+		return true
+
+
+## A bot's world with nothing but the eye-height beam, `a` and `b` 2 m apart across it (team 0), and `bot_id`'s bot.
+func _beam_world(bot_id: int) -> BotWorld:
+	var q := EyeBeam.new()
+	var loadout := ReplicaStats.default_loadout()
+	var w := BotWorld.new()
+	w.tuning = tuning
+	w.cfg = config
+	w.query = q
+	w.mag_share = MagShare.new(tuning, q)
+	for i in 2:
+		var c := Character.new(i, 0, Vector3.ZERO, 0.0 if i == 0 else PI, loadout)
+		c.respawn()
+		c.position = Vector3(0.0, 0.0, -2.0 * i)
+		w.characters.append(c)
+	w.bots = [Bot.new(w.characters[bot_id], 1, config.skill, 2)] as Array[Bot]
+	return w
+
+
+func test_a_giver_whose_toss_is_blocked_at_eye_height_walks_up_rather_than_parking_where_it_cant_toss() -> void:
+	var w := _beam_world(0)
+	var giver := w.characters[0]
+	var asker := w.characters[1]
+	_empty(asker)
+	asker.mag.asked = giver.id
+	var b := w.bots[0]
+	b.mag_for = asker
+	var pick := MagShare.SparePick.new()
+	assert_true(w.mag_share.has_mag_for(giver, asker))
+	assert_false(w.mag_share.can_toss_to(giver, asker, pick), "the beam blocks the toss's eye-to-chest line")
+	assert_false(w.mag_share.toss_line_clear(giver, asker))
+	assert_lt(_flat(giver.position, asker.position), config.mag_walk_up_to, "already inside the usual stop")
+	var cmd := PlayerCommand.new()
+	BotMagShare.move(b, w, cmd, DT)
+	assert_false(cmd.mag_hand_off)
+	assert_eq(b.route_state, Bot.RouteState.WANTED, "it keeps walking up instead of standing")
+	assert_eq(b.route_goal, asker.position)
+
+
+func test_a_bot_waiting_on_your_toss_blocked_at_eye_height_walks_up_to_you() -> void:
+	var w := _beam_world(1)
+	var asker := w.characters[1]
+	asker.mag.asked = YOU
+	var b := w.bots[0]
+	assert_false(w.mag_share.toss_line_clear(w.characters[YOU], asker))
+	BotMagShare.move(b, w, PlayerCommand.new(), DT)
+	assert_eq(b.route_state, Bot.RouteState.WANTED, "it walks up to you instead of waiting where you can't toss")
+	assert_eq(b.route_goal, w.characters[YOU].position)
+
+
 func test_an_ask_you_never_answer_lapses_and_it_asks_again_no_sooner_than_the_gap() -> void:
 	_squad([Vector3(-30.0, 0.0, 20.0), Vector3(-27.0, 0.0, 20.0), Vector3(10.0, 0.0, 45.0), FAR_ORANGE])
 	var asker := _bot(1)

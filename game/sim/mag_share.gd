@@ -224,11 +224,15 @@ func can_toss_to(giver: Character, receiver: Character, out: SparePick) -> bool:
 		return false
 	if not choose_spare(giver.armament, a.replicas[a.active], pouch_room(a, a.active), out):
 		return false
-	var eye := Lean.eye(giver, body, hits)
-	var chest := catch_point(receiver)
-	if eye.distance_to(chest) > cfg.toss_range:
+	if toss_distance(giver, receiver) > cfg.toss_range:
 		return false
-	return not query.ray(eye, chest, _hit)
+	return toss_line_clear(giver, receiver)
+
+
+## Whether nothing of the level is between a toss from `giver` and `receiver`: the line from the giver's eye to the
+## receiver's chest (the toss's own test, and the one a bot walking up to toss or catch stops by).
+func toss_line_clear(giver: Character, receiver: Character) -> bool:
+	return not query.ray(Lean.eye(giver, body, hits), catch_point(receiver), _hit)
 
 
 ## `c`'s press of the hand-off this tick (`live`: the round is in play and not practice): a toss to the nearest

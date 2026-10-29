@@ -71,5 +71,7 @@ static func _first_arg(path: String) -> String:
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		return ""
-	var text := f.get_buffer(4096).get_string_from_utf8()
-	return text.get_slice(char(0), 0)
+	var bytes := f.get_buffer(4096)
+	var end := bytes.find(0)
+	# the bytes before the first NUL only: a NUL in a String (char(0)) makes Godot log a Unicode parsing error
+	return (bytes if end < 0 else bytes.slice(0, end)).get_string_from_utf8()
