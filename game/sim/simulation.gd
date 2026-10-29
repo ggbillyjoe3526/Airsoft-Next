@@ -13,7 +13,9 @@ extends RefCounted
 ## Characters without a command keep their view and stand still; hit characters follow the hit-calling routine instead
 ## of their command, and once out and standing in the dead zone they are only timed. A squad order in a command becomes
 ## an event for the bots' controller and changes nothing here, and so does a ping (PN1). A run into a noisy prop knocks it, and a BB landing hard
-## on steel rings it (PropNoise, NP1). The weapon torch switches after the replica (Torch); hit, it goes out.
+## on steel rings it (PropNoise, NP1). The weapon torch switches after the replica (Torch); hit, it goes out. The
+## magazine hand-off's press is taken with the squad order, before the character moves (out of play it is refused), and
+## the magazines in the air land after the BBs fly, so a catcher hit this tick loses it (MagShare, MH1).
 
 var tuning: SimTuning = null
 var query: WorldQuery = null
@@ -27,6 +29,8 @@ var kill_y: float = -10.0
 var nav: NavGrid = null
 ## The level's noisy props (WorldQuery.block_kinds that tuning.noise lists), made with the simulation.
 var noise: PropNoise = null
+## The magazine hand-off's rules (MH1), made with the simulation.
+var mag_share: MagShare = null
 ## Followed by characters with no command this tick.
 var _idle: PlayerCommand = PlayerCommand.new()
 ## Followed by characters that have been hit: they take no orders from their controller.
@@ -47,6 +51,7 @@ func _init(sim_tuning: SimTuning, world: WorldQuery, character_mover: CharacterM
 	ends = map_ends
 	kill_y = level_kill_y
 	noise = PropNoise.new(sim_tuning.noise, world)
+	mag_share = MagShare.new(sim_tuning, world)
 
 
 ## A fresh match: a new breeze, everyone at their end's spawns, round 1 live.
@@ -55,6 +60,8 @@ func start_match(state: GameState) -> void:
 	state.match_number += 1
 	state.off_record = state.dev_content or state.cheats.any()
 	state.wind.draw(Seeds.wind_seed(state.match_seed, state.match_number), tuning.wind)
+	for t in state.mag_tosses:
+		t.active = false
 	Round.start_match(state.round_state, state.characters, ends, state.bbs, tuning, state.events)
 
 
@@ -67,6 +74,8 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	# Once the round is decided it's a cease-fire, as after the end whistle at a site: nobody can fire, and BBs still in
 	# the air stop on whoever they reach without knocking them out.
 	var live := state.round_state.is_live()
+	# The hand-off is for rounds only: never on the range, where the spares stay full.
+	var sharing := live and not state.round_state.practice
 	Elimination.plan_walk_off_routes(state.characters, nav)
 	var noisy := noise.count() > 0
 	if noisy:
@@ -79,6 +88,7 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		c.prev_yaw = c.yaw
 		c.prev_pitch = c.pitch
 		_squad_order(c, commands, live, state.events)
+		_mag_hand_off(c, commands, sharing, state)
 		var in_play := Elimination.is_in_play(c)
 		# Hit, the torch goes out as the hand goes up (silently: the hit call is the sound).
 		if not in_play:
@@ -139,6 +149,8 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 			state.wind.at(state.time), state.rng, state.targets)
 	if noisy:
 		noise.ring(state, first_bb_event)
+	# After the BBs: a catcher hit this tick is out of play, and the magazine is lost.
+	mag_share.step(state, sharing, dt)
 	if state.round_state.practice:
 		# Practice has no rounds: it's always live, with no clock.
 		RangeTargets.step(state.targets, tuning, dt, state.rng)
@@ -183,3 +195,10 @@ func _ping(c: Character, commands: Array[PlayerCommand], live: bool, events: Sim
 	if reach > 0.0 and query.ray(eye, eye + dir * reach, _ping_hit):
 		e.value = 1
 		e.reach = _ping_hit.fraction * reach
+
+
+## The magazine hand-off pressed in `c`'s command this tick (MH1): a toss, an ask or a refusal (MagShare.press).
+func _mag_hand_off(c: Character, commands: Array[PlayerCommand], sharing: bool, state: GameState) -> void:
+	var cmd: PlayerCommand = commands[c.id] if c.id >= 0 and c.id < commands.size() else null
+	if cmd != null and cmd.mag_hand_off:
+		mag_share.press(c, state, sharing)

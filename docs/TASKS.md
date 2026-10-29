@@ -4,34 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## MH1 · The magazine hand-off's rules (Dev)
-when: build order step 27, after PN2
-tier: core
-perf: required
-touches: game/sim/mag_share.gd, game/config/mag_share_config.gd, game/config/sim_tuning.gd,
-  game/config/sim_tuning.tres, game/sim/player_command.gd, game/sim/simulation.gd, game/sim/game_event.gd,
-  game/sim/game_state.gd, game/sim/armament.gd, game/sim/character.gd, game/sim/round.gd, game/config/replica_config.gd,
-  game/sim/README.md, tests/unit/test_mag_share.gd, docs/KNOWN_ISSUES.md
-contract: Commands (2); Events (3); Data, not literals (6)
-acceptance:
-  1. `PlayerCommand.mag_hand_off` (one press) does what fits now (the browser's `sim/magShare.ts` and
-     `magHandoff.ts`): toss to the nearest teammate whose ask to you stands and is in reach, else ask if you are low,
-     else refuse with its reason. Low is less than one full spare of the replica in hand; the same rule for every
-     character.
-  2. An ask goes to the nearest teammate in play within 30 m with a magazine to spare that fits (the replica's class
-     in `stats.md`), keeping one full spare of the replica it fights with; it stands 15 s unless a magazine lands
-     first. A player asks again 4 s after an ask ends, a bot 20 s after.
-  3. A toss needs a clear line within 6 m, eye to chest; it flies 0.3 s plus 0.05 s a metre and lands on the catcher's
-     chest wherever they are. Its BBs leave the thrower's spare, only what the catcher's emptiest spare of the replica
-     tossed for has room for, and go into it on landing; a catcher out of play or a decided round loses it. At most 6
-     fly at once, in a pool made once.
-  4. Events MAG_ASK, MAG_TOSS, MAG_CATCH, MAG_LOST and MAG_REFUSED (the reason: nobody near, not low, no spare fits,
-     wait, already coming, too far, not now) are appended. Out, or between rounds, a press is refused as not now.
-  5. The browser's `magShare.test.ts` and `magShareSim.test.ts` cases pass in GUT; no BB is made or lost but a lost
-     toss's (tested); a tick with tosses in the air allocates nothing.
-status: open
-attempts: 0
-
 ## MH2 · Bots ask for magazines and bring them (Dev)
 when: build order step 27, after MH1
 tier: core
@@ -83,7 +55,8 @@ acceptance:
   4. The tossed magazine is the thrower's replica's own magazine mesh, arcing 0.1 m a metre of toss up to 0.6 m and
      spinning 2.5 turns a second to the catcher's chest, in a pool of 6 made once; `magToss` from the thrower and
      `magCatch` from the catcher.
-  5. Settings › HUD › Mag hand-off, On by default and saved: Off hides the line and glyphs only. Screen reader messages
+  5. The match sets the player's `Character.mag.player`, so the player's ask gap is 4 s, not a bot's 20 s (MH1 QA).
+  6. Settings › HUD › Mag hand-off, On by default and saved: Off hides the line and glyphs only. Screen reader messages
      read the line's notices. The smoke test asks for a mag with no script errors.
 status: open
 attempts: 0

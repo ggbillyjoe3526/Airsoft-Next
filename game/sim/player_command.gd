@@ -41,6 +41,9 @@ var toggle_torch: bool = false
 ## Ping where the view looks, for this character's bot teammates (one-shot; PN1): the simulation turns it into a PING
 ## event and the bots' controller into a ping (Pings).
 var ping: bool = false
+## The magazine hand-off (one-shot; MH1): toss a magazine to the nearest teammate asking you who is in reach, else ask
+## for one if you are low, else nothing but a refusal (MagShare.press).
+var mag_hand_off: bool = false
 
 
 ## Back to no input, looking along (yaw, pitch).
@@ -65,6 +68,7 @@ func reset(view_yaw: float = 0.0, view_pitch: float = 0.0) -> void:
 	order_from_wheel = false
 	toggle_torch = false
 	ping = false
+	mag_hand_off = false
 
 
 func copy_from(other: PlayerCommand) -> void:
@@ -88,3 +92,4 @@ func copy_from(other: PlayerCommand) -> void:
 	order_from_wheel = other.order_from_wheel
 	toggle_torch = other.toggle_torch
 	ping = other.ping
+	mag_hand_off = other.mag_hand_off

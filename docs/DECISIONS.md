@@ -175,6 +175,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   data. No map name appears in render code; maps that don't use a feature draw exactly as before (pinned by tests).
 - **Art direction v3: a bold, vibrant palette with grit (owner, 2026-10-05).** Valorant is the main reference, with
   Marathon's blocky geometry and Breath of the Wild's colour and light. No bare faces. Maps get set dressing only.
+- **Art direction from 0.1 Dev 2: stylised, Valorant's forms with Breath of the Wild's light (owner, 2026-10-29).**
+  Valorant's shapes and Breath of the Wild's soft light and rim light only; clean surfaces; a vibrant palette with no
+  dominant colour; no grass. The target picture is project files `concepts/art-direction/06-valorant-botw-v3.jpg`.
+  `docs/ART.md` is rewritten to it at the start of 0.1 Dev 2; 0.1 Dev 1's look is unchanged.
 - **The owner's six reference pictures are the art direction target (owner, 2026-10-18).** Plywood barricades with
   zone letters, coloured containers, hard cases, floodlight masts and towers, in day, golden-hour and night light,
   with first-person arms and toy replicas: `docs/ART.md` › The target, pictures in `docs/art/references/`. Where they

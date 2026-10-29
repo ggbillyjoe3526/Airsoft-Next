@@ -23,6 +23,8 @@ var challenge: RangeChallenge = RangeChallenge.new()
 ## first starts.
 var match_number: int = 0
 var wind: Wind = null
+## The magazines in the air (MagShare), a pool of MagShareConfig.max_tosses made once.
+var mag_tosses: Array[MagShare.Toss] = []
 ## Until when each of the level's noisy props (PropNoise, by index) stays quiet after a knock or a ring (s, as `time`):
 ## grown to one per prop on the first tick.
 var prop_quiet: PackedFloat64Array = PackedFloat64Array()
@@ -40,6 +42,7 @@ func _init(seed_value: int = 0, tuning: SimTuning = null) -> void:
 	bbs = BBPool.new(t.ballistics.max_bbs)
 	round_state = RoundState.new()
 	wind = Wind.still(t.wind)
+	mag_tosses = MagShare.make_tosses(t.mag_share.max_tosses)
 
 
 ## The character with `character_id`, or null.
