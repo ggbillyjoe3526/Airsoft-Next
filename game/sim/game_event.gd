@@ -34,6 +34,11 @@ enum Kind {
 	TORCH, ## actor switched the weapon torch on the replica in slot on (value 1) or off (value 0); off too as the replica goes away.
 	OVERTIME, ## Elimination's clock ran out with both teams in play: the overtime flag is up at position (its foot).
 	PING, ## actor (in play, the round live) pinged along direction (unit) from its eyes at position: value 1 where its view met the field reach m off (within PingConfig.reach), value 0 for nothing there (the sky).
+	MAG_ASK, ## actor (low on BBs for the replica in slot) asked teammate target for a magazine, standing at position (MagShare).
+	MAG_TOSS, ## actor tossed target a magazine of value BBs from its slot value2, for target's slot, from its hand at position, reach m to target's chest.
+	MAG_CATCH, ## target caught actor's magazine at position (its chest): value BBs went into its spares of slot; value2 the thrower's slot.
+	MAG_LOST, ## actor's magazine to target fell at position with its value BBs: target out of play, or the round decided; slot, value2 as MAG_CATCH.
+	MAG_REFUSED, ## actor's hand-off press did nothing: value the MagShare.Refusal, target the teammate it concerns (-1: none).
 }
 
 ## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.

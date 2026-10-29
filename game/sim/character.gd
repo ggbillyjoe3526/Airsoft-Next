@@ -88,6 +88,8 @@ var torch_on: bool = false
 var torch_time: float = 0.0
 ## BBs pass straight through: the Dev settings' Ghost, the player's only, kept between rounds (DevCheats).
 var ghost: bool = false
+## Its side of the magazine hand-off (MagShare): its ask and what is coming to it, cleared at each respawn.
+var mag: MagShare.Hand = MagShare.Hand.new()
 
 
 func _init(character_id: int = 0, character_team: int = 0, spawn: Vector3 = Vector3.ZERO, facing: float = 0.0,
@@ -177,4 +179,5 @@ func respawn() -> void:
 	walk_off_leg = 0
 	torch_on = false
 	torch_time = 0.0
+	mag.clear()
 	armament.refill()
