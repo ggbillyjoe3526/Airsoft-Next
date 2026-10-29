@@ -9,6 +9,8 @@ extends SkeletonModifier3D
 ## sets `lean`, `crouch` and `flinch`.
 ## Then (FI3, `aim`) the upper chain pitched about the spine's own joint by `aim_lean`: what the aim clips leave of the
 ## pitch (they turn the replica FigureConfig.aim_reach of it), so the replica points where the shot goes.
+## At a wall (FB5, `arm_raise`) both arms then turn up together about the midpoint of their shoulders, the replica in
+## the hands with them: the high ready's muzzle up.
 
 ## Leaning (-1 left .. 1 right) and crouched (0..1), as drawn this frame.
 var lean: float = 0.0
@@ -20,10 +22,15 @@ var flinch: Vector3 = Vector3.ZERO
 var hits: HitConfig = null
 ## The aim's pitch (rad, up positive) the spine leans beyond what the aim clips turn the replica.
 var aim_lean: float = 0.0
+## How far (rad, up positive) the arms turn the replica up at a wall.
+var arm_raise: float = 0.0
 var _config: FigureConfig = null
 var _hips: int = -1
 var _spine: int = -1
 var _head: int = -1
+## The bones the arms turn by (FigureConfig.raise_bones) and the two whose midpoint they turn about (raise_pivots).
+var _arms: PackedInt32Array = PackedInt32Array()
+var _pivots: PackedInt32Array = PackedInt32Array()
 
 
 ## Bends `skeleton`'s bones by `config`'s crouch line and the hit volume's lean geometry (`hits`).
@@ -33,6 +40,8 @@ func setup(skeleton: Skeleton3D, config: FigureConfig) -> void:
 	_hips = skeleton.find_bone(config.hips_bone)
 	_spine = skeleton.find_bone(config.lean_bone)
 	_head = skeleton.find_bone(config.head_bone)
+	_arms = _found(skeleton, config.raise_bones)
+	_pivots = _found(skeleton, config.raise_pivots)
 
 
 func _process_modification_with_delta(_delta: float) -> void:
@@ -40,6 +49,7 @@ func _process_modification_with_delta(_delta: float) -> void:
 	if skeleton != null:
 		bend(skeleton)
 		aim(skeleton)
+		raise_arms(skeleton)
 
 
 ## Lowers and leans `skeleton` from the pose its clips gave it.
@@ -78,3 +88,30 @@ func aim(skeleton: Skeleton3D) -> void:
 	var spine := skeleton.get_bone_global_pose(_spine)
 	var turn := Basis(Vector3.RIGHT, -aim_lean)
 	skeleton.set_bone_global_pose(_spine, Transform3D(turn * spine.basis, spine.origin))
+
+
+## Turns the arms (and so the replica in the hands) up by `arm_raise` about the midpoint of the pivot bones, about the
+## figure's sideways axis, as `aim` turns the spine.
+func raise_arms(skeleton: Skeleton3D) -> void:
+	if arm_raise == 0.0 or _arms.is_empty() or _pivots.is_empty():
+		return
+	var pivot := Vector3.ZERO
+	for p in _pivots:
+		pivot += skeleton.get_bone_global_pose(p).origin
+	pivot /= _pivots.size()
+	var turn := Basis(Vector3.RIGHT, -arm_raise)
+	var about := Transform3D(turn, pivot - turn * pivot)
+	for a in _arms:
+		skeleton.set_bone_global_pose(a, about * skeleton.get_bone_global_pose(a))
+
+
+## The bones of `skeleton` named in `names` (an empty list if any is missing, so nothing turns half the arms).
+static func _found(skeleton: Skeleton3D, names: PackedStringArray) -> PackedInt32Array:
+	var found := PackedInt32Array()
+	for n in names:
+		var index := skeleton.find_bone(n)
+		if index < 0:
+			push_warning("FigureBend: no bone %s" % n)
+			return PackedInt32Array()
+		found.append(index)
+	return found

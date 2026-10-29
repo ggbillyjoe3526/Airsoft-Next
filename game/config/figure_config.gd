@@ -90,6 +90,25 @@ extends Resource
 @export var pistol_aim_clips: PackedStringArray = PackedStringArray(["Pistol_AimDown", "Pistol_Aim", "Pistol_AimUp"])
 @export var aim_pitch: float = PI / 3.0
 @export var aim_reach: float = 0.55
+## Muzzle up at a wall (FB5): armed, the replica reaches about 1.0 m ahead (a pistol 0.6 m) of the 0.32 m body, so with
+## level geometry within raise_reach_rifle (raise_reach_pistol) along the aim, from raise_drop below the eyes, the
+## drawn upper body blends to a high ready by how close it is, fully raised at raise_full (m): the aim clips to AimUp,
+## the spine leant raise_lean (rad) back and both arms (raise_bones) turned raise_arms (rad) up about the midpoint of
+## raise_pivots. The ray looks raise_lead (s) ahead at the figure's speed, once every raise_stride poses; the blend
+## settles in settle_raise (s); a shot keeps the replica level for raise_fire_hold (s). Drawn only: the aim, the hit
+## volume and the routes never move.
+@export var raise_reach_rifle: float = 1.25
+@export var raise_reach_pistol: float = 0.7
+@export var raise_full: float = 0.35
+@export var raise_drop: float = 0.2
+@export var raise_lead: float = 0.1
+@export var raise_stride: int = 2
+@export var settle_raise: float = 0.08
+@export var raise_fire_hold: float = 0.35
+@export var raise_lean: float = 0.05
+@export var raise_arms: float = 0.65
+@export var raise_bones: PackedStringArray = PackedStringArray(["Shoulder_L", "Shoulder_R"])
+@export var raise_pivots: PackedStringArray = PackedStringArray(["UpperArm_L", "UpperArm_R"])
 ## The draw from one replica to another, time-scaled to the replica's draw time (the sidecar's fitTo). Made rifle to
 ## pistol, the pistol in the hand from switch_pistol_from of it; to a rifle it plays backwards, the rifle in the hand
 ## from 1 - switch_pistol_from.
@@ -137,8 +156,9 @@ extends Resource
 ## The replica in the hand sits on this bone by the sidecar's replicaOnGrip for its class (rifle, pistol).
 @export var grip_bone: StringName = &"Grip_R"
 ## Calling the hit (the left hand up), the replica hangs from the right hand's grip, its long axis this far (rad) off
-## straight down with the muzzle forward.
-@export var hang_tilt: float = 0.25
+## straight down with the muzzle forward. Straight down (FB5): tilted 0.25 rad, a rifle reached 0.52 m ahead, through
+## a wall the figure stood at; hanging straight, 0.36 m, about the body's 0.32 m.
+@export var hang_tilt: float = 0.0
 ## Robots (Settings › Dev › Robots, the Easter egg, off by default; RB1) are picked from the match seed XOR this salt so
 ## no gameplay stream moves (the browser's ROBOT_SEED_SALT).
 @export var robot_salt: int = 0x5f3759df

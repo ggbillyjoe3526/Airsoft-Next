@@ -44,6 +44,9 @@ var holster: float = 0.0
 var pistol_weight: float = 0.0
 var holster_weight: float = 0.0
 var sprint_weight: float = 0.0
+## Muzzle up at a wall (FB5, 0..1): FigureView's target from its ray, and as eased.
+var raise_target: float = 0.0
+var raise: float = 0.0
 ## The replica slots drawn: in the hand (-1 none), slung on the chest (-1 none), and whether the one in the hand hangs
 ## from it (calling the hit, walking off).
 var in_hand: int = -1
@@ -185,14 +188,22 @@ func switch_share(back: bool) -> float:
 	return 1.0 - _config.switch_pistol_from if back else _config.switch_pistol_from
 
 
-## The share of the aim clips' blend (-1 AimDown .. 1 AimUp) for the pitch.
+## The share of the aim clips' blend (-1 AimDown .. 1 AimUp) for the pitch, raised towards AimUp at a wall.
 func aim_blend() -> float:
-	return clampf(pitch / _config.aim_pitch, -1.0, 1.0) if _config.aim_pitch > 0.0 else 0.0
+	var blend := clampf(pitch / _config.aim_pitch, -1.0, 1.0) if _config.aim_pitch > 0.0 else 0.0
+	return lerpf(blend, 1.0, raise)
 
 
-## How far (rad) the spine leans the aim beyond what the clips turn the replica (aim_reach of the blend's pitch).
+## How far (rad) the spine leans the aim beyond what the clips turn the replica (aim_reach of the blend's pitch); at a
+## wall, towards FigureConfig.raise_lean.
 func aim_lean() -> float:
-	return pitch - _config.aim_reach * _config.aim_pitch * aim_blend()
+	var blend := clampf(pitch / _config.aim_pitch, -1.0, 1.0) if _config.aim_pitch > 0.0 else 0.0
+	return lerpf(pitch - _config.aim_reach * _config.aim_pitch * blend, _config.raise_lean, raise)
+
+
+## How far (rad) the arms turn the replica up at a wall (FigureConfig.raise_arms of the raise).
+func arm_raise() -> float:
+	return _config.raise_arms * raise
 
 
 static func _is_pistol(a: Armament, slot: int) -> bool:
@@ -224,6 +235,7 @@ func settle(delta: float) -> void:
 	pistol_weight = lerpf(pistol_weight, pistol, hold)
 	holster_weight = lerpf(holster_weight, holster, hold)
 	sprint_weight = lerpf(sprint_weight, sprinting, mode)
+	raise = lerpf(raise, raise_target, settle_share(delta, _config.settle_raise))
 
 
 ## The blends set to the targets at once: a figure's first frame, or its first after its legs were left still (hidden).
@@ -239,6 +251,7 @@ func snap() -> void:
 	pistol_weight = pistol
 	holster_weight = holster
 	sprint_weight = sprinting
+	raise = raise_target
 
 
 ## The eased step (m/s, the figure's frame): where the gait blend stands.

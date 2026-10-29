@@ -170,7 +170,10 @@ func animate(pose: FigurePose, hits: HitConfig, delta: float, fired: bool = fals
 	bend.lean = pose.lean
 	bend.crouch = pose.crouch
 	# The spine leans what the aim clips leave of the pitch, while they show (not holstered, not calling the hit).
-	bend.aim_lean = pose.aim_lean() * pose.upper_weight() * (1.0 - pose.holster_weight)
+	var aiming := pose.upper_weight() * (1.0 - pose.holster_weight)
+	bend.aim_lean = pose.aim_lean() * aiming
+	# Muzzle up at a wall (FB5), as far as the aim shows.
+	bend.arm_raise = pose.arm_raise() * aiming
 	hands.show_hands(pose.in_hand, pose.slung, pose.hanging)
 	hands.feet = pose.feet
 	hands.velocity = pose.velocity
