@@ -3,7 +3,7 @@ class_name BotBrain
 ## fire and reload, all written into the PlayerCommand its body follows, as the player's input is. The modes: walk its
 ## lane, then hunt (advance); fight someone in sight; get into cover and peek from it (over crouch cover, or leaning out
 ## round a corner); go to where someone was seen or heard (search); in Attack / Defend, work or guard the pole (flag);
-## carry out a teammate's squad order (order). Allocates nothing.
+## carry out a teammate's squad order (order); bring a teammate a magazine or wait for one (mag). Allocates nothing.
 
 ## The vault check's answer for a bot on a vault leg (one at a time: bots think in turn).
 static var _vault_check: VaultState = VaultState.new()
@@ -65,9 +65,10 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 		var calm := w.time - b.last_threat_at > cfg.sprint_when_calm_for
 		# A bot that pushes in runs at where someone was, footsteps and all.
 		var going := b.mode == Bot.Mode.ADVANCE or b.mode == Bot.Mode.FLAG or (pusher and b.mode == Bot.Mode.SEARCH)
-		# Hurrying to a squad order (regrouping, catching up) sprints even with a fight just over, and through the small
-		# turns of following someone (a looser forward gate), so it doesn't flick between run and sprint at each one.
-		if b.mode == Bot.Mode.ORDER and b.order_rush:
+		# Hurrying to a squad order (regrouping, catching up) or with a magazine sprints even with a fight just over, and
+		# through the small turns of following someone (a looser forward gate), so it doesn't flick between run and
+		# sprint at each one.
+		if (b.mode == Bot.Mode.ORDER and b.order_rush) or (b.mode == Bot.Mode.MAG and b.mag_rush):
 			cmd.sprint = cmd.forward > cfg.squad.sprint_forward
 		else:
 			cmd.sprint = going and (calm or pusher) and cmd.forward > cfg.sprint_forward
@@ -148,6 +149,9 @@ static func _choose_mode(b: Bot, w: BotWorld, target: Character, dt: float) -> v
 				b.cover_cooldown = cfg.cover_cooldown
 				return
 		b.mode = Bot.Mode.FIGHT
+	elif b.mag_for != null:
+		# Bringing a teammate a magazine (MH2, BotMagShare) comes before a squad order: it is over in moments.
+		_enter_mag(b, fresh)
 	elif b.order != SquadOrder.Kind.NONE:
 		# A squad order comes before the team plan: the pole, chasing noises and the lane. A noise still turns its head
 		# (BotCombat.aim watches last_known) until it is old news.
@@ -160,6 +164,9 @@ static func _choose_mode(b: Bot, w: BotWorld, target: Character, dt: float) -> v
 		# Attack / Defend: the pole comes before chasing noises.
 		if b.mode != Bot.Mode.FLAG:
 			BotMovement.enter_flag(b, w)
+	elif BotMagShare.waiting(b, w):
+		# Low on BBs, it asked a teammate for a magazine: it waits for it, or goes over to the player it asked.
+		_enter_mag(b, fresh)
 	elif fresh and (_trade_hit(b, w) or _reload_from_cover(b, w)):
 		return
 	elif fresh and not watch_from_post:
@@ -232,6 +239,16 @@ static func _stay_in_cover(b: Bot, w: BotWorld, seeing: bool, reloading: bool, a
 			else:
 				done = true
 	return done
+
+
+## Into the magazine hand-off's mode (BotMagShare); a noise still turns its head (BotCombat.aim watches last_known)
+## until it is old news.
+static func _enter_mag(b: Bot, fresh: bool) -> void:
+	if b.mode != Bot.Mode.MAG:
+		b.mode = Bot.Mode.MAG
+		BotRoutes.drop(b)
+	if not fresh:
+		b.has_last_known = false
 
 
 ## Looks for cover from a threat whose eyes are at `threat_eye` and heads there (`radius`, `candidates` and `peekable`

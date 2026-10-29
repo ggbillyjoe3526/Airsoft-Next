@@ -3,8 +3,8 @@ extends RefCounted
 ## Drives every character but the player (the browser game's ai/bot.ts updateBots): before each simulation step it
 ## plans the routes the tick's search budget allows (NavConfig.search_budget: the nav search is the costly part, so
 ## bots queue for it; BotRoutes.plan), then writes each bot's
-## PlayerCommand; after the step it lets the bots hear what happened, hands out the squad orders given in it and gives
-## each new round a fresh plan. Bots are just another controller: they act only through their commands (ARCHITECTURE
+## PlayerCommand (a bot low on BBs pressing for a magazine, BotMagShare); after the step it lets the bots hear what
+## happened, hands out the squad orders given in it and gives each new round a fresh plan. Bots are just another controller: they act only through their commands (ARCHITECTURE
 ## contract 2). Pure: no nodes.
 
 var world: BotWorld = BotWorld.new()
@@ -28,6 +28,10 @@ var callouts: Callouts = null
 ## The ping book (PN1): each character's ping, a press resolved into a spot or a contact, or a teammate's mark from a
 ## Contact call; cleared each round. The presentation reads it.
 var pings: Pings = null
+## When the round under way started (s of match time), and whether Dev settings › Bots run low on BBs has put this
+## round's bots low yet.
+var _round_started_at: float = 0.0
+var _ran_low: bool = false
 
 
 ## Bots for every character in `state` but `player_id` (-1: everyone), on `map` with its nav grid and level rays, each
@@ -50,6 +54,7 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 	w.low_cover = BotCover.low_blocks(map, nav, config, tuning)
 	w.tall_cover = BotCover.tall_blocks(map, nav, config, tuning)
 	w.planner = RoundPlanner.new(state.match_seed)
+	w.mag_share = MagShare.new(tuning, query)
 	for c in state.characters:
 		if c.id != player_id:
 			var skill := config.skill_for(team_levels[c.team]) if team_levels.has(c.team) else config.skill
@@ -72,7 +77,9 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 
 
 ## Writes each bot's command for this tick into `commands` (indexed by character id). With the Dev settings' Bots hold
-## fire on (`state.cheats`), no bot pulls its trigger. First, a bot back from Regroup turns to Follow me.
+## fire on (`state.cheats`), no bot pulls its trigger; with Bots run low on BBs, mag_dev_low_after into each round one
+## bot a team in turn is put on its last magazine (DevCheats.run_low). First, a bot back from Regroup turns to Follow me,
+## and the magazine hand-off's jobs are handed out (BotMagShare.update).
 func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	var w := world
 	w.time = state.time
@@ -84,6 +91,11 @@ func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		if Elimination.is_in_play(c):
 			w.mark_visited(c.team, c.position)
 	_next_route = BotRoutes.plan(w, state.characters, _next_route)
+	var sharing := w.live and not state.round_state.practice
+	if state.cheats.bots_run_low and sharing and not _ran_low and w.time - _round_started_at >= w.cfg.mag_dev_low_after:
+		_ran_low = true
+		DevCheats.run_low(state, _player_id)
+	BotMagShare.update(w, sharing)
 	if w.mode == RoundState.Mode.ATTACK_DEFEND:
 		# Retakers matter only once the flag is off the bottom (BotFlag.wants_flag).
 		if w.flag.progress > 0.0:
@@ -96,6 +108,7 @@ func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		var cmd := commands[b.character.id]
 		BotBrain.think(b, w, cmd, dt)
 		BotTorch.step(b, w, cmd)
+		BotMagShare.ask_when_low(b, w, cmd, sharing)
 		if hold_fire:
 			cmd.fire = false
 
@@ -106,6 +119,15 @@ func mode_of(character_id: int) -> int:
 	for b in world.bots:
 		if b.character.id == character_id:
 			return b.mode
+	return -1
+
+
+## What the Dev settings' Bot intentions show for the bot driving `character_id`: its mode (a Bot.Mode), or
+## Bot.Mode.size() in the magazine hand-off's mode waiting for one rather than bringing it; -1 when no bot drives it.
+func intent_of(character_id: int) -> int:
+	for b in world.bots:
+		if b.character.id == character_id:
+			return Bot.Mode.size() if b.mode == Bot.Mode.MAG and b.mag_for == null else b.mode
 	return -1
 
 
@@ -222,6 +244,8 @@ func _overtime(time: float) -> void:
 
 
 func _new_round(state: GameState) -> void:
+	_round_started_at = state.time
+	_ran_low = false
 	orders.clear()
 	pings.clear()
 	world.time = state.time

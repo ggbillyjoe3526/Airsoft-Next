@@ -91,3 +91,10 @@ it a moment after the whistles (slowest on Easy, quickest on Hard), still fighti
 and careful bots first watch it from cover close by, aiming at it, for a few seconds, unless they are the last of their
 team or the overtime is nearly over; a flanker may come at it round the side. A bot you gave an order keeps to it. On
 each team the bot nearest the flag calls it, naming where it stands.
+
+**Magazines:** a bot running low on BBs for its rifle asks the nearest teammate within 30 m who has one to spare,
+saying "Need a mag!". A bot asked, by a teammate or by you, calls "Mag coming!", sprints over while it is far, runs the
+last metres and tosses it once you are in reach and in sight; a bot never gives away its last full spare of the replica
+it fights with, but hands over its unused pistol's freely. A bot that asked you walks up to you and waits for your toss;
+one that asked another bot waits where it is. A fight or cover comes first, then bringing one, then your squad order,
+then waiting for one; the same at every level. A catch gets a "Thanks for the mag!" now and then.
