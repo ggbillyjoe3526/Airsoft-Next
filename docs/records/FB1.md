@@ -1,6 +1,6 @@
 # FB1 · Menu fixes from the 0.1 Dev 1 playtest (fix, UI)
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
@@ -8,6 +8,7 @@
 |---|---|---|---|---|---|
 | 2026-10-29 | 1 | worker | see Verified and Gate; QA Fail (2 blocking), performance Pass | – | – |
 | 2026-10-29 | 1, fix round 1: focus returns after QUIT GAME?, hidden buttons set no width, one Esc cancels a rename | worker | see Fix round 1 | – | – |
+| 2026-10-29 | 1, fix round 2: the quit prompt's menu fallback calls `focus_page` (QA re-check) | thread | QA Pass, 38 of 38 | Accept 8/8 | – |
 
 ## Goal
 
@@ -88,6 +89,17 @@ left). The Dev settings box, the Dev tab and every default value are left alone 
   `test_rg5_loadout`, `test_rg5_qa`, `test_lo2_qa`, `test_title_and_menus`, `test_loadout_screen`, `test_pause_menu`,
   `test_match_page`: 222 of 222. Then part 1 865 of 865, part 2 1815 of 1815, part 3 912 of 912, smoke PASS (zero script
   errors), wiki and changelog checks OK.
+
+## Advisories left
+
+- **`pause_menu.gd:23,53`:** `PANEL_WIDTH` and `PRACTICE_WIDTH` are both 0 now, dead constants (critic).
+- **`menu_switch.gd:121`:** a local `size` shadows `Control.size`, an editor warning (critic).
+- **The match pause panel's right edge:** the seed and REPORT A BUG row is about 10 px wider than the buttons (critic).
+- **`docs/wiki/Controls.md:31`** leaves Customise and the credits out of what takes Esc first (critic).
+- **Settings over the menus:** if the remembered control is gone, the quit prompt's fallback focuses the page under
+  Settings (QA); rare. Switch widths differ per row (QA).
+- Performance was judged on 9ce3f72; the fix rounds' `visibility_changed` re-measure runs on events only, at most 8
+  buttons a group (critic).
 
 ## Gate
 
