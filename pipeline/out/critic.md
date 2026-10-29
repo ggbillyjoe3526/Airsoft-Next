@@ -1,31 +1,24 @@
-Task: MH3 · Need a Mag on H and the wheel, the line and the toss on screen
+Task: FB3 · The Dev settings always available, and step 27's features public
 Attempt: 1 of 4
-Head: bb43217 (checks: worker's tools/check.sh on 9483ad3 + fix round 001a224 gdlint, MH3 GUT files, smoke; critic re-ran test_mag_hand_off_hud 23/23, test_mh3_qa 8/8)
+Head: fe8cdfd (worker's full gate on 3ba7e39; c603add..fe8cdfd add only the record, QA's tests and reports; QA ran the new tests and the smoke test on 7ff3e66)
 Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
 Score: 8/8 → Accept
 Evidence:
-1. H rebindable, named: key_bindings.gd:20,54, project.godot mag_hand_off, en.po ACT_MAG_HAND_OFF; fifth item upper left: controls_config.gd:33-39;
-   Toss a Mag: hud.gd:937 + hud_order_wheel.gd:155; same press: player_input.gd:229; dead on range/out: player_input.gd:231 (_wheel_allowed,
-   play_session.gd:768). Radio click: sim_audio.gd:215; refusal in the wheel's middle: hud_mag_line.gd:113, hud_order_wheel.gd:150; from H on
-   the line: hud_mag_line.gd:118. Line at 0.69, 2.5 s: hud_config.gd:108-111; underlined in team colour: hud_mag_line.gd:74,232; hidden under
-   the wheel: hud.gd:940; glyph: hud_team_markers.gd:69. Toss: mag_toss_view.gd:12-14,95, pool made once :60-65, thrower's slot mesh :107;
-   magToss/magCatch: sim_audio.gd:218,221. Setting: hud_prefs.gd:55,100; screen reader: hud_mag_line.gd:177; smoke: main.gd:618;
-   player's 4 s gap: play_session.gd:457.
-2. Contracts 1, 2, 8 kept: the line only reads state (MagShare.nearest_asker / can_toss_to between ticks), commands carry the press,
-   prefs save through HudPrefs/SaveFile. SquadOrder.Kind.MAG appended and never reaches cmd.squad_order.
-3. No per-frame/tick allocation: strings only on your own events or when (says, who, metres) changes (hud_mag_line.gd:226-230);
-   toss view and markers use values and preset arrays; matches QA and performance.
-4. test_mag_hand_off_hud.gd:530 fails without play_session.gd:457; :492 fails without the spin; test_mh3_qa.gd:115 pinned the QA bug.
+1. Box gone, tab always there: settings_screen.gd -_dev_box/_on_dev_box/_show_dev_tab (@@ -127, -470, -516, -550); switches apply whenever set: every active_dev() reader now reads `dev` (play_session.gd:288,391,446-448,1539,1575; armory_page.gd:36,104; loadout_page.gd:43,46,117; match_page.gd:401; menu_screen.gd:49), defaults unchanged (DevSettings untouched); records: DevCheats unchanged, test_fb3_qa.gd:133,148; old unticked save reset once: settings.gd:224-225; Dev-only content behind its own switch (robots, dev_content, bots_low read from `dev`, all default off; test_fb3_qa.gd:164); step 27 public in FEATURES and wiki (Roadmap Built, page moves, "(Dev)" dropped); DECISIONS records the 2026-10-29 ruling and step 27.
+2. No contract in ARCHITECTURE › Contracts names active_dev or dev_enabled; Settings.active_dev() removal is internal, no reader left (grep game/ tools/ tests/).
+3. No hot-path change: a field read replaces a method call; _apply_dev stays signal-driven (play_session.gd:1537).
+4. test_dev_settings.gd test_the_dev_tab_is_always_there_with_no_box_under_the_tabs fails on main (tab hidden for a new player); test_an_old_save_with_the_box_unticked_has_its_switches_reset_once fails on main (unticked save kept its switches).
+5. Typed (settings.gd:224 `box_unticked: bool`), no new constants in gameplay, one static (_dev_defaults) fewer.
+6. Owner's ruling applied as worded; every switch starts off so a new player's game is unchanged; robots stay out of public text.
+7. Pure removal; no new nodes or connections; no UIDs or node paths touched.
+8. Records, changelog note, wiki pages, PLAYTEST line, DECISIONS all updated; nothing beyond the ruling and step 27's docs.
 Advisories (non-blocking):
-- player_input.gd:45 `const MAG` is never read (H goes through wheel_keys); drop it.
-- settings_hud_page.gd:7 (151 chars) and sim_audio.gd:15 (142) break the 120-column wrap of the doc comments.
-- The performance verdict is on 9483ad3; the fix 001a224 (hud_mag_line.gd:197-203) adds at most one ray per asker nearer than
-  the best, read here, no allocation. pipeline/out/performance.md must be committed with the records.
-- QA's note stands: the in-air WAIT wording reads the pool after the step (hud_mag_line.gd:111-112); harmless.
+- en.po DEV_INTRO (touched here) and wiki Development.md › Dev settings still list only some cheats; DECISIONS now names Bots run low on BBs, Time of day and Disable levelling too. Align the wording in a later pass.
+- tests/unit/test_mh1_qa.gd.uid is added with no mention in the record: a missing .uid committed, harmless hygiene.
+- An unticked old save keeps `dev_enabled: false` on disk until the next save and resets in memory each load (QA): same result every time.
+- A switch left on now persists with no box as a reminder (performance); the match summary's No XP line is the only cue.
 Owner should test in the game:
-- Run low, press H: radio double-click, "X is bringing you a mag", glyph by X's chevron, the arc and spin into your hands, catch sound.
-- A bot asks you: "X needs a mag · 12 m", walk in until the underline shows, H tosses; is the underline noticeable?
-- Hold Z: Need a Mag upper left with H, Toss a Mag when in reach; a refusal picked there shows in the middle only.
-- The line over bright walls and while spectating; hidden while the wheel is open.
-- Settings › HUD › Mag hand-off Off: no line or glyphs, H still works.
-- The magToss/magCatch level against gunfire.
+- Settings on a new save: Dev is the last tab, no "Dev settings" box, every switch Off; all eight tabs fit at your window size.
+- Turn on Ghost in a match: it applies at once and the summary says No XP; turn it off and the next match counts.
+- Your own save (box unticked before): every Dev switch comes back Off.
+- Callouts, pings, the overtime flag and the magazine hand-off play as before, with their Settings › HUD switches.
