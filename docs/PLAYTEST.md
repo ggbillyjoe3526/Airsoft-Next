@@ -188,7 +188,8 @@ parts. To try every part before you have levelled, turn on Settings › Dev › 
 - [ ] **Swap slots.** The GBB Pistol in Primary moves the AEG rifle to Secondary. Any replica goes in either slot.
 - [ ] **Saved loadouts.** One dropdown picks a saved loadout, with Rename, Duplicate, New and Delete beside it.
 - [ ] **Customise.** Colour, optic, BB weight, hop-up, grip, laser, magazine, power source, barrel, muzzle and light,
-  each offering the parts that fit. Back (or Esc) returns to the Loadout, named in a plain-text breadcrumb.
+  each offering the parts that fit. The **LOADOUT** button at the top left (or Esc, or the LOADOUT tab in the bar)
+  returns to the Loadout, named in a plain-text breadcrumb.
 - [ ] **Locked parts.** At a low level the options still to unlock follow the ones you have, greyed with a lock and
   "Level N", and can't be picked; "Level up to unlock more" goes once a row is fully unlocked.
 - [ ] **BB weight.** 0.25 g on the rifle and 0.20 g on the pistol as they come. 0.28 g on the rifle needs more hop (at
@@ -598,6 +599,17 @@ pays XP ×1.5.
 
 - [ ] **The title screen.** Only "AIRSOFT", the tagline "Call your hit. Go again." and **START**. The build sits small at the bottom right with **Licences** over it, a
   **Fullscreen** button at the bottom left. Licences shows Godot's licence and every add-on's.
+- [ ] **The wordmark and Esc (FB1).** Click **AIRSOFT** at the top left of Match, Loadout, Armory or Settings: the title
+  screen. Esc on the title, on any menu page and in Settings asks **QUIT GAME?** with the focus on CANCEL; Esc again or
+  CANCEL closes it and QUIT leaves. A dialog's, a key rebind's and the Loadout's rename Esc still come first (the
+  credits close, a key waiting stops waiting); in a match Esc is still the pause menu, and its Settings close on Esc.
+- [ ] **Buttons are as wide as their words (FB1).** Look through the title's notice, Match, Loadout, Settings (every
+  tab), the pause menu and the quit question at 1920×1080 and 1280×720: no button has a field of empty space in it, and
+  the buttons of a group (the bar's tabs, a Settings row's choices, QUIT and CANCEL) are one width. Settings' **BACK**
+  is a small button at the bottom left.
+- [ ] **Switches stay put (FB1).** Press each On / Off (and Hold / Toggle) switch on every Settings tab: nothing beside
+  it moves, resizes or vanishes. On Graphics the "FOR YOUR CARD" tag is whole, and pressing a switch (the preset
+  becomes Custom) doesn't shift the rows under the preset line.
 - [ ] **The top bar** on every screen after the title: MATCH, LOADOUT, ARMORY, SETTINGS, your level and XP bar on the
   right, the current place marked.
 - [ ] **The Match screen** (START). 01 Map as picture cards (a Day | Night switch where a map has both), 02 Mode as

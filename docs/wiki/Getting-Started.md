@@ -42,7 +42,8 @@ on its own, and the title screen says so once. Mouse and keyboard; there is no c
 1. The first start shows your graphics card, your screen and the graphics preset picked for them (Medium for built-in
    graphics, High for a separate card). Press **OK**, or **Graphics settings** to change it.
 2. The title screen says "Call your hit. Go again." Press **START** (or Enter).
-3. The top bar holds **Match**, **Loadout**, **Armory**, **Settings** and your level.
+3. The top bar holds **Match**, **Loadout**, **Armory**, **Settings** and your level. Click **AIRSOFT** at its left to go
+   back to the title screen. **Esc** in the menus asks **Quit game?**: **Quit** leaves, **Cancel** (or Esc again) stays.
 
 ## Your first match
 

@@ -142,6 +142,8 @@ func _init() -> void:
 	_cancel.pressed.connect(close)
 	SettingsSavePage.paint(_cancel, Color(0.0, 0.0, 0.0, 0.0), GameTheme.YELLOW, GameTheme.TEXT, BUTTON_SIZE, BUTTON_PAD)
 	acts.add_child(_cancel)
+	# the two are one width, so the long yes words don't leave CANCEL a small box beside a big one (FB1)
+	ButtonWidth.group([_yes, _cancel])
 
 
 func _ready() -> void:

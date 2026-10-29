@@ -46,9 +46,10 @@ const MODE_TEXT_WIDTH := 1920.0 - 2.0 * MARGIN_X - MAPS_WIDTH - SIDE_WIDTH - 2.0
 const MODE_NAME_SIZE := 22
 const MODE_BLURB_SIZE := 16
 const TEAM_GAP := 12
-const TEAM_PAD := Vector2(20.0, 18.0)
 const TEAM_HEIGHT := 66.0
 const TEAM_NAME_SIZE := 22
+## The room a team's name keeps at each side: past its colour bar on the left (px).
+const TEAM_TEXT_PAD := 28
 ## How much of a team's colour tints a picked team card.
 const TEAM_TINT := 0.06
 ## Attack / Defend's line under the team cards: its size, and the team's name lightened to read on the page.
@@ -334,14 +335,20 @@ func _build_side() -> Control:
 		var card := MenuCard.new()
 		card.name = "Team_" + str(t)
 		card.custom_minimum_size = Vector2(0.0, TEAM_HEIGHT)
-		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		# only its name: a card of words, so the two are one width, the longer name's (owner, 2026-10-29)
+		card.text = tr(MatchOptions.TEAM_KEYS[t]).to_upper()
+		card.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		card.text_pad = TEAM_TEXT_PAD
+		card.add_theme_font_override("font", GameTheme.font(800))
+		card.add_theme_font_size_override("font_size", TEAM_NAME_SIZE)
+		for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color",
+				"font_focus_color"]:
+			card.add_theme_color_override(colour, GameTheme.TEXT)
 		_colour_team_card(card, _teams.colours[t])
-		var pad := _padded(TEAM_PAD.x, TEAM_PAD.y, TEAM_PAD.x, TEAM_PAD.y)
-		pad.add_child(_text(tr(MatchOptions.TEAM_KEYS[t]).to_upper(), TEAM_NAME_SIZE, 800, GameTheme.TEXT))
-		card.add_content(pad)
 		card.pressed.connect(_pick_team.bind(t))
 		team_row.add_child(card)
 		_team_cards.append(card)
+	ButtonWidth.group(_team_cards)
 	_attack_row = HBoxContainer.new()
 	_attack_row.name = "AttacksFirst"
 	_attack_row.add_theme_constant_override("separation", TAG_GAP + 2)

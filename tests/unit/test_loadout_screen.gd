@@ -106,7 +106,7 @@ func test_the_entry_scene_shows_the_page_for_the_tab_and_goes_back_to_match_on_e
 	assert_eq(menus.top_bar().current(), TopBar.Tab.MATCH)
 
 
-func test_escape_in_customise_goes_back_to_the_gear_page_not_to_the_title() -> void:
+func test_escape_in_customise_goes_back_to_the_gear_page_not_to_the_quit_question() -> void:
 	var main: Node = add_child_autofree(MAIN.instantiate())
 	await wait_process_frames(2)
 	main._show_menus()
@@ -127,7 +127,8 @@ func test_escape_in_customise_goes_back_to_the_gear_page_not_to_the_title() -> v
 	cancel.pressed = true
 	Input.parse_input_event(cancel)
 	await wait_process_frames(2)
-	assert_true(main._title.visible, "the next one goes back to the title")
+	assert_not_null(main._quit_prompt, "the next one asks QUIT GAME? (owner, 2026-10-29)")
+	assert_false(main._title.visible)
 
 
 # --- keys 1 to 5 and the strip ---

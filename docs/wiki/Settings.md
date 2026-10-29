@@ -2,7 +2,8 @@
 
 Open **Settings** from the title screen's top bar or the pause menu. Every change applies at once, even in the middle
 of a match, and is saved straight away. If the settings file is ever damaged, the game starts on the defaults and
-says so.
+says so. **Back**, a small button at the bottom left, closes Settings. A switch (On, Off, Hold, Toggle) keeps its size
+when you press it, so nothing around it moves.
 
 ## Controls
 

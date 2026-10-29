@@ -1,19 +1,19 @@
 class_name SettingsDisplayPage
 extends HBoxContainer
-## The settings' Display tab (concept `settings-display.png`): on the left the window (Window mode as Windowed,
+## The settings' Display tab (concept `settings-display.png`): the window (Window mode as Windowed,
 ## Borderless fullscreen or Exclusive fullscreen, with the F11 and Alt+Enter line; Monitor, shown only with two screens
 ## or more, each as its number, size and rate) and the frame rate (V-Sync, and the frame-rate limit from 30 to 360 or
-## Unlimited); on the right the view (field of view, Show FPS). Each choice is applied at once through SettingsApply and
+## Unlimited) and the view (field of view, Show FPS), in one column (the concept's second column no longer fits beside
+## choices that are one width each). Each choice is applied at once through SettingsApply and
 ## `changed` asks the screen to save it. F11 pressed while the tab shows moves Window mode with it (`Settings.changed`).
 
 ## A choice landed: saved now (`immediate`, a click) or a moment after a slider stops.
 signal changed(immediate: bool)
 
-## The columns' widths (the right one takes the rest), the labels' widths, the slider's and a note's beside a row (px).
+## The column's width, the labels' width, the slider's and a note's beside a row (px).
 const LEFT_WIDTH := 1010.0
 const COLUMN_GAP := 48
 const LEFT_LABEL := 250.0
-const RIGHT_LABEL := 250.0
 const SLIDER_WIDTH := 300.0
 const NOTE_WIDTH := 300.0
 ## The space before a note beside a row, the notes' text size, and the room between the key line's parts (px).
@@ -51,12 +51,12 @@ func _init() -> void:
 ## Builds the tab with `screen`'s rows (SettingsScreen.add_row and the rest), editing its settings.
 func build(screen: SettingsScreen) -> void:
 	_screen = screen
+	# one column: the choices are one width each now (the frame rate's eight are as wide as UNLIMITED), and a second
+	# column beside them no longer fits
 	var left := _column(LEFT_WIDTH)
 	_build_window(left)
 	_build_frame_rate(left)
-	var right := _column(0.0)
-	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_build_view(right)
+	_build_view(left)
 	_watch(is_inside_tree())
 
 
@@ -205,13 +205,13 @@ func _build_frame_rate(column: VBoxContainer) -> void:
 func _build_view(column: VBoxContainer) -> void:
 	_screen.add_section(column, tr("SETTINGS_VIEW"))
 	_fov = _screen.add_slider_row(column, "SETTINGS_FOV", Settings.FOV_MIN, Settings.FOV_MAX, FOV_STEP, "%d°",
-			RIGHT_LABEL)
+			LEFT_LABEL)
 	_fov.custom_minimum_size.x = SLIDER_WIDTH
 	_fov.value_changed.connect(func(v: float) -> void:
 		_screen.settings.fov = v
 		SettingsApply.apply_controls(_screen.settings)
 		changed.emit(false))
-	_fps = _screen.add_check_row(column, "SETTINGS_SHOW_FPS", "SETTINGS_ON", "SETTINGS_OFF", RIGHT_LABEL)
+	_fps = _screen.add_check_row(column, "SETTINGS_SHOW_FPS", "SETTINGS_ON", "SETTINGS_OFF", LEFT_LABEL)
 	_note(_fps.get_parent() as HBoxContainer, tr("SETTINGS_SHOW_FPS_HELP"))
 	_fps.toggled.connect(func(on: bool) -> void:
 		_screen.settings.show_fps = on

@@ -23,6 +23,9 @@ const SLIDER_WIDTH := 300.0
 ## The space before a row's note, its text size, and the space between the blocks of a column (px).
 const NOTE_GAP := 14
 const NOTE_SIZE := 15
+## The line under Preset keeps room for this many lines of words whatever it says: pressing a switch turns the preset to
+## Custom and changes the line, and the rows below must not move with it (FB1).
+const BLURB_LINES := 3
 const BLOCK_GAP := 12.0
 ## A greyed row's or choice's opacity.
 const DIM_ALPHA := 0.45
@@ -232,6 +235,8 @@ func _build_preset(column: VBoxContainer) -> void:
 	_tag.add_theme_stylebox_override("normal", tag_box)
 	_tag.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE)
 	_tag.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	# above the buttons after it: a tag wider than its button overhangs them, never under them (FB1: it was clipped)
+	_tag.z_index = 1
 	var lift := _tag.get_combined_minimum_size().y * 0.5
 	_tag.offset_top -= lift
 	_tag.offset_bottom -= lift
@@ -246,6 +251,8 @@ func _build_preset(column: VBoxContainer) -> void:
 	_blurb.add_theme_font_size_override("normal_font_size", NOTE_SIZE)
 	_blurb.add_theme_font_size_override("bold_font_size", NOTE_SIZE)
 	_blurb.add_theme_color_override("default_color", GameTheme.MUTED)
+	_blurb.custom_minimum_size.y = ceilf(BLURB_LINES * maxf(GameTheme.font(600).get_height(NOTE_SIZE),
+			GameTheme.font(800).get_height(NOTE_SIZE)))
 	column.add_child(_blurb)
 
 

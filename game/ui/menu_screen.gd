@@ -3,12 +3,14 @@ extends Control
 ## The menus: the top bar over a page pinned to the window: the Match page (MatchPage, which keeps its picks in the
 ## MatchPicks it is given), the Loadout page (LoadoutPage, built when its tab is opened and freed, after saving, when
 ## the Match tab or the title comes back) or the Armory (ArmoryPage, built and freed the same way). A tab press goes to the entry screen, which opens the settings under the bar and
-## asks for the page. Esc backs out of what the page has open, then goes back to the title.
+## asks for the page. Esc backs out of what the page has open (the Loadout's rename, replace and Customise); with nothing
+## open it reaches Main, which asks QUIT GAME? (FB1). The wordmark in the bar goes back to the title.
 ## From practice (`open_practice_loadout`, concept `loadout-practice.png`) the menus are only the Loadout page under the bar's
 ## LOADOUT tab and BACK TO PRACTICE: that button, the Loadout's key and Esc (after what the page has open) send
 ## `practice_requested`, and there is no title to go back to.
 
-signal back
+## The AIRSOFT wordmark in the bar was pressed: back to the title.
+signal title_requested
 ## A tab that is built was pressed.
 signal tab_requested(tab: TopBar.Tab)
 ## From practice: back to the range was asked for (the button, the Loadout's key or Esc).
@@ -39,6 +41,7 @@ func _init(picks: MatchPicks = null, settings: Settings = null) -> void:
 	_bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	_bar.tab_pressed.connect(_on_tab)
 	_bar.practice_pressed.connect(_on_practice)
+	_bar.wordmark_pressed.connect(func() -> void: title_requested.emit())
 	add_child(_bar)
 	show_level()
 
@@ -108,6 +111,8 @@ func show_loadout() -> void:
 		move_child(_loadout, _bar.get_index())
 	_match.visible = false
 	_bar.set_current(TopBar.Tab.LOADOUT)
+	# the LOADOUT tab pressed in Customise is the way back to the Loadout (FB1)
+	_loadout.show_gear()
 	_loadout.focus_default()
 
 
@@ -180,9 +185,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _from_practice and event.is_action_pressed(&"loadout"):
 		get_viewport().set_input_as_handled()
 		practice_requested.emit()
-	elif event.is_action_pressed(&"ui_cancel"):
+	elif _from_practice and event.is_action_pressed(&"ui_cancel"):
 		get_viewport().set_input_as_handled()
-		if _from_practice:
-			practice_requested.emit()
-		else:
-			back.emit()
+		practice_requested.emit()

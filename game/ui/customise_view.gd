@@ -173,9 +173,11 @@ func _init(pictures: ReplicaPictures, facts: LoadoutFacts) -> void:
 	_options = PartOptions.new(facts)
 	_glow = MenuParts.glow(GameTheme.BG)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_build_crumb()
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# the body's box fills the whole view, the crumb's corner included: it must not catch the clicks meant for the
+	# LOADOUT button under it (FB1: the button did nothing)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_theme_constant_override("margin_left", MARGIN_X)
 	margin.add_theme_constant_override("margin_right", MARGIN_X)
 	margin.add_theme_constant_override("margin_top", BODY_TOP)
@@ -189,6 +191,8 @@ func _init(pictures: ReplicaPictures, facts: LoadoutFacts) -> void:
 	_sheet = PerformanceSheet.new()
 	_sheet.custom_minimum_size = Vector2(SIDE_WIDTH, 0.0)
 	columns.add_child(_sheet)
+	# the crumb last, so it is drawn and hit above the body
+	_build_crumb()
 	show_tab(Tab.COLOUR)
 
 

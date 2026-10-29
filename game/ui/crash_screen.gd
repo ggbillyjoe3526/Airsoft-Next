@@ -377,6 +377,7 @@ func _build_buttons(parent: Control) -> void:
 	_logs_button.pressed.connect(_on_open_logs)
 	_continue_button = _button(row, "CRASH_CONTINUE", GameTheme.CARD, GameTheme.LINE, GameTheme.TEXT)
 	_continue_button.pressed.connect(_on_continue)
+	ButtonWidth.group([_report_button, _copy_button, _logs_button, _continue_button])
 
 
 func _build_right(parent: Control) -> void:

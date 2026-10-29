@@ -213,8 +213,9 @@ func test_a_picked_map_that_is_no_longer_listed_falls_back_to_a_playable_one() -
 
 func test_your_team_is_alpha_or_beta_and_the_cards_say_nothing_else() -> void:
 	var page := _page(false)
-	assert_eq(_labels(page.team_card(0)), PackedStringArray(["ALPHA"]))
-	assert_eq(_labels(page.team_card(1)), PackedStringArray(["BETA"]))
+	assert_eq(page.team_card(0).text, "ALPHA", "a text card: the team's name and nothing else")
+	assert_eq(page.team_card(1).text, "BETA")
+	assert_eq(_labels(page.team_card(0)), PackedStringArray())
 	assert_true(page.team_card(0).is_picked())
 	page.team_card(1).pressed.emit()
 	assert_eq(page.picks.team, PlaySession.TEAM_BETA)

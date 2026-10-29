@@ -4,11 +4,15 @@ extends PanelContainer
 ## with a LATER tag: `LATER_TABS`, none now), and the level chip (`set_level`; hidden while levelling is off). The current tab is
 ## lit with a yellow rule. A tab press is sent as `tab_pressed`; the page decides what to show and calls `set_current`.
 ## From practice (`set_practice`, concept `loadout-practice.png`) the bar shows only the LOADOUT tab and, before the level
-## chip, the yellow BACK TO PRACTICE button with the Loadout's key; it is sent as `practice_pressed`.
+## chip, the yellow BACK TO PRACTICE button with the Loadout's key; it is sent as `practice_pressed`. The wordmark is a
+## button (`wordmark_pressed`: the way back to the title; not from practice, where there is no title). The four tabs are
+## one width, the widest word's (ButtonWidth).
 
 signal tab_pressed(tab: Tab)
 ## The BACK TO PRACTICE button was pressed.
 signal practice_pressed
+## The AIRSOFT wordmark was pressed: the title screen is asked for (FB1).
+signal wordmark_pressed
 
 enum Tab { MATCH, LOADOUT, ARMORY, SETTINGS }
 
@@ -42,6 +46,7 @@ const TAB_KEYS: Dictionary[Tab, String] = {
 }
 
 var _tabs: Dictionary[Tab, Button] = {}
+var _mark: Button = null
 var _back: PanelContainer = null
 var _back_button: Button = null
 var _back_key: Label = null
@@ -62,15 +67,14 @@ func _init() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", GAP)
 	add_child(row)
-	var mark := Label.new()
-	mark.text = tr("BOOT_TITLE")
-	mark.add_theme_font_override("font", GameTheme.spaced_font(800, 0.02, MARK_SIZE))
-	mark.add_theme_font_size_override("font_size", MARK_SIZE)
-	mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(mark)
+	_mark = _build_mark()
+	row.add_child(_mark)
 	row.add_child(_gap(MARK_GAP - GAP))
 	for tab: Tab in TAB_KEYS:
 		row.add_child(_build_tab(tab))
+	var tab_buttons: Array[Button] = []
+	tab_buttons.assign(_tabs.values())
+	ButtonWidth.group(tab_buttons)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
@@ -91,7 +95,15 @@ func set_practice(on: bool) -> void:
 		_tabs[tab].get_parent().visible = not on or tab == Tab.LOADOUT
 	_back.visible = on
 	_back_after.visible = on
+	# no title to go back to from practice
+	_mark.disabled = on
+	_mark.focus_mode = Control.FOCUS_NONE if on else Control.FOCUS_ALL
 	_back_key.text = KeyNames.of_action(&"loadout")
+
+
+## The AIRSOFT wordmark's button, for tests.
+func wordmark() -> Button:
+	return _mark
 
 
 func is_practice() -> bool:
@@ -172,6 +184,29 @@ func _build_back() -> PanelContainer:
 	plate.add_child(_back_button)
 	plate.visible = false
 	return plate
+
+
+## The wordmark: its words with no box, bright under the pointer; a click asks for the title.
+func _build_mark() -> Button:
+	var b := Button.new()
+	b.name = "Wordmark"
+	b.text = tr("BOOT_TITLE")
+	b.focus_mode = Control.FOCUS_ALL
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	b.add_theme_font_override("font", GameTheme.spaced_font(800, 0.02, MARK_SIZE))
+	b.add_theme_font_size_override("font_size", MARK_SIZE)
+	var none := StyleBoxEmpty.new()
+	for state: String in ["normal", "hover", "pressed", "disabled"]:
+		b.add_theme_stylebox_override(state, none)
+	b.add_theme_stylebox_override("focus", GameTheme.focus_box())
+	b.add_theme_color_override("font_color", GameTheme.TEXT)
+	b.add_theme_color_override("font_disabled_color", GameTheme.TEXT)
+	b.add_theme_color_override("font_hover_color", GameTheme.YELLOW)
+	b.add_theme_color_override("font_pressed_color", GameTheme.YELLOW)
+	b.add_theme_color_override("font_focus_color", GameTheme.TEXT)
+	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	b.pressed.connect(func() -> void: wordmark_pressed.emit())
+	return b
 
 
 func _build_tab(tab: Tab) -> Control:

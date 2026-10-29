@@ -15,6 +15,8 @@ signal changed
 const PICKER_GAP := 12
 const PICKER_HEIGHT := 48.0
 const PICKER_SIZE := 22
+## The room a rule set's button keeps at each side of its words (px).
+const PICKER_PAD_X := 36
 const BLURB_SIZE := 15
 const BLURB_TOP := 8
 const BLURB_BOTTOM := 10
@@ -211,12 +213,14 @@ func _build_picker() -> Control:
 	var grid := GridContainer.new()
 	grid.columns = MatchOptions.RULE_SETS.size()
 	grid.add_theme_constant_override("h_separation", PICKER_GAP)
+	var buttons: Array[Button] = []
 	for rules in MatchOptions.RULE_SETS:
 		var b := MenuCard.new()
 		b.name = "Rules_" + rules
 		b.text = tr(MatchOptions.RULES_NAME[rules]).to_upper()
 		b.ring = true
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.text_pad = PICKER_PAD_X
+		b.refresh()
 		b.custom_minimum_size = Vector2(0.0, PICKER_HEIGHT)
 		b.add_theme_font_override("font", GameTheme.font(800))
 		b.add_theme_font_size_override("font_size", PICKER_SIZE)
@@ -226,6 +230,9 @@ func _build_picker() -> Control:
 		b.pressed.connect(_pick_rules.bind(rules))
 		grid.add_child(b)
 		_pickers[rules] = b
+		buttons.append(b)
+	# one width, the widest's (owner, 2026-10-29)
+	ButtonWidth.group(buttons)
 	return grid
 
 
