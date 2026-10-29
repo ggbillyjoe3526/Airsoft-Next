@@ -1,12 +1,12 @@
 # NR1 · Neon Heights removed, Woodland public
 
-**Review:** pending
+**Review:** 1 attempt · critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | project thread | pending | pending | – |
+| 2026-10-29 | 1 | project thread | 3,432 of 3,432 locally, CI green on f6b8209 | Accept 8/8 | – |
 
 ## Decisions
 
