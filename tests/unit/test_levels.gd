@@ -180,6 +180,37 @@ func test_progress_saves_apart_and_a_damaged_file_starts_again_set_aside() -> vo
 	assert_false(FileAccess.file_exists(PROGRESS), "set aside, not read again")
 
 
+func test_the_last_matchs_map_and_team_are_kept_across_launches_and_open_the_match_page_on_them() -> void:
+	var p := Progress.new(table)
+	p.add_xp(150)
+	assert_true(p.save(PROGRESS))
+	p.remember_picks("woodland", PlaySession.TEAM_BETA)
+	assert_true(p.dirty, "a change of picks is saved")
+	p.save_if_dirty(PROGRESS)
+	var again := Progress.new(table)
+	again.load_file(PROGRESS)
+	assert_eq([again.last_map, again.last_team], ["woodland", PlaySession.TEAM_BETA])
+	assert_eq(again.xp, 150, "kept with the progress")
+	again.remember_picks("woodland", PlaySession.TEAM_BETA)
+	assert_false(again.dirty, "the same picks: nothing to save")
+	var picks := MatchPicks.new()
+	picks.recall(again)
+	assert_eq([picks.map_id, picks.team], ["woodland", PlaySession.TEAM_BETA])
+	# A map removed since, or a team that isn't one: the first card (Depot) and Alpha; a new player the same.
+	SaveFile.write(PROGRESS, Progress.KIND, Progress.VERSION, {"xp": 0, "last_map": "neon_heights", "last_team": 7})
+	var gone := Progress.new(table)
+	gone.load_file(PROGRESS)
+	assert_eq(gone.last_team, -1)
+	for from: Progress in [gone, Progress.new(table)]:
+		var fresh := MatchPicks.new()
+		fresh.recall(from)
+		assert_eq([fresh.map_id, fresh.team], ["depot", PlaySession.TEAM_ALPHA])
+	SaveFile.write(PROGRESS, Progress.KIND, Progress.VERSION, {"xp": 0, "last_map": 5, "last_team": "beta"})
+	var wild := Progress.new(table)
+	wild.load_file(PROGRESS)
+	assert_eq([wild.last_map, wild.last_team], ["", -1], "not a name or a team: none kept")
+
+
 func test_progress_from_a_newer_build_is_never_written_over() -> void:
 	SaveFile.write(PROGRESS, Progress.KIND, Progress.VERSION + 1, {"xp": 9000})
 	var p := Progress.new(table)

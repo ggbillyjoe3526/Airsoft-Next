@@ -124,6 +124,9 @@ func _ready() -> void:
 		SaveKeeper.new().keep_today()
 	# after the safe start, so its own restart never reads as a crash
 	_start_run()
+	# the last match's map and team, kept with the progress; not in the smoke run or a headless one (the tests')
+	if _keeps_picks():
+		_picks.recall(Progress.shared())
 	graphics.graphics_settings_requested.connect(_open_graphics_settings)
 	# before the settings screens and the match, so a key list waiting for a key has F11 first
 	add_child(WindowWatch.new())
@@ -298,6 +301,11 @@ func _smoke_bug_report() -> void:
 
 ## Opens the match picked: practice when the Match page has Practice picked (START PRACTICE) or `smoke_practice` is given
 ## (the smoke test's way in).
+## Whether the Match page's map and team are kept across launches: not in the smoke run or a headless one.
+func _keeps_picks() -> bool:
+	return not (_smoke or DisplayServer.get_name() == "headless")
+
+
 func _start_play(smoke_practice: bool = false) -> void:
 	if _play != null:
 		return
@@ -311,6 +319,9 @@ func _start_play(smoke_practice: bool = false) -> void:
 	var practice := smoke_practice or _spot != null or (not _smoke and _picks.mode == MatchOptions.MODE_PRACTICE)
 	var team := PlaySession.TEAM_ALPHA if _smoke else _picks.team
 	var map_id := PRACTICE_MAP if smoke_practice else SMOKE_MAP if _smoke else _picks.map_id
+	if _keeps_picks() and _spot == null:
+		Progress.shared().remember_picks(_picks.map_id, _picks.team)
+		Progress.shared().save_if_dirty()
 	_play = PlaySession.new()
 	_play.autopilot = _smoke
 	_play.counts = not _smoke
