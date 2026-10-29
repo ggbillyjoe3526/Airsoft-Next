@@ -87,4 +87,16 @@ stale rows, and keeps the rest.
 
 ## Gate
 
-Pending.
+Worker's runs, 2026-10-29, on a machine shared with four other workers (load 6 to 9 on 4 cores):
+- gdlint clean on every changed `.gd`; `python3 tools/wiki.py check` and `tools/changelog.sh check` pass.
+- `tools/unit_tests.sh`: part 3 913/913; part 2 1786/1787, the one failure PN1's QA test asserting a middle click
+  with the wheel open pings (the behaviour this task changes on purpose), updated and passing (4/4); part 1 ran out of
+  its 1,080 s limit under the load, then passed 866/866 with the same list and a 3,600 s limit.
+- `tools/smoke_test.sh`: pass, zero script errors (`orders=3 mags=2`).
+- Match guards (`tools/match_guards.sh`), all pass with the hunt change:
+  - `test_match_guards` (Depot): 4/4; normal 121 rounds over 16 seeds, easy 65 over 8, hard 56 over 8, 0 on time.
+  - `test_flag_guards` (Depot): 2/2; A/D 124 rounds, 12 captures; 25 s rounds 34 to the overtime flag, 0 drawn.
+  - `test_woodland_guards`: the script's 1,700 s limit for a file ran out under the load after A/D at Normal passed
+    (130 rounds over 16 seeds, 4 captures), so each test was run alone with the same GUT command and a 6,000 s limit:
+    Elimination normal 126 rounds over 16 seeds, hard 62 over 8, easy 63 over 8, 0 on time; A/D easy 59 rounds,
+    8 captures; A/D hard 61 rounds, 3 captures; each 1/1, no script error.
