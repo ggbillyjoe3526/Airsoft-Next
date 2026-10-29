@@ -20,8 +20,9 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
 
 - **The game moves from the browser to an installable desktop game built with Godot and Blender, in a new repository
   (owner, 2026-10-18).** The same game, not a sequel; a new repository rather than a fork. Design, rulings, data,
-  layouts, models and the gameplay code as a reference carry over. `ggbillyjoe3526/Airsoft-Next` is the repository;
-  `ggbillyjoe3526/Airsoft` is frozen at `0.1-beta.1` and read only, and its handover pack is in
+  layouts, models and the gameplay code as a reference carry over. `ggbillyjoe3526/Airsoft-Next` is the repository
+  (since renamed `ggbillyjoe3526/airsoft`); the old `ggbillyjoe3526/Airsoft` was frozen at `0.1-beta.1` and read only,
+  is no longer on GitHub (its name now opens this repository), and its handover pack is in
   `legacy/browser/docs/handover/`.
 - **The stack (owner, 2026-10-18: "go with defaults").** Godot 4.7.2 stable, GDScript with static typing everywhere,
   the Forward+ renderer and Jolt physics (built in). The simulation ticks at 60 Hz with physics interpolation; the

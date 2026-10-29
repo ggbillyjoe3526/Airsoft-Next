@@ -97,8 +97,9 @@ pass: `docs/PROCESS.md` (grep the heading you need). The rules every session kee
   so. Docs-only pull requests skip them.
 - **Placing work:** new systems, modes and content are Dev; fixing, balance, performance, stability, UX/QoL, polish are
   Beta. Don't build later-version features unless the owner pulled them into 0.1.
-- **The old repository** (`ggbillyjoe3526/Airsoft`, frozen at `0.1-beta.1`) is read-only reference, copied into
-  `legacy/browser/` (deleted at 0.1). Never push to it.
+- **The old browser repository** (once `ggbillyjoe3526/Airsoft`, frozen at `0.1-beta.1`) is no longer on GitHub; that
+  name now opens this repository (renamed from Airsoft-Next to `airsoft`). Its code is the read-only reference in
+  `legacy/browser/` (deleted at 0.1).
 - Future ideas go in `docs/IDEAS.md`; don't implement them unless asked.
 
 ## 7. How to Work

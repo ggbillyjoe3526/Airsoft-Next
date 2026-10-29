@@ -1,8 +1,8 @@
 # Development
 
 How Airsoft is built, for anyone reading the code, building it from source or testing it. The repository is
-[ggbillyjoe3526/Airsoft-Next](https://github.com/ggbillyjoe3526/Airsoft-Next); its
-[README](https://github.com/ggbillyjoe3526/Airsoft-Next#readme) has the full setup.
+[ggbillyjoe3526/airsoft](https://github.com/ggbillyjoe3526/airsoft); its
+[README](https://github.com/ggbillyjoe3526/airsoft#readme) has the full setup.
 
 ## The stack
 
@@ -40,14 +40,14 @@ keeps its built-in value with a warning.
 
 | File | What it holds |
 | --- | --- |
-| [`data/pool.md`](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/data/pool.md) | Every replica, part and power source: IDs, names, what fits what, public or dev |
-| [`data/stats.md`](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/data/stats.md) | How each of them shoots and handles |
-| [`data/levels.md`](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/data/levels.md) | Levels, unlocks and XP |
-| [`data/maps.md`](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/data/maps.md) | Which maps are listed, public or dev, and their team sizes |
-| [`data/bots.md`](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/data/bots.md) | Bot names and personalities |
-| [`data/bot-kits.md`](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/data/bot-kits.md) | What the other team's bots carry |
-| [`data/graphics.md`](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/data/graphics.md) | The graphics presets |
-| [`data/accessibility.md`](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/data/accessibility.md) | Team colour sets and reduced motion |
+| [`data/pool.md`](https://github.com/ggbillyjoe3526/airsoft/blob/main/data/pool.md) | Every replica, part and power source: IDs, names, what fits what, public or dev |
+| [`data/stats.md`](https://github.com/ggbillyjoe3526/airsoft/blob/main/data/stats.md) | How each of them shoots and handles |
+| [`data/levels.md`](https://github.com/ggbillyjoe3526/airsoft/blob/main/data/levels.md) | Levels, unlocks and XP |
+| [`data/maps.md`](https://github.com/ggbillyjoe3526/airsoft/blob/main/data/maps.md) | Which maps are listed, public or dev, and their team sizes |
+| [`data/bots.md`](https://github.com/ggbillyjoe3526/airsoft/blob/main/data/bots.md) | Bot names and personalities |
+| [`data/bot-kits.md`](https://github.com/ggbillyjoe3526/airsoft/blob/main/data/bot-kits.md) | What the other team's bots carry |
+| [`data/graphics.md`](https://github.com/ggbillyjoe3526/airsoft/blob/main/data/graphics.md) | The graphics presets |
+| [`data/accessibility.md`](https://github.com/ggbillyjoe3526/airsoft/blob/main/data/accessibility.md) | Team colour sets and reduced motion |
 
 ## Dev settings
 
@@ -84,18 +84,18 @@ and code changes also pass three review agents (quality, bugs and performance) b
 one changelog note in `changelog.d/`; the notes become the release notes and this wiki's
 [Patch Notes](Patch-Notes).
 
-The rules are in the repository: [VISION](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/docs/VISION.md),
-[ROADMAP](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/docs/ROADMAP.md),
-[ARCHITECTURE](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/docs/ARCHITECTURE.md),
-[DECISIONS](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/docs/DECISIONS.md),
-[PROCESS](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/docs/PROCESS.md),
-[KNOWN_ISSUES](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/docs/KNOWN_ISSUES.md) and
-[ASSETS](https://github.com/ggbillyjoe3526/Airsoft-Next/blob/main/docs/ASSETS.md).
+The rules are in the repository: [VISION](https://github.com/ggbillyjoe3526/airsoft/blob/main/docs/VISION.md),
+[ROADMAP](https://github.com/ggbillyjoe3526/airsoft/blob/main/docs/ROADMAP.md),
+[ARCHITECTURE](https://github.com/ggbillyjoe3526/airsoft/blob/main/docs/ARCHITECTURE.md),
+[DECISIONS](https://github.com/ggbillyjoe3526/airsoft/blob/main/docs/DECISIONS.md),
+[PROCESS](https://github.com/ggbillyjoe3526/airsoft/blob/main/docs/PROCESS.md),
+[KNOWN_ISSUES](https://github.com/ggbillyjoe3526/airsoft/blob/main/docs/KNOWN_ISSUES.md) and
+[ASSETS](https://github.com/ggbillyjoe3526/airsoft/blob/main/docs/ASSETS.md).
 
 ## How this wiki stays current
 
 The wiki's pages live in the repository, in
-[`docs/wiki/`](https://github.com/ggbillyjoe3526/Airsoft-Next/tree/main/docs/wiki), and are reviewed in pull requests
+[`docs/wiki/`](https://github.com/ggbillyjoe3526/airsoft/tree/main/docs/wiki), and are reviewed in pull requests
 like the code. Table numbers are never typed into a page: the stats, parts, unlocks, XP, maps, keys, graphics presets, bot
 kits and rules tables are read from the game's own files by `tools/wiki.py`, and Patch Notes is written from the
 changelog notes. On every merge to `main`, the Wiki workflow builds the pages and publishes them here. A pull request

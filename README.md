@@ -4,10 +4,10 @@ An original first-person airsoft shooter for Windows and Linux, built with Godot
 matches against bots on purpose-built airsoft fields: plastic replicas, visible BBs, one hit and you're out, hand up,
 "HIT!", walk off, reset, go again. Single player against bots only.
 
-It is the same game as the browser version (`ggbillyjoe3526/Airsoft`, frozen at `0.1-beta.1`), rebuilt as an
+It is the same game as the browser version (frozen at `0.1-beta.1`, its code kept in `legacy/browser/`), rebuilt as an
 installable desktop game. Versions restart at 0.1 Dev 1.
 
-The [wiki](https://github.com/ggbillyjoe3526/Airsoft-Next/wiki) explains the game for players: controls, rules, every
+The [wiki](https://github.com/ggbillyjoe3526/airsoft/wiki) explains the game for players: controls, rules, every
 replica's stats, maps, modes, bots, settings, patch notes and the roadmap. Its pages are `docs/wiki/`, published on
 every merge (`docs/wiki/README.md`).
 
@@ -19,7 +19,7 @@ screen. The plan is `docs/ROADMAP.md`; what is happening now is `docs/HANDOFF.md
 ## Run it
 
 - **Players:** download the Windows installer or zip, or the Linux build, from the
-  [Releases page](https://github.com/ggbillyjoe3526/Airsoft-Next/releases) once 0.1 Dev 1 is tagged.
+  [Releases page](https://github.com/ggbillyjoe3526/airsoft/releases) once 0.1 Dev 1 is tagged.
 - **From source:** install Godot **4.7.2** (standard, not .NET), choose *Import*, pick this folder's `project.godot`
   and press F5.
 - **If the game won't open, or closes while drawing:** start it on the simpler renderer, which runs on almost any

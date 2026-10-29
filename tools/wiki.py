@@ -692,7 +692,7 @@ def patch_notes() -> str:
     parts = [
         "# Patch Notes",
         "What changed in each version, newest first, in plain words. Downloads are on the "
-        "[Releases page](https://github.com/ggbillyjoe3526/Airsoft-Next/releases), and what's planned next is on "
+        "[Releases page](https://github.com/ggbillyjoe3526/airsoft/releases), and what's planned next is on "
         "the [Roadmap](Roadmap). These notes are written from the same files as each release's notes.",
         f"## Coming in {gen_version('')}",
         "Already built and on its way in the next download:",

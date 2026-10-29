@@ -1,13 +1,13 @@
 # Handoff
 
-What is happening now (as of 2026-10-26), for a session picking up the work. The plan is `docs/ROADMAP.md`, the
+What is happening now (as of 2026-10-29), for a session picking up the work. The plan is `docs/ROADMAP.md`, the
 rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
 
 ## Now
 
 - **The game has moved from the browser to Godot (owner, 2026-10-18).** This repository restarts at 0.1 Dev 1. The
-  browser game (`ggbillyjoe3526/Airsoft`, frozen at `0.1-beta.1`) is copied into `legacy/browser/` as the reference to
-  rewrite from; its handover pack is `legacy/browser/docs/handover/`.
+  browser game (frozen at `0.1-beta.1`; its repository is no longer on GitHub) is copied into `legacy/browser/` as the
+  reference to rewrite from; its handover pack is `legacy/browser/docs/handover/`.
 - **The salvage runs as three pull requests** from the "Salvage audit and roadmap" thread: the docs, the owner's data
   tables and the legacy reference (merged); the Godot bootstrap (project, boot screen, CI, tests, release, agents and
   pipeline, from the owner's katanashotgun project, whose remaining useful scripts are in `legacy/katanashotgun/`);
@@ -31,10 +31,10 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
   the pause menu, saved in `user://settings.save`.
 - **The debug view is done (DV1):** F3 also shows the match seed, your position and the entity count, F4 draws BB paths
   and F5 hit areas in the world (made only while on, keys reserved), and `-- --seed <n>` replays a match.
-- **Step 27 is under way (owner resumed it 2026-10-26).** Steps 1 to 26 are built (parity with the browser's 0.1
-  Beta 1), plus three bot levels. Step 27 so far: bot callouts (CO1, CO2; #124, #125), the overtime flag's rules
-  (OV1; #126) and bots going for it (OV2; #127) are merged; OV3 (the flag on screen and in sound) is next to merge,
-  then PN1, PN2, MH1, MH2, MH3 (`docs/TASKS.md`).
+- **Step 27 is paused (owner, 2026-10-29): start PN2 only when he says.** Steps 1 to 26 are built (parity with the
+  browser's 0.1 Beta 1), plus three bot levels. Step 27 so far: bot callouts (CO1, CO2; #124, #125), the overtime
+  flag's rules (OV1; #126), bots going for it (OV2; #127), the flag on screen and in sound (OV3; #128) and pings (PN1;
+  #129) are merged; PN2, MH1, MH2, MH3 remain (`docs/TASKS.md`).
 - **The Blender work (step 28) is deferred to a date the owner names** (owner, 2026-10-26): when step 27 is done,
   stop and report; don't start Blender import work.
 - **Waiting on the owner:** his play-through of `/mnt/project-files/playtest/0.1-dev1-checklist.md`.

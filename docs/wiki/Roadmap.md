@@ -9,7 +9,7 @@ Airsoft is single player against bots, and stays that way: there is no multiplay
 
 The game is built in **Dev** builds (0.1 Dev 1, Dev 2 and on), then **Beta** builds for balance, fixes and polish,
 then **0.1**, which opens **Early Access**. Each build is posted on the
-[Releases page](https://github.com/ggbillyjoe3526/Airsoft-Next/releases) with its patch notes. <!-- wiki:latest -->
+[Releases page](https://github.com/ggbillyjoe3526/airsoft/releases) with its patch notes. <!-- wiki:latest -->
 
 ### Built
 

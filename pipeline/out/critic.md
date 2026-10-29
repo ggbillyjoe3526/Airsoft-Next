@@ -1,35 +1,27 @@
-Task: PN1 · Pings: the mark, and how bot teammates take it
+Task: RN1 · Links use the renamed repository (PR #130, no task block; judged against the brief)
 Attempt: 1 of 4
-Head: f31e18a (CI green on 6ab02f4; since then only test_pn1_qa.gd, the record, KNOWN_ISSUES and pipeline/out; test_pings, test_pn1_qa and test_key_bindings re-run here: 45/45, 270 asserts; gdlint on test_pn1_qa.gd clean)
+Head: f581e35 (CI green on 1f45cf2; 1f45cf2..f581e35 is only changelog.d/repo-rename-links.md and pipeline/out/ reports, changelog check OK on f581e35; merge still waits for CI green on f581e35)
 Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
 Score: 8/8 → Accept
 Evidence:
-1. AC1 project.godot:150 (ping, button 3), key_bindings.gd:20,53, en.po:1877 "SQUAD: PING A SPOT", player_input.gd:172 latch,
-   :308 filled once, :98 dead on the range; sim drops it while out (simulation.gd:126 continue) and in practice (:136);
-   0.25 s gap pings.gd:79. AC2 simulation.gd:170-185 (recoil in pitch, 120 m ray, value 0 for the sky, no state).
-   AC3 pings.gd:76-98, 159-182 (cone, enemy_reach, along <= hit, visible_part), :149-153 (snap 3 m, back_off 0.4), :59-67
-   (8 s, cleared), bot_controller.gd:68,226. AC4 pings.gd:120-135, bot.gd:301-307 (ping_memory 20 s), callouts.gd:286-312.
-   AC5 callouts.gd:451-466 (_mark on MARK_XOR stream, chance and gap from callouts.md › Marks); browser cases mapped in
-   test_pings.gd (23); test_ticks_with_pings_allocate_nothing.
-2. Commands (PlayerCommand.ping) and Events (PING) are the block's named contracts; Pings is a RefCounted under game/ai;
-   seeded (marks' own stream); data in PingConfig and BotConfig.ping_memory.
-3. Per tick: Simulation._ping returns on cmd.ping false; Callouts._answer_ping and _mark are loops and comparisons; the
-   book, _ping_hit and Ping objects are made once. Matches performance's measured no-growth runs.
-4. test_a_press_marks_the_floor_where_you_look_and_both_teammates_take_it fails without the feature (no ping field,
-   no Pings, ping_at stays -INF); test_marks_change_neither_the_lines_nor_play pins the stream separation.
-5-8. Rules in plain classes; typed throughout; numbers in PingConfig and callouts.md; no globals. pings.gd 189 lines;
-   sim_tuning.tres keeps its ids and adds 18_pn1pg / Resource_pn1pg; no node, timer or connection added. Scope is the
-   block's; wiki (Controls, Squad-Orders, Roadmap), changelog.d/pings.md, KNOWN_ISSUES, PLAYTEST, folder READMEs updated.
-Advisories (non-blocking):
-- pings.gd:152 NavGrid.nearest_walkable costs 0.4-1.2 ms a spot ping on real maps (performance); cap or cache it before
-  PN2 or anything pings more often than min_gap.
-- Pings.take stamps w.time (the last think) while place stamps state.time (after the step): one tick apart, harmless,
-  and _answer_ping relies on it (callouts.gd:292); a line in pings.gd saying so would save the next reader a trace.
-- QA's near-noise case is now a KNOWN_ISSUES row; fine to leave until playtest says otherwise.
-Owner should test in the game:
-- Ping the floor 20-30 m ahead: one teammate answers once ("Going to your ping") and goes; a double click is one ping.
-- Give Follow me, then ping: one says it watches it and the squad stays with you.
-- Ping a visible opponent: teammates come for them as a threat; one in a bush or the dark is only a spot.
-- Ping the sky: nothing, no answer. Ping while out or on the Practice Range: nothing.
-- Hold Z (order wheel) and middle click: one ping, no order, no shot, wheel stays open.
-- Does 20 s of ping memory pull teammates off their lanes too long on Woodland?
+1. Every live link moves to /airsoft: report_config.gd:11, report_config.tres:7, Airsoft.iss:32-34, tools/wiki.py:695,
+   README.md:10,22, docs/wiki/{Development,Getting-Started,Roadmap,_Footer,README}.md, PLAYTEST.md:15. A case-insensitive
+   grep for Airsoft-Next outside legacy/, archive, records and pipeline/out finds only the history lines CLAUDE.md:101
+   and DECISIONS.md:23. CLAUDE.md:100, DECISIONS.md:24, PROCESS.md:18, ROADMAP.md:12, HANDOFF.md:9 no longer send anyone
+   to the old repository. HANDOFF.md:36-37 records OV3 #128, PN1 #129 and the 2026-10-29 pause; ROADMAP.md:127-128 drops
+   the Blender reminder, matching the owner's 2026-10-26 deferral (ROADMAP.md:121, HANDOFF.md:38).
+2. No contract touched: one exported default string and its .tres value; no signature, signal or file format change.
+3. No runtime path changed: issue_url is read once when the report panel opens (performance report agrees).
+4. No new tests, rightly: test_issue_link.gd:5 (ReportConfig.new(), the script default) and test_report_panel.gd:186
+   (ReportConfig.load_default() at :18, the shipped .tres) each fail if their source of the URL is left on the old name.
+5. Static types kept (`@export var issue_url: String`); no logic moved.
+6. Fits the fixed decisions: installer AppId (Airsoft.iss:23) untouched; no tag, no workflow, no version pin changed.
+7. One-line edits; .tres keeps its ext_resource id 1_rpcfg and layout.
+8. In scope for a cleanup PR; changelog note added, CHANGELOG.md untouched, wiki pages updated with the links.
+Failed checks: none.
+Must-fix: none. Advisory (optional, next docs touch): HANDOFF.md:34's lead "Step 27 is under way (owner resumed it
+   2026-10-26)" now contradicts the paused line at :37; lead with the pause so a skimming session doesn't start PN2.
+Owner should test in the game (at most 6, one line each):
+- Pause menu › report a bug › Report: the browser opens github.com/ggbillyjoe3526/airsoft/issues/new prefilled.
+- After the next tagged installer: Windows Settings › Apps › Airsoft shows the support and updates links on /airsoft.
+- The wiki footer's Download link and the README's Releases link open this repository's Releases page.
