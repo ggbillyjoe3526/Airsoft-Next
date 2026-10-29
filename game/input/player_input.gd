@@ -231,7 +231,8 @@ func _latch_order(kind: SquadOrder.Kind, from_wheel: bool) -> void:
 		# Need a Mag is the hand-off's press, not an order: dead where the wheel is (the range, and you out).
 		if _wheel_allowed:
 			_mag_latch = true
-			_mag_latch_wheel = from_wheel
+			# H with the wheel held open answers in the wheel's middle too: the line under it is hidden.
+			_mag_latch_wheel = from_wheel or _wheel.open
 		return
 	_order_latch = kind
 	_order_from_wheel = from_wheel

@@ -201,6 +201,17 @@ func test_the_wheels_fifth_item_upper_left_does_what_h_does() -> void:
 		assert_true(input.mag_from_wheel)
 
 
+func test_h_with_the_wheel_held_open_answers_in_the_wheels_middle() -> void:
+	_make_input()
+	_event(&"order_wheel", true)
+	_event(&"mag_hand_off", true)
+	_event(&"mag_hand_off", false)
+	input.fill(cmd)
+	assert_true(cmd.mag_hand_off, "H pressed with the wheel open")
+	assert_true(input.mag_from_wheel, "the answer shows in the wheel's middle, as an order key's notice does")
+	_event(&"order_wheel", false)
+
+
 func test_a_bot_playing_you_keeps_its_own_press() -> void:
 	_make_input()
 	cmd.reset(0.0, 0.0)
