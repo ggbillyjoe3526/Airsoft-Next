@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified and Gate | – | – |
+| 2026-10-29 | 1 | worker | see Verified and Gate; QA Fail (1 blocking: the lock was never drawn) | – | – |
+| 2026-10-29 | 1, fix round 1: the slide bone held by a skeleton modifier | worker | see Fix round 1 | – | – |
 
 ## Goal
 
@@ -47,9 +48,26 @@ GBB Pistol's last shot ran with the slide forward instead of locked back.
 - gdlint clean on both changed scripts.
 - Not verified: how it looks in play (Forward+ on the owner's display); PLAYTEST › Shooting and reloads lists it.
 
+## Fix round 1 (QA)
+
+- **Blocking:** `slide_locked` was set but the slide was drawn forward through every empty reload (older than KI2).
+  `held.slide` is a BoneAttachment3D the skeleton re-poses after the view's update, so `slide_back`, read in `_load`
+  before the skeleton flushed, was home, and writing the attachment's position was overwritten by the Reload clip's
+  slide key each frame. The idle lock (no reload) was drawn back only because the SlideLock clip itself is posed.
+- **Fix:** `SlideLockPose` (`game/play/slide_lock_pose.gd`, new, SelectorPose's pattern): a SkeletonModifier3D on the
+  replica's skeleton that sets the `slide` bone to the SlideLock clip's end pose (sampled once from the clip) after
+  the AnimationPlayer, every skeleton update, while `active`. `_pose_slide` decides the lock once and sets
+  `slide_hold.active = slide_locked`; `slide_back` and the attachment write are gone. A gas pistol without a slide
+  bone or SlideLock clip has no slide lock, as before.
+- **Tests:** `test_slide_lock.gd` now reads the slide as drawn after two process frames and asserts the locked pose
+  is at least 1 cm from home (0.026 m); the idle lock is checked over two frames. With the modifier's body disabled,
+  the reload asserts in both files fail (4 tests) and the idle lock still passes, so they test the hold. QA's
+  `test_ki2_qa.gd` passes unchanged.
+- `game/play/README.md` lists `slide_lock_pose.gd`.
+
 ## Gate
 
-Worker's run (2026-10-29, the machine shared with other workers): gdlint clean; the eleven replica view test scripts
-above 133 of 133; `tools/unit_tests.sh 1` 874 of 874; `tools/smoke_test.sh` passes (zero script errors);
-`python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK. Parts 2 and 3 not run here (load); CI runs the
-whole gate.
+Worker's run (2026-10-29, the machine shared with other workers), fix round 1: gdlint clean; the eleven replica view
+test scripts above and `test_ki2_qa.gd` 142 of 142; `tools/unit_tests.sh 1` 874 of 874; `tools/smoke_test.sh` passes
+(zero script errors); `python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK. Parts 2 and 3 not run here
+(load); CI runs the whole gate.

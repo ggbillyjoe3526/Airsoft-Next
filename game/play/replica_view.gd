@@ -29,10 +29,10 @@ class Held:
 	var muzzle: Node3D = null
 	## The rear sight's place in the model (its origin is the model's), the sight line's back end.
 	var rear_sight: Vector3 = Vector3.ZERO
-	## The slide a gas pistol locks back on empty (null for the rest), where the SlideLock clip leaves it, and whether
-	## it is held back now.
+	## The slide a gas pistol locks back on empty, as drawn (null for the rest), what holds its bone back over any clip,
+	## and whether it is held back now.
 	var slide: Node3D = null
-	var slide_back: Vector3 = Vector3.ZERO
+	var slide_hold: SlideLockPose = null
 	var slide_locked: bool = false
 	## A reload clip is posed part way (cleared when the reload ends or is cut short).
 	var in_reload: bool = false
@@ -241,27 +241,27 @@ static func slide_held_back(a: Armament) -> bool:
 
 
 ## Locks the slide back once the last shot's cycle has run, keeps it back through a reload of an empty magazine until
-## slide_release_at of the way, and lets it home once the magazine has BBs again.
+## slide_release_at of the way, and lets it home once the magazine has BBs again. Called only for a slide held by a
+## SlideLockPose.
 func _pose_slide(held: Held, a: Armament) -> void:
+	var lock := slide_held_back(a)
 	if a.reload_left > 0.0:
 		# The magazine is swapped at the reload's end, so an empty one now was empty when it began: the slide is back,
 		# even when the reload cut the last shot's Fire clip short of slide_lock_after (KI2).
 		var progress := 1.0 - a.reload_left / maxf(a.replica().reload_time, 0.001)
 		held.slide_locked = a.mag() == 0 and progress < _cfg.slide_release_at
-		if held.slide_locked:
-			held.slide.position = held.slide_back
-		return
-	var lock := slide_held_back(a)
-	if lock and not held.slide_locked:
+	elif lock and not held.slide_locked:
 		var anim := held.anim
-		if anim.is_playing() and anim.current_animation == FIRE_CLIP \
-				and anim.current_animation_position < _cfg.slide_lock_after:
-			return
-		_seek(held, SLIDE_LOCK_CLIP, 1.0)
-		held.slide_locked = true
+		var cycling := anim.is_playing() and anim.current_animation == FIRE_CLIP \
+				and anim.current_animation_position < _cfg.slide_lock_after
+		if not cycling:
+			_seek(held, SLIDE_LOCK_CLIP, 1.0)
+			held.slide_locked = true
 	elif not lock and held.slide_locked:
 		_seek(held, FIRE_CLIP, 0.0)
 		held.slide_locked = false
+	# The bone is held over whatever clip is posed (the Reload clip keys the slide forward): SlideLockPose.
+	held.slide_hold.active = held.slide_locked
 
 
 func _show(slot: int) -> void:
@@ -304,13 +304,13 @@ func _load(r: ReplicaConfig, paint: StringName, realistic: bool, parts: Dictiona
 	held.selector = SelectorPose.attach(model, held.anim)
 	held.muzzle = held.fit.muzzle
 	var rear := model.find_child("RearSight", true, false) as Node3D
-	if r.power == SLIDE_LOCK_POWER and held.anim != null and held.anim.has_animation(SLIDE_LOCK_CLIP):
-		held.slide = model.find_child("slide", true, false) as Node3D
-		if held.slide != null:
-			# Where the clip leaves the slide, then back to rest.
-			_seek(held, SLIDE_LOCK_CLIP, 1.0)
-			held.slide_back = held.slide.position
-			_seek(held, FIRE_CLIP, 0.0)
+	if r.power == SLIDE_LOCK_POWER:
+		held.slide_hold = SlideLockPose.attach(model, held.anim)
+		if held.slide_hold != null:
+			held.slide = model.find_child("slide", true, false) as Node3D
+		if held.slide == null and held.slide_hold != null:
+			held.slide_hold.queue_free()
+			held.slide_hold = null
 	if rear != null:
 		held.rear_sight = rear.position
 	if held.fit.optic != null:
