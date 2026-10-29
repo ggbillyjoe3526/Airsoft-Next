@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified | – | – |
+| 2026-10-29 | 1 | worker | see Verified; QA Fail (2 blocking), performance Pass | – | – |
+| 2026-10-29 | 1, fix round 1: cards fitted to the height left, stack from MARGIN under the summary, stale slot cleared | worker | see Fix round 1 | – | – |
 
 ## Goal
 
@@ -52,6 +53,21 @@ top; the stack was taller than the room under the score bar, so it grew into the
   `hd2-after-hit-and-banner-hud150.png`.
 - gdlint clean; targeted HUD tests, `tools/unit_tests.sh 1`, `tools/smoke_test.sh`: see Gate.
 - Not verified: how it feels on the owner's display (Forward+); whether HIT! lower on the screen reads as well in a fight.
+
+## Fix round 1 (QA)
+
+- **Blocking 1, cards off the screen at 150 %:** with the call and a banner up the XP card, the round's table and the
+  summary ended below the screen (the table's hint cut). `_fit_summary` now also holds the summary and XP card to the
+  height left under the stack (`_height_fit`, floor `CARDS_FIT_FLOOR` 0.25, not invisible), the new `_fit_round_result`
+  does the same for the round's table (pivot top middle), and both run whenever the stack is seated or laid out
+  (`_hang_cards`, which `_seat_middle` now ends with, so a moved stack re-hangs them). While the summary is up the score
+  bar is hidden, so the stack hangs from `MARGIN` (`_seat_middle` re-runs as the summary opens or closes).
+  `MatchSummary.column_height` gives the panels' full height.
+- **Blocking 2, stale slot:** the next round's banner replaces LOST without hiding it, so `_hit_held` never cleared and
+  ROUND 2 sat low over a blank gap. `_show_banner` now drops the slot when no hit call is showing.
+- **Perf advisory taken:** the slot's height is measured once, as it is first held, not every frame.
+- Verified: `test_hd2_qa.gd` (QA's, unedited) and `test_hd2_hit_call_stack.gd` 12 pass; the HUD size, hunt, style, Mag
+  hand-off and orders HUD tests 102 pass in all; `unit_tests.sh 1` 885/885; smoke passes; gdlint clean.
 
 ## Gate
 

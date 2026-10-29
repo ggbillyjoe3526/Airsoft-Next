@@ -38,6 +38,8 @@ const XP_GAP := 28.0
 ## The match summary's row (its panels either side of the XP card) keeps this far from the screen's sides (px): at a
 ## HUD size too large for the width the row is held smaller (MatchSummary.set_fit). At 100 % on 1920 it fits as built.
 const SUMMARY_EDGE := 16.0
+## The least share the cards under the stack are held to when the height left is short (never invisible).
+const CARDS_FIT_FLOOR := 0.25
 ## "What got you" on the left, its top-left corner (px): under the minimap's caption when there is a minimap (the
 ## range has none: CARD_TOP).
 const CARD_LEFT := 32.0
@@ -265,6 +267,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_round_result.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	add_child(_round_result)
 	_round_result.setup(cfg, teams, sim.rounds, teams.colours[player.team])
+	_round_result.pivot_offset_ratio = Vector2(0.5, 0.0) # held smaller about its top middle (_fit_round_result)
 	# The match's summary, its panels either side of the XP card and level with it.
 	_summary = MatchSummary.new()
 	add_child(_summary)
@@ -538,13 +541,31 @@ static func scale_root(root: Control, by: float) -> void:
 	root.set_anchor_and_offset(SIDE_BOTTOM, 1.0 / by, 0.0)
 
 
-## Holds the summary's panels and the XP card at the share of their size that fits the screen's width (1 when they
-## fit as built), so a large HUD size never pushes them off the sides.
+## Holds the summary's panels and the XP card at the share of their size that fits the screen's width and what is left of
+## its height under the stack (1 when they fit as built), so a large HUD size or a tall stack never pushes them off.
 func _fit_summary() -> void:
 	var fit := minf(1.0, (size.x - SUMMARY_EDGE * 2.0) / _summary.row_width())
+	var tallest := _summary.column_height()
+	if _xp != null:
+		tallest = maxf(tallest, _xp.get_combined_minimum_size().y)
+	fit = minf(fit, _height_fit(tallest))
 	_summary.set_fit(fit)
 	if _xp != null:
 		_xp.scale = Vector2.ONE * fit
+
+
+## Holds the round's table and its hint at the share of their size that fits what is left of the height under the stack.
+func _fit_round_result() -> void:
+	var fit := _height_fit(_round_result.get_combined_minimum_size().y)
+	if not is_equal_approx(_round_result.scale.x, fit):
+		_round_result.scale = Vector2.ONE * fit
+
+
+## The share (CARDS_FIT_FLOOR..1) of `height` (px) that fits between the cards' top, XP_GAP under the stack's foot, and
+## the screen's bottom edge less SUMMARY_EDGE.
+func _height_fit(height: float) -> float:
+	var room := size.y - SUMMARY_EDGE - (_middle.position.y + _middle.size.y + XP_GAP)
+	return clampf(room / maxf(height, 1.0), CARDS_FIT_FLOOR, 1.0)
 
 
 ## `c` (a full-screen child) undoes the HUD's size: as large as the screen and drawn at 1.
@@ -806,9 +827,14 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		_board.update(state, _stats, _player, _board_wanted)
 	if _xp != null:
 		_xp.visible = not _round_result.holds_results()
+	var summary_was_up := _summary.visible
 	_summary.visible = _summary.is_open() and not _round_result.holds_results()
+	if _summary.visible != summary_was_up:
+		_seat_middle()
 	if _summary.visible or _xp != null:
 		_fit_summary()
+	if _round_result.visible:
+		_fit_round_result()
 	if _minimap != null:
 		_minimap.visible = not _summary.visible
 	if _sound_cues != null:
@@ -828,8 +854,9 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	var hit_call := not in_play and c.status != Character.Status.OUT
 	_hit_label.visible = hit_call
 	_hit_sub.visible = hit_call
-	# A banner up with the hit call keeps its place as the call ends: an empty slot as tall as the call stays above it.
-	if hit_call and _banner.visible:
+	# A banner up with the hit call keeps its place as the call ends: an empty slot as tall as the call stays above it
+	# (measured once, as the slot is first held; `_show_banner` drops it for a banner shown with no call up).
+	if hit_call and _banner.visible and not _hit_held:
 		_hit_held = true
 		_hit_hold.custom_minimum_size.y = _hit_label.get_combined_minimum_size().y + _hit_sub.get_combined_minimum_size().y \
 				+ _middle.get_theme_constant("separation")
@@ -1119,6 +1146,9 @@ func _match_stamp_sub(score: PackedInt32Array) -> String:
 func _show_banner(text: String, sub: String, colour: Color = Color.TRANSPARENT) -> void:
 	_banner.show_text(text, sub, colour)
 	_banner_left = _cfg.banner_time
+	if _hit_held and not _hit_label.visible:
+		_hit_held = false
+		_hit_hold.visible = false
 
 
 ## The automatic graphics step-down's line under the score bar for `seconds`: "GRAPHICS  Set to `preset_name` to keep
@@ -1187,17 +1217,20 @@ func _build_skip_hint(parent: Control) -> void:
 
 
 ## Seats the hit call and banner stack under the score bar's column (`_top`: the bar, "First to N" and whatever shows
-## under them), or MARGIN from the top where there is no bar. Runs when that column's size changes.
+## under them), or MARGIN from the top where there is no bar (the range, and while the match summary hides it). Runs when
+## that column's size changes or the summary opens or closes.
 func _seat_middle() -> void:
 	var edge := MARGIN
-	if _readout == null:
+	if _readout == null and not _summary.visible:
 		edge = _top.position.y + _top.size.y + MIDDLE_GAP
 	_middle.offset_top = edge
 	_middle.offset_bottom = edge
+	_hang_cards()
 
 
 ## Hangs the finished match's XP, the round's table and the match summary XP_GAP under the stack's foot (they are
-## anchored at the screen's middle, so offsets from it). Runs when the stack's layout or the screen's size changes.
+## anchored at the screen's middle, so offsets from it) and fits them to the height left. Runs when the stack's place or
+## layout or the screen's size changes.
 func _hang_cards() -> void:
 	var y := _middle.position.y + _middle.size.y + XP_GAP - size.y * 0.5
 	_round_result.offset_top = y
@@ -1206,6 +1239,10 @@ func _hang_cards() -> void:
 		_xp.offset_top = y
 		_xp.offset_bottom = y
 	_summary.set_top(y)
+	if _summary.visible or _xp != null:
+		_fit_summary()
+	if _round_result.visible:
+		_fit_round_result()
 
 
 ## Anchors `c` at `anchors` (left, top, right, bottom shares of the screen) with `rect` as offsets from them.

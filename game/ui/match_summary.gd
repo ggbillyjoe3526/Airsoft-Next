@@ -122,6 +122,11 @@ func set_top(top: float) -> void:
 	_pin(_side, (XpCard.WIDTH * 0.5 + GAP) * _fit, _top, Control.GROW_DIRECTION_END)
 
 
+## The taller of the two panels at their full size (px).
+func column_height() -> float:
+	return maxf(_table.get_combined_minimum_size().y, _side.get_combined_minimum_size().y)
+
+
 func fit() -> float:
 	return _fit
 
