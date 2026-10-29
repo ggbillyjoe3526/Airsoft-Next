@@ -90,3 +90,48 @@ func test_the_entry_scene_and_the_safe_start_ask_it_by_default() -> void:
 	main.free()
 	for path in FILES:
 		SaveFile.remove(path)
+
+
+## A /proc cmdline file holds the arguments NUL-separated: the first is read without a NUL ever reaching a String
+## (BP1: `char(0)` logged two "Unexpected NUL character" errors at every start).
+func test_the_first_argument_of_a_cmdline_file_is_the_bytes_before_the_first_nul() -> void:
+	var path := "user://bp1_cmdline"
+	var cases: Dictionary[String, PackedByteArray] = {
+		"godot": "godot".to_utf8_buffer() + PackedByteArray([0]) + "--path".to_utf8_buffer() + PackedByteArray([0]),
+		"Airsoft Next": "Airsoft Next".to_utf8_buffer(),
+		"": PackedByteArray([0]) + "after".to_utf8_buffer(),
+	}
+	for want: String in cases:
+		var f := FileAccess.open(path, FileAccess.WRITE)
+		f.store_buffer(cases[want])
+		f.close()
+		assert_eq(ProcessCheck._first_arg(path), want)
+	DirAccess.remove_absolute(path)
+	if OS.get_name() == "Linux":
+		var own := ProcessCheck._first_arg("/proc/%d/cmdline" % OS.get_process_id())
+		assert_true(own != "" and not own.contains("--"), "this process's own: the program it was started by, alone")
+
+
+
+## Every error line the engine logs while it is added (OS.add_logger).
+class ErrorLines:
+	extends Logger
+	var lines: PackedStringArray = []
+
+	func _log_error(_function: String, _file: String, _line: int, code: String, rationale: String,
+			_editor_notify: bool, _error_type: int, _script_backtraces: Array[ScriptBacktrace]) -> void:
+		lines.append(code + " " + rationale)
+
+	func _log_message(message: String, error: bool) -> void:
+		if error:
+			lines.append(message)
+
+
+func test_compiling_the_process_check_logs_no_error() -> void:
+	# a fresh compile, as at every start, logs nothing (BP1: two "Unexpected NUL character" lines did)
+	var errors := ErrorLines.new()
+	OS.add_logger(errors)
+	var fresh: Resource = ResourceLoader.load("res://game/core/process_check.gd", "", ResourceLoader.CACHE_MODE_IGNORE)
+	OS.remove_logger(errors)
+	assert_not_null(fresh)
+	assert_eq(errors.lines, PackedStringArray())

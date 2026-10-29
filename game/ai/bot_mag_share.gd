@@ -20,9 +20,8 @@ class_name BotMagShare
 ## The loadout slot of a bot's primary, the replica it fights with (BotBrain switches to it).
 const PRIMARY := 0
 
-## The spare a toss would take, and a ray's hit (scratch for can_toss_to and _up_to; bots think in turn).
+## The spare a toss would take (scratch for can_toss_to; bots think in turn).
 static var _pick: MagShare.SparePick = MagShare.SparePick.new()
-static var _hit: RayHit = RayHit.new()
 
 
 ## Before the bots think (BotController.think; `sharing`: the round live and not practice): each job that ended is let
@@ -169,11 +168,11 @@ static func _anyone_to_ask(me: Character, w: BotWorld) -> bool:
 	return false
 
 
-## How close a walk to the teammate in a hand-off stops (m): mag_walk_up_to while nothing of the level is between a toss
-## from `thrower` and `catcher`, else right up to them (0), so a wall between doesn't stop it on its far side.
+## How close a walk to the teammate in a hand-off stops (m): mag_walk_up_to while the toss's own line from `thrower` to
+## `catcher` is clear (MagShare.toss_line_clear), else right up to them (0), so nothing between stops it where it can't
+## toss.
 static func _up_to(thrower: Character, catcher: Character, w: BotWorld) -> float:
-	var rules := w.mag_share
-	return 0.0 if w.query.ray(rules.throw_point(thrower), rules.catch_point(catcher), _hit) else w.cfg.mag_walk_up_to
+	return w.cfg.mag_walk_up_to if w.mag_share.toss_line_clear(thrower, catcher) else 0.0
 
 
 ## Walks to `goal` (which may move) until within `arrive`. Returns whether it walks.
