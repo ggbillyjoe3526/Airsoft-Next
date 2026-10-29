@@ -7,8 +7,9 @@ extends Control
 ## always there, each of its switches off until you turn it on (owner, 2026-10-29; docs/DECISIONS.md › Content
 ## tags and dev content). Opened from the title screen and the pause menu; works while the tree is paused. Every change
 ## is applied at once through SettingsApply and saved: a slider a moment after it stops moving, anything else straight
-## away, and the last change always on close. Esc or Back closes it. While it is open, keys the controls don't use stop
-## here, so none reaches play.
+## away, and the last change always on close. Back closes it, and Esc does too when `esc_closes` (the pause menu's: in a
+## match Esc stays the pause menu's; in the menus Esc asks QUIT GAME?, owner 2026-10-29). While it is open, keys the
+## controls don't use stop here, so none reaches play.
 
 ## The screen closed.
 signal closed
@@ -40,6 +41,8 @@ const DEV_CRASH := "Dev: Settings › Dev › Crash the game now"
 var settings: Settings = null
 ## Where it saves (a test points this at a temporary file).
 var save_path: String = Settings.PATH
+## Whether Esc closes the screen (the pause menu's settings); off in the menus, where Esc asks QUIT GAME? instead.
+var esc_closes: bool = false
 ## The match's End the round now, set when opened from the pause menu (returns false when no round is live); empty
 ## from the title screen.
 var end_round: Callable = Callable()
@@ -129,9 +132,12 @@ func _ready() -> void:
 	_note = Label.new()
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_note)
+	# BACK is a small button at the bottom left, as wide as its words (owner, 2026-10-29)
 	_back = Button.new()
+	_back.name = "Back"
 	_back.text = tr("SETTINGS_BACK").to_upper()
 	_back.pressed.connect(close)
+	ButtonWidth.group([_back])
 	box.add_child(_back)
 	_timer = Timer.new()
 	_timer.one_shot = true
@@ -181,7 +187,8 @@ func close() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if is_visible_in_tree() and not _keys.capturing() and event.is_action_pressed(&"ui_cancel") and not event.is_echo():
+	if esc_closes and is_visible_in_tree() and not _keys.capturing() and event.is_action_pressed(&"ui_cancel") \
+			and not event.is_echo():
 		close()
 		get_viewport().set_input_as_handled()
 
@@ -246,8 +253,8 @@ func _build_controls() -> void:
 	page.add_child(_keys)
 	var reset := Button.new()
 	reset.text = tr("SETTINGS_KEYS_RESET")
-	reset.custom_minimum_size = Vector2(BOX_WIDTH * 2.0, 0.0)
 	reset.pressed.connect(_keys.reset_all)
+	ButtonWidth.group([reset])
 	page.add_child(reset)
 	add_section(page, tr("SETTINGS_ORDERS"))
 	add_help(page, "SETTINGS_ORDERS_HELP")
@@ -421,7 +428,10 @@ func _build_dev() -> void:
 	_confirm_level.confirmed.connect(_on_reset_level)
 	add_child(_confirm_level)
 	reset_level.pressed.connect(_confirm_level.popup_centered)
-	_build_dev_checks(page)
+	# the Actions' buttons are one group
+	var actions: Array[Button] = [_end_round, reset_level]
+	actions.append_array(_build_dev_checks(page))
+	ButtonWidth.group(actions)
 
 
 ## Dev › Time of day (WL3): the map's own light, or Day or Night on any map, from the next match.
@@ -441,8 +451,8 @@ func time_of_day_choice() -> MenuChoice:
 	return _time_of_day
 
 
-## Dev › Actions' checks of the crash screen and the pause menu's error line (SV6).
-func _build_dev_checks(page: VBoxContainer) -> void:
+## Dev › Actions' checks of the crash screen and the pause menu's error line (SV6); the two buttons.
+func _build_dev_checks(page: VBoxContainer) -> Array[Button]:
 	var error_row := add_row(page, "DEV_TEST_ERROR")
 	var error := Button.new()
 	error.name = "LogTestError"
@@ -463,6 +473,7 @@ func _build_dev_checks(page: VBoxContainer) -> void:
 	_confirm_crash.confirmed.connect(_on_crash)
 	add_child(_confirm_crash)
 	crash.pressed.connect(_ask_crash)
+	return [error, crash]
 
 
 func _on_dev_switch(on: bool, field: StringName) -> void:
@@ -629,24 +640,20 @@ func add_help(page: Control, key: String) -> void:
 	page.add_child(help)
 
 
-## A label and a switch whose text says its state (`on_key` or `off_key`).
+## A label and a switch whose text says its state (`on_key` or `off_key`). The switch keeps one size whatever its state
+## (MenuSwitch), so pressing it moves nothing beside it.
 func add_check_row(page: Control, label_key: String, on_key: String, off_key: String,
 		width: float = ROW_LABEL_WIDTH) -> CheckButton:
 	var row := add_row(page, label_key, width)
-	var check := CheckButton.new()
-	check.set_meta(&"on", tr(on_key))
-	check.set_meta(&"off", tr(off_key))
-	check.toggled.connect(_show_check.bind(check))
+	var check := MenuSwitch.new(tr(on_key), tr(off_key))
 	row.add_child(check)
-	_show_check(false, check)
 	return check
-
-
-func _show_check(on: bool, check: CheckButton) -> void:
-	check.text = check.get_meta(&"on" if on else &"off") as String
 
 
 ## Moves a switch without sending a change, and its text with it.
 func set_check(check: CheckButton, on: bool) -> void:
-	check.set_pressed_no_signal(on)
-	_show_check(on, check)
+	var switch := check as MenuSwitch
+	if switch != null:
+		switch.put(on)
+	else:
+		check.set_pressed_no_signal(on)
