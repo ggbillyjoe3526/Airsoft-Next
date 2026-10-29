@@ -43,13 +43,14 @@ const MIN_NIGHT_HC_GAP := 15.0
 var play: PlayTuning = PlayTuning.load_default()
 var woodland: MapData = null
 var depot: MapData = null
-var neon: MapData = null
+## The test field offering both Day and Night (TowerBlock), with its own night overrides.
+var tower: MapData = null
 
 
 func before_all() -> void:
 	woodland = MapData.load_map("woodland", play.map_style, 5)
 	depot = MapData.load_map("depot", play.map_style, 3)
-	neon = MapData.load_map("neonHeights", play.map_style, 4)
+	tower = TowerBlock.load_map(play.map_style, 4)
 
 
 # --- The night preset ---
@@ -85,9 +86,9 @@ func test_woodland_takes_its_overrides_and_turns_the_moon_toward_the_knoll() -> 
 	assert_eq(LightingConfig.for_map(play.lighting, n, depot, LightingConfig.NIGHT), n, "Depot: the preset as it is")
 	var day := LightingConfig.for_map(play.lighting, n, woodland, LightingConfig.DAY)
 	assert_eq(day, play.lighting, "by day Woodland's sun keeps its heading: only the moon turns")
-	var neon_night := LightingConfig.for_map(play.lighting, n, neon, LightingConfig.NIGHT)
-	assert_eq(neon_night.stars, 180, "Neon Heights' fewer stars")
-	assert_eq(neon_night.sky_horizon, Color.hex(0x3329_5aff), "and its horizon")
+	var tower_night := LightingConfig.for_map(play.lighting, n, tower, LightingConfig.NIGHT)
+	assert_eq(tower_night.stars, 180, "a map's fewer stars")
+	assert_eq(tower_night.sky_horizon, Color.hex(0x3329_5aff), "and its horizon")
 
 
 func test_every_quality_preset_draws_the_stars_moon_and_haze() -> void:
@@ -119,11 +120,13 @@ func test_mapdata_reads_night_lighting_and_lights() -> void:
 		kinds.append(l.kind)
 	assert_eq(kinds.count(&"fire"), 2, "the camps' fires")
 	assert_eq(kinds.count(&"lantern"), 5, "the fort's and the cabin's lanterns")
-	assert_eq(neon.lighting_presets, [LightingConfig.NIGHT, LightingConfig.DAY] as Array[StringName])
-	assert_true(neon.offers_choice())
+	assert_eq(tower.lighting_presets, [LightingConfig.NIGHT, LightingConfig.DAY] as Array[StringName])
+	assert_true(tower.offers_choice())
+	assert_false(woodland.offers_choice() or depot.offers_choice(), "no shipped map offers both")
 	var day_only: Array[StringName] = [LightingConfig.DAY]
 	assert_eq([depot.night, depot.lighting_presets, depot.lights.size()], [false, day_only, 0])
-	assert_eq(MapData.presets_in("neonHeights"), neon.lighting_presets, "read without building the map")
+	assert_eq(MapData.presets_in("woodland"), woodland.lighting_presets, "read without building the map")
+	assert_eq(MapData.presets_in("neonHeights"), [&"day"] as Array[StringName], "a map taken out: day, no error")
 	var bad := MapData.parse(JSON.stringify({"blocks": [], "lighting": {"presets": ["dusk"]}, "lights": [
 			{"position": {"x": 0, "y": 1, "z": 0}, "radius": 0, "colour": 1}, {"radius": 2, "colour": 1},
 			{"position": {"x": 0, "y": 1, "z": 0}, "radius": 2, "colour": 255, "kind": "torch"}]}), play.map_style, 1)
@@ -139,15 +142,15 @@ func test_the_preset_played_is_the_maps_the_picks_or_devs() -> void:
 	assert_eq(depot.preset_played(&""), LightingConfig.DAY)
 	assert_eq(depot.preset_played(LightingConfig.NIGHT), LightingConfig.DAY, "Depot by night is Dev only")
 	assert_eq(depot.preset_played(&"", LightingConfig.NIGHT), LightingConfig.NIGHT)
-	assert_eq(neon.preset_played(&""), LightingConfig.NIGHT, "Neon Heights: its first")
-	assert_eq(neon.preset_played(LightingConfig.DAY), LightingConfig.DAY, "or the Match page's Day")
-	assert_eq(neon.preset_played(LightingConfig.DAY, LightingConfig.NIGHT), LightingConfig.NIGHT, "Dev wins")
+	assert_eq(tower.preset_played(&""), LightingConfig.NIGHT, "a map offering both: its first")
+	assert_eq(tower.preset_played(LightingConfig.DAY), LightingConfig.DAY, "or the Match page's Day")
+	assert_eq(tower.preset_played(LightingConfig.DAY, LightingConfig.NIGHT), LightingConfig.NIGHT, "Dev wins")
 
 
 func test_one_night_flag_drives_every_night_system() -> void:
 	var teams := play.teams
 	for c: Array in [[woodland, &"", &""], [woodland, &"", LightingConfig.DAY], [depot, &"", &""],
-			[depot, &"", LightingConfig.NIGHT], [neon, LightingConfig.DAY, &""], [neon, &"", &""]]:
+			[depot, &"", LightingConfig.NIGHT], [tower, LightingConfig.DAY, &""], [tower, &"", &""]]:
 		var m: MapData = c[0]
 		var light := PlaySession.lighting_for(m, play, c[1], c[2])
 		var night := light.night
@@ -363,9 +366,11 @@ func test_the_match_page_offers_day_or_night_only_where_a_map_offers_both() -> v
 		picks.map_id = id
 		box.show_tuning(SimTuning.load_default())
 		assert_false(box.time_of_day_visible(), "%s offers no choice" % id)
-	picks.map_id = "neonHeights"
+	# No shipped map offers both since Neon Heights went: the test field's presets, as the box would read them.
+	box._presets["tower"] = tower.lighting_presets
+	picks.map_id = "tower"
 	box.show_tuning(SimTuning.load_default())
-	assert_true(box.time_of_day_visible(), "Neon Heights offers both")
+	assert_true(box.time_of_day_visible(), "a map offering both")
 	assert_eq(box.time_of_day_choice().selected(), LightingConfig.PRESETS.find(LightingConfig.NIGHT), "its first lit")
 	box.time_of_day_choice().button(LightingConfig.PRESETS.find(LightingConfig.DAY)).pressed.emit()
 	assert_eq(picks.lighting, LightingConfig.DAY, "the pick goes into the MatchPicks")
@@ -378,14 +383,12 @@ func test_the_match_page_offers_day_or_night_only_where_a_map_offers_both() -> v
 
 func _night_presets() -> Array[LightingConfig]:
 	return [play.night_lighting, LightingConfig.for_map(play.lighting, play.night_lighting, woodland,
-			LightingConfig.NIGHT), LightingConfig.for_map(play.lighting, play.night_lighting, neon, LightingConfig.NIGHT)]
+			LightingConfig.NIGHT)]
 
 
-## The base night (Depot by Dev), Woodland's or Neon Heights' (its cooler fill), by name.
+## The base night (Depot by Dev) or Woodland's, by name.
 func _name(preset: LightingConfig) -> String:
-	if preset == play.night_lighting:
-		return "night"
-	return "Woodland's night" if preset.sun_energy != play.night_lighting.sun_energy else "Neon Heights' night"
+	return "night" if preset == play.night_lighting else "Woodland's night"
 
 
 ## The night ground: Woodland's grass, leaf litter and earth, and Depot's floor.

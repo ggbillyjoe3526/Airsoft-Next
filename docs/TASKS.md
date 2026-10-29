@@ -23,7 +23,7 @@ acceptance:
   3. Need a mag, Mag coming and Thanks for the mag are called through CO1's director (Thanks only after a catch with
      BBs in it); Bot intentions shows the hand-off.
   4. Settings › Dev › Bots run low on BBs (off): 8 s into each round, one bot a team in turn is put on its last
-     magazine. With it on, a bot put low on Depot, Woodland and Neon Heights gets a magazine within 10 s on the guard
+     magazine. With it on, a bot put low on Depot and Woodland gets a magazine within 10 s on the guard
      seeds (the record gives the times and the givers' walks).
   5. The browser's `magShare.test.ts` (ai) and `magShareRules.test.ts` cases pass in GUT; the match guards still pass;
      KNOWN_ISSUES' callouts, pings and magazine sharing row goes.

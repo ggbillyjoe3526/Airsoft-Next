@@ -1,5 +1,5 @@
 ### Match screen with map cards
-- The Match screen replaces the map list: pick a map from picture cards. Depot is there, and with Dev content on, Neon Heights too.
+- The Match screen replaces the map list: pick a map from picture cards. Depot and Woodland are there.
 - Woodland and the practice range are greyed out for now, and so are Attack / Defend and the other bot levels.
 - Pick your team, ALPHA or BETA, and you really play as the team you pick, at its end.
 - The rules show as chips: 3 v 3, first to 5, round time, ends swap and ricochets.

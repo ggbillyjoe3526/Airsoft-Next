@@ -8,4 +8,4 @@
 - By day the sky has cumulus clouds drifting over a soft haze.
 - The practice range in Depot gets the same look, with its layout unchanged.
 - Cover and paths are as before, and Low keeps the look, dropping only the fine surface relief.
-- Woodland and Neon Heights look the same as before. At night only the new surfaces change.
+- Woodland looks the same as before. At night only the new surfaces change.

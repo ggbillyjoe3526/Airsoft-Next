@@ -4,7 +4,7 @@
 
 Numbers are never typed into a page: a page holds a marker line such as `<!-- wiki:replicas -->` and the build puts a
 table there, read from the game's own data (data/*.md, the map files, the key bindings, the text file). Patch-Notes is
-written from changelog.d/ and CHANGELOG.md. Dev content (dev maps and gear, night play) is named only on the pages in
+written from changelog.d/ and CHANGELOG.md. Dev content (dev maps and gear) is named only on the pages in
 DEV_PAGES or under an "In development" heading, and the hidden Easter egg nowhere (docs/DECISIONS.md).
 
 Usage:
@@ -31,9 +31,9 @@ SKIP = {"README.md", ".gdignore"}
 GENERATED_PAGES = {"Patch-Notes"}
 # Pages that may name dev content anywhere: what is coming, and the developers' page that explains the Dev switch.
 DEV_PAGES = {"Roadmap", "Development"}
-# Dev content the data tables don't tag: no public map is played at night yet, and glowing BBs and the night-only
-# Customise rows only show there. Data-tagged dev maps and pool items are added to this list at run time.
-EXTRA_DEV_TERMS = ["dev content", "night", "Glowing BBs"]
+# Dev content the data tables don't tag (night play and glowing BBs went public with Woodland, owner 2026-10-29).
+# Data-tagged dev maps and pool items are added to this list at run time.
+EXTRA_DEV_TERMS = ["dev content"]
 # Named nowhere, not even as dev content: robots are a hidden Dev-only Easter egg (DECISIONS, owner 2026-10-24).
 HIDDEN_RE = re.compile(r"robot", re.I)
 # Key-binding actions that belong to a pool item: listed only while the item is public.
@@ -282,6 +282,7 @@ PART_SECTIONS = {
     "magazines": ("## Magazines", "Magazines"),
     "barrels": ("## Barrels", "Barrels"),
     "muzzle": ("## Muzzle parts", "Muzzle parts"),
+    "lights": ("## Lights", "Lights"),
 }
 
 

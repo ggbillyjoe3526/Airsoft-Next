@@ -1,7 +1,7 @@
 extends GutTest
 ## QA for DP4 (noisy props and loud ground), beyond test_noisy_props.gd: someone who is out never knocks, a teammate's
 ## knock is no news to its own side's bots, minimap or sound cues, a quiet time from a clock that is not this one's
-## never holds, a ring never reaches a bot on the shooter's team, and Neon Heights, Woodland and the range list their props.
+## never holds, a ring never reaches a bot on the shooter's team, and Woodland and the range list their props.
 
 const DT := 1.0 / 60.0
 const GAP := 0.04
@@ -226,19 +226,6 @@ func test_a_teammates_knock_gives_no_patch_and_no_cue_but_an_enemys_does() -> vo
 
 
 # --- The maps ---
-
-
-func test_neon_heights_lists_its_props_and_plays_on() -> void:
-	for id: String in ["neonHeights"]:
-		var runner := MatchRunner.new(self, id)
-		await wait_physics_frames(2)
-		assert_eq(runner.map.problems, [] as Array[String], "%s loads" % id)
-		var props := PropNoise.new(tuning.noise, runner.level.query())
-		assert_gt(props.count(), 0, "%s has noisy props" % id)
-		var m := runner.play(7, 8.0)
-		assert_eq(m.rescued, 0, "%s: nobody leaves the level" % id)
-		gut.p("%s: %d props, %d knocks, %d rings in 8 s" % [id, props.count(), m.knocks, m.rings])
-		runner.free_level()
 
 
 func test_woodlands_fence_is_its_only_noisy_prop_and_the_ranges_five_are_listed() -> void:

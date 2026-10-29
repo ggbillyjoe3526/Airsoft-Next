@@ -123,7 +123,7 @@ func test_a_flat_map_with_a_wood_builds_what_needs_no_slope() -> void:
 
 
 func test_no_dressing_builds_no_view() -> void:
-	for id: String in ["depot", "neonHeights", "range"]:
+	for id: String in ["depot", "range"]:
 		var m := MapData.load_map(id, play.map_style, 1)
 		if not m.ok():
 			continue
@@ -174,7 +174,7 @@ func test_changing_the_preset_adds_and_removes_no_node() -> void:
 
 
 func test_the_air_is_drawn_by_night_only_on_every_map() -> void:
-	for id: String in ["depot", "neonHeights", "range", "woodland"]:
+	for id: String in ["depot", "range", "woodland"]:
 		var m := MapData.load_map(id, play.map_style, 1)
 		var day := WoodsView.build(m, play.woods, play.skyline, play.lighting, play.map_style)
 		if day != null:

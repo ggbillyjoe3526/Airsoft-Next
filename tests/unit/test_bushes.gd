@@ -420,7 +420,7 @@ func test_woodland_reads_its_bushes_and_hands_them_to_the_simulation() -> void:
 	assert_eq(map.foliage.size(), 70, "the browser's 70 bushes")
 	for i in map.foliage.size():
 		assert_between(map.foliage.heights[i], 0.9, 1.26, "small and decorative (MS1)")
-	for id: String in ["depot", "neonHeights", "range"]:
+	for id: String in ["depot", "range"]:
 		assert_true(MapData.load_map(id, MapStyle.new(), t.rounds.team_size).foliage.is_empty(), id + " has none")
 
 

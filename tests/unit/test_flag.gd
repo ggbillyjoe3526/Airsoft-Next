@@ -237,7 +237,7 @@ func test_a_wipe_out_still_decides_the_round_and_elimination_never_works_the_fla
 
 
 func test_every_map_has_its_pole_by_end_1() -> void:
-	for id: String in ["depot", "neonHeights", "woodland"]:
+	for id: String in ["depot", "woodland"]:
 		var m := MapData.load_map(id, MapStyle.new(), rules.team_size)
 		assert_true(m.has_pole, id)
 		var spawn := m.ends[1].spawns[0].position

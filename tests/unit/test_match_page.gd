@@ -1,8 +1,8 @@
 extends GutTest
 ## The Match page, the loading screen and the seed on the pause menu (MN2): the rules as chips read from the round
-## tuning, the modes a map hosts, the team you really play, Woodland (dev) listed and picked like Neon Heights, a map
-## that can't load greyed, the staged build behind the loading screen, and the picks kept across the menus being freed
-## for a match.
+## tuning, the modes a map hosts, the team you really play, every shipped map listed and a dev one tagged, a map
+## that can't load greyed, a pick of a map no longer listed (or gone, as Neon Heights) falling back, the staged build
+## behind the loading screen, and the picks kept across the menus being freed for a match.
 
 const MAIN := preload("res://game/main.tscn")
 ## Seconds a staged build may take (its nav grid builds on a worker thread, so frames are no measure).
@@ -67,7 +67,7 @@ func test_a_map_offers_only_its_own_modes() -> void:
 	var catalog := MapCatalog.shared()
 	var field := PackedStringArray(["elimination", "attack_defend", "practice"])
 	assert_eq(MatchOptions.modes_offered(catalog.find("depot")), field)
-	assert_eq(MatchOptions.modes_offered(catalog.find("neonHeights")), field)
+	assert_eq(MatchOptions.modes_offered(catalog.find("woodland")), field)
 	assert_eq(MatchOptions.modes_offered(catalog.find("range")), PackedStringArray(["practice"]))
 	assert_eq(MatchOptions.modes_offered(null), PackedStringArray())
 	assert_true(MatchOptions.mode_pickable("elimination", catalog.find("depot"), true))
@@ -134,15 +134,18 @@ func test_there_are_three_levels_and_a_new_player_starts_on_normal() -> void:
 
 # --- maps ---
 
-func test_dev_maps_are_tagged_and_woodland_plays_like_neon_heights() -> void:
-	var page := _page(true)
-	assert_eq(page.map_ids(), PackedStringArray(["depot", "woodland", "neonHeights", "range"]))
-	for id: String in ["woodland", "neonHeights"]:
-		assert_true(_labels(page.map_card(id)).has("DEV"), id)
-		assert_false(_labels(page.map_card(id)).has("LATER"), id)
+func test_every_shipped_map_is_public_and_a_dev_one_is_tagged() -> void:
+	var page := _page(false)
+	assert_eq(page.map_ids(), PackedStringArray(["depot", "woodland", "range"]), "listed with Dev content off")
+	for id: String in page.map_ids():
+		assert_false(_labels(page.map_card(id)).has("DEV"), id)
 		assert_false(page.is_unloadable(id), id)
-	assert_false(_labels(page.map_card("depot")).has("DEV"))
-	assert_false(page.is_unloadable("depot"))
+	var was := DevContent.use_map()
+	var dev := _page(true)
+	DevContent.restore_map(was)
+	assert_true(_labels(dev.map_card("woodland")).has("DEV"), "a dev map is tagged")
+	assert_false(_labels(dev.map_card("woodland")).has("LATER"))
+	assert_false(_labels(dev.map_card("depot")).has("DEV"))
 	for id: String in ["depot", "woodland"]:
 		assert_true(MatchOptions.map_problems(id, PlayTuning.load_default().map_style, 3).is_empty(), id)
 	page.map_card("woodland").pressed.emit()
@@ -158,7 +161,7 @@ func test_a_map_that_cant_load_is_greyed_with_later_and_listed_last() -> void:
 	assert_eq(page._catalog.find("depot").team_standard, 4)
 	page._offered = PackedStringArray()
 	page._list_maps()
-	assert_eq(page.map_ids(), PackedStringArray(["woodland", "neonHeights", "range", "depot"]))
+	assert_eq(page.map_ids(), PackedStringArray(["woodland", "range", "depot"]))
 	var depot := page.map_card("depot")
 	assert_true(page.is_unloadable("depot"))
 	assert_true(depot.disabled)
@@ -169,26 +172,34 @@ func test_a_map_that_cant_load_is_greyed_with_later_and_listed_last() -> void:
 
 
 func test_no_dev_maps_listed_with_dev_content_off() -> void:
+	var was := DevContent.use_map()
 	var page := _page(false)
+	DevContent.restore_map(was)
 	assert_eq(page.map_ids(), PackedStringArray(["depot", "range"]))
 	assert_true(page.map_card("depot").is_picked())
 
 
 func test_picking_a_map_lights_its_card_and_the_summary() -> void:
 	var page := _page(true)
-	page.map_card("neonHeights").pressed.emit()
-	assert_eq(page.picks.map_id, "neonHeights")
-	assert_true(page.map_card("neonHeights").is_picked())
+	page.map_card("woodland").pressed.emit()
+	assert_eq(page.picks.map_id, "woodland")
+	assert_true(page.map_card("woodland").is_picked())
 	assert_false(page.map_card("depot").is_picked())
-	assert_true(page.summary_text().begins_with("Neon Heights · "))
+	assert_true(page.summary_text().begins_with("Woodland · "))
 
 
 func test_a_picked_map_that_is_no_longer_listed_falls_back_to_a_playable_one() -> void:
+	var was := DevContent.use_map()
 	var picks := MatchPicks.new()
-	picks.map_id = "woodland" # dev content is off: not listed
+	picks.map_id = "woodland" # a dev map, dev content off: not listed
 	var page := MatchPage.new(picks, Settings.new())
 	add_child_autofree(page)
+	DevContent.restore_map(was)
 	assert_eq(picks.map_id, "depot")
+	var gone := MatchPicks.new()
+	gone.map_id = "neonHeights" # a map taken out of the game (2026-10-29)
+	add_child_autofree(MatchPage.new(gone, Settings.new()))
+	assert_eq(gone.map_id, "depot", "a map no longer in the game falls back to Depot")
 
 
 # --- your team and the picks ---

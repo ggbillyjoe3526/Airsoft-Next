@@ -6,10 +6,10 @@ extends SceneTree
 ## optionally a filter, the levels (comma-separated, Normal's by default), the other levels' seed count (Normal's by
 ## default) and the modes ("elimination", "flag" or both comma-separated, both by default).
 
-## Depot, and Neon Heights and Woodland while they are dev (the range is not a match map). Each plays at the team size
-## the game gives it (MatchRunner.sized_for: Woodland 5v5) and at the time of day the runner gives it (Woodland at
-## night, its only preset; Depot and Neon Heights by day).
-const MAPS: Array[String] = ["depot", "neonHeights", "woodland"]
+## Depot and Woodland (the range is not a match map). Each plays at the team size the game gives it
+## (MatchRunner.sized_for: Woodland 5v5) and at the time of day the runner gives it (Woodland at night, its only preset;
+## Depot by day).
+const MAPS: Array[String] = ["depot", "woodland"]
 ## Match time a match may take (s), as the guards allow.
 const MAX_MATCH_SECONDS := 30.0 * 60.0
 

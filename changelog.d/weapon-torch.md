@@ -1,4 +1,4 @@
-### Weapon torch (dev content)
+### Weapon torch
 - Customise has a Light slot: fit the Weapon Torch to any replica. It's kept with your loadout, and only fitted on a field played at night.
 - T switches it on and off with a click (rebind it under Settings › Controls › Keys). It goes out when you holster, switch to a replica without one, are hit, and at the start of each round.
 - On Medium and up your torch is a real light from the rail, with shadows on High and Ultra while sun shadows are on; on Low it is a soft haze.

@@ -168,7 +168,7 @@ var mode: RoundState.Mode = RoundState.Mode.ELIMINATION
 ## bushes, WL5); none by default.
 var each_tick: Callable = Callable()
 ## Played at night (WL6): the bots see by the map's NightField, built once each match. On by default for a map that
-## offers no day (Woodland); on a map that offers both (Neon Heights) a test sets it for the night (WL10's night guards).
+## offers no day (Woodland); on a map that offers both a test sets it for the night.
 var night: bool = false
 ## Who carries a weapon torch (WL7): by rule every bot at night and none by day (BY_RULE, the game's), nobody, or every
 ## bot even by day (ALWAYS: a day match with torches fitted must play exactly as one without).
@@ -218,7 +218,7 @@ func _init(parent: Node, map_id: String, sim_tuning: SimTuning = null, bot_confi
 
 ## The round tuning a match on `map_id` plays in the guards and the balance report: `base` (the loaded tuning by
 ## default) where the map offers its team size, else a copy at the map's standard size (data/maps.md, as
-## MapCatalog.Entry.team_size_for picks for the game): Depot and Neon Heights at 3, Woodland at 5.
+## MapCatalog.Entry.team_size_for picks for the game): Depot at 3, Woodland at 5.
 static func sized_for(map_id: String, base: SimTuning = null) -> SimTuning:
 	var t := base if base != null else SimTuning.load_default()
 	var entry := MapCatalog.shared().find(map_id)
@@ -279,9 +279,8 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 					kit.bb_weights))
 		commands.append(PlayerCommand.new())
 	if lights == Lights.ALWAYS or (lights == Lights.BY_RULE and night):
-		# A night map is dev content (Woodland): its rules offer the dev torch, as a match there does.
+		# Every bot carries the torch at night, as a match there does.
 		var light_rules := LoadoutRules.standard()
-		light_rules.dev_content = true
 		var light := BotKits.night_light(light_rules)
 		for c in state.characters:
 			c.armament.lights = BotKits.lights_for(c.armament.replicas, light_rules, light)

@@ -157,15 +157,15 @@ func _kit(primary: Loadout.Glow, secondary: Loadout.Glow) -> Kit:
 
 
 func test_at_night_always_and_off_glow_by_the_field_s_light() -> void:
-	# Neon Heights offers both lights; Woodland is night by default.
+	# Depot is day (a Night pick it doesn't offer changes nothing) and night only by Dev › Time of day.
 	var cases := [
-		["neonHeights", &"night", &"", Loadout.Glow.NIGHT, Loadout.Glow.ALWAYS, 3],
-		["neonHeights", &"day", &"", Loadout.Glow.NIGHT, Loadout.Glow.ALWAYS, 2],
-		["neonHeights", &"day", &"", Loadout.Glow.OFF, Loadout.Glow.OFF, 0],
-		["neonHeights", &"night", &"", Loadout.Glow.OFF, Loadout.Glow.OFF, 0],
-		["neonHeights", &"day", &"", Loadout.Glow.ALWAYS, Loadout.Glow.OFF, 1],
-		["neonHeights", &"", &"night", Loadout.Glow.NIGHT, Loadout.Glow.NIGHT, 3],
-		["neonHeights", &"", &"day", Loadout.Glow.NIGHT, Loadout.Glow.NIGHT, 0],
+		["depot", &"", &"night", Loadout.Glow.NIGHT, Loadout.Glow.ALWAYS, 3],
+		["depot", &"night", &"", Loadout.Glow.NIGHT, Loadout.Glow.ALWAYS, 2],
+		["depot", &"", &"", Loadout.Glow.OFF, Loadout.Glow.OFF, 0],
+		["depot", &"", &"night", Loadout.Glow.OFF, Loadout.Glow.OFF, 0],
+		["depot", &"", &"", Loadout.Glow.ALWAYS, Loadout.Glow.OFF, 1],
+		["depot", &"", &"night", Loadout.Glow.NIGHT, Loadout.Glow.NIGHT, 3],
+		["depot", &"", &"day", Loadout.Glow.NIGHT, Loadout.Glow.NIGHT, 0],
 	]
 	for c: Array in cases:
 		var session := _session(c[0], _kit(c[3], c[4]), c[1], c[2])

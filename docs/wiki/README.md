@@ -46,7 +46,7 @@ the prose round them doesn't, so read the page and fix any sentence the change m
 
 - Write for players: second person, plain words, the game's own names (AEG Rifle, Attack / Defend, Settings ›
   Graphics). Describe what is in the game today, never what an open pull request will add.
-- **Dev content** (dev-tagged maps and gear, night play, glowing BBs) is named only on `Roadmap` and `Development`,
+- **Dev content** (dev-tagged maps and gear) is named only on `Roadmap` and `Development`,
   or under an `In development` heading. When something goes public, move it onto its page.
 - **Robots are never mentioned** anywhere: they are a hidden Easter egg (`docs/DECISIONS.md`).
 - Link pages as `[Modes](Modes)` or `[Overtime](Modes#attack--defend)` (the anchor is the heading in lowercase,

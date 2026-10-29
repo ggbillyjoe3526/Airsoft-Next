@@ -6,7 +6,7 @@ extends RefCounted
 ## it, and a field the game refuses is on NOT_YET. Test-only (tests/ never ships). No number is raised to pass.
 ##
 ## Not ported yet, and where each lands: every block drawn inside its box (the first task that draws a block as more
-## than its box); look-only decor lies flat (map.lookOnly: Neon Heights' new look, 0.4);
+## than its box); look-only decor lies flat (map.lookOnly: no field has look-only decor yet);
 ## the perf gate (map.perf: no Godot perf matrix yet). Not ported at all: map.access and map.modes (the catalog's own
 ## rules, and an information line).
 
@@ -85,16 +85,7 @@ const EXCEPTIONS: Dictionary[String, Dictionary] = {
 ## The checks each field fails today, by field id: each {"check", "reason", "step"}, the step being the build step
 ## that clears it. A field's failing checks must be exactly these: a new failure fails, and so does one listed here
 ## that passes.
-const KNOWN_FAILING: Dictionary[String, Array] = {
-	"neonHeights": [
-		{
-			"check": BLOCKS,
-			"reason": "two floors' edges at 2.85 m stand inside the barrier at 11.30, 2.00, 7.62 (the browser's M55 "
-					+ "exception): cutting them changes the nav grid and how the field plays",
-			"step": "0.4 Maps Update (Neon Heights' overlapping blocks, before it goes public)",
-		},
-	],
-}
+const KNOWN_FAILING: Dictionary[String, Array] = {}
 
 ## Fields the game refuses today, by field id: each {"reason", "step"}, the step that makes the file load.
 const NOT_YET: Dictionary[String, Dictionary] = {}

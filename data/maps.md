@@ -3,8 +3,7 @@
 Every map the game can load (`data/maps/<id>.json`) has one row here: its name as shown, whether it is public or still
 dev content, and a line about it. A `dev` map is listed only while the Dev tab's Dev content switch is on, and a match
 on one stays out of the records (`docs/DECISIONS.md` › Content tags and dev content). Making a map public means
-changing its Tag to `public`; Woodland and Neon Heights stay dev until the owner has playtested them and makes each
-public himself.
+changing its Tag to `public`; every map is public now (owner, 2026-10-29), so the switch hides none.
 
 **The game reads this file** when it starts (`game/map/map_catalog.gd`). A row it can't read is left out with a
 warning; a map with no row is not listed.
@@ -22,6 +21,5 @@ warning; a map with no row is not listed.
 | Id | Name | Kind | Tag | Min | Standard | Max | Blurb |
 |---|---|---|---|---|---|---|---|
 | depot | Depot | field | public | 1 | 3 | 3 | An abandoned warehouse yard. |
-| woodland | Woodland | field | dev | 5 | 5 | 6 | A wide wood with a hill, at night. |
-| neonHeights | Neon Heights | field | dev | 1 | 4 | 5 | A neon city block on three floors. |
+| woodland | Woodland | field | public | 5 | 5 | 6 | A wide wood with a hill, at night. |
 | range | Range | range | public | 1 | 1 | 1 | Targets 10 to 60 m. No bots, no score. |

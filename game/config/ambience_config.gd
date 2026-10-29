@@ -1,13 +1,13 @@
 class_name AmbienceConfig
 extends Resource
 ## Every field's sound by day and by night (the browser game's config/audio.ts AMBIENCES, M33j and M86): for each
-## ambience a set of beds (loops under everything) and calls (a bird, a dog, a horn now and then round the listener).
+## ambience a set of beds (loops under everything) and calls (a bird, a dog, an owl now and then round the listener).
 ## A map names its ambience (MapData.ambience); the lighting preset's night flag picks the night set, never a map's
 ## name (owner, 2026-10-05). The browser's per-field echo is left out (the sound pass plan's question 6). Tested: no
 ## call louder than a bird and no bed louder than the yard's (DECISIONS 2026-10-05).
 
 ## The ambiences a map may name; a map naming none, or one not listed, plays DEFAULT_ID.
-const IDS: Array[StringName] = [&"yard", &"woods", &"city"]
+const IDS: Array[StringName] = [&"yard", &"woods"]
 const DEFAULT_ID := &"yard"
 
 ## Each ambience's set by day and by night, keyed by its id in IDS.

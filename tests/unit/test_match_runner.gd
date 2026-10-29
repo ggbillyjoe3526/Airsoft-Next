@@ -96,7 +96,7 @@ func test_a_won_match_records_winner_first_hit_and_every_character_moving() -> v
 
 
 func test_height_bounds_cover_the_spawns_on_each_map() -> void:
-	for map_id: String in ["depot", "neonHeights"]:
+	for map_id: String in ["depot"]:
 		var r := await _runner(map_id)
 		assert_true(is_finite(r.lowest_floor), "%s has a floor" % map_id)
 		assert_gt(r.highest_top, r.lowest_floor, map_id)
@@ -108,7 +108,7 @@ func test_height_bounds_cover_the_spawns_on_each_map() -> void:
 
 
 func test_lowest_floor_takes_a_ramps_foot_not_its_top() -> void:
-	var r := await _runner("neonHeights")
+	var r := await _runner("depot")
 	var ramp_foot := INF
 	var ramp_top := -INF
 	for b: MapData.Block in r.map.blocks:

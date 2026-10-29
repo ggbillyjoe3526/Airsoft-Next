@@ -146,9 +146,9 @@ func test_teammates_are_dots_grey_once_hit_and_enemies_are_never_dots() -> void:
 
 
 func test_a_teammate_on_another_storey_is_an_arrow_up_or_down() -> void:
-	var neon := MapData.load_map("neonHeights", MapStyle.new(), 1)
-	assert_true(neon.ok(), "the map loads")
-	_panel(neon, "Neon Heights")
+	var tower := TowerBlock.load_map(MapStyle.new(), 1)
+	assert_true(tower.ok(), "the map loads")
+	_panel(tower, "Tower Block")
 	you.position = Vector3(8.5, 6.0, 7.3)
 	you.prev_position = you.position
 	mate.position = Vector3(11.0, 0.0, -2.0)
@@ -167,7 +167,7 @@ func test_a_teammate_on_another_storey_is_an_arrow_up_or_down() -> void:
 	_follow()
 	assert_eq(view._layer, 0)
 	assert_eq(view._dot_arrows[1], 1, "above you now")
-	assert_eq(mm.area_text(), MapAreas.area_at(neon.areas, you.position))
+	assert_eq(mm.area_text(), MapAreas.area_at(tower.areas, you.position))
 	_patch(enemy, Vector3(3.0, 6.0, -4.0))
 	_follow()
 	assert_eq(view._patch_count, 0, "a patch heard on another storey is not on this drawing")

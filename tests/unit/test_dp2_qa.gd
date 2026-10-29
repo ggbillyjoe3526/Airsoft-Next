@@ -12,7 +12,6 @@ const SWITCHES := 12
 const BASE_HASHES: Dictionary[String, String] = {
 	"depot": "3c3d06c7d4c874e9",
 	"range": "b0e002855c8e8370",
-	"neonHeights": "b171a361a2cd74c2",
 }
 
 var play: PlayTuning = PlayTuning.load_default()
@@ -71,12 +70,12 @@ func _fake_map(file: String) -> MapData:
 func test_maps_without_a_bake_and_every_untiled_mesh_draw_as_the_base_did() -> void:
 	for id: String in BASE_HASHES:
 		var level := _level(id)
-		level.set_baked_light(true) # a no-op for Neon Heights and Woodland, a switch for the baked two
+		level.set_baked_light(true) # a switch for the baked two (Woodland's no-op below)
 		level.set_baked_light(false)
 		assert_eq(_mesh_hash(_greybox(level).mesh), BASE_HASHES[id], "%s off: the base's mesh" % id)
 		assert_eq(_greybox(level).cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_ON, id)
 		assert_eq(_greybox(level).get_child_count(), 0, "%s: no shadow caster child when off" % id)
-	for id: String in ["neonHeights", "woodland"]:
+	for id: String in ["woodland"]:
 		var level := _level(id)
 		var off := _mesh_hash(_greybox(level).mesh)
 		level.set_baked_light(true)

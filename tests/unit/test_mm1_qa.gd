@@ -1,24 +1,24 @@
 extends GutTest
-## QA for MM1: area_at on Neon Heights' storey boundaries and overlaps, odd positions, odd area entries, warning order,
-## and the nav-grid cell test's strength.
+## QA for MM1: area_at on storey boundaries and overlaps (the test field TowerBlock), odd positions, odd area entries,
+## warning order, and the nav-grid cell test's strength.
 
-var neon: MapData = null
+var tower: MapData = null
 
 
 func before_all() -> void:
-	neon = MapData.load_map("neonHeights", MapStyle.new(), SimTuning.load_default().rounds.team_size)
+	tower = TowerBlock.load_map(MapStyle.new(), SimTuning.load_default().rounds.team_size)
 
 
 func after_all() -> void:
-	neon = null
+	tower = null
 
 
 func _depot_json() -> Dictionary:
 	return JSON.parse_string(FileAccess.get_file_as_string(MapData.DIR + "depot.json"))
 
 
-func test_neon_heights_changes_area_exactly_at_each_floor_band_edge() -> void:
-	var at := func(y: float) -> String: return MapAreas.area_at(neon.areas, Vector3(10, y, 0))
+func test_the_area_changes_exactly_at_each_floor_band_edge() -> void:
+	var at := func(y: float) -> String: return MapAreas.area_at(tower.areas, Vector3(10, y, 0))
 	assert_eq(at.call(1.49), "Atrium")
 	assert_eq(at.call(1.5), "Tower Level 1")
 	assert_eq(at.call(4.49), "Tower Level 1")
@@ -28,7 +28,7 @@ func test_neon_heights_changes_area_exactly_at_each_floor_band_edge() -> void:
 
 
 func test_the_sky_bridge_wins_over_the_tower_where_they_overlap_and_ends_short_of_its_far_edge() -> void:
-	var bridge := func(x: float) -> String: return MapAreas.area_at(neon.areas, Vector3(x, 6.0, 7.0))
+	var bridge := func(x: float) -> String: return MapAreas.area_at(tower.areas, Vector3(x, 6.0, 7.0))
 	assert_eq(bridge.call(4.29), "Sky Bridge")
 	assert_eq(bridge.call(4.3), "Tower Level 2")
 	assert_eq(bridge.call(-3.5), "Sky Bridge")
@@ -36,13 +36,13 @@ func test_the_sky_bridge_wins_over_the_tower_where_they_overlap_and_ends_short_o
 
 
 func test_below_the_sky_bridge_is_the_avenue_not_the_bridge() -> void:
-	assert_eq(MapAreas.area_at(neon.areas, Vector3(0, 0, 7)), "Neon Avenue")
-	assert_eq(MapAreas.area_at(neon.areas, Vector3(0, 3.0, 7)), "Neon Avenue", "no first-floor band over the avenue")
+	assert_eq(MapAreas.area_at(tower.areas, Vector3(0, 0, 7)), "Avenue")
+	assert_eq(MapAreas.area_at(tower.areas, Vector3(0, 3.0, 7)), "Avenue", "no first-floor band over the avenue")
 
 
 func test_positions_beyond_the_map_and_infinite_ones_are_in_no_area() -> void:
 	for p: Vector3 in [Vector3(1e6, 0, 0), Vector3(0, 0, -1e6), Vector3(INF, 0, 0), Vector3(-INF, 0, 0), Vector3(0, 0, INF)]:
-		assert_eq(MapAreas.area_at(neon.areas, p), "", str(p))
+		assert_eq(MapAreas.area_at(tower.areas, p), "", str(p))
 
 
 func test_area_warnings_come_before_storey_warnings_and_the_range_still_loads() -> void:
@@ -92,7 +92,7 @@ func test_a_depot_without_areas_would_fail_the_cell_rule() -> void:
 
 func test_a_nan_position_is_in_no_area() -> void:
 	for p: Vector3 in [Vector3(10, NAN, 0), Vector3(NAN, 0, 0), Vector3(0, 0, NAN)]:
-		assert_eq(MapAreas.area_at(neon.areas, p), "", str(p))
+		assert_eq(MapAreas.area_at(tower.areas, p), "", str(p))
 
 
 func test_an_area_named_null_or_a_number_is_left_out() -> void:

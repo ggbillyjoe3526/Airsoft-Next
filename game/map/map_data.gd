@@ -131,7 +131,7 @@ var has_moon_over: bool = false
 var lighting_overrides: Dictionary[StringName, LightingConfig.Override] = {}
 ## Its pools of light (`lights`), drawn under a night preset, in the file's order.
 var lights: Array[Light] = []
-## The floor heights (m) of a map built in storeys, lowest first (Neon Heights' 0, 3 and 6); empty on a map of one.
+## The floor heights (m) of a map built in storeys, lowest first (such as 0, 3 and 6); empty on a map of one.
 var storeys: PackedFloat64Array = PackedFloat64Array()
 ## Why the file was refused; empty when it loaded.
 var problems: Array[String] = []
@@ -222,7 +222,10 @@ func offers_choice() -> bool:
 ## building the map (the Match page's Day / Night row).
 static func presets_in(map_id: String) -> Array[StringName]:
 	var m := MapData.new()
-	var root: Variant = JSON.parse_string(FileAccess.get_file_as_string(DIR + map_id + ".json"))
+	var text := FileAccess.get_file_as_string(DIR + map_id + ".json")
+	if text.is_empty():
+		return m.lighting_presets # no such file: a map taken out of the game, picked before the page falls back
+	var root: Variant = JSON.parse_string(text)
 	if root is Dictionary:
 		m._read_lighting((root as Dictionary).get("lighting"))
 	return m.lighting_presets

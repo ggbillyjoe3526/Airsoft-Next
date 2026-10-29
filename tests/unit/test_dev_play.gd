@@ -134,7 +134,9 @@ func test_end_the_round_from_the_pause_menu() -> void:
 
 func test_a_dev_map_counts_as_dev_content() -> void:
 	s.dev_enabled = false
-	await _play("neonHeights")
+	var was := DevContent.use_map("depot")
+	await _play("depot")
+	DevContent.restore_map(was)
 	assert_true(session.state.dev_content)
 	assert_true(session.state.off_record)
 	await wait_physics_frames(30)

@@ -114,17 +114,17 @@ func test_the_maps_day_beds_loop_on_ambience_and_no_map_plays_the_yard() -> void
 	assert_eq(none._beds[0].bus, SimAudio.BUS_AMBIENCE)
 	assert_eq(none._beds[0].stream.resource_path, "res://assets/audio/loops/yard.wav")
 	assert_true(none._beds[0].playing)
-	var city := MapData.new()
-	city.ambience = &"city"
-	var heights := _audio(city)
+	var woods := MapData.new()
+	woods.ambience = &"woods"
+	var wood := _audio(woods)
 	var loops: Array[String] = []
-	for v in heights._beds:
+	for v in wood._beds:
 		loops.append(v.stream.resource_path.get_file())
-	assert_eq(loops, ["traffic.wav", "drones.wav"], "the city by day")
+	assert_eq(loops, ["pines.wav"], "the woods by day")
 	var calls: Array[StringName] = []
-	for kind in heights._calls.calls:
+	for kind in wood._calls.calls:
 		calls.append(kind.cue)
-	assert_eq(calls, [&"ambience_chime", &"ambience_pigeon", &"ambience_horn"])
+	assert_eq(calls, [&"ambience_bird", &"ambience_creak"])
 
 
 func _audio(map: MapData) -> SimAudio:

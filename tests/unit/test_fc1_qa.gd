@@ -45,8 +45,8 @@ func test_the_checks_run_on_real_team_colours_and_the_games_own_style() -> void:
 	assert_eq(teams.size(), 8, "both sets, figures and HUD, Alpha and Beta")
 	assert_true(style.colours.has(&"crate"), "PlayTuning's style, the one play draws with")
 	assert_true(FieldStandard.allowed_clashes("depot").is_empty())
-	assert_eq(FieldStandard.known_failing("neonHeights"), PackedStringArray([FieldStandard.BLOCKS]))
 	assert_true(FieldStandard.known_failing("depot").is_empty())
+	assert_true(FieldStandard.known_failing("woodland").is_empty())
 
 
 func test_a_lifted_lane_point_the_flag_and_a_dead_zone_spot_each_fail_on_floor() -> void:
@@ -149,10 +149,16 @@ func test_an_overlap_on_one_axis_or_just_over_the_slack_fails_blocks() -> void:
 			"overlap in x and y but only touching in z is not a clash")
 
 
-func test_every_clash_neon_heights_has_passes_once_the_owner_lists_it() -> void:
-	var m := MapData.load_map("neonHeights", style, 1)
+func test_every_clash_a_field_has_passes_once_the_owner_lists_it() -> void:
+	var m := _depot()
+	var crates: Array[MapData.Block] = []
+	for b in m.blocks:
+		if b.kind == &"crate":
+			crates.append(b)
+	for i in 3:
+		crates[i].center = Vector3(100.0, 0.5, 100.0) # three crates in one another, clear of everything else
 	var found := FieldChecks.clashes(m)
-	assert_eq(found.size(), 2, "the two floors inside the barrier")
+	assert_eq(found.size(), 3, "each pair of the three")
 	var listed := FieldChecks.blocks(m, found)
 	assert_eq(listed.size(), 1, "no warning while the pairs are still there")
 	assert_eq(listed[0].status, FieldChecks.Status.PASS)

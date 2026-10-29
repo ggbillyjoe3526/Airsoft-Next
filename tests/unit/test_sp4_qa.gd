@@ -120,7 +120,7 @@ func test_a_rematch_times_the_calls_afresh_and_the_ticks_of_one_match_do_not() -
 ## Every shipped map's ambience loads: its beds loop on the Ambience bus, every call's cue has its variants, and a
 ## long stretch of play with a listener sounds each kind of call on the Ambience bus without a script error.
 func test_every_shipped_maps_ambience_loads_and_its_calls_sound() -> void:
-	for id: String in ["depot", "woodland", "neonHeights", "range"]:
+	for id: String in ["depot", "woodland", "range"]:
 		var map := MapData.load_map(id, MapStyle.new(), 1)
 		_sound(map)
 		var amb := cfg.ambiences.set_for(map.ambience, false)

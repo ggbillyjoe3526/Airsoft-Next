@@ -1,11 +1,11 @@
 extends GutTest
-## The Attack / Defend match guards (FG2; the browser game's depotMatch.flag.test.ts and
-## depotMatch.neonHeightsFlag.test.ts): whole bot-against-bot Attack / Defend matches over 16 seeds on each field at
-## Normal, checking what must never happen on any seed (as test_match_guards.gd does for Elimination: only the attackers
-## must leave their spawn, defenders hold by their pole) and that the pole matters: no round runs past the clock and the
-## longest overtime, few run out the clock, and flags go up and win rounds. Who wins is the balance report's (BR1).
-## Thresholds are the browser's, re-measured over these seeds (docs/records/FG2.md). Run by tools/match_guards.sh, a CI
-## job of its own beside the Elimination guards. Elimination's overtime flag is guarded here too (OV2; the browser's
+## The Attack / Defend match guards (FG2; the browser game's depotMatch.flag.test.ts): whole bot-against-bot Attack /
+## Defend matches over 16 seeds on Depot at Normal (Woodland's in test_woodland_guards.gd), checking what must never
+## happen on any seed (as test_match_guards.gd does for Elimination: only the attackers must leave their spawn,
+## defenders hold by their pole) and that the pole matters: no round runs past the clock and the longest overtime, few
+## run out the clock, and flags go up and win rounds. Who wins is the balance report's (BR1). Thresholds are the
+## browser's, re-measured over these seeds (docs/records/FG2.md). Run by tools/match_guards.sh, a CI job of its own
+## beside the Elimination guards. Elimination's overtime flag is guarded here too (OV2; the browser's
 ## depotMatch.overtime.test.ts): Depot with rounds cut short so most go to the flag, and the bots take it.
 
 ## Depot: rounds won by raising the flag over the 16 seeds, at least this many and this share of all rounds, and matches
@@ -27,11 +27,6 @@ func test_depot_attack_defend_plays_the_pole() -> void:
 	assert_gte(t[1], DEPOT_CAPTURES_MIN, "Depot: rounds are won by raising the flag")
 	assert_gt(float(t[1]) / maxf(t[0], 1.0), DEPOT_CAPTURE_SHARE_MIN, "Depot: the pole matters")
 	assert_gte(t[2], DEPOT_FLAGS_RAISED_MIN, "Depot: flags go up")
-
-
-func test_neon_heights_attack_defend_plays_the_pole() -> void:
-	var t: PackedInt32Array = await MatchGuard.attack_defend(self, "neonHeights")
-	assert_gt(t[1], 0, "Neon Heights: some rounds are won by raising the flag")
 
 
 func test_depot_bots_take_the_overtime_flag() -> void:

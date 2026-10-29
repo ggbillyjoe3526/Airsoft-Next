@@ -66,7 +66,7 @@ func _at_hold(s: Setup, b: Bot, mates: Array[Bot], lane: int, dir: int) -> Vecto
 
 func test_crossfire_spots_are_reachable_on_foot_from_the_hold_point_on_every_map() -> void:
 	var crossed := 0
-	for map_id: String in ["depot", "neonHeights", "woodland"]:
+	for map_id: String in ["depot", "woodland"]:
 		var s := _setup(map_id, &"hard")
 		var b := _bot(s, 3)
 		var mate := _bot(s, 4)

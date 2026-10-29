@@ -11,7 +11,7 @@ extends RefCounted
 ## Each is put on the walkable floor under it (or dropped), none near your end's spawns and none crowding another on its
 ## floor, never facing a wall, and crouched where low cover is right in front of it; then `layout` gives each its kind
 ## by why a bot is there. Pure: reads the map, its nav grid and its WorldQuery, and RangeConfig's field_ numbers; nothing
-## is random, so a map lays out the same targets every time. The browser's Extraction starts and city overlooks wait
+## is random, so a map lays out the same targets every time. The browser's Extraction starts and overlooks wait
 ## for those to be built here.
 
 ## Why a bot would be at a spot: a lane point it stops at, its team's start, a point on a lane's leg it walks along.

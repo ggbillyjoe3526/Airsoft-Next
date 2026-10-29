@@ -1,12 +1,12 @@
 extends GutTest
 ## The match guards (MG1; the browser game's depotMatch*.test.ts and depotMatchSupport.ts): whole bot-against-bot
-## Elimination matches over 16 seeds on each field at Normal, and 8 at Easy and Hard, checking only what must never
-## happen on any seed. Every match is won, few rounds run out the clock, every bot leaves its spawn each round and
-## isn't held up on its way, nobody falls through the floor, flies or leaves the level, and no bot knocks out a
-## teammate; on Depot, bot teammates told to follow a leader keep up with it (Follow me). Who wins is the balance
-## report's (BR1), never asserted here. Thresholds are the browser's, re-measured over these seeds
-## (docs/records/MG1.md); re-measure over all 16 before changing one.
-## Run by tools/match_guards.sh, a CI job of its own (about ten minutes).
+## Elimination matches over 16 seeds on Depot at Normal, and 8 at Easy and Hard (Woodland's in test_woodland_guards.gd),
+## checking only what must never happen on any seed. Every match is won, few rounds run out the clock, every bot leaves
+## its spawn each round and isn't held up on its way, nobody falls through the floor, flies or leaves the level, and no
+## bot knocks out a teammate; on Depot, bot teammates told to follow a leader keep up with it (Follow me). Who wins is
+## the balance report's (BR1), never asserted here. Thresholds are the browser's, re-measured over these seeds
+## (docs/records/MG1.md); re-measure over all 16 before changing one. Run by tools/match_guards.sh, a CI job of its own
+## (about ten minutes).
 
 ## Follow me on Depot (the browser's depotMatch.test.ts, M22): seeds 1 to FOLLOW_SEEDS of FOLLOW_SECONDS each, a leader
 ## bot giving it at each round start. Each seed judges more than FOLLOW_TICKS ticks, with more than FOLLOW_NEAR of them
@@ -25,18 +25,9 @@ func test_depot_matches_play_out_on_every_seed() -> void:
 	await MatchGuard.elimination(self, "depot")
 
 
-func test_neon_heights_matches_play_out_on_every_seed() -> void:
-	await MatchGuard.elimination(self, "neonHeights")
-
-
 func test_depot_matches_play_out_at_easy_and_hard() -> void:
 	for level: StringName in [&"easy", &"hard"]:
 		await MatchGuard.elimination(self, "depot", level, MatchGuard.LEVEL_SEEDS)
-
-
-func test_neon_heights_matches_play_out_at_easy_and_hard() -> void:
-	for level: StringName in [&"easy", &"hard"]:
-		await MatchGuard.elimination(self, "neonHeights", level, MatchGuard.LEVEL_SEEDS)
 
 
 func test_bot_teammates_follow_a_leader_round_depot_without_being_left_behind() -> void:

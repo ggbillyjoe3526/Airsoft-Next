@@ -52,9 +52,9 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
   Parts are trade-offs, never a damage upgrade.
 - **Friendly hits count (2026-09-30).** Custom matches can switch it off.
 - **Public in 0.1: Depot's modes, Easy to Hard, Woodland and Pro (owner, 2026-10-05).** Every public map, mode and
-  difficulty multiplies beta's work. Neon Heights stays dev until the Maps Update and Extraction until the Modes Update
-  (`docs/ROADMAP.md`). **Woodland is a Dev-only map (owner, 2026-10-24):** step 26 builds it in full, hidden behind
-  Dev content like Neon Heights and greybox through the Blender step, until the owner makes it public.
+  difficulty multiplies beta's work. Extraction stays dev until the Modes Update (`docs/ROADMAP.md`). Woodland, built
+  in full at step 26 as a Dev-only map (owner, 2026-10-24), is public since 2026-10-29 and stays greybox through the
+  Blender step; Neon Heights is cut (Maps and modes).
 - **Cut features (owner, 2026-10-05).** Supply weekends and dated events; the Tone mapping choice; tracer BBs as an
   option (glowing BBs do it); Bomb and Intel grab; Free-for-all and the overshooting rule; cosmetic gear as its own
   system; a separate progression plan.
@@ -70,10 +70,10 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
   Dev 2 redesigns Depot and Woodland and dresses them with CC0 assets; Blender work starts when he says, Depot's
   models first, then Woodland's. This replaces the step 28 above. 0.1 Dev 2 also brings basic smoke and flash
   bombs, thrown by bots too; the CO2 sound grenade, rigs and pouches and the rest stay in 0.2.
-- **The Blender step covers Depot, human figures and replicas only (owner, 2026-10-24).** Step 28 models Depot's
-  assets (with the range's, which lives in Depot; the tutorial was dropped on 2026-10-25), the human figures with
-  your first-person arms and hands, and the replicas, attachments and accessories. Woodland and Neon Heights stay
-  greybox while they are dev content, and robots (a Dev Easter egg) keep their placeholder.
+- **The Blender step covers Depot, human figures and replicas only (owner, 2026-10-24).** Step 28 models Depot's assets
+  (with the range's, which lives in Depot; the tutorial was dropped on 2026-10-25), the human figures with your
+  first-person arms and hands, and the replicas, attachments and accessories. Woodland stays greybox, and robots (a Dev
+  Easter egg) keep their placeholder.
 - **Deferred features are one step, then Blender (owner, 2026-10-24).** After Woodland, the overtime flag, the
   tutorial, pings, the magazine hand-off, bot callouts and adaptive difficulty are one step 27, in the order its plan
   sets; the owner's Blender work (step 28, formerly 32) starts once step 27 is done.
@@ -101,8 +101,8 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
 - **0.1 is the browser game's 0.1 as the owner's rulings define it (owner, 2026-10-18).** Depot (Elimination, Attack /
   Defend, custom matches), Easy to Hard and Pro, Woodland (night play, the weapon torch, glowing BBs, 5v5 / 6v6), the
   AEG Rifle, GBB Pistol and Cyber Pistol (level 10), loadout and attachments, levels and the Armory, squad orders,
-  settings, comfort and accessibility. Neon Heights waits for the Maps Update and Extraction for the Modes Update, as
-  ruled 2026-10-05. Dev 1 is the core slice: Depot, the AEG and GBB Pistol, bots, Elimination.
+  settings, comfort and accessibility. Extraction waits for the Modes Update, as ruled 2026-10-05; Neon Heights is cut
+  (2026-10-29). Dev 1 is the core slice: Depot, the AEG and GBB Pistol, bots, Elimination.
 
 ## Versions, releases and branches
 
@@ -208,14 +208,14 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   collision block, so trunks are straight posts. Sloping ground is one heightfield shared by physics, BB rays, nav and
   the mesh.
 - **Night is one lighting preset that every night map shares (2026-10-04).** Earth, wood and faces stay readable under
-  the game's AgX tone mapping, held by a night swatch test (2026-10-24, WL3); Neon Heights' neon stays emissive. Under
+  the game's AgX tone mapping, held by a night swatch test (2026-10-24, WL3). Under
   night Medium's shadow map follows the view. A bake keeps the day sun it was baked under in its hash, so night never
   marks it stale, and draws its sky share alone at night. Fires and lanterns are yellow-white, at least 20° of hue from
   every team colour; there is no night brightness setting (owner, 2026-10-24: the recommended defaults). As built
   (WL3): the playing preset's one night flag drives every night system; the night horizon is a grey-blue, since a
   saturated night blue reads as Alpha where the skyline fades into it; the real lights on the nearest pools follow the
   Mesh detail row (Low 0, Medium 2, High and Ultra 4) until a Graphics row of their own; a map's light of no kind keeps
-  its own colour (Neon Heights' neon), while fires and lanterns take the preset's.
+  its own colour, while fires and lanterns take the preset's.
 - **The first start picks a quality preset from the GPU name; only an automatic pick steps down, never a player's choice
   (2026-10-04).** Software rendering starts on Low. A step down happens between rounds and is never saved.
 - **The Blender models are the default everywhere (owner, 2026-10-16, Dev 6 playtest item 1; BD1).** Replicas, parts
@@ -247,17 +247,17 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **The skyline is one greybox mesh beyond the walls, on every map that lists it (2026-10-24: the recommended defaults;
   DP3).** A map's `dressing.skyline` pieces of the kinds built so far (shed, water tower, crane, containers, chimney,
   silo, power line, hill, watch tower, fuselage, mast) are drawn as one vertex-coloured mesh, faded toward the sky's
-  horizon by distance, casting no shadow, with no collider; a piece no eye over a lane point, spawn or raised floor
-  sees over the blocks is left out (MS1). Treelines join them in WL4; Neon Heights' towers wait for its
-  dressing. Site colours and greys only, no red (too near Beta's hue). Chimney smoke is drawn from Medium, read off
-  the mesh detail row rather than a row of its own. The models replace the greybox at step 28.
+  horizon by distance, casting no shadow, with no collider; a piece no eye over a lane point, spawn or raised floor sees
+  over the blocks is left out (MS1). Treelines join them in WL4. Site colours and greys only, no red (too near Beta's
+  hue). Chimney smoke is drawn from Medium, read off the mesh detail row rather than a row of its own. The models
+  replace the greybox at step 28.
 - **Depot wears a temporary site dress until the owner's models (owner, 2026-10-25: "Go ahead with the depot dressing";
   DD1).** Built as the concept pictures showed, by day only. Every stand-in is drawn on its block's very box, so cover,
   collision, the nav grid and the bake are the greybox's: the blocks keep their faces (and their bake) in one site
   shader (`SiteSurface`: a finish per kind, picked by shape, photo concrete and plywood from Poly Haven, CC0), and the
   details stand at most 1.5 cm proud (container frames, crate battens, caps, coping, the skip's rim; sandbags bulge
   3 cm round a box drawn 8 cm inside them). A map opts in with `dressing.site` (Depot and the range today; Woodland
-  and Neon Heights stay greybox): its zone stencils, shade sails and bay lines. Free-standing props (cones, drums, pallets, hard
+  stays greybox): its zone stencils, shade sails and bay lines. Free-standing props (cones, drums, pallets, hard
   cases) are left out: each would need a collider and would change the layout. A sail is overhead scenery BBs pass
   through, like the skyline. The day gets the dress's cumulus sky and a depth haze from 45 m; the night is unchanged.
   Low draws the same without the photo relief and fine marks. No paint within 20° of a team's hue unless dull
@@ -381,14 +381,14 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Every level hunts the middle of the map; Normal, Hard and Pro keep out of the light at night; Easy stands where its
   lane says (owner, 2026-10-05).** Below Pro, both teams swept to the far end and rounds ran out of time (M71). Every
   level keeps out of the light since TL1.
-- **Bots see by the dark at night, from the map's data, never from lights or scene nodes (2026-10-25, WL6; the
-  browser's NIGHT_SIGHT and M40, Claude's defaults).** A NightField is built once a match when the preset played is a
-  night one (Woodland always, Neon Heights by default): someone is made out from 40 m lit, 25 m in the open, 10 m under
+- **Bots see by the dark at night, from the map's data, never from lights or scene nodes (2026-10-25, WL6; the browser's
+  NIGHT_SIGHT and M40, Claude's defaults).** A NightField is built once a match when the preset played is a night one
+  (Woodland always, or any map by Dev › Time of day): someone is made out from 40 m lit, 25 m in the open, 10 m under
   the trees (3 trunks within 4 m, 1 m cells) and 15 m indoors (`BotConfig` night sight). By day there is none and sight
   is unchanged. Keeping out of the light (`BotSkill.keeps_dark`, Normal and up) moves a lane point or hunt spot to the
-  nearest dark spot on its floor within 8 m, its edge, no margin, and passes over hold and flag-guard cover in a pool;
-  a fight's cover, the raiser's spot at the pole and squad orders ignore the light. The headless runner plays a
-  night-only map (Woodland) at night; Neon Heights' guards play it by day and, at Normal, at night (WL10).
+  nearest dark spot on its floor within 8 m, its edge, no margin, and passes over hold and flag-guard cover in a pool; a
+  fight's cover, the raiser's spot at the pole and squad orders ignore the light. The headless runner plays a night-only
+  map (Woodland) at night (WL10).
 - **The weapon torch is a part in the Light slot, fitted at night only and switched through the command (2026-10-25,
   WL7; the browser's M33h and botTorch.ts; owner's defaults of 2026-10-24, the rest Claude's).** It fits every replica
   (RM8 modelled each one's), is dev while Woodland is (a dev light marks only night matches as dev), and by day isn't
@@ -428,8 +428,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **The match guards play each field at the team size and time of day it is played (2026-10-25, WL10; Claude's
   defaults).** Woodland at 5v5 (its standard, from `data/maps.md` through `MatchRunner.sized_for`) at night, in
   Elimination and Attack / Defend, 16 seeds at Normal and 8 at Easy, Hard and Pro each, as five CI jobs of 16 matches;
-  Neon Heights by day as before and at night at Normal in both modes (a sixth job: the day job takes 18 of its 30
-  minutes); Depot by day. The height guards take a terrain's
+  Depot by day (Neon Heights' guards left with it, 2026-10-29). The height guards take a terrain's
   lowest point. The balance report plays Woodland the same way.
 - **A bot holds fire where a teammate could be when its BBs pass (2026-10-25, WL10; Claude's defaults).** A bot
   teammate walking a route counts where the route takes it, round its corners, at its pace and at a run; one in a fight
@@ -502,10 +501,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   wood. Its timber stays dull (saturation under 0.3). It has no baked light: under the trees, night sight's canopy
   does that work. Its placeholders (crowns, bushes, logs, the cabin and fort) wait for the owner's models (step 28).
 - **Team sizes are each map's row in `data/maps.md` (owner, 2026-10-24: the recommended defaults; WL2).** Depot 1 to
-  3, Neon Heights 1 to 5, Woodland 5 or 6 with 5 standard; picking a map sets its standard size.
+  3, Woodland 5 or 6 with 5 standard; picking a map sets its standard size.
 - **Day / Night is the presets a map offers, never a map name (owner, 2026-10-24: the recommended defaults; WL3).**
-  Woodland offers Night alone, Neon Heights both, Depot Day; the Match screen shows the row only where there is a
-  choice, and Dev › Time of day plays any map by either. Depot's public night waits for 0.4's Day and Night on every
+  Woodland offers Night alone, Depot Day (Neon Heights offered both); the Match screen shows the row only where there is
+  a choice, and Dev › Time of day plays any map by either. Depot's public night waits for 0.4's Day and Night on every
   map. The Match screen's pick lasts the session (MatchPicks), never saved; Dev › Time of day is saved with the Dev
   settings and, off the map's own, keeps a match out of the records, as the browser's did (WL3).
 - **The practice range and the tutorial are set in Depot (owner, 2026-10-24; the tutorial dropped, owner
@@ -516,8 +515,13 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   the yard, and Depot's water tower and a shed that stood on that lot moved west in both files (WL9).
 - **Practice on a public map is public (owner, 2026-10-24: the recommended defaults; WL9).** On a dev map it is dev,
   and Woodland's practice is at night with your weapon torch.
-- **Neon Heights is the third field: a vertical futuristic city with Day and Night (owner, 2026-10-04).** 46 × 30 m,
-  three playable floors, roofs not playable, stairs only, open windows with a 1.2 m sill, 4v4, both modes, Night first.
+- **Neon Heights is cut; the fields are Depot and Woodland (owner, 2026-10-29; it was the third field, 2026-10-04).**
+  Its map file, card, city sounds (traffic, drones, neon hum, chimes, pigeons, horn, arcade), guards and tests went
+  with it, and its Maps Update rework (NH1, NH2) is cancelled. The map format keeps what it alone used, since a later
+  field may want it: floors in storeys (MapData, the minimap's layer per storey) and a map offering both Day and
+  Night (the Match page's Day / Night row, shown only then); the tests hold them on a test field
+  (`tests/support/tower_block.gd`). A pick or a best saved for it falls back cleanly: the Match page takes Depot,
+  a timed challenge best for it is kept but never shown, and a match on a map with no row is dev.
 - **Bushes hide you and stop BBs, but not people (2026-10-15, FO1; Claude's defaults; replaces "Bushes hide but BBs
   pass").** The same 0.6 m of leaves, counted over a BB's whole flight, hides a player from bots and stops the BB (a
   test holds the two equal); a BB crossing less is thrown off its line. Numbers: `legacy/browser/docs/records/FO1.md`.
@@ -531,7 +535,7 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   play. Each map has its own best; a run with a Dev setting that changes play on is never a best (BP5).
 - **A map's checks measure it against Depot (2026-10-11, CT2; the standard is the owner's, 2026-10-05).** 3 lanes, the
   longest clear sightline 34 m, each end's walk to the middle within 15 %. A map that differs for a reason goes into the
-  map exceptions with the owner's word (Woodland's 141 m sightline, Neon Heights's four block clashes).
+  map exceptions with the owner's word (Woodland's 141 m sightline).
 - **A mode's checks hold it to Elimination's numbers (2026-10-11, CT3; the bands are the owner's, 2026-10-05).** A new
   mode does not build until every wiring point answers for it; its bots must play it their own way; the objective
   decides at least 1 round in 10 and the pay stays within × 0.75 to × 1.25 of Elimination's. Mode ids in saves are
@@ -710,8 +714,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **A match that uses dev content stays out of the records and gives no XP (owner, 2026-10-04).** Dev gear is offered and
   carried by bots only with the switch on. A match counts as using dev content when an opponent's kit could hold dev
   gear (BG1).
-- **Woodland and Neon Heights stay dev content until the owner has playtested them; he makes each public himself (owner,
-  2026-10-05; Woodland confirmed Dev-only 2026-10-24).** Woodland's weapon torch stays dev until Woodland is public.
+- **Every map is public (owner, 2026-10-29: "no map is locked behind dev settings now").** Woodland went public with
+  its weapon torch, which a night field needs (every bot carries one there), so a Woodland match counts for the records
+  and XP; Neon Heights was cut. Dev content still hides whatever a row tags dev. (Before: Woodland and Neon Heights dev
+  until the owner made each public, 2026-10-05, Woodland confirmed 2026-10-24.)
 - **Dev settings apply only while their box is ticked (owner, 2026-10-04).** Game speed, Bottomless magazines, Ghost
   and Disable levelling keep a match out of the records and give no XP for the rest of that match. Debug info, BB paths
   and Retro pixels change only what you see.

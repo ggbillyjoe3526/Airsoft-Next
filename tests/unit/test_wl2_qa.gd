@@ -66,7 +66,7 @@ func test_odd_saved_team_sizes_fall_back_and_the_map_plays_its_standard() -> voi
 		var c := CustomRules.new()
 		c.from_dict({"team_size": odd})
 		assert_true(CustomRules.TEAM_SIZES.has(c.team_size), "%s -> %d" % [str(odd), c.team_size])
-		for id: String in ["depot", "woodland", "neonHeights", "range"]:
+		for id: String in ["depot", "woodland", "range"]:
 			var e := MapCatalog.shared().find(id)
 			var n := MatchOptions.team_size(e, c)
 			assert_true(n >= e.team_min and n <= e.team_max or e.kind == &"range", "%s plays %d" % [id, n])
@@ -93,9 +93,11 @@ func test_a_stale_dev_map_pick_without_dev_content_offers_and_plays_depot_s_size
 	picks.rules = MatchOptions.RULES_CUSTOM
 	var settings := Settings.new()
 	settings.custom_rules.team_size = 6
+	var catalog := DevContent.use_map() # every shipped map is public: Woodland tagged dev for the test
 	var page := _page(picks, settings)
+	DevContent.restore_map(catalog)
 	await wait_process_frames(1)
-	assert_eq(picks.map_id, "depot", "Woodland is not listed without Dev content")
+	assert_eq(picks.map_id, "depot", "a dev Woodland is not listed without Dev content")
 	assert_eq(page.rules_box().offered_sizes(), [1, 2, 3] as Array[int])
 	assert_eq(page.map_check_size(), 3, "Depot plays its standard where 6 is not offered")
 	assert_eq(settings.custom_rules.team_size, 6, "the saved size is untouched")
@@ -118,7 +120,5 @@ func test_the_saved_size_survives_depot_woodland_depot() -> void:
 	page._pick_map("depot")
 	assert_eq(page.map_check_size(), 3, "6 is not Depot's: its standard")
 	assert_eq(settings.custom_rules.team_size, 6)
-	page._pick_map("neonHeights")
-	assert_eq(page.map_check_size(), 4, "6 is not Neon Heights' either")
 	page._pick_map("woodland")
 	assert_eq(page.map_check_size(), 6)

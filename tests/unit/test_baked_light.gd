@@ -5,9 +5,6 @@ extends GutTest
 
 const BakeTool := preload("res://tools/bake_light.gd")
 const DIR := "user://test_baked_light"
-## Neon Heights names no bake: its greybox as before DP2 (a change to its blocks or MapStyle's colours updates these).
-const NEON_VERTICES := 10578
-const NEON_HASH := "b171a361a2cd74c2e976c5680769368387020ef46b16c1b29ee1496891a63411"
 ## Depot's untiled greybox (Low): the faces before DP2.
 const DEPOT_UNTILED_VERTICES := 3942
 ## A small yard: a 30 m slab, a wall 4 m tall across it and a 1 m cube; two ends of one spawn each.
@@ -209,13 +206,16 @@ func test_depot_at_night_keeps_its_bake_with_no_warning_drawn_by_its_sky_share_a
 
 
 func test_a_map_with_no_bake_draws_as_before_with_it_on() -> void:
-	var level := _level("neonHeights")
+	var level := _level("woodland")
 	assert_eq(level.map.baked_light_file, "")
+	var off := _greybox(level)
+	var vertices: int = off.mesh.surface_get_array_len(0)
+	var off_hash := _mesh_hash(off.mesh)
 	level.set_baked_light(true)
 	assert_false(level.baked_light_drawn())
 	var mi := _greybox(level)
-	assert_eq(mi.mesh.surface_get_array_len(0), NEON_VERTICES)
-	assert_eq(_mesh_hash(mi.mesh), NEON_HASH, "the greybox drawn before DP2, byte for byte")
+	assert_eq(mi.mesh.surface_get_array_len(0), vertices)
+	assert_eq(_mesh_hash(mi.mesh), off_hash, "the greybox drawn as with it off, byte for byte")
 	assert_eq(mi.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_ON)
 
 
@@ -258,7 +258,7 @@ func test_a_map_names_its_bake_or_none() -> void:
 
 
 func test_the_tile_count_is_known_before_any_tile_is_made() -> void:
-	for id: String in ["depot", "range", "neonHeights"]:
+	for id: String in ["depot", "range"]:
 		var m := MapData.load_map(id, play.map_style, 1)
 		for cell: float in [0.5, 0.25, 1.0]:
 			assert_eq(GreyboxFaces.tile_count(m, cell, 0.06), GreyboxFaces.tile(m, cell, 0.06).positions.size(),

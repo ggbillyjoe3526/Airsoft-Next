@@ -42,16 +42,19 @@ func test_the_lights_table_is_a_part_slot_with_its_stats() -> void:
 	var torch := pool.item(TORCH)
 	assert_not_null(torch, "the Weapon Torch is a part now, no longer waiting")
 	assert_eq(torch.slot, Pool.LIGHT_SLOT)
-	assert_true(torch.is_dev(), "dev while Woodland is")
+	assert_false(torch.is_dev(), "public with Woodland (owner, 2026-10-29)")
 	assert_true(pool.waiting.is_empty())
 	var row := stats.parts.part(&"light", &"weaponTorch")
 	assert_eq([row.reach, row.beam, row.spill], [40.0, 14.0, 28.0], "stats.md › Lights")
 	assert_true(stats.parts.problems.is_empty(), "stats.md reads: %s" % [stats.parts.problems])
 
 
-func test_offered_with_dev_content_on_the_replicas_it_fits() -> void:
-	assert_true(_rules(false).parts_for(AEG, &"light").is_empty(), "dev: not offered with Dev content off")
-	var rules := _rules(true)
+func test_offered_on_the_replicas_it_fits_and_a_dev_one_only_with_dev_content() -> void:
+	var was := DevContent.use_item(TORCH)
+	assert_true(_rules(false).parts_for(AEG, &"light").is_empty(), "a dev torch: not offered with Dev content off")
+	assert_eq(_rules(true).parts_for(AEG, &"light").size(), 1, "and offered with it on")
+	DevContent.restore_item(was)
+	var rules := _rules(false)
 	assert_eq(rules.parts_for(AEG, &"light").size(), 1, "the rifle takes it")
 	assert_eq(rules.parts_for(PISTOL, &"light").size(), 1, "the pistol's rail takes it")
 	assert_eq(rules.parts_for(CYBER, &"light").size(), 1, "the Cyber Pistol takes it too (RM8 made its torch)")
@@ -75,9 +78,9 @@ func test_fitted_only_at_night_a_day_kit_carries_no_light() -> void:
 	var l := rules.default_loadout("Night")
 	rules.set_part(l, AEG, &"light", TORCH)
 	var kit := rules.carried(l)
-	assert_false(kit.dev, "the light alone doesn't make a day match dev")
-	assert_true(kit.light_dev)
-	assert_true(kit.dev_under(true))
+	assert_false(kit.dev)
+	assert_false(kit.light_dev, "the torch is public")
+	assert_false(kit.dev_under(true), "a night match with it stays on the record")
 	assert_eq(kit.parts[0][&"light"], &"weaponTorch", "the models' part keys still list it")
 	assert_false(kit.parts_under(false)[0].has(&"light"), "by day the hands show no torch")
 	assert_true(kit.parts[0].has(&"light"), "a copy: the kit's own keys keep it")
@@ -93,8 +96,10 @@ func test_fitted_only_at_night_a_day_kit_carries_no_light() -> void:
 
 
 func test_every_bot_carries_the_offered_torch_at_night_never_in_a_kit() -> void:
+	var was := DevContent.use_item(TORCH)
 	assert_null(BotKits.night_light(_rules(false)), "a dev torch only with Dev content on")
-	var rules := _rules(true)
+	DevContent.restore_item(was)
+	var rules := _rules(false)
 	var light := BotKits.night_light(rules)
 	assert_eq(light.id, TORCH)
 	var lights := BotKits.lights_for(ReplicaStats.default_loadout(), rules, light)
@@ -620,12 +625,14 @@ func _customise(dev: bool) -> CustomiseView:
 	return page.customise()
 
 
-func test_customise_offers_the_light_slot_with_dev_content_and_later_without() -> void:
+func test_customise_offers_the_light_slot_and_a_dev_one_stays_later_without_dev_content() -> void:
+	var was := DevContent.use_item(TORCH)
 	var off := _customise(false)
-	assert_true(off.part_later(CustomiseView.Tab.LIGHT), "dev while Woodland is: LIGHT stays LATER")
+	DevContent.restore_item(was)
+	assert_true(off.part_later(CustomiseView.Tab.LIGHT), "a dev torch: LIGHT stays LATER")
 	assert_false(off.part_card(CustomiseView.Tab.LIGHT).visible)
-	assert_eq(off.later_count(), 2, "the laser greyed and the light LATER, as before")
-	var view := _customise(true)
+	assert_eq(off.later_count(), 2, "the laser greyed and the light LATER")
+	var view := _customise(false)
 	assert_false(view.part_later(CustomiseView.Tab.LIGHT))
 	assert_true(view.part_available(CustomiseView.Tab.LIGHT), "the rifle takes it")
 	view.show_tab(CustomiseView.Tab.LIGHT)

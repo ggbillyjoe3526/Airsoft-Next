@@ -1,7 +1,7 @@
 class_name AmbientCalls
 extends RefCounted
 ## A field's calls (the browser game's audio/ambience.ts AmbientCalls, M86): each kind of call (AmbienceCall: a bird, a
-## dog, a horn) now and then on its own seeded gaps, somewhere round the listener at a random bearing and its distance,
+## dog, an owl) now and then on its own seeded gaps, somewhere round the listener at a random bearing and its distance,
 ## at its height. Timed on the simulation's clock, each kind from its own generator seeded from its rng_seed and the
 ## match's (presentation only, never the match's stream): the same seeds give the same calls, and each rematch new ones.
 ## Generators are made once; `begin` reseeds them.

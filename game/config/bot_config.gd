@@ -280,7 +280,7 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## it watches that way from its post.
 @export var anchor_search_radius: float = 12.0
 ## ...and no further above or below it than this (m): a noise on another floor is watched from the post, not chased down
-## the stairs (Neon Heights' upper posts).
+## the stairs (a post on an upper floor).
 @export var anchor_search_rise: float = 2.0
 ## A kit whose Suits names a bot's personality weighs this many times its weight against the other kits with Suits
 ## (BotKits.weights), so the level decides how often a bot carries gear and its personality which.

@@ -76,11 +76,11 @@ func test_the_armory_tab_is_on_and_opens_the_page_it_frees_when_left() -> void:
 	assert_true(menus.match_page().visible)
 
 
-func test_level_3_lists_nine_of_nineteen_with_the_silencer_next() -> void:
+func test_level_3_lists_ten_of_twenty_with_the_silencer_next() -> void:
 	var page := _page(920)
 	var facts := page.facts()
 	assert_eq(facts.level, 3)
-	assert_eq([facts.unlocked_count, facts.item_count], [9, 19], "the dev Weapon Torch isn't listed without Dev content")
+	assert_eq([facts.unlocked_count, facts.item_count], [10, 20], "the Weapon Torch is listed: public since 2026-10-29")
 	assert_eq(facts.next_row().number, 4)
 	assert_eq(facts.next_row().items[0].id, SILENCER)
 	var states: Array[ArmoryFacts.State] = []
@@ -91,7 +91,7 @@ func test_level_3_lists_nine_of_nineteen_with_the_silencer_next() -> void:
 	assert_eq(states[5], ArmoryFacts.State.LOCKED)
 	assert_eq(states.size(), 11)
 	var words := _words(page.summary())
-	for w: String in ["LEVEL ", "3", "of 10", "120 / 500 XP", "380 XP to level 4", "920", "9 / 19", "NEXT UNLOCK · LEVEL 4",
+	for w: String in ["LEVEL ", "3", "of 10", "120 / 500 XP", "380 XP to level 4", "920", "10 / 20", "NEXT UNLOCK · LEVEL 4",
 			"Silencer", "HOW XP IS EARNED", "100 XP", "100 more", "20", "10"]:
 		assert_true(words.has(w), w)
 	assert_true(_words(page.summary()).has("Then times the difficulty: Easy ×0.5 · Normal ×1 · Hard ×1.5. A first-to-5 win on Normal gives about 250 XP. Practice, and matches with Dev settings, give none."))
@@ -107,8 +107,8 @@ func test_level_1_and_a_new_player_list_the_start_and_the_first_unlock() -> void
 	assert_eq(page.facts().level, 1)
 	assert_eq(page.facts().next_row().number, 2)
 	assert_true(_words(page.summary()).has("NEXT UNLOCK · LEVEL 2"))
-	assert_eq(page.track().row(0).find_children("Item_*", "PanelContainer", true, false).size(), 4,
-			"the starting kit: two replicas and two power sources")
+	assert_eq(page.track().row(0).find_children("Item_*", "PanelContainer", true, false).size(), 5,
+			"the starting kit: two replicas, two power sources and the Weapon Torch")
 	var fresh := _page(0)
 	assert_eq(fresh.facts().next_row().number, 1)
 	assert_true(_words(fresh.summary()).has("0 / 100 XP"))
@@ -119,7 +119,7 @@ func test_at_the_cap_it_says_xp_stops_counting_and_nothing_is_next() -> void:
 	var facts := page.facts()
 	assert_eq(facts.level, 10)
 	assert_null(facts.next_row())
-	assert_eq(facts.unlocked_count, 19)
+	assert_eq(facts.unlocked_count, 20)
 	var words := _words(page.summary())
 	assert_true(words.has("Top level reached"))
 	assert_true(words.has("XP counts again when the level cap goes up."))
@@ -132,7 +132,7 @@ func test_with_levelling_off_everything_is_unlocked() -> void:
 	var page := _page(920, true)
 	var facts := page.facts()
 	assert_true(facts.levelling_off)
-	assert_eq([facts.unlocked_count, facts.item_count], [19, 19])
+	assert_eq([facts.unlocked_count, facts.item_count], [20, 20])
 	assert_null(facts.next_row())
 	for r in facts.rows:
 		assert_eq(r.state, ArmoryFacts.State.UNLOCKED)
@@ -175,7 +175,7 @@ func test_every_item_has_its_own_model_picture_and_a_blurb() -> void:
 			assert_ne(blurb, "", it.display_name)
 			assert_false(blurb.begins_with("PART_BLURB") or blurb.begins_with("ARMORY_BLURB"), it.display_name)
 			shown += 1
-	assert_eq(shown, 19)
+	assert_eq(shown, 20)
 
 
 func test_every_power_source_has_a_model_entry_and_a_gas_bottle_takes_its_own_label() -> void:

@@ -245,7 +245,7 @@ func test_depots_hall_wall_is_the_one_way_over_each_way() -> void:
 
 
 func test_every_map_links_and_no_route_over_links_is_longer_than_on_foot_or_lands_off_grid() -> void:
-	for id: String in ["depot", "range", "neonHeights", "woodland"]:
+	for id: String in ["depot", "range", "woodland"]:
 		var map := MapData.load_map(id, MapStyle.new(), tuning.rounds.team_size)
 		var level := MapLevel.new()
 		add_child(level)

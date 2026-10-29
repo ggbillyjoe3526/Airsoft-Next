@@ -2,13 +2,13 @@ extends GutTest
 ## DD1 QA: Depot's and the range's site dress changes only what is drawn. The colliders, the nav grid, the bake and the
 ## block list are the greybox's; every vertex of the site mesh, baked or not, sits in the box and finish its custom
 ## channels name; the Baked light switch rebuilds the mesh alone and keeps the one material; Low reaches the dress's
-## materials; Woodland and Neon Heights stay greybox in a match; the night keeps its own sky and haze; a malformed
+## materials; Woodland stays greybox in a match; the night keeps its own sky and haze; a malformed
 ## site entry is left out with a warning; and a match with the dress frees every node and resource it made.
 
 const CYCLES := 3
 const MATCHES := 4
 const DRESSED: Array[String] = ["depot", "range"]
-const GREYBOX: Array[String] = ["woodland", "neonHeights"]
+const GREYBOX: Array[String] = ["woodland"]
 
 var play: PlayTuning = PlayTuning.load_default()
 var tuning: SimTuning = SimTuning.new()
@@ -291,10 +291,10 @@ func test_a_match_on_low_reaches_the_dress_and_its_bags_too() -> void:
 	assert_true(mat.get_shader_parameter(&"low"), "and back to Low")
 
 
-# 4. Woodland and Neon Heights
+# 4. Woodland
 
 
-func test_woodland_and_neon_heights_stay_greybox_in_a_match() -> void:
+func test_woodland_stays_greybox_in_a_match() -> void:
 	for id in GREYBOX:
 		var session := PlaySession.new()
 		session.map_id = id

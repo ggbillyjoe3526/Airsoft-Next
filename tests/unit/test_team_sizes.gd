@@ -28,7 +28,7 @@ func test_the_shipped_maps_offer_the_owner_s_sizes() -> void:
 	var cat := MapCatalog.read_file()
 	assert_eq(cat.problems, [] as Array[String])
 	var want: Dictionary[String, Array] = {
-		"depot": [1, 3, 3], "neonHeights": [1, 4, 5], "woodland": [5, 5, 6], "range": [1, 1, 1],
+		"depot": [1, 3, 3], "woodland": [5, 5, 6], "range": [1, 1, 1],
 	}
 	for id: String in want:
 		var e := cat.find(id)
@@ -81,12 +81,14 @@ func test_a_map_plays_a_picked_size_it_offers_else_its_standard() -> void:
 	assert_eq(depot.team_size_for(6), 3)
 	assert_eq(depot.team_size_for(2), 2)
 	assert_eq(MatchOptions.team_size(woodland, null), 5, "Skirmish plays the standard")
-	assert_eq(MatchOptions.team_size(cat.find("neonHeights"), null), 4)
+	assert_eq(MatchOptions.team_size(depot, null), 3)
 	assert_eq(MatchOptions.team_size(cat.find("range"), null), 1)
 	var custom := CustomRules.new()
 	custom.team_size = 6
 	assert_eq(MatchOptions.team_size(woodland, custom), 6)
-	assert_eq(MatchOptions.team_size(cat.find("neonHeights"), custom), 4)
+	custom.team_size = 2
+	assert_eq(MatchOptions.team_size(woodland, custom), 5, "2 is not one of Woodland's: its standard")
+	assert_eq(MatchOptions.team_size(depot, custom), 2)
 	var base := SimTuning.load_default()
 	var played := MatchOptions.match_tuning(base, woodland, null)
 	assert_eq(played.rounds.team_size, 5)
@@ -132,8 +134,6 @@ func test_the_team_size_row_offers_only_the_picked_map_s_sizes() -> void:
 	assert_eq(box.offered_sizes(), [1, 2, 3] as Array[int], "Depot")
 	page.map_card("woodland").pressed.emit()
 	assert_eq(box.offered_sizes(), [5, 6] as Array[int], "Woodland")
-	page.map_card("neonHeights").pressed.emit()
-	assert_eq(box.offered_sizes(), [1, 2, 3, 4, 5] as Array[int], "Neon Heights")
 	for id in page.map_ids():
 		page.map_card(id).pressed.emit()
 		assert_false(box.offered_sizes().has(7), id)
@@ -147,8 +147,6 @@ func test_picking_a_map_sets_its_standard_size() -> void:
 	assert_eq(page.chip_texts()[0], "5 v 5")
 	assert_eq(page.map_check_size(), 5)
 	assert_string_contains(page.rules_box().blurb_text(), "5v5")
-	page.map_card("neonHeights").pressed.emit()
-	assert_eq(page.chip_texts()[0], "4 v 4")
 	page.map_card("depot").pressed.emit()
 	assert_eq(page.chip_texts()[0], "3 v 3")
 

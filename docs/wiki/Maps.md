@@ -45,6 +45,33 @@ The minimap names the area you stand in. Depot's areas:
 
 <!-- wiki:areas depot -->
 
+## Woodland
+
+**A wide, rolling wood, played at night**, in 5v5 or 6v6. Its ground slopes up to the Knoll and its log fort, with a
+rise to the west and a dry ravine along the creek, and three lanes: through the pines, across the meadow and down the
+creek past the cabin. Every slope walks; none needs a jump.
+
+- **Night:** a low moon, stars and haze, with fires and lanterns lighting pools of ground round them. Fires flicker,
+  and fireflies hang by the logs and the water. Fit a [weapon torch](Parts-and-Power#lights) to see further, and load
+  [glowing BBs](Loadout#customise) to follow your shots.
+- **Seeing in the dark:** bots see you from about 40 m in the light of a fire, a lantern or a torch beam, 25 m in the
+  open under the moon, 15 m indoors and only 10 m under the trees ([Bots](Bots#at-night)).
+- **Bushes** hide you and stop BBs. You walk straight through them, but nobody sees you through more than about half
+  a metre of leaves; a BB that pushes 0.6 m into a bush stops there, and one that clips an edge flies on, slower and
+  thrown off its line. A BB in the leaves rustles and throws a green puff. The minimap marks every bush.
+- **The pines** each have a crown over your head, for looks only: you see and shoot under it. A forest and treelines
+  stand beyond the fence. From Medium detail there is grass in the meadow, wet puddles and mud, leaves, fallen
+  branches and moss.
+- Footsteps sound like grass or leaf litter, and a BB that hits the ground puffs like earth and never bounces. Owls
+  and creaking branches call from the wood.
+- **Attack / Defend** puts a flagpole at the defenders' flag spot ([Modes](Modes#attack--defend)).
+
+### Areas
+
+Woodland's areas:
+
+<!-- wiki:areas woodland -->
+
 ## Range
 
 **The practice range:** lanes of steel plates, figures and moving targets, with no bots and no score, in its own lot

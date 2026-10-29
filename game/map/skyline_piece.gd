@@ -6,8 +6,7 @@ extends RefCounted
 ## own when `has_colour` is false). A chimney with `smoke` smokes; a power line runs its pylons through `points`.
 ## Plain data: no collider, no nav cell.
 
-## The kinds SkylineShapes builds. A map's other kinds (Neon Heights' towers) wait for their own dressing and are left
-## out without a warning.
+## The kinds SkylineShapes builds. A map's other kinds wait for their own dressing and are left out without a warning.
 const KINDS: Array[StringName] = [&"shed", &"waterTower", &"crane", &"containers", &"chimney", &"silo", &"powerLine",
 		&"hill", &"watchTower", &"fuselage", &"mast", &"treeline"]
 ## The kinds laid out along `points` instead of standing at one spot; a treeline's band is `depth` m deep across them

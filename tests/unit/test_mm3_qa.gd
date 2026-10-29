@@ -159,7 +159,7 @@ func test_a_bad_storey_list_still_gives_a_drawing() -> void:
 
 
 func test_every_layer_is_freed_with_its_field() -> void:
-	var map := MapData.load_map("neonHeights", MapStyle.new(), 1)
+	var map := TowerBlock.load_map(MapStyle.new(), 1)
 	var f := MinimapField.build(map, cfg)
 	var held: Array[WeakRef] = []
 	for img: Image in f.layers:

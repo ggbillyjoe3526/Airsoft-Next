@@ -9,7 +9,7 @@ const MODEL_DIRS: Array[String] = [
 	"res://assets/models/powerSources",
 ]
 const FIGURE_CLIPS := 32
-const MAPS: Array[String] = ["depot", "woodland", "neonHeights", "range"]
+const MAPS: Array[String] = ["depot", "woodland", "range"]
 
 
 func _files(dir: String, ext: String) -> Array[String]:
@@ -53,12 +53,12 @@ func test_figures_have_their_clips_and_sidecars() -> void:
 
 func test_every_sound_loads_and_loops_loop() -> void:
 	var cues := _files("res://assets/audio/cues", "wav")
-	assert_eq(cues.size(), 395, "the salvage's 388, the whistle's 6 and the ping's pip")
+	assert_eq(cues.size(), 379, "the salvage's 372 (the city's calls went with Neon Heights), the whistle's 6, the pip")
 	for path: String in cues:
 		var s := load(path) as AudioStreamWAV
 		assert_true(s != null and s.get_length() > 0.0, path)
 	var loops := _files("res://assets/audio/loops", "wav")
-	assert_eq(loops.size(), 7)
+	assert_eq(loops.size(), 4)
 	for path: String in loops:
 		var s := load(path) as AudioStreamWAV
 		assert_true(s != null and s.loop_mode == AudioStreamWAV.LOOP_FORWARD, "%s loops" % path)
