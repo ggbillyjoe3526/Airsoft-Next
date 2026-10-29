@@ -62,7 +62,11 @@ MH1-MH3) come out of development and are public for 0.1 Dev 1.
 ## Verified
 
 - Targeted: the 33 changed test files plus `test_dev_cheats.gd`, 476 tests, all passing.
-- See Gate for the full runs.
+- The picture's script reported 8 tabs with the Dev tab not hidden on a new save.
+- **Match guards not run:** no match flow changed. The overtime flag has been on in Elimination since OV1, in play and
+  in `MatchRunner`, which the guards drive with no Settings at all, and this task touches neither; the machine was at
+  load 11 with another worker's guards running.
+- Not verified here: how it feels; the owner checks the PLAYTEST line (the Dev tab on a new save and on his own).
 
 ## Pictures
 
@@ -71,4 +75,7 @@ MH1-MH3) come out of development and are public for 0.1 Dev 1.
 
 ## Gate
 
-Pending.
+Worker's runs, 2026-10-29, on `3ba7e39`: gdlint on every changed script clean; unit tests part 1 866/866, part 2
+1,780/1,780 (a first run hit the part's 1,080 s timeout at load 11 with no failure in its log; the rerun passed in
+14 min), part 3 912/912; the smoke test passed with zero script errors; `python3 tools/wiki.py check` and
+`tools/changelog.sh check` passed.
