@@ -670,12 +670,21 @@ pays XP ×1.5.
   open the pause menu or get hit and watch a teammate: no markers. Settings › HUD › Ping markers Off: no markers on
   screen or the minimap, but the pip and the answer still come. Is the pip audible but not annoying? Is the ring
   easy to find on busy ground? Reduced motion: no pop.
-- [ ] **Ask for a mag (H).** With less than one full magazine in your pouch the line under the crosshair says "Low on
-  BBs · H to ask for a mag". H: the nearest teammate says "Mag coming!", comes and tosses a magazine you see arc into
-  your hands ("+1 mag from Dash · 60 BBs"). With a full spare, or nobody near, it says why not.
+- [ ] **Ask for a mag (H, MH3).** Fire until less than one full magazine is left in your pouch, then press H: a radio
+  double-click, the nearest teammate says "Mag coming!", the line under the crosshair says "Dash is bringing you a
+  mag" and a small magazine sits by their chevron; they come and toss one you see arc and spin into your hands
+  ("+1 mag from Dash · 60 BBs", and a catch sound). H again at once: "Dash is already bringing you one". With a full
+  spare: "You still have a full spare mag"; with nobody near: "Nobody near has a mag to spare". The line never names
+  a key. Is the arc readable, the catch satisfying, the line easy to read over a bright wall?
 - [ ] **A teammate asks you.** Settings › Dev › Bots run low on BBs: 8 s into each round a bot of each team is on its
-  last magazine and calls "Need a mag!". When that is you, the line says "Dash needs a mag · 12 m", then "H · Toss
-  Dash a mag" in reach; H tosses it and they say thanks. A pistol only gets a pistol's magazine.
+  last magazine and calls "Need a mag!". When that is you, the line says "Dash needs a mag · 12 m" (a magazine by
+  their chevron), underlined in your team's colour once they are within a toss; H tosses it ("Mag to Dash") and they
+  say thanks. Too far: "Get closer to Dash to toss a mag". A pistol only gets a pistol's magazine.
+- [ ] **Need a Mag on the wheel.** Hold Z: the upper left item reads NEED A MAG with H, and TOSS A MAG while a
+  teammate asking you is in reach; picked, it does what H does. A refusal picked there shows in the wheel's middle,
+  not on the line. The line hides while the wheel is open. Dead on the range and while you are out; between rounds
+  "Mags wait for the next round". Settings › HUD › Mag hand-off Off: no line and no magazines by the chevrons, but H
+  still works. With Screen reader messages on, the line's notices are read.
 - [ ] **The minimap.** Top left, the way you look always up, you the white arrow; teammates are team-coloured dots
   (pinned to the edge when off it), grey once hit; an opponent you hear shows as a patch roughly where (dashed for
   steps, a dot for a shot) for a few seconds. Gameplay › HUD › Minimap Fixed keeps north up (M83).

@@ -49,6 +49,14 @@ follows them. Markers are seen through cover, pop in, stay 7 seconds and fade ov
 pinned inside the edge under the minimap with an arrow the way they are. They hide while you watch a teammate, with
 the scoreboard up and in the pause menu. Settings › HUD › Ping markers turns them off.
 
+**The magazine hand-off** ([Squad Orders](Squad-Orders#in-development)): one line under the crosshair says what it is
+doing, never which key to press: who needs a mag and how far ("Rook needs a mag · 12 m"), underlined in your team's
+colour once they are close enough for a toss; whose is coming ("Brick is bringing you a mag"); what you caught
+("+1 mag from Brick · 60 BBs", without the BBs while the ammo counter is off); and why a press did nothing, for a
+couple of seconds. The line hides while the order wheel is open. A small magazine sits by the chevron of a teammate
+asking you for one or bringing you one. Settings › HUD › Mag hand-off turns the line and the magazines off; Screen
+reader messages read the line's notices.
+
 ## Scoreboard
 
 Hold **Tab** for the scoreboard over the field while the match keeps playing: the map, mode, bots' level and team

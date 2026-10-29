@@ -38,3 +38,15 @@ someone in sight carries on. One of them answers in the hit feed, "Going to your
 own words. You have one ping at a time and a double click is one ping; pings clear each round and do nothing while you
 are out or on the [Practice Range](Practice-Range). A soft pip says your ping went out, and a marker shows it over the
 field and on the minimap ([HUD and Minimap](HUD-and-Minimap#in-development)).
+
+**Need a Mag:** press **H** (Squad: need a mag in Settings › Controls), or pick **Need a Mag**, the order wheel's fifth
+item at its upper left. It does what fits now: when a teammate who asked you for a magazine is close enough and in
+sight, you toss them one (the item then reads **Toss a Mag**); otherwise, when you are down to less than one full spare
+magazine, you ask the nearest teammate within <!-- wiki:config mag_share_config.ask_range --> m who has one to spare,
+and a radio click says they heard. Your magazine flies in a short arc into their hands, and theirs into yours: nothing
+is made, the BBs come out of the thrower's pouch. A toss reaches <!-- wiki:config mag_share_config.toss_range --> m.
+After an ask ends you can ask again <!-- wiki:config mag_share_config.player_ask_gap --> seconds later. A press that
+can't do anything says why: on the line under the crosshair, or in the wheel's middle when you picked it there
+("Nobody near has a mag to spare", "You still have a full spare mag", "Get closer to Rook to toss a mag"). It does
+nothing while you are out or on the [Practice Range](Practice-Range); between rounds magazines wait for the next round.
+What the [HUD](HUD-and-Minimap#in-development) shows, and how [bots](Bots#in-development) ask and bring one.

@@ -66,6 +66,8 @@ If the game stutters, lower the preset or the render scale first.
 - **Ping markers:** On (the default) shows your pings and your teammates' marks over the field with their distance,
   and on the minimap. Off hides only the markers: your pings still reach your teammates, the pip still plays and they
   still answer.
+- **Mag hand-off:** On (the default) shows the magazine hand-off's line under the crosshair and the magazine by a
+  teammate's chevron. Off hides only those: Need a Mag still asks and tosses, and your teammates still call it.
 
 ## Accessibility
 
