@@ -31,9 +31,9 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
   the pause menu, saved in `user://settings.save`.
 - **The debug view is done (DV1):** F3 also shows the match seed, your position and the entity count, F4 draws BB paths
   and F5 hit areas in the world (made only while on, keys reserved), and `-- --seed <n>` replays a match.
-- **Step 27 resumed (owner, 2026-10-29).** Steps 1 to 26 are built (parity with the browser's 0.1 Beta 1), plus
-  three bot levels. Step 27 so far: bot callouts (CO1, CO2; #124, #125), the overtime flag (OV1 to OV3; #126 to #128),
-  pings (PN1; #129) and ping markers (PN2; #131) are merged; MH1, MH2, MH3 remain (`docs/TASKS.md`).
+- **Step 27 is done (2026-10-29).** Steps 1 to 26 are built (parity with the browser's 0.1 Beta 1), plus three bot
+  levels. Step 27 added bot callouts (CO1, CO2; #124, #125), the overtime flag (OV1 to OV3; #126 to #128), pings and
+  ping markers (PN1, PN2; #129, #131) and the magazine hand-off (MH1 to MH3; #133, #134 and this one).
 - **After step 27 (owner, 2026-10-29):** the owner playtests, then a feedback and full bug pass against KNOWN_ISSUES,
   then he tags 0.1 Dev 1. The Blender step is scrapped from 0.1 Dev 1; 0.1 Dev 2 redesigns Depot and Woodland with
   CC0 dressing, and Blender starts when he says (Depot, then Woodland).

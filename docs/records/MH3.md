@@ -1,12 +1,13 @@
 # MH3 · Need a Mag on H and the wheel, the line and the toss on screen (Dev)
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified | – | – |
+| 2026-10-29 | 1 | worker | see Verified; QA Fail (1 blocking), performance Pass (3 advisories) | – | – |
+| 2026-10-29 | 1, fix round 1: the line reads the press's own asker pick, toss-wait wording, smoke counts your presses | worker | see Fix round 1; QA re-check Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -125,9 +126,21 @@ through the commands:
 - Run: gdlint clean; `test_mh3_qa`, `test_mag_hand_off_hud` (24), `test_order_wheel_input`, `test_so4_orders_hud`,
   `test_mag_share`, `test_play_session`: 109 of 109; smoke `[smoke] ok … orders=3 mags=2`, zero script errors.
 
+## Advisories left
+
+- **Performance** (on 9483ad3, before the fix; the critic read the fix's path: no allocation, at most one ray an
+  asker): the tossed magazines and the chevron glyphs cost draw calls while up; the line and glyphs could early-out
+  when nobody is asking.
+- **The "still in the air" wording** (QA minor): it reads the pool after the step, so a toss landing that tick says
+  "Toss again in a moment" instead; harmless.
+- **`const MAG` in `player_input.gd:45`** is unused (critic).
+- **Two long doc-comment lines** (critic): `settings_hud_page.gd:7`, `sim_audio.gd:15`.
+
 ## Gate
 
 `tools/check.sh` (worker's run, 2026-10-29): gdlint, changelog notes, wiki, unit tests parts 1 and 3, smoke and
 licence notices pass. Part 2 failed once on `test_play_session.gd`'s prewarm count (50, expected 41: the toss view's
 magazine materials, prewarmed on purpose); the test now counts them, and part 2 rerun passes 1741 of 1741. All 3518
 tests pass.
+
+Rebased onto main 100a0ca (MH2 merged, Neon Heights removed); CI runs the whole gate on the head.
