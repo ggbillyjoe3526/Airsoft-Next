@@ -1,13 +1,13 @@
 # FB5 · Bot and player figures' replicas no longer push into walls and props (fix)
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-29 | 1 | worker | see Verified; QA Fail (1 blocking), performance Pass (1 advisory) | – | – |
-| 2026-10-29 | 1, fix round 1: a stale raise after hiding, the raise at rest, the first shot's wording | worker | see Fix round 1 | – | – |
+| 2026-10-29 | 1, fix round 1: a stale raise after hiding, the raise at rest, the first shot's wording | worker | see Fix round 1; QA Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -94,6 +94,16 @@ bot standing 0.36 m from the south wall (before: the rifle in the wall; after: u
 `fb5-crate-*` crouched 0.36 m from a single 1.2 m crate (before: the rifle and the left hand inside it; after: muzzle
 up over its top), `fb5-stack-*` standing at a 2.4 m stack, from the side (before: the rifle through it; after:
 upright, the magazine canted out). Each `-before.png` and `-after.png`.
+
+## Advisories left
+
+- **`figure_view.gd:+181-188`:** the ray follows the aim pitch, so a crouched figure aiming down more than about 43°
+  hits the floor and raises; rare for bots. Ignoring flat-ground hits would close it (critic).
+- **The first shot's puff** starts at the raised muzzle before the 0.08 s ease (QA); a PLAYTEST question.
+- **A figure shown again in front of a wall** is level for one pose, then eases up over about 12 (QA).
+- **Rays run every other pose** even with the level far away; fine at this figure count (performance).
+- `figure_view.gd:+192`: the 0.001 divide guard is a bare literal (critic). In `fb5-stack-after.png` the left hand
+  reaches visor height; watch it beside a real hit call (critic).
 
 ## Gate
 
