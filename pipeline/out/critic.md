@@ -1,34 +1,32 @@
-Task: FB1 · Menu fixes from the 0.1 Dev 1 playtest (fix, UI)
+Task: BP1 · Fixes from the 0.1 Dev 1 bug pass (tier: fix; no task block, judged against the brief and docs/records/BP1.md)
 Attempt: 1 of 4
-Head: c623bba (worker: gdlint, unit parts 1-3 and smoke after fix round 1; QA Pass on c623bba, 38/38 FB1 tests; performance Pass on 9ce3f72)
+Head: eb4bd0e (worker: unit parts 1-3, smoke, match guards, gdlint, wiki and changelog checks on 0812065; QA's eb4bd0e adds tests only, QA Pass; performance Pass on 0812065)
 Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
 Score: 8/8 → Accept
 Evidence:
-1. Item 1: menu_switch.gd:128-131 (width fixed to the longer word, SHRINK_CENTER), settings_screen.gd:669 (every switch a MenuSwitch),
-   settings_graphics_page.gd:254 (preset blurb reserves 3 lines). Item 2: settings_graphics_page.gd:239 (tag z_index 1).
-   Item 14: customise_view.gd:180 (margin ignores the mouse) and :195 (crumb built last); menu_screen.gd:115 (LOADOUT tab leaves Customise).
-   Item 18: button_width.gd:57-70, used by top_bar.gd:77, pause_menu.gd:180, menu_choice.gd:77, match bots/rules/team rows and the dialogs.
-   Item 19: top_bar.gd:190 (wordmark button), main.gd:212 (title), main.gd:545-574 (Esc asks QUIT GAME?, focus restored). Item 21: settings_screen.gd:145.
-2. ARCHITECTURE › Contracts names no menu or UI file; none touched.
-3. No _process/_physics_process added. main.gd:545 is an early-return chain per input event. button_width.gd:58 builds a small Array per
-   refresh, but refresh runs only on minimum_size_changed / visibility_changed (screen and tab changes, n <= 8 per group): event-driven, not per frame.
-   The fix round's visibility_changed costs n refreshes of O(n) per show/hide of a group's screen; negligible at these sizes.
-4. test_fb1_menus.gd:163 hit-tests the Customise LOADOUT button (fails with the full-rect margin over it); :87 presses every Settings switch and
-   compares every rect; test_fb1_qa.gd:113 pins hidden buttons out of the width.
-5. UI only; typed throughout (ButtonWidth._buttons is a deliberate untyped Array of possibly-freed entries); tuning in named consts; no globals.
-6. Menu polish the owner asked for; no assets, no tone change. Esc-to-quit in Settings matches "ESC anywhere in the menus".
-7. Three new small scripts; QuitPrompt queue_free()d on close; group lifetime via button meta; no .tscn edits.
-8. Six owner items only; record, changelog note, DECISIONS (two rulings), wiki Controls/Getting-Started/Settings, PLAYTEST updated.
-Advisories (not blocking):
-- pause_menu.gd:23,53: PANEL_WIDTH and PRACTICE_WIDTH are both 0.0 now; drop them or the line that sets them.
-- menu_switch.gd:121: local `size` shadows Control.size (an editor warning); rename it.
-- Pause panel (fb1-after-pause-match.png): the seed row is ~10 px wider than the buttons, so the right edge is ragged.
-- docs/wiki/Controls.md:31 lists what takes Esc first but leaves out Customise and the credits.
+1. All four fixes land: MagShare.toss_line_clear (game/sim/mag_share.gd:234) used by can_toss_to (:229) and
+   BotMagShare._up_to (game/ai/bot_mag_share.gd:175); test_mh1_qa.gd.uid added; Need a Mag H in game/input/README.md:8;
+   _first_arg slices before the first NUL (game/core/process_check.gd:74-77).
+2. No ARCHITECTURE › Contracts entry covers MagShare, BotMagShare or ProcessCheck; one public method added, none changed.
+3. toss_line_clear reuses MagShare's _hit scratch, value-type maths only; BotMagShare's static _hit removed; ray count
+   per tick unchanged from main (performance). _first_arg runs once at start.
+4. Verified by reading: tests/unit/test_bot_mag_share.gd:421 (giver inside 3 m, eye-height beam): old _up_to rayed from
+   throw_point (0.3 m lower, under the beam) so returned 3 m and the bot stood; route_state WANTED fails. QA re-ran the
+   beam sweeps against bad13b6's file: 2 fail.
+5. Rules stay in MagShare (sim); static types throughout; no new tuning numbers (0 is the NUL byte).
+6. Makes the bots honour the toss's own sight rule, so a hand-off completes instead of a bot idling 15 s: on-pillar.
+7. Smaller than before (one helper replaces a parallel ray); names read.
+8. Bug-pass scope only; changelog note, input README, record; no wiki change, reasoned in the record (Bots.md already
+   promises "in reach and in sight").
+Advisories (no retry):
+- tests/unit/test_run_record_real_process.gd:113-115 three blank lines before ErrorLines; two is the file's style.
+- pipeline/out/qa.md:1 names "QA commit f2ffbc3", a pre-amend sha; the QA commit on the branch is eb4bd0e.
+- docs/records/BP1.md "Not done here" is stale (KI1 merged the order-wheel H fix on main); update it in the records commit.
+- QA's advisory stands: a bot waiting on a leaning player at a beam's edge can flip between standing and walking each
+  tick (game/ai/bot_mag_share.gd:174, no hysteresis); cosmetic.
 Must-fix for the next attempt: none.
 Owner should test in the game:
-- Settings, every tab: press each On/Off switch; nothing beside or below it moves, and the Graphics "FOR YOUR CARD" tag reads in full.
-- Loadout › Customise: click LOADOUT at the top left, and the LOADOUT tab; both go back.
-- Menus, title and Settings: Esc opens QUIT GAME? with CANCEL lit; Esc or CANCEL closes it and the keyboard is where it was; QUIT exits.
-- Click AIRSOFT at the top left from Match, Armory and Settings: the title shows; in practice's Loadout it does nothing.
-- Button widths on Match, Settings, pause (match and practice): each group one width, no wide empty boxes; Back small at the bottom left.
-- Esc in a match still pauses, and Esc in the pause menu's Settings closes them.
+- Ask a bot for a magazine (H) from just behind a window or under a low beam on Woodland's hut: it walks up and tosses, never stands 15 s.
+- Ask across open ground: the bot still stops about 3 m away and tosses (no change).
+- Hold out on a bot that asked you, standing under a beam: it walks up to you; lean at the beam's edge and watch for twitching.
+- Start the game from a terminal on Linux: no "Unexpected NUL character" lines at start.
