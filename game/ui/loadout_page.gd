@@ -40,10 +40,10 @@ func _init(saved_in: SavedLoadouts = null, settings_in: Settings = null) -> void
 	name = "LoadoutPage"
 	saved = saved_in if saved_in != null else SavedLoadouts.shared()
 	settings = settings_in if settings_in != null else Settings.shared()
-	saved.rules.dev_content = settings.active_dev().dev_content
+	saved.rules.dev_content = settings.dev.dev_content
 	# The game's own loadouts lock what the player hasn't unlocked (a test's own are all unlocked).
 	if saved_in == null:
-		saved.rules.follow_progress(Progress.shared(), settings.active_dev().disable_levelling)
+		saved.rules.follow_progress(Progress.shared(), settings.dev.disable_levelling)
 		_lock_key = _locks_now()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_facts = LoadoutFacts.new(saved)
@@ -114,7 +114,7 @@ func locks_changed() -> bool:
 
 
 func _locks_now() -> String:
-	return "%s:%d" % [settings.active_dev().disable_levelling, Progress.shared().unlocked.size()]
+	return "%s:%d" % [settings.dev.disable_levelling, Progress.shared().unlocked.size()]
 
 
 func gear() -> LoadoutGear:

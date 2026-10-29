@@ -127,12 +127,10 @@ func test_settings_changed_only_from_a_new_players() -> void:
 func test_dev_settings() -> void:
 	var fresh := DevSettings.new().to_dict()
 	var dev := DevSettings.new()
-	assert_eq(ReportFacts.dev_text(false, dev.to_dict(), fresh), "off")
-	assert_eq(ReportFacts.dev_text(true, dev.to_dict(), fresh), "on, nothing changed")
+	assert_eq(ReportFacts.dev_text(dev.to_dict(), fresh), "none", "every switch off (FB3: no box)")
 	dev.ghost = true
 	dev.game_speed = 2.0
-	assert_eq(ReportFacts.dev_text(true, dev.to_dict(), fresh), "on: game_speed 2, ghost on")
-	assert_eq(ReportFacts.dev_text(false, dev.to_dict(), fresh), "off", "unticked, the switches don't apply")
+	assert_eq(ReportFacts.dev_text(dev.to_dict(), fresh), "game_speed 2, ghost on")
 
 
 func test_the_errors_a_log_names() -> void:
@@ -228,7 +226,7 @@ func test_a_live_report_from_a_match() -> void:
 	assert_string_contains(text, "\nSeed: %d\nMatch: Depot · Elimination · Standard rules · " % session.state.match_seed)
 	assert_string_contains(text, "\nRound: 1 (live), score 0–0, tick ")
 	assert_string_contains(text, "\nScreen: in play\nPlayer: at (")
-	assert_string_contains(text, "\nDev settings: off\nSettings changed: none\n")
+	assert_string_contains(text, "\nDev settings: none\nSettings changed: none\n")
 	assert_string_contains(text, "\nRecent errors (%d):\n  ERROR res://game/x0.gd:0 (f): went wrong 0\n" % _config.errors)
 	assert_string_contains(text, "\nRecent events (")
 	assert_string_contains(text, "ROUND_START 1")

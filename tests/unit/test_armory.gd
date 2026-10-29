@@ -34,7 +34,6 @@ func _progress(xp: int) -> Progress:
 
 
 func _page(xp: int, off: bool = false, progress: Progress = null, records: Records = null) -> ArmoryPage:
-	settings.dev_enabled = off
 	settings.dev.disable_levelling = off
 	var page := ArmoryPage.new(settings, progress if progress != null else _progress(xp),
 			records if records != null else Records.new(), pool)
@@ -247,7 +246,6 @@ func test_the_page_notices_a_changed_level_or_levelling() -> void:
 	p.add_xp(300)
 	assert_true(page.stale())
 	var other := _page(100)
-	settings.dev_enabled = true
 	settings.dev.disable_levelling = true
 	assert_true(other.stale())
 
@@ -259,7 +257,6 @@ func test_a_changed_level_builds_the_open_page_again() -> void:
 	var first := menus.armory_page()
 	menus.show_level()
 	assert_eq(menus.armory_page(), first, "nothing changed: the same page")
-	settings.dev_enabled = true
 	settings.dev.disable_levelling = true
 	menus.show_level()
 	assert_ne(menus.armory_page(), first)

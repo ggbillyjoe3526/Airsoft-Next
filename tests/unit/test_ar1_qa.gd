@@ -27,7 +27,6 @@ func test_turning_dev_content_on_makes_an_open_page_stale() -> void:
 	var page := ArmoryPage.new(settings, _progress(100), Records.new(), pool)
 	add_child_autofree(page)
 	assert_false(page.stale())
-	settings.dev_enabled = true
 	settings.dev.dev_content = true
 	assert_true(page.stale(), "dev items would now be listed; the page should be built again")
 

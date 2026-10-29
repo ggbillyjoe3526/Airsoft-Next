@@ -111,7 +111,6 @@ func test_a_saved_range_and_practice_then_a_field_does_not_come_back_as_practice
 	picks.map_id = "range"
 	picks.mode = MatchOptions.MODE_PRACTICE
 	var settings := Settings.new()
-	settings.dev_enabled = true
 	settings.dev.dev_content = true
 	var page := MatchPage.new(picks, settings)
 	add_child_autofree(page)

@@ -30,7 +30,6 @@ const STANDARD_RULES := "Standard rules"
 const CUSTOM_RULES := "Custom rules"
 const OFF := "off"
 const ON := "on"
-const NOTHING_CHANGED := "nothing changed"
 ## RoundState.Phase, in its order.
 const PHASES: PackedStringArray = ["live", "over", "match over"]
 const SEP := " · "
@@ -42,7 +41,7 @@ const SECONDS_PER_MINUTE := 60
 const SECONDS_PER_HOUR := 3600
 const FULL_TURN := 360.0
 ## Settings left out of Settings changed: Dev has its own line, bindings are counted, the rest are the game's own notes.
-const NOT_SETTINGS: PackedStringArray = ["dev", "dev_enabled", "bindings", "first_start_seen", "last_fullscreen"]
+const NOT_SETTINGS: PackedStringArray = ["dev", "bindings", "first_start_seen", "last_fullscreen"]
 ## The log's error lines (Godot's own words), the longer first so "SCRIPT ERROR" isn't read as "ERROR".
 const LOG_TYPES: PackedStringArray = ["SCRIPT ERROR", "SHADER ERROR", "ERROR", "WARNING"]
 const LOG_AT := "at: "
@@ -283,12 +282,10 @@ static func player_text(c: Character, config: ReportConfig) -> String:
 	return ", ".join(doing)
 
 
-## Dev settings: "off" while the box is unticked; else "on" and each switch changed from `fresh`'s.
-static func dev_text(enabled: bool, now: Dictionary, fresh: Dictionary) -> String:
-	if not enabled:
-		return OFF
+## Dev settings: each switch changed from `fresh`'s, or "none".
+static func dev_text(now: Dictionary, fresh: Dictionary) -> String:
 	var changed := _changed(now, fresh, "", PackedStringArray())
-	return "%s: %s" % [ON, ", ".join(changed)] if not changed.is_empty() else "%s, %s" % [ON, NOTHING_CHANGED]
+	return ", ".join(changed) if not changed.is_empty() else BugReport.NONE
 
 
 ## Settings changed: every value that differs from a new player's (Settings.to_dict, nested ones as "hud.size"),
@@ -375,7 +372,7 @@ static func _machine(info: BugReport.ReportInfo, settings: Settings) -> void:
 				DisplayServer.screen_get_refresh_rate())
 	info.language = TranslationServer.get_locale()
 	if settings != null:
-		info.dev_settings = dev_text(settings.dev_enabled, settings.dev.to_dict(), DevSettings.new().to_dict())
+		info.dev_settings = dev_text(settings.dev.to_dict(), DevSettings.new().to_dict())
 		info.settings_changed = settings_text(settings.to_dict(), Settings.new(settings.tuning).to_dict())
 
 

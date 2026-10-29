@@ -100,9 +100,7 @@ func test_dev_content_toggle_adds_and_removes_the_dev_map_choice() -> void:
 	var catalog := DevContent.use_map() # every shipped map is public: Woodland tagged dev for the test
 	var main: Node = await _boot()
 	var s := Settings.shared()
-	var was_en := s.dev_enabled
 	var was := s.dev.dev_content
-	s.dev_enabled = true
 	s.dev.dev_content = false
 	s.changed.emit()
 	var page: MatchPage = main._menus.match_page()
@@ -114,7 +112,6 @@ func test_dev_content_toggle_adds_and_removes_the_dev_map_choice() -> void:
 	s.changed.emit()
 	assert_eq(page.map_ids().size(), base)
 	assert_true(page.map_ids().has(main._picks.map_id))
-	s.dev_enabled = was_en
 	s.dev.dev_content = was
 	DevContent.restore_map(catalog)
 

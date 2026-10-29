@@ -102,8 +102,7 @@ var read_out: bool = true
 var custom_rules: CustomRules = CustomRules.new()
 ## Practice's timed challenge, switched on or off from the pause menu and kept for the next visit to the range.
 var practice_challenge: bool = false
-## The Dev settings box, and the Dev tab's switches (kept while the box is off; they apply only while it is ticked).
-var dev_enabled: bool = false
+## The Dev tab's switches, in force whenever they are set (owner, 2026-10-29: no Dev settings box any more).
 var dev: DevSettings = DevSettings.new()
 ## What the settings write into: the camera and the mouse (the same resource PlaySession loads).
 var tuning: PlayTuning = null
@@ -113,7 +112,6 @@ var load_message: String = ""
 var dirty: bool = false
 
 static var _shared: Settings = null
-static var _dev_defaults: DevSettings = DevSettings.new()
 
 
 func _init(play_tuning: PlayTuning = null) -> void:
@@ -178,7 +176,7 @@ func to_dict() -> Dictionary:
 		"bindings": bindings.to_dict(), "volumes": vol, "window_mode": int(window_mode), "vsync": vsync,
 		"fov": fov, "show_fps": show_fps, "realistic_colours": realistic_colours, "what_got_you": int(what_got_you),
 		"hud": hud.to_dict(), "custom_rules": custom_rules.to_dict(), "practice_challenge": practice_challenge,
-		"dev_enabled": dev_enabled, "dev": dev.to_dict(), "graphics_base": String(graphics_base),
+		"dev": dev.to_dict(), "graphics_base": String(graphics_base),
 		"graphics_custom": graphics_custom.duplicate(), "frame_limit": frame_limit, "monitor": monitor,
 		"last_fullscreen": int(last_fullscreen), "renderer": int(renderer), "first_start_seen": first_start_seen,
 		"team_colours": int(team_colours), "gauge_patterns": gauge_patterns, "sound_cues": sound_cues,
@@ -220,9 +218,11 @@ func from_dict(data: Dictionary) -> void:
 	var saved_rules: Variant = data.get("custom_rules")
 	custom_rules.from_dict(saved_rules if saved_rules is Dictionary else {})
 	practice_challenge = _flag(data, "practice_challenge", false)
-	dev_enabled = _flag(data, "dev_enabled", false)
 	var saved_dev: Variant = data.get("dev")
-	dev.from_dict(saved_dev if saved_dev is Dictionary else {})
+	# A save from when the Dev settings box ruled (FB3) with it unticked: its switches never applied, so they go back
+	# to off once here rather than suddenly taking effect. Saves no longer write the box, so this happens only once.
+	var box_unticked: bool = data.get("dev_enabled") is bool and not data.get("dev_enabled")
+	dev.from_dict(saved_dev if saved_dev is Dictionary and not box_unticked else {})
 	_graphics_from(data)
 	frame_limit = nearest_frame_limit(_number(data, "frame_limit", UNLIMITED, UNLIMITED, INF))
 	monitor = roundi(_number(data, "monitor", MONITOR_HERE, MONITOR_HERE, MONITOR_MOST))
@@ -309,11 +309,6 @@ static func nearest_frame_limit(limit: float) -> int:
 		if absf(limit - l) <= absf(limit - best):
 			best = l
 	return best
-
-
-## The Dev settings in force: the Dev tab's while its box is ticked, else the defaults.
-func active_dev() -> DevSettings:
-	return dev if dev_enabled else _dev_defaults
 
 
 ## The settings file and its backups go and every setting is back to its default, applied at once: the first-launch

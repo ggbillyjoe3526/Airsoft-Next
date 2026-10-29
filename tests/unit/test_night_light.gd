@@ -174,7 +174,6 @@ func test_one_night_flag_drives_every_night_system() -> void:
 
 func test_a_match_on_depot_by_dev_night_lights_everything_by_its_one_flag() -> void:
 	var s := Settings.new()
-	s.dev_enabled = true
 	s.dev.time_of_day = LightingConfig.NIGHT
 	var session := PlaySession.new()
 	session.map_id = "depot"

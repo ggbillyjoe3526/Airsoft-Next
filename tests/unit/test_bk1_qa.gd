@@ -236,7 +236,6 @@ func test_a_dev_power_source_in_a_kit_is_carried_only_with_dev_content() -> void
 func test_the_bot_kit_rules_follow_the_dev_content_setting() -> void:
 	var s := PlaySession.new()
 	s.settings = Settings.new()
-	s.settings.dev_enabled = true
 	s.settings.dev.dev_content = true
 	assert_true(s._bot_kit_rules().dev_content)
 	s.settings.dev.dev_content = false

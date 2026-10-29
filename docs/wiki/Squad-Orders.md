@@ -26,9 +26,9 @@ view.
 
 All four keys can be rebound in Settings › Controls ([Controls](Controls)).
 
-## In development
+## Pings
 
-**Pings:** press the **middle mouse button** (Squad: ping a spot in Settings › Controls) to mark where your crosshair
+Press the **middle mouse button** (Squad: ping a spot in Settings › Controls) to mark where your crosshair
 meets the field, up to <!-- wiki:config ping_config.reach --> m away, for your bot teammates; the sky marks nothing.
 An opponent under your crosshair that you can see is marked as a contact instead, and counts as a threat. Your
 teammates take a ping as somewhere worth a look, kept in mind for <!-- wiki:config bot_config.ping_memory --> seconds
@@ -37,9 +37,11 @@ in), and one under your order, at its post or holding watches it instead. A team
 someone in sight carries on. One of them answers in the hit feed, "Going to your ping" or "Watching your ping" in its
 own words. You have one ping at a time and a double click is one ping; pings clear each round and do nothing while you
 are out or on the [Practice Range](Practice-Range). A soft pip says your ping went out, and a marker shows it over the
-field and on the minimap ([HUD and Minimap](HUD-and-Minimap#in-development)).
+field and on the minimap ([HUD and Minimap](HUD-and-Minimap#ping-markers)).
 
-**Need a Mag:** press **H** (Squad: need a mag in Settings › Controls), or pick **Need a Mag**, the order wheel's fifth
+## Need a Mag
+
+Press **H** (Squad: need a mag in Settings › Controls), or pick **Need a Mag**, the order wheel's fifth
 item at its upper left. It does what fits now: when a teammate who asked you for a magazine is close enough and in
 sight, you toss them one (the item then reads **Toss a Mag**); otherwise, when you are down to less than one full spare
 magazine, you ask the nearest teammate within <!-- wiki:config mag_share_config.ask_range --> m who has one to spare,
@@ -49,4 +51,4 @@ After an ask ends you can ask again <!-- wiki:config mag_share_config.player_ask
 can't do anything says why: on the line under the crosshair, or in the wheel's middle when you picked it there
 ("Nobody near has a mag to spare", "You still have a full spare mag", "Get closer to Rook to toss a mag"). It does
 nothing while you are out or on the [Practice Range](Practice-Range); between rounds magazines wait for the next round.
-What the [HUD](HUD-and-Minimap#in-development) shows, and how [bots](Bots#in-development) ask and bring one.
+What the [HUD](HUD-and-Minimap#the-magazine-hand-off) shows, and how [bots](Bots#magazines) ask and bring one.

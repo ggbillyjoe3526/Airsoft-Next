@@ -46,7 +46,7 @@ func _init(picks: MatchPicks = null, settings: Settings = null) -> void:
 ## The chip shows the player's level, or nothing while levelling is off (Settings › Dev); an open Loadout or Armory page
 ## whose locks changed under the settings (Disable levelling, Reset level) is built again.
 func show_level() -> void:
-	_bar.set_level(-1 if _settings.active_dev().disable_levelling else Progress.shared().level())
+	_bar.set_level(-1 if _settings.dev.disable_levelling else Progress.shared().level())
 	if _loadout != null and _loadout.locks_changed():
 		var slot := _loadout.slot()
 		leave_loadout()

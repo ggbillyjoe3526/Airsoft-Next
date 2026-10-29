@@ -226,7 +226,6 @@ func test_the_page_lays_out_at_small_and_4k_sizes() -> void:
 
 
 func test_the_cyber_pistol_can_be_carried_but_no_part_fits_it_but_the_torch() -> void:
-	settings.dev_enabled = true
 	settings.dev.dev_content = true
 	saved.rules.dev_content = true
 	assert_true(saved.rules.equip(saved.carried(), Loadout.Slot.SECONDARY, CYBER), "playable since CP1")

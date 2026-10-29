@@ -108,7 +108,6 @@ func test_every_size_a_field_offers_has_a_spawn_and_a_dead_zone_spot_each() -> v
 
 func _page(rules: String, settings: Settings = null) -> MatchPage:
 	var s := settings if settings != null else Settings.new()
-	s.dev_enabled = true
 	s.dev.dev_content = true
 	var picks := MatchPicks.new()
 	picks.rules = rules
@@ -192,7 +191,6 @@ func test_an_old_save_loads_unchanged() -> void:
 
 func test_a_6v6_on_woodland_gives_everyone_a_spawn_and_a_dead_zone_spot_of_their_own() -> void:
 	var settings := Settings.new(PlayTuning.new())
-	settings.dev_enabled = true
 	settings.dev.bots_hold_fire = true
 	var custom := CustomRules.new()
 	custom.team_size = 6

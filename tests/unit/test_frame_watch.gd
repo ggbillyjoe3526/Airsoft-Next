@@ -286,7 +286,6 @@ func test_a_pause_and_focus_loss_start_the_count_over() -> void:
 
 func test_the_smoke_tests_pilot_never_counts() -> void:
 	GraphicsApply.pick_for_run(&"high")
-	s.dev_enabled = true
 	s.dev.pretend_slow_frames = true
 	await _play()
 	await wait_process_frames(30)

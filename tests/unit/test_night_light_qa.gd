@@ -112,17 +112,15 @@ func test_leaving_a_night_match_frees_its_pools_and_the_next_match_is_lit_by_its
 	assert_eq(Performance.get_monitor(Performance.OBJECT_NODE_COUNT), before, "nothing left over")
 
 
-func test_dev_time_of_day_is_ignored_with_dev_off_and_old_saves_load_without_it() -> void:
+func test_dev_time_of_day_is_dropped_from_a_save_with_the_old_box_unticked_and_old_saves_load_without_it() -> void:
 	var s := Settings.new()
-	s.dev.time_of_day = LightingConfig.NIGHT
-	s.dev_enabled = false
+	s.from_dict({"dev_enabled": false, "dev": {"time_of_day": String(LightingConfig.NIGHT)}})
 	var session := _session("depot", s)
-	assert_false(session.lighting().night, "Dev off: the map's own")
+	assert_false(session.lighting().night, "the old box was off: the map's own")
 	var d := DevSettings.new()
 	d.from_dict({"bottomless": true})
 	assert_eq(d.time_of_day, &"")
 	var again := Settings.new()
-	again.dev_enabled = true
 	again.dev.time_of_day = LightingConfig.DAY
 	var back := Settings.new()
 	back.from_dict(again.to_dict())
@@ -131,7 +129,6 @@ func test_dev_time_of_day_is_ignored_with_dev_off_and_old_saves_load_without_it(
 
 func test_a_practice_range_by_dev_night_plays_without_pools_and_stays_off_the_record() -> void:
 	var s := Settings.new()
-	s.dev_enabled = true
 	s.dev.time_of_day = LightingConfig.NIGHT
 	var session := PlaySession.new()
 	session.map_id = "range"
@@ -155,7 +152,6 @@ func test_dev_time_of_day_row_picks_saves_and_shows_the_saved_choice() -> void:
 	var path := "user://test_night_light_qa/settings.save"
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	var s := Settings.new(PlayTuning.new())
-	s.dev_enabled = true
 	var screen := SettingsScreen.new()
 	screen.settings = s
 	screen.save_path = path

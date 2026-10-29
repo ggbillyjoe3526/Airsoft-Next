@@ -1,7 +1,8 @@
 extends GutTest
-## The Dev tab (game/save/dev_settings.gd, Settings' Dev settings box, the settings screen's Dev tab) and the maps'
-## public and dev tags (game/map/map_catalog.gd, data/maps.md): saved and read back, applied only while the box is
-## ticked, Reset the save, End the round now only from a match, and dev maps listed only with Dev content on.
+## The Dev tab (game/save/dev_settings.gd, the settings screen's Dev tab) and the maps' public and dev tags
+## (game/map/map_catalog.gd, data/maps.md): saved and read back, always there and applied whenever set (FB3), an old
+## save with the Dev settings box unticked reset once, Reset the save, End the round now only from a match, and dev
+## maps listed only with Dev content on.
 
 const ROOT := "user://test-dev-settings"
 
@@ -54,7 +55,6 @@ func _dev_tab(screen: SettingsScreen) -> int:
 
 
 func test_the_dev_settings_are_saved_and_read_back() -> void:
-	s.dev_enabled = true
 	s.dev.game_speed = 0.5
 	s.dev.ghost = true
 	s.dev.retro_pixels = true
@@ -62,7 +62,6 @@ func test_the_dev_settings_are_saved_and_read_back() -> void:
 	assert_true(s.save(path))
 	var again := Settings.new(PlayTuning.new())
 	again.load_file(path)
-	assert_true(again.dev_enabled)
 	assert_eq(again.dev.game_speed, 0.5)
 	assert_true(again.dev.ghost)
 	assert_true(again.dev.retro_pixels)
@@ -80,16 +79,49 @@ func test_a_bad_dev_value_keeps_its_default_alone() -> void:
 	assert_eq(d.game_speed, 0.5, "held to its 25 % steps")
 
 
-func test_the_dev_settings_apply_only_while_the_box_is_ticked() -> void:
+## FB3: no box any more. Every switch is off for a new player and applies as soon as it is set, and the file no
+## longer writes the box.
+func test_the_dev_settings_start_off_and_apply_whenever_set() -> void:
+	var fresh := Settings.new(PlayTuning.new())
+	assert_eq(fresh.dev.to_dict(), DevSettings.new().to_dict(), "every switch at its default")
+	assert_false(fresh.dev.cheats().any(), "a new player plays on the record")
+	assert_false(fresh.dev.dev_content)
 	s.dev.ghost = true
-	s.dev.dev_content = true
-	assert_false(s.active_dev().ghost, "box off: the defaults")
-	assert_false(s.active_dev().cheats().any())
-	s.dev_enabled = true
-	assert_true(s.active_dev().ghost)
-	assert_true(s.active_dev().cheats().ghost)
-	s.dev_enabled = false
-	assert_true(s.dev.ghost, "kept while the box is off")
+	assert_true(s.dev.cheats().ghost, "on as soon as set")
+	assert_false(s.to_dict().has("dev_enabled"), "the box is gone from the file")
+
+
+## FB3: a save from when the box ruled, with it unticked: its switches never applied, so they go back to off once at
+## load and no stale cheat suddenly applies. With it ticked they carry on; saved again, the box key is gone and the
+## switches set since stay.
+func test_an_old_save_with_the_box_unticked_has_its_switches_reset_once() -> void:
+	var stale := DevSettings.new()
+	stale.ghost = true
+	stale.bottomless = true
+	stale.game_speed = 2.0
+	stale.robots = true
+	stale.dev_content = true
+	stale.time_of_day = LightingConfig.NIGHT
+	var old := Settings.new(PlayTuning.new()).to_dict()
+	old["dev"] = stale.to_dict()
+	old["dev_enabled"] = false
+	assert_true(SaveFile.write(path, Settings.KIND, Settings.VERSION, old))
+	var loaded := Settings.new(PlayTuning.new())
+	loaded.load_file(path)
+	assert_eq(loaded.load_message, "", "no complaint")
+	assert_eq(loaded.dev.to_dict(), DevSettings.new().to_dict(), "every switch off")
+	assert_false(loaded.dev.cheats().any(), "no stale cheat applies")
+	loaded.dev.bot_intent = true
+	assert_true(loaded.save(path))
+	var again := Settings.new(PlayTuning.new())
+	again.load_file(path)
+	assert_true(again.dev.bot_intent, "a switch set after the reset survives the next load")
+	assert_false(again.dev.ghost)
+	old["dev_enabled"] = true
+	assert_true(SaveFile.write(path, Settings.KIND, Settings.VERSION, old))
+	var ticked := Settings.new(PlayTuning.new())
+	ticked.load_file(path)
+	assert_eq(ticked.dev.to_dict(), stale.to_dict(), "the box was ticked: the switches carry on")
 
 
 func test_spectate_and_bot_intentions_keep_a_match_off_the_record_but_retro_does_not() -> void:
@@ -106,7 +138,6 @@ func test_spectate_and_bot_intentions_keep_a_match_off_the_record_but_retro_does
 
 func test_reset_the_save_starts_again_as_a_new_player() -> void:
 	s.sensitivity = 2.5
-	s.dev_enabled = true
 	s.dev.ghost = true
 	s.bindings.rebind(&"jump", KEY_J)
 	assert_true(s.save(path))
@@ -114,7 +145,6 @@ func test_reset_the_save_starts_again_as_a_new_player() -> void:
 	assert_false(FileAccess.file_exists(path))
 	assert_false(FileAccess.file_exists(path + ".bak"))
 	assert_eq(s.sensitivity, 1.0)
-	assert_false(s.dev_enabled)
 	assert_false(s.dev.ghost)
 	assert_eq(s.bindings.codes(&"jump"), KeyBindings.new().codes(&"jump"))
 	var again := Settings.new(PlayTuning.new())
@@ -122,25 +152,19 @@ func test_reset_the_save_starts_again_as_a_new_player() -> void:
 	assert_eq(again.load_message, "", "no file: silent defaults")
 
 
-func test_the_dev_tab_shows_only_while_the_box_is_ticked() -> void:
+func test_the_dev_tab_is_always_there_with_no_box_under_the_tabs() -> void:
 	var screen := _screen()
 	var tab := _dev_tab(screen)
-	assert_true(screen._tabs.is_tab_hidden(tab))
-	screen._dev_box.button_pressed = true
-	assert_true(s.dev_enabled)
-	assert_false(screen._tabs.is_tab_hidden(tab))
+	assert_false(screen._tabs.is_tab_hidden(tab), "shown for a new player")
+	assert_eq(tab, screen._tabs.get_tab_count() - 1, "the last tab")
 	screen._tabs.current_tab = tab
-	screen._dev_box.button_pressed = false
-	assert_true(screen._tabs.is_tab_hidden(tab))
-	assert_eq(screen._tabs.current_tab, 0, "back to the first tab")
-	screen.close()
-	var again := Settings.new(PlayTuning.new())
-	again.load_file(path)
-	assert_false(again.dev_enabled, "saved")
+	assert_eq(screen._tabs.current_tab, tab, "and it opens")
+	assert_eq(screen.find_children("*", "CheckButton", true, false).filter(
+			func(n: Node) -> bool: return (n as CheckButton).text == "Dev settings").size(), 0, "no Dev settings box")
+	assert_eq(tr("DEV_SETTINGS_BOX"), "DEV_SETTINGS_BOX", "its words are gone from en.po")
 
 
 func test_the_dev_tab_writes_its_switches_and_game_speed() -> void:
-	s.dev_enabled = true
 	var screen := _screen()
 	var heard := [0]
 	s.changed.connect(func() -> void: heard[0] += 1)
@@ -163,10 +187,7 @@ func test_dev_robots_is_off_by_default_and_saved_as_the_other_switches() -> void
 	assert_false(s.dev.robots, "off by default")
 	assert_true(SettingsScreen.DEV_SWITCHES.has(&"robots"), "a Dev tab switch")
 	s.dev.robots = true
-	assert_false(s.active_dev().robots, "box off: humans only")
 	assert_false(s.dev.cheats().any(), "a look: the match still counts")
-	s.dev_enabled = true
-	assert_true(s.active_dev().robots)
 	assert_true(s.save(path))
 	var again := Settings.new(PlayTuning.new())
 	again.load_file(path)
@@ -179,7 +200,6 @@ func test_dev_robots_is_off_by_default_and_saved_as_the_other_switches() -> void
 
 
 func test_the_dev_tab_s_robots_row_reads_and_writes_the_switch() -> void:
-	s.dev_enabled = true
 	var screen := _screen()
 	var check: CheckButton = screen._dev_checks[&"robots"]
 	assert_false(check.button_pressed, "off to begin with")
@@ -211,7 +231,6 @@ func test_no_public_tab_or_text_names_robots() -> void:
 
 
 func test_end_the_round_needs_a_match() -> void:
-	s.dev_enabled = true
 	var screen := _screen()
 	assert_true(screen._end_round.disabled, "from the title screen")
 	screen.queue_free()
@@ -229,7 +248,6 @@ func test_end_the_round_needs_a_match() -> void:
 ## Dev › Reset the save went with SV2 (Settings › Save file's Delete and start over does it, with Undo); Reset level
 ## stays.
 func test_the_dev_tab_has_reset_level_and_no_reset_the_save() -> void:
-	s.dev_enabled = true
 	var screen := _screen()
 	var words := PackedStringArray()
 	for n: Node in screen._dev_page.find_children("*", "Label", true, false):

@@ -266,12 +266,11 @@ func test_the_laser_is_greyed_and_power_lists_what_fits() -> void:
 	assert_false(page.customise().power_ids().has(LIPO))
 
 
-func test_dev_content_follows_the_active_dev_settings() -> void:
-	settings.dev_enabled = true
+func test_dev_content_follows_the_dev_settings() -> void:
 	settings.dev.dev_content = true
 	_page()
 	assert_true(saved.rules.dev_content)
-	settings.dev_enabled = false
+	settings.dev.dev_content = false
 	_page()
 	assert_false(saved.rules.dev_content)
 

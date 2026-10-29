@@ -351,7 +351,6 @@ func test_every_parameter_the_site_shaders_read_is_set_by_the_game() -> void:
 
 func _night_on(id: String) -> PlaySession:
 	var s := Settings.new()
-	s.dev_enabled = true
 	s.dev.time_of_day = LightingConfig.NIGHT
 	var session := PlaySession.new()
 	session.map_id = id
@@ -389,7 +388,6 @@ func _check_night(id: String) -> void:
 func test_the_same_maps_by_day_get_the_clouds_and_the_haze() -> void:
 	for id in DRESSED:
 		var s := Settings.new()
-		s.dev_enabled = true
 		s.dev.time_of_day = LightingConfig.DAY
 		var session := PlaySession.new()
 		session.map_id = id

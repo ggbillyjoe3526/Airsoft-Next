@@ -129,7 +129,6 @@ func test_a_bb_keeps_the_glow_of_the_replica_that_fired_it_after_a_switch() -> v
 func _session(map_id: String, kit: Kit, pick: StringName, time_of_day: StringName = &"") -> PlaySession:
 	var s := Settings.new()
 	if time_of_day != &"":
-		s.dev_enabled = true
 		s.dev.time_of_day = time_of_day
 	var session := PlaySession.new()
 	session.map_id = map_id

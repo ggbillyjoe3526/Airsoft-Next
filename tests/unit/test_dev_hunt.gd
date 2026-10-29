@@ -18,7 +18,6 @@ func before_each() -> void:
 	dir = "%s/%d" % [ROOT, _n]
 	DirAccess.make_dir_recursive_absolute(dir)
 	s = Settings.new(PlayTuning.new())
-	s.dev_enabled = true
 
 
 func after_each() -> void:
@@ -52,7 +51,7 @@ func _play(autopilot: bool = false, bots_active: bool = true) -> void:
 
 # --- Cheats ---
 
-func test_unticking_the_box_clears_every_cheat_in_the_match() -> void:
+func test_turning_every_switch_off_clears_every_cheat_in_the_match() -> void:
 	s.dev.game_speed = 2.0
 	s.dev.ghost = true
 	s.dev.bottomless = true
@@ -62,10 +61,10 @@ func test_unticking_the_box_clears_every_cheat_in_the_match() -> void:
 	s.dev.retro_pixels = true
 	await _play()
 	assert_true(session.state.cheats.any())
-	s.dev_enabled = false
+	s.dev.from_dict({})
 	s.mark_changed()
 	await wait_process_frames(2)
-	assert_false(session.state.cheats.any(), "no cheat survives the box")
+	assert_false(session.state.cheats.any(), "no cheat survives its switch")
 	assert_eq(session.state.cheats.game_speed, 1.0)
 	assert_false(session.player.ghost)
 	assert_false(session.player.armament.bottomless)
@@ -175,7 +174,6 @@ func test_with_every_bot_out_spectating_does_not_break_the_view() -> void:
 
 func test_reset_the_save_removes_every_file_and_a_close_does_not_bring_it_back() -> void:
 	var path := dir.path_join("settings.save")
-	s.dev_enabled = true
 	s.sensitivity = 2.0
 	assert_true(s.save(path))
 	for suffix: String in SaveFile.SUFFIXES:
@@ -194,9 +192,9 @@ func test_reset_the_save_removes_every_file_and_a_close_does_not_bring_it_back()
 	await wait_process_frames(2)
 	for suffix: String in SaveFile.SUFFIXES:
 		assert_false(FileAccess.file_exists(path + suffix), "no %s" % suffix)
-	assert_false(s.dev_enabled)
 	assert_eq(s.dev.game_speed, 1.0)
-	assert_true(screen._tabs.is_tab_hidden(screen._dev_page.get_parent().get_index()), "Dev tab hidden after")
+	for i in screen._tabs.get_tab_count():
+		assert_false(screen._tabs.is_tab_hidden(i), "every tab, Dev too, still there after (%d)" % i)
 
 
 func test_reset_the_save_in_a_match_turns_the_cheats_off() -> void:
@@ -233,16 +231,14 @@ func test_the_catalogue_reads_what_it_can_and_names_the_rest() -> void:
 func test_the_match_pages_maps_follow_dev_content() -> void:
 	var catalog := DevContent.use_map()
 	var shared := Settings.shared()
-	var was_enabled := shared.dev_enabled
 	var was_content := shared.dev.dev_content
-	shared.dev_enabled = false
-	shared.dev.dev_content = true
+	shared.dev.dev_content = false
 	var main: Node = add_child_autofree(MAIN.instantiate())
 	await wait_process_frames(2)
 	var page: MatchPage = main._menus.match_page()
 	var public_count := page.map_ids().size()
-	assert_eq(public_count, MapCatalog.shared().listed(false).size(), "box off: public maps only")
-	shared.dev_enabled = true
+	assert_eq(public_count, MapCatalog.shared().listed(false).size(), "Dev content off: public maps only")
+	shared.dev.dev_content = true
 	shared.mark_changed()
 	assert_eq(page.map_ids().size(), MapCatalog.shared().listed(true).size())
 	assert_gt(page.map_ids().size(), public_count)
@@ -252,7 +248,6 @@ func test_the_match_pages_maps_follow_dev_content() -> void:
 	assert_eq(page.map_ids().size(), public_count)
 	assert_eq(main._picks.map_id, "depot", "a map no longer listed falls back")
 	assert_true(page.map_card("depot").is_picked())
-	shared.dev_enabled = was_enabled
 	shared.dev.dev_content = was_content
 	main.free()
 	shared.mark_changed()

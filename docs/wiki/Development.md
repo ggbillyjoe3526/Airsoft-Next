@@ -51,7 +51,7 @@ keeps its built-in value with a warning.
 
 ## Dev settings
 
-**Settings › Dev settings** shows a Dev tab of tools for trying things out. They apply only while the box is ticked.
+**Settings › Dev** is a tab of tools for trying things out, always there; each is off until you turn it on.
 A match with Game speed, Bottomless magazines, Ghost, Bots hold fire, Bots run low on BBs, Spectate any bot or Bot
 intentions changed, or on dev content, stays out of the records and gives no XP.
 

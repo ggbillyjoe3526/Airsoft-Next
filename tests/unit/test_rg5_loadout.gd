@@ -135,7 +135,6 @@ func test_back_to_practice_comes_from_the_button_l_and_escape_and_l_does_nothing
 
 
 func test_a_page_rebuilt_under_changed_levelling_keeps_the_practice_slot_and_note() -> void:
-	settings.dev_enabled = true
 	var menus := MenuScreen.new(MatchPicks.new(), settings)
 	add_child_autofree(menus)
 	menus.open_practice_loadout(Loadout.Slot.SECONDARY)
