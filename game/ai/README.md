@@ -56,6 +56,15 @@ turning to Follow me once close. The order in force given again cancels it (from
 ends it, and it ends when its giver is out and at each round start. Back on the plan, in Elimination the bot hunts from
 where it stands; in Attack / Defend it takes up its post.
 
+Bots share magazines (MH2, `BotMagShare`; the rules are the simulation's `MagShare`): a bot low on BBs for its primary
+presses the hand-off through its command, which asks the nearest teammate within 30 m with one to spare (a bot never
+asks for its pistol's). A bot asked, by a bot or by you, and free to bring one (not asking itself, not off to the pole)
+sprints over while further than 8 m, walks on to within 3 m and presses once the catcher is in reach and in sight; it
+serves its asks one at a time. A bot that asked a bot waits where it is; one that asked you walks up to within 3 m and
+waits for your toss. Fights and cover come first, then bringing one, then a squad order and the pole, then waiting for
+one; the same at every level. A bot presses at most once a second, and with nobody to ask it looks again after the
+bot's 20 s gap, so no press is refused tick after tick.
+
 Every bot has a name and personality from `data/bots.md` (`BotsFile`), drawn on the match's seed (`BotRoster`): a
 rusher pushes in and never waits, an anchor holds its lane short of the middle until late and aims from cover, a flanker
 takes a lane of its own and flanks more, a careful bot walks and clears corners. A personality changes how a bot plays
@@ -78,6 +87,7 @@ at its level, never how well (`BotPersonality`).
 | `round_planner.gd` | Each round's team plans and lanes (a flanker's own, an anchor's short one, attackers to the middle, defenders their first points), and hunt spots from the team's memory |
 | `bot_flag.gd` | Attack / Defend: each bot's side, which attacker raises the flag and which defenders pull it down, when a bot wants the pole; when it goes for Elimination's overtime flag, and where flag mode heads |
 | `squad_orders.gd`, `squad_order_book.gd` | Squad orders: carrying each out (Follow me's spots and pace, Hold here's spot and each holder's place, Regroup); the orders in force, handed out and ended |
+| `bot_mag_share.gd` | `BotMagShare`: the magazine hand-off's bot side (MH2): when a low bot presses to ask, which ask a bot takes, the walk over and the press to toss, a bot that asked waiting or walking up to you |
 | `bot_roster.gd`, `bot_personality.gd` | Each bot's name and personality for a match; a personality laid over the level's skill, and its habits |
 | `pings.gd` | `Pings`: the ping book (PN1), one ping per character, a press resolved into a spot (the floor in front of what the view met) or a contact (an enemy under the view the bots' sight rules let you see), kept 8 s and cleared each round, and a Contact call's mark; `Pings.take`, how a bot teammate takes one (a noise heard there, kept `ping_memory`) |
 | `callouts.gd`, `callout_log.gd` | `Callouts`: what the bots call to their team (`data/callouts.md`), read off what they do after each step on a seeded stream of its own, never writing a bot or the state; `CalloutLog`: the calls said, a fixed ring the presentation reads |
