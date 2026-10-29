@@ -51,10 +51,10 @@ func test_the_defaults_are_the_owners() -> void:
 	assert_false(s.crouch_toggle, "crouch is held (owner, 2026-10-18)")
 	assert_false(s.aim_toggle, "aim is held (owner, 2026-10-18)")
 	assert_eq(s.volumes[&"Master"], 1.0)
-	assert_eq(s.volumes[&"Effects"], 0.8)
+	assert_eq(s.volumes[&"Effects"], 0.7)
 	assert_eq(s.volumes[&"Power"], 1.0)
-	assert_eq(s.volumes[&"Ambience"], 0.6)
-	assert_eq(s.volumes[&"Interface"], 0.5)
+	assert_eq(s.volumes[&"Ambience"], 0.3)
+	assert_eq(s.volumes[&"Interface"], 0.4)
 	assert_eq(s.fov, tuning.view.horizontal_fov_16x9, "the field of view starts where the camera config does")
 	assert_eq(s.sensitivity, tuning.controls.sensitivity)
 	assert_eq(s.aim_sensitivity, tuning.controls.aim_sensitivity)
@@ -101,10 +101,99 @@ func test_the_file_is_a_versioned_settings_save() -> void:
 	assert_eq(SaveFile.read(path, "other").ok, false, "its kind is settings")
 
 
+func test_the_first_start_is_exclusive_fullscreen_with_v_sync_off() -> void:
+	assert_eq(s.window_mode, Settings.WindowMode.EXCLUSIVE, "owner, 2026-10-29")
+	assert_false(s.vsync, "owner, 2026-10-29")
+	s.load_file(path)
+	assert_eq(s.window_mode, Settings.WindowMode.EXCLUSIVE, "no file: the same")
+	assert_false(s.vsync)
+
+
+func test_a_version_1_file_still_at_the_old_defaults_moves_to_the_new_ones() -> void:
+	SaveFile.write(path, Settings.KIND, 1, {
+		"window_mode": Settings.WindowMode.WINDOWED, "vsync": true,
+		"volumes": {"Master": 1.0, "Effects": 0.8, "Power": 1.0, "Ambience": 0.6, "Interface": 0.5},
+	})
+	var t := _again()
+	assert_eq(t.load_message, "")
+	assert_eq(t.window_mode, Settings.WindowMode.EXCLUSIVE)
+	assert_false(t.vsync)
+	assert_eq(t.volumes[&"Effects"], 0.7)
+	assert_eq(t.volumes[&"Ambience"], 0.3)
+	assert_eq(t.volumes[&"Interface"], 0.4)
+	assert_eq(t.volumes[&"Master"], 1.0)
+	assert_eq(t.volumes[&"Power"], 1.0)
+	assert_true(t.save(path), "saved again, now as version 2")
+	assert_eq(SaveFile.read(path, Settings.KIND).version, Settings.VERSION)
+
+
+func test_a_version_1_file_keeps_what_the_player_changed() -> void:
+	SaveFile.write(path, Settings.KIND, 1, {
+		"window_mode": Settings.WindowMode.BORDERLESS, "vsync": false,
+		"volumes": {"Master": 0.9, "Effects": 0.8, "Power": 0.5, "Ambience": 0.6, "Interface": 0.2},
+	})
+	var t := _again()
+	assert_eq(t.window_mode, Settings.WindowMode.BORDERLESS, "chosen, so kept")
+	assert_false(t.vsync)
+	assert_eq(t.volumes[&"Master"], 0.9)
+	assert_eq(t.volumes[&"Power"], 0.5)
+	assert_eq(t.volumes[&"Interface"], 0.2)
+	assert_eq(t.volumes[&"Effects"], 0.7, "left at the old default: moved")
+	SaveFile.write(path, Settings.KIND, 1, {"vsync": true, "volumes": {"Effects": 0.75}})
+	t = _again()
+	assert_false(t.vsync)
+	assert_eq(t.volumes[&"Effects"], 0.75, "a value near the old default is still the player's")
+
+
+func test_a_version_1_windowed_file_remembers_the_new_fullscreen_for_f11() -> void:
+	SaveFile.write(path, Settings.KIND, 1, {"window_mode": 0, "last_fullscreen": 1})
+	assert_eq(_again().last_fullscreen, Settings.WindowMode.EXCLUSIVE, "never left the old default")
+	SaveFile.write(path, Settings.KIND, 1, {"window_mode": 1, "last_fullscreen": 1})
+	var t := _again()
+	assert_eq(t.window_mode, Settings.WindowMode.BORDERLESS)
+	assert_eq(t.last_fullscreen, Settings.WindowMode.BORDERLESS, "a player in Borderless keeps it")
+	SaveFile.write(path, Settings.KIND, 2, {"window_mode": 0, "last_fullscreen": 1})
+	assert_eq(_again().last_fullscreen, Settings.WindowMode.BORDERLESS, "version 2: as saved")
+
+
+func test_a_version_2_file_is_not_moved_again() -> void:
+	SaveFile.write(path, Settings.KIND, 2, {
+		"window_mode": Settings.WindowMode.WINDOWED, "vsync": true,
+		"volumes": {"Master": 1.0, "Effects": 0.8, "Power": 1.0, "Ambience": 0.6, "Interface": 0.5},
+	})
+	var t := _again()
+	assert_eq(t.window_mode, Settings.WindowMode.WINDOWED, "chosen after the move")
+	assert_true(t.vsync)
+	assert_eq(t.volumes[&"Effects"], 0.8)
+	assert_eq(t.volumes[&"Ambience"], 0.6)
+
+
+func test_a_fresh_start_shows_edge_smoothing_off_and_a_player_who_turns_it_on_keeps_it() -> void:
+	for picked: StringName in GraphicsTable.PRESETS:
+		assert_eq(s.graphics_in_force(picked).edge_smoothing, GraphicsQuality.EdgeSmoothing.OFF, String(picked))
+	assert_true(s.change_graphics_row(GraphicsQuality.EDGE_SMOOTHING, "msaa_4x", &"medium"))
+	s.save(path)
+	var t := _again()
+	assert_eq(t.graphics_in_force(&"medium").edge_smoothing, GraphicsQuality.EdgeSmoothing.MSAA_4X, "kept")
+
+
+func test_reset_gives_the_new_defaults() -> void:
+	s.window_mode = Settings.WindowMode.WINDOWED
+	s.vsync = true
+	s.volumes[&"Effects"] = 0.2
+	s.reset_save(path)
+	assert_eq(s.window_mode, Settings.WindowMode.EXCLUSIVE)
+	assert_false(s.vsync)
+	assert_eq(s.volumes[&"Effects"], 0.7)
+	assert_eq(s.volumes[&"Power"], 1.0)
+	assert_eq(s.volumes[&"Ambience"], 0.3)
+	assert_eq(s.volumes[&"Interface"], 0.4)
+
+
 func test_a_missing_file_is_silent_defaults() -> void:
 	s.load_file(path)
 	assert_eq(s.load_message, "")
-	assert_eq(s.volumes[&"Effects"], 0.8)
+	assert_eq(s.volumes[&"Effects"], 0.7)
 
 
 func test_a_damaged_file_falls_back_with_a_message() -> void:
@@ -154,13 +243,13 @@ func test_each_bad_value_keeps_its_own_default() -> void:
 	assert_true(t.crouch_toggle, "a good value beside them is kept")
 	assert_eq(t.mouse_dpi, Sensitivity.DPI_DEFAULT)
 	assert_eq(t.fov, Settings.FOV_DEFAULT)
-	assert_eq(t.window_mode, Settings.WindowMode.WINDOWED)
-	assert_true(t.vsync, "a number is not a flag")
+	assert_eq(t.window_mode, Settings.WindowMode.EXCLUSIVE, "a mode that is not one is the default")
+	assert_false(t.vsync, "a number is not a flag: the default")
 	assert_true(t.show_fps)
 	assert_eq(t.volumes[&"Master"], 0.5)
-	assert_eq(t.volumes[&"Effects"], 0.8)
+	assert_eq(t.volumes[&"Effects"], 0.7)
 	assert_eq(t.volumes[&"Power"], 1.0)
-	assert_eq(t.volumes[&"Ambience"], 0.6)
+	assert_eq(t.volumes[&"Ambience"], 0.3)
 	assert_eq(t.volumes[&"Interface"], 0.0)
 	assert_eq(Array(t.bindings.codes(&"reload")), [KEY_R])
 
@@ -250,7 +339,7 @@ func test_the_graphics_and_window_fields_start_at_their_defaults() -> void:
 	assert_eq(s.graphics_custom, {} as Dictionary[String, Variant])
 	assert_eq(s.frame_limit, Settings.UNLIMITED)
 	assert_eq(s.monitor, Settings.MONITOR_HERE)
-	assert_eq(s.last_fullscreen, Settings.WindowMode.BORDERLESS)
+	assert_eq(s.last_fullscreen, Settings.WINDOW_MODE_DEFAULT, "F11 goes back to the first start's mode")
 	assert_eq(s.renderer, Settings.Renderer.AUTO)
 	assert_false(s.first_start_seen)
 
@@ -291,7 +380,7 @@ func test_a_file_from_before_the_graphics_fields_loads_unchanged() -> void:
 		"show_fps": true, "volumes": {"Master": 0.7},
 	})
 	var t := _again()
-	assert_eq(Settings.VERSION, 1, "the version stays 1")
+	assert_eq(Settings.VERSION, 2, "2 since FB2 moved the defaults; adding fields does not bump it")
 	assert_eq(t.load_message, "", "an older file is not a damaged one")
 	assert_almost_eq(t.sensitivity, 1.5, 1e-6)
 	assert_eq(t.window_mode, Settings.WindowMode.BORDERLESS)
@@ -302,7 +391,7 @@ func test_a_file_from_before_the_graphics_fields_loads_unchanged() -> void:
 	assert_eq(t.graphics_choice, Settings.GRAPHICS_AUTOMATIC)
 	assert_eq(t.frame_limit, Settings.UNLIMITED)
 	assert_eq(t.monitor, Settings.MONITOR_HERE)
-	assert_eq(t.last_fullscreen, Settings.WindowMode.BORDERLESS)
+	assert_eq(t.last_fullscreen, Settings.WINDOW_MODE_DEFAULT)
 	assert_eq(t.renderer, Settings.Renderer.AUTO)
 	assert_false(t.first_start_seen)
 
@@ -319,7 +408,7 @@ func test_each_bad_graphics_or_window_value_keeps_its_own_default() -> void:
 	assert_eq(t.graphics_choice, Settings.GRAPHICS_AUTOMATIC, "not a preset")
 	assert_eq(t.graphics_base, GraphicsTable.DEFAULT_PRESET, "Custom can't be built on Custom")
 	assert_eq(t.monitor, Settings.MONITOR_HERE)
-	assert_eq(t.last_fullscreen, Settings.WindowMode.BORDERLESS, "windowed isn't a fullscreen mode")
+	assert_eq(t.last_fullscreen, Settings.WINDOW_MODE_DEFAULT, "windowed isn't a fullscreen mode")
 	assert_eq(t.renderer, Settings.Renderer.AUTO)
 	assert_false(t.first_start_seen, "a number is not a flag")
 	assert_eq(t.frame_limit, Settings.UNLIMITED, "a negative limit")
@@ -352,7 +441,7 @@ func test_a_changed_row_makes_custom_from_the_preset_you_were_on() -> void:
 	assert_true(s.change_graphics_row(GraphicsQuality.WIND_DUST, 20, &"high", table))
 	assert_eq(s.graphics_base, &"medium", "already Custom: its base stays")
 	assert_eq(s.graphics_custom, {"edge_smoothing": "smaa", "wind_dust": 20} as Dictionary[String, Variant])
-	assert_true(s.change_graphics_row(GraphicsQuality.EDGE_SMOOTHING, "msaa_2x", &"high", table))
+	assert_true(s.change_graphics_row(GraphicsQuality.EDGE_SMOOTHING, "off", &"high", table))
 	assert_eq(s.graphics_custom, {"wind_dust": 20} as Dictionary[String, Variant], "back to the base's value")
 	var q := s.graphics_in_force(&"high", table)
 	assert_eq(q.wind_dust, 20)
@@ -463,7 +552,7 @@ func test_a_file_from_before_the_accessibility_fields_loads_unchanged() -> void:
 		"sensitivity": 1.5, "fov": 95.0, "realistic_colours": true, "hud": {"colour": 2},
 	})
 	var t := _again()
-	assert_eq(Settings.VERSION, 1, "the version stays 1")
+	assert_eq(Settings.VERSION, 2, "2 since FB2 moved the defaults; adding fields does not bump it")
 	assert_eq(t.load_message, "")
 	assert_almost_eq(t.sensitivity, 1.5, 1e-6)
 	assert_almost_eq(t.fov, 95.0, 1e-6)

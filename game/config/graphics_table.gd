@@ -32,8 +32,8 @@ const CHOICE_COLUMN := "Choice"
 const BUILT_IN: Dictionary[StringName, Array] = {
 	GraphicsQuality.RENDER_SCALE: ["GRAPHICS_RENDER_SCALE", "50–100 %", "3", "all", "80 %", "100 %", "100 %", "100 %"],
 	GraphicsQuality.UPSCALER: ["GRAPHICS_UPSCALER", "bilinear, fsr1, fsr2", "1", "all", "fsr1", "fsr1", "fsr1", "fsr1"],
-	GraphicsQuality.EDGE_SMOOTHING: ["GRAPHICS_EDGE_SMOOTHING", "off, fxaa, smaa, msaa_2x, msaa_4x", "3", "all", "fxaa",
-			"msaa_2x", "msaa_4x", "msaa_4x"],
+	GraphicsQuality.EDGE_SMOOTHING: ["GRAPHICS_EDGE_SMOOTHING", "off, fxaa, smaa, msaa_2x, msaa_4x", "3", "all", "off",
+			"off", "off", "off"],
 	GraphicsQuality.TEMPORAL_SMOOTHING: ["GRAPHICS_TEMPORAL_SMOOTHING", "off, on", "2", "forward_plus", "off", "off",
 			"off", "off"],
 	GraphicsQuality.SUN_SHADOWS: ["GRAPHICS_SUN_SHADOWS", "off, on", "3", "all", "off", "on", "on", "on"],

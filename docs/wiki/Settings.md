@@ -13,22 +13,26 @@ The default keys are on [Controls](Controls).
 ## Audio
 
 Volumes for **Master**, **Effects**, **Power source** (the motor or gas part of a shot), **Ambience** and
-**Interface**.
+**Interface**. A new game starts with Master at 100 %, Effects 70 %, Power source 100 %, Ambience 30 % and Interface
+40 %. If you delete your save, they come back.
 
 ## Display
 
-- **Window mode:** Windowed, Borderless fullscreen or Exclusive fullscreen. The game opens in the mode you left.
+- **Window mode:** Windowed, Borderless fullscreen or Exclusive fullscreen. A new game opens in Exclusive fullscreen, on the screen the
+  game starts on; after that it opens in the mode you left.
   **F11** or **Alt+Enter** switches between windowed and your last fullscreen mode.
 - **Monitor:** with two screens or more, the screen the window opens on.
-- **V-Sync** (on by default) and a **Frame rate** limit: Unlimited, or 30 to 360 frames a second. In the background
-  the game drops to 30 frames a second.
+- **V-Sync** (off by default) and a **Frame rate** limit: Unlimited, or 30 to 360 frames a second. In the background
+  the game drops to 30 frames a second. The title and menus never draw more frames than your screen shows, whatever
+  the limit.
 - **Field of view** and **Show FPS**.
 
 ## Graphics
 
 Pick a preset or set each row yourself. The game starts on the preset picked for your graphics card, marked **FOR YOUR
 CARD**: Medium for built-in graphics, High for a separate card, never Ultra. Changing a row makes the preset
-**Custom** and marks what you changed; **Reset** goes back to the pick for your card.
+**Custom** and marks what you changed; **Reset** goes back to the pick for your card. **Edge smoothing** is Off on
+every preset; turn it on if you want it.
 
 <!-- wiki:graphics -->
 

@@ -413,7 +413,7 @@ func test_choosing_a_preset_draws_it_at_once_and_saves_the_choice() -> void:
 	page.preset_choice().button(GraphicsTable.PRESETS.find(&"ultra")).pressed.emit()
 	assert_eq(s.graphics_choice, &"ultra")
 	assert_true(GraphicsApply.server().drawn.equals(GraphicsTable.shared().preset(&"ultra")), "drawn at once")
-	assert_eq(get_tree().root.msaa_3d, Viewport.MSAA_4X)
+	assert_eq(get_tree().root.msaa_3d, Viewport.MSAA_DISABLED, "edge smoothing is off on every preset")
 	assert_eq(_saved().graphics_choice, &"ultra", "saved at once")
 	assert_string_starts_with(page.blurb(), "Ultra:")
 
@@ -543,7 +543,7 @@ func test_the_display_tab_has_the_concept_s_rows() -> void:
 	var page := screen._display_page
 	assert_eq(_texts(page.window_choice()), PackedStringArray(["WINDOWED", "BORDERLESS FULLSCREEN",
 			"EXCLUSIVE FULLSCREEN"]))
-	assert_eq(page.window_choice().selected(), Settings.WindowMode.WINDOWED)
+	assert_eq(page.window_choice().selected(), Settings.WindowMode.EXCLUSIVE, "exclusive fullscreen by default")
 	var words := " ".join(_labels(page, PackedStringArray()))
 	for want: String in ["F11", "Alt", "Enter", "switches between a window and fullscreen", "FRAME RATE", "V-SYNC",
 			"FRAME-RATE LIMIT", "still plays at 60 ticks a second", "In the background it draws 30", "FIELD OF VIEW",
@@ -552,7 +552,7 @@ func test_the_display_tab_has_the_concept_s_rows() -> void:
 	assert_eq(_texts(page.limit_choice()), PackedStringArray(["30", "60", "120", "144", "165", "240", "360",
 			"UNLIMITED"]))
 	assert_eq(page.limit_choice().selected(), Settings.FRAME_LIMITS.size(), "Unlimited by default")
-	assert_true(page.vsync().button_pressed, "V-Sync on by default")
+	assert_false(page.vsync().button_pressed, "V-Sync off by default (owner, 2026-10-29)")
 	assert_eq(page.vsync_note(), "No tearing, at most the screen’s 144 a second. Off: a little less input delay.")
 	assert_false(page.monitor_row().visible, "no Monitor row with one screen")
 	assert_null(page.monitor_choice())
@@ -606,6 +606,9 @@ func test_a_frame_rate_limit_applies_at_once_and_is_saved() -> void:
 
 func test_f11_switches_and_the_tab_follows_but_not_while_a_key_is_being_rebound() -> void:
 	var ds := _fake_screens()
+	s.last_fullscreen = Settings.WindowMode.BORDERLESS
+	s.window_mode = Settings.WindowMode.WINDOWED # F11 from a window; the first start's mode is pinned elsewhere
+	screen.open()
 	var watch := WindowWatch.new()
 	watch.settings = s
 	watch.save_path = screen.save_path

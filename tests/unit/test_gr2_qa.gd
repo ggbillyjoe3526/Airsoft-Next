@@ -182,7 +182,9 @@ func _settings_low() -> Settings:
 
 func test_a_match_started_after_a_change_gets_the_optic_glass_picture_too() -> void:
 	var table := GraphicsTable.shared()
-	GraphicsApply.server().drawn = table.preset(&"low")
+	var low := table.preset(&"low")
+	low.edge_smoothing = GraphicsQuality.EdgeSmoothing.FXAA
+	GraphicsApply.server().drawn = low
 	var eyes := Camera3D.new()
 	add_child_autofree(eyes)
 	var glass := OpticGlass.new()
@@ -203,6 +205,7 @@ func test_the_glass_at_msaa_and_a_low_render_scale_keeps_a_drawable_picture() ->
 	var port := glass.get_child(0) as SubViewport
 	var q := table.preset(&"ultra")
 	q.render_scale = 50
+	q.edge_smoothing = GraphicsQuality.EdgeSmoothing.MSAA_4X
 	GraphicsApply.server().applied.emit(q)
 	assert_eq(port.msaa_3d, Viewport.MSAA_4X)
 	assert_almost_eq(port.scaling_3d_scale, 0.5, 0.001)

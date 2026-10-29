@@ -48,7 +48,7 @@ func test_high_sets_the_root_viewport_and_the_shadow_map() -> void:
 	GraphicsApply.apply(table.preset(&"high"), root, rs)
 	assert_almost_eq(root.scaling_3d_scale, 1.0, 0.001)
 	assert_eq(root.scaling_3d_mode, Viewport.SCALING_3D_MODE_FSR, "FSR 1 (it does nothing at 100 %)")
-	assert_eq(root.msaa_3d, Viewport.MSAA_4X)
+	assert_eq(root.msaa_3d, Viewport.MSAA_DISABLED, "edge smoothing is off on every preset (owner, 2026-10-29)")
 	assert_eq(root.screen_space_aa, Viewport.SCREEN_SPACE_AA_DISABLED)
 	assert_false(root.use_taa)
 	assert_eq(root.anisotropic_filtering_level, Viewport.ANISOTROPY_16X)
@@ -64,8 +64,12 @@ func test_low_sets_the_cheap_knobs() -> void:
 	assert_almost_eq(root.scaling_3d_scale, 0.8, 0.001)
 	assert_eq(root.scaling_3d_mode, Viewport.SCALING_3D_MODE_FSR)
 	assert_eq(root.msaa_3d, Viewport.MSAA_DISABLED)
-	assert_eq(root.screen_space_aa, Viewport.SCREEN_SPACE_AA_FXAA)
+	assert_eq(root.screen_space_aa, Viewport.SCREEN_SPACE_AA_DISABLED)
 	assert_eq(root.anisotropic_filtering_level, Viewport.ANISOTROPY_2X)
+	var smoothed := table.preset(&"low")
+	smoothed.edge_smoothing = GraphicsQuality.EdgeSmoothing.FXAA
+	GraphicsApply.apply(smoothed, root, rs)
+	assert_eq(root.screen_space_aa, Viewport.SCREEN_SPACE_AA_FXAA, "a player who turns it on gets it")
 	assert_gt(root.mesh_lod_threshold, 1.0, "coarser meshes")
 	assert_eq(rs.shadow_size, 1024)
 	assert_eq(rs.soft_shadows, RenderingServer.SHADOW_QUALITY_HARD)
@@ -102,7 +106,7 @@ func test_every_edge_smoothing_maps_to_one_filter_at_most() -> void:
 func test_the_simpler_renderer_draws_bilinear_msaa_and_no_ssao_or_taa() -> void:
 	var low := GraphicsApply.drawable(table.preset(&"low"), COMPATIBILITY, table)
 	assert_eq(low.upscaler, GraphicsQuality.Upscaler.BILINEAR, "Low's FSR 1 falls back to bilinear")
-	assert_eq(low.edge_smoothing, GraphicsQuality.EdgeSmoothing.OFF, "Low's FXAA to the cheaper neighbour, none")
+	assert_eq(low.edge_smoothing, GraphicsQuality.EdgeSmoothing.OFF, "Low's edge smoothing is off")
 	var custom := table.preset(&"high")
 	custom.edge_smoothing = GraphicsQuality.EdgeSmoothing.SMAA
 	custom.temporal_smoothing = true
@@ -209,11 +213,17 @@ func test_the_optic_glass_follows_scale_and_edge_smoothing() -> void:
 	glass.setup(ViewModelConfig.new(), ViewConfig.new(), eyes)
 	add_child_autofree(glass)
 	var port := glass.get_child(0) as SubViewport
-	GraphicsApply.server().applied.emit(table.preset(&"low"))
+	var low := table.preset(&"low")
+	low.edge_smoothing = GraphicsQuality.EdgeSmoothing.FXAA
+	GraphicsApply.server().applied.emit(low)
 	assert_almost_eq(port.scaling_3d_scale, 0.8, 0.001)
 	assert_eq(port.screen_space_aa, Viewport.SCREEN_SPACE_AA_FXAA)
 	assert_eq(port.msaa_3d, Viewport.MSAA_DISABLED)
-	GraphicsApply.server().applied.emit(table.preset(&"high"))
+	var high := table.preset(&"high")
+	GraphicsApply.server().applied.emit(high)
+	assert_eq(port.msaa_3d, Viewport.MSAA_DISABLED, "off by default")
+	high.edge_smoothing = GraphicsQuality.EdgeSmoothing.MSAA_4X
+	GraphicsApply.server().applied.emit(high)
 	assert_almost_eq(port.scaling_3d_scale, 1.0, 0.001)
 	assert_eq(port.msaa_3d, Viewport.MSAA_4X)
 	glass.get_parent().remove_child(glass)

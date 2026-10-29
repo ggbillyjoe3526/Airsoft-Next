@@ -18,6 +18,9 @@ func before_each() -> void:
 	ds.rates = [144.0, 60.0]
 	SettingsApply.use_screens(ds)
 	s = Settings.new(PlayTuning.new())
+	s.window_mode = Settings.WindowMode.WINDOWED # F11 from a window; the first-start default is pinned in test_settings.gd
+	s.vsync = true
+	s.last_fullscreen = Settings.WindowMode.BORDERLESS
 	DirAccess.make_dir_recursive_absolute(ROOT)
 	path = ROOT.path_join("settings.save")
 	SaveFile.remove(path)
@@ -208,7 +211,7 @@ func test_the_mode_the_player_left_is_the_mode_the_next_start_opens_in() -> void
 
 
 func test_a_saved_window_last_fullscreen_still_lets_f11_go_fullscreen() -> void:
-	SaveFile.write(path, "settings", 1, {"window_mode": 0, "last_fullscreen": 0})
+	SaveFile.write(path, "settings", 2, {"window_mode": 0, "last_fullscreen": 0})
 	var t := _saved()
 	SettingsApply.toggle_fullscreen(t)
 	assert_ne(t.window_mode, Settings.WindowMode.WINDOWED, "a corrupt memory of 'windowed' doesn't dead-end F11")

@@ -18,6 +18,10 @@ func before_each() -> void:
 	ds = FakeScreens.new()
 	SettingsApply.use_screens(ds)
 	s = Settings.new(PlayTuning.new())
+	# these walk the window modes from a window with V-Sync on; the first-start defaults are pinned in test_settings.gd
+	s.window_mode = Settings.WindowMode.WINDOWED
+	s.vsync = true
+	s.last_fullscreen = Settings.WindowMode.BORDERLESS
 	DirAccess.make_dir_recursive_absolute(ROOT)
 	path = ROOT.path_join("settings.save")
 	SaveFile.remove(path)
@@ -61,6 +65,60 @@ func test_the_limit_is_engine_max_fps_and_unlimited_is_none() -> void:
 	s.frame_limit = Settings.UNLIMITED
 	SettingsApply.apply_display(s)
 	assert_eq(Engine.max_fps, 0, "Unlimited")
+
+
+func test_the_menus_draw_at_most_the_refresh_rate_and_a_match_the_players_limit() -> void:
+	s.frame_limit = Settings.UNLIMITED
+	SettingsApply.set_menus(s, true)
+	assert_eq(Engine.max_fps, 144, "Unlimited in the menus: the screen's rate (V-Sync is off by default)")
+	s.frame_limit = 60
+	SettingsApply.apply_frame_rate(s)
+	assert_eq(Engine.max_fps, 60, "a lower limit of the player's wins")
+	s.frame_limit = 240
+	SettingsApply.apply_frame_rate(s)
+	assert_eq(Engine.max_fps, 144, "a higher one is held to the rate in the menus")
+	s.frame_limit = Settings.UNLIMITED
+	SettingsApply.set_menus(s, false)
+	assert_eq(Engine.max_fps, 0, "a match: the player's Unlimited")
+	s.frame_limit = 240
+	SettingsApply.apply_frame_rate(s)
+	assert_eq(Engine.max_fps, 240)
+
+
+func test_the_menu_cap_falls_back_when_the_display_says_no_rate_and_is_off_without_a_screen() -> void:
+	s.frame_limit = Settings.UNLIMITED
+	ds.rates[0] = -1.0
+	SettingsApply.set_menus(s, true)
+	assert_eq(Engine.max_fps, ds.config.menu_fallback_fps, "no rate given")
+	assert_eq(ds.config.menu_fallback_fps, 60)
+	ds.rates[0] = 0.0
+	SettingsApply.apply_frame_rate(s)
+	assert_eq(Engine.max_fps, 60, "a rate of 0 is no rate")
+	ds.sizes.clear()
+	SettingsApply.apply_frame_rate(s)
+	assert_eq(Engine.max_fps, 0, "no screens (headless): no cap")
+	ds.sizes.append(Vector2i(2560, 1440))
+	ds.config.menu_cap_to_refresh = false
+	SettingsApply.apply_frame_rate(s)
+	assert_eq(Engine.max_fps, 0, "the cap switched off in the config")
+
+
+func test_the_menu_cap_and_the_background_rate_both_apply() -> void:
+	s.frame_limit = Settings.UNLIMITED
+	SettingsApply.set_menus(s, true)
+	SettingsApply.set_focused(s, false)
+	assert_eq(Engine.max_fps, ds.config.background_fps, "the lower of the two")
+	SettingsApply.set_focused(s, true)
+	assert_eq(Engine.max_fps, 144)
+
+
+func test_f11_from_a_window_goes_back_to_the_first_starts_fullscreen() -> void:
+	s = Settings.new(PlayTuning.new())
+	assert_eq(s.window_mode, Settings.WindowMode.EXCLUSIVE)
+	SettingsApply.pick_window_mode(s, Settings.WindowMode.WINDOWED)
+	SettingsApply.toggle_fullscreen(s)
+	assert_eq(s.window_mode, Settings.WindowMode.EXCLUSIVE, "not Borderless")
+	assert_eq(ds.window_mode, DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
 
 
 func test_in_the_background_it_draws_the_background_rate_and_back_on_focus() -> void:

@@ -64,13 +64,13 @@ func test_the_presets_are_the_plans() -> void:
 	var low := table.preset(&"low")
 	assert_eq(low.render_scale, 80)
 	assert_eq(low.upscaler, GraphicsQuality.Upscaler.FSR1)
-	assert_eq(low.edge_smoothing, GraphicsQuality.EdgeSmoothing.FXAA)
+	assert_eq(low.edge_smoothing, GraphicsQuality.EdgeSmoothing.OFF)
 	assert_false(low.sun_shadows, "Low has no sun shadows (the 60 FPS floor)")
 	assert_eq(low.ambient_occlusion, GraphicsQuality.AmbientOcclusion.OFF)
 	assert_eq(low.wind_dust, 0)
 	assert_eq(low.texture_filtering, GraphicsQuality.TextureFiltering.X2)
 	var medium := table.preset(&"medium")
-	assert_eq(medium.edge_smoothing, GraphicsQuality.EdgeSmoothing.MSAA_2X)
+	assert_eq(medium.edge_smoothing, GraphicsQuality.EdgeSmoothing.OFF)
 	assert_eq(medium.shadow_detail, 2048)
 	assert_eq(medium.wind_dust, 50)
 	var high := table.preset(&"high")
@@ -79,7 +79,7 @@ func test_the_presets_are_the_plans() -> void:
 	assert_eq(high.shadow_detail, 4096)
 	assert_eq(high.ambient_occlusion, GraphicsQuality.AmbientOcclusion.HALF)
 	assert_eq(high.wind_dust, 100)
-	assert_eq(high.edge_smoothing, GraphicsQuality.EdgeSmoothing.MSAA_4X)
+	assert_eq(high.edge_smoothing, GraphicsQuality.EdgeSmoothing.OFF)
 	var ultra := table.preset(&"ultra")
 	assert_eq(ultra.shadow_detail, 8192)
 	assert_eq(ultra.shadow_softness, GraphicsQuality.ShadowSoftness.SOFTEST)
@@ -88,6 +88,8 @@ func test_the_presets_are_the_plans() -> void:
 	assert_eq(ultra.mesh_detail, GraphicsQuality.MeshDetail.ULTRA)
 	for p in GraphicsTable.PRESETS:
 		assert_false(table.preset(p).temporal_smoothing, "temporal smoothing is off on every preset (%s)" % p)
+		assert_eq(table.preset(p).edge_smoothing, GraphicsQuality.EdgeSmoothing.OFF,
+				"edge smoothing is off on every preset (owner, 2026-10-29): %s" % p)
 	assert_true(table.preset(&"nonsense").equals(high), "an unknown preset reads as High")
 
 

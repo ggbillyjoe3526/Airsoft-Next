@@ -744,6 +744,8 @@ Headphones help: direction (in front, behind, above) comes through best on them.
   stays clear. Pausing mid-burst and resuming makes no click.
 - [ ] **Settings › Audio.** Master, Effects, Power source volume (each replica's motor, gas and spring, yours and the
   bots'), Ambience and Interface (hit tick, marker, whistle), each at once and kept.
+- [ ] **Audio defaults (FB2).** A new save, and a delete-save, start Master 100 %, Effects 70 %, Power source 100 %,
+  Ambience 30 %, Interface 40 %. A save from before moves only the volumes you never touched; ones you set stay.
 - [ ] **Output devices.** F3 shows the audio latency (about 10 to 40 ms). Anything that sounds like a firearm, harsh, or
   too loud? Say which.
 
@@ -820,6 +822,10 @@ Play a release build (installer or zip) for these; running from the Godot editor
 - [ ] **Window modes.** Settings › Display: Windowed, Borderless fullscreen and Fullscreen each apply at once and are
   kept after a restart; F10 goes fullscreen and back with play carrying on. A window can be resized and moved, and
   the picture and HUD follow.
+- [ ] **First-start display (FB2).** A new save opens in exclusive fullscreen on the screen the game starts on, with
+  V-Sync off and edge smoothing Off on Low, Medium, High and Ultra. An old save you never changed moves to these
+  once; Windowed, V-Sync or smoothing you chose yourself stays. Pick Windowed, then F11: back to exclusive fullscreen.
+  On the title and menus F3 reads no more than your screen's refresh rate; in a match it follows your Frame rate limit.
 - [ ] **Mouse capture.** Play captures the mouse; Esc pauses and frees it; Resume captures it again with no jump on
   the first move. The pointer never leaves the window while captured; the back and forward side buttons do nothing
   unless bound.

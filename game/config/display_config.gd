@@ -8,6 +8,12 @@ extends Resource
 ## pause menu (a match pauses on alt-tab) on a second screen, little enough that an alt-tabbed game keeps the machine
 ## cool and quiet. A lower frame-rate limit wins.
 @export var background_fps: int = 30
+## Whether the title, the menus and the loading screen draw at most the display's refresh rate when the frame-rate limit
+## is Unlimited or higher (with V-Sync off nothing else holds a light scene back: it would heat the card and spin the
+## fans). A lower frame-rate limit wins; a match draws as the player's limit says.
+@export var menu_cap_to_refresh: bool = true
+## Frames a second the menus draw at most when the display does not say its refresh rate.
+@export var menu_fallback_fps: int = 60
 ## The key that switches between a window and the last fullscreen mode on its own (Windows and Linux habit).
 @export var toggle_key: Key = KEY_F11
 ## The keys that do the same with Alt held (Alt+Enter, the other habit; the keypad's Enter too).
