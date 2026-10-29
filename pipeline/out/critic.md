@@ -1,29 +1,26 @@
-Task: KI1 · Fix the contained known issues before 0.1 Dev 1
-Attempt: 2 of 4
-Head: 98edb8e (full gates on a83dea6; 98edb8e moves one clear and rewraps a comment, test_so4_qa, test_ki1_qa and
-  test_play_session pass 54/54 on it; gdlint clean on the three files)
+Task: FB4 · Feel fixes from the 0.1 Dev 1 playtest (notes 5, 7, 11, 12)
+Attempt: 1 of 4
+Head: ec9fc1e (checks: worker's full parts 1-3 + smoke + wiki/changelog on the pre-fix head; fix round gdlint + 9 targeted files 99/99; QA 115/115 on f2c8846; CI runs the whole gate)
 Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
 Score: 8/8 → Accept
-Failed checks, with evidence (file:line, one or two lines each, each marked measured or judgment): none.
-Attempt 1's check 5 is fixed: game/ai/bot_controller.gd:+176 `elif e.kind == GameEvent.Kind.MATCH_OVER: orders.clear()`
-  in observe's event loop beside the round's rule, doc comment +156 says "no order outlasts a round or the match";
-  play_session.gd's `_bots.orders.clear()` is gone (-964). The session node now only reads (Contract 1).
-  test_so4_qa.gd:94 still exercises it through `_after_tick` → `_bots.observe` (play_session.gd:879) and would fail
-  without the new branch (no other clear runs at MATCH_OVER). `clear()` is two `fill` calls, no allocation, once a match.
-Advisory (no retry on their own):
-- game/ai/bot_controller.gd:156 the edited doc line is now 133 wide (house width 120, lint rule off); rewrap when next
-  touched. foley_tracker.gd:6 is rewrapped.
-- Attempt 1's other advisories stand (test_mh1_qa.gd.uid outside scope; QA's map_data `_vec` numeric string, URL "@"
-  tail, junk last_map/last_team without a problem line, no end-to-end test of the remembered picks' launch path;
-  main.gd:+321 remembers picks before the match is known to load).
-Evidence for the other passes: as attempt 1 (1 every brief fix in the diff, 12 rows handled with reasons in the record;
-  2 no contract changed; 3 one float compare per tick in foley_tracker.gd:+48; 4 test_foley_tracker's rustle count;
-  6 toy-scale QoL, no new system; 7 small helpers, UIDs kept; 8 KNOWN_ISSUES, record, changelog note, wiki, PLAYTEST).
-  QA Pass (pipeline/out/qa.md), performance Pass (pipeline/out/performance.md).
-Owner should test in the game (at most 6, one line each):
-- Play a match on Woodland as Beta, quit, relaunch: Match opens on Woodland and Beta.
-- Middle click with the order wheel held open: no ping; close it and click: a ping.
-- Give Hold here in the last round, finish the match: no diamond over the results.
-- Lean into a wall and turn back and forth: a rustle at most about twice a second.
-- Woodland: bots search inside the hut; the map card shows the bushes.
-- Hold the order wheel open and press H: the answer shows in the wheel's middle.
+Evidence:
+1. note 5 replica_view.gd:120 (on_shot sets the hold) and :181-186 (the carry goes to 0 at sprint_fire_raise while the hold lasts); note 7 replica_view.gd:326 _press_depth/_pressed_copy (use_z_clip_scale on every surface, cached per source material), optic_glass.gdshader:30-37 + optic_glass.gd:106 (the glass presses to match), :229 pull-back off when aimed; figures left to FB5 with the KNOWN_ISSUES row; note 11 bb_ball.gdshader (rim), bb_view.gd:117 (bb_min_angle floor), :119-123 (trail), :145 drawn_at/across_flight (never ahead along the flight); note 12 movement.gd:22 (holster_sprint_scale 1.1).
+2. movement.gd stays pure sim; replica_view reacts to the SHOT event only (play_session.gd:909); no contract touched.
+3. bb_view.update and replica_view.update add only value types (Transform3D, Vector3, floats); material copies built once per view in _load; perf objdelta 0.
+4. test_hands_feel.gd:72 (hidden view): without the reset at replica_view.gd:147 the 0.33 s hold outlives the 5 shown frames and the pose stays square, so the assert fails; :61 fails with the old trigger_was_down term.
+5. Tuning in ViewModelConfig/EffectsConfig/MovementConfig; static types throughout; no globals.
+6. A rim, a 2-3 px floor and a 12 ms, 35 % fading trail keep a BB a BB, not a tracer; replica stays a toy.
+7. Copies are Resources held in the view's dictionaries, freed with it (perf: 931 -> 374 live); new .uid files committed.
+8. Record, changelog note, DECISIONS (owner ruling, note 12), KNOWN_ISSUES (row edited, FB5 row added), FEATURES, PLAYTEST, wiki (Movement table row via wiki.py, How-to-Play, Movement prose).
+Advisories (non-blocking):
+- changelog.d/sprint-fire-and-bb-sight.md:3 and PLAYTEST say it drops back "after you let go of the trigger"; since fix round 1 it is 0.35 s after the last shot (the same in normal play; "after your last shot" is exact).
+- viewmodel_config.gd sprint_fire_raise and depth_scale have no @export_range (QA 3): 0 gives NaN / collapsed depth.
+- QA advisory 4 (duplicated comment in optic_glass.gdshader:30-31) is not a duplicate: a two-line comment. No change needed.
+- Untracked tests/unit/test_mh1_qa.gd.uid in the tree is main's (MH1), not FB4's: keep it out of this branch.
+Owner should test in the game:
+- Hold Left Alt and fire full auto, then stop: the rifle comes up square at once and drops back about 0.35 s later.
+- Hold Left Alt, fire, press R with the trigger held: the reload plays from the low carry.
+- Stand against a wall at the hip and aimed (red dot, 2x scope): the replica draws over it; look for a dark SSAO halo and for the scope glass sitting in its scope.
+- Follow white BBs to 30 m against a pale wall and the sky: rim and trail read, never a tracer.
+- Shoot a wall from 2-5 m: each BB vanishes at the face; does your BB's first frame beside the barrel look detached?
+- Press 3 and sprint: is +10 % felt?
