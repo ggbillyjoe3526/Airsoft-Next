@@ -21,6 +21,8 @@ so W A S D stays W A S D on any keyboard layout.
 
 - **Squad: ping a spot** (the middle mouse button) marks where you look for your bot teammates
   ([Squad Orders](Squad-Orders#in-development)).
+- **Squad: need a mag** (H) tosses a magazine to a teammate who asked you, or asks for one when you are low
+  ([Squad Orders](Squad-Orders#in-development)); it is also the order wheel's fifth item.
 
 ## Keys you can't change
 

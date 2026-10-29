@@ -1,39 +1,43 @@
-Task: MH2 · QA commit (see git log, "MH2: QA tests") · Verdict: Pass
+Task: MH3 · QA commit (see git log, "MH3: QA tests") · Verdict: Fail (first round; see the re-check below: Pass)
 
-Blocking: none.
+Blocking
+1. game/ui/hud_mag_line.gd:186-203 (_standing): the line and the wheel pick the NEAREST asker and check reach for that one only;
+   the simulation's press (MagShare._nearest_asker, mag_share.gd:375-388) tosses to the nearest asker IN REACH. With Rook asking
+   from 4 m behind a wall and Brick asking from 5 m in the open, a press tosses to Brick, but toss_ready() is false: the wheel's
+   fifth item reads Need a Mag (criterion 1: Toss a Mag while an asker is in reach) and the line names Rook, not underlined.
+   Fix: choose the nearest asker for which can_toss_to holds; else the nearest asker.
 
-Advisory:
-- Criterion 5: it says KNOWN_ISSUES' magazine sharing row goes; the worker replaced it with a narrower row (a bot asking you
-  before MH3, a busy giver's and a pole-bound giver's asks standing unanswered). Reasonable, but the lead should accept it.
-- A bot giver that has its own ask standing never takes a job (bot_mag_share.gd:129, `me.mag.asked < 0`), so an ask to it
-  stands its 15 s unanswered: a third unanswered-ask case, not in the KNOWN_ISSUES row.
-- The criterion 4 guard (test_match_guards.gd MagWatch) marks a bot "held" if its giver was in FIGHT or COVER at any tick of
-  the 10 s, however briefly, so the allowance of 2 per field (MAG_HELD_MAX) could hide a real stall that coincides with a
-  short fight; it re-checks "nobody to ask" only at the timeout. Measured: 1 held on Depot (seed 16), 0 on Woodland, so the
-  allowance is not being used up. 14 of 55 Depot bots are left out as hit or round over (25 %).
-- A bot waiting for a bot giver stands in the open for as long as the giver fights or sits in cover (up to the 15 s ask).
+Advisory
+- Smoke test's `mags` counts MAG_ASK/TOSS/REFUSED of the player id; with a bot playing you, the bot's own press can satisfy it
+  even if the H or wheel step were dropped (play_session.gd _after_tick). Weak guard, not wrong.
+- HUD_MAG_WAIT ("Ask again in a moment") is also the refusal for a toss blocked by your own magazine in the air; wording is off.
 
-Checked and sound:
-- A low bot presses at most once a second and never storms MAG_REFUSED: 0 refusals in 6 full Depot and 2 Woodland matches
-  with the Dev setting on (the asker's check mirrors MagShare._ask exactly); two askers for one giver: both served, 0 refusals.
-- Priorities fight/cover > bringing > order > pole > waiting (code read; new cover test); sprint over 8 m, walk to 3 m and the
-  wall case (existing tests pass); giver or asker hit mid-walk, round end mid-walk: jobs and asks let go, asker plays on,
-  nothing pressed after, new round starts clean.
-- Asks only for the primary, an unused pistol given freely, the three calls, Bot intentions labels (enum order and en.po keys
-  match), no per-tick allocation (existing test; code read).
-- Dev setting off = identical: event and position hash, ticks, rounds, hits and shots equal to 9fbce06 for Depot seeds 1-4 and
-  Woodland seeds 1-2 (whole matches; 0 asks occur naturally).
-- Criterion 4 guard run: passes, Depot 33 served (max 9.6 s), Woodland 47 served (max 4.7 s), 0 late; matches the record.
-  No neonHeights references added.
+Everything else checked, no bug: H and the wheel's fifth item share _latch_order; dead on the range and while out; H alone on H in
+defaults and the input map; refusal from the wheel in its middle, from H on the line; hidden under the open wheel; no key in any
+string; 2.5 s notices to the screen reader; glyph clears on ask lapse, catch and asker out; pool of 6 made once, thrower's slot
+mesh, lands at the chest, lost toss hidden; magToss/magCatch cues exist and play from thrower/catcher; setting On by default,
+saved, old files On; player ask gap 4 s; no string per bot MAG_* event; smoke passes (orders=3 mags=2, zero script errors).
 
-Tests added (tests/unit/test_mh2_qa.gd, 6, all pass; none can pass at 9fbce06 because bots never press there, so
-mag_for, asks and tosses are never set):
-- test_a_giver_hit_mid_walk_lets_go_and_the_asker_plays_on_without_a_press
-- test_an_asker_hit_mid_walk_frees_the_giver_to_go_on
-- test_the_round_ending_mid_walk_clears_the_jobs_and_the_next_round_starts_clean
-- test_two_askers_for_one_giver_are_both_served_and_neither_press_storms
-- test_a_giver_who_cannot_toss_yet_presses_no_more_than_once_a_second
-- test_a_giver_in_cover_stays_there_until_the_cover_episode_is_over_then_brings_it
+Tests (tests/unit/test_mh3_qa.gd, 8)
+- :115 wheel/line vs the sim's pick, nearer asker walled off · FAILS on the current code (the bug above; the sim half passes)
+- :142 glyph/line clear on ask lapse and asker out · pins; fails if marks or text are left standing
+- :170 wheel item back to Need a Mag once the toss is in the air · pins
+- :185 each toss wears its thrower's slot/replica mesh (cyber rifle slot 0, pistol slot 1) · fails if the slot key is dropped
+- :214 aeg, cyber, pistol models each have a Magazine mesh · pins
+- :220 lost toss (catcher out) and round decided hide the copy · pins
+- :255 toss ends at catcher's chest · pins
+- :276 H on no other default action nor in the input map · fails if another action takes H
+Not stubbed out one by one for the pins; they were checked by reading the code path they assert.
 
-Runs: test_bot_mag_share 20/20; 22 touched files plus mine 368/368 (481 s); match guard (criterion 4) pass; gdlint clean on
-changed files. Not run: tools/check.sh and smoke test (told not to); how it plays and the Dev row on a display.
+Runs: test_mh3_qa 7/8 (1 intended failure); test_mag_hand_off_hud 22, order_wheel_input 17, so4_orders_hud 23, key_bindings 18,
+hud_prefs 13, mag_share 29, bot_mag_share 20, play_session 9: all pass. Smoke passes. Full tools/check.sh not run (told not to).
+Not testable headless: how the arc, line over bright walls and the sounds' level look and sound (owner's list in PLAYTEST).
+
+## Re-check of fix round 001a224 · QA commit (git log, "MH3: QA re-check") · Verdict: Pass
+- Blocking bug 1 fixed: HudMagLine._standing now uses the public MagShare.nearest_asker (nearest in reach, else nearest), the
+  press's own pick; tests/unit/test_mh3_qa.gd:115 now passes (8/8). Marks still cover every asker; no allocation added.
+- Advisories fixed: WAIT wording split (own mag in the air, toss again, ask again); the smoke test counts only presses of yours
+  (PlayerInput.mag_sent is set per fill_order, true only on the tick of a latched press). Minor: the in-air wording reads the
+  pool after the step, so a toss that landed the same tick would say the generic toss wait; harmless.
+- Runs: test_mh3_qa 8, mag_hand_off_hud 23, mag_share 29, bot_mag_share 20, order_wheel_input 17, so4_orders_hud 23, play_session 9,
+  key_bindings 18: 147 of 147. Smoke passes (orders=3 mags=2, zero script errors). No regressions found in the diff.

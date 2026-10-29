@@ -1896,6 +1896,9 @@ msgstr "SQUAD: REGROUP"
 msgid "ACT_PING"
 msgstr "SQUAD: PING A SPOT"
 
+msgid "ACT_MAG_HAND_OFF"
+msgstr "SQUAD: NEED A MAG"
+
 msgid "ACT_LOADOUT"
 msgstr "LOADOUT (PRACTICE)"
 
@@ -1910,6 +1913,61 @@ msgstr "Regroup"
 
 msgid "ORDER_TEAM_PLAN"
 msgstr "Team Plan"
+
+# The order wheel's fifth item (MH3): the magazine hand-off, asking for one, or tossing one to a teammate in reach.
+msgid "ORDER_MAG"
+msgstr "Need a Mag"
+
+msgid "ORDER_MAG_TOSS"
+msgstr "Toss a Mag"
+
+# The hand-off line under the crosshair (MH3; concept step27/mag-hand-off.png): never a key or a control. %s is a
+# teammate's name, %d metres or BBs.
+msgid "HUD_MAG_NEEDS"
+msgstr "%s needs a mag · %d m"
+
+msgid "HUD_MAG_BRINGING"
+msgstr "%s is bringing you a mag"
+
+msgid "HUD_MAG_CAUGHT"
+msgstr "+1 mag from %s · %d BBs"
+
+# The same with the ammo counter off: you can't tell how full a magazine is from its feel.
+msgid "HUD_MAG_CAUGHT_UNCOUNTED"
+msgstr "+1 mag from %s"
+
+msgid "HUD_MAG_TOSSED"
+msgstr "Mag to %s"
+
+msgid "HUD_MAG_LOST"
+msgstr "The mag was lost"
+
+msgid "HUD_MAG_NOBODY"
+msgstr "Nobody near has a mag to spare"
+
+msgid "HUD_MAG_NOT_LOW"
+msgstr "You still have a full spare mag"
+
+msgid "HUD_MAG_NO_SPARE"
+msgstr "No mag of yours fits %s's replica"
+
+msgid "HUD_MAG_WAIT"
+msgstr "Ask again in a moment"
+
+msgid "HUD_MAG_WAIT_IN_AIR"
+msgstr "Your mag is still in the air"
+
+msgid "HUD_MAG_WAIT_TOSS"
+msgstr "Toss again in a moment"
+
+msgid "HUD_MAG_ALREADY"
+msgstr "%s is already bringing you one"
+
+msgid "HUD_MAG_TOO_FAR"
+msgstr "Get closer to %s to toss a mag"
+
+msgid "HUD_MAG_NOT_NOW"
+msgstr "Mags wait for the next round"
 
 msgid "HUD_BOARD_ROUND_OT"
 msgstr "Round %d · overtime %s"
@@ -2431,6 +2489,13 @@ msgstr "Ping markers"
 
 msgid "SETTINGS_PING_MARKERS_NOTE"
 msgstr "Your pings and your teammates' marks over the field with their distance, and on the minimap. Off, pings still reach your teammates and they still answer."
+
+# Settings › HUD › Mag hand-off (MH3): the line under the crosshair and the glyphs by the chevrons.
+msgid "SETTINGS_MAG_HAND_OFF"
+msgstr "Mag hand-off"
+
+msgid "SETTINGS_MAG_HAND_OFF_NOTE"
+msgstr "Under the crosshair: who needs a mag and how far, whose is on its way, and why not. A magazine by the teammate's marker. Off, Need a Mag still asks and tosses, and your teammates still call it."
 
 msgid "SETTINGS_PANELS"
 msgstr "Panels"

@@ -149,6 +149,8 @@ var _figure_lines: Vector2 = Vector2.ZERO
 ## The magazines the rigged figures throw in their reloads (FI4): a fixed pool built with the models, cleared each
 ## round.
 var _thrown: ThrownMagazines = null
+## The hand-off's magazines in the air (MH3): a pool made once a match (none on the range).
+var _mag_tosses: MagTossView = null
 var _audio: SimAudio = null
 ## The field's mix: muffled while you are out, dipped under your hit and the whistle (SoundMix).
 var _mix: SoundMix = null
@@ -231,6 +233,9 @@ var rounds_played: int = 0
 var matches_played: int = 0
 ## Squad orders of yours the simulation took (SQUAD_ORDER events): the smoke test gives some.
 var orders_given: int = 0
+## Presses of Need a Mag of yours on the key or the wheel the simulation answered (an ask, a toss or a refusal; MH3;
+## never a bot's playing you): the smoke test makes some.
+var mag_presses: int = 0
 ## Practice: targets your BBs hit, and how many of those were steel plates (never the START plate).
 var target_hits: int = 0
 var plate_hits: int = 0
@@ -448,6 +453,8 @@ func _start_simulation(map: MapData) -> void:
 	_own_light = false
 	for l in player.armament.lights:
 		_own_light = _own_light or l != null
+	# Your ask gap is the player's (MagShareConfig.player_ask_gap), not a bot's (MH1, MH3).
+	player.mag.player = true
 	state.characters.append(player)
 	# Attack / Defend on a map with a pole, your team attacking first; on a map without one, Elimination.
 	if mode == MatchOptions.MODE_ATTACK_DEFEND and map.has_pole:
@@ -648,9 +655,15 @@ func _build_views(ui: CanvasLayer) -> void:
 	_pick_kinds()
 	_figure_lines = _play.figures.lod_high
 	var figure_materials := _build_bodies()
+	if not practice:
+		_mag_tosses = MagTossView.new()
+		add_child(_mag_tosses)
+		_mag_tosses.setup(state.mag_tosses.size(), state.characters, _figure_models, _sim.mag_share)
 	var first_use: Array[Material] = [_bbs.drawn_material(), _puffs.drawn_material(), _gas.drawn_material(),
 			_kicked.drawn_material(), contact.material, _dust.drawn_material()]
 	first_use.append_array(_bbs.glow_materials())
+	if _mag_tosses != null:
+		first_use.append_array(_mag_tosses.materials())
 	if state.round_state.mode == RoundState.Mode.ATTACK_DEFEND:
 		_flag = FlagView.new()
 		_flag.setup(_play.flag, _colours.figures, state.round_state.pole, _tuning.flag.radius)
@@ -699,6 +712,8 @@ func _build_views(ui: CanvasLayer) -> void:
 	_hud.setup(_play.hud, _colours.hud, _play.view, _tuning, player)
 	_hud.setup_sound_cues(_cues, _access)
 	_hud.setup_orders(_play.controls)
+	if not practice:
+		_hud.setup_mag_line(_sim.mag_share, state.characters.size())
 	if _overtime_flag != null:
 		_hud.use_overtime_flag()
 	if practice:
@@ -871,7 +886,7 @@ func _after_tick() -> void:
 	_mix.on_tick(state, PLAYER_ID)
 	_audio.on_order(_bots.order_outcome, PLAYER_ID)
 	_audio.on_ping(_bots.pings, PLAYER_ID)
-	_hud.on_tick(state)
+	_hud.on_tick(state, _input.mag_from_wheel)
 	if _bots.callouts != null:
 		_audio.on_calls(_bots.callouts.said, state, player.team, settings.hud.callouts)
 		_hud.on_calls(_bots.callouts.said, state)
@@ -931,6 +946,9 @@ func _after_tick() -> void:
 				_step_graphics_down()
 			GameEvent.Kind.SQUAD_ORDER when e.actor == PLAYER_ID:
 				orders_given += 1
+			GameEvent.Kind.MAG_ASK, GameEvent.Kind.MAG_TOSS, GameEvent.Kind.MAG_REFUSED:
+				if e.actor == PLAYER_ID and _input.mag_sent:
+					mag_presses += 1
 			GameEvent.Kind.ROUND_START:
 				_input.face(player.spawn_yaw)
 				_puffs.clear()
@@ -1010,6 +1028,8 @@ func _process(delta: float) -> void:
 	var eye := _eyes.global_position
 	if _thrown != null:
 		_thrown.update(delta)
+	if _mag_tosses != null:
+		_mag_tosses.update(state, fraction, TICK)
 	for f in _figures:
 		var c: Character = state.characters[f.character_id]
 		f.update(c, fraction, delta)

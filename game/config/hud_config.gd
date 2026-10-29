@@ -101,3 +101,14 @@ extends Resource
 @export var ping_fade: float = 1.0
 @export var ping_marker_edge: float = 48.0
 @export var ping_stack_gap: float = 8.0
+## The magazine hand-off (MH3; concept `step27/mag-hand-off.png`): its line's plate centred this share of the screen's
+## height down, padded mag_line_pad (px) and underlined mag_line_rule (px) in your team's colour once a toss is in
+## reach; a notice up mag_notice_time (s); the magazine glyph by a teammate's chevron, mag_glyph (px: width, height)
+## mag_glyph_gap (px) right of it, leaning mag_glyph_lean (rad).
+@export var mag_line_at: float = 0.69
+@export var mag_line_pad: Vector2 = Vector2(16.0, 7.0)
+@export var mag_line_rule: float = 3.0
+@export var mag_notice_time: float = 2.5
+@export var mag_glyph: Vector2 = Vector2(8.0, 17.0)
+@export var mag_glyph_gap: float = 5.0
+@export var mag_glyph_lean: float = 0.2

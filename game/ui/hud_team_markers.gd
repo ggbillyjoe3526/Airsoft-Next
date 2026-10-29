@@ -3,7 +3,8 @@ extends Control
 ## Teammate markers (concept `hud-feed.png`): a chevron in your team's colour over each teammate still in the field,
 ## seen through cover too (hollow while the level hides their head and chest), grey under a raised hand once they're
 ## out and walking off; gone once they reach the dead zone. Never over an enemy, never a name. One drawn node per
-## teammate, made once; each teammate's line of sight is checked against the level every few frames, staggered.
+## teammate, made once; each teammate's line of sight is checked against the level every few frames, staggered. A
+## magazine glyph by the chevron of a teammate asking you for one or bringing you one (MH3, HudMagLine.marks).
 
 const SIZE := Vector2(38.0, 29.0)
 const HAND := 22.0
@@ -35,6 +36,7 @@ func setup(cfg: HudConfig, body: BodyConfig, query: WorldQuery, characters: Arra
 		if c.team != you.team or c.id == you.id:
 			continue
 		var m := HudTeamMarker.new(SIZE, HAND, HAND_GAP)
+		m.fit_mag(cfg.mag_glyph, cfg.mag_glyph_gap, cfg.mag_glyph_lean)
 		m.visible = false
 		add_child(m)
 		_markers.append(m)
@@ -42,9 +44,10 @@ func setup(cfg: HudConfig, body: BodyConfig, query: WorldQuery, characters: Arra
 
 
 ## Places the markers as `camera` sees them in `colour`, `fraction` of the way from the last tick to this one;
-## `watched` (whose eyes the camera is) gets none, and `show` false hides them all (the scoreboard is up).
+## `watched` (whose eyes the camera is) gets none, and `show` false hides them all (the scoreboard is up). A teammate
+## whose id is 1 in `mags` gets the magazine glyph (empty: none do).
 func place(camera: Camera3D, characters: Array[Character], watched: Character, colour: Color, fraction: float,
-		show: bool) -> void:
+		show: bool, mags: PackedByteArray = PackedByteArray()) -> void:
 	_frame += 1
 	var eye := camera.global_position
 	for i in _markers.size():
@@ -63,6 +66,7 @@ func place(camera: Camera3D, characters: Array[Character], watched: Character, c
 					and _query.ray(eye, at + Vector3.UP * (head * CHEST_SHARE), _hit)
 		var out := not Elimination.is_in_play(c)
 		m.set_look(OUT_GREY if out else colour, out)
+		m.mag = not out and c.id < mags.size() and mags[c.id] == 1
 		var p := camera.unproject_position(top) / hud_size
 		m.position = Vector2(p.x - m.size.x * 0.5, p.y - m.size.y)
 
@@ -79,6 +83,11 @@ func is_hollow(id: int) -> bool:
 
 func is_out(id: int) -> bool:
 	return is_shown(id) and _markers[_ids.find(id)].out
+
+
+## Whether character `id`'s marker shows with the magazine glyph: for tests.
+func has_mag(id: int) -> bool:
+	return is_shown(id) and _markers[_ids.find(id)].mag
 
 
 ## How many markers there are (one per teammate).

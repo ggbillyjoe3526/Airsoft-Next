@@ -10,7 +10,9 @@ extends Node
 ## still move, and fire and aim need a fresh press once it closes. The order pointed at is given on letting go of the key
 ## (Hover) or on a click (either way); the wheel closes giving nothing on pause or focus loss (`release`) and once
 ## orders can't be given (`allow_orders`). Ping (PN1) fills the next tick's ping once, dead where the order keys are (on
-## the range); the simulation drops one while you are out.
+## the range); the simulation drops one while you are out. Need a Mag (MH3: its key, or the wheel's item) fills the next
+## tick's mag_hand_off once, dead on the range and while you are out (where the wheel is); `mag_from_wheel` says
+## whether the last one sent was picked on the wheel, for where its refusal shows.
 
 ## The actions in project.godot's input map.
 const FORWARD := &"move_forward"
@@ -39,6 +41,8 @@ const SCOREBOARD := &"scoreboard"
 const ORDER_WHEEL := &"order_wheel"
 ## Ping where you look, for your bot teammates (PN1).
 const PING := &"ping"
+## The magazine hand-off (MH3): toss one to a teammate asking you in reach, else ask for one (MagShare).
+const MAG := &"mag_hand_off"
 
 ## The view, absolute (rad): yaw 0 looks down -Z and turns left positive; pitch up positive.
 var view_yaw: float = 0.0
@@ -71,6 +75,13 @@ var _order_latch: SquadOrder.Kind = SquadOrder.Kind.NONE
 var _order_from_wheel: bool = false
 ## Ping pressed since the last tick.
 var _ping_latch: bool = false
+## Need a Mag pressed (or picked on the wheel) since the last tick, and whether picked on the wheel.
+var _mag_latch: bool = false
+var _mag_latch_wheel: bool = false
+## The last Need a Mag sent (fill_order) was picked on the wheel; it stays until the next one is sent.
+var mag_from_wheel: bool = false
+## The last fill_order sent a Need a Mag of yours (the key or the wheel), not only a bot's playing you.
+var mag_sent: bool = false
 ## Orders can be given (allow_orders): the keys, and the wheel only while `_wheel_allowed` too.
 var _orders_allowed: bool = true
 var _wheel_allowed: bool = true
@@ -96,6 +107,8 @@ func allow_orders(keys: bool, wheel_ok: bool) -> void:
 	if not keys:
 		_order_latch = SquadOrder.Kind.NONE
 		_ping_latch = false
+	if not _wheel_allowed:
+		_mag_latch = false
 	if not _wheel_allowed and _wheel.open:
 		_close_wheel()
 
@@ -213,6 +226,12 @@ func _order_key(event: InputEvent) -> bool:
 
 
 func _latch_order(kind: SquadOrder.Kind, from_wheel: bool) -> void:
+	if kind == SquadOrder.Kind.MAG:
+		# Need a Mag is the hand-off's press, not an order: dead where the wheel is (the range, and you out).
+		if _wheel_allowed:
+			_mag_latch = true
+			_mag_latch_wheel = from_wheel
+		return
 	_order_latch = kind
 	_order_from_wheel = from_wheel
 
@@ -296,6 +315,7 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.toggle_torch = _torch_latch
 	if _slot_steps != 0:
 		cmd.switch_to = posmod(held_slot + _slot_steps, SLOTS.size())
+	cmd.mag_hand_off = false
 	fill_order(cmd)
 	_clear_latches()
 
@@ -306,9 +326,16 @@ func fill_order(cmd: PlayerCommand) -> void:
 	cmd.squad_order = _order_latch
 	cmd.order_from_wheel = _order_from_wheel
 	cmd.ping = _ping_latch
+	# A bot playing you (the smoke test) may press it too: a press of yours adds to it, never takes it away.
+	mag_sent = _mag_latch
+	if _mag_latch:
+		cmd.mag_hand_off = true
+		mag_from_wheel = _mag_latch_wheel
 	_order_latch = SquadOrder.Kind.NONE
 	_order_from_wheel = false
 	_ping_latch = false
+	_mag_latch = false
+	_mag_latch_wheel = false
 
 
 ## Ignores the fire button until it is let go: a click that moved the round on is not the next round's first shot.
@@ -338,3 +365,5 @@ func _clear_latches() -> void:
 	_order_latch = SquadOrder.Kind.NONE
 	_order_from_wheel = false
 	_ping_latch = false
+	_mag_latch = false
+	_mag_latch_wheel = false
