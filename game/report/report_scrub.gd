@@ -4,7 +4,8 @@ extends RefCounted
 ## issue: the save folder's path becomes "<save folder>", the home folder "~", the account name "<you>" (as a whole word,
 ## min_name_chars or more; in any user folder too, whoever's), the machine's name "<machine>" (a full name and its
 ## first part), a OneDrive for Business folder's organisation "<organisation>", and network and e-mail addresses
-## "<address>" (IPv4, IPv6 in any of its forms, MAC, e-mail). Paths match with either slash and in any case (Windows' and
+## "<address>" (IPv4, IPv6 in any of its forms, MAC, e-mail), and a web address's user and password "<credentials>"
+## ("https://<credentials>@host/"). Paths match with either slash and in any case (Windows' and
 ## Linux' alike, and log lines name them both ways). Built once with its names (`for_this_machine`, or injected by
 ## tests); `line` per line. Over-scrubs rather than leaks.
 
@@ -14,6 +15,7 @@ const YOU := "<you>"
 const MACHINE := "<machine>"
 const ORGANISATION := "<organisation>"
 const ADDRESS := "<address>"
+const CREDENTIALS := "<credentials>"
 ## Unicode letters for \w and case-insensitive, so "Jöe" and "JÖE" are one name.
 const UNICODE := "(*UCP)(?i)"
 ## A path starts where no word, dot or dash runs into it ("/var/home/bob" is not "/home/bob").
@@ -57,6 +59,9 @@ const MAC := r"(?i)(?<![\w.\-])(?<![:\-][:\-])(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}(
 ## Starts only where a run of its characters starts, and never gives back, so a long run with no "@" costs one pass,
 ## not one a character (a pasted note of 60,000 took 4.7 s).
 const EMAIL := r"(*UCP)(?<![\w.+-])[\w.+-]++@[\w-]+(?:\.[\w-]+)+"
+## A web address's user information ("user:secret" in "https://user:secret@host/"), up to its "@", before the e-mail
+## pattern sees "secret@host". Tried only after a "://", and never gives back, so it is linear on any line.
+const CREDENTIALS_IN_URL := r"(?<=://)[^\s/?#@]++@"
 ## Where a cut may end a line: the characters between words and fields. Never "/", ".", ":", "@", "-" or "\", which sit
 ## inside paths, addresses and e-mail addresses.
 const CUT_AT := " \t\r\n\"'`()[]{}<>,;="
@@ -72,6 +77,7 @@ var _name_words: PackedStringArray = []
 var _user_folder := RegEx.create_from_string(USER_FOLDER)
 var _onedrive := RegEx.create_from_string(ONEDRIVE)
 var _email := RegEx.create_from_string(EMAIL)
+var _credentials := RegEx.create_from_string(CREDENTIALS_IN_URL)
 ## IPv6 before IPv4, so an IPv4 tail goes with its address.
 var _addresses: Array[RegEx] = [RegEx.create_from_string(IPV6), RegEx.create_from_string(IPV4),
 		RegEx.create_from_string(MAC)]
@@ -121,6 +127,7 @@ func line(text: String) -> String:
 		out = _paths[i].sub(out, _path_words[i], true)
 	out = _user_folder.sub(out, "$1" + YOU, true)
 	out = _onedrive.sub(out, "$1" + ORGANISATION, true)
+	out = _credentials.sub(out, CREDENTIALS + "@", true)
 	out = _email.sub(out, ADDRESS, true)
 	for i in _names.size():
 		out = _names[i].sub(out, _name_words[i], true)

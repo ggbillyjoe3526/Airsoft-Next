@@ -121,6 +121,7 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 	_steps = VoicePool.StartLimit.new(cfg.step_limit, cfg.step_window)
 	_impacts = VoicePool.StartLimit.new(cfg.impact_limit, cfg.impact_window)
 	_foleys = VoicePool.StartLimit.new(cfg.foley_limit, cfg.foley_window)
+	_foley.lean_gap = cfg.foley_lean_gap
 	_blasts = WhistleQueue.new(cfg)
 	name = "Sound"
 	for p in profiles:
@@ -426,7 +427,7 @@ func _blow_due(now: float) -> void:
 
 ## Kit rustle for every crouch, stand and lean that started this tick (anyone in play; `player_id` heard as yourself).
 func _rustle(state: GameState, player_id: int, now: float) -> void:
-	_foley.update(state.characters)
+	_foley.update(state.characters, now)
 	for i in state.characters.size():
 		var moves := _foley.moves[i]
 		if moves == FoleyTracker.Move.NONE:

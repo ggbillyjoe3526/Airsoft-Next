@@ -611,6 +611,17 @@ func test_woodland_s_bushes_are_one_draw_of_placeholder_ellipsoids_standing_on_t
 			"nothing on a map without bushes")
 
 
+func test_the_map_cards_picture_draws_woodlands_bushes() -> void:
+	var pictures: GDScript = load("res://tools/map_pictures.gd")
+	var port := Node3D.new()
+	add_child_autofree(port)
+	pictures.add_woods(port, _woodland(), PlayTuning.load_default())
+	var bushes := port.find_children("*", "BushView", false, false)
+	assert_eq(bushes.size(), 1, "the card's render dresses Woodland as a match does, bushes and all")
+	if not bushes.is_empty():
+		assert_eq((bushes[0] as BushView).multimesh.instance_count, _woodland().foliage.size())
+
+
 func test_the_bushes_leaves_and_marks_are_off_every_team_s_hue() -> void:
 	var play := PlayTuning.load_default()
 	var teams: Array[Color] = AccessibilityTable.read_file().colours

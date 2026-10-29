@@ -1,82 +1,33 @@
-Task: FB2 · QA commit 3c9785a · Verdict: Pass
+Task: KI1 · QA commit b8f929b · Verdict: Pass
 
 Blocking: none.
 
-Advisory (not blocking):
-1. game/save/settings_apply.gd:95-99 and game/save/settings.gd (`last_fullscreen` default Borderless): a player who starts in
-   the new default Exclusive, picks Windowed in Settings › Display (not F11), then presses F11 lands in Borderless, not
-   Exclusive. F11 out of Exclusive records Exclusive first, but pick_window_mode only records a fullscreen target. Fix: default
-   `last_fullscreen` to WINDOW_MODE_DEFAULT, or record the mode being left in pick_window_mode. I left no failing test in
-   the suite for it; the repro is: fresh Settings, apply_display, pick_window_mode(WINDOWED), toggle_fullscreen.
-2. A version 1 Custom whose stored `edge_smoothing` row is "off" over Medium or High now equals its base: the row is
-   redundant (harmless, the picture is right), the preset may still read Custom.
-3. Tools that run the main scene under Xvfb for pictures now go Exclusive on a first run (Screens is only a no-op headless);
-   the worker's picture tool avoided it, no committed tool is affected.
+Advisory:
+- game/main.gd:300-304 · `_keeps_picks` was inserted between `_start_play`'s doc comment and its function, so "Opens the match picked..." now documents `_keeps_picks` and `_start_play` has none. Move the helper above that comment.
+- game/report/report_scrub.gd (CREDENTIALS_IN_URL) · a password holding a raw "@" or a space leaks its tail: `https://user:p@ss@localhost/` gives `<credentials>@ss@localhost` (with a dotted host the e-mail pass takes "ss@host", so only the dotless host leaks); `user:pass word@h` is untouched. Both are malformed URLs (the "@" should be %40); over-scrubbing rule says tolerable, listed for a KNOWN_ISSUES row if wanted.
+- game/map/map_data.gd `_vec` · a numeric string coordinate ("2") now reads 0 where `float("2")` read 2. No shipped map has one (grepped data/maps); the spots (`flag`, `overtimeFlag`) warn, blocks and lanes do not.
+- game/progress/progress.gd `from_dict` · a junk `last_map` / `last_team` is dropped without a problem line (the other fields push one). Harmless.
+- Remembered picks are off in headless (main.gd `_keeps_picks`), so the launch path (recall in `_ready`, remember at PLAY, no file on first launch) has no end-to-end test; the pieces are tested.
 
-Checked, no bug found:
-- Migration: each of the five volumes alone, ints, floats, Windowed (int or float), V-Sync, missing fields, strings,
-  arrays, null, bools, dicts as values and as `volumes`; version 2 and 3 pass through; the argument is not mutated; a
-  value the player sets back to the old default after the move is kept on every later start; a version 3 file is the
-  defaults with a message and nothing half applied; version 0 refused.
-- Bundles: a version 1 settings store is accepted, written as it is and migrated on load; a newer one is refused.
-- Bug report line: a migrated untouched save reads "none"; a changed default is named.
-- First start pick (Medium, High, Low) is Off; each preset then smoothing turned on is Custom on its base and kept
-  across a restart; picking the preset again is Off; a version 1 Custom smoothing row is kept.
-- data/graphics.md and the built-in table agree (existing test_graphics_table); the en.po blurbs name no smoothing mode.
-- First start against FakeScreens goes Exclusive with V-Sync off and reapplying does nothing; F11 and Settings › Display
-  leave Exclusive and return to it; the headless display server's mode and V-Sync are unchanged by apply_display and F11.
+Checked and fine: Range or Practice remembered (page opens on Practice, a field pick restores the field's mode); Woodland remembered with Dev content off (falls to Depot, team kept); a map removed or junk-named (Depot); a team that is junk/2/0.5/true/"1"/null/1e30 (Alpha, map kept); first launch with no file and a save from before the field (defaults, unknown keys kept on write); a newer-version file (never written over); Reset level keeps the picks; a damaged file forgets them; the bundle/restore/import path stores the file generically (SaveBundle reads it with Progress.from_dict). Lean gap: counted from the last rustle (not the last try), per character, a crouch never held back, a new cast starts with no gap, SimAudio passes `foley_lean_gap` on; the clock is `state.time`, monotonic per match, and SimAudio is made per match. Ping: pressed before the wheel opens in the same tick still goes; pressed while open does not; wheel closing in the same tick; a wheel that cannot open does not block it. Scrub: linear on 100,000-character lines (no "@", "://" runs, unclosed users), "@" in a path/query and `res://` left alone. Depot hunt floor: over 4,000 random columns 2,610 draw as before on the same floor and 0 change (no new floor), so Depot is unchanged; in the hut it is the worker's test.
 
-Tests added (tests/unit/test_fb2_qa.gd, 24 tests; each checked by turning the migration guard off, then to "always"):
-- :35 each volume alone moves, others stay; :46 whole-number volumes; :54 window mode and V-Sync alone; :70 missing
-  fields; :79 wrong types; :95 numeric V-Sync; :99 argument not mutated; :107 version 2 and 3 pass through (fails with
-  the guard moved to 3); :114 newer file; :124 version 0 file; :129 chosen value kept every start (fails with the
-  guard moved to 3); :145 graphics rows kept; :152 old preset saves read Off; :160 and :172 bundles; :186 report line;
-  :200 Custom smoothing across a restart; :221 first-start pick; :228 blurbs; :240-:290 Exclusive in and out, headless.
-  All of these except the blurb, graphics and card tests fail with the migration off (7 of 24 fail there, 2 with "always").
+Tests (all new in tests/unit/test_ki1_qa.gd, 20 tests, how each fails without the feature):
+- :23 older save / unknown keys kept beside picks · fails if `to_dict` drops `_extra` or from_dict reads picks from a file without them
+- :37 junk team leaves the map, junk map leaves the team · fails without the 0/1 and catalogue checks
+- :53 JSON float team 1.0 · fails if the team check required an int
+- :58 range remembered opens on Practice · fails if recall didn't reach the page
+- :72 Woodland remembered, Dev content off · fails without the page's fallback keeping the team
+- :87 remembered map the catalogue refuses falls back · fails without `_keep_a_playable_map`
+- :105 newer-version file never written over · fails if `remember_picks` saved over it
+- :116 Reset level keeps picks, damaged file forgets · fails if reset cleared them
+- :132 SimAudio gives the tracker `foley_lean_gap` · fails without the `lean_gap` line (stays 0)
+- :141 gap counts from the last rustle, crouch unaffected · fails with no gap (all heard)
+- :163 a new cast forgets the gap · fails without the `_lean_at` reset
+- :200-:236 ping beside the wheel (before it opens, same tick close, cannot open) · the same-tick close case fails without the `not _wheel.open` check
+- :253-:279 scrub shapes, no-credential URLs, linear on long lines · fail without the scrub / with a backtracking regex
+- :288-:305 spot numbers in any form, non-object spots · fail without `_spot`
+- :312 Depot hunt floor same as before, new floors reached · fails if `_reached_floor` changed Depot's floor for a spot already drawn
 
-Counts: test_fb2_qa 24/24; the settings, graphics, bundle, report and gr1-3 files plus it, 266/266 in 37 s;
-tools/smoke_test.sh pass; gdlint clean; wiki.py check OK. I did not run the full three-part suite or tools/check.sh
-(machine load); the worker reports them green.
+Counts: test_ki1_qa 20/20; with the touched files (foley_tracker, order_wheel_input, pn1_qa, levels, report_scrub, ov1_qa, match_page) 136/136 in 12.8 s; gdlint clean. Not run (machine loaded, worker ran them): the full parts, smoke_test, tools/check.sh.
 
-Not testable here (owner's list): that the window really enters exclusive fullscreen on Windows on the display it opens
-on, how it behaves on alt-tab, and the first-start card's look in Exclusive.
-
-
-## Re-check (fix round 1) · QA commit f7cf5b2 · Verdict: Pass
-
-Blocking: none. Earlier advisory 1 (F11 after Settings › Windowed landing in Borderless) is fixed: `last_fullscreen`
-defaults to Exclusive, and a version 1 windowed save remembering Borderless moves to Exclusive (a Borderless player, an
-Exclusive memory, a version 2 file and junk values are left alone: tested).
-
-Advisory (not blocking):
-1. game/main.gd `_on_play_started` / game/play/play_session.gd:410-414: a map that will not load emits `started`, so the
-   menu cap is lifted while the refusal screen (a label and a Back button) shows. It draws on the player's limit, so on
-   Unlimited with V-Sync off it is the one menu-like screen left uncapped. Fix: lift the cap only when the map loaded
-   (e.g. a `failed` signal, or `started` carrying ok). Rare path; pinned as current behaviour in the test below.
-2. game/save/settings_apply.gd:76: the apply_frame_rate doc comment is 177 characters (house wrap is 120; gdlintrc
-   disables max-line-length so the gate passes).
-3. The cap follows the screen only when something calls apply_frame_rate: dragging the window to a screen with another
-   rate by hand does not re-cap until a Settings change, F11, focus change or the next match leg. The Monitor picker does
-   re-cap (tested). Settings › Frame rate help text does not mention the menu cap.
-
-Checked, no bug found: start (title, loading and the build steps stay capped, the match runs on the player's limit);
-quit from pause; a second match; match end through `_end_play`; practice, its Loadout and the way back (capped in the
-Loadout and while the range rebuilds, uncapped once it draws, no stuck flag over three legs); the range's pause menu
-(player's limit); the unfocused background limit with the cap (lower of the two, in menus, in a match, and across a
-match end while unfocused; focus back in the menus gives the cap, in a match the player's limit); a limit picked in
-Settings from the menus (Unlimited and 240 held to the rate, 30 wins, the match then runs on 240); F11 in the menus
-(window and back to Exclusive, cap kept); a second screen with another rate (re-caps); a 59.94 Hz screen rounds to 60;
-under half a hertz means no cap; headless has no cap. The staged build is four steps, so the cap costs a loading screen
-only a few frames.
-
-Tests added (tests/unit/test_fb2_menu_cap_qa.gd, 11 tests; all fail on the previous commit, which has no `menus` flag
-on the window stand-in and the old Borderless default, so the file does not even compile there):
-- :44 title, loading, match, pause, quit from pause; :60 a bot match twice and `_end_play`; :78 practice, Loadout, range
-  again, leaving practice; :99 a map that will not load and Back; :113 background limit with the cap through a match
-  and back; :132 focus regained in a match; :145 a limit picked in Settings from the menus; :166 F11 in the menus;
-  :184 a monitor with another rate; :193 odd refresh rates; :202 migration edges (Exclusive kept, float, junk, Borderless
-  on purpose).
-
-Counts: test_fb2_menu_cap_qa 11/11; with test_settings_apply and test_settings 70/70 in 18 s; gdlint clean. I did not
-run a full part (another process owns them) or the smoke test. Not testable here: the real refresh rate a display
-reports, exclusive fullscreen switching and its timing on Windows, and how the capped menus feel.
+Could not test (owner's list): remembered picks across a real quit and launch (headless skips them); how the lean gap sounds; the Woodland card picture and the hut hunt by eye.

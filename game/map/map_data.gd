@@ -188,14 +188,12 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m._read_kicked_dust(d.get("dressing"))
 	m.site = SiteDressing.read(d.get("dressing"), m.warnings)
 	m._read_woods(d.get("dressing"), style)
+	m.has_pole = _spot(d.get("flag"), "flag", m.warnings)
+	m.pole = _vec(d.get("flag")) if m.has_pole else Vector3.ZERO
+	m.has_overtime_flag = _spot(d.get("overtimeFlag"), "overtimeFlag", m.warnings)
+	m.overtime_flag = _vec(d.get("overtimeFlag")) if m.has_overtime_flag else Vector3.ZERO
 	for w in m.warnings:
 		push_warning("MapData: " + w)
-	var pole: Variant = d.get("flag")
-	m.has_pole = pole is Dictionary and (pole as Dictionary).has("x") and (pole as Dictionary).has("z")
-	m.pole = _vec(d.get("flag"))
-	var spot: Variant = d.get("overtimeFlag")
-	m.has_overtime_flag = spot is Dictionary and (spot as Dictionary).has("x") and (spot as Dictionary).has("z")
-	m.overtime_flag = _vec(spot)
 	return m
 
 
@@ -664,4 +662,20 @@ static func _vec(raw: Variant) -> Vector3:
 	if not raw is Dictionary:
 		return Vector3.ZERO
 	var d: Dictionary = raw
-	return Vector3(float(d.get("x", 0.0)), float(d.get("y", 0.0)), float(d.get("z", 0.0)))
+	return Vector3(_number(d.get("x"), 0.0), _number(d.get("y"), 0.0), _number(d.get("z"), 0.0))
+
+
+## Whether `raw` (the file's `key`) is a spot: an object with numbers for x and z, and for y if it has one (no y is a
+## foot at 0). Anything else given is no spot, with a warning; none given is none, quietly.
+static func _spot(raw: Variant, key: String, warnings: Array[String]) -> bool:
+	if raw == null:
+		return false
+	var d: Dictionary = raw if raw is Dictionary else {}
+	var numbers := d.has("x") and d.has("z")
+	for axis: String in ["x", "y", "z"]:
+		var v: Variant = d.get(axis, 0.0)
+		numbers = numbers and (v is float or v is int)
+	if not numbers:
+		warnings.append("%s %s is not a spot (numbers for x and z, and y if given): none read" % [
+			key, JSON.stringify(raw)])
+	return numbers

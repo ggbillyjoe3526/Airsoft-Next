@@ -163,3 +163,16 @@ func test_the_maps_overtime_flag_is_read_only_from_an_object_with_both_x_and_z()
 	var flat := MapData.parse(JSON.stringify({"overtimeFlag": {"x": 1.0, "z": 2.0}}), style, 1)
 	assert_true(flat.has_overtime_flag)
 	assert_eq(flat.overtime_flag.y, 0.0)
+
+
+func test_a_spot_with_a_coordinate_that_isnt_a_number_is_no_spot_and_warns() -> void:
+	var style := MapStyle.new()
+	for raw: Variant in [{"x": "2", "z": 1.0}, {"x": null, "z": 1.0}, {"x": 1.0, "z": [1]}, {"x": 1.0, "y": {}, "z": 1.0}]:
+		for key: String in ["overtimeFlag", "flag"]:
+			var bad := MapData.parse(JSON.stringify({key: raw}), style, 1)
+			assert_false(bad.has_overtime_flag or bad.has_pole, "%s %s: no spot" % [key, JSON.stringify(raw)])
+			assert_eq(bad.overtime_flag, Vector3.ZERO)
+			assert_eq(bad.pole, Vector3.ZERO)
+			assert_eq(bad.warnings.size(), 1, "%s %s warns" % [key, JSON.stringify(raw)])
+			assert_string_contains(bad.warnings[0] if not bad.warnings.is_empty() else "", key)
+	assert_true(MapData.parse(JSON.stringify({"name": "x"}), style, 1).warnings.is_empty(), "none given: quiet")

@@ -6,12 +6,13 @@ extends RefCounted
 ## stays with whoever has it, and one moved down reaches everyone already past it (`grant_reached`). A missing file is a
 ## new player; a damaged one is set aside and a new player's progress used, with `load_message`; one from a newer build
 ## is used for nothing and never written over (the new one lasts for the session). Fields this build doesn't know are
-## kept.
+## kept. It also keeps the map and team of the last match played (`remember_picks`), so the Match page opens on them
+## at the next launch (MatchPicks.recall); they are no options, so not in Settings.
 
 const PATH := "user://progress.save"
 const KIND := "progress"
 const VERSION := 1
-const KNOWN_KEYS: Array[String] = ["xp", "unlocked"]
+const KNOWN_KEYS: Array[String] = ["xp", "unlocked", "last_map", "last_team"]
 ## The most XP a save may hold: far beyond any cap, a guard against a garbled number.
 const MAX_XP := 1000000000
 
@@ -29,6 +30,9 @@ var table: LevelTable = null
 var xp: int = 0
 ## Every item unlocked, by pool ID, in the order they were unlocked. Never taken away.
 var unlocked: PackedStringArray = PackedStringArray()
+## The map id and team (0 or 1) of the last match played from the Match page; "" and -1 before the first.
+var last_map: String = ""
+var last_team: int = -1
 var dirty: bool = false
 ## Why the file couldn't be used, for the menus to show; "" when it was fine or missing.
 var load_message: String = ""
@@ -91,6 +95,14 @@ func add_xp(amount: int) -> LevelUp:
 	return up
 
 
+## Keeps `map_id` and `team` as the last match's picks (marked to save if they changed).
+func remember_picks(map_id: String, team: int) -> void:
+	if map_id != last_map or team != last_team:
+		last_map = map_id
+		last_team = team
+		dirty = true
+
+
 ## Back to level 0 (Settings › Dev › Reset level): no XP, and the starting kit alone.
 func reset() -> void:
 	xp = 0
@@ -140,6 +152,10 @@ func to_dict() -> Dictionary:
 	var out := _extra.duplicate(true)
 	out["xp"] = xp
 	out["unlocked"] = Array(unlocked)
+	if not last_map.is_empty():
+		out["last_map"] = last_map
+	if last_team >= 0:
+		out["last_team"] = last_team
 	return out
 
 
@@ -169,5 +185,9 @@ func from_dict(data: Dictionary) -> Array[String]:
 					unlocked.append(id)
 			else:
 				problems.append("an unlocked item \"%s\" isn't a pool ID: left out" % str(id))
+	var saved_map: Variant = data.get("last_map", "")
+	last_map = saved_map if saved_map is String else ""
+	var saved_team: Variant = data.get("last_team", -1)
+	last_team = int(saved_team) if (saved_team is int or saved_team is float) and float(saved_team) in [0.0, 1.0] else -1
 	dirty = false
 	return problems

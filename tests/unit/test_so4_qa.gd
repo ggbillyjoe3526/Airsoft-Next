@@ -91,6 +91,23 @@ func _hold(session: PlaySession) -> bool:
 	return false
 
 
+func test_hold_heres_marker_goes_when_the_match_ends() -> void:
+	var session := _session()
+	await _started(session)
+	assert_true(_hold(session), "a spot to hold")
+	session._show_orders(session.player, 0.0)
+	assert_true(session.hud().hold_marker().visible, "held: the marker shows")
+	session.state.round_state.phase = RoundState.Phase.MATCH_OVER
+	session.state.events.clear()
+	session.state.events.add(GameEvent.Kind.ROUND_OVER)
+	session.state.events.add(GameEvent.Kind.MATCH_OVER)
+	session._after_tick()
+	session.state.events.clear()
+	assert_false(session._bots.hold_spot(session.player.id), "no orders after the last round")
+	session._show_orders(session.player, 0.0)
+	assert_false(session.hud().hold_marker().visible, "not over the match results")
+
+
 # --- the hold marker beside the real flag marker ---
 
 func _hud_with_orders() -> Hud:

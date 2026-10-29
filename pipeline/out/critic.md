@@ -1,26 +1,29 @@
-Task: FB2 · New first-start defaults from the 0.1 Dev 1 playtest (fix)
-Attempt: 1 of 4
-Head: 9ee2355 (QA re-check's targeted runs green on f7cf5b2, smoke and wiki/changelog checks green; the full three-part gate on this head was still running at part 1: merge waits on it or CI)
+Task: KI1 · Fix the contained known issues before 0.1 Dev 1
+Attempt: 2 of 4
+Head: 98edb8e (full gates on a83dea6; 98edb8e moves one clear and rewraps a comment, test_so4_qa, test_ki1_qa and
+  test_play_session pass 54/54 on it; gdlint clean on the three files)
 Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
 Score: 8/8 → Accept
-Evidence:
-1. Volumes 1/0.7/1/0.3/0.4 game/save/settings.gd:27-33; Exclusive and V-Sync off :43-44, read by the initialisers :76-77, :93 and from_dict :255-257; edge smoothing off on all four presets data/graphics.md:40 and game/config/graphics_table.gd:35; Reset is from_dict({}) (settings.gd reset_save), so it gets the new values; old saves moved once, migrate_defaults :171-194.
-2. No contract touched: saves still go through SaveFile (contract 8); the settings file's version 1→2 is internal and bundles accept v1 (QA).
-3. New code is event-driven only: set_menus (main.gd:132, :373, :394, :428), apply_frame_rate on focus and Settings changes, menu_cap reads two values and allocates nothing (settings_apply.gd:94-104). migrate_defaults runs once per file load.
-4. test_settings.gd:51-57 (defaults) and the new v1 migration tests fail on main; test_settings_apply menu-cap and F11 tests fail without `Screens.menus`; QA's 24 + 11 tests were mutation-checked.
-5. Settings stays plain state; SettingsApply applies; cap rate and fallback in DisplayConfig (display_config.gd:14,16), not code numbers; all typed. The `menus` flag joins the existing static `_screens` (as `focused` did), not new hidden state.
-6. Settings-only change; quieter mix and no MSAA suit the pillars; no assets.
-7. Small additions; migration and old-default constants named (VOLUME_DEFAULTS_V1 and friends); nothing to free.
-8. Records, DECISIONS, wiki Settings, PLAYTEST, changelog note all updated; no KNOWN_ISSUES row resolved by it.
-Advisories (not blocking):
-- The menu cap (fix round 1) is behaviour the owner did not ask for: a sensible default (taken in the record, switchable in DisplayConfig), but tell him in the pull request; DECISIONS' FB2 ruling does not mention it.
-- A map that fails to load emits `started` (play_session.gd:412), so its refusal screen draws uncapped (QA advisory 1).
-- performance.md judged 120992d, not fix round 1; I read the fix's paths myself (check 3). `if version >= 2` (settings.gd:172) could read a named constant; settings_apply.gd:76 doc comment is 177 characters.
-- A v1 player who chose Windowed, V-Sync on or exactly 80 % effects is moved too (indistinguishable from the default; recorded).
-Owner should test in the game:
-- A fresh save (delete user://settings.save) on Windows opens in exclusive fullscreen on the screen it starts on, with no long flash of the maximised window first.
-- Settings › Display shows V-Sync off; Graphics shows the FOR YOUR CARD preset with Edge smoothing Off; Audio reads 100/70/100/30/40.
-- Your existing save: volumes you never touched now read the new values; Window mode is Exclusive.
-- Pick Windowed, press F11: back to exclusive fullscreen; alt-tab out and back behaves.
-- F3 on the title and menus reads no more than your screen's refresh rate; in a match it follows your Frame rate limit.
-- Does the new mix (effects 70 %, ambience 30 %, interface 40 %) sound right in a match?
+Failed checks, with evidence (file:line, one or two lines each, each marked measured or judgment): none.
+Attempt 1's check 5 is fixed: game/ai/bot_controller.gd:+176 `elif e.kind == GameEvent.Kind.MATCH_OVER: orders.clear()`
+  in observe's event loop beside the round's rule, doc comment +156 says "no order outlasts a round or the match";
+  play_session.gd's `_bots.orders.clear()` is gone (-964). The session node now only reads (Contract 1).
+  test_so4_qa.gd:94 still exercises it through `_after_tick` → `_bots.observe` (play_session.gd:879) and would fail
+  without the new branch (no other clear runs at MATCH_OVER). `clear()` is two `fill` calls, no allocation, once a match.
+Advisory (no retry on their own):
+- game/ai/bot_controller.gd:156 the edited doc line is now 133 wide (house width 120, lint rule off); rewrap when next
+  touched. foley_tracker.gd:6 is rewrapped.
+- Attempt 1's other advisories stand (test_mh1_qa.gd.uid outside scope; QA's map_data `_vec` numeric string, URL "@"
+  tail, junk last_map/last_team without a problem line, no end-to-end test of the remembered picks' launch path;
+  main.gd:+321 remembers picks before the match is known to load).
+Evidence for the other passes: as attempt 1 (1 every brief fix in the diff, 12 rows handled with reasons in the record;
+  2 no contract changed; 3 one float compare per tick in foley_tracker.gd:+48; 4 test_foley_tracker's rustle count;
+  6 toy-scale QoL, no new system; 7 small helpers, UIDs kept; 8 KNOWN_ISSUES, record, changelog note, wiki, PLAYTEST).
+  QA Pass (pipeline/out/qa.md), performance Pass (pipeline/out/performance.md).
+Owner should test in the game (at most 6, one line each):
+- Play a match on Woodland as Beta, quit, relaunch: Match opens on Woodland and Beta.
+- Middle click with the order wheel held open: no ping; close it and click: a ping.
+- Give Hold here in the last round, finish the match: no diamond over the results.
+- Lean into a wall and turn back and forth: a rustle at most about twice a second.
+- Woodland: bots search inside the hut; the map card shows the bushes.
+- Hold the order wheel open and press H: the answer shows in the wheel's middle.

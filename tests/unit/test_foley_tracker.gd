@@ -24,6 +24,16 @@ func _tick(c: Character, crouch: float, lean: float) -> int:
 	return tracker.moves[cast.find(c)]
 
 
+## As `_tick`, at `now` (s).
+func _tick_at(c: Character, crouch: float, lean: float, now: float) -> int:
+	c.prev_crouch_amount = c.crouch_amount
+	c.prev_lean = c.lean
+	c.crouch_amount = crouch
+	c.lean = lean
+	tracker.update(cast, now)
+	return tracker.moves[cast.find(c)]
+
+
 func test_a_crouch_rustles_once_however_many_ticks_it_takes() -> void:
 	var c := cast[0]
 	var heard := 0
@@ -49,6 +59,24 @@ func test_leaning_out_rustles_once_either_way_and_leaning_back_is_quiet() -> voi
 		moves.append(_tick(c, 0.0, lean))
 	# Out to the right (one), held, back to upright (quiet), then out to the left: past upright is a new peek.
 	assert_eq(moves, [FoleyTracker.Move.LEAN, 0, 0, 0, 0, 0, FoleyTracker.Move.LEAN, 0])
+
+
+func test_a_lean_restarting_within_the_gap_is_quiet_for_that_character_only() -> void:
+	tracker.lean_gap = cfg.foley_lean_gap
+	cast.append(Character.new(1, 1, Vector3.ZERO))
+	var c := cast[0]
+	var other := cast[1]
+	var t := 0.0
+	var heard := 0
+	# Against a wall, turning back and forth: the lean shrinks and grows again each reversal, ten a second.
+	for i in 30:
+		t += 0.05
+		heard += int(_tick_at(c, 0.0, 0.5 if i % 2 == 0 else 0.2, t) == FoleyTracker.Move.LEAN)
+	var gaps := ceili(1.5 / cfg.foley_lean_gap)
+	assert_between(heard, 1, gaps, "one rustle per gap at most, not fifteen")
+	assert_eq(_tick_at(other, 0.0, 0.4, t) & FoleyTracker.Move.LEAN, FoleyTracker.Move.LEAN, "another's own gap")
+	_tick_at(c, 0.0, 0.0, t + 0.01)
+	assert_eq(_tick_at(c, 0.0, 0.3, t + cfg.foley_lean_gap + 0.01), FoleyTracker.Move.LEAN, "after the gap")
 
 
 func test_a_crouch_and_a_lean_together_are_both_heard() -> void:

@@ -27,7 +27,7 @@ func _press(action: StringName, pressed: bool = true) -> void:
 	input._unhandled_input(e)
 
 
-func test_a_middle_click_with_the_wheel_open_is_one_ping_and_neither_an_order_nor_a_shot() -> void:
+func test_a_middle_click_with_the_wheel_open_is_no_ping_no_order_and_no_shot() -> void:
 	Input.action_press(&"order_wheel")
 	_press(&"order_wheel")
 	assert_true(input.wheel().open, "the wheel is up")
@@ -35,11 +35,10 @@ func test_a_middle_click_with_the_wheel_open_is_one_ping_and_neither_an_order_no
 	assert_true(input.wheel().open, "a ping press leaves the wheel as it is")
 	var c := PlayerCommand.new()
 	input.fill(c)
-	assert_true(c.ping, "the view the wheel holds still is pinged")
+	# The wheel holds the view still, so a ping would land where the view was left (KI1).
+	assert_false(c.ping, "no ping while the wheel is open")
 	assert_eq(c.squad_order, SquadOrder.Kind.NONE, "no order given")
 	assert_false(c.fire, "no shot")
-	input.fill(c)
-	assert_false(c.ping, "once")
 
 
 func test_a_free_mouse_pings_nothing_and_focus_loss_drops_a_ping_waiting() -> void:

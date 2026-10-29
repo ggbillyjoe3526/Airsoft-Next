@@ -47,7 +47,8 @@ on its own, and the title screen says so once. Mouse and keyboard; there is no c
 ## Your first match
 
 1. Open **Match**. Pick the map (Depot), the mode (**Elimination** is the classic), your team (**ALPHA** or **BETA**)
-   and how well the bots play: start on **Easy** or **Normal**.
+   and how well the bots play: start on **Easy** or **Normal**. Next time, Match opens on the map and team you last
+   played.
 2. Press **PLAY**. A loading screen shows the map until the match is ready.
 3. You start at your team's end with two bot teammates, against three bots. The round starts on two short whistle
    blasts.

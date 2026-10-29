@@ -410,3 +410,13 @@ func test_bots_hunt_over_the_whole_field_and_never_draw_a_spot_no_route_reaches(
 		east += int(b.hunt_goal.x > 20.0)
 	assert_gt(west, 0, "spots on the west side")
 	assert_gt(east, 0, "and on the east")
+	# Spots drawn over the hut are on its floor, under the roof no route reaches (KI1).
+	var hut_floor := nav.node_at(Vector3(5.0, 0.5, 15.5))
+	assert_true(hut_floor >= 0 and nav.walkable[hut_floor] == 1 and nav.linked(home, hut_floor, true), "the hut's floor")
+	w.planner.bounds_lo = Vector2(4.5, 15.0)
+	w.planner.bounds_hi = Vector2(5.5, 16.0)
+	var inside := 0
+	for i in 10:
+		if w.planner.hunt_point(b, w):
+			inside += int(b.hunt_goal.y < nav.floor_y[roof] - 1.0)
+	assert_eq(inside, 10, "every spot over the hut is inside it")

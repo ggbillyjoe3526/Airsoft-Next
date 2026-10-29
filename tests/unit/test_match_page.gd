@@ -77,6 +77,14 @@ func test_a_map_offers_only_its_own_modes() -> void:
 	assert_false(MatchOptions.mode_pickable("elimination", catalog.find("range"), false), "not hosted by the range")
 
 
+func test_the_kinds_modes_are_plain_arrays_read_by_a_variable_key() -> void:
+	# Godot 4.7.2 can crash reading a const Dictionary[K, PackedStringArray] by a variable key (GraphicsTable's note).
+	assert_eq(MatchOptions.KIND_MODES.get_typed_value_builtin(), TYPE_ARRAY)
+	for kind: StringName in MatchOptions.KIND_MODES:
+		var modes: Array = MatchOptions.KIND_MODES[kind]
+		assert_true(modes.has("practice"), String(kind))
+
+
 func test_a_pole_mode_on_a_map_without_a_pole_says_so_rather_than_later() -> void:
 	var depot := MapCatalog.shared().find("depot")
 	assert_true(MatchOptions.needs_pole("attack_defend", depot, false))

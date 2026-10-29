@@ -31,7 +31,8 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var hit_spread_db: float = 0.5
 @export var steel_ring_spread_db: float = 1.0
 ## Kit rustle (FoleyTracker; the browser game's levels.foley and ownFoley): a crouch, a stand or a lean starting.
-## Others' only within foley_reach (m) of your ears and at most foley_limit starting within foley_window (s).
+## Others' only within foley_reach (m) of your ears and at most foley_limit starting within foley_window (s). One
+## character's lean rustles at most once in foley_lean_gap (s), yours too: a lean against a wall restarts at each turn.
 @export var foley_gain: float = 0.8
 @export var own_foley_gain: float = 0.45
 @export var foley_pitch: float = 0.08
@@ -39,6 +40,7 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var foley_reach: float = 9.0
 @export var foley_limit: int = 3
 @export var foley_window: float = 0.15
+@export var foley_lean_gap: float = 0.6
 ## A landing (a FOOTSTEP LAND) sounds as a step from FootstepConfig.land_min_speed (m/s down) and louder and lower the
 ## harder it comes down, up to land_hard_gain times the level and land_hard_pitch times the pitch at hard_land_speed
 ## (a hop lands at about 5.4 m/s, a drop off a 1.6 m ledge at 8), with a kit rustle at that speed or more. Your own

@@ -183,7 +183,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action(HOP_UP_MORE):
 		_hop_steps += 1
 	elif event.is_action(PING):
-		_ping_latch = _ping_latch or _orders_allowed
+		# Not while the wheel is open: it holds the view still, so a ping would land where the view was left.
+		_ping_latch = _ping_latch or (_orders_allowed and not _wheel.open)
 	elif event.is_action(NEXT_SLOT):
 		_slot_steps += 1
 		_slot_latch = -1
@@ -230,7 +231,8 @@ func _latch_order(kind: SquadOrder.Kind, from_wheel: bool) -> void:
 		# Need a Mag is the hand-off's press, not an order: dead where the wheel is (the range, and you out).
 		if _wheel_allowed:
 			_mag_latch = true
-			_mag_latch_wheel = from_wheel
+			# H with the wheel held open answers in the wheel's middle too: the line under it is hidden.
+			_mag_latch_wheel = from_wheel or _wheel.open
 		return
 	_order_latch = kind
 	_order_from_wheel = from_wheel

@@ -25,8 +25,10 @@ const MODE_BLURB: Dictionary[String, String] = {
 	"practice": "MODE_PRACTICE_BLURB",
 }
 ## The modes a map of each kind hosts (data/maps.md's Kind): every field hosts Elimination, Attack / Defend (only with a
-## flagpole) and Practice (M94: targets where the other team would play), the range Practice alone.
-const KIND_MODES: Dictionary[StringName, PackedStringArray] = {
+## flagpole) and Practice (M94: targets where the other team would play), the range Practice alone. Values are plain
+## Arrays: Godot 4.7.2 keeps a const Dictionary[K, PackedStringArray]'s values as Arrays and can crash reading one by a
+## variable key (GraphicsTable's pattern).
+const KIND_MODES: Dictionary[StringName, Array] = {
 	&"field": ["elimination", "attack_defend", "practice"],
 	&"range": ["practice"],
 }
@@ -55,7 +57,7 @@ static func modes_offered(map: MapCatalog.Entry) -> PackedStringArray:
 	var out := PackedStringArray()
 	if map == null:
 		return out
-	var hosted: PackedStringArray = KIND_MODES.get(map.kind, PackedStringArray())
+	var hosted: Array = KIND_MODES.get(map.kind, [])
 	for mode in MODES:
 		if hosted.has(mode):
 			out.append(mode)
