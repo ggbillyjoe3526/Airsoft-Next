@@ -1,0 +1,189 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+---  GUT  ---
+[1m[INFO]:  [0musing [/root/.local/share/Airsoft] for temporary output.
+Godot version:  4.7.2
+GUT version:  9.7.1
+[31m[GUT ERROR]:  [0mCould not find script:  res://tests/unit/test_whistle.gd
+
+
+res://tests/unit/test_ping_markers.gd
+* test_a_spot_is_a_ring_in_your_colour_over_the_floor_with_its_distance
+* test_a_contact_is_a_diamond_in_their_colour_over_the_head_and_never_follows
+* test_it_pops_in_stays_whole_seven_seconds_and_fades_over_the_last
+* test_reduced_motion_shows_it_whole_at_once
+* test_off_screen_it_is_pinned_inside_the_edge_under_what_is_there
+* test_pinned_on_the_left_it_sits_under_a_flag_pinned_there
+* test_hidden_while_you_spectate_with_the_board_up_paused_or_switched_off
+* test_only_your_teams_pings_show
+* test_hud_size_and_opacity_apply
+* test_the_minimap_shows_the_ring_and_diamond_and_off_hides_them
+* test_a_ping_off_the_panel_is_drawn_on_its_rim
+* test_your_ping_plays_one_soft_pip_in_your_ear
+WARNING: AmbienceConfig: no day set for yard or yard
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] set_for (res://game/config/ambience_config.gd:31)
+         [1] _start_ambience (res://game/play/sim_audio.gd:606)
+         [2] setup (res://game/play/sim_audio.gd:172)
+         [3] _audio (res://tests/unit/test_ping_markers.gd:257)
+         [4] test_your_ping_plays_one_soft_pip_in_your_ear (res://tests/unit/test_ping_markers.gd:271)
+         [5] _run_test (res://addons/gut/gut.gd:622)
+         [6] _test_the_scripts (res://addons/gut/gut.gd:835)
+* test_a_teammates_mark_or_ping_plays_no_pip
+WARNING: AmbienceConfig: no day set for yard or yard
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] set_for (res://game/config/ambience_config.gd:31)
+         [1] _start_ambience (res://game/play/sim_audio.gd:606)
+         [2] setup (res://game/play/sim_audio.gd:172)
+         [3] _audio (res://tests/unit/test_ping_markers.gd:257)
+         [4] test_a_teammates_mark_or_ping_plays_no_pip (res://tests/unit/test_ping_markers.gd:287)
+         [5] _run_test (res://addons/gut/gut.gd:622)
+         [6] _test_the_scripts (res://addons/gut/gut.gd:835)
+* test_the_pip_is_the_browsers_recipe
+* test_ping_markers_are_on_by_default_saved_and_an_old_file_loads_on
+* test_the_tab_has_ping_markers_on_and_saves_a_change
+* test_markers_are_made_once_one_per_teammate
+* test_a_frame_with_none_allocates_nothing
+* test_a_frame_with_a_ping_up_allocates_no_object
+* test_the_markers_go_with_the_hud
+* test_a_ping_in_a_match_shows_on_screen_and_the_minimap_and_pips
+21/21 passed.
+
+
+res://tests/unit/test_pn2_qa.gd
+* test_a_new_round_clears_the_markers_and_the_minimap
+* test_a_marker_is_gone_at_its_lifetime_and_back_whole_for_a_new_ping
+* test_markers_come_back_when_the_setting_goes_on_again_mid_ping
+* test_off_hides_markers_only_the_pip_still_plays
+WARNING: AmbienceConfig: no day set for yard or yard
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] set_for (res://game/config/ambience_config.gd:31)
+         [1] _start_ambience (res://game/play/sim_audio.gd:606)
+         [2] setup (res://game/play/sim_audio.gd:172)
+         [3] _audio (res://tests/unit/test_pn2_qa.gd:56)
+         [4] test_off_hides_markers_only_the_pip_still_plays (res://tests/unit/test_pn2_qa.gd:113)
+         [5] _run_test (res://addons/gut/gut.gd:622)
+         [6] _test_the_scripts (res://addons/gut/gut.gd:835)
+* test_two_own_pings_pip_twice_and_a_teammates_between_adds_none
+WARNING: AmbienceConfig: no day set for yard or yard
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] set_for (res://game/config/ambience_config.gd:31)
+         [1] _start_ambience (res://game/play/sim_audio.gd:606)
+         [2] setup (res://game/play/sim_audio.gd:172)
+         [3] _audio (res://tests/unit/test_pn2_qa.gd:56)
+         [4] test_two_own_pings_pip_twice_and_a_teammates_between_adds_none (res://tests/unit/test_pn2_qa.gd:120)
+         [5] _run_test (res://addons/gut/gut.gd:622)
+         [6] _test_the_scripts (res://addons/gut/gut.gd:835)
+* test_your_ping_after_a_new_round_pips_again
+WARNING: AmbienceConfig: no day set for yard or yard
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] set_for (res://game/config/ambience_config.gd:31)
+         [1] _start_ambience (res://game/play/sim_audio.gd:606)
+         [2] setup (res://game/play/sim_audio.gd:172)
+         [3] _audio (res://tests/unit/test_pn2_qa.gd:56)
+         [4] test_your_ping_after_a_new_round_pips_again (res://tests/unit/test_pn2_qa.gd:133)
+         [5] _run_test (res://addons/gut/gut.gd:622)
+         [6] _test_the_scripts (res://addons/gut/gut.gd:835)
+* test_an_eliminated_teammates_ping_still_shows_only_until_its_lifetime
+* test_a_pinned_marker_behind_you_stays_inside_the_screen
+8/8 passed.
+
+
+res://tests/unit/test_hud_minimap.gd
+* test_the_panel_names_the_map_and_round_and_where_the_character_stands
+* test_the_area_label_is_rebuilt_only_when_the_area_changes
+* test_it_follows_the_one_the_view_is_through_and_their_team
+* test_rotating_turns_the_field_and_fixed_turns_the_arrow
+* test_the_panel_scale_is_the_view_radius_across_the_square
+* test_teammates_are_dots_grey_once_hit_and_enemies_are_never_dots
+* test_a_teammate_on_another_storey_is_an_arrow_up_or_down
+* test_patches_are_anonymous_and_only_those_on_your_storey_and_live
+* test_a_patch_is_whole_on_the_panel_or_a_mark_on_the_rim_never_both
+* test_the_pole_shows_while_the_round_is_live_in_attack_defend_only
+* test_your_hold_is_a_diamond_while_it_is_in_force
+* test_a_field_with_no_layers_still_gets_a_panel
+* test_a_frame_allocates_nothing
+* test_the_pictures_go_with_the_panel
+* test_the_hud_has_no_panel_on_the_range
+* test_practice_on_a_field_has_its_panel_captioned_practice
+* test_what_got_you_and_the_pinned_flag_marker_sit_under_the_panel_and_the_summary_hides_it
+17/17 passed.
+
+
+res://tests/unit/test_hud_prefs.gd
+* test_the_choices_survive_a_save_and_a_load
+* test_a_bad_value_falls_back_on_its_own
+* test_an_old_save_without_the_tab_keeps_the_defaults
+* test_no_team_colour_among_the_crosshair_colours
+* test_a_hud_saved_before_the_minimap_loads_rotating
+* test_a_dynamic_crosshair_opens_with_the_spread_and_a_static_one_keeps_its_gap
+* test_kept_lines_stay_and_never_fade
+* test_the_hud_takes_the_choices
+* test_the_panel_opacity_stays_with_the_hud
+* test_the_tab_saves_a_pick_and_the_preview_follows
+* test_the_tab_shows_the_saved_choices
+* test_the_hud_size_is_saved_checked_and_kept_on_the_sliders_steps
+* test_a_hud_saved_before_the_hud_size_loads_at_100_percent
+13/13 passed.
+
+
+res://tests/unit/test_assets.gd
+* test_every_model_loads
+* test_figures_have_their_clips_and_sidecars
+* test_every_sound_loads_and_loops_loop
+* test_fonts_load
+* test_map_layouts_parse
+5/5 passed.
+
+
+res://tests/unit/test_pings.gd
+* test_a_press_marks_the_floor_where_you_look_and_both_teammates_take_it
+* test_the_sky_or_past_the_reach_pings_nothing_and_the_bots_keep_what_they_had
+* test_off_a_wall_the_spot_is_on_your_side_of_it
+* test_an_enemy_you_see_under_the_view_is_a_contact_at_their_feet
+* test_an_enemy_seen_further_than_the_bots_see_is_still_a_contact_within_the_reach
+* test_no_contact_behind_a_wall_in_a_bush_or_behind_a_body
+* test_it_is_your_teams_and_nothing_while_you_are_out_between_rounds_or_on_the_range
+* test_the_ping_looks_along_the_view_with_the_recoil
+* test_a_second_press_inside_the_gap_is_one_ping_and_a_miss_starts_no_gap
+* test_one_ping_each_kept_for_its_lifetime_and_cleared_each_round
+* test_a_teammate_sets_off_for_the_spot_and_gets_nearer
+* test_under_your_order_they_keep_the_order_and_only_watch
+* test_take_is_ignored_in_a_fight_in_cover_with_a_target_in_view_or_out_of_play
+* test_a_spot_is_somewhere_to_look_a_contact_a_threat_too
+* test_a_ping_stays_in_mind_for_ping_memory_until_real_news
+* test_a_rusher_runs_to_a_ping_and_a_careful_bot_does_not
+* test_the_same_seed_and_ping_repeat_the_bots_commands
+* test_one_teammate_answers_going_to_your_ping_and_no_checking_as_well
+* test_under_your_order_the_nearest_that_took_it_says_it_watches
+* test_a_contact_call_marks_its_enemy_by_the_chance_and_the_teams_gap
+* test_marks_change_neither_the_lines_nor_play
+* test_a_press_fills_the_next_ticks_ping_once_and_none_on_the_range
+* test_ticks_with_pings_allocate_nothing
+23/23 passed.
+
+
+
+
+==============================================
+= Run Summary
+==============================================
+
+Totals
+------
+Errors                1
+
+Scripts               6
+Tests                87
+Passing Tests        87
+Asserts             919
+Time              28.37s
+
+
+---- All tests passed! ----
+

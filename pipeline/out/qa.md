@@ -1,24 +1,23 @@
-Task: PN1 · QA commit (this commit) · Verdict: Pass
+Task: PN2 · QA commit (this commit) · Verdict: Pass
 
-Blocking: none.
+Blocking findings: none. Every acceptance criterion is met and pinned by a test that passes.
 
-Advisories:
-- game/ai/bot_hearing.gd:127-130 with game/ai/pings.gd take(): a real noise within hearing_contact_time (2 s) of a taken ping and within its margin counts as "the same" and leaves last_known on the ping spot, so on_ping_spot() stays true. The ping then stays in mind up to ping_memory (20 s) and the bot's Heard call is suppressed (callouts.gd:264) although real news came. Minor; the comment in bot.gd (ping_in_mind) says real news writes another spot. KNOWN_ISSUES row at most.
-- Middle click with the order wheel open pings where the view is held (as KNOWN_ISSUES says): confirmed harmless, wheel stays open, no order given, no shot, one ping (test below).
-- game/play/play_session.gd:756: with Dev "spectate bots" on, fill() is not called, so a waiting ping latch would sit until the next round (dev only, ignorable).
+Advisory
+- A teammate who is hit keeps their ping up for its remaining life (at most 8 s): `Pings` (game/ai/pings.gd) never drops a ping on elimination, and the HUD only reads the book. Matches the browser and PN1's book ("kept PingConfig.lifetime"); a dead teammate's contact diamond is still useful. Not a PN2 defect; no stale marker survives past its lifetime or a new round (pinned below). No disconnects exist (single player).
+- game/play/sim_audio.gd header comment line for on_ping runs past 120 columns (gdlint passed, so within the project's limit).
 
-Checked:
-- Determinism: depot and woodland, seeds 1 to 3, 120 s MatchRunner matches (rounds, winners, times, hits, shots, searches, per-bot hits, farthest) hashed on origin/main and on this branch: all six digests identical. No pings pressed leaves play unchanged.
-- Marks use their own stream (callouts seed xor MARK_XOR) and only write the caller's book entry; test_marks_change_neither_the_lines_nor_play passes.
-- Ping book: 0.25 s gap, 8 s life, cleared each round, made once (Pings._init), no growth. Press path allocates nothing (existing test_ticks_with_pings_allocate_nothing passes); Simulation._ping and Callouts._answer_ping hold no per-frame allocations.
-- No pings in Practice (live and not practice in the sim, allow_orders on the input), none while out (sim loop continues before _ping), latch cleared on release/focus loss and on allow_orders(false).
-- BotSenses.visible_part: reach defaults to -1 (view_distance); existing callers unchanged.
+Criteria checked (existing tests/unit/test_ping_markers.gd, 21 tests, plus mine)
+1. Ring/diamond, words, never follows, pop 0.35 s, none under Reduced motion, 7 s whole then 1 s fade: test_ping_markers.gd; the gone-at-lifetime and re-pop of a new ping after a fade: test_pn2_qa.gd.
+2. Off-screen pinning under the minimap and under flag/Hold plates, hidden spectating / scoreboard / paused / Off, HUD size and opacity: test_ping_markers.gd; pinned behind you stays inside the screen: test_pn2_qa.gd. Pause hides via hide_pings and the paused tree stops PlaySession._process. Looked at pn2-offscreen.png and ping.png: matches the concept.
+3. Minimap ring/diamond, on the rim off the panel, Off hides them: test_ping_markers.gd; a new round clears the minimap's too: test_pn2_qa.gd.
+4. Pip only for your own ping (not a teammate's ping or mark), once a ping: test_ping_markers.gd; two own pings pip twice with a teammate's in between or in the same tick, a ping after a new round pips again, Off does not mute the pip: test_pn2_qa.gd. Recipe matches SoundConfig (test_the_pip_is_the_browsers_recipe).
+5. Setting On by default, saved, old file loads On, Off hides markers only: test_ping_markers.gd; On again mid-ping shows the ping still up: test_pn2_qa.gd. Markers made once (setup_field is called once per session), a frame with none allocates nothing, freed with the HUD: test_ping_markers.gd.
 
-Tests added (tests/unit/test_pn1_qa.gd, 4 tests, 15 asserts):
-- test_a_middle_click_with_the_wheel_open_is_one_ping_and_neither_an_order_nor_a_shot: wheel stays open, ping once, no order, no fire. Fails without the feature (PlayerCommand.ping does not exist).
-- test_a_free_mouse_pings_nothing_and_focus_loss_drops_a_ping_waiting: inactive input and release() drop the latch. Fails if the latch were not cleared in release/active.
-- test_a_release_of_the_ping_button_is_not_a_second_ping: button up latches nothing.
-- test_visible_part_with_no_reach_is_the_bots_view_distance_as_before: default and -1 keep view_distance; longer reach sees farther, shorter sees less.
+Tests added (tests/unit/test_pn2_qa.gd, 8, all pass; each is a regression pin, none found a bug)
+- new round clears markers and minimap: fails if Hud/minimap kept their own copy or cached visibility; checked by reading place()/add_pings, which re-derive from book.is_up each frame.
+- gone at lifetime, back whole and popping for a new ping: fails if modulate/scale were left from the faded marker.
+- On again mid-ping; Off keeps the pip; two own pings / same-tick teammate ping; ping after clear; out teammate expires; pinned behind you inside the screen.
 
-Counts: test_pings.gd 23/23 (141 asserts, 20 s); related batch (key_bindings, player_input, order wheel, settings, callouts, squad orders, simulation, night sight, accessibility) 332/332; test_pn1_qa.gd 4/4; tools/smoke_test.sh passes (0 script errors). gdlint clean. Full tools/check.sh not run (as instructed).
-Not testable here: feel of the middle click on a real mouse and the wheel together (owner's list: press middle while holding Z, confirm nothing odd).
+Runs (raw output in pipeline/out/qa/): test_pn2_qa 8/8; touched files (test_ping_markers, test_pn2_qa, test_hud_minimap, test_hud_prefs, test_assets, +1) 87 tests, 919 asserts, 28 s, all pass; tools/smoke_test.sh pass (0 script errors). Full tools/check.sh not run (per brief).
+
+Not testable here (needs display/speakers, for the owner): how the pip sounds, the pop's feel at real frame rates, markers over a real window resize / fullscreen.

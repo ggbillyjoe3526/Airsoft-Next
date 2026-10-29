@@ -1,26 +1,23 @@
-Task: none (RN1, PR #130) · QA commit none (no test added) · Verdict: Pass
+Task: PN2 · QA commit (this commit) · Verdict: Pass
 
-Scope: `git diff c058ef4..1f45cf2` (18 files, links renamed Airsoft-Next -> airsoft).
+Blocking findings: none. Every acceptance criterion is met and pinned by a test that passes.
 
-Blocking findings: none.
-Advisory findings: none.
+Advisory
+- A teammate who is hit keeps their ping up for its remaining life (at most 8 s): `Pings` (game/ai/pings.gd) never drops a ping on elimination, and the HUD only reads the book. Matches the browser and PN1's book ("kept PingConfig.lifetime"); a dead teammate's contact diamond is still useful. Not a PN2 defect; no stale marker survives past its lifetime or a new round (pinned below). No disconnects exist (single player).
+- game/play/sim_audio.gd header comment line for on_ping runs past 120 columns (gdlint passed, so within the project's limit).
 
-Checks
-- Leftover old name: grep for `Airsoft-Next` (any case, also airsoft_next/airsoftnext) outside legacy/, docs/archive, docs/records finds only CLAUDE.md:101 and docs/DECISIONS.md:23, both deliberate "renamed from ... to airsoft" history. No code, config, test, workflow, script or wiki page still holds it, and nothing compares against it.
-- Old frozen repo name `ggbillyjoe3526/Airsoft` (no suffix): only mentioned in CLAUDE.md:100 and DECISIONS.md:24 as "no longer on GitHub"; no live link points to it.
-- Every remaining github.com/ggbillyjoe3526/ link is `/airsoft`: report_config.gd:11, report_config.tres:7, tools/wiki.py:695, README.md:22, docs/wiki/{Development,Getting-Started,Roadmap,_Footer}.md, installer/Airsoft.iss:32-34. The wiki workflow builds its address from ${GITHUB_REPOSITORY}, so it follows the rename on its own.
-- Installer: AppId line 23 unchanged (`git diff` shows no AppId hunk); the three URLs are consistent (base, /issues, /releases); AppPublisher "ggbillyjoe3526" is the account name, correctly untouched.
-- Bug report link: both sources of the address are pinned by existing tests: the script default by test_issue_link.gd (ReportConfig.new(), BASE line 5) and the shipped .tres by test_report_panel.gd:186 (ReportConfig.load_default(), asserts the opened URL starts with the new address). Changing either one alone would fail a test, so no gap and no new test.
-- `python3 tools/wiki.py check`: "Wiki OK: 24 pages", links and headings resolve.
-- GUT: test_issue_link.gd + test_report_panel.gd: 2 scripts, 27 tests, 27 passing, 149 asserts, 1.3 s. Raw output in pipeline/out/qa/rn1-gut.txt.
+Criteria checked (existing tests/unit/test_ping_markers.gd, 21 tests, plus mine)
+1. Ring/diamond, words, never follows, pop 0.35 s, none under Reduced motion, 7 s whole then 1 s fade: test_ping_markers.gd; the gone-at-lifetime and re-pop of a new ping after a fade: test_pn2_qa.gd.
+2. Off-screen pinning under the minimap and under flag/Hold plates, hidden spectating / scoreboard / paused / Off, HUD size and opacity: test_ping_markers.gd; pinned behind you stays inside the screen: test_pn2_qa.gd. Pause hides via hide_pings and the paused tree stops PlaySession._process. Looked at pn2-offscreen.png and ping.png: matches the concept.
+3. Minimap ring/diamond, on the rim off the panel, Off hides them: test_ping_markers.gd; a new round clears the minimap's too: test_pn2_qa.gd.
+4. Pip only for your own ping (not a teammate's ping or mark), once a ping: test_ping_markers.gd; two own pings pip twice with a teammate's in between or in the same tick, a ping after a new round pips again, Off does not mute the pip: test_pn2_qa.gd. Recipe matches SoundConfig (test_the_pip_is_the_browsers_recipe).
+5. Setting On by default, saved, old file loads On, Off hides markers only: test_ping_markers.gd; On again mid-ping shows the ping still up: test_pn2_qa.gd. Markers made once (setup_field is called once per session), a frame with none allocates nothing, freed with the HUD: test_ping_markers.gd.
 
-Tests added or changed: none. They would only restate the URL.
+Tests added (tests/unit/test_pn2_qa.gd, 8, all pass; each is a regression pin, none found a bug)
+- new round clears markers and minimap: fails if Hud/minimap kept their own copy or cached visibility; checked by reading place()/add_pings, which re-derive from book.is_up each frame.
+- gone at lifetime, back whole and popping for a new ping: fails if modulate/scale were left from the faded marker.
+- On again mid-ping; Off keeps the pip; two own pings / same-tick teammate ping; ping after clear; out teammate expires; pinned behind you inside the screen.
 
-Not run / not testable here
-- tools/check.sh and the smoke test: running in the main session.
-- Inno Setup compile of Airsoft.iss (no ISCC on this box; CI release builds it). Edit is three plain URL lines, low risk.
-- That the browser really opens github.com/ggbillyjoe3526/airsoft/issues/new on the owner's PC (needs a real window and network); GitHub redirects the old name anyway.
-- The "Unicode parsing error ... NUL" lines at GUT start appear at GUT start; unrelated to the URL edits (no test failed).
-- Docs-only lines (HANDOFF "paused", ROADMAP reminder wording) read, not tested.
+Runs (raw output in pipeline/out/qa/): test_pn2_qa 8/8; touched files (test_ping_markers, test_pn2_qa, test_hud_minimap, test_hud_prefs, test_assets, +1) 87 tests, 919 asserts, 28 s, all pass; tools/smoke_test.sh pass (0 script errors). Full tools/check.sh not run (per brief).
 
-Verdict: Pass
+Not testable here (needs display/speakers, for the owner): how the pip sounds, the pop's feel at real frame rates, markers over a real window resize / fullscreen.

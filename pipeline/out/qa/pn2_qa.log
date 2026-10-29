@@ -1,0 +1,72 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+---  GUT  ---
+[1m[INFO]:  [0musing [/root/.local/share/Airsoft] for temporary output.
+Godot version:  4.7.2
+GUT version:  9.7.1
+
+
+res://tests/unit/test_pn2_qa.gd
+* test_a_new_round_clears_the_markers_and_the_minimap
+* test_a_marker_is_gone_at_its_lifetime_and_back_whole_for_a_new_ping
+* test_markers_come_back_when_the_setting_goes_on_again_mid_ping
+* test_off_hides_markers_only_the_pip_still_plays
+WARNING: AmbienceConfig: no day set for yard or yard
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] set_for (res://game/config/ambience_config.gd:31)
+         [1] _start_ambience (res://game/play/sim_audio.gd:606)
+         [2] setup (res://game/play/sim_audio.gd:172)
+         [3] _audio (res://tests/unit/test_pn2_qa.gd:56)
+         [4] test_off_hides_markers_only_the_pip_still_plays (res://tests/unit/test_pn2_qa.gd:113)
+         [5] _run_test (res://addons/gut/gut.gd:622)
+         [6] _test_the_scripts (res://addons/gut/gut.gd:835)
+         [7] test_scripts (res://addons/gut/gut.gd:1047)
+         [8] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+         [9] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+         [10] main (res://addons/gut/cli/gut_cli.gd:297)
+         [11] _init (res://addons/gut/gut_cmdln.gd:39)
+* test_two_own_pings_pip_twice_and_a_teammates_between_adds_none
+WARNING: AmbienceConfig: no day set for yard or yard
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] set_for (res://game/config/ambience_config.gd:31)
+         [1] _start_ambience (res://game/play/sim_audio.gd:606)
+         [2] setup (res://game/play/sim_audio.gd:172)
+         [3] _audio (res://tests/unit/test_pn2_qa.gd:56)
+         [4] test_two_own_pings_pip_twice_and_a_teammates_between_adds_none (res://tests/unit/test_pn2_qa.gd:120)
+         [5] _run_test (res://addons/gut/gut.gd:622)
+         [6] _test_the_scripts (res://addons/gut/gut.gd:835)
+* test_your_ping_after_a_new_round_pips_again
+WARNING: AmbienceConfig: no day set for yard or yard
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] set_for (res://game/config/ambience_config.gd:31)
+         [1] _start_ambience (res://game/play/sim_audio.gd:606)
+         [2] setup (res://game/play/sim_audio.gd:172)
+         [3] _audio (res://tests/unit/test_pn2_qa.gd:56)
+         [4] test_your_ping_after_a_new_round_pips_again (res://tests/unit/test_pn2_qa.gd:133)
+         [5] _run_test (res://addons/gut/gut.gd:622)
+         [6] _test_the_scripts (res://addons/gut/gut.gd:835)
+* test_an_eliminated_teammates_ping_still_shows_only_until_its_lifetime
+* test_a_pinned_marker_behind_you_stays_inside_the_screen
+8/8 passed.
+
+
+
+
+==============================================
+= Run Summary
+==============================================
+
+Totals
+------
+Scripts               1
+Tests                 8
+Passing Tests         8
+Asserts              21
+Time              0.628s
+
+
+---- All tests passed! ----
+
