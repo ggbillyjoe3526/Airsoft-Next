@@ -74,6 +74,12 @@ up and waits for your toss; the calls through CO1's director, Bot intentions, an
 - **Neon Heights dropped from criterion 4** (coordinator, 2026-10-29): another thread removes the map from the game, so
   the guard measures and checks Depot and Woodland only.
 
+## Advisories
+
+- The criterion 4 guard counts a bot as held by its giver's fight if the giver was in FIGHT or COVER at any tick of the
+  10 s, however briefly (QA advisory): a giver that took cover for a moment early and was then slow for another reason
+  would be counted held rather than late.
+
 ## Measurements
 
 - **Criterion 4** (`test_match_guards` › `a_bot_put_low_gets_a_magazine_within_10_s_on_depot_and_woodland`, seeds 1 to
@@ -86,10 +92,14 @@ up and waits for your toss; the calls through CO1's director, Bot intentions, an
     0 late, 0 held, 1 left out, 0 with nobody to ask.
   - The first run found 2 Depot bots whose giver stood 2.8 m off through a wall for the whole ask: the walk stopped at
     3 m on the wall's far side. Fixed (walk right up while the level is between); `test_bot_mag_share` keeps the case.
-- **Cost** (headless timing, 3 bots on the test field, 2,000 calls each): `BotMagShare.update` with a job standing
-  9.5 µs a tick; a giver's `move` walking 19 µs (its route and one ray); `ask_when_low` for a low bot with nobody to ask
-  (the costliest check, every teammate's spare) 10.6 µs, once a 20 s gap. Under 0.2 % of a 16.7 ms tick. The update and
-  the asker's check make no object (`test_bot_mag_share`).
+- **Cost** (headless timing on the cloud container). `BotMagShare.update` with no ask waiting (the usual tick: one pass
+  over the jobs and one over the characters, fix round 1): 3.6 µs a tick on Depot (6 characters) and 4.2 µs on Woodland
+  (10), over a 60 s match each (36,000 calls); before the fix it ran every free bot's pole check and asker search each
+  tick, 27 µs and 51 µs (the performance review), growing with the bots squared. With asks standing, a giver's `move`
+  walking costs 19 µs (its route and one ray) and `ask_when_low` for a low bot with nobody to ask (every teammate's
+  spare) 10.6 µs, once a 20 s gap (3 bots on the test field, 2,000 calls). The first record's 9.5 µs for `update` was
+  that field's 3 bots with a job standing, not the idle tick. The update and the asker's check make no object
+  (`test_bot_mag_share`).
 - Play with the Dev setting off: Depot's guard 121 rounds over 16 seeds, 0 on time, 0 to the overtime flag, as on MH1's
   record.
 

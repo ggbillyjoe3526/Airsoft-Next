@@ -26,21 +26,23 @@ static var _hit: RayHit = RayHit.new()
 
 
 ## Before the bots think (BotController.think; `sharing`: the round live and not practice): each job that ended is let
-## go, and each bot free to bring one takes the nearest ask standing to it.
+## go, and each bot free to bring one takes the nearest ask standing to it. With no ask waiting for a magazine anywhere,
+## only the jobs are looked at.
 static func update(w: BotWorld, sharing: bool) -> void:
 	for b in w.bots:
 		if b.mag_for != null and not (sharing and _still_giving(b, b.mag_for, w)):
 			drop(b)
-	if not sharing:
+	if not sharing or not _any_ask_waiting(w):
 		return
 	for b in w.bots:
-		if b.mag_for == null and _free_to_give(b, w):
-			var asker := _nearest_asker(b, w)
-			if asker != null:
-				b.mag_for = asker
-				b.mag_for_at = w.time
-				b.mag_rush = false
-				BotRoutes.drop(b)
+		if b.mag_for != null or not _free_to_give(b):
+			continue
+		var asker := _nearest_asker(b, w)
+		if asker != null and not BotFlag.wants_flag(b, w):
+			b.mag_for = asker
+			b.mag_for_at = w.time
+			b.mag_rush = false
+			BotRoutes.drop(b)
 
 
 ## `b` stops bringing one.
@@ -54,12 +56,12 @@ static func drop(b: Bot) -> void:
 ## spare (else it looks again after the bot's ask gap).
 static func ask_when_low(b: Bot, w: BotWorld, cmd: PlayerCommand, sharing: bool) -> void:
 	var me := b.character
-	if not sharing or b.mag_for != null or w.time < b.mag_press_at or not Elimination.is_in_play(me):
-		return
 	var a := me.armament
+	if not sharing or b.mag_for != null or w.time < b.mag_press_at or a.active != PRIMARY or me.mag.asked >= 0 \
+			or me.mag.coming > 0 or w.time < me.mag.next_ask or not Elimination.is_in_play(me):
+		return
 	var rules := w.mag_share.cfg
-	if a.active != PRIMARY or me.mag.asked >= 0 or me.mag.coming > 0 or w.time < me.mag.next_ask \
-			or not MagShare.low_on(a, rules.low_mags, PRIMARY):
+	if not MagShare.low_on(a, rules.low_mags, PRIMARY):
 		return
 	if not _anyone_to_ask(me, w):
 		b.mag_press_at = w.time + rules.bot_ask_gap
@@ -123,10 +125,19 @@ static func _still_giving(b: Bot, to: Character, w: BotWorld) -> bool:
 			and not BotFlag.wants_flag(b, w) and w.mag_share.has_mag_for(me, to)
 
 
-## A bot free to bring one: in play, not asking itself, nothing coming to it, not off to the pole.
-static func _free_to_give(b: Bot, w: BotWorld) -> bool:
+## A bot that may bring one, but for the pole (update asks BotFlag last): in play, not asking itself, nothing coming
+## to it.
+static func _free_to_give(b: Bot) -> bool:
 	var me := b.character
-	return Elimination.is_in_play(me) and me.mag.asked < 0 and me.mag.coming == 0 and not BotFlag.wants_flag(b, w)
+	return me.mag.asked < 0 and me.mag.coming == 0 and Elimination.is_in_play(me)
+
+
+## Whether any character's ask stands with nothing in the air to it yet: one pass, nothing else looked at.
+static func _any_ask_waiting(w: BotWorld) -> bool:
+	for c in w.characters:
+		if c.mag.asked >= 0 and c.mag.coming == 0:
+			return true
+	return false
 
 
 ## The nearest teammate in play whose ask to `b` stands with nothing in the air to it yet, and that `b` has one to spare
