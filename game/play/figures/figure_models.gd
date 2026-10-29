@@ -5,7 +5,8 @@ extends RefCounted
 ## additive copies, its animation graph (FigureGraph, the stepping clips' offsets measured once here), where each replica
 ## class sits on the grip bone (the sidecar's replicaOnGrip turned from Blender's axes once) and where the slung rifle
 ## rides on the chest, and, made once and shared by every figure that asks, the team-painted materials and the shadow
-## twins' meshes; and every material its parts wear (`materials`, for ShaderPrewarm). Loaded at the session's build,
+## twins' meshes; every material its parts wear (`materials`, for ShaderPrewarm); and each replica's magazine mesh for
+## the hand-off's tosses (MH3, `magazine_mesh`), read once a replica. Loaded at the session's build,
 ## behind the loading screen (FI7). A kind whose model or sidecar can't be read warns once and is not drawn (its
 ## figures draw no body). Held by PlaySession; freeing it frees all of it.
 
@@ -33,6 +34,8 @@ var _loaded: bool = false
 ## Team paint by kind, team, source material and glow; shadow twins' meshes by kind and head.
 var _team_materials: Dictionary[String, Material] = {}
 var _shadow_meshes: Dictionary[String, ArrayMesh] = {}
+## Each replica's magazine mesh by its id (null: its model has none).
+var _magazines: Dictionary[StringName, Mesh] = {}
 
 
 func _init(figure_config: FigureConfig) -> void:
@@ -46,6 +49,24 @@ func load_kinds() -> bool:
 		for i in config.kinds.size():
 			_kinds.append(_load(i))
 	return not _kinds.has(null)
+
+
+## Replica `replica_id`'s own magazine mesh (its model's FigureConfig.magazine_node), as modelled, or null when its model
+## or the node can't be found: read the first time it is asked for, then shared.
+func magazine_mesh(replica_id: StringName) -> Mesh:
+	if _magazines.has(replica_id):
+		return _magazines[replica_id]
+	var mesh: Mesh = null
+	var path := FigureView.MODEL_DIR + replica_id + ".glb"
+	var scene := load(path) as PackedScene if ResourceLoader.exists(path) else null
+	if scene != null:
+		var model := scene.instantiate()
+		var node := model.find_child(config.magazine_node, true, false) as MeshInstance3D
+		if node != null:
+			mesh = node.mesh
+		model.free()
+	_magazines[replica_id] = mesh
+	return mesh
 
 
 ## Whether `kind` loaded and can be drawn.

@@ -102,6 +102,9 @@ var _call_log: CalloutLog = null
 var _call_serial: int = 0
 var _announce: HudAnnounce = null
 var _team_markers: HudTeamMarkers = null
+## The magazine hand-off's line under the crosshair (MH3; null on the range).
+var _mag_line: HudMagLine = null
+var _no_marks := PackedByteArray()
 var _round_result: HudRoundResult = null
 var _summary: MatchSummary = null
 ## Practice: the last BB's readout and the timed challenge's display (null in a match).
@@ -327,8 +330,29 @@ func setup_field(query: WorldQuery, body: BodyConfig, names: PackedStringArray, 
 	_round_result.set_names(names)
 	_summary.set_names(names)
 	_announce.set_names(names)
+	if _mag_line != null:
+		_mag_line.set_names(names)
 	_names = names
 	_stats = stats
+
+
+## The magazine hand-off's line under the crosshair and the glyphs by the chevrons (MH3), checking a toss with `share`
+## (the simulation's rules) among `characters` characters. Once in match setup; not on the range.
+func setup_mag_line(share: MagShare, characters: int) -> void:
+	_mag_line = HudMagLine.new()
+	add_child(_mag_line)
+	_mag_line.setup(_cfg, share, _player, characters, _teams.colours[_player.team], _announce.announcer())
+	_place(_mag_line, Vector4(0.5, _cfg.mag_line_at, 0.5, _cfg.mag_line_at), Rect2())
+	_mag_line.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_mag_line.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_mag_line.set_names(_names)
+	_mag_line.enabled = _prefs.mag_hand_off
+	_mag_line.counted = _prefs.ammo_counter
+	_mag_line.set_opacity(_opacity)
+
+
+func mag_line() -> HudMagLine:
+	return _mag_line
 
 
 ## The minimap top left (HudMinimap) for `map`, its field drawn now: call it once in match setup, behind the loading
@@ -453,6 +477,10 @@ func apply_prefs(prefs: HudPrefs) -> void:
 	if not is_equal_approx(prefs.panel_opacity, _opacity):
 		_opacity = prefs.panel_opacity
 		HudStyle.restyle(self, _opacity)
+	if _mag_line != null:
+		_mag_line.enabled = prefs.mag_hand_off
+		_mag_line.counted = prefs.ammo_counter
+		_mag_line.set_opacity(_opacity)
 	set_hud_size(prefs.hud_size)
 
 
@@ -549,8 +577,10 @@ func set_feed_corner(where: HudFeed.Place) -> void:
 
 
 ## Places the teammate markers as `camera` sees them (HudTeamMarkers), `watched` being whose eyes it is.
+## With Settings › HUD › Mag hand-off on, a teammate asking you for a magazine or bringing you one has its glyph.
 func place_team_markers(camera: Camera3D, characters: Array[Character], watched: Character, fraction: float) -> void:
-	_team_markers.place(camera, characters, watched, _teams.colours[_player.team], fraction, not _board.visible)
+	var mags := _mag_line.marks if _mag_line != null and _prefs.mag_hand_off else _no_marks
+	_team_markers.place(camera, characters, watched, _teams.colours[_player.team], fraction, not _board.visible, mags)
 
 
 func feed() -> HudFeed:
@@ -629,8 +659,11 @@ func set_watching(bot_name: String) -> void:
 		_watching.text = tr("HUD_WATCHING") % bot_name
 
 
-## The tick's events: your hits, the round's turns.
-func on_tick(state: GameState) -> void:
+## The tick's events: your hits, the round's turns, the magazine hand-off's line (`mag_from_wheel`: your last Need a
+## Mag was picked on the order wheel, so its refusal shows there).
+func on_tick(state: GameState, mag_from_wheel: bool = false) -> void:
+	if _mag_line != null:
+		_mag_line.on_tick(state, mag_from_wheel)
 	if _readout != null:
 		_readout.on_tick(state)
 		_challenge.on_tick(state)
@@ -892,10 +925,19 @@ func setup_orders(controls: ControlsConfig) -> void:
 
 
 ## Shows the wheel as `wheel` (the pointer PlayerInput moves) has it, with the order `in_force` and the last order
-## given (`outcome`, for its notice), `delta` seconds on. Nothing is drawn while it is closed.
+## given (`outcome`, for its notice), `delta` seconds on. Nothing is drawn while it is closed. Need a Mag reads Toss a
+## Mag while a toss is in reach, a refusal of it picked on the wheel shows in the middle, and the hand-off's line hides
+## while the wheel is open (and under the scoreboard or the match's summary).
 func update_orders(wheel: OrderWheelPointer, in_force: SquadOrder.Kind, outcome: SquadOrders.Outcome,
 		delta: float) -> void:
+	if _mag_line != null:
+		var told := _mag_line.take_wheel_notice()
+		if not told.is_empty():
+			_order_wheel.tell(told)
+		_order_wheel.set_mag_toss(_mag_line.toss_ready())
 	_order_wheel.update(wheel, in_force, outcome, _player.id, delta)
+	if _mag_line != null:
+		_mag_line.update(wheel.open, _summary.visible or _board.visible)
 
 
 ## Places Hold here's marker over `spot` (the middle of the spots held) as seen by `camera`, hidden when `show` is false;

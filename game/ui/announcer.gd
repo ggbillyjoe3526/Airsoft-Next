@@ -6,7 +6,8 @@ extends RefCounted
 ## ("Round 3", with the banner's line under it when it has one), each round's end (the stamp, the banner's line and the
 ## score, your team first), Elimination's overtime flag going up ("Overtime · touch the flag", as its banner), the
 ## match's end (the stamp and the match's score) and each of your team's callouts the feed shows ("Brick: Two, Crate
-## yard!"). Lines that come inside JOIN_WINDOW of
+## yard!") and each notice of the magazine hand-off's line (MH3, HudMagLine: "+1 mag from Brick · 60 BBs", "Nobody near
+## has a mag to spare"). Lines that come inside JOIN_WINDOW of
 ## the first are joined into one message, so a round's end and the match's end, or a burst of hits, are read as one.
 ## Your hit and the match's result make the message assertive (read at once); the rest are polite (read when the reader
 ## is free). Off, nothing is kept. Builds strings only on those events, never per frame.

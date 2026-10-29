@@ -6,7 +6,9 @@ extends Control
 ## pointer a white dot. A notice (nobody to order, back on the team plan) shows in the middle, dimming the rest, for
 ## HudConfig.order_notice_time; there is no order text anywhere else. Built on its first opening and drawn only while
 ## open: closed, it does nothing and a frame costs a comparison. The pointer's move is OrderWheelPointer's (px of mouse
-## from the middle); this maps it onto the drawing (pointer_at).
+## from the middle); this maps it onto the drawing (pointer_at). Need a Mag (MH3) reads Toss a Mag while a toss is in
+## reach (set_mag_toss), and a refusal of the hand-off picked on the wheel shows in the middle as an order's notice does
+## (tell).
 
 ## Each slice's edge, in segments of its arc, and the strokes (px) of an ordinary and of the lit slice's.
 const ARC_STEPS := 28
@@ -85,6 +87,12 @@ var _was_open: bool = false
 var _on_slice: bool = false
 var _wait_left: float = 0.0
 var _notice_only: bool = false
+## The slice of Need a Mag (-1: the wheel has none), its two names as drawn (asking, tossing), whether it reads the
+## second, and a notice told (tell) and not shown yet.
+var _mag_slice: int = -1
+var _mag_names := PackedStringArray(["", ""])
+var _mag_toss: bool = false
+var _told: String = ""
 
 
 ## A wheel for `controls`' orders in `colour` (your team's), sized by `cfg`. Builds nothing until it first opens.
@@ -106,15 +114,22 @@ func update(wheel: OrderWheelPointer, in_force: SquadOrder.Kind, outcome: SquadO
 		delta: float) -> void:
 	var told := outcome.serial != _serial and outcome.giver == you and outcome.notice != SquadOrders.Notice.NONE
 	_serial = outcome.serial
+	var words := ""
+	if told:
+		words = tr(notice_key(outcome.notice))
+	if not _told.is_empty():
+		words = _told
+		_told = ""
+		told = true
 	if not wheel.open:
-		_closed(told, outcome.notice, delta)
+		_closed(told, words, delta)
 		return
 	_was_open = true
 	_on_slice = wheel.pick() != OrderWheelPointer.NONE
 	if not visible or _notice_only:
 		_open()
 	if told:
-		_show_notice(outcome.notice)
+		_show_notice(words)
 	elif _showing_notice:
 		_notice_left -= delta
 		if _notice_left <= 0.0:
@@ -128,6 +143,23 @@ func update(wheel: OrderWheelPointer, in_force: SquadOrder.Kind, outcome: SquadO
 	_pointer.visible = not _showing_notice
 	_pointer.position = pointer_at(wheel.at, _controls.wheel_dead_zone, _controls.wheel_reach, _hub,
 			_cfg.wheel_pointer_reach) - Vector2.ONE * POINTER_HALO
+
+
+## A notice of the hand-off's (a refusal of Need a Mag picked on the wheel; HudMagLine.refusal_text) for the middle,
+## shown on the next update as an order's notice is.
+func tell(words: String) -> void:
+	_told = words
+
+
+## Need a Mag reads Toss a Mag (`on`) or Need a Mag; redrawn only when it changes while open.
+func set_mag_toss(on: bool) -> void:
+	if on == _mag_toss:
+		return
+	_mag_toss = on
+	if _built and _mag_slice >= 0:
+		_names[_mag_slice] = _mag_names[1 if on else 0]
+		if visible:
+			queue_redraw()
 
 
 ## Puts the wheel away at once (the pause menu opening): nothing stays up, no notice is owed.
@@ -149,7 +181,7 @@ func _process(_delta: float) -> void:
 ## A frame with the wheel shut. Just shut on a slice, it waits order_notice_wait for the notice of the order it was
 ## shut by: one that comes shows alone in the hub for order_notice_time, then goes; none, or shut on nothing, and it goes
 ## at once.
-func _closed(told: bool, notice: SquadOrders.Notice, delta: float) -> void:
+func _closed(told: bool, words: String, delta: float) -> void:
 	if _was_open:
 		var on_slice := _on_slice
 		dismiss()
@@ -162,7 +194,7 @@ func _closed(told: bool, notice: SquadOrders.Notice, delta: float) -> void:
 		_notice_only = true
 		_lit = OrderWheelPointer.NONE
 		_force = -1
-		_show_notice(notice)
+		_show_notice(words)
 		_pointer.visible = false
 	elif _notice_only:
 		_notice_left -= delta
@@ -300,6 +332,11 @@ func _open() -> void:
 		_build()
 	for i in _names.size():
 		_names[i] = tr(_controls.wheel_labels[i]).to_upper() if i < _controls.wheel_labels.size() else ""
+	if _mag_slice >= 0:
+		_mag_names[0] = _names[_mag_slice]
+		_mag_names[1] = tr(_controls.wheel_mag_toss).to_upper()
+		_names[_mag_slice] = _mag_names[1 if _mag_toss else 0]
+	for i in _names.size():
 		var action := _controls.wheel_keys[i] if i < _controls.wheel_keys.size() else &""
 		var key := KeyNames.of_action(action) if action != &"" else ""
 		_keys[i] = "" if key == KeyNames.NO_KEY else key
@@ -316,6 +353,7 @@ func _open() -> void:
 func _build() -> void:
 	_built = true
 	var n := _controls.wheel_orders.size()
+	_mag_slice = _controls.wheel_orders.find(SquadOrder.Kind.MAG)
 	_hub = _cfg.wheel_inner - HUB_GAP
 	_names.resize(n)
 	_keys.resize(n)
@@ -354,11 +392,10 @@ func _build() -> void:
 	add_child(_pointer)
 
 
-func _show_notice(notice: SquadOrders.Notice) -> void:
-	var key := notice_key(notice)
-	if key.is_empty():
+func _show_notice(words: String) -> void:
+	if words.is_empty():
 		return
-	_notice.text = tr(key)
+	_notice.text = words
 	_notice.visible = true
 	_showing_notice = true
 	_notice_left = _cfg.order_notice_time
