@@ -1368,6 +1368,7 @@ func _refuse(ui: CanvasLayer, map: MapData) -> void:
 	var back := Button.new()
 	back.text = tr("PAUSE_TITLE_SCREEN")
 	back.pressed.connect(func() -> void: left.emit())
+	ButtonWidth.group([back])
 	box.add_child(back)
 
 

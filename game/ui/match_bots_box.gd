@@ -17,6 +17,8 @@ const SIDE_LABEL_SIZE := 13
 const SIDE_LABEL_SPACING := 0.06
 const SIDE_LABEL_GAP := 10
 const BUTTON_SIZE := 16
+## The room a level button keeps at each side of its word (px).
+const BUTTON_PAD_X := 28
 ## The concept's `.diff` button: 10 px padding and a 2 px border round a 20 px line.
 const BUTTON_HEIGHT := 44.0
 const BLURB_SIZE := 15
@@ -170,11 +172,13 @@ func _follow_button() -> Button:
 func _button_row(into: Dictionary[String, MenuCard], prefix: String, pick: Callable) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", ROW_GAP)
+	var buttons: Array[Button] = []
 	for level in MatchOptions.BOT_LEVELS:
 		var b := MenuCard.new()
 		b.name = prefix + level
 		b.text = tr("BOT_" + level.to_upper()).to_upper()
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.text_pad = BUTTON_PAD_X
+		b.refresh()
 		b.add_theme_font_override("font", GameTheme.font(700))
 		b.add_theme_font_size_override("font_size", BUTTON_SIZE)
 		b.add_theme_constant_override("outline_size", 0)
@@ -183,6 +187,9 @@ func _button_row(into: Dictionary[String, MenuCard], prefix: String, pick: Calla
 		b.pressed.connect(pick.bind(level))
 		row.add_child(b)
 		into[level] = b
+		buttons.append(b)
+	# one width, the widest word's (owner, 2026-10-29)
+	ButtonWidth.group(buttons)
 	return row
 
 

@@ -11,6 +11,7 @@ const FRAME := 3
 ## A square per colour in `colours`, in order.
 func _init(colours: Array[Color]) -> void:
 	super(PackedStringArray())
+	_same_width = false
 	add_theme_constant_override("separation", SWATCH_GAP)
 	for colour in colours:
 		var b := Button.new()

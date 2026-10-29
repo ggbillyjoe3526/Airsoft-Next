@@ -19,7 +19,8 @@ signal loadout_requested
 
 ## The shade over the match, the panel's width and margins, and the sizes of its words (px at 1080p; concept `pause.png`).
 const BACKDROP := Color(0.031, 0.051, 0.094, 0.72)
-const PANEL_WIDTH := 560.0
+## The panel is as wide as its words and buttons need; these are its least width (px).
+const PANEL_WIDTH := 0.0
 const PANEL_SIDE := 48
 const PANEL_TOP := 44
 const PANEL_BOTTOM := 30
@@ -49,7 +50,7 @@ const ERROR_DOT_GAP := 8
 const ERROR_DOT_TOP := 5.0
 ## In practice (concept `pause-practice.png`): a wider panel, the gap above Leave practice and the Timed challenge
 ## switch's chips (type size, padding, gap; px at 1080p).
-const PRACTICE_WIDTH := 560.0
+const PRACTICE_WIDTH := 0.0
 const PRACTICE_LEAVE_GAP := 10
 ## ... and the gaps above the title, the subtitle and the buttons there (the concept's text sits a little lower).
 const PRACTICE_TOP := 46
@@ -175,6 +176,8 @@ func _ready() -> void:
 	buttons.add_child(_leave_gap)
 	_leave = _button(buttons, tr("PAUSE_QUIT"), false)
 	_leave.pressed.connect(func() -> void: left.emit())
+	# the buttons are one width, the widest one's (owner, 2026-10-29)
+	ButtonWidth.group([_resume, _challenge, _loadout, _skip, _settings_button, _leave])
 	box.add_child(_gap(SEED_TOP))
 	box.add_child(_seed_row_box())
 	box.add_child(_gap(PANEL_BOTTOM))
@@ -366,6 +369,7 @@ func _show_errors() -> void:
 func open_settings() -> void:
 	if _screen == null:
 		_screen = SettingsScreen.new()
+		_screen.esc_closes = true
 		_screen.end_round = end_round
 		_screen.closed.connect(_settings_closed)
 		add_child(_screen)
@@ -461,6 +465,7 @@ func _challenge_row(parent: Control) -> Button:
 	chips.alignment = BoxContainer.ALIGNMENT_END
 	chips.add_theme_constant_override("separation", SWITCH_GAP)
 	b.add_child(chips)
+	ButtonWidth.overlay(b, chips)
 	_chip_on = _chip(chips, tr("RULE_ON").to_upper())
 	_chip_off = _chip(chips, tr("RULE_OFF").to_upper())
 	b.pressed.connect(_toggle_challenge)
@@ -480,6 +485,7 @@ func _loadout_row(parent: Control) -> Button:
 	var chip := MenuParts.key_chip(KeyNames.of_action(&"loadout"), KEY_SIZE, GameTheme.MUTED, KEY_PAD)
 	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	holder.add_child(chip)
+	ButtonWidth.overlay(b, holder)
 	_loadout_key = chip.get_child(0) as Label
 	b.pressed.connect(func() -> void: loadout_requested.emit())
 	return b

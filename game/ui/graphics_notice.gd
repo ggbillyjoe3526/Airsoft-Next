@@ -217,3 +217,4 @@ func actions(words_in_order: PackedStringArray) -> void:
 		b.pressed.connect(chosen.emit.bind(i))
 		row.add_child(b)
 		_buttons.append(b)
+	ButtonWidth.group(_buttons)

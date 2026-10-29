@@ -17,6 +17,9 @@ var ring: bool = false
 ## The left bar's colour (transparent: none), and how much of it shows while the card isn't picked.
 var bar: Color = Color(0.0, 0.0, 0.0, 0.0)
 var bar_idle: float = 0.5
+## The room a card that is only words (`text`) keeps at each side of them (px): a ButtonWidth group of such cards is as
+## wide as the widest one's words and this. A card laid out with `add_content` leaves it 0.
+var text_pad: int = 0
 
 var _picked: bool = false
 var _bar: ColorRect = null
@@ -82,7 +85,7 @@ func _restyle() -> void:
 
 
 func _box(face: Color, edge: Color) -> StyleBoxFlat:
-	var s := GameTheme.box(face, edge, 0, 0)
+	var s := GameTheme.box(face, edge, text_pad, 0)
 	if ring and _picked:
 		s.set_border_width_all(GameTheme.BORDER + RING)
 		s.set_expand_margin_all(RING)

@@ -333,6 +333,8 @@ func _left_column() -> VBoxContainer:
 	_copy.pressed.connect(copy)
 	_back = _button(row, tr("REPORT_BACK"), GameTheme.LINE, false)
 	_back.pressed.connect(close)
+	# one width, the widest's (owner, 2026-10-29)
+	ButtonWidth.group([_report, _copy, _back])
 	box.add_child(_gap(TOAST_TOP))
 	_toast = PanelContainer.new()
 	_toast.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN

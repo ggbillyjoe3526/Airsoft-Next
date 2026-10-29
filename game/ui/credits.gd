@@ -38,6 +38,8 @@ func _ready() -> void:
 	_back = Button.new()
 	_back.text = tr("CREDITS_BACK").to_upper()
 	_back.pressed.connect(close)
+	# as wide as its words, at the left (owner, 2026-10-29), not the width of the screen
+	ButtonWidth.group([_back])
 	box.add_child(_back)
 
 
