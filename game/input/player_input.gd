@@ -183,7 +183,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action(HOP_UP_MORE):
 		_hop_steps += 1
 	elif event.is_action(PING):
-		_ping_latch = _ping_latch or _orders_allowed
+		# Not while the wheel is open: it holds the view still, so a ping would land where the view was left.
+		_ping_latch = _ping_latch or (_orders_allowed and not _wheel.open)
 	elif event.is_action(NEXT_SLOT):
 		_slot_steps += 1
 		_slot_latch = -1

@@ -75,6 +75,20 @@ func test_addresses() -> void:
 	assert_eq(s.line("v6 2001:0db8:85a3:0000:0000:8a2e:0370:7334 end"), "v6 <address> end")
 
 
+func test_credentials_in_a_web_address_go_whole() -> void:
+	var s := _linux()
+	assert_eq(s.line("fetch https://user:secret@example.com/x failed"), "fetch https://<credentials>@example.com/x failed")
+	assert_eq(s.line("git remote ftp://anon@files.example.org"), "git remote ftp://<credentials>@files.example.org")
+	assert_eq(s.line("see https://example.com/a@b and me@example.com"), "see https://example.com/a@b and <address>")
+	var whole := ReportConfig.new()
+	whole.max_line_chars = 0
+	var unbounded := ReportScrub.new("", "", "", "", whole)
+	var t := Time.get_ticks_msec()
+	var out := unbounded.line("x://" + "a".repeat(60000) + " y://u:p@h")
+	assert_lt(Time.get_ticks_msec() - t, 500, "linear with no @")
+	assert_true(out.ends_with(" y://<credentials>@h"))
+
+
 func test_versions_ticks_and_clocks_stay() -> void:
 	var s := _windows()
 	for kept: String in ["Godot: 4.7.2.stable.official.ed1daf0bf", "System: Windows 11 (10.0.22631), 16 threads",

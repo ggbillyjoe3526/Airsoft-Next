@@ -5,7 +5,7 @@ extends GutTest
 ## press after; Hover gives the pointed order on letting go, a click on one either way; the wheel closes giving nothing
 ## on pause, once you are out and in practice. The wheel's data, the saved Hover / Click and the radio click's rule.
 
-const ACTIONS: Array[StringName] = [&"order_wheel", &"order_follow", &"fire", &"aim", &"move_forward"]
+const ACTIONS: Array[StringName] = [&"order_wheel", &"order_follow", &"fire", &"aim", &"move_forward", &"ping"]
 
 var input: PlayerInput = null
 var controls: ControlsConfig = ControlsConfig.new()
@@ -202,6 +202,17 @@ func test_the_mouse_wheel_switches_nothing_while_the_order_wheel_is_open() -> vo
 	_event(&"order_wheel", false)
 	input.fill(cmd)
 	assert_eq(cmd.switch_to, -1)
+
+
+func test_a_ping_press_while_the_wheel_is_open_pings_nothing() -> void:
+	_point(0.0, 0.0)
+	_tap(&"ping")
+	_event(&"order_wheel", false)
+	input.fill(cmd)
+	assert_false(cmd.ping, "the wheel holds the view still, so no ping where it was left")
+	_tap(&"ping")
+	input.fill(cmd)
+	assert_true(cmd.ping, "the wheel closed, a press pings")
 
 
 func test_the_wheel_closes_giving_nothing_on_pause_and_once_you_are_out() -> void:
