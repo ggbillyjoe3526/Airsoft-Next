@@ -1,18 +1,16 @@
-Task: NR1 · head b322395 (base 3a72ac7f) · Verdict: Pass
-Run: headless load and static review (no bot match run) · budget: no pipeline/perf-budget.json; judged against the
-owner's targets and docs/records/WL10.md.
-
-- No per-frame or per-tick code changed. Game code: map_data.gd presets_in (an early return on a missing file, once on
-  the Match page), ambience_config.gd IDS drops city, comments.
-- Deleted: 3 city loops, the city ambience cues, neonHeights.jpg and .json: install size and import cost go down.
-- play_tuning.tres: every SubResource and ExtResource reference resolves (checked by script), every ext_resource is
-  still used; the city beds and calls went with their `&"city"` keys by day and by night.
-- `godot --headless --quit`: no errors or warnings from this change (two NUL-character lines after the flag cloth
-  shader load are not from this diff, which touches no shader).
-- Woodland by night with torches is now the public path; the change there is data only. WL10 measured it: draws mean
-  200 to 276 at 5v5 and 217 to 276 at 6v6 by preset, primitives under 1.5M, headless CPU about 8 ms (5v5) and 9-10 ms
-  (6v6). Draws over the 150 High ceiling are an existing KNOWN_ISSUES row.
-
-Blocking: none.
-Advisory: KNOWN_ISSUES rows on Woodland frame time (unmeasured on real hardware) and night shadow casters weigh more
-now every player reaches Woodland at night; the owner should measure Low before a Beta tag.
+Task: MH2 · head 596168a (vs MH1 9fbce06) · Verdict: Pass (3 advisories; the setting-off cost is above the worker's "under 20 us" claim)
+Run: headless MatchRunner, Depot 3v3 and Woodland 5v5, seeds 1-3 (240 s, 2 reps, base/head-off/head-low) + A/B depot (8 interleaved pairs) + per-call micro timings in the match. Budget: no baseline yet, judged against base 9fbce06 and the targets. Container is shared (load 2-5 on 4 cores): wall times are noisy (+/-10 % run to run), so per-call timings below carry the verdict.
+Determinism: head with the setting off plays identically to base (same shots, hits, rounds, route searches on all 4 map/seed pairs rechecked), so any time difference is code cost, not play.
+Metrics (tick mean, us; min of 2 reps, avg of 3 seeds; reported only): Depot base 836 / head-off 921 / head-low 912; Woodland base 2049 / head-off 2149 / head-low 2025. Interleaved A/B Depot seed 2, medians of 8: base 1032 / head-off 1062 (+3 %). Head-low is not slower than head-off, so the gap is inside noise.
+Regressions (>10 % worse): none measured. Object count and static memory deltas over a match equal base (objDelta 6=6 Depot, 126=126 Woodland; head-low +1..+3 objects, the toss pool).
+Setting off, per tick cost of the new code (micro, in match, all bots): BotMagShare.update 27 us Depot (6 bots) / 51 us Woodland (10); waiting() 4.8 / 7.5; ask_when_low (early-outs, press gap reset) 15 / 24. About 47 us Depot, 83 us Woodland, i.e. 0.3-0.5 % of 16.7 ms, ~5 % of the headless sim tick. Setting on: update with a job standing 34 us Depot / 72-82 us Woodland (+7..30 us).
+Giver route budget (setting on): max route searches in a tick 1 = tuning.nav.search_budget (1) on every run; searches during job ticks 22/734 Depot, 46/671 Woodland; longest route wait 0.08-0.10 s (base 0.08). Total searches per match comparable to base (play differs).
+Event volume: setting on, per 240 s match: MAG_ASK 7-14, TOSS 6-11, CATCH 6-10, LOST 0-1, MAG_REFUSED 0 in all 6 runs. No storm: the press gap (1 s) plus _anyone_to_ask mirroring the sim's ask rule keep refusals out.
+Allocations (measured): 50x update + waiting + ask_when_low over ~3000 sampled ticks (jobs standing): OBJECT_COUNT +0, MEMORY_STATIC +0 bytes. Statics _pick/_hit are shared scratch (bot_mag_share.gd:23-24). intent_of (bot_controller.gd:127) returns an int, no string; bot_intent_view.gd:50 sets text only when the intent changes, and only while the view is on. Judgment: callouts _pace_allows (callouts.gd) iterates the queue with no allocation.
+Blocking findings: none.
+Advisory:
+ 1. bot_mag_share.gd:30-40, measured: with the setting off the idle update costs 27/51 us a tick and grows with bots squared: the second loop runs _free_to_give (wants_flag 7/12 us) and _nearest_asker (14/34 us, every free bot scans all characters) although nobody has asked. Worker's 9.5 us (3 bots) does not carry to 6-10 bots; the "bot side under 20 us" claim is not met at 6+ bots (the task block itself sets no figure). Fix, cheap: one O(n) pass for "any character with mag.asked >= 0 and coming == 0" and skip the assign loop when none (idle cost ~2-3 us); then do _nearest_asker before wants_flag.
+ 2. bot_mag_share.gd:55-61 (called per bot per tick from bot_controller.gd:111), measured 15/24 us for all bots with the setting off: check the cheap `a.active`/`mag.asked`/`next_ask` guards before is_in_play, or only run it when w.time >= b.mag_press_at (already first) -- fine as is, low priority.
+ 3. bot_mag_share.gd:73 (waiting, bot_brain.gd:167): loops characters plus bots (_character, bot_of) per bot per tick only while a bot has asked; 5-8 us total, fine. Judgment: a cached Bot reference on Character.mag would drop both loops, not needed now.
+Fixes, ranked: (1) the any-ask early-out in update; (2) nothing else needed.
+Files: bench /tmp/claude-0/-home-claude-Airsoft-Next/31fbb162-b6e4-592c-9898-73d95dc67b63/scratchpad/fg/bench_mh2.gd, micro .../micro_mh2.gd, runs .../mh2_runs.txt, ab_depot.txt. Base copy (git archive of 9fbce06) in .../fg/base. Nothing committed; no background jobs left.

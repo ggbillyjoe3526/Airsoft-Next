@@ -1,12 +1,13 @@
 # MH2 · Bots ask for magazines and bring them (Dev)
 
-**Review:** pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified | – | – |
+| 2026-10-29 | 1 | worker | see Verified; QA Pass (6 tests), performance Pass (idle cost) | – | – |
+| 2026-10-29 | 1, fix round 1: idle `update` 27/51 µs to 3.6/4.2 µs, KNOWN_ISSUES | worker | see Verified | Accept 7/8 | check 8: Development wiki missed the Dev switch (fixed in the records commit) |
 
 ## Goal
 
@@ -124,6 +125,18 @@ up and waits for your toss; the calls through CO1's director, Bot intentions, an
 - Not verified: how it plays (a bot asking you can't be answered until MH3's key), the Dev row and the intent labels on
   a display.
 
+## Advisories left
+
+- **The bots' controller writes ammo through `DevCheats.run_low`** (critic): a Dev cheat and deterministic; its better
+  home is the simulation step beside the other cheats.
+- **Criterion 4's reading** (critic, QA): up to 2 bots a map may count as held by a giver's fight or cover (one used,
+  Depot seed 16), and bots with nobody to ask (7 of 55 on Depot) aren't counted; this follows criterion 1's order, fights
+  first. Neon Heights was dropped from the criterion because the map is being removed (owner, 2026-10-29).
+- **A fourth copy of the `_character` / `_flat` helpers** (critic): one shared helper on `BotWorld` would do.
+- **`Bot.Mode.size()` as the waiting sentinel and `ammo[0]`** (critic): named constants would read better.
+- **A few long lines** (critic): `bot_controller.gd:7`, `dev_settings.gd:5` and `:51`, `settings_screen.gd:35`.
+- **Bots.md describes asking you and your toss**, which the player gets with MH3, merged next (critic).
+
 ## Gate
 
-`tools/check.sh` not run by the worker (the build thread's gate).
+`tools/check.sh` not run locally; CI runs the whole gate on the head (main 1c87620 plus MH2).

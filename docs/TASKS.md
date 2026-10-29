@@ -4,32 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## MH2 · Bots ask for magazines and bring them (Dev)
-when: build order step 27, after MH1
-tier: core
-perf: required
-touches: game/ai/bot_mag_share.gd, game/ai/bot.gd, game/ai/bot_brain.gd, game/ai/bot_movement.gd,
-  game/ai/bot_controller.gd, game/ai/callouts.gd, game/ai/README.md, game/config/bot_config.gd,
-  game/config/bot_tuning.tres, game/play/bot_intent_view.gd, game/sim/dev_cheats.gd, game/save/dev_settings.gd,
-  game/ui/settings_screen.gd, game/ui/text/en.po, tests/unit/test_bot_mag_share.gd, tests/guards/test_match_guards.gd,
-  docs/KNOWN_ISSUES.md, docs/wiki/Bots.md
-contract: Commands (2); Data, not literals (6)
-acceptance:
-  1. A bot that is low presses the hand-off through its command (the browser's `ai/magShare.ts`); a bot asked sets
-     off: it sprints while over 8 m away, walks on to within 3 m, and presses once the catcher is in reach and in sight.
-     Fights and cover come first, then bringing one, then a squad order, then waiting for one. Asked by you, it walks to
-     within 3 m and waits for your toss.
-  2. Bots ask only for their primary's magazine and give an unused pistol's freely; the same at every level.
-  3. Need a mag, Mag coming and Thanks for the mag are called through CO1's director (Thanks only after a catch with
-     BBs in it); Bot intentions shows the hand-off.
-  4. Settings › Dev › Bots run low on BBs (off): 8 s into each round, one bot a team in turn is put on its last
-     magazine. With it on, a bot put low on Depot and Woodland gets a magazine within 10 s on the guard
-     seeds (the record gives the times and the givers' walks).
-  5. The browser's `magShare.test.ts` (ai) and `magShareRules.test.ts` cases pass in GUT; the match guards still pass;
-     KNOWN_ISSUES' callouts, pings and magazine sharing row goes.
-status: open
-attempts: 0
-
 ## MH3 · Need a Mag on H and the wheel, the line and the toss on screen (Dev)
 when: build order step 27, after MH2
 tier: ui
