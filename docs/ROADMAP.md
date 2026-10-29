@@ -123,7 +123,8 @@ at his PC to connect.
     redesigns Depot and Woodland and dresses them with CC0 assets, and the owner decides when Blender work starts
     (Depot's models first, then Woodland's). Neon Heights is removed and Woodland is public (owner, 2026-10-29).
     0.1 Dev 2 also brings a basic smoke bomb and flash bomb, thrown by bots too; the rest waits for 0.2 (owner,
-    2026-10-29).
+    2026-10-29). Its look follows the new art direction (DECISIONS, 2026-10-29): `docs/ART.md` is rewritten at its
+    start.
 
 ## Builds
 

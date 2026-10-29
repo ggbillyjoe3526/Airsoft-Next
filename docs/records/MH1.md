@@ -1,12 +1,12 @@
 # MH1 · The magazine hand-off's rules (Dev)
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified | – | – |
+| 2026-10-29 | 1 | worker | see Verified; QA Pass (9 tests), performance Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -95,6 +95,20 @@ Headless scratch timing on the cloud container (shared with a guard run), 12 cha
   records; the other guards are left to CI.
 - Not verified: how it plays (needs MH2 and MH3).
 
+- QA: `test_mh1_qa.gd` 9 pass (events after PING, a thrower or catcher out mid-toss, a reload in flight, the round
+  decided with a toss flying, respawn, 1,500 quiet ticks, the range, an ask standing while its magazine flies).
+- Performance: a whole match tick unchanged within noise on Depot 3v3 and Woodland 5v5; `MagShare.step` 2.5-3.2 µs a
+  tick with nothing happening, 12-21 µs with asks and tosses; nothing allocated over 3,000 full cycles.
+
+## Advisories left
+
+- **Nothing sets `Hand.player` yet** (QA, critic): MH3's acceptance now says the match sets it for the player; until
+  then the player's ask gap would be the bot's 20 s (nothing presses before MH3).
+- **`_by_id` repeats `GameState.character()`** (critic): reuse it with an index fast path when next touched.
+- **A toss doesn't re-check keeping a full spare** (QA, critic): as the browser; a player can give their last on purpose.
+- **A standing ask re-checks the giver's spare every tick, about 5 µs each** (performance): fine at ten characters.
+- **An ask stands 15 s plus up to one tick** (QA): `>` at `mag_share.gd:301`; harmless.
+
 ## Gate
 
-`tools/check.sh` not run by the worker (the build thread's gate).
+`tools/check.sh` not run locally; CI runs the whole gate on the head (main fc37b88 plus MH1).
