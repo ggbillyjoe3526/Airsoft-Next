@@ -139,6 +139,8 @@ Woodland plays at night, where BBs glow by default; its white BBs draw as Depot'
   shots only (`on_shot` sets the hold); `test_a_trigger_held_with_nothing_going_out_leaves_it_carried`.
 - **The hold didn't tick while the view was hidden,** so it could come back raised: a hidden view clears it;
   `test_a_hidden_view_never_comes_back_raised`. Both tests fail on the code before the round.
+- QA's `test_a_sprint_stopped_with_the_trigger_held...` assumed a held trigger raises it; it now fires real shots
+  (`test_a_sprint_stopped_while_firing_comes_down_square_without_a_dip`), 23 of 23 with `test_hands_feel`.
 - Run: gdlint clean; `test_hands_feel` (8), `test_motion_scale`, `test_replica_paint`, `test_lo3_qa`,
   `test_figure_flinch`, `test_slide_lock`, `test_parts_in_play`, `test_bb_sight`, `test_holster`: 99 of 99. The full
   parts are left to CI (the machine is loaded).

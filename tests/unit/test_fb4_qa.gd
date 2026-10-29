@@ -7,6 +7,8 @@ extends GutTest
 const DT := 1.0 / 60.0
 const SETTLE := 90
 const EPS := 1e-4
+## Frames between shots on full auto (about 10 a second).
+const SHOT_EVERY := 6
 const AEG := "000002"
 const PISTOL := "000001"
 const CYBER := "000019"
@@ -143,20 +145,25 @@ func test_the_raise_across_a_reload_a_switch_and_the_holster_stays_finite_and_co
 	assert_almost_eq(_pose(hands, c).origin, _pose(twin, twin_c).origin, Vector3.ONE * EPS, "and back at the hip")
 
 
-func test_a_sprint_stopped_with_the_trigger_held_comes_down_square_without_a_dip() -> void:
+func test_a_sprint_stopped_while_firing_comes_down_square_without_a_dip() -> void:
 	var c := _character()
 	var hands := _hands(c)
 	_frames(hands, c, SETTLE)
 	var hip_y := _pose(hands, c).origin.y
 	c.sprinting = true
-	c.armament.trigger_was_down = true
-	_frames(hands, c, SETTLE)
+	# Full auto: a shot every few frames keeps the raise (it follows real shots, not the trigger).
+	for i in SETTLE:
+		if i % SHOT_EVERY == 0:
+			hands.on_shot()
+		_frames(hands, c, 1)
 	c.sprinting = false
 	var lowest := INF
 	for i in 30:
+		if i % SHOT_EVERY == 0:
+			hands.on_shot()
 		_frames(hands, c, 1)
 		lowest = minf(lowest, _pose(hands, c).origin.y)
-	assert_gte(lowest, hip_y - EPS, "never lower than the hip while the trigger stays down")
+	assert_gte(lowest, hip_y - EPS, "never lower than the hip while the shots keep going out")
 
 
 # --- the holstered sprint ---
