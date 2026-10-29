@@ -91,7 +91,6 @@ func test_a_remembered_map_the_catalogue_now_refuses_falls_back_to_one_that_play
 	picks.recall(_load({"last_map": "depot", "last_team": 0}))
 	var was := DevContent.use_map()
 	var settings := Settings.new()
-	settings.dev_enabled = true
 	settings.dev.dev_content = true
 	var page := MatchPage.new(picks, settings)
 	add_child_autofree(page)
