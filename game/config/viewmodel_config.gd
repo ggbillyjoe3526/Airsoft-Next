@@ -42,7 +42,7 @@ extends Resource
 @export var sprint_tilt: float = 0.5
 ## Seconds to move into and out of the sprint carry.
 @export var carry_time: float = 0.2
-## Firing on the run (the trigger held, or a shot) brings it up out of the carry, square to the view, in
+## Firing on the run (each shot) brings it up out of the carry, square to the view, in
 ## sprint_fire_raise seconds, and it stays up sprint_fire_hold seconds after the last shot before the carry takes it
 ## again (the browser game's renderView.ts sprintFireRaise and sprintFireHold; the owner's 0.1 Dev 1 note 5).
 @export var sprint_fire_raise: float = 0.06

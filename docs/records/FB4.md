@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified | – | – |
+| 2026-10-29 | 1 | worker | see Verified; QA Pass (2 advisories), performance Pass | – | – |
+| 2026-10-29 | 1, fix round 1: the raise follows real shots only, a hidden view drops it | worker | see Fix round 1 | – | – |
 
 ## Goal
 
@@ -20,7 +21,7 @@ difficult to see." 12 "the player should run a little faster when sprinting with
 - **5, firing on the run** (`replica_view.gd`, `viewmodel_config.gd`). The cause: the sim lets you fire while
   sprinting (the owner's 0.1 Dev 5 note 9), but the port's sprint carry (dropped 6 cm, tilted 0.15 rad down and 0.25
   rad across) followed `c.sprinting` only; the browser game's `sprintFireRaise` / `sprintFireHold` (renderView.ts) were
-  never ported. Now the trigger held (`Armament.trigger_was_down`, in hand) or a shot within `sprint_fire_hold` (0.35 s)
+  never ported. Now a shot within `sprint_fire_hold` (0.35 s; each shot of a burst or spray renews it)
   brings the replica out of the carry in `sprint_fire_raise` (0.06 s), square to the view; it is carried again a
   moment after you stop. No run bob exists in the port, and the carry after a sprint already eases out in 0.2 s.
 - **12, holstered sprint** (`movement_config.gd` `holster_sprint_scale` 1.1, `movement.gd`). The browser game had none
@@ -71,9 +72,8 @@ part (both maps, about 4 000 shots, 12 s).
 
 ## Defaults taken
 
-- **Firing raises the replica on the trigger held, not only on a shot,** so it is up the frame the first BB leaves
-  (a shot only would leave the first BB under a tilted barrel); the hold and raise times are the browser game's tuned
-  0.35 s and 0.06 s.
+- **Firing raises the replica on each shot,** never on the trigger alone (fix round 1); the first BB of a sprint
+  leaves during the 0.06 s raise, as in the browser game, whose tuned 0.35 s and 0.06 s these are.
 - **Holstered sprint +10 %,** one tuning value, for bots too (the brief's default); bots holster only on a calm sprint
   in their own half, so a bot arrives at its half's edge a little sooner.
 - **The BB's look: a rim, a size floor of about 4 px and a 1 m trail at 35 %,** picked from before and after renders:
@@ -113,7 +113,7 @@ Woodland plays at night, where BBs glow by default; its white BBs draw as Depot'
 
 ## Verified
 
-- New: `test_hands_feel.gd` (6: trigger held on a sprint squares it at the hip within 0.06 s and holds; a shot holds
+- New: `test_hands_feel.gd` (6: shots on a sprint square it at the hip within 0.06 s and keep it up; a shot holds
   it 0.35 s then the carry returns; every hands surface pressed while the shared paints and models' own stay
   untouched; depth scale 1 draws as before; aimed at a wall the sight stays put, at the hip it eases back),
   `test_bb_sight.gd` (6: rimmed shader and size floor; the trail's opacity, fade, length and width; none at opacity
@@ -132,6 +132,16 @@ Woodland plays at night, where BBs glow by default; its white BBs draw as Depot'
 - Not verified (feel, for the owner): whether the raise on firing at a sprint reads right; whether the holstered
   sprint feels faster enough at +10 %; the BB's rim and trail on Forward+ at the owner's resolution (renders here are
   Compatibility); whether the replica pressed over a wall looks natural. PLAYTEST › Movement, Aiming and optics, BBs.
+
+## Fix round 1 (QA advisories)
+
+- **A held trigger with nothing going out** (empty, reloading, a draw) kept the raise: the raise now follows real
+  shots only (`on_shot` sets the hold); `test_a_trigger_held_with_nothing_going_out_leaves_it_carried`.
+- **The hold didn't tick while the view was hidden,** so it could come back raised: a hidden view clears it;
+  `test_a_hidden_view_never_comes_back_raised`. Both tests fail on the code before the round.
+- Run: gdlint clean; `test_hands_feel` (8), `test_motion_scale`, `test_replica_paint`, `test_lo3_qa`,
+  `test_figure_flinch`, `test_slide_lock`, `test_parts_in_play`, `test_bb_sight`, `test_holster`: 99 of 99. The full
+  parts are left to CI (the machine is loaded).
 
 ## Gate
 

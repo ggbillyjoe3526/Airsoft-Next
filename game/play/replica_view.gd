@@ -6,7 +6,7 @@ extends Node3D
 ## low on a sprint, canted through a reload, kicked back by each shot, lagging a touch behind a turn and pulled back
 ## near a wall, and what still reaches into a wall drawn over it, never into it (its depth pressed towards the eye:
 ## ViewModelConfig.depth_scale). Fired on the run it comes up out of the carry, square to the view, while
-## the trigger is held and a moment after the last shot. A gas pistol's slide locks back on its last BB and closes near the end of
+## shots go out and a moment after the last one. A gas pistol's slide locks back on its last BB and closes near the end of
 ## the reload; the fire selector shows the mode it is set to (SelectorPose). Its parts are fitted from their models
 ## (ReplicaParts), as the menus show them; aimed with an optic, the eye looks along the optic's sight line through its
 ## glass (OpticGlass). Reduced motion (set_motion) draws less of the sway, the kick and the reload's cant. Hit
@@ -143,6 +143,8 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 	if not visible:
 		_hit_age = -1.0
 		_jolt = 0.0
+		# A raise never outlives the view: shown again, it comes back as the character stands.
+		_fire_hold = 0.0
 		if _glass != null:
 			_glass.update(null, 0.0)
 		return
@@ -176,9 +178,10 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 	if dropping:
 		pos.y -= _cfg.hit_drop * smoothstep(0.0, _cfg.hit_drop_time, _hit_age)
 
-	# Carried low on a sprint, unless firing: the trigger held or a shot a moment ago brings it up, quicker.
+	# Carried low on a sprint, unless firing: a shot in the last sprint_fire_hold brings it up, quicker (a trigger held
+	# with nothing going out, empty or reloading, leaves it carried).
 	_fire_hold = maxf(0.0, _fire_hold - delta)
-	var firing := _fire_hold > 0.0 or (a.trigger_was_down and not a.holstered)
+	var firing := _fire_hold > 0.0
 	var carry_rate := _cfg.sprint_fire_raise if firing else _cfg.carry_time
 	_carry = move_toward(_carry, 1.0 if c.sprinting and not firing else 0.0, delta / carry_rate)
 	pos.y -= _cfg.sprint_drop * _carry

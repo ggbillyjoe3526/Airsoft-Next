@@ -1,6 +1,7 @@
 extends GutTest
 ## FB4 (the owner's 0.1 Dev 1 playtest, notes 5 and 7): fired on the run, the replica in your hands comes up out of the
-## sprint carry, square to the view, while the trigger is held and sprint_fire_hold after the last shot; and it never
+## sprint carry, square to the view, while shots go out and sprint_fire_hold after the last one (a trigger held with
+## nothing going out raises nothing, and a hidden view never comes back raised); and it never
 ## draws into a wall: its materials (and its optic's glass) press their depth towards the eye, and aimed at a wall the
 ## sight stays at the eye.
 
@@ -37,7 +38,7 @@ func _pose(hands: ReplicaView, c: Character) -> Transform3D:
 
 # --- note 5: firing on the run ---
 
-func test_the_trigger_held_on_a_sprint_brings_it_square_to_the_view() -> void:
+func test_shots_on_a_sprint_bring_it_square_to_the_view() -> void:
 	var c := _character()
 	var hands := _hands(c)
 	_frames(hands, c, SETTLE)
@@ -45,12 +46,42 @@ func test_the_trigger_held_on_a_sprint_brings_it_square_to_the_view() -> void:
 	c.sprinting = true
 	_frames(hands, c, SETTLE)
 	assert_gt(_pose(hands, c).basis.get_euler().length(), 0.1, "control: sprinting, it is carried low and tilted")
-	c.armament.trigger_was_down = true
+	hands.on_shot()
 	_frames(hands, c, ceili(cfg.sprint_fire_raise / DT) + 1)
 	assert_almost_eq(_pose(hands, c).basis.get_euler(), Vector3.ZERO, Vector3.ONE * EPS, "square to the view")
-	assert_almost_eq(_pose(hands, c).origin.y, ready.origin.y, EPS, "at the hip, not carried low")
+	assert_almost_eq(hands._carry, 0.0, EPS, "out of the carry: at the hip (only the shot's kick lifts it)")
+	assert_gt(_pose(hands, c).origin.y, ready.origin.y - EPS, "not below the hip")
+	# Full auto: a shot every 5 frames keeps it up.
+	for i in 12:
+		hands.on_shot()
+		_frames(hands, c, 5)
+		assert_almost_eq(_pose(hands, c).basis.get_euler(), Vector3.ZERO, Vector3.ONE * EPS, "up while shots go out")
+
+
+func test_a_trigger_held_with_nothing_going_out_leaves_it_carried() -> void:
+	# QA advisory 1: empty, reloading or otherwise not firing, the trigger alone raises nothing.
+	var c := _character()
+	var hands := _hands(c)
+	c.sprinting = true
+	c.armament.trigger_was_down = true
 	_frames(hands, c, SETTLE)
-	assert_almost_eq(_pose(hands, c).basis.get_euler(), Vector3.ZERO, Vector3.ONE * EPS, "and stays up while held")
+	assert_gt(_pose(hands, c).basis.get_euler().length(), 0.1, "still carried low and tilted")
+
+
+func test_a_hidden_view_never_comes_back_raised() -> void:
+	# QA advisory 2: a shot just before the view hides (you are hit) holds nothing over to when it shows again.
+	var c := _character()
+	var hands := _hands(c)
+	c.sprinting = true
+	_frames(hands, c, SETTLE)
+	hands.on_shot()
+	_frames(hands, c, 1)
+	c.status = Character.Status.OUT
+	_frames(hands, c, 2)
+	assert_false(hands.visible, "control: hidden while out")
+	c.status = Character.Status.ALIVE
+	_frames(hands, c, ceili(cfg.sprint_fire_raise / DT) + 1)
+	assert_gt(_pose(hands, c).basis.get_euler().length(), 0.1, "shown again, carried as it sprints")
 
 
 func test_a_shot_holds_it_up_a_moment_then_the_carry_takes_it_again() -> void:
