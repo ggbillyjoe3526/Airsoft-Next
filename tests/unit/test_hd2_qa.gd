@@ -212,3 +212,45 @@ func test_the_hit_feed_stays_clear_of_the_hit_call_and_banner() -> void:
 			state.characters.erase(mate)
 			hud.get_parent().queue_free()
 
+
+
+
+func test_the_cards_refit_when_the_hud_size_or_window_changes_mid_summary() -> void:
+	var hud := _hud(Vector2(1920.0, 1080.0), 1.0)
+	var frame := hud.get_parent() as Control
+	you.status = Character.Status.CALLING
+	hud._show_banner("WON", "ROUND 5 · BETA TAKE THE MATCH")
+	_xp(hud, 1500)
+	hud.open_summary(state, true, "Hold the angle")
+	hud.update(state, 1.0, 0.0)
+	await wait_process_frames(3)
+	var area := frame.size
+	for step: Array in [[1.5, Vector2(1920.0, 1080.0)], [1.5, Vector2(1024.0, 768.0)], [0.8, Vector2(1280.0, 720.0)], [1.5, Vector2(2560.0, 1080.0)]]:
+		var prefs := HudPrefs.new()
+		prefs.hud_size = step[0]
+		hud.apply_prefs(prefs)
+		area = HudSizeTest.canvas_of(step[1])
+		frame.size = area
+		await wait_process_frames(3)
+		var what := "mid-summary at %s on %s" % [step[0], step[1]]
+		_inside(hud._xp, area, "XP card " + what)
+		_inside(hud._summary._table, area, "summary table " + what)
+		_inside(hud._summary._side, area, "summary side " + what)
+
+
+func test_the_round_table_under_the_call_banner_step_line_and_gauge_stays_readable_on_screen() -> void:
+	for gauge: bool in [false, true]:
+		var hud := _hud(Vector2(1280.0, 720.0), 1.5)
+		you.status = Character.Status.CALLING
+		if gauge:
+			state.round_state.mode = RoundState.Mode.ATTACK_DEFEND
+			state.round_state.attackers = 1
+		hud._show_banner("LOST", "ROUND 1 · BETA TAKE THE ROUND")
+		hud.show_graphics_step("Low", 5.0)
+		hud.round_result().round_over(1, 30, state.time)
+		state.time += 60.0
+		hud.update(state, 1.0, 0.05)
+		await wait_process_frames(3)
+		_inside(hud._round_result, HudSizeTest.canvas_of(Vector2(1280.0, 720.0)), "round table, gauge %s" % gauge)
+		assert_gte(hud._round_result.scale.x * 1.5, 0.6, "row text still readable (gauge %s)" % gauge)
+		hud.get_parent().queue_free()
