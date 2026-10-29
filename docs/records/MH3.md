@@ -102,7 +102,8 @@ through the commands:
   no object made by a standing line; screen reader messages; the setting's default, old file and save; the arc, cap,
   landing and spin; the pool of six, the thrower's own magazine mesh, hidden once landed; a match marks you as the
   player and your ask's gap is 4 s.
-- Updated for the fifth item: `test_order_wheel_input.gd` (Team Plan now lower left), `test_so4_orders_hud.gd`.
+- Updated for the fifth item: `test_order_wheel_input.gd` (Team Plan now lower left), `test_so4_orders_hud.gd`;
+  `test_play_session.gd`'s prewarm count now adds the tossed magazines' materials (they are drawn once at the start).
 - gdlint clean; `tools/smoke_test.sh` passes (`[smoke] ok … orders=3 mags=2`, zero script errors).
 - `tools/check.sh`: see Gate.
 - Not verified: how it feels (the arc's readability, the line over bright walls, the catch sound's level) on the
@@ -110,4 +111,7 @@ through the commands:
 
 ## Gate
 
-`tools/check.sh` (worker's run): pending.
+`tools/check.sh` (worker's run, 2026-10-29): gdlint, changelog notes, wiki, unit tests parts 1 and 3, smoke and
+licence notices pass. Part 2 failed once on `test_play_session.gd`'s prewarm count (50, expected 41: the toss view's
+magazine materials, prewarmed on purpose); the test now counts them, and part 2 rerun passes 1741 of 1741. All 3518
+tests pass.
