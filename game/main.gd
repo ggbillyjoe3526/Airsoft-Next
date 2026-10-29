@@ -52,10 +52,12 @@ const SMOKE_RANGE_MAX_TICKS := 3600
 const PRACTICE_MAP := "range"
 ## The smoke match's squad orders, one step a frame once the first round is live: Follow me's key pressed (+) and let
 ## go (-) twice (given, then cancelled), then the order wheel's key held, the mouse flicked up onto its top order (an
-## empty step), and let go.
+## empty step), and let go; then Need a Mag (MH3) asked for on its key, and picked on the wheel (flicked up left onto
+## it: a "<" step).
 const SMOKE_ORDER_STEPS: PackedStringArray = ["+order_follow", "-order_follow", "+order_follow", "-order_follow",
-		"+order_wheel", "", "-order_wheel"]
+		"+order_wheel", "", "-order_wheel", "+mag_hand_off", "-mag_hand_off", "+order_wheel", "<", "-order_wheel"]
 const SMOKE_WHEEL_FLICK := Vector2(0.0, -400.0)
+const SMOKE_MAG_FLICK := Vector2(-380.0, -124.0)
 ## The smoke test's Report a Bug, from the title before the menus open: the frames it opens and closes on.
 const SMOKE_REPORT_OPEN := 3
 const SMOKE_REPORT_CLOSE := 6
@@ -88,6 +90,7 @@ var _smoke_plates := -1
 var _smoke_range_left_at := -1
 var _smoke_order_step := 0
 var _smoke_orders := -1
+var _smoke_mags := -1
 ## The graphics at start-up: the safe start's record and the title's notices (tests set its paths and hooks first).
 var graphics: GraphicsStartUp = GraphicsStartUp.new()
 ## This run's last errors and warnings, added as a Logger at boot and removed at exit.
@@ -405,6 +408,7 @@ func _end_play() -> void:
 		_smoke_rounds = _play.rounds_played
 		_smoke_matches = _play.matches_played
 		_smoke_orders = _play.orders_given
+		_smoke_mags = _play.mag_presses
 		_smoke_left_at = _frame
 	_record_menus()
 	_perf.watch(null)
@@ -578,10 +582,11 @@ func _smoke_ordering() -> bool:
 func _smoke_order() -> void:
 	var step := SMOKE_ORDER_STEPS[_smoke_order_step]
 	_smoke_order_step += 1
-	if step.is_empty():
+	if step.is_empty() or step == "<":
+		var flick := SMOKE_WHEEL_FLICK if step.is_empty() else SMOKE_MAG_FLICK
 		var motion := InputEventMouseMotion.new()
-		motion.relative = SMOKE_WHEEL_FLICK
-		motion.screen_relative = SMOKE_WHEEL_FLICK
+		motion.relative = flick
+		motion.screen_relative = flick
 		Input.parse_input_event(motion)
 		return
 	var e := InputEventAction.new()
@@ -610,6 +615,11 @@ func _smoke_report() -> void:
 				SMOKE_ORDER_STEPS.size()])
 		get_tree().quit(1)
 		return
-	print("[smoke] ok frames=%d credits_chars=%d shots=%d impacts=%d rounds=%d plates=%d orders=%d" % [_frame,
-			_credits.text_length(), _smoke_shots, _smoke_impacts, _smoke_rounds, _smoke_plates, _smoke_orders])
+	if _smoke_mags <= 0:
+		push_error("smoke: no Need a Mag of yours reached the match")
+		get_tree().quit(1)
+		return
+	print("[smoke] ok frames=%d credits_chars=%d shots=%d impacts=%d rounds=%d plates=%d orders=%d mags=%d" % [_frame,
+			_credits.text_length(), _smoke_shots, _smoke_impacts, _smoke_rounds, _smoke_plates, _smoke_orders,
+			_smoke_mags])
 	get_tree().quit(0)

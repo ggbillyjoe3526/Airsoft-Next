@@ -233,6 +233,8 @@ var rounds_played: int = 0
 var matches_played: int = 0
 ## Squad orders of yours the simulation took (SQUAD_ORDER events): the smoke test gives some.
 var orders_given: int = 0
+## Presses of Need a Mag of yours the simulation answered (an ask, a toss or a refusal; MH3): the smoke test makes some.
+var mag_presses: int = 0
 ## Practice: targets your BBs hit, and how many of those were steel plates (never the START plate).
 var target_hits: int = 0
 var plate_hits: int = 0
@@ -943,6 +945,9 @@ func _after_tick() -> void:
 				_step_graphics_down()
 			GameEvent.Kind.SQUAD_ORDER when e.actor == PLAYER_ID:
 				orders_given += 1
+			GameEvent.Kind.MAG_ASK, GameEvent.Kind.MAG_TOSS, GameEvent.Kind.MAG_REFUSED:
+				if e.actor == PLAYER_ID:
+					mag_presses += 1
 			GameEvent.Kind.ROUND_START:
 				_input.face(player.spawn_yaw)
 				_puffs.clear()
