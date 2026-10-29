@@ -52,8 +52,8 @@ keeps its built-in value with a warning.
 ## Dev settings
 
 **Settings › Dev** is a tab of tools for trying things out, always there; each is off until you turn it on.
-A match with Game speed, Bottomless magazines, Ghost, Bots hold fire, Bots run low on BBs, Spectate any bot or Bot
-intentions changed, or on dev content, stays out of the records and gives no XP.
+A match with Game speed, Bottomless magazines, Ghost, Bots hold fire, Bots run low on BBs, Spectate any bot, Bot
+intentions, Time of day or Disable levelling changed, or on dev content, stays out of the records and gives no XP.
 
 - **Game speed** from 25 % to 200 %, **Bottomless magazines**, **Ghost** (BBs pass through you), **Bots hold fire**, **Bots run low on BBs** (8 s into each round one bot a team, in
   turn, is put on its last magazine, to watch the hand-off).

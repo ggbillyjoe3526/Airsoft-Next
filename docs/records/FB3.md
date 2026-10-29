@@ -1,12 +1,12 @@
 # FB3 · The Dev settings always available, and step 27's features public
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified | – | – |
+| 2026-10-29 | 1 | worker | see Verified; QA Pass (11 tests), performance Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -72,6 +72,14 @@ MH1-MH3) come out of development and are public for 0.1 Dev 1.
 
 - `/mnt/project-files/screenshots/dev1-feedback/fb3-dev-tab.png`: Settings on a new save, opened on the Dev tab, the
   last of eight tabs, every switch Off, nothing under the tabs but the note and Back (Back's width is FB1's).
+
+## Advisories left
+
+- **A Dev switch left on has no box to remind you** (performance, critic): the match summary's No XP line is the only
+  sign. The intro on the Dev tab now names every switch that keeps a match off the records (QA, critic; fixed in the
+  records commit with the Development wiki page).
+- **An old save with the box unticked keeps `dev_enabled: false` on disk until the next save** (QA, critic): its Dev
+  switches are reset again at each load until then, with the same result.
 
 ## Gate
 
