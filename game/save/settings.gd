@@ -1,7 +1,7 @@
 class_name Settings
 extends RefCounted
 ## The player's settings: plain typed state, saved through SaveFile at user://settings.save (kind "settings", version
-## 1). Nothing here touches the engine; SettingsApply writes the values into the game, and SettingsScreen edits them.
+## 2). Nothing here touches the engine; SettingsApply writes the values into the game, and SettingsScreen edits them.
 ## A missing file is silent defaults. A file that is damaged, unreadable or of a version this build doesn't know falls
 ## back to the defaults with `load_message`; a value that is the wrong type or out of range keeps its default alone.
 
@@ -10,9 +10,10 @@ signal changed
 
 const PATH := "user://settings.save"
 const KIND := "settings"
-const VERSION := 1
+## 2 moved the first-start defaults (FB2); a version 1 file is brought over once by `migrate_defaults`.
+const VERSION := 2
 ## Windowed leaves the window as it is (the project starts maximised); the other two are the DisplayServer's
-## borderless and exclusive fullscreen.
+## borderless and exclusive fullscreen. The first start is Exclusive (WINDOW_MODE_DEFAULT).
 enum WindowMode { WINDOWED, BORDERLESS, EXCLUSIVE }
 ## When the "What got you" card shows: against Hard bots, always, or never.
 enum WhatGotYou { AUTO, ON, OFF }
@@ -25,11 +26,25 @@ enum ReducedMotion { SYSTEM, OFF, ON }
 const VOLUME_BUSES: Array[StringName] = [&"Master", &"Effects", &"Power", &"Ambience", &"Interface"]
 const VOLUME_DEFAULTS: Dictionary[StringName, float] = {
 	&"Master": 1.0,
+	&"Effects": 0.7,
+	&"Power": 1.0,
+	&"Ambience": 0.3,
+	&"Interface": 0.4,
+}
+## The volumes a version 1 file started with: one still equal to its old default was never touched.
+const VOLUME_DEFAULTS_V1: Dictionary[StringName, float] = {
+	&"Master": 1.0,
 	&"Effects": 0.8,
 	&"Power": 1.0,
 	&"Ambience": 0.6,
 	&"Interface": 0.5,
 }
+## Exclusive fullscreen on the display the game opens on, and V-Sync off, from the first start (owner, 2026-10-29).
+const WINDOW_MODE_DEFAULT := WindowMode.EXCLUSIVE
+const VSYNC_DEFAULT := false
+## Version 1's defaults for the two (Windowed, V-Sync on).
+const WINDOW_MODE_DEFAULT_V1 := WindowMode.WINDOWED
+const VSYNC_DEFAULT_V1 := true
 ## Horizontal field of view on a 16:9 screen (degrees): the range and the default (owner, 2026-10-04: 90).
 const FOV_MIN := 70.0
 const FOV_MAX := 110.0
@@ -57,8 +72,8 @@ var wheel_pick: ControlsConfig.WheelPick = ControlsConfig.WheelPick.HOVER
 var mouse_dpi: int = Sensitivity.DPI_DEFAULT
 var bindings: KeyBindings = KeyBindings.new()
 var volumes: Dictionary[StringName, float] = VOLUME_DEFAULTS.duplicate()
-var window_mode: WindowMode = WindowMode.WINDOWED
-var vsync: bool = true
+var window_mode: WindowMode = WINDOW_MODE_DEFAULT
+var vsync: bool = VSYNC_DEFAULT
 var fov: float = FOV_DEFAULT
 var show_fps: bool = false
 ## The graphics preset chosen (GraphicsTable.PRESETS or GraphicsQuality.CUSTOM), or GRAPHICS_AUTOMATIC for the pick from
@@ -144,7 +159,31 @@ func load_file(path: String = PATH) -> void:
 		load_message = TranslationServer.translate("SETTINGS_NEWER")
 		push_warning("settings: %s is version %d; using the defaults" % [path, int(r.version)])
 		return
-	from_dict(r.data)
+	from_dict(migrate_defaults(r.data, int(r.version)))
+
+
+## `data` as a version `version` file's, with every value still at the old default moved to the new one (a value the
+## player changed is kept): the volumes, Windowed and V-Sync. Version 2 or later is returned as it is. A new
+## dictionary; `data` is not changed.
+static func migrate_defaults(data: Dictionary, version: int) -> Dictionary:
+	if version >= 2:
+		return data
+	var moved := data.duplicate(true)
+	var saved_vol: Variant = moved.get("volumes")
+	if saved_vol is Dictionary:
+		var vol: Dictionary = saved_vol
+		for bus: StringName in VOLUME_BUSES:
+			var key := String(bus)
+			var v: Variant = vol.get(key)
+			if (v is float or v is int) and is_equal_approx(float(v), VOLUME_DEFAULTS_V1[bus]):
+				vol[key] = VOLUME_DEFAULTS[bus]
+	var mode: Variant = moved.get("window_mode")
+	if (mode is float or mode is int) and roundi(float(mode)) == WINDOW_MODE_DEFAULT_V1:
+		moved["window_mode"] = int(WINDOW_MODE_DEFAULT)
+	var vsync_saved: Variant = moved.get("vsync")
+	if vsync_saved is bool and vsync_saved == VSYNC_DEFAULT_V1:
+		moved["vsync"] = VSYNC_DEFAULT
+	return moved
 
 
 ## Writes `path`; false if it could not be written.
@@ -206,9 +245,9 @@ func from_dict(data: Dictionary) -> void:
 	var vol: Dictionary = saved_vol if saved_vol is Dictionary else {}
 	for bus: StringName in VOLUME_BUSES:
 		volumes[bus] = _number(vol, String(bus), VOLUME_DEFAULTS[bus], 0.0, 1.0)
-	var mode := roundi(_number(data, "window_mode", WindowMode.WINDOWED, 0.0, WindowMode.size() - 1.0))
+	var mode := roundi(_number(data, "window_mode", WINDOW_MODE_DEFAULT, 0.0, WindowMode.size() - 1.0))
 	window_mode = mode as WindowMode
-	vsync = _flag(data, "vsync", true)
+	vsync = _flag(data, "vsync", VSYNC_DEFAULT)
 	fov = _number(data, "fov", FOV_DEFAULT, FOV_MIN, FOV_MAX)
 	show_fps = _flag(data, "show_fps", false)
 	realistic_colours = _flag(data, "realistic_colours", false)

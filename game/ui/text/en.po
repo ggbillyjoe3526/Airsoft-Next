@@ -2162,10 +2162,10 @@ msgid "GRAPHICS_BLURB_LOW"
 msgstr "No sun shadows, ambient occlusion, baked light or wind dust, and an 80 % render scale sharpened by FSR 1: holds 60 FPS on low-powered hardware."
 
 msgid "GRAPHICS_BLURB_MEDIUM"
-msgstr "Sun shadows and baked light on, no ambient occlusion, MSAA 2× and half the wind dust."
+msgstr "Sun shadows and baked light on, no ambient occlusion and half the wind dust."
 
 msgid "GRAPHICS_BLURB_HIGH"
-msgstr "The game as it was made to look: 70 m sun shadows, ambient occlusion at half size and MSAA 4×."
+msgstr "The game as it was made to look: 70 m sun shadows, ambient occlusion at half size."
 
 msgid "GRAPHICS_BLURB_ULTRA"
 msgstr "High with the sharpest, softest and farthest shadows, full ambient occlusion and the finest mesh detail. No new effects."

@@ -610,9 +610,15 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Settings after the Dev 6 playtest (owner, 2026-10-16; ST1).** Groups: Display, Graphics, Gameplay, Audio,
   Controls, Accessibility, Save file, Dev (Looks went with its only row, Robots, now a Dev Easter egg: 2026-10-24, RB1).
   Defaults: sound cues red, scoreboard 100 %, aim
-  Toggle (now Hold: the 2026-10-18 ruling above), crouch Hold, volumes master 100 %, effects 80 %, power source 100 %, ambience 60 %, interface 50 %. The Retro
+  Toggle (now Hold: the 2026-10-18 ruling above), crouch Hold, volumes master 100 %, effects 80 %, power source 100 %, ambience 60 %, interface 50 % (volumes changed
+  2026-10-29: the next ruling). The Retro
   look is a Dev setting again, Realistic colours moved to the Loadout's Colour tab (MR1), and the Voices placeholder is
   gone. The top bar's level reads "LVL 3".
+- **First-start defaults after the 0.1 Dev 1 playtest (owner, 2026-10-29; FB2).** Volumes: master 100 %, effects 70 %,
+  power source 100 %, ambience 30 %, interface 40 %. The game launches in exclusive fullscreen (on the display it
+  opens on). V-Sync is off. Edge smoothing is Off, on every graphics preset (a player who turns it on keeps it, as
+  Custom). A save from before (settings version 1) moves a value still equal to the old default to the new one, once;
+  a value the player changed is kept. Reset to defaults gives the new values.
 - **Small menu rulings (owner, 2026-10-03 to 2026-10-07).** The tagline is "Call your hit. Go again." Menu headings and
   labels are in capitals, descriptions as written. Unbuilt items are listed greyed out with a LATER tag.
 - **The menus grow with a tall window as the HUD does (UX1, 2026-10-17).** They scale by the window height over 1080,

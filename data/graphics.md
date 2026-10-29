@@ -2,7 +2,8 @@
 
 Settings › Graphics offers four presets, Low, Medium, High and Ultra, and Custom, which is a preset with some of its
 rows changed. This file is every row and each preset's value for it. High keeps the look from before the presets
-(shadows, ambient occlusion, mesh detail) and adds MSAA 4× and 16× texture filtering, which cost more on the GPU.
+(shadows, ambient occlusion, mesh detail) and adds 16× texture filtering, which costs more on the GPU. Edge smoothing
+is Off on every preset (owner, 2026-10-29); a player who wants it turns it on, which makes the preset Custom.
 
 **The game reads this file.** It is bundled into the build and read when the game starts
 (`game/config/graphics_table.gd`), like [levels.md](levels.md). After editing, run `tools/unit_tests.sh`:
@@ -36,7 +37,7 @@ never stops the game from starting.
 |---|---|---|---|---|---|---|---|---|
 | render_scale | GRAPHICS_RENDER_SCALE | 50–100 % | 3 | all | 80 % | 100 % | 100 % | 100 % |
 | upscaler | GRAPHICS_UPSCALER | bilinear, fsr1, fsr2 | 1 | all | fsr1 | fsr1 | fsr1 | fsr1 |
-| edge_smoothing | GRAPHICS_EDGE_SMOOTHING | off, fxaa, smaa, msaa_2x, msaa_4x | 3 | all | fxaa | msaa_2x | msaa_4x | msaa_4x |
+| edge_smoothing | GRAPHICS_EDGE_SMOOTHING | off, fxaa, smaa, msaa_2x, msaa_4x | 3 | all | off | off | off | off |
 | temporal_smoothing | GRAPHICS_TEMPORAL_SMOOTHING | off, on | 2 | forward_plus | off | off | off | off |
 | sun_shadows | GRAPHICS_SUN_SHADOWS | off, on | 3 | all | off | on | on | on |
 | shadow_detail | GRAPHICS_SHADOW_DETAIL | 1024, 2048, 4096, 8192 | 2 | all | 1024 | 2048 | 4096 | 8192 |
@@ -73,7 +74,7 @@ never stops the game from starting.
 
 A choice the renderer in use can't draw is greyed, though the rest of its row can still be picked. Checked against
 Godot 4.7.2 on the simpler renderer (GR4), which refuses FSR 1, FSR 2, FXAA, SMAA and temporal smoothing with a
-warning and draws no ambient occlusion; MSAA and texture filtering it draws. On it, Low's FXAA draws no edge smoothing.
+warning and draws no ambient occlusion; MSAA and texture filtering it draws.
 
 | Row | Choice | Renderers |
 |---|---|---|

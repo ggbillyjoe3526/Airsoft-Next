@@ -18,6 +18,9 @@ func before_each() -> void:
 	ds = FakeScreens.new()
 	SettingsApply.use_screens(ds)
 	s = Settings.new(PlayTuning.new())
+	# these walk the window modes from a window with V-Sync on; the first-start defaults are pinned in test_settings.gd
+	s.window_mode = Settings.WindowMode.WINDOWED
+	s.vsync = true
 	DirAccess.make_dir_recursive_absolute(ROOT)
 	path = ROOT.path_join("settings.save")
 	SaveFile.remove(path)

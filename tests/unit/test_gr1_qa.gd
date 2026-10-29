@@ -114,7 +114,7 @@ func test_ids_choices_and_renderers_are_case_sensitive_and_say_so() -> void:
 	]))
 	assert_eq(t.preset(&"low").render_scale, 80, "an ID in the wrong case is an unknown row")
 	assert_true(_problem(t, "unknown row \"Render_Scale\""))
-	assert_eq(t.preset(&"low").edge_smoothing, GraphicsQuality.EdgeSmoothing.FXAA, "built-in kept for FXAA")
+	assert_eq(t.preset(&"low").edge_smoothing, GraphicsQuality.EdgeSmoothing.OFF, "built-in kept for FXAA")
 	assert_true(_problem(t, "edge_smoothing's Low \"FXAA\""))
 	assert_true(_problem(t, "edge_smoothing's Renderers \"All\""))
 
@@ -286,9 +286,9 @@ func test_an_old_file_without_the_graphics_fields_loads_and_keeps_its_values() -
 	assert_eq(got.renderer, Settings.Renderer.AUTO)
 	assert_false(got.first_start_seen)
 	assert_eq(got.load_message, "", "no complaint")
-	assert_eq(Settings.VERSION, 1)
+	assert_eq(Settings.VERSION, 2, "2 since FB2 moved the defaults")
 	var raw := SaveFile.read(path, Settings.KIND)
-	assert_eq(int(raw.version), 1)
+	assert_eq(int(raw.version), Settings.VERSION)
 
 
 func test_graphics_choice_of_every_wrong_kind_reads_as_automatic() -> void:
