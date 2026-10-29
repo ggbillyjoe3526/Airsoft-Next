@@ -1,13 +1,13 @@
 # FB2 · New first-start defaults from the 0.1 Dev 1 playtest (fix)
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified | – | – |
-| 2026-10-29 | 1, fix round 1: menus capped at the refresh rate, F11 remembers the first start's fullscreen | worker | see Fix round 1 | – | – |
+| 2026-10-29 | 1 | worker | see Verified; QA Pass (24 tests), performance Pass (menus uncapped with V-Sync off) | – | – |
+| 2026-10-29 | 1, fix round 1: menus capped at the refresh rate, F11 remembers the first start's fullscreen | worker | see Fix round 1; QA re-check Pass (11 tests) | Accept 8/8 | – |
 
 ## Goal
 
@@ -55,6 +55,17 @@ and a save that still holds an old default moves to the new one.
   renderer under Xvfb).
 - Not verified: that the window really goes exclusive fullscreen on Windows (no display server here; the DisplayServer
   call is the same one Settings › Display makes).
+
+## Advisories left
+
+- **The menu frame cap is a default the owner didn't ask for** (critic): it follows from V-Sync off; `DisplayConfig.menu_cap_to_refresh` turns it off.
+- **A map that fails to load emits `started`** (QA re-check), so its refusal screen runs on the player's limit, uncapped.
+- **The cap re-checks only on a Settings change, F11, focus or a match leg** (QA re-check): dragging the window to a screen
+  with another rate keeps the old cap until then.
+- **A version 1 save that chose Windowed, V-Sync on or exactly the old volume moves too** (critic, QA): the file can't
+  tell a choice from an untouched default.
+- **Nits** (critic, QA): the `version >= 2` literal at `settings.gd:172`; a 177-character doc comment at
+  `settings_apply.gd:76`.
 
 ## Gate
 
