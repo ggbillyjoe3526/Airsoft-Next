@@ -20,8 +20,9 @@ class_name BotMagShare
 ## The loadout slot of a bot's primary, the replica it fights with (BotBrain switches to it).
 const PRIMARY := 0
 
-## The spare a toss would take (scratch for can_toss_to; bots think in turn).
+## The spare a toss would take, and a ray's hit (scratch for can_toss_to and _up_to; bots think in turn).
 static var _pick: MagShare.SparePick = MagShare.SparePick.new()
+static var _hit: RayHit = RayHit.new()
 
 
 ## Before the bots think (BotController.think; `sharing`: the round live and not practice): each job that ended is let
@@ -91,7 +92,8 @@ static func bot_of(c: Character, w: BotWorld) -> Bot:
 
 
 ## The MAG mode's move this tick (BotMovement): bringing one, a press once it can toss (it stands there), else the walk
-## over, sprinting while far; waiting, the walk up to a player it asked, or standing. Returns whether it walks.
+## over, sprinting while far, to within mag_walk_up_to (on, with a wall between); waiting, the walk up to a player it
+## asked, or standing. Returns whether it walks.
 static func move(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> bool:
 	b.mag_rush = false
 	var me := b.character
@@ -105,12 +107,12 @@ static func move(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> bool:
 				cmd.mag_hand_off = true
 			return false
 		b.mag_rush = _flat(to.position, me.position) > cfg.mag_hurry_distance
-		return _walk_to(b, w, to.position, cfg.mag_walk_up_to, dt)
+		return _walk_to(b, w, to.position, _up_to(me, to, w), dt)
 	var giver := _character(w, me.mag.asked) if me.mag.coming == 0 else null
 	if giver == null or bot_of(giver, w) != null:
 		_stand(b)
 		return false
-	return _walk_to(b, w, giver.position, cfg.mag_walk_up_to, dt)
+	return _walk_to(b, w, giver.position, _up_to(giver, me, w), dt)
 
 
 ## Whether `b` still brings `to` one: both in play, `to`'s ask to it standing with nothing in the air yet, one to spare,
@@ -154,6 +156,13 @@ static func _anyone_to_ask(me: Character, w: BotWorld) -> bool:
 		if _flat(c.position, me.position) <= reach and w.mag_share.has_mag_for(c, me):
 			return true
 	return false
+
+
+## How close a walk to the teammate in a hand-off stops (m): mag_walk_up_to while nothing of the level is between a toss
+## from `thrower` and `catcher`, else right up to them (0), so a wall between doesn't stop it on its far side.
+static func _up_to(thrower: Character, catcher: Character, w: BotWorld) -> float:
+	var rules := w.mag_share
+	return 0.0 if w.query.ray(rules.throw_point(thrower), rules.catch_point(catcher), _hit) else w.cfg.mag_walk_up_to
 
 
 ## Walks to `goal` (which may move) until within `arrive`. Returns whether it walks.

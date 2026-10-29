@@ -31,10 +31,11 @@ var you: Character = null
 var counts: Dictionary[int, int] = {}
 var tosses: Array[Vector2i] = []
 var catches: Array[Vector2i] = []
-var _nav_cache: NavGrid = null
+var _navs: Dictionary[String, NavGrid] = {}
 
 
-func _field() -> MapData:
+## The open field, with a wall (centre, size) for each pair in `walls`.
+func _field(walls: Array) -> MapData:
 	var m := MapData.new()
 	m.id = "open field"
 	m.kill_y = KILL_Y
@@ -43,6 +44,12 @@ func _field() -> MapData:
 	floor_block.center = Vector3(0.0, -0.25, 0.0)
 	floor_block.size = Vector3(100.0, 0.5, 100.0)
 	m.blocks.append(floor_block)
+	for pair: Array in walls:
+		var wall := MapData.Block.new()
+		wall.kind = &"wall"
+		wall.center = pair[0]
+		wall.size = pair[1]
+		m.blocks.append(wall)
 	for e in 2:
 		var end := MapEnd.new()
 		for i in 2:
@@ -55,15 +62,19 @@ func _field() -> MapData:
 
 ## Characters at `at` (you first; teams 0, 0, 0, 1 unless `teams` says), round 1 live and half a second gone, the bots
 ## holding their fire. With
-## `player` -1 every character is a bot; the opponent is driven by nobody unless `enemy_bot`. `level` both teams'.
+## `player` -1 every character is a bot; the opponent is driven by nobody unless `enemy_bot`. `level` both teams';
+## `walls` as _field.
 func _squad(at: Array[Vector3], level: StringName = &"normal", teams: Array[int] = [0, 0, 0, 1], player: int = YOU,
-		enemy_bot: bool = false) -> void:
-	map = _field()
+		enemy_bot: bool = false, walls: Array = []) -> void:
+	map = _field(walls)
 	var w := BoxWorld.new(tuning.body)
 	w.add_floor(100.0, 100.0)
-	if _nav_cache == null:
-		_nav_cache = NavGrid.build(map, tuning.nav, tuning.body)
-	nav = _nav_cache
+	for pair: Array in walls:
+		w.add_box(pair[0], pair[1])
+	var layout := str(walls)
+	if not _navs.has(layout):
+		_navs[layout] = NavGrid.build(map, tuning.nav, tuning.body)
+	nav = _navs[layout]
 	sim = Simulation.new(tuning, w, w.mover(), map.ends, KILL_Y)
 	sim.nav = nav
 	state = GameState.new(5, tuning)
@@ -355,6 +366,19 @@ func test_a_bot_asks_a_bot_which_comes_sprinting_then_running_and_tosses_while_t
 	assert_eq(giver.mag_for, null)
 	assert_eq(giver.character.armament.ammo[0].spare_bbs(), giver.character.armament.replicas[0].mag_size * 2,
 			"it gave one of its three and kept two")
+
+
+func test_a_wall_between_doesnt_stop_the_giver_on_its_far_side() -> void:
+	# A wall 6 m long between the asker and the giver, 2.5 m apart through it: the giver goes round to toss.
+	var wall: Array = [[Vector3(-20.0, 1.5, 20.0), Vector3(0.4, 3.0, 6.0)]]
+	_squad([YOU_AWAY, Vector3(-21.25, 0.0, 20.0), Vector3(-18.75, 0.0, 20.0), FAR_ORANGE], &"normal", [0, 0, 0, 1],
+			YOU, false, wall)
+	var giver := _bot(2)
+	_empty(state.characters[1])
+	_run(0.1)
+	assert_eq(giver.mag_for, state.characters[1])
+	assert_true(_run_to_catch(10.0), "it walks round the wall and tosses")
+	assert_eq(tosses, [Vector2i(2, 1)] as Array[Vector2i])
 
 
 func test_an_ask_you_never_answer_lapses_and_it_asks_again_no_sooner_than_the_gap() -> void:
