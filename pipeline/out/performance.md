@@ -1,19 +1,18 @@
-Task: MH1 · head 9fbce06 (stacked on PN2 cec11e8) · Verdict: Pass
-Run: real bot matches (tests/support/match_runner.gd, headless, seed 7, 240 s sim = 11,308 ticks Depot 3v3, 14,400 Woodland 5v5), 6 alternating reps each, head vs cec11e8 (git-archive copy in scratchpad); plus in-situ probes on both maps and a synthetic alloc loop · budget: no baseline yet (no perf-budget.json lines), judged against targets and cec11e8. Headless: script time only, no draw calls/frame times.
-Metrics (measured, medians of 6 reps, whole tick incl. bots, us/tick): Depot mean 887 -> 909 (+2.5 %), p50 843 -> 856 (+1.5 %); Woodland mean 2027 -> 2045 (+0.9 %), p50 1938 -> 1993 (+2.8 %). Rep-to-rep spread is ~10 %, so these are inside noise; ticks, shots and rounds are identical to base (336/633 shots), i.e. no behaviour change. Objects at end: +13 constant on both maps (RefCounted: config, MagShare, scratch, 6 tosses, Hand per character), no nodes, orphans or resources added.
-Regressions (> 10 % worse): none
-In-situ MagShare costs (real Depot/Woodland states, sampled during matches, us):
-- step with nothing happening (every tick of every match): 2.5 Depot / 3.2 Woodland = 0.3 % / 0.15 % of the tick. One loop over the 6 pool slots + one over the characters.
-- step, 1-2 asks standing: 12 Depot / 7 Woodland (mean); asks + all 6 tosses flying: 21 / 18 (max 35 / 69). Worker's 14 / 19 on BoxWorld agrees. Ask cost is has_mag_for per standing ask per tick (~5 us each), bounded by the character count.
-- press: refused (not low) 10 us; ask 19 us; toss with the eye-to-chest ray 41 Depot / 25 Woodland (max 62 / 96); a range-rejected can_toss_to 10 us (no ray). Worker's 43-61 us matches. A press is one-shot input, so a handful a second at most.
-Allocations (measured): 3,000 full cycles (4 drained chars press, 9,600 tosses, 41,600 refusals, 90,000 steps with tosses landing and fill_spares): OBJECT_COUNT delta 0, MEMORY_STATIC delta 0 B. No Array/Dictionary/String/Callable/lambda in step, press, _toss, _ask or the helpers (PackedInt32Array pouches are read in place, Vector2/Vector3 are values). Toss pool made once in GameState._init (game_state.gd:45, MagShare.make_tosses) and only toggled (simulation.gd start_match clears active). Events come from the pooled SimEvents (pool stayed 3 slots in the cycle test).
-Event volume (measured): MAG_REFUSED is one event per press, so at most one per character per tick. Worst case every character pressing every tick: 10 events/tick, pool 10, 99-126 us/tick for 10 chars (~10 us a press). Landings add at most 6 a tick. Bounded; pool does not grow past the busiest tick.
-Blocking findings: none
-Advisory:
-- mag_share.gd:229-230 (step): _still_asking re-runs has_mag_for (choose_spare + pouch_room + leaves_low) every tick for every standing ask, ~5 us each; fine at 10 characters (<= ~50 us worst, only while asks stand), but cheap to check only every few ticks or when a pouch changes (judgment).
-- mag_share.gd:131-137 (press) and _ask 246-257: each press scans the characters twice (_nearest_asker both ways) and has_mag_for per candidate; harmless for the player, but MH2's bots should gate presses on their ask gap/next_ask so 10 bots do not refuse every tick (a refusal storm costs ~100 us/tick and 10 events; judgment, for MH2).
-- No consumer of MAG_* events exists yet in game/; MH3's presentation should reuse its pooled voices/markers (as PN2 did) and not build a node or string per MAG_REFUSED/MAG_CATCH (judgment).
-- mag_share.gd:269 _nearest_asker and _ask use Vector2(...).length() per candidate; a squared compare would skip the sqrt, negligible (judgment).
-Fixes, ranked: none required.
-Unexplained: the +1.5-2.8 % median tick delta is larger than the 0.15-0.3 % the idle step explains; the 6-rep spread is ~10 % on a shared 4-core container, so it is attributed to noise, not the diff.
-Probe scripts (nothing committed, worktree clean): scratchpad/fg/mh1/probe.gd, alloc.gd, match.txt; bench scratchpad/fg/bench_match.gd.
+Task: NR1 · head b322395 (base 3a72ac7f) · Verdict: Pass
+Run: headless load and static review (no bot match run) · budget: no pipeline/perf-budget.json; judged against the
+owner's targets and docs/records/WL10.md.
+
+- No per-frame or per-tick code changed. Game code: map_data.gd presets_in (an early return on a missing file, once on
+  the Match page), ambience_config.gd IDS drops city, comments.
+- Deleted: 3 city loops, the city ambience cues, neonHeights.jpg and .json: install size and import cost go down.
+- play_tuning.tres: every SubResource and ExtResource reference resolves (checked by script), every ext_resource is
+  still used; the city beds and calls went with their `&"city"` keys by day and by night.
+- `godot --headless --quit`: no errors or warnings from this change (two NUL-character lines after the flag cloth
+  shader load are not from this diff, which touches no shader).
+- Woodland by night with torches is now the public path; the change there is data only. WL10 measured it: draws mean
+  200 to 276 at 5v5 and 217 to 276 at 6v6 by preset, primitives under 1.5M, headless CPU about 8 ms (5v5) and 9-10 ms
+  (6v6). Draws over the 150 High ceiling are an existing KNOWN_ISSUES row.
+
+Blocking: none.
+Advisory: KNOWN_ISSUES rows on Woodland frame time (unmeasured on real hardware) and night shadow casters weigh more
+now every player reaches Woodland at night; the owner should measure Low before a Beta tag.
