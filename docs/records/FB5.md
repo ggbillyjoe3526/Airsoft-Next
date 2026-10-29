@@ -75,12 +75,27 @@ skeleton and measured the same, and the tests run both):
 
 ## Performance
 
-PENDING
+- **Headless bench** (`tools/figure_bench.gd`, 11 figures walking loops on Depot, 15 s, Jolt rays; `--no-raise` the
+  before): animation per figure mean 113.4 / 112.0 µs before, 110.1 / 109.8 after; skeleton 22.6 / 22.4 before,
+  25.4 / 25.2 after (the figures near walls on their loops raise); both, 11 figures, mean 1.50 / 1.48 ms before, 1.49 /
+  1.49 after.
+- **Compatibility under Xvfb** (the same bench with `--perf`, drawn from the Alpha spawn, 1280x720, llvmpipe, 3 s
+  each, two runs): frame p50 152.4 / 146.7 ms before, 143.2 / 147.2 after; the 11 figures' p50 1.70 / 1.68 ms before,
+  1.73 / 1.78 after. The software renderer's frame dwarfs the figures; no change outside its noise.
+- **All 10 raised** (scratch: 10 figures each 0.5 m from a wall, BoxWorld's GDScript ray, the worst case): the ray
+  about 6 µs a figure a pose, the high ready 10 µs on the skeleton and up to 10 µs on the pose; 0.2 ms a frame for all
+  ten. Nothing allocated per frame: one `RayHit` a figure, made in `set_world`, Vector3 and Basis values only.
 
 ## Pictures
 
-PENDING
+`/mnt/project-files/screenshots/dev1-feedback/` (Compatibility under Xvfb, Depot, a scratch script): `fb5-wall-*` a
+bot standing 0.36 m from the south wall (before: the rifle in the wall; after: upright before its face),
+`fb5-crate-*` crouched 0.36 m from a single 1.2 m crate (before: the rifle and the left hand inside it; after: muzzle
+up over its top), `fb5-stack-*` standing at a 2.4 m stack, from the side (before: the rifle through it; after:
+upright, the magazine canted out). Each `-before.png` and `-after.png`.
 
 ## Gate
 
-PENDING
+gdlint clean on every changed script; `tools/unit_tests.sh` 1: 872/872, 2: 1793/1793, 3: 912/912; `tools/smoke_test.sh`
+PASS (zero script errors); `python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK. Not verified: how the
+swing up and down looks and feels in play (PLAYTEST › Players and replicas › Bots at walls), Forward+.
