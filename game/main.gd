@@ -589,7 +589,7 @@ func _quit_closed() -> void:
 	if _title != null and _title.visible:
 		_title.focus_start()
 	elif _menus != null and _menus.visible:
-		_menus.focus_default()
+		_menus.focus_page()
 
 
 func _process(_delta: float) -> void:
