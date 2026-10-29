@@ -1,26 +1,34 @@
-Task: FB4 · Feel fixes from the 0.1 Dev 1 playtest (notes 5, 7, 11, 12)
+Task: FB1 · Menu fixes from the 0.1 Dev 1 playtest (fix, UI)
 Attempt: 1 of 4
-Head: ec9fc1e (checks: worker's full parts 1-3 + smoke + wiki/changelog on the pre-fix head; fix round gdlint + 9 targeted files 99/99; QA 115/115 on f2c8846; CI runs the whole gate)
+Head: c623bba (worker: gdlint, unit parts 1-3 and smoke after fix round 1; QA Pass on c623bba, 38/38 FB1 tests; performance Pass on 9ce3f72)
 Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
 Score: 8/8 → Accept
 Evidence:
-1. note 5 replica_view.gd:120 (on_shot sets the hold) and :181-186 (the carry goes to 0 at sprint_fire_raise while the hold lasts); note 7 replica_view.gd:326 _press_depth/_pressed_copy (use_z_clip_scale on every surface, cached per source material), optic_glass.gdshader:30-37 + optic_glass.gd:106 (the glass presses to match), :229 pull-back off when aimed; figures left to FB5 with the KNOWN_ISSUES row; note 11 bb_ball.gdshader (rim), bb_view.gd:117 (bb_min_angle floor), :119-123 (trail), :145 drawn_at/across_flight (never ahead along the flight); note 12 movement.gd:22 (holster_sprint_scale 1.1).
-2. movement.gd stays pure sim; replica_view reacts to the SHOT event only (play_session.gd:909); no contract touched.
-3. bb_view.update and replica_view.update add only value types (Transform3D, Vector3, floats); material copies built once per view in _load; perf objdelta 0.
-4. test_hands_feel.gd:72 (hidden view): without the reset at replica_view.gd:147 the 0.33 s hold outlives the 5 shown frames and the pose stays square, so the assert fails; :61 fails with the old trigger_was_down term.
-5. Tuning in ViewModelConfig/EffectsConfig/MovementConfig; static types throughout; no globals.
-6. A rim, a 2-3 px floor and a 12 ms, 35 % fading trail keep a BB a BB, not a tracer; replica stays a toy.
-7. Copies are Resources held in the view's dictionaries, freed with it (perf: 931 -> 374 live); new .uid files committed.
-8. Record, changelog note, DECISIONS (owner ruling, note 12), KNOWN_ISSUES (row edited, FB5 row added), FEATURES, PLAYTEST, wiki (Movement table row via wiki.py, How-to-Play, Movement prose).
-Advisories (non-blocking):
-- changelog.d/sprint-fire-and-bb-sight.md:3 and PLAYTEST say it drops back "after you let go of the trigger"; since fix round 1 it is 0.35 s after the last shot (the same in normal play; "after your last shot" is exact).
-- viewmodel_config.gd sprint_fire_raise and depth_scale have no @export_range (QA 3): 0 gives NaN / collapsed depth.
-- QA advisory 4 (duplicated comment in optic_glass.gdshader:30-31) is not a duplicate: a two-line comment. No change needed.
-- Untracked tests/unit/test_mh1_qa.gd.uid in the tree is main's (MH1), not FB4's: keep it out of this branch.
+1. Item 1: menu_switch.gd:128-131 (width fixed to the longer word, SHRINK_CENTER), settings_screen.gd:669 (every switch a MenuSwitch),
+   settings_graphics_page.gd:254 (preset blurb reserves 3 lines). Item 2: settings_graphics_page.gd:239 (tag z_index 1).
+   Item 14: customise_view.gd:180 (margin ignores the mouse) and :195 (crumb built last); menu_screen.gd:115 (LOADOUT tab leaves Customise).
+   Item 18: button_width.gd:57-70, used by top_bar.gd:77, pause_menu.gd:180, menu_choice.gd:77, match bots/rules/team rows and the dialogs.
+   Item 19: top_bar.gd:190 (wordmark button), main.gd:212 (title), main.gd:545-574 (Esc asks QUIT GAME?, focus restored). Item 21: settings_screen.gd:145.
+2. ARCHITECTURE › Contracts names no menu or UI file; none touched.
+3. No _process/_physics_process added. main.gd:545 is an early-return chain per input event. button_width.gd:58 builds a small Array per
+   refresh, but refresh runs only on minimum_size_changed / visibility_changed (screen and tab changes, n <= 8 per group): event-driven, not per frame.
+   The fix round's visibility_changed costs n refreshes of O(n) per show/hide of a group's screen; negligible at these sizes.
+4. test_fb1_menus.gd:163 hit-tests the Customise LOADOUT button (fails with the full-rect margin over it); :87 presses every Settings switch and
+   compares every rect; test_fb1_qa.gd:113 pins hidden buttons out of the width.
+5. UI only; typed throughout (ButtonWidth._buttons is a deliberate untyped Array of possibly-freed entries); tuning in named consts; no globals.
+6. Menu polish the owner asked for; no assets, no tone change. Esc-to-quit in Settings matches "ESC anywhere in the menus".
+7. Three new small scripts; QuitPrompt queue_free()d on close; group lifetime via button meta; no .tscn edits.
+8. Six owner items only; record, changelog note, DECISIONS (two rulings), wiki Controls/Getting-Started/Settings, PLAYTEST updated.
+Advisories (not blocking):
+- pause_menu.gd:23,53: PANEL_WIDTH and PRACTICE_WIDTH are both 0.0 now; drop them or the line that sets them.
+- menu_switch.gd:121: local `size` shadows Control.size (an editor warning); rename it.
+- Pause panel (fb1-after-pause-match.png): the seed row is ~10 px wider than the buttons, so the right edge is ragged.
+- docs/wiki/Controls.md:31 lists what takes Esc first but leaves out Customise and the credits.
+Must-fix for the next attempt: none.
 Owner should test in the game:
-- Hold Left Alt and fire full auto, then stop: the rifle comes up square at once and drops back about 0.35 s later.
-- Hold Left Alt, fire, press R with the trigger held: the reload plays from the low carry.
-- Stand against a wall at the hip and aimed (red dot, 2x scope): the replica draws over it; look for a dark SSAO halo and for the scope glass sitting in its scope.
-- Follow white BBs to 30 m against a pale wall and the sky: rim and trail read, never a tracer.
-- Shoot a wall from 2-5 m: each BB vanishes at the face; does your BB's first frame beside the barrel look detached?
-- Press 3 and sprint: is +10 % felt?
+- Settings, every tab: press each On/Off switch; nothing beside or below it moves, and the Graphics "FOR YOUR CARD" tag reads in full.
+- Loadout › Customise: click LOADOUT at the top left, and the LOADOUT tab; both go back.
+- Menus, title and Settings: Esc opens QUIT GAME? with CANCEL lit; Esc or CANCEL closes it and the keyboard is where it was; QUIT exits.
+- Click AIRSOFT at the top left from Match, Armory and Settings: the title shows; in practice's Loadout it does nothing.
+- Button widths on Match, Settings, pause (match and practice): each group one width, no wide empty boxes; Back small at the bottom left.
+- Esc in a match still pauses, and Esc in the pause menu's Settings closes them.
