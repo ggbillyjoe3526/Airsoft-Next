@@ -1,38 +1,39 @@
-Task: MH1 · QA commit (see git log, "MH1: QA tests") · Verdict: Pass
+Task: MH2 · QA commit (see git log, "MH2: QA tests") · Verdict: Pass
 
 Blocking: none.
 
 Advisory:
-1. game/sim/mag_share.gd:54 and :309 · `Hand.player` is set by nobody. The sim does not know the player (no player id in
-   GameState/Simulation), so until MH3 sets it the player's gap is the bot's 20 s, not 4 s (criterion 2). MH3's task
-   block (docs/TASKS.md "## MH3") does not list the setter, only the record says so; add it to MH3's acceptance (play_session
-   sets `characters[player_id].mag.player = true`), or give GameState a player id here. Nothing presses before MH3, so no
-   player-visible effect now.
-2. game/sim/mag_share.gd:339-348 · a toss re-checks reach, line and fit but not "keep one full spare" (`leaves_low`): only
-   asks do (has_mag_for, re-validated every tick). Same as the browser ("the simulation tosses whatever a command asks"),
-   so a player can hand over their last spare on purpose; a bot only presses for an asker it could still spare for.
-3. Ask lapse is `>` (mag_share.gd:301): an ask stands 15 s plus up to one tick. Harmless.
+- Criterion 5: it says KNOWN_ISSUES' magazine sharing row goes; the worker replaced it with a narrower row (a bot asking you
+  before MH3, a busy giver's and a pole-bound giver's asks standing unanswered). Reasonable, but the lead should accept it.
+- A bot giver that has its own ask standing never takes a job (bot_mag_share.gd:129, `me.mag.asked < 0`), so an ask to it
+  stands its 15 s unanswered: a third unanswered-ask case, not in the KNOWN_ISSUES row.
+- The criterion 4 guard (test_match_guards.gd MagWatch) marks a bot "held" if its giver was in FIGHT or COVER at any tick of
+  the 10 s, however briefly, so the allowance of 2 per field (MAG_HELD_MAX) could hide a real stall that coincides with a
+  short fight; it re-checks "nobody to ask" only at the timeout. Measured: 1 held on Depot (seed 16), 0 on Woodland, so the
+  allowance is not being used up. 14 of 55 Depot bots are left out as hit or round over (25 %).
+- A bot waiting for a bot giver stands in the open for as long as the giver fights or sits in cover (up to the 15 s ask).
 
-Checked against the code, all as specified: one-press order (nearest asker in reach, else ask if low with ALREADY/WAIT,
-else NOT_LOW / TOO_FAR / NO_SPARE; NOBODY from the ask); low and room per replica from mag_size and Class (rifle/pistol);
-toss BBs leave the spare at once, land in the emptiest spares, lost only for catcher out of play or round decided, the
-reload swap in flight cannot shrink capacity so nothing is silently dropped; 15 s / 4 s / 20 s; asks end on out, giver
-out, giver cannot spare, round not live, and stand while a magazine is in the air; respawn clears the hand (keeps
-`player`); start_match grounds tosses; the lost-on-decided toss lands on the first non-live tick, before any round start
-(mag_share.step runs before Round.step); pool made once, 6; practice and out refuse as NOT_NOW; five events appended
-after PING; no per-tick allocation seen (typed loops, pooled events, scratch picks).
+Checked and sound:
+- A low bot presses at most once a second and never storms MAG_REFUSED: 0 refusals in 6 full Depot and 2 Woodland matches
+  with the Dev setting on (the asker's check mirrors MagShare._ask exactly); two askers for one giver: both served, 0 refusals.
+- Priorities fight/cover > bringing > order > pole > waiting (code read; new cover test); sprint over 8 m, walk to 3 m and the
+  wall case (existing tests pass); giver or asker hit mid-walk, round end mid-walk: jobs and asks let go, asker plays on,
+  nothing pressed after, new round starts clean.
+- Asks only for the primary, an unused pistol given freely, the three calls, Bot intentions labels (enum order and en.po keys
+  match), no per-tick allocation (existing test; code read).
+- Dev setting off = identical: event and position hash, ticks, rounds, hits and shots equal to 9fbce06 for Depot seeds 1-4 and
+  Woodland seeds 1-2 (whole matches; 0 asks occur naturally).
+- Criterion 4 guard run: passes, Depot 33 served (max 9.6 s), Woodland 47 served (max 4.7 s), 0 late; matches the record.
+  No neonHeights references added.
 
-Tests added (tests/unit/test_mh1_qa.gd, 9 pass; with test_mag_share.gd 38 pass, 1674 asserts, 2.2 s):
-- :60 appended kinds · assert MAG_ASK == PING + 1 ... MAG_REFUSED the max; fails if a kind is moved or inserted.
-- :70 thrower put out in the air · catch still lands, BBs conserved, ask ends; fails if the catch needed the thrower.
-- :84 catcher put out in the air · MAG_LOST, only that toss's BBs gone, ask and coming cleared; checked by mutating
-  `caught` to ignore is_in_play: fails (540 vs 480).
-- :100 catcher reloads in flight · every BB lands (conservation).
-- :112 round decided with two asks and a toss in flight · lost and cleared in the pause, next round clean, spares full.
-- :148 respawn clears the hand but keeps `player`; checked by stubbing out `mag.clear()` in respawn: fails.
-- :162 nobody presses · 1500 ticks, no MAG_ event, no BB moved, no ask or toss.
-- :176 practice range · press refused (NOT_NOW), no toss.
-- :190 ask stands while its magazine flies even with the giver out.
+Tests added (tests/unit/test_mh2_qa.gd, 6, all pass; none can pass at 9fbce06 because bots never press there, so
+mag_for, asks and tosses are never set):
+- test_a_giver_hit_mid_walk_lets_go_and_the_asker_plays_on_without_a_press
+- test_an_asker_hit_mid_walk_frees_the_giver_to_go_on
+- test_the_round_ending_mid_walk_clears_the_jobs_and_the_next_round_starts_clean
+- test_two_askers_for_one_giver_are_both_served_and_neither_press_storms
+- test_a_giver_who_cannot_toss_yet_presses_no_more_than_once_a_second
+- test_a_giver_in_cover_stays_there_until_the_cover_episode_is_over_then_brings_it
 
-Not run: tools/check.sh (told not to), tools/smoke_test.sh (machine busy with the perf agent's benchmarks); the player's
-H key and HUD do not exist yet (MH3). Raw logs under pipeline/out/qa/ are not committed.
+Runs: test_bot_mag_share 20/20; 22 touched files plus mine 368/368 (481 s); match guard (criterion 4) pass; gdlint clean on
+changed files. Not run: tools/check.sh and smoke test (told not to); how it plays and the Dev row on a display.
