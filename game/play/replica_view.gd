@@ -217,12 +217,13 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 	if held.selector != null:
 		held.selector.mode = a.fire_mode()
 
-	# Pulled back from a wall in front.
+	# Pulled back from a wall in front, at the hip.
 	var pull := 0.0
 	if _query.ray(eye, eye + look * _cfg.reach, _wall):
 		pull = minf(_cfg.pull_back_max, _cfg.reach * (1.0 - _wall.fraction))
 	_pull = lerpf(_pull, pull, follow)
-	pos.z += _pull
+	# Aimed, the sight stays at the eye (pulled back it would pass behind it); the pressed depth keeps it over the wall.
+	pos.z += _pull * (1.0 - raise)
 
 	held.root.position = pos
 	held.root.rotation = rot
