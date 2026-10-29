@@ -4,7 +4,9 @@ extends Node3D
 ## its model (assets/models/replicas/<id>.glb), the one in hand shown, posed from the character's state every rendered
 ## frame: at the hip or with its sight line through the eye as the sight comes up, dropped while it is drawn, carried
 ## low on a sprint, canted through a reload, kicked back by each shot, lagging a touch behind a turn and pulled back
-## near a wall so it never pokes through one. A gas pistol's slide locks back on its last BB and closes near the end of
+## near a wall, and what still reaches into a wall drawn over it, never into it (its depth pressed towards the eye:
+## ViewModelConfig.depth_scale). Fired on the run it comes up out of the carry, square to the view, while
+## the trigger is held and a moment after the last shot. A gas pistol's slide locks back on its last BB and closes near the end of
 ## the reload; the fire selector shows the mode it is set to (SelectorPose). Its parts are fitted from their models
 ## (ReplicaParts), as the menus show them; aimed with an optic, the eye looks along the optic's sight line through its
 ## glass (OpticGlass). Reduced motion (set_motion) draws less of the sway, the kick and the reload's cant. Hit
@@ -52,6 +54,8 @@ var _jolt: float = 0.0
 var _hit_age: float = -1.0
 var _sway: Vector2 = Vector2.ZERO
 var _carry: float = 0.0
+## Seconds left that a shot holds it up out of the sprint carry.
+var _fire_hold: float = 0.0
 ## How far into the holster it is (0 in hand, 1 put away); kept through a draw from the holster, which rises from it.
 var _away: float = 0.0
 var _pull: float = 0.0
@@ -62,6 +66,10 @@ var _wall: RayHit = RayHit.new()
 var _glass: OpticGlass = null
 ## How much of the sway, the kick and the reload's cant to draw (Reduced motion).
 var _motion: MotionScale = MotionScale.new()
+## Each material the replicas wear and its copy with the depth pressed (ViewModelConfig.depth_scale), made once a view
+## (shared paints are pressed once), and each copy's own.
+var _pressed: Dictionary[Material, Material] = {}
+var _pressed_from: Dictionary[Material, Material] = {}
 
 
 ## Draws `loadout` from its models, slot `i` in `paints[i]` (the replica's default where the kit names none; see
@@ -109,6 +117,7 @@ func muzzle_position() -> Vector3:
 ## A shot from the replica in hand: kick it back and work its trigger (and a pistol's slide).
 func on_shot() -> void:
 	_kick = minf(_cfg.kick_max, _kick + 1.0)
+	_fire_hold = _cfg.sprint_fire_hold
 	if _active >= 0 and _held[_active].anim != null and _held[_active].anim.has_animation(FIRE_CLIP):
 		_held[_active].anim.stop()
 		_held[_active].anim.play(FIRE_CLIP)
@@ -167,8 +176,11 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 	if dropping:
 		pos.y -= _cfg.hit_drop * smoothstep(0.0, _cfg.hit_drop_time, _hit_age)
 
-	# Carried low on a sprint.
-	_carry = move_toward(_carry, 1.0 if c.sprinting else 0.0, delta / _cfg.carry_time)
+	# Carried low on a sprint, unless firing: the trigger held or a shot a moment ago brings it up, quicker.
+	_fire_hold = maxf(0.0, _fire_hold - delta)
+	var firing := _fire_hold > 0.0 or (a.trigger_was_down and not a.holstered)
+	var carry_rate := _cfg.sprint_fire_raise if firing else _cfg.carry_time
+	_carry = move_toward(_carry, 1.0 if c.sprinting and not firing else 0.0, delta / carry_rate)
 	pos.y -= _cfg.sprint_drop * _carry
 	rot.y += _cfg.sprint_tilt * 0.5 * _carry
 	rot.x -= _cfg.sprint_tilt * 0.3 * _carry
@@ -307,7 +319,41 @@ func _load(r: ReplicaConfig, paint: StringName, realistic: bool, parts: Dictiona
 	for mesh: Node in model.find_children("*", "GeometryInstance3D", true, false):
 		(mesh as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		(mesh as GeometryInstance3D).layers = OpticGlass.HANDS_LAYER
+	_press_depth(model)
 	return held
+
+
+## The material surface `i` of `mesh_node` wears as painted (ReplicaPaint), before its depth was pressed: null where it
+## wears the model's own.
+func painted(mesh_node: MeshInstance3D, i: int) -> Material:
+	var worn := mesh_node.get_surface_override_material(i)
+	var source: Material = _pressed_from.get(worn, worn)
+	return null if source == mesh_node.mesh.surface_get_material(i) else source
+
+
+## Every surface of `model` wears a copy of its material with the depth pressed towards the eye, so the replica draws
+## over a wall it reaches into. The optic's glass presses its own (OpticGlass).
+func _press_depth(model: Node) -> void:
+	if _cfg.depth_scale >= 1.0:
+		return
+	for node: Node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_node := node as MeshInstance3D
+		if mesh_node.mesh == null or mesh_node.material_override != null:
+			continue
+		for i in mesh_node.mesh.get_surface_count():
+			var worn := mesh_node.get_active_material(i) as BaseMaterial3D
+			if worn != null:
+				mesh_node.set_surface_override_material(i, _pressed_copy(worn))
+
+
+func _pressed_copy(worn: BaseMaterial3D) -> Material:
+	if not _pressed.has(worn):
+		var copy := worn.duplicate() as BaseMaterial3D
+		copy.use_z_clip_scale = true
+		copy.z_clip_scale = _cfg.depth_scale
+		_pressed[worn] = copy
+		_pressed_from[copy] = worn
+	return _pressed[worn]
 
 
 ## Aims `held` along its optic's sight line: with a glass, the eye sits optic_eye_back behind it (and the glass is drawn,

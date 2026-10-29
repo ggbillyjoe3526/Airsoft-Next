@@ -42,6 +42,11 @@ extends Resource
 @export var sprint_tilt: float = 0.5
 ## Seconds to move into and out of the sprint carry.
 @export var carry_time: float = 0.2
+## Firing on the run (the trigger held, or a shot) brings it up out of the carry, square to the view, in
+## sprint_fire_raise seconds, and it stays up sprint_fire_hold seconds after the last shot before the carry takes it
+## again (the browser game's renderView.ts sprintFireRaise and sprintFireHold; the owner's 0.1 Dev 1 note 5).
+@export var sprint_fire_raise: float = 0.06
+@export var sprint_fire_hold: float = 0.35
 ## The holster (the browser game's renderView.ts holster): put away it drops this far (out of view) and tips this much
 ## (rad) over holster_time seconds; drawn from the holster it rises from there over the whole draw.
 @export var holster_drop: float = 0.5
@@ -63,8 +68,12 @@ extends Resource
 ## this far (share) through the reload that follows.
 @export var slide_lock_after: float = 0.05
 @export var slide_release_at: float = 0.85
-## Near a wall the replica is pulled back towards you, so it never pokes through: it is this long (m) from the eye.
+## Near a wall the replica is pulled back towards you: it is this long (m) from the eye.
 @export var reach: float = 0.75
 @export var pull_back_max: float = 0.3
+## Whatever the pull-back leaves in a wall is drawn over it, never into it (the owner's 0.1 Dev 1 note 7): the replica's
+## materials and its optic's glass press its depth towards the eye to this share (Godot's z clip scale, the same on
+## both renderers; light and shadows unchanged, no extra pass). 1 draws it at its true depth.
+@export var depth_scale: float = 0.25
 ## Where the selector sits along its clip in each fire mode (semi, burst, auto), as a share of the clip.
 @export var selector_at: PackedFloat32Array = PackedFloat32Array([0.5, 0.75, 1.0])

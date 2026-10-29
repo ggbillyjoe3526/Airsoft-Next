@@ -27,6 +27,15 @@ uniform float sheen_px = 3.0;
 uniform float sheen = 0.3;
 uniform vec3 sheen_colour : source_color = vec3(0.85, 0.9, 1.0);
 
+// The replica in your hands draws its depth pressed towards the eye to this share (ViewModelConfig.depth_scale, as its
+// materials' z clip scale do), so the glass sits in it as it does unpressed.
+uniform float z_clip_scale = 1.0;
+
+void vertex() {
+	POSITION = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
+	POSITION.z = mix(POSITION.w, POSITION.z, z_clip_scale);
+}
+
 void fragment() {
 	// The disc: UV's centre out to its edge, softened over a pixel.
 	float r = length(UV - 0.5) * 2.0;
