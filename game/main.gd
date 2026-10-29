@@ -299,13 +299,13 @@ func _smoke_bug_report() -> void:
 		_report_panel.back_button().pressed.emit()
 
 
-## Opens the match picked: practice when the Match page has Practice picked (START PRACTICE) or `smoke_practice` is given
-## (the smoke test's way in).
 ## Whether the Match page's map and team are kept across launches: not in the smoke run or a headless one.
 func _keeps_picks() -> bool:
 	return not (_smoke or DisplayServer.get_name() == "headless")
 
 
+## Opens the match picked: practice when the Match page has Practice picked (START PRACTICE) or `smoke_practice` is given
+## (the smoke test's way in).
 func _start_play(smoke_practice: bool = false) -> void:
 	if _play != null:
 		return
