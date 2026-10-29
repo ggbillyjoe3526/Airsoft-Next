@@ -1,55 +1,21 @@
-Task: FB4 · QA commit afa6430 · Verdict: Pass
-Scope: raise on the run, holstered sprint, BB sight and drawn place, pressed hands depth (notes 5, 7, 11, 12). Head f2c8846.
+Task: BP1 · QA commit f2ffbc3 · Verdict: Pass
 
 Blocking: none.
+Advisory:
+- `ProcessCheck._first_arg` still logs "Unicode parsing error" for a non-UTF-8 argv0, or a multi-byte character cut by the 4096-byte buffer (game/core/process_check.gd:76); pre-existing, needs an absurd cmdline. A byte-wise ASCII decode would end it. KNOWN_ISSUES row at most.
+- A bot waiting on the player's toss re-reads the line every tick, so a leaning player on the edge of a beam can flip it between standing and walking (game/ai/bot_mag_share.gd:174); no hysteresis, cosmetic.
+- A giver whose line can never clear (receiver unreachable) walks until the ask lapses (ask_time 15 s) and then drops the job; it does not loop forever.
+- test_run_record_real_process.gd asserted the own-process cmdline unguarded, so it failed off Linux; QA gated it on OS.get_name() == "Linux" (the file's other tests do the same).
 
-Advisory (for KNOWN_ISSUES or a later polish pass):
-1. replica_view.gd:180 a held trigger keeps the replica up on a sprint even when nothing fires: a semi replica with the
-   trigger held, an empty magazine, or the whole reload (the reload cant then sits on the raised pose, no carry).
-   Harmless, but a sprint-reload with the mouse held never shows the low carry. Trigger: sprint, hold fire, press R.
-2. replica_view.gd:134 the early return when not visible (eliminated) stops `_fire_hold` ticking down, so a shot just
-   before elimination can hold the replica up for up to 0.35 s after the next spawn. Cosmetic.
-3. viewmodel_config.gd:77 `depth_scale` has no range: 0 collapses the hands onto one depth (parts z-fight each other),
-   negative values flip it. `sprint_fire_raise` of 0 gives 0/0 = NaN on a zero-length frame (the same hole `carry_time`
-   already has). Both are tuning values nobody sets; an @export_range would close them.
-4. optic_glass.gdshader:30-31 the comment line is duplicated.
-5. bb_view.gd (trail): a ricochet's trail is drawn back along the new heading, so for its first frames it points into the
-   surface it left (hidden by depth, but a straight stub, not the bent path). Cosmetic; BB path is correct.
-6. A own BB now appears at the eye plane beside the barrel, so its first drawn frame is 0 to 1.5 m ahead of the eye
-   (low right), not at the muzzle tip. Intended by the fix; the owner may notice a BB that no longer starts at the barrel.
-7. Not checkable here (Forward+ and a real GPU): SSAO is on in the field presets and reads the depth buffer, where the
-   hands now sit pressed to a quarter; a dark halo round the replica or on the wall behind it is possible. The glass
-   shader writes POSITION.z by hand (`mix(w, z, scale)`) to match the engine's z clip scale; verified on Compatibility
-   only. Both go to the owner's list: aim the 2x scope and hip-fire against a wall, look for a halo and for the glass
-   sitting in its scope.
+Hunted, no bug: giver at exactly 3.0 m (walks when blocked, tosses when clear), 0.8 m, 5.9 m, 6.1 m (out of range, line clear: walks to 3 m); waist and chest cover and a beam, giver and receiver standing or crouched, leaning left, right or upright (no prone in this game); the receiver's line clearing mid-walk (presses the next tick); the receiver eliminated mid-walk (job dropped by update); the player as receiver and as giver; `_first_arg` with an empty file, all NULs, a 10 000-byte argument with and without a NUL, a missing file (what Windows has: no /proc, and the function is only reached on Linux), a multi-byte name.
 
-Checked and fine: holstered trigger held or a shot then holster never lifts the carry; reload, switch, holster, draw and
-shots in one sprint stay finite and settle on the same pose as a fresh view; sprint stop with the trigger down never dips
-below the hip; the holstered pace is never slower in any stance (sprint x walk x crouch x lean), walking and crouching gain
-nothing, the plain sprint is 1.1x, lean slows it smoothly, aim-walk scales it; no code but movement.gd reads
-sprint_speed (grep), bots never fire on a sprint (bot_combat.gd:141) so the third-person figures need no raise; wiki table
-generates and `wiki.py check` passes; every surface of AEG (scope, silencer, long barrel, hi-cap), pistol (laser,
-silencer, extended) and the Cyber Pistol is a BaseMaterial3D pressed, the scope's glass disc presses its own; Realistic
-colours press the realistic paint, shared paints, models' own and a figure's replica stay unpressed, copies free with the view;
-a drawn own BB is never ahead along its flight for 400 random muzzles; a full mixed pool draws once each, trails on white only;
-a stopped BB takes its ball and trail; trail never longer than the BB has flown.
+Tests added (tests/unit/test_bp1_qa.gd, 9 tests; the two beam sweeps fail on the old _up_to, checked by restoring bad13b6's bot_mag_share.gd and running them: 2 fail, then restored):
+- :73 and :78 · a bot bringing one walks or tosses, never stands without a toss, across 4 distances x 11 heights x crouch x crouch x lean; cover from the floor up and a 15 cm beam. The beam sweep fails on the old code, the cover sweep passes on both (guards the invariant).
+- :97 and :102 · a bot waiting on the player's toss walks up unless the player can toss from where they stand, the same sweeps; the beam one fails on the old code.
+- crouched catcher behind low cover blocks the toss, standing one doesn't, giver stepping up clears it (toss_line_clear).
+- line clears mid-walk: presses next tick; catcher out mid-walk: job dropped.
+- `_first_arg`: empty, all NUL, 10 000 bytes with and without NUL, missing file, multi-byte name (pin the results only; the old code gave the same strings and logged the NUL errors, which test_compiling_the_process_check_logs_no_error already pins).
 
-Tests added: tests/unit/test_fb4_qa.gd (15). Each was run against a scratch copy with the feature stubbed out:
- :76 holstered trigger no raise · removing `not a.holstered` fails it
- :93 reload/switch/holster sequence, finite and back to the carry · a `_fire_hold` that never decays fails it
- :146 no dip stopping a sprint with the trigger down · (guards the carry rate change; passes on main as well)
- :164 stance table · :192 lean/aim · dropping holster_sprint_scale fails both
- :211 every surface pressed (parts, glass) · :242 Realistic colours · :280 freed with the view · :303 two views/figure
-   paint untouched · removing `_press_depth(model)` fails all four; :211 and :269 also fail without the glass uniform
- :269 glass follows depth_scale · removing the uniform set fails it
- :322 never ahead along the flight · using the raw muzzle offset fails it; :343 a bot's BB is not offset
- :352 full mixed pool, trails white only · :377 stopped BB · disabling the trail instances fails both; :397 trail length
-   bounded by age and following the heading (pure helper check, passes on main for the age bound)
-
-Counts: test_fb4_qa 15/15, 1375 asserts; targeted run (that file plus hands_feel, bb_sight, bb_walls, holster, glow_bbs,
-replica_paint, lo3_qa, at3_qa, movement) 115/115, 2077 asserts, 20 s. gdlint clean. tools/smoke_test.sh passes (frames=2625,
-zero script errors). Raw output: pipeline/out/qa/fb4-targeted.txt. Not run (machine load, worker ran them green):
-full parts 1-3, match guards.
-
-For the owner (needs a display): the raise reads right on a sprint-fire; +10 % holstered sprint is felt; BB rim and trail on
-Forward+; the replica over a wall, and item 7 above.
+Run: targeted files (bot_mag_share, mag_share, mh1_qa, run_record, run_record_real_process, bp1_qa) 93 tests pass; smoke test passes (0 script errors, 0 "Unexpected NUL" lines). Not run (load; worker ran them): full parts 1-3, match guards, tools/check.sh.
+Not tested: the real maps (the sweeps use a plain level with one obstacle; real-map bot matches were the worker's guards).
+Not testable here: how the walk-up looks and feels in play (owner: ask a bot for a mag across a window frame and a low wall, on both maps).

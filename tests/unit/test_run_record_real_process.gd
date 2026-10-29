@@ -107,8 +107,9 @@ func test_the_first_argument_of_a_cmdline_file_is_the_bytes_before_the_first_nul
 		f.close()
 		assert_eq(ProcessCheck._first_arg(path), want)
 	DirAccess.remove_absolute(path)
-	var own := ProcessCheck._first_arg("/proc/%d/cmdline" % OS.get_process_id())
-	assert_true(own != "" and not own.contains("--"), "this process's own: the program it was started by, alone")
+	if OS.get_name() == "Linux":
+		var own := ProcessCheck._first_arg("/proc/%d/cmdline" % OS.get_process_id())
+		assert_true(own != "" and not own.contains("--"), "this process's own: the program it was started by, alone")
 
 
 
