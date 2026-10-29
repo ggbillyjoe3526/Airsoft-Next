@@ -294,3 +294,46 @@ func test_the_ray_never_sees_another_figure_only_the_level_asks() -> void:
 	other.position = mate.position
 	await _run(v, c, 30)
 	assert_eq(v.body().bend.high_ready, 0.0, "a figure 0.5 m ahead does not raise it")
+
+
+func test_shown_again_at_a_wall_it_is_raised_within_a_few_frames_whatever_the_ray_parity() -> void:
+	for extra: int in [0, 1]:
+		var c := _character()
+		var world := BoxWorld.new(body)
+		_wall(world, 0.45)
+		var v := _view(FigureMix.HUMAN, c, world)
+		await _run(v, c, 40 + extra)
+		v.visible = false
+		v.animate(c, 1.0, FRAME, EYE)
+		v.visible = true
+		var seen: Array[float] = []
+		for i in 12:
+			v.update(c, 1.0)
+			v.animate(c, 1.0, FRAME, EYE)
+			seen.append(v.body().bend.high_ready)
+		# A ray this pose: raised at once; none yet: level, then eased up (no stale raise, no step half way).
+		assert_true(seen[0] < 0.01 or seen[0] > 0.9, "level or fully raised on the first pose: %s" % str(seen))
+		assert_gt(seen[11], 0.85, "raised again within 12 poses, parity %d: %s" % [extra, str(seen)])
+		for i in range(1, seen.size()):
+			assert_gte(seen[i], seen[i - 1] - 0.001, "rising, never flickering, parity %d" % extra)
+
+
+func test_a_wall_at_the_edge_of_reach_never_makes_the_raise_flicker() -> void:
+	# The target hovers around none (the level at the reach's edge, a figure's own sway): the drawn raise never jumps.
+	for edge: float in [config.raise_reach_rifle - 0.002, config.raise_reach_rifle - 0.0001,
+			config.raise_reach_rifle + 0.0001]:
+		var c := _character()
+		var world := BoxWorld.new(body)
+		_wall(world, edge)
+		var v := _view(FigureMix.HUMAN, c, world)
+		var last := 0.0
+		for i in 60:
+			# The figure sways in and out across the edge of reach every other pose.
+			c.position.z = 0.0005 * float(i % 2)
+			c.prev_position = c.position
+			v.update(c, 1.0)
+			v.position = c.position
+			v.animate(c, 1.0, FRAME, EYE)
+			var now := v.body().bend.high_ready
+			assert_lt(absf(now - last), 0.05, "no jump at pose %d (edge %.4f)" % [i, edge])
+			last = now
