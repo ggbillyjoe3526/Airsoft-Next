@@ -54,6 +54,14 @@ var _effects: EffectsConfig = null
 var _floor_y: float = 0.0
 ## The disc's radius as last placed (m: narrower crouched).
 var _contact_radius: float = 0.0
+## Muzzle up at a wall (FB5): the level the ray asks (null: never raised), the body's eye heights, the ray's scratch,
+## poses left until the next ray, and the time since the last shot (s; a shot holds the replica level).
+var _world: WorldQuery = null
+var _body_config: BodyConfig = null
+var _wall: RayHit = null
+var _raise_wait: int = 0
+var _raise_stride: int = 1
+var _since_shot: float = INF
 
 
 ## Draws `c` in `team_colour` (the body's Team* paint, set_body, and the sign's outline), glowing with `glow` of it
@@ -66,6 +74,7 @@ func setup(c: Character, team_colour: Color, hits: HitConfig, font: Font,
 	_floor_y = c.position.y
 	var cfg := figures if figures != null else FigureConfig.new()
 	_flinch = FigureFlinch.new(cfg)
+	_raise_stride = maxi(cfg.raise_stride, 1)
 	_hits = hits
 	_team = c.team
 	_team_colour = team_colour
@@ -109,6 +118,16 @@ func set_body(models: FigureModels, kind: int, lines: Vector2) -> void:
 		else:
 			_body.free()
 			_body = null
+
+
+## Raises the replica, muzzle up, at level geometry `query` finds within its reach along the aim (FB5), the eyes at
+## `body`'s heights; the rays are spread over the figures by id.
+func set_world(query: WorldQuery, body_config: BodyConfig) -> void:
+	_world = query
+	_body_config = body_config
+	if _wall == null:
+		_wall = RayHit.new()
+	_raise_wait = absi(character_id) % _raise_stride
 
 
 ## The figure drawn, or null.
@@ -285,6 +304,12 @@ func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 	_far_frames = 0
 	_far_delta = 0.0
 	_pose.read(c, fraction, _hits)
+	_since_shot = 0.0 if _fired else _since_shot + delta
+	if _snap:
+		# Shown again (or first posed): the pose snaps to this target, so one from before it was hidden is dropped (level
+		# until the figure's next ray, which keeps its turn among the others).
+		_pose.raise_target = 0.0
+	_pose.raise_target = _raise_target(c)
 	if _snap:
 		_snap = false
 		_pose.snap()
@@ -296,6 +321,34 @@ func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 	if _fade < 1.0:
 		_body.hands.show_hands(-1, -1, false)
 		_body.hands.show_reload(-1, 0.0, true)
+
+
+## How far (0..1) the replica is raised at the level ahead of `c`'s aim, as `_pose` read it (FB5): by how close the
+## level comes within the replica's reach (ahead of the figure's speed by raise_lead), eased out, one ray every
+## raise_stride poses; none for a replica held level after a shot, holstered, out of the hand or out of play.
+func _raise_target(c: Character) -> float:
+	var cfg := _pose.config()
+	if _world == null or c.status != Character.Status.ALIVE or _pose.in_hand < 0 or _pose.holster > 0.0 \
+			or _since_shot < cfg.raise_fire_hold:
+		return 0.0
+	if _raise_wait > 0:
+		_raise_wait -= 1
+		return _pose.raise_target
+	_raise_wait = _raise_stride - 1
+	var yaw := rotation.y
+	var h := Character.eye_height(_pose.crouch, _body_config)
+	var from := _pose.feet + Vector3(0.0, h - cfg.raise_drop, 0.0) \
+			+ Lean.offset(h, _pose.lean, _pose.crouch, yaw, _hits)
+	var cp := cos(_pose.pitch)
+	var way := Vector3(-sin(yaw) * cp, sin(_pose.pitch), -cos(yaw) * cp)
+	var reach := lerpf(cfg.raise_reach_rifle, cfg.raise_reach_pistol, _pose.pistol)
+	var lead := maxf(0.0, _pose.velocity.dot(way)) * cfg.raise_lead
+	if not _world.ray(from, from + way * (reach + lead), _wall):
+		return 0.0
+	var near := _wall.fraction * (reach + lead) - lead
+	# Eased out: the box round the replica tilts out ahead before it rises clear, so most of the raise comes early.
+	var share := 1.0 - clampf((reach - near) / maxf(reach - cfg.raise_full, 0.001), 0.0, 1.0)
+	return 1.0 - share * share
 
 
 ## The flinch dropped at once (a round reset or a rematch), the figure's bend too.

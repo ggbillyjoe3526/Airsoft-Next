@@ -644,6 +644,7 @@ func _build_views(ui: CanvasLayer) -> void:
 		parts.assign(_bot_parts.get(c.id, []))
 		f.setup(c, _colours.figures.colours[c.team], _tuning.hits, sign_font, realistic, parts,
 				_colours.figures.glow, _play.figures)
+		f.set_world(_level.query(), _tuning.body)
 		add_child(f)
 		f.add_contact_shadow(contact, _play.effects)
 		_figures.append(f)

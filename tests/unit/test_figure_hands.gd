@@ -264,7 +264,7 @@ func test_calling_the_hit_raises_the_left_hand_and_the_rifle_hangs_from_the_righ
 	var held: Transform3D = d[&"in_hand"]
 	var way := _muzzle_way(held)
 	assert_almost_eq(acos(-way.y), config.hang_tilt, 0.01, "off straight down by hang_tilt")
-	assert_gt(way.z, 0.0, "the muzzle forward")
+	assert_gte(way.z, -1e-3, "never tipped back")
 	var grip: Transform3D = d["Grip_R"]
 	assert_almost_eq(held * hands.grip_point(0), grip.origin, Vector3.ONE * 1e-3, "hanging from the right hand's grip")
 

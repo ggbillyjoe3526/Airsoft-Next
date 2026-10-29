@@ -164,7 +164,12 @@ never players.
   from a forearm running back about level, the thumb where it was.
 - [ ] **Look straight down.** Standing, crouched and in a vault: you see the ground, never your own body (Beta 1
   item 24).
-- [ ] **Hit call.** Hit a bot: the HIT! sign, the hand up, the replica hanging; readable at 20 to 30 m.
+- [ ] **Hit call.** Hit a bot: the HIT! sign, the hand up, the replica hanging straight down; readable at 20 to 30 m.
+- [ ] **Bots at walls.** Watch a bot hold at a wall, a crate stack or a container, and one crouched behind a crate:
+  its replica stands up in front of its face, muzzle high, both hands on it under the head (never like a hit call),
+  never through the wall, and comes down level as it steps away or fires. Natural, or does the swing up catch the
+  eye? A bot opening fire at a wall swings level in a moment; its first shot's gas puff or torch beam may start at
+  the raised muzzle. Noticeable?
 - [ ] **Robots, the Dev Easter egg** (RB1). Settings has no Looks tab and nothing outside the Dev tab names robots.
   Start a match: everyone is human. Turn on Settings › Dev › Robots (off at first) in the pause menu: this match is
   unchanged; start the next one: both teams mix humans and robots. Turn Robots off and the match after is all human

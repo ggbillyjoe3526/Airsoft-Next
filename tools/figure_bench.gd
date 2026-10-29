@@ -2,13 +2,14 @@ extends SceneTree
 ## The rigged figures' bench (step 23, FI7; dev only, never exported): 11 figures, a 6v6's other players, on Depot for
 ## 30 s, each walking its own loop, aiming up and down, firing, reloading and calling a hit in turn, scripted (no
 ## simulation, so the numbers are the figures' own). Headless it logs, per figure a frame, the animation time (FigureView's
-## `update` and `animate`: the pose, the tree's parameters and its advance) and the skeleton time (each skeleton's update:
-## the bones, FigureBend and the hands); with `--perf`, run in a window on the owner's PC, it draws the field from the
-## Alpha spawn and logs the frame time too.
+## `update` and `animate`: the pose, the tree's parameters and its advance, the wall ray of FB5) and the skeleton time
+## (each skeleton's update: the bones, FigureBend and the hands); with `--perf`, run in a window on the owner's PC, it
+## draws the field from the Alpha spawn and logs the frame time too.
 ##   godot --headless --path . -s res://tools/figure_bench.gd
 ##   godot --path . -s res://tools/figure_bench.gd -- --perf
 ## Arguments after `--`: `--perf`, `--seconds N` (default 30), `--far` (the eye at the Alpha spawn headless too, so the
-## far figures take far_stride; by default it stands in the middle, every figure posed every frame).
+## far figures take far_stride; by default it stands in the middle, every figure posed every frame), `--no-raise` (no
+## wall ray, FB5's before).
 
 const FIGURES := 11
 const SECONDS := 30.0
@@ -84,6 +85,8 @@ func _run() -> void:
 		v.setup(c, Color.RED if team == 0 else Color.BLUE, tuning.hits, font, false, [], 0.0,
 				play.figures)
 		v.set_body(models, kinds[i + 1], play.figures.lod_high)
+		if not args.has("--no-raise"):
+			v.set_world(level.query(), tuning.body)
 		views.append(v)
 	var built := Time.get_ticks_usec() - build_start
 	var frames := int(seconds / TICK)

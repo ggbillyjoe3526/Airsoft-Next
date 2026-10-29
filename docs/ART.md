@@ -217,8 +217,9 @@ The figures (step 23, FI1-FI7; every bot on every preset, DECISIONS BD1):
   models' figure versions, ReplicaPaint and ReplicaParts) and its "HIT!" sign.
 - **Motion.** `FigurePose` reads the Character between ticks; `FigureGraph` is the kind's AnimationTree graph (gait,
   crouch, jump, vault, the hit call, the walk-off, the upper body's aim, holster, switch, reload and fire);
-  `FigureBend` lowers the crouch, leans, flinches and pitches the aim after it; `FigureHands` puts the replicas and a
-  reload's magazines on the bones; `ThrownMagazines` throws the old ones.
+  `FigureBend` lowers the crouch, leans, flinches and pitches the aim after it, and at a wall `FigureReady` brings the
+  replica to a high ready, muzzle up (FB5); `FigureHands` puts the replicas and a reload's magazines on the bones;
+  `ThrownMagazines` throws the old ones.
 - **Shaders.** `ShaderPrewarm` draws every figure material, solid and fading, as specks in the first frames
   of a match (`FigureModels.materials`).
 - **The hit area.** Hitbox's volume is the same for both kinds and is measured against the drawn figure by
