@@ -3317,3 +3317,15 @@ msgstr "Nov"
 
 msgid "SAVE_DEC"
 msgstr "Dec"
+
+msgid "QUIT_TITLE"
+msgstr "Quit game?"
+
+msgid "QUIT_NOTE"
+msgstr "Everything is saved as you go."
+
+msgid "QUIT_YES"
+msgstr "Quit"
+
+msgid "QUIT_CANCEL"
+msgstr "Cancel"

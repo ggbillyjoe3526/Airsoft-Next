@@ -68,6 +68,8 @@ var _credits: Credits
 ## Report a Bug over the title, while it is open.
 var _report_panel: ReportPanel = null
 var _settings_screen: SettingsScreen
+## QUIT GAME? while it is asked (Esc in the menus), else null.
+var _quit_prompt: QuitPrompt = null
 var _title: TitleScreen
 var _menus: MenuScreen
 var _play: PlaySession
@@ -197,7 +199,7 @@ func _build_title() -> void:
 func _build_menus() -> void:
 	_menus = MenuScreen.new(_picks, Settings.shared())
 	_menus.visible = false
-	_menus.back.connect(_show_title)
+	_menus.title_requested.connect(_on_title_requested)
 	_menus.tab_requested.connect(_on_tab)
 	_menus.match_page().play_pressed.connect(_start_play)
 	_menus.practice_requested.connect(_back_to_practice)
@@ -208,6 +210,13 @@ func _show_menus() -> void:
 	_title.visible = false
 	_menus.visible = true
 	_menus.focus_play()
+
+
+## The AIRSOFT wordmark: the settings, if open, close (saving), then the title shows.
+func _on_title_requested() -> void:
+	if _settings_screen != null:
+		_settings_screen.close()
+	_show_title()
 
 
 func _show_title() -> void:
@@ -548,6 +557,32 @@ func _open_graphics_settings() -> void:
 	_show_menus()
 	_open_settings()
 	_settings_screen.show_graphics()
+
+
+## Esc in the menus, the title included, asks QUIT GAME? (owner, 2026-10-29). Whatever has Esc of its own took it first
+## (a dialog or popup, a key being rebound, the Loadout's rename and Customise, the credits): this only sees what is left.
+## In a match Esc is the pause menu's.
+func _unhandled_input(event: InputEvent) -> void:
+	if _play != null or _loading != null or crash_screen != null or _quit_prompt != null or event.is_echo():
+		return
+	if event.is_action_pressed(&"ui_cancel"):
+		get_viewport().set_input_as_handled()
+		ask_quit()
+
+
+## Opens QUIT GAME? over whatever shows; QUIT leaves the game, CANCEL (or Esc again) closes it.
+func ask_quit() -> void:
+	if _quit_prompt != null:
+		return
+	_quit_prompt = QuitPrompt.new()
+	_quit_prompt.confirmed.connect(get_tree().quit)
+	_quit_prompt.closed.connect(_quit_closed)
+	add_child(_quit_prompt)
+	_quit_prompt.cancel_button().grab_focus()
+
+
+func _quit_closed() -> void:
+	_quit_prompt = null
 
 
 func _process(_delta: float) -> void:
