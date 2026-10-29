@@ -1,55 +1,39 @@
-Task: FB4 · QA commit afa6430 · Verdict: Pass
-Scope: raise on the run, holstered sprint, BB sight and drawn place, pressed hands depth (notes 5, 7, 11, 12). Head f2c8846.
+Task: FB1 · QA commit e7ddd9e · Verdict: Fail (2 blocking)
 
-Blocking: none.
+Blocking
+1. Focus is lost when QUIT GAME? closes (game/ui/quit_prompt.gd:close, game/main.gd:_quit_closed). The prompt takes the focus
+   (CANCEL) and frees itself; nothing restores the control that had it. Title (START), Match page (PLAY) and Settings (BACK) all
+   end with no focus owner, and Tab does not recover it (probed under Xvfb), so a keyboard player must click. Fix: Main (or the
+   prompt) remembers `gui_get_focus_owner()` before asking and re-grabs it on close if it is still valid.
+2. A hidden button sets its group's width (game/ui/button_width.gd:refresh/_natural counts every held button).
+   Pause menu in a match: RESUME, SETTINGS and QUIT MATCH are 356 px wide where 195 px fits QUIT MATCH, because the practice-only
+   TIMED CHALLENGE row (with its ON/OFF chips, 356 px) is hidden but counted. In practice it is 404 px. That is the "far too wide"
+   William described (item 18) on a screen he sees every match. Fix: measure only buttons with `visible` true, and re-measure on
+   `visibility_changed` (Skip to next round shows at run time).
 
-Advisory (for KNOWN_ISSUES or a later polish pass):
-1. replica_view.gd:180 a held trigger keeps the replica up on a sprint even when nothing fires: a semi replica with the
-   trigger held, an empty magazine, or the whole reload (the reload cant then sits on the raised pose, no carry).
-   Harmless, but a sprint-reload with the mouse held never shows the low carry. Trigger: sprint, hold fire, press R.
-2. replica_view.gd:134 the early return when not visible (eliminated) stops `_fire_hold` ticking down, so a shot just
-   before elimination can hold the replica up for up to 0.35 s after the next spawn. Cosmetic.
-3. viewmodel_config.gd:77 `depth_scale` has no range: 0 collapses the hands onto one depth (parts z-fight each other),
-   negative values flip it. `sprint_fire_raise` of 0 gives 0/0 = NaN on a zero-length frame (the same hole `carry_time`
-   already has). Both are tuning values nobody sets; an @export_range would close them.
-4. optic_glass.gdshader:30-31 the comment line is duplicated.
-5. bb_view.gd (trail): a ricochet's trail is drawn back along the new heading, so for its first frames it points into the
-   surface it left (hidden by depth, but a straight stub, not the bent path). Cosmetic; BB path is correct.
-6. A own BB now appears at the eye plane beside the barrel, so its first drawn frame is 0 to 1.5 m ahead of the eye
-   (low right), not at the muzzle tip. Intended by the fix; the owner may notice a BB that no longer starts at the barrel.
-7. Not checkable here (Forward+ and a real GPU): SSAO is on in the field presets and reads the depth buffer, where the
-   hands now sit pressed to a quarter; a dark halo round the replica or on the wall behind it is possible. The glass
-   shader writes POSITION.z by hand (`mix(w, z, scale)`) to match the engine's z clip scale; verified on Compatibility
-   only. Both go to the owner's list: aim the 2x scope and hip-fire against a wall, look for a halo and for the glass
-   sitting in its scope.
+Advisory
+- The Loadout rename field swallows the first Esc (LineEdit ends editing), so cancelling a rename takes two (loadout_strip.gd, not touched).
+- Switch widths differ per row (Off 105 px, Hold/Toggle 145 px); each is fixed against its state, so item 1 holds; only a design call.
+- Closing the prompt in the same frame as a second Esc is safe (the second is swallowed); nothing to fix.
+- Not run: QUIT itself (it ends the process); that settings and loadout edits are saved on QUIT rests on the PREDELETE saves, unchecked.
 
-Checked and fine: holstered trigger held or a shot then holster never lifts the carry; reload, switch, holster, draw and
-shots in one sprint stay finite and settle on the same pose as a fresh view; sprint stop with the trigger down never dips
-below the hip; the holstered pace is never slower in any stance (sprint x walk x crouch x lean), walking and crouching gain
-nothing, the plain sprint is 1.1x, lean slows it smoothly, aim-walk scales it; no code but movement.gd reads
-sprint_speed (grep), bots never fire on a sprint (bot_combat.gd:141) so the third-person figures need no raise; wiki table
-generates and `wiki.py check` passes; every surface of AEG (scope, silencer, long barrel, hi-cap), pistol (laser,
-silencer, extended) and the Cyber Pistol is a BaseMaterial3D pressed, the scope's glass disc presses its own; Realistic
-colours press the realistic paint, shared paints, models' own and a figure's replica stay unpressed, copies free with the view;
-a drawn own BB is never ahead along its flight for 400 random muzzles; a full mixed pool draws once each, trails on white only;
-a stopped BB takes its ball and trail; trail never longer than the BB has flown.
+Checked and fine (Xvfb, Compatibility, real key and mouse events): Esc on title, every Settings tab, Customise, rename, rebind
+(first Esc cancels it), an open Settings question and ConfirmationDialog (they take Esc first), first-start notice, credits; Esc in
+the practice Loadout goes to the range, no prompt; second Esc and CANCEL/Space/Enter close, Enter on QUIT confirms; Tab and
+arrows stay in the prompt; the shade stops clicks; mouse stays visible; real clicks on the Customise LOADOUT crumb, the LOADOUT tab,
+the wordmark and part cards work; wordmark during rename, rebind or an open question closes cleanly and frees the Settings; 12
+Settings opens, 12 title round trips and 20 prompts leave node count and signal connections unchanged. Every non-grouped toggle in
+Settings is a MenuSwitch. No text clipped or off-screen at 1280x720 and 1920x1080 on title, match, loadout, customise, armory,
+all eight Settings tabs, pause, prompt, notice; longest key name (VolumeMute, 146 px) fits the 200 px field.
 
-Tests added: tests/unit/test_fb4_qa.gd (15). Each was run against a scratch copy with the feature stubbed out:
- :76 holstered trigger no raise · removing `not a.holstered` fails it
- :93 reload/switch/holster sequence, finite and back to the carry · a `_fire_hold` that never decays fails it
- :146 no dip stopping a sprint with the trigger down · (guards the carry rate change; passes on main as well)
- :164 stance table · :192 lean/aim · dropping holster_sprint_scale fails both
- :211 every surface pressed (parts, glass) · :242 Realistic colours · :280 freed with the view · :303 two views/figure
-   paint untouched · removing `_press_depth(model)` fails all four; :211 and :269 also fail without the glass uniform
- :269 glass follows depth_scale · removing the uniform set fails it
- :322 never ahead along the flight · using the raw muzzle offset fails it; :343 a bot's BB is not offset
- :352 full mixed pool, trails white only · :377 stopped BB · disabling the trail instances fails both; :397 trail length
-   bounded by age and following the heading (pure helper check, passes on main for the age bound)
-
-Counts: test_fb4_qa 15/15, 1375 asserts; targeted run (that file plus hands_feel, bb_sight, bb_walls, holster, glow_bbs,
-replica_paint, lo3_qa, at3_qa, movement) 115/115, 2077 asserts, 20 s. gdlint clean. tools/smoke_test.sh passes (frames=2625,
-zero script errors). Raw output: pipeline/out/qa/fb4-targeted.txt. Not run (machine load, worker ran them green):
-full parts 1-3, match guards.
-
-For the owner (needs a display): the raise reads right on a sprint-fire; +10 % holstered sprint is felt; BB rim and trail on
-Forward+; the replica over a wall, and item 7 above.
+Tests added (tests/unit/test_fb1_qa.gd, 14, 10 pass and 4 fail on purpose)
+- :79 focus back on START after Esc, Esc (title) · fails now: focus is null
+- :91 focus back on PLAY and BACK after CANCEL / Esc (menus, settings) · fails now
+- :113 hidden long button does not widen its group · fails now (422 vs 108 px); :130 a button shown later joins the width · passes (guards the fix)
+- :148 pause in a match as wide as its widest showing button · fails now (356 vs 195)
+- Esc in the practice Loadout, an open settings question, a rebind; wordmark with a question open; Enter/Space on QUIT/CANCEL;
+  Tab/arrows stay in the prompt; the shade takes the click; two Esc in one frame; open/close leaks · pass. Checked by stubbing:
+  shade mouse filter to Ignore fails the shade test; the focus-neighbour stub did NOT fail the Tab test (Godot keeps focus in the
+  prompt anyway), so that one is a pin, not a mutation catch.
+Suite: test_fb1_qa 14 tests 4 failing (the findings); with test_fb1_menus and test_settings_screen 81 run, 77 pass, 15 s. Full
+tools/check.sh not rerun (machine loaded); not tested: a real window, exclusive fullscreen, Windows, UI scale (none exists).
