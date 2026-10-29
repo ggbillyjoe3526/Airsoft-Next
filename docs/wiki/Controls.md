@@ -25,7 +25,7 @@ so W A S D stays W A S D on any keyboard layout.
 
 | Key | What it does |
 | --- | --- |
-| **Esc** | Pause, and back out of menus |
+| **Esc** | Pause in a match. In the menus it closes what is open first (a dialog, a key waiting to be rebound, a rename), then asks **Quit game?** |
 | **F11** or **Alt+Enter** | Switch between windowed and fullscreen |
 | **F3** | Performance readout: frame rate, frame time, the match seed and more |
 | **F4** | Show every BB's flight path in the world |

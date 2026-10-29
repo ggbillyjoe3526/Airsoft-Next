@@ -622,6 +622,19 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   opens on). V-Sync is off. Edge smoothing is Off, on every graphics preset (a player who turns it on keeps it, as
   Custom). A save from before (settings version 1) moves a value still equal to the old default to the new one, once;
   a value the player changed is kept. Reset to defaults gives the new values.
+- **A button is as wide as its words, and a group is one width (owner, 2026-10-29; FB1).** "Buttons should not be wider
+  than the text in them, however keep the width consistent." Each button is its words plus the theme's padding; the
+  buttons of one group (a row, a column or a bar on one screen) all take the widest one's width, set by one helper
+  (`ButtonWidth`), never per screen. It covers the top bar's tabs, the Match page's choices and level buttons, every
+  Settings choice row, the pause menu, the dialogs and the notices. Settings' BACK is a small button at the bottom left.
+  Cards with a picture or a paragraph (maps, modes, replicas, parts) are panels, not buttons, and still fill their
+  column; quiet text links (Report a Bug, Licences, Rename) are words, not boxes; a key's box in the Controls list is a
+  field and keeps one fixed width.
+- **The wordmark goes home, and Esc anywhere in the menus asks to quit (owner, 2026-10-29; FB1).** A click on AIRSOFT in
+  the top bar goes to the title screen (not from the Loadout in practice, which has no title). Esc in the menus, the
+  title and Settings included, opens QUIT GAME? with QUIT and CANCEL, the focus on CANCEL; Esc again or CANCEL closes it.
+  Anything with an Esc of its own takes it first (a dialog or popup, a key being rebound, the Loadout's rename or
+  Customise, the credits and the report); in a match Esc stays the pause menu, and its Settings close on Esc.
 - **Small menu rulings (owner, 2026-10-03 to 2026-10-07).** The tagline is "Call your hit. Go again." Menu headings and
   labels are in capitals, descriptions as written. Unbuilt items are listed greyed out with a LATER tag.
 - **The menus grow with a tall window as the HUD does (UX1, 2026-10-17).** They scale by the window height over 1080,
