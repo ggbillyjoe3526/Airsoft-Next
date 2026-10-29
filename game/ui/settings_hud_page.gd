@@ -3,9 +3,9 @@ extends HBoxContainer
 ## The settings' HUD tab (concept `hud-options.png`; the browser game's Settings › HUD and Crosshair): on the left the
 ## crosshair (shape, colour, size, thickness, gap, opacity, dynamic or static spread, outline) and the hit marker (on or
 ## off, colour, size); on the right a live preview (HudPreview), the HUD size (marked at 100 %, concept
-## `settings-hud-size.png`), the ammo counter, where the hit feed sits and whether
-## its lines fade or stay, your team's callouts in it (CO2), the navy panels' opacity and What got you, and the minimap's turn (Rotating or Fixed, drawn
-## as two small samples). Every choice lands in the settings' HudPrefs at once and `changed` asks the screen to save it.
+## `settings-hud-size.png`), the ammo counter, where the hit feed sits and whether its lines fade or stay, your team's
+## callouts in it (CO2), the ping markers (PN2), the navy panels' opacity and What got you, and the minimap's turn
+## (Rotating or Fixed, drawn as two small samples). Every choice lands in the settings' HudPrefs at once and `changed` asks the screen to save it.
 
 ## A choice changed: saved now (`immediate`, a click) or a moment after a slider stops.
 signal changed(immediate: bool)
@@ -45,6 +45,7 @@ var _ammo: CheckButton = null
 var _corner: MenuChoice = null
 var _lines: MenuChoice = null
 var _callouts: CheckButton = null
+var _pings: CheckButton = null
 var _panels: HSlider = null
 var _hud_size: HSlider = null
 var _what_got_you: MenuChoice = null
@@ -143,6 +144,11 @@ func build(screen: SettingsScreen) -> void:
 	_callouts.toggled.connect(func(on: bool) -> void:
 		_prefs().callouts = on
 		_after(true))
+	_pings = screen.add_check_row(right, "SETTINGS_PING_MARKERS", "SETTINGS_ON", "SETTINGS_OFF", RIGHT_LABEL)
+	_note(_pings.get_parent() as Control, "SETTINGS_PING_MARKERS_NOTE")
+	_pings.toggled.connect(func(on: bool) -> void:
+		_prefs().ping_markers = on
+		_after(true))
 	screen.add_section(right, tr("SETTINGS_PANELS"))
 	_panels = _percent_slider(right, "SETTINGS_HUD_OPACITY", HudPrefs.PANEL_OPACITY_RANGE, RIGHT_LABEL)
 	_note(_panels.get_parent() as Control, "SETTINGS_HUD_OPACITY_NOTE")
@@ -175,6 +181,7 @@ func refresh() -> void:
 	_corner.put(p.feed_corner)
 	_lines.put(p.feed_lines)
 	_screen.set_check(_callouts, p.callouts)
+	_screen.set_check(_pings, p.ping_markers)
 	_screen.set_slider(_panels, p.panel_opacity * 100.0)
 	_screen.set_slider(_hud_size, p.hud_size * 100.0)
 	_what_got_you.put(_screen.settings.what_got_you)

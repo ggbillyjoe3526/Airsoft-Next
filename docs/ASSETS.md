@@ -43,7 +43,7 @@ The font ships inside the game's export. Its licence ships in `THIRD_PARTY_NOTIC
   or recorded sounds later.
 - **The referee's whistle:** `assets/audio/cues/whistle_short_1.wav` to `_3` and `whistle_long_1.wav` to `_3`, the
   browser game's live pea whistle rendered by our own `tools/render_whistle.gd` from SoundConfig's whistle numbers
-  (SP3, 2026-10-22). No outside source; same licence as the code. To re-render after those numbers change:
+  (SP3, 2026-10-22), and `ping_pip_1.wav`, the ping's pip from the same tool (PN2, 2026-10-26). No outside source; same licence as the code. To re-render after those numbers change:
   `godot --headless --path . -s res://tools/render_whistle.gd`, then `godot --headless --path . --import`, and commit
   the files with their `.import` files.
 - **Art references:** the owner's six reference pictures of the target look and his arm and hand study

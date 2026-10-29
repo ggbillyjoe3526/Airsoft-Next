@@ -18,6 +18,9 @@ seeds the browser game used, so they sound as they did.
   re-render after changing those numbers: `godot --headless --path . -s res://tools/render_whistle.gd`, then
   `godot --headless --path . --import`, and commit the files with their `.import` files
   (`tests/unit/test_whistle_sound.gd` fails until the files match the numbers).
+- `cues/ping_pip_1.wav`: your ping's pip (PN2; the browser game's AUDIO.pingPip, played live by its whistle's beep),
+  rendered by the same tool from SoundConfig's ping_pip numbers (a plain 1700 Hz sine, 0.08 s, the whistle's fade in
+  and out) at full scale: it plays at `ping_pip_gain` (`tests/unit/test_ping_markers.gd` checks the file).
 - Not baked in: the room reverb and distance muffling, which were applied live; in Godot they belong to the audio buses
   and `AudioStreamPlayer3D`.
 

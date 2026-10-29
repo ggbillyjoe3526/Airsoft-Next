@@ -132,6 +132,13 @@ msgstr "Flag touched"
 msgid "HUD_HOLD_MARKER"
 msgstr "Hold · %d m"
 
+# A ping's marker (PN2): your spot, or an enemy seen there, and how far it is.
+msgid "HUD_PING_MARKER"
+msgstr "Ping · %d m"
+
+msgid "HUD_CONTACT_MARKER"
+msgstr "Contact · %d m"
+
 msgid "HUD_ORDER_ACTIVE"
 msgstr "Active"
 
@@ -2405,6 +2412,13 @@ msgstr "Callouts"
 
 msgid "SETTINGS_CALLOUTS_NOTE"
 msgstr "Your teammates' calls in the feed, each with a radio click; enemies close by are heard keying their radios."
+
+# Settings › HUD › Ping markers (PN2): the markers over the field and on the minimap.
+msgid "SETTINGS_PING_MARKERS"
+msgstr "Ping markers"
+
+msgid "SETTINGS_PING_MARKERS_NOTE"
+msgstr "Your pings and your teammates' marks over the field with their distance, and on the minimap. Off, pings still reach your teammates and they still answer."
 
 msgid "SETTINGS_PANELS"
 msgstr "Panels"

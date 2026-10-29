@@ -65,6 +65,11 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
 - **Blender work comes last (owner, 2026-10-22).** Anything that needs Blender (figures, first-person arms, Inspect,
   replica and part remodels, Depot's set dressing, the art pass) is step 28 (was 32), because the owner must be at
   his PC to connect Blender. Code-only parts, built against today's placeholder models, may still go earlier.
+- **No Blender step in 0.1 Dev 1 (owner, 2026-10-29).** Step 28 is scrapped: modelling Depot now is wasted if the
+  map is redesigned. After step 27 the owner playtests, a feedback and bug pass follows, then he tags 0.1 Dev 1. 0.1
+  Dev 2 redesigns Depot and Woodland and dresses them with CC0 assets; Blender work starts when he says, Depot's
+  models first, then Woodland's. This replaces the step 28 above. 0.1 Dev 2 also brings basic smoke and flash
+  bombs, thrown by bots too; the CO2 sound grenade, rigs and pouches and the rest stay in 0.2.
 - **The Blender step covers Depot, human figures and replicas only (owner, 2026-10-24).** Step 28 models Depot's
   assets (with the range's, which lives in Depot; the tutorial was dropped on 2026-10-25), the human figures with
   your first-person arms and hands, and the replicas, attachments and accessories. Woodland and Neon Heights stay

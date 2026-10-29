@@ -36,5 +36,5 @@ unless they see or hear something newer: one sets off to check it the way it pla
 in), and one under your order, at its post or holding watches it instead. A teammate in a fight, in cover or with
 someone in sight carries on. One of them answers in the hit feed, "Going to your ping" or "Watching your ping" in its
 own words. You have one ping at a time and a double click is one ping; pings clear each round and do nothing while you
-are out or on the [Practice Range](Practice-Range). Nothing marks the spot on screen yet: the answer is the sign it was
-taken.
+are out or on the [Practice Range](Practice-Range). A soft pip says your ping went out, and a marker shows it over the
+field and on the minimap ([HUD and Minimap](HUD-and-Minimap#in-development)).

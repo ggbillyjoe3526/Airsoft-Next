@@ -5,7 +5,8 @@ extends Control
 ## the area they stand in at its top left and "Depot · Round 2" under it. It shows you as a white arrow, your teammates as
 ## dots in the team's colour (grey once hit, an arrow up or down on another storey, pinned to the edge when off the
 ## panel), Attack / Defend's pole while the round is live, Elimination's overtime flag (a chequered flag) while it
-## stands in a live round, your Hold here's spot as a diamond, and the other team only as
+## stands in a live round, your Hold here's spot as a diamond, your team's pings (PN2: a spot's ring in the team's colour,
+## a contact's diamond in the other team's, on the rim when off the panel; `add_pings`), and the other team only as
 ## the patches where your side last heard them (MinimapHearing). Rotating turns the field so the way you look is up;
 ## Fixed keeps north (the map's -z) up and turns the arrow. The field is drawn once a match (MinimapField, one picture per
 ## storey) and the panel only places it, so a frame allocates nothing. `View` draws everything over the picture; the
@@ -180,6 +181,16 @@ func follow(state: GameState, watched: Character, yaw: float, fraction: float, t
 	_view.queue_redraw()
 
 
+## Adds the pings of `team` up in `book` at `now` (s of match time) to this frame's panel (after follow): each fading
+## over the last `fade` s of its `life`, as its marker on the field does. Allocates nothing.
+func add_pings(book: Pings, team: int, now: float, life: float, fade: float) -> void:
+	for i in book.size():
+		var p := book.of(i)
+		if p.team == team and book.is_up(p, now):
+			_view.add_ping(Vector2(p.spot.x, p.spot.z), p.kind == Pings.Kind.CONTACT,
+					HudPingMarker.shade(now - p.at, life, fade))
+
+
 ## The panel's ring.
 func _draw() -> void:
 	var s := _cfg.size
@@ -286,6 +297,13 @@ class View:
 	var _dark_checks: Array[Rect2] = []
 	var _hold_on: bool = false
 	var _hold: Vector2 = Vector2.ZERO
+	var _pings := PackedVector2Array()
+	var _ping_contacts := PackedByteArray()
+	var _ping_alphas := PackedFloat32Array()
+	var _ping_count: int = 0
+	## A ping's ring and diamond with their ink, each one triangle array (one draw call; HudPingMarker.Mark).
+	var _ping_ring: HudPingMarker.Mark = null
+	var _ping_diamond: HudPingMarker.Mark = null
 	var _you_on: bool = true
 
 	## `textures` are the layers (one per storey) of a drawing at `field_scale` px/m whose top left is the world's
@@ -312,6 +330,11 @@ class View:
 				if (i + j) % 2 == 1:
 					_dark_checks.append(Rect2(CHEQUER.position + cell * Vector2(i, j), cell))
 		_patch_shots.resize(capacity)
+		_pings.resize(capacity)
+		_ping_contacts.resize(capacity)
+		_ping_alphas.resize(capacity)
+		_ping_ring = HudPingMarker.Mark.ring(cfg.ping_ring_radius, cfg.ping_ring_width, RING_INK, RIM_ARC_POINTS)
+		_ping_diamond = HudPingMarker.Mark.diamond(cfg.ping_diamond, OUTLINE)
 		var gradient := Gradient.new()
 		# Opaque to the disc's edge, then clear: the texture is a square round a circle.
 		gradient.offsets = PackedFloat32Array([0.0, DISC_MID, DISC_EDGE, 1.0])
@@ -345,6 +368,7 @@ class View:
 		_patch_count = 0
 		_pole_on = false
 		_hold_on = false
+		_ping_count = 0
 
 	## A teammate: `colour` at the world's `at`, with `arrow` 1 up, -1 down for another storey, 0 a dot.
 	func add_dot(at: Vector2, colour: Color, arrow: int) -> void:
@@ -375,6 +399,22 @@ class View:
 		_hold_on = true
 		_hold = at
 
+	## A ping at the world's `at`: a contact's diamond (`contact`) or a spot's ring, at `alpha` (its fade).
+	func add_ping(at: Vector2, contact: bool, alpha: float) -> void:
+		if _ping_count >= _pings.size():
+			return
+		_pings[_ping_count] = at
+		_ping_contacts[_ping_count] = 1 if contact else 0
+		_ping_alphas[_ping_count] = alpha
+		_ping_count += 1
+
+	## How many pings this frame shows, and whether ping `i` is a contact: for tests.
+	func ping_count() -> int:
+		return _ping_count
+
+	func ping_is_contact(i: int) -> bool:
+		return i < _ping_count and _ping_contacts[i] == 1
+
 	## Whether the white arrow shows (the thumbnails' sample has it; so does every real panel).
 	func set_you(on: bool) -> void:
 		_you_on = on
@@ -399,6 +439,8 @@ class View:
 				_draw_rim(mid + _pin(p, _cfg.rim_patch * 0.5 + RIM_PAD), _patch_alphas[i])
 		if _hold_on:
 			_draw_hold(mid + _pin(_to_panel(_hold), _cfg.mark_pad))
+		for i in _ping_count:
+			_draw_ping(mid + _pin(_to_panel(_pings[i]), _cfg.mark_pad), _ping_contacts[i] == 1, _ping_alphas[i])
 		if _pole_on:
 			_draw_pole(mid + _pin(_to_panel(_pole), _cfg.mark_pad))
 		for i in _dot_count:
@@ -476,6 +518,15 @@ class View:
 		draw_colored_polygon(_diamond, Color(_team, _cfg.hold_fill))
 		draw_polyline(_diamond, _team, HOLD_WIDTH, true)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+	## A ping: a contact's diamond in the other team's colour, or a spot's ring in the team's, each on a dark outline.
+	## One draw call each.
+	func _draw_ping(at: Vector2, contact: bool, alpha: float) -> void:
+		var ink := Color(_cfg.ink, _cfg.ink.a * alpha)
+		if contact:
+			_ping_diamond.draw(self, at, Color(_enemy, alpha), ink)
+		else:
+			_ping_ring.draw(self, at, Color(_team, alpha), ink)
 
 	## The pole: a yellow flag on a white staff, its foot a dot; the overtime flag's cloth chequered off-white and dark,
 	## its foot off-white.

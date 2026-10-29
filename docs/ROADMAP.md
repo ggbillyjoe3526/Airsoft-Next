@@ -98,10 +98,10 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 22. **Save file screen, the crash screen and bug reports.** Restore points, Undo, Delete and start over, the save
     folder; a crash screen with the seed and Report a Bug.
 23. **Figures in code.** The hit flinch, full-body animation and Looks › Robots, built against today's placeholder
-    models and the shared rig standard (the Blender models and arms are step 28).
+    models and the shared rig standard (the Blender models and arms come after 0.1 Dev 1).
 24. **Field checks.** Each field's layout rules as tests (browser `mapChecks.ts`), before fields are reworked.
 25. **Depot's layout reworked to the field checklist.** The layout, baked light, the skyline, noisy props, gas puffs and
-    dust, in greybox and today's props (its set dressing models are step 28). Until then Depot and the range wear a
+    dust, in greybox and today's props (its models come after 0.1 Dev 1). Until then Depot and the range wear a
     temporary site dress drawn on the same boxes (DD1, owner 2026-10-25).
 26. **Woodland** (a Dev-only map, owner 2026-10-24). The field, sloping ground and bushes, night play, the weapon
     torch, glowing BBs, the Day / Night switch, the practice range set in Depot and practice on any map, 5v5 and
@@ -118,14 +118,12 @@ at his PC to connect.
     minimap, pip), MH1 (the hand-off's rules), MH2 (bots ask and bring), MH3 (H, the wheel, the line, the toss). The
     tutorial and adaptive difficulty were dropped (owner, 2026-10-25): players learn at their own pace in practice,
     and the preset levels stay.
-28. **Blender work, at the owner's PC** (was step 32; deferred to a date the owner names, not started when step 27 is done, owner 2026-10-26). His models
-    for Depot's assets, including the practice range's, which is set in Depot; the human figures
-    with your first-person arms and hands (bare or gloved, by figure and skin), fitted hit areas and Inspect on Y;
-    and every replica, attachment and accessory, at higher quality than today's placeholders, built small for the
-    browser (owner, 2026-10-18 and 2026-10-24). Woodland and Neon Heights stay greybox while they are dev content.
-    Here because the rig standard, every replica and part (9 to 11) and the field checklist with Depot's final
-    layout (24, 25) have settled by then, so he models against final requirements once. When step 27 is done the
-    thread reports and asks what comes next; it doesn't raise the Blender work until he names the date.
+28. **Then 0.1 Dev 1 (owner, 2026-10-29).** When step 27 is done the owner plays it, then a feedback and full bug pass
+    against `docs/KNOWN_ISSUES.md`, then he tags 0.1 Dev 1. The Blender step is scrapped from 0.1 Dev 1: 0.1 Dev 2
+    redesigns Depot and Woodland and dresses them with CC0 assets, and the owner decides when Blender work starts
+    (Depot's models first, then Woodland's). Neon Heights is removed and Woodland is public (owner, 2026-10-29).
+    0.1 Dev 2 also brings a basic smoke bomb and flash bomb, thrown by bots too; the rest waits for 0.2 (owner,
+    2026-10-29).
 
 ## Builds
 
@@ -249,7 +247,8 @@ After 0.1 the game grows through themed updates, each a mini expansion (owner, 2
 - **A 2–4x variable scope and a holographic sight** (from 0.1 Dev 6; Dev 4 note 5). The mouse wheel zooms while
   aiming.
 - **Grenades, smoke and flash** (from 0.1 Dev 6). Airsoft-style throwables for the Loadout's Grenades slot: a CO2
-  sound grenade (a bang, no shrapnel), smoke for cover and a flash bomb, used by bots too. How each one knocks players
+  sound grenade (a bang, no shrapnel), and more from the basic smoke and flash bombs that 0.1 Dev 2 brings, thrown by
+  bots too (owner, 2026-10-29). How each one knocks players
   out or blinds them, and how many you carry, are designed when they come.
 - **Chest rigs, belts and pouches** (from 0.1 Dev 6). They decide what you carry, such as another magazine or a grenade
   (owner, 2026-10-03). The Milsim rules need them.

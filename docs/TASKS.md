@@ -4,30 +4,6 @@ Open tasks only, one block each (format in `pipeline/README.md`). The planning t
 takes one, and its block leaves this file in the pull request that lands it. Its record (`docs/records/<id>.md`) and
 its changelog note remain. The order is `docs/ROADMAP.md` › Build order.
 
-## PN2 · Ping markers, the minimap and the pip (Dev)
-when: build order step 27, after PN1
-tier: ui
-perf: optional
-touches: game/ui/hud_ping_marker.gd, game/ui/hud.gd, game/ui/hud_minimap.gd, game/config/hud_config.gd,
-  game/config/minimap_config.gd, game/config/play_tuning.tres, game/play/play_session.gd, game/play/sim_audio.gd,
-  game/config/sound_config.gd, tools/render_whistle.gd, assets/audio/cues/, game/save/hud_prefs.gd,
-  game/save/settings.gd, game/ui/settings_hud_page.gd, game/ui/text/en.po, tests/unit/, docs/wiki/HUD-and-Minimap.md,
-  docs/wiki/Settings.md, docs/PLAYTEST.md
-contract: Simulation and presentation (1); Saves (8)
-acceptance:
-  1. As `concepts/step27/ping.png`: a spot is a ring in your team's colour 0.3 m over the floor with "PING · 9 M"; a
-     contact is a diamond in the other team's colour over the head where they were seen, "CONTACT · 13 M", never
-     following them. They pop in over 0.35 s (none under Reduced motion), stay whole 7 s and fade over the last second.
-  2. A marker off screen is pinned inside the screen's edge as the flag marker is, under the minimap on the left; hidden
-     while you spectate, with the scoreboard up and in menus. HUD size and opacity apply.
-  3. The minimap shows the same ring or diamond, on its rim when off the panel.
-  4. Your ping plays a soft pip (the browser's recipe, 1700 Hz for 0.08 s, rendered to a cue as the whistles were) in
-     your ear; the teammate's answer is its call with its radio click (CO2).
-  5. Settings › HUD › Ping markers, On by default and saved: Off hides the markers on screen and on the minimap only;
-     pings and answers go on. Markers are made once a session; a frame with none allocates nothing.
-status: open
-attempts: 0
-
 ## MH1 · The magazine hand-off's rules (Dev)
 when: build order step 27, after PN2
 tier: core

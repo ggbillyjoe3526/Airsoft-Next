@@ -671,9 +671,15 @@ pays XP ×1.5.
   your ping" in its own words) and goes to look, each its own way (a rusher runs, a careful bot walks in); give Follow
   me first and one says it watches it instead and they stay with you. Ping the sky: nothing, and no answer. A double
   click is one ping. Ping a visible opponent: they come looking for them as a threat; one in a bush or the dark is just
-  a spot. Do they keep at a ping too long (20 s) or drop it too soon? No marker or pip yet: PN2 draws a team-coloured
-  ring with "Ping · 24 m", an orange "Contact" diamond and the minimap's, fading after about 8 s, and Settings › HUD ›
-  Ping markers Off hides the markers only.
+  a spot. Do they keep at a ping too long (20 s) or drop it too soon?
+- [ ] **Ping markers (PN2).** A ping: a soft pip in your ear (quieter and lower than the range's shot timer) and a
+  ring in your team's colour just over the floor with "PING · 9 M" under it, seen through walls; it pops in, stays
+  7 s and fades over the last second. A teammate's Contact mark: an orange diamond over the enemy's head where they
+  were seen, "CONTACT · 13 M", that stays put when they move. Turn away: the marker sits under the minimap (under a
+  flag or Hold plate there) with an arrow; the minimap shows the ring or diamond, on its edge when far. Hold Tab,
+  open the pause menu or get hit and watch a teammate: no markers. Settings › HUD › Ping markers Off: no markers on
+  screen or the minimap, but the pip and the answer still come. Is the pip audible but not annoying? Is the ring
+  easy to find on busy ground? Reduced motion: no pop.
 - [ ] **Ask for a mag (H).** With less than one full magazine in your pouch the line under the crosshair says "Low on
   BBs · H to ask for a mag". H: the nearest teammate says "Mag coming!", comes and tosses a magazine you see arc into
   your hands ("+1 mag from Dash · 60 BBs"). With a full spare, or nobody near, it says why not.

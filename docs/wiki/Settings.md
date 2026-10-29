@@ -63,6 +63,9 @@ If the game stutters, lower the preset or the render scale first.
 - **Callouts:** On (the default) shows your teammates' calls in the hit feed with a radio click, and lets you hear
   enemies close by keying their radios. Off hides the calls and stops every call's click at once; a squad order a
   teammate takes still clicks.
+- **Ping markers:** On (the default) shows your pings and your teammates' marks over the field with their distance,
+  and on the minimap. Off hides only the markers: your pings still reach your teammates, the pip still plays and they
+  still answer.
 
 ## Accessibility
 

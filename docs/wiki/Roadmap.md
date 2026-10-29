@@ -36,7 +36,7 @@ it is playtested and made public.
 - **Elimination's overtime flag:** a time-out with players left on both sides puts a flag up near the middle, and the
   first team to touch it wins the round. Its rules are in and bots go for it; the flag on screen comes next.
 - **Pings** on the middle mouse button: mark a spot or an enemy for your bot teammates, and one goes to look or
-  watches it, and says so. The markers on screen and on the minimap come next.
+  watches it, and says so, with a marker on screen and on the minimap.
 
 ### Next
 

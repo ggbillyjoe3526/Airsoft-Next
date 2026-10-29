@@ -89,3 +89,15 @@ extends Resource
 @export var hold_ring_radius: float = 1.2
 ## The minimap's corner: kept minimap_margin from the screen's top left (px; the feed's margin on the other side).
 @export var minimap_margin: Vector2 = Vector2(32.0, 26.0)
+## Ping markers (PN2; concept `step27/ping.png`; the browser game's PINGS.markerHeight and fadeTime): a spot's ring this
+## high over its floor spot (m), a contact's diamond this high over the enemy's chest where they were seen (m: over
+## their head); each pops in over ping_pop (s; at once under Reduced motion) from ping_pop_from of its size and fades
+## over the last ping_fade (s) of PingConfig.lifetime. Over the field a marker keeps ping_marker_edge (px) inside the
+## screen's top and bottom; pinned to a side, plates stack ping_stack_gap (px) apart.
+@export var ping_spot_height: float = 0.3
+@export var ping_contact_lift: float = 0.8
+@export var ping_pop: float = 0.35
+@export var ping_pop_from: float = 0.4
+@export var ping_fade: float = 1.0
+@export var ping_marker_edge: float = 48.0
+@export var ping_stack_gap: float = 8.0
