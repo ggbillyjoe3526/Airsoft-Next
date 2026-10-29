@@ -1,4 +1,4 @@
-Task: KI2 · QA commit a141fef · Verdict: Pass (re-check after fix round 1, worker commit ba29fb2)
+Task: KI2 · QA commit b186a54 · Verdict: Pass (re-check after fix round 1, worker commit ba29fb2)
 
 Blocking: none. The earlier finding (slide drawn forward through a reload, slide_back captured before the skeleton
 flushed) is fixed: SlideLockPose (game/play/slide_lock_pose.gd) holds the slide bone over any clip; my two tests that

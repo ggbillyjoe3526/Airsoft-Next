@@ -1,13 +1,13 @@
 # KI2 · The GBB Pistol's slide locks back on a quick reload (Fix)
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-29 | 1 | worker | see Verified and Gate; QA Fail (1 blocking: the lock was never drawn) | – | – |
-| 2026-10-29 | 1, fix round 1: the slide bone held by a skeleton modifier | worker | see Fix round 1 | – | – |
+| 2026-10-29 | 1, fix round 1: the slide bone held by a skeleton modifier | worker | see Fix round 1; QA Pass, performance Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -64,6 +64,15 @@ GBB Pistol's last shot ran with the slide forward instead of locked back.
   the reload asserts in both files fail (4 tests) and the idle lock still passes, so they test the hold. QA's
   `test_ki2_qa.gd` passes unchanged.
 - `game/play/README.md` lists `slide_lock_pose.gd`.
+
+## Advisories left
+
+- **`slide_lock_pose.gd:21-33`** repeats `SelectorPose.attach` and most of its sampling; a shared bone-hold helper
+  could serve both (critic).
+- **`replica_view.gd:308-313`:** `held.slide` (the BoneAttachment3D) is now only a gate and a test handle (critic).
+- **`test_slide_lock.gd:122`** (waits out the Fire clip) checks the flag, not the drawn slide; QA's test_ki2_qa
+  covers the drawn position (critic).
+- **A pistol hidden by a switch keeps its modifier active** until shown again; harmless, the pose is recomputed (QA).
 
 ## Gate
 
