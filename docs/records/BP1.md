@@ -1,12 +1,12 @@
 # BP1 · Fixes from the 0.1 Dev 1 bug pass
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified | – | – |
+| 2026-10-29 | 1 | worker | see Verified; QA Pass, performance Pass | Accept 8/8 | – |
 
 ## The bug pass
 
@@ -70,9 +70,8 @@ Fix the bug pass's minor findings, apart from the order wheel one (not done here
 
 ## Not done here
 
-Reader B's finding 1 is not fixed here. If you hold Z to open the order wheel and press H, the answer goes to the plate
-under the crosshair, and the plate is hidden while the wheel is open. The fix is in `game/input/player_input.gd`
-(`_latch_order`: `_mag_latch_wheel = from_wheel or _wheel.open`), and task KI1 is editing that file.
+Reader B's finding 1 (H with the order wheel open answered the hidden plate) is fixed in KI1 (#138):
+`_mag_latch_wheel = from_wheel or _wheel.open` in `player_input.gd`.
 
 ## Decisions / defaults taken
 
@@ -103,6 +102,15 @@ under the crosshair, and the plate is hidden while the wheel is open. The fix is
 - gdlint is clean on every changed `.gd`.
 - **Not verified:** how often a shipped map puts something at eye height on a hand-off line (Woodland's hut windows
   are the likeliest). Watch a bot bring a magazine across a window or under a beam.
+
+## Advisories left
+
+- **`process_check.gd:76`:** a non-UTF-8 argv0, or a multi-byte character cut at the 4096-byte read, still logs a
+  Unicode parsing error, as before BP1 (QA); needs an absurd command line.
+- **A bot waiting on your toss under a beam** re-reads the line each tick, so leaning at the beam's edge can flip it
+  between standing and walking; cosmetic (QA, critic).
+- **A bringer that can't toss yet casts two rays a tick,** as on main; caching would halve it (performance).
+- `test_run_record_real_process.gd:113-115` has three blank lines (critic).
 
 ## Gate
 
