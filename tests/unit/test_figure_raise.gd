@@ -179,3 +179,17 @@ func test_one_ray_every_raise_stride_poses() -> void:
 	var poses := 30
 	await _pose(v, c, poses)
 	assert_eq(world.rays - before, poses / maxi(config.raise_stride, 1), "one ray a stride")
+
+
+func test_leaving_the_wall_the_raise_reaches_exactly_none() -> void:
+	var c := _character(0)
+	var world := BoxWorld.new(body)
+	_wall(world, 0.45)
+	var v := _view(FigureMix.HUMAN, c, world)
+	await _pose(v, c)
+	assert_gt(v.body().bend.high_ready, 0.9, "raised at the wall")
+	c.yaw = PI
+	c.prev_yaw = PI
+	# Eased over settle_raise (0.08 s), under raise_rest within 0.55 s: 45 poses (0.75 s) is plenty.
+	await _pose(v, c, 45)
+	assert_eq(v.body().bend.high_ready, 0.0, "none at all, so the arms' IK no longer runs")

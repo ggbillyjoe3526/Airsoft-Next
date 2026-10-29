@@ -232,6 +232,8 @@ func settle(delta: float) -> void:
 	holster_weight = lerpf(holster_weight, holster, hold)
 	sprint_weight = lerpf(sprint_weight, sprinting, mode)
 	raise = lerpf(raise, raise_target, settle_share(delta, _config.settle_raise))
+	if raise_target == 0.0 and raise < _config.raise_rest:
+		raise = 0.0
 
 
 ## The blends set to the targets at once: a figure's first frame, or its first after its legs were left still (hidden).

@@ -305,6 +305,10 @@ func animate(c: Character, fraction: float, delta: float, eye: Vector3) -> void:
 	_far_delta = 0.0
 	_pose.read(c, fraction, _hits)
 	_since_shot = 0.0 if _fired else _since_shot + delta
+	if _snap:
+		# Shown again (or first posed): the pose snaps to this target, so one from before it was hidden is dropped (level
+		# until the figure's next ray, which keeps its turn among the others).
+		_pose.raise_target = 0.0
 	_pose.raise_target = _raise_target(c)
 	if _snap:
 		_snap = false

@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified | – | – |
+| 2026-10-29 | 1 | worker | see Verified; QA Fail (1 blocking), performance Pass (1 advisory) | – | – |
+| 2026-10-29 | 1, fix round 1: a stale raise after hiding, the raise at rest, the first shot's wording | worker | see Fix round 1 | – | – |
 
 ## Goal
 
@@ -22,8 +23,8 @@ would move routes and the bot guards, so the fix is drawn only.
   spread over the figures by id: from `raise_drop` (0.2 m) under its eyes (crouch and lean included, as `Lean.eye`)
   along its drawn aim, `raise_reach_rifle` (1.25 m) or `raise_reach_pistol` (0.7 m) long, plus `raise_lead` (0.1 s)
   of its speed towards the hit. The raise is how far inside that reach the level is, eased out (`1 - (1 - x)²`), full
-  at `raise_full` (0.35 m, the capsule's edge). A shot holds it at none for `raise_fire_hold` (0.35 s), so a bot never
-  fires from a raised replica. One `RayHit` a figure, made once; nothing allocated a frame.
+  at `raise_full` (0.35 m, the capsule's edge). A shot holds it at none for `raise_fire_hold` (0.35 s), so a burst is
+  fired level; the first shot of one leaves a raised replica as it eases down (fix round 1). One `RayHit` a figure, made once; nothing allocated a frame.
 - **The pose** (`figure_pose.gd` `raise`, eased over `settle_raise` 0.08 s and snapped with the rest; `figure_body.gd`;
   `figure_bend.gd` `high_ready`; `figure_ready.gd`, new). Raised, the aim clips blend to level and the spine's aim lean
   to `raise_lean` (0.05 rad back); then FigureReady turns the replica with both hands about the grip, `raise_angle`
@@ -99,3 +100,23 @@ upright, the magazine canted out). Each `-before.png` and `-after.png`.
 gdlint clean on every changed script; `tools/unit_tests.sh` 1: 872/872, 2: 1793/1793, 3: 912/912; `tools/smoke_test.sh`
 PASS (zero script errors); `python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK. Not verified: how the
 swing up and down looks and feels in play (PLAYTEST › Players and replicas › Bots at walls), Forward+.
+
+## Fix round 1
+
+- **QA, blocking: a stale raise after hiding** (`figure_view.gd` `animate`). A figure hidden while raised (your watched
+  bot, a spectated one, a round change) kept its last target, and its first pose shown again snapped to it on a pose
+  the stride skipped the ray: raised for about 5 frames facing open ground. On a snap the old target is dropped: level
+  until the figure's next ray, which keeps its turn (forcing a ray on the snap instead broke QA's one-ray-a-frame
+  spread test). `test_figure_raise_qa.gd` › `test_hidden_and_shown_again_the_raise_is_not_stale` passes unedited and
+  fails without the change.
+- **Performance, advisory: the IK at imperceptible amounts** (`figure_pose.gd` `settle`, `FigureConfig.raise_rest`
+  0.001). The eased raise never reached exactly 0, so the two-arm IK ran on after any brush with a wall; easing to a
+  target of none, under `raise_rest` it is none. New `test_leaving_the_wall_the_raise_reaches_exactly_none` (exactly 0
+  within 45 poses of turning away; fails without it).
+- **QA, advisory: the first shot from a raised replica** (wording, no code). The SHOT event reads the muzzle as last
+  drawn, before the replica eases level over `settle_raise` (0.08 s), so a gas replica's first puff and a torch beam
+  start at the raised muzzle. No small root fix: the muzzle can only be read where the replica is drawn, and snapping
+  it level on the shot would still leave that first puff where it was. The record no longer says a bot never fires
+  from a raised replica; PLAYTEST asks about it.
+- Checked: gdlint; every `tests/unit/test_fi*.gd` (246/246, including test_figure_raise and test_figure_raise_qa);
+  `tools/smoke_test.sh` PASS (zero script errors).

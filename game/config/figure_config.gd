@@ -105,6 +105,8 @@ extends Resource
 @export var raise_lead: float = 0.1
 @export var raise_stride: int = 2
 @export var settle_raise: float = 0.08
+## Below this the raise, easing back to none, is none (so the arms' IK stops running at once).
+@export var raise_rest: float = 0.001
 @export var raise_fire_hold: float = 0.35
 @export var raise_lean: float = 0.05
 @export var raise_angle: float = 1.35
