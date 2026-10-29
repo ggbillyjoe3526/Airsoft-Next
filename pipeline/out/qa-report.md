@@ -1,26 +1,32 @@
-Task: NR1 · Neon Heights removed, Woodland public · QA commit 9683682 · Verdict: Pass
+Task: FB3 · QA commit 7ff3e66 · Verdict: Pass
 
 Blocking: none.
 
-Risks checked:
-- Leftover references: no Neon, neonHeights or city in game/, data/, tests/, tools/, .github/, docs/wiki, changelog.d,
-  README.md, export_presets.cfg or docs/*.md outside tests that name the removed map on purpose (the one `city` hit
-  checks the id falls back to the yard). No orphaned `.uid` or `.import`; peaks.json lists yard, pines, insects, crackle.
-- Wiki: `python3 tools/wiki.py check` passes.
-- Stale picks: the Match page pick is session-only (MatchPicks), Settings hold no map id, `_keep_a_playable_map` falls
-  back to Depot before play; a records file with `best_challenge.neonHeights` loads cleanly (test_wl9_qa.gd:100).
-- `MapData.presets_in` (game/map/map_data.gd:225) on a missing file gives day alone with no engine error in the run.
-- Woodland public: a Woodland PlaySession with Dev off ends with `dev_content` and `off_record` false; bots carry the
-  torch, so the match counts for records and XP.
-- Torch public: a level-0 item, so the Armory counts rise to 10/20 and 20/20; LIGHT is no longer LATER;
-  `BotKits.night_light` gives the torch with Dev content off.
+Advisory
+- `game/ui/text/en.po` DEV_INTRO (line 556) lists six cheats but leaves out Bots run low on BBs, Time of day and Disable levelling, which also keep a match off the records (DevCheats.any). Each switch's own help says so for Disable levelling and Dev content only. Predates FB3; a wording fix for the next pass.
+- An old save with the box unticked is reset in memory at every load until something saves (`settings.gd:224`); the file keeps `dev_enabled: false` meanwhile. Same result each launch, so harmless, and the first change saves it away.
+- Keyboard and mouse use of the Dev tab at a real window size (eight tabs at 1280x720 and narrower) needs a display; the worker's picture shows all eight fit at 1600x900.
 
-Non-blocking:
-1. `DevContent.use_*` swap a shared static and rely on `restore_*` at the end of the test (GUT asserts don't throw, so
-   only a script error would skip it); the same pattern as before.
-2. An old crash record names "Neon Heights" from the id; harmless.
-3. The no-engine-error claim for `presets_in` is read from the run output; GUT can't capture engine errors.
+Hunted, found clean
+- Old saves: box ticked (switches carry on), unticked (all thirteen fields back to default, no load message), key missing (read as written), key of the wrong type ("false", 0, [], {}) read as written, a Dev block missing or not a dictionary, a switch the save names that no longer exists (dropped on the next write, other switches kept per the box).
+- Records: every cheat switch makes `cheats().any()` true, the looks (Retro pixels, Robots, Pretend slow frames, Dev content) do not; a match built from a ticked save is off the record, from an unticked one on it; a switch set mid-match with no box takes the match off the record.
+- Readers: no `active_dev`, `dev_enabled` read or `_dev_box` is left in game/, tools/ or tests (the one `dev_enabled` read is the migration); every former reader reads `dev`.
+- Dev-only features: a new player's match has every figure human, Bots run low off, no dev content, no dev map listed, no intent views.
+- Public text: no doc, wiki page, changelog note or string still says to tick a box; the bug report line says "none" or lists the changed switches.
 
-Tests added, tests/unit/test_nr1_qa.gd (gdlint clean, 6/6): a gone map's presets and load; no shipped map or item dev
-and the range listed; the torch a bot night light without Dev content; a Woodland night match on the record; nothing of
-the gone map on disk; a gone map's record worded without a catalogue entry. Each but the first fails on base 3a72ac7f.
+Tests added: `tests/unit/test_fb3_qa.gd` (11), each checked against a copy of origin/main (test files, three that need the new `dev_text` signature aside)
+- :45 every cheat switch and every look switch · fails on main only through the missing seam (passes there: guards DevSettings.cheats).
+- :69 missing box key · guard (passes on main too).
+- :77 box key of the wrong type · guard.
+- :86 a save naming a gone switch, box ticked, unticked or missing · fails on main (an unticked save kept its switch).
+- :102 unticked save with a damaged Dev block · guard.
+- :108 the reset covers all thirteen switches, ticked keeps all · fails on main (unticked save kept them).
+- :133 a match from a ticked and from an unticked old save (off or on the record) · guard.
+- :148 a switch set mid-match with no box takes it off the record · fails on main ("no box to tick first").
+- :164 a new player's match reaches no Dev-only feature · guard.
+- :181 every Dev switch takes focus and Enter flips one · fails on main (Dev tab hidden).
+- :205 the bug report line with switches on, and "none" · fails on main (signature) .
+
+Counts: the new file 11/11; with test_dev_settings, test_dev_play, test_report_facts, test_settings and test_dev_cheats, 94/94, no script error. gdlint clean. Smoke test passed (zero script errors, 7 rounds). `wiki.py check` and `changelog.sh check` pass. Not rerun: unit parts 1-3 (the worker's runs on 3ba7e39 passed; this commit touches only tests/ and pipeline/out) and the match guards, the machine being at load 6 to 11.
+
+Owner's list (needs a display): the Dev tab by mouse and keyboard in the real window, and the Dev switches on his own save.
