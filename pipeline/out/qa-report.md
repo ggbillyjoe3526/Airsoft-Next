@@ -1,23 +1,26 @@
-Task: PN2 · QA commit (this commit) · Verdict: Pass
+Task: NR1 · Neon Heights removed, Woodland public · QA commit 9683682 · Verdict: Pass
 
-Blocking findings: none. Every acceptance criterion is met and pinned by a test that passes.
+Blocking: none.
 
-Advisory
-- A teammate who is hit keeps their ping up for its remaining life (at most 8 s): `Pings` (game/ai/pings.gd) never drops a ping on elimination, and the HUD only reads the book. Matches the browser and PN1's book ("kept PingConfig.lifetime"); a dead teammate's contact diamond is still useful. Not a PN2 defect; no stale marker survives past its lifetime or a new round (pinned below). No disconnects exist (single player).
-- game/play/sim_audio.gd header comment line for on_ping runs past 120 columns (gdlint passed, so within the project's limit).
+Risks checked:
+- Leftover references: no Neon, neonHeights or city in game/, data/, tests/, tools/, .github/, docs/wiki, changelog.d,
+  README.md, export_presets.cfg or docs/*.md outside tests that name the removed map on purpose (the one `city` hit
+  checks the id falls back to the yard). No orphaned `.uid` or `.import`; peaks.json lists yard, pines, insects, crackle.
+- Wiki: `python3 tools/wiki.py check` passes.
+- Stale picks: the Match page pick is session-only (MatchPicks), Settings hold no map id, `_keep_a_playable_map` falls
+  back to Depot before play; a records file with `best_challenge.neonHeights` loads cleanly (test_wl9_qa.gd:100).
+- `MapData.presets_in` (game/map/map_data.gd:225) on a missing file gives day alone with no engine error in the run.
+- Woodland public: a Woodland PlaySession with Dev off ends with `dev_content` and `off_record` false; bots carry the
+  torch, so the match counts for records and XP.
+- Torch public: a level-0 item, so the Armory counts rise to 10/20 and 20/20; LIGHT is no longer LATER;
+  `BotKits.night_light` gives the torch with Dev content off.
 
-Criteria checked (existing tests/unit/test_ping_markers.gd, 21 tests, plus mine)
-1. Ring/diamond, words, never follows, pop 0.35 s, none under Reduced motion, 7 s whole then 1 s fade: test_ping_markers.gd; the gone-at-lifetime and re-pop of a new ping after a fade: test_pn2_qa.gd.
-2. Off-screen pinning under the minimap and under flag/Hold plates, hidden spectating / scoreboard / paused / Off, HUD size and opacity: test_ping_markers.gd; pinned behind you stays inside the screen: test_pn2_qa.gd. Pause hides via hide_pings and the paused tree stops PlaySession._process. Looked at pn2-offscreen.png and ping.png: matches the concept.
-3. Minimap ring/diamond, on the rim off the panel, Off hides them: test_ping_markers.gd; a new round clears the minimap's too: test_pn2_qa.gd.
-4. Pip only for your own ping (not a teammate's ping or mark), once a ping: test_ping_markers.gd; two own pings pip twice with a teammate's in between or in the same tick, a ping after a new round pips again, Off does not mute the pip: test_pn2_qa.gd. Recipe matches SoundConfig (test_the_pip_is_the_browsers_recipe).
-5. Setting On by default, saved, old file loads On, Off hides markers only: test_ping_markers.gd; On again mid-ping shows the ping still up: test_pn2_qa.gd. Markers made once (setup_field is called once per session), a frame with none allocates nothing, freed with the HUD: test_ping_markers.gd.
+Non-blocking:
+1. `DevContent.use_*` swap a shared static and rely on `restore_*` at the end of the test (GUT asserts don't throw, so
+   only a script error would skip it); the same pattern as before.
+2. An old crash record names "Neon Heights" from the id; harmless.
+3. The no-engine-error claim for `presets_in` is read from the run output; GUT can't capture engine errors.
 
-Tests added (tests/unit/test_pn2_qa.gd, 8, all pass; each is a regression pin, none found a bug)
-- new round clears markers and minimap: fails if Hud/minimap kept their own copy or cached visibility; checked by reading place()/add_pings, which re-derive from book.is_up each frame.
-- gone at lifetime, back whole and popping for a new ping: fails if modulate/scale were left from the faded marker.
-- On again mid-ping; Off keeps the pip; two own pings / same-tick teammate ping; ping after clear; out teammate expires; pinned behind you inside the screen.
-
-Runs (raw output in pipeline/out/qa/): test_pn2_qa 8/8; touched files (test_ping_markers, test_pn2_qa, test_hud_minimap, test_hud_prefs, test_assets, +1) 87 tests, 919 asserts, 28 s, all pass; tools/smoke_test.sh pass (0 script errors). Full tools/check.sh not run (per brief).
-
-Not testable here (needs display/speakers, for the owner): how the pip sounds, the pop's feel at real frame rates, markers over a real window resize / fullscreen.
+Tests added, tests/unit/test_nr1_qa.gd (gdlint clean, 6/6): a gone map's presets and load; no shipped map or item dev
+and the range listed; the torch a bot night light without Dev content; a Woodland night match on the record; nothing of
+the gone map on disk; a gone map's record worded without a catalogue entry. Each but the first fails on base 3a72ac7f.

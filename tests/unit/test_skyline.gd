@@ -247,9 +247,6 @@ func test_smoke_from_medium_and_frozen_under_reduced_motion() -> void:
 
 
 func test_a_map_with_no_skyline_draws_as_before() -> void:
-	var neon := MapData.load_map("neonHeights", play.map_style, 1)
-	assert_eq(neon.skyline.size(), 0, "its kinds wait for its own dressing")
-	assert_null(SkylineView.build(neon, play.skyline, play.lighting, body.stand_eye_height))
 	var bare: Dictionary = JSON.parse_string(YARD)
 	bare.erase("dressing")
 	assert_null(SkylineView.build(_yard(JSON.stringify(bare)), play.skyline, play.lighting, body.stand_eye_height))

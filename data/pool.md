@@ -203,11 +203,11 @@ Later: a tracer unit (with tracer BBs, v0.3).
 
 A weapon torch on its own mount (M33h, WL7): the Weapon torch key (T) switches it on and off. At night it lights a cone
 you and the bots see further in, and it gives you away. By day it does nothing and isn't fitted. Every bot carries one
-on a night field. It fits every replica, the Cyber Pistol too. Dev while Woodland is.
+on a night field. It fits every replica, the Cyber Pistol too. Public with Woodland (owner, 2026-10-29).
 
 | ID | Name | Key | Fits | Access |
 |---|---|---|---|---|
-| 000020 | Weapon Torch | weaponTorch | pistol, rifle | dev |
+| 000020 | Weapon Torch | weaponTorch | pistol, rifle | public |
 
 ### Grenades
 

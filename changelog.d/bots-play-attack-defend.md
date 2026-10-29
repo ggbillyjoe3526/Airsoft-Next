@@ -8,4 +8,4 @@
 - Attack / Defend is not playable yet: the mode stays greyed out on the Match screen until the pole, HUD and Match card are built.
 
 ### Internal
-- Match guards and the balance report now run Attack / Defend on Depot and Neon Heights, and the Dev tab shows bots "At the flag".
+- Match guards and the balance report now run Attack / Defend on Depot and Woodland, and the Dev tab shows bots "At the flag".

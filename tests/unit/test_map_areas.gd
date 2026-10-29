@@ -1,7 +1,7 @@
 extends GutTest
 ## Named areas and storeys (MM1; the browser game's map/areas.test.ts and content/mapAreas.test.ts, CL1): area_at's
 ## rules, the shipped maps' areas read and named shortly, a malformed area warned of and left out, spots on Depot and on
-## Neon Heights by storey, area_at allocating nothing, and the minimap's numbers in play_tuning.tres. Every field's
+## the test field TowerBlock by storey, area_at allocating nothing, and the minimap's numbers in play_tuning.tres. Every field's
 ## walkable cells in an area is the field rule field.areas (test_field_rules.gd).
 
 var maps: Dictionary[String, MapData] = {}
@@ -9,8 +9,9 @@ var maps: Dictionary[String, MapData] = {}
 
 func before_all() -> void:
 	var tuning := SimTuning.load_default()
-	for id: String in ["depot", "woodland", "neonHeights", "range"]:
+	for id: String in ["depot", "woodland", "range"]:
 		maps[id] = MapData.load_map(id, MapStyle.new(), tuning.rounds.team_size if id != "range" else 1)
+	maps["tower"] = TowerBlock.load_map(MapStyle.new(), tuning.rounds.team_size)
 
 
 func after_all() -> void:
@@ -70,7 +71,7 @@ func test_is_empty_outside_every_area_and_with_none() -> void:
 
 
 func test_the_fields_load_their_areas_each_named_shortly_and_the_range_none() -> void:
-	var counts: Dictionary[String, int] = {"depot": 16, "woodland": 14, "neonHeights": 25, "range": 0}
+	var counts: Dictionary[String, int] = {"depot": 16, "woodland": 14, "range": 0}
 	for id: String in counts:
 		var m := maps[id]
 		assert_true(m.ok(), "%s: %s" % [id, m.problems])
@@ -81,8 +82,8 @@ func test_the_fields_load_their_areas_each_named_shortly_and_the_range_none() ->
 			assert_lte(a.name.length(), MapAreas.NAME_MAX_LENGTH, a.name)
 
 
-func test_neon_heights_has_three_storeys_and_the_others_none() -> void:
-	assert_eq(maps["neonHeights"].storeys, PackedFloat64Array([0.0, 3.0, 6.0]))
+func test_a_field_in_storeys_has_them_and_the_shipped_maps_none() -> void:
+	assert_eq(maps["tower"].storeys, PackedFloat64Array([0.0, 3.0, 6.0]))
 	for id: String in ["depot", "woodland", "range"]:
 		assert_true(maps[id].storeys.is_empty(), id)
 
@@ -133,17 +134,17 @@ func test_spots_on_depot_are_named_as_players_call_them() -> void:
 		assert_eq(MapAreas.area_at(m.areas, feet), want, str(feet))
 
 
-func test_neon_heights_names_one_spot_by_its_storey() -> void:
-	var m := maps["neonHeights"]
+func test_a_field_in_storeys_names_one_spot_by_its_storey() -> void:
+	var m := maps["tower"]
 	var names: Array[String] = ["Atrium", "Tower Level 1", "Tower Level 2"]
 	for s in m.storeys.size():
 		assert_eq(MapAreas.area_at(m.areas, Vector3(10, m.storeys[s], 0)), names[s], "storey %d" % s)
 	assert_eq(MapAreas.area_at(m.areas, Vector3(0, m.storeys[2], 7)), "Sky Bridge")
-	assert_eq(MapAreas.area_at(m.areas, Vector3(0, m.storeys[0], 7)), "Neon Avenue")
+	assert_eq(MapAreas.area_at(m.areas, Vector3(0, m.storeys[0], 7)), "Avenue")
 
 
 func test_area_at_allocates_nothing() -> void:
-	var m := maps["neonHeights"]
+	var m := maps["tower"]
 	var p := Vector3(10, 3, 0)
 	MapAreas.area_at(m.areas, p)
 	var objects := Performance.get_monitor(Performance.OBJECT_COUNT)

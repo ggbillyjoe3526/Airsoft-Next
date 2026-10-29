@@ -1,7 +1,8 @@
 extends GutTest
-## WL7 QA: the weapon torch at the seams the worker's own tests leave: the dead can't switch it, a saved torch with Dev
-## content off, the kit a match really builds by day and by night (player, bots, dev flag), the watched player's
-## torch when spectating, the preset changing mid-match, and the torch's draws and light freed with the session.
+## WL7 QA: the weapon torch at the seams the worker's own tests leave: the dead can't switch it, a saved torch tagged
+## dev with Dev content off (public since 2026-10-29, so tagged by DevContent), the kit a match really builds by day and
+## by night (player, bots, dev flag), the watched player's torch when spectating, the preset changing mid-match, and
+## the torch's draws and light freed with the session.
 
 const DT := 1.0 / 60.0
 const AEG := "000002"
@@ -96,7 +97,8 @@ func test_a_player_who_is_out_cannot_switch_it_back_on() -> void:
 
 # --- saves and dev content ---
 
-func test_a_saved_torch_with_dev_content_off_is_not_carried_and_marks_nothing() -> void:
+func test_a_saved_dev_torch_with_dev_content_off_is_not_carried_and_marks_nothing() -> void:
+	var was := DevContent.use_item(TORCH)
 	var on := _rules(true)
 	var l := on.default_loadout("Night")
 	on.set_part(l, AEG, &"light", TORCH)
@@ -107,6 +109,7 @@ func test_a_saved_torch_with_dev_content_off_is_not_carried_and_marks_nothing() 
 	assert_false(kit.light_dev)
 	assert_false(kit.dev_under(true), "a normal player's night match stays on the record")
 	assert_false(kit.parts[0].has(&"light"))
+	DevContent.restore_item(was)
 
 
 func test_a_torch_saved_for_a_replica_it_no_longer_fits_is_cleaned_not_fatal() -> void:
@@ -132,12 +135,12 @@ func test_by_day_a_torch_in_the_kit_is_not_fitted_and_the_match_is_not_dev() -> 
 	assert_null(session.find_child("TorchBeams", true, false), "nothing drawn by day")
 
 
-func test_at_night_your_torch_and_every_bots_are_fitted_and_the_match_is_dev() -> void:
+func test_at_night_your_torch_and_every_bots_are_fitted_and_the_match_stays_on_the_record() -> void:
 	var session := _session("woodland", _settings(true), _kit_with_torch())
 	assert_true(session.lighting().night)
 	assert_not_null(session.player.armament.lights[0], "your rifle's torch")
 	assert_null(session.player.armament.lights[1], "the pistol has none fitted")
-	assert_true(session.state.dev_content)
+	assert_false(session.state.dev_content, "Woodland and the torch are public")
 	var bots := 0
 	for c in session.state.characters:
 		if c == session.player:
@@ -150,11 +153,23 @@ func test_at_night_your_torch_and_every_bots_are_fitted_and_the_match_is_dev() -
 	assert_not_null(session.find_child("TorchBeams", true, false))
 
 
-func test_a_night_match_without_dev_content_has_no_torches_at_all() -> void:
-	var session := _session("woodland", _settings(false))
-	for c in session.state.characters:
+func test_a_dev_torch_marks_a_night_match_dev_and_without_dev_content_nobody_has_one() -> void:
+	var was := DevContent.use_item(TORCH)
+	var on := _session("woodland", _settings(true), _kit_with_torch())
+	var off := _session("woodland", _settings(false))
+	DevContent.restore_item(was)
+	assert_true(on.state.dev_content, "a dev torch at night: off the record")
+	for c in off.state.characters:
 		assert_true(c.armament.lights.is_empty() or c.armament.lights.all(func(l: Torch.Light) -> bool: return l == null),
 				"%d" % c.id)
+
+
+func test_a_night_match_without_dev_content_gives_every_bot_the_torch() -> void:
+	var session := _session("woodland", _settings(false))
+	assert_false(session.state.dev_content)
+	for c in session.state.characters:
+		if c != session.player:
+			assert_true(c.armament.lights.any(func(l: Torch.Light) -> bool: return l != null), "bot %d" % c.id)
 
 
 # --- drawing it ---

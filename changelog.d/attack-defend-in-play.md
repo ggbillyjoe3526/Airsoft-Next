@@ -1,5 +1,5 @@
 ### Attack / Defend in play
-- Attack / Defend can be picked on the Match screen on Depot or Neon Heights; a map without a flagpole says it needs one.
+- Attack / Defend can be picked on the Match screen on Depot or Woodland; a map without a flagpole says it needs one.
 - The team you pick attacks first, and sides swap at half time. The Match card says who attacks first.
 - A flagpole stands at the defenders' flag spot, with a ring on the ground showing its reach.
 - The ring is white with nobody on the rope, the attackers' colour as they raise, the defenders' as they pull down, and yellow when both are there.

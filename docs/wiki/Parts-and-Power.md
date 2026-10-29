@@ -69,3 +69,16 @@ energy and a little tighter, but front-heavy. Both count toward the site limit.
 
 **Heard from** is how far away its shots are heard, by bots, on the minimap and on the sound cues: ×0.5 is half as
 far. Silenced shots also sound muffled and quieter.
+
+## Lights
+
+<!-- wiki:parts lights -->
+
+A **weapon torch** fits any replica in the Light slot. It is fitted only on a field played at night (by day it does
+nothing and isn't there), and **T** switches it on and off (rebind it in Settings › Controls). It goes out when you
+holster, switch to a replica without one, are hit, and at the start of each round. **Reach** is how far its beam lights
+someone well enough to be made out, by you and by bots; **Beam** is the bright hotspot's angle and **Spill** the dimmer
+light round it. A torch lights the way and gives you away: bots see anyone standing in a lit beam, or pointing a lit
+torch near them, from as far as its reach. Every bot carries one at night and switches it on in a close fight and at
+the end of a search. On Medium graphics and up your torch is a real light from the rail, with shadows on High and
+Ultra; on Low it is a soft haze.

@@ -13,24 +13,17 @@ then **0.1**, which opens **Early Access**. Each build is posted on the
 
 ### Built
 
-Depot, the AEG Rifle, the GBB Pistol and the Cyber Pistol, every part and power source, the Loadout, levels and the
-Armory, Easy, Normal and Hard bots with names, personalities and kits, Elimination, Attack / Defend and Custom matches, the
-practice range in Depot's site, Practice on any field and the timed challenge, squad orders, the minimap, the hit feed,
-scoreboard and match summary, the sound pass, graphics presets, accessibility options, the save file screen, the crash
-screen and bug reports. The rest of this wiki describes all of it.
+Depot, Woodland at night with the weapon torch and glowing BBs, the AEG Rifle, the GBB Pistol and the Cyber Pistol,
+every part and power source, the Loadout, levels and the Armory, Easy, Normal and Hard bots with names, personalities
+and kits, Elimination, Attack / Defend and Custom matches, the practice range in Depot's site, Practice on any field and
+the timed challenge, squad orders, the minimap, the hit feed, scoreboard and match summary, the sound pass, graphics
+presets, accessibility options, the save file screen, the crash screen and bug reports. The rest of this wiki describes
+all of it.
 
 ### In development
 
-Being built now. Dev content is in the game but hidden: it shows only with **Settings › Dev › Dev content** on, until
-it is playtested and made public.
+Being built now, and in the game as each part lands.
 
-- **Woodland**, a second field: a wide, rolling wood with a hill, a knoll and a ravine, played **at night** in 5v5 or
-  6v6. Bushes hide you and stop BBs, fires and lanterns light pools in the dark, and bots see only as far as the light
-  lets them.
-- **Night play:** a low moon, stars and haze, with lamps and fires lighting the ground.
-- **The weapon torch:** fit a torch to any replica for night fields. It lights the way and gives you away.
-- **Glowing BBs:** green tracer BBs you can follow in the dark, flying exactly like white ones.
-- **Practice on the dev fields:** Woodland's practice plays at night, with your torch fitted.
 - **Bot callouts** (on for everyone while they're tuned; Settings › HUD › Callouts turns them off): your teammates
   call what they see and do in the hit feed, in words with a radio click, never a voice.
 - **Elimination's overtime flag:** a time-out with players left on both sides puts a flag up near the middle, and the
@@ -74,7 +67,6 @@ order is still open: whichever comes first takes the next number.
 ### Maps Update
 
 - **New fields**, built for airsoft: an abandoned hospital, a trench line with forts, a quarry and more.
-- **Neon Heights** goes public: a neon city block on three floors, with doors and furnished interiors.
 - **Weather**: rain that masks footsteps, fog that shortens how far you see.
 - **Prone**, with a field built for it.
 

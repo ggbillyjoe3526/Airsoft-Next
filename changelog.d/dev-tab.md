@@ -9,4 +9,4 @@
 - A match with any cheat on, or on a dev map, is kept out of your records.
 
 ### Map choice
-- The title screen has a Map choice: Depot, plus Woodland and Neon Heights while Dev content is on.
+- The title screen has a Map choice: Depot or Woodland.

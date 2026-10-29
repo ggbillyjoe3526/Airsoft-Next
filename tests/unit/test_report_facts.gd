@@ -75,8 +75,8 @@ func test_the_match_and_round() -> void:
 	var sizes: Array[int] = [3, 3]
 	assert_eq(ReportFacts.match_text("depot", "elimination", false, sizes, "normal", ""),
 			"Depot · Elimination · Standard rules · 3v3 · Normal")
-	assert_eq(ReportFacts.match_text("neonHeights", "attack_defend", true, sizes, "hard", "easy"),
-			"Neon Heights · Attack Defend · Custom rules · 3v3 · Hard, teammates Easy")
+	assert_eq(ReportFacts.match_text("woodland", "attack_defend", true, sizes, "hard", "easy"),
+			"Woodland · Attack Defend · Custom rules · 3v3 · Hard, teammates Easy")
 	assert_eq(ReportFacts.match_text("", "elimination", false, sizes, "normal", ""), "")
 	assert_eq(ReportFacts.practice_text("range"), "Practice · Range")
 	var rounds := RoundState.new()

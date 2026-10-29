@@ -1,10 +1,10 @@
 extends GutTest
 ## The callouts' guards (CO1; the browser game's depotMatch.callouts.test.ts, CL1): whole bot matches with the shipped
-## data/callouts.md. On every field (Depot in both modes, Neon Heights' Attack / Defend by day, Woodland at night) a
-## seeded match plays the same with the callouts as without: the same shots, hits, rounds and flag; a replay says the
-## same calls. On every map every call keeps the pace (one a team a tick, the team's and the
-## bot's gaps), comes from a bot in play during a live round and fits a feed line, and the calls come at a steady rate;
-## the rates print beside the browser's for the record. Run by tools/match_guards.sh, a CI job of its own.
+## data/callouts.md. On every field (Depot in both modes, Woodland at night) a seeded match plays the same with the
+## callouts as without: the same shots, hits, rounds and flag; a replay says the same calls. On every map every call
+## keeps the pace (one a team a tick, the team's and the bot's gaps), comes from a bot in play during a live round and
+## fits a feed line, and the calls come at a steady rate; the rates print beside the browser's for the record. Run by
+## tools/match_guards.sh, a CI job of its own.
 
 const SLACK := 1e-6
 ## Calls a team a minute of live play: enough to hear the team, never a stream (the team's gap alone allows 40).
@@ -100,9 +100,9 @@ func test_depot_plays_the_same_with_the_callouts_as_without() -> void:
 				SAME_SECONDS, quiet.shots, quiet.hits, quiet.rounds.size(), heard.calls])
 
 
-func test_neon_heights_and_woodland_play_the_same_with_the_callouts_as_without() -> void:
-	# QA (CO1): the same check on the other two fields, Neon Heights' Attack / Defend by day and Woodland at night.
-	for run: Array in [["neonHeights", RoundState.Mode.ATTACK_DEFEND], ["woodland", RoundState.Mode.ELIMINATION]]:
+func test_woodland_plays_the_same_with_the_callouts_as_without() -> void:
+	# QA (CO1): the same check on the other field, Woodland at night.
+	for run: Array in [["woodland", RoundState.Mode.ELIMINATION]]:
 		var r: MatchRunner = await MatchGuard.runner(self, run[0], &"normal", false, run[1])
 		r.talk = false
 		var quiet := r.play(SAME_SEED, OTHER_SECONDS)
@@ -153,7 +153,6 @@ func test_every_map_keeps_the_pace_from_bots_in_play_at_a_steady_rate() -> void:
 		["depot", RoundState.Mode.ELIMINATION, 8.2],
 		["depot", RoundState.Mode.ATTACK_DEFEND, 11.4],
 		["woodland", RoundState.Mode.ELIMINATION, 6.8],
-		["neonHeights", RoundState.Mode.ATTACK_DEFEND, 5.5],
 	]
 	var called: Dictionary[int, int] = {}
 	for run in runs:

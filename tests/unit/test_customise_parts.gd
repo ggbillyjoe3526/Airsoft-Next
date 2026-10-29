@@ -72,7 +72,7 @@ func test_the_rifle_takes_an_optic_grip_barrel_muzzle_and_magazine_but_no_laser(
 	assert_false(view.part_available(LASER_TAB))
 	assert_true(view.part_card(LASER_TAB).disabled)
 	assert_eq(view.part_mount_text(LASER_TAB), "PISTOL RAIL", "greyed with the mount it needs")
-	assert_eq(view.later_count(), 2, "the laser and the light")
+	assert_eq(view.later_count(), 1, "the laser: the light is on offer")
 
 
 func test_the_pistol_takes_a_laser_muzzle_part_and_magazine_and_greys_the_rest_with_their_mounts() -> void:
@@ -82,21 +82,24 @@ func test_the_pistol_takes_a_laser_muzzle_part_and_magazine_and_greys_the_rest_w
 	assert_eq(view.part_mount_text(OPTIC), "TOP RAIL")
 	assert_eq(view.part_mount_text(GRIP), "UNDER RAIL")
 	assert_eq(view.part_mount_text(BARREL), "BARREL MOUNT")
-	assert_eq(view.later_count(), 4, "the optic, grip, barrel and the light")
+	assert_eq(view.later_count(), 3, "the optic, grip and barrel")
 
 
-func test_what_fits_comes_from_the_pool_and_the_cyber_pistol_takes_none() -> void:
+func test_what_fits_comes_from_the_pool_and_the_cyber_pistol_takes_only_the_light() -> void:
 	var rules := saved.rules
 	for slot: StringName in Pool.PART_TABLES.values():
-		assert_true(rules.parts_for(CYBER, slot).is_empty(), "the Cyber Pistol takes no %s" % slot)
+		if slot != &"light":
+			assert_true(rules.parts_for(CYBER, slot).is_empty(), "the Cyber Pistol takes no %s" % slot)
+	assert_eq(rules.parts_for(CYBER, &"light").size(), 1, "the Weapon Torch fits it (RM8)")
 	assert_eq(rules.parts_for(PISTOL, &"magazine").size(), 1, "the pistol's magazine is the extended one")
 	assert_true(rules.parts_for(AEG, &"laser").is_empty())
 
 
-func test_the_light_stays_later() -> void:
+func test_the_light_is_on_offer_since_the_torch_went_public() -> void:
 	var view := _page(0).customise()
 	assert_true(_words(view).has("LIGHT"))
-	assert_true(_words(view).has("LATER"))
+	assert_false(view.part_later(CustomiseView.Tab.LIGHT), "the Weapon Torch is public since 2026-10-29")
+	assert_true(view.part_available(CustomiseView.Tab.LIGHT))
 
 
 func test_a_tab_the_next_replica_cant_take_falls_back_to_colour() -> void:

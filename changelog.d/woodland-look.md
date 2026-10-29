@@ -1,4 +1,4 @@
-### Woodland's look (dev content)
+### Woodland's look
 - Every pine on Woodland has a crown over your head. It is only for looks, so you see and shoot under it as before.
 - A forest and treelines stand beyond the fence and fade into the sky.
 - From Medium detail: grass tufts in the meadow, puddles and mud that look wet, leaves by the trunks, fallen branches and twigs, and moss on the logs.

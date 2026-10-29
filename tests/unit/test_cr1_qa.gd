@@ -41,11 +41,6 @@ func test_two_a_side_elimination_plays_out() -> void:
 	await _play_out(2, RoundState.Mode.ELIMINATION, "depot")
 
 
-func test_a_small_team_on_neon_heights_plays_out_in_both_modes() -> void:
-	await _play_out(2, RoundState.Mode.ATTACK_DEFEND, "neonHeights")
-	await _play_out(1, RoundState.Mode.ELIMINATION, "neonHeights", 5)
-
-
 func test_every_team_size_a_field_offers_fits_it() -> void:
 	for e in MapCatalog.shared().fields(true):
 		for n: int in CustomRules.TEAM_SIZES:

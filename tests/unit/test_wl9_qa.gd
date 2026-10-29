@@ -12,7 +12,7 @@ const RANGE_PLAY_SHA := "a6c3b53cd243442018d2a4dd670abe004bbcd369ff5b44b4e52a874
 const DEPOT_KEYS: Array[String] = ["name", "blocks", "killY", "spawns", "deadZones", "lanes", "flag", "overtimeFlag",
 		"extraction", "bakedLight", "areas"]
 const DEPOT_PLAY_SHA := "c96f37e960034f6ae25f84475684debcdeed0e231840d3cf95f1857fd152488a"
-const MAPS: Array[String] = ["depot", "neonHeights", "woodland"]
+const MAPS: Array[String] = ["depot", "woodland"]
 
 var tuning: SimTuning = SimTuning.load_default()
 var play: PlayTuning = PlayTuning.load_default()
@@ -97,12 +97,13 @@ func test_an_older_records_file_loads_without_a_warning_and_a_range_best_survive
 	var r := Records.new()
 	assert_eq(r.from_dict({"results": {}, "streak": 1}).size(), 0, "no timed challenge bests yet: not a problem")
 	var r2 := Records.new()
-	assert_eq(r2.from_dict({"best_challenge": {"range": 11}}).size(), 0)
+	assert_eq(r2.from_dict({"best_challenge": {"range": 11, "neonHeights": 9}}).size(), 0,
+			"a best on a map taken out of the game (Neon Heights) reads without a problem")
 	assert_eq(r2.challenge_best("range"), 11)
-	assert_eq(r2.challenge_best("neonHeights"), 0, "a map never played has no best")
+	assert_eq(r2.challenge_best("woodland"), 0, "a map never played has no best")
 	var run := RangeChallenge.Run.new()
 	run.hits = 4
-	assert_true(r2.add_challenge_run("neonHeights", run), "a dev field's id is a valid course")
+	assert_true(r2.add_challenge_run("woodland", run), "a field's id is a valid course")
 
 
 func test_a_saved_range_and_practice_then_a_field_does_not_come_back_as_practice_by_surprise() -> void:
@@ -118,14 +119,14 @@ func test_a_saved_range_and_practice_then_a_field_does_not_come_back_as_practice
 	assert_eq(picks.mode, MatchOptions.MODE_ELIMINATION, "the Range forced Practice: a field opens on its first mode")
 	# Practice picked on a field still carries to the next field.
 	page.mode_card(MatchOptions.MODE_PRACTICE).pressed.emit()
-	page.map_card("neonHeights").pressed.emit()
+	page.map_card("woodland").pressed.emit()
 	assert_eq(picks.mode, MatchOptions.MODE_PRACTICE)
 
 
 func test_practice_resumed_on_a_field_puts_you_back_and_lays_out_the_same_targets() -> void:
 	var first := PlaySession.new()
 	first.practice = true
-	first.map_id = "neonHeights"
+	first.map_id = "woodland"
 	first.match_seed = 77
 	first.settings = Settings.new()
 	add_child_autofree(first)
@@ -137,7 +138,7 @@ func test_practice_resumed_on_a_field_puts_you_back_and_lays_out_the_same_target
 	await wait_physics_frames(2)
 	var second := PlaySession.new()
 	second.practice = true
-	second.map_id = "neonHeights"
+	second.map_id = "woodland"
 	second.match_seed = 77
 	second.resume = spot
 	second.settings = Settings.new()

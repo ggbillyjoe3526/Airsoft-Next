@@ -2,7 +2,7 @@ class_name ArmoryFacts
 extends RefCounted
 ## What the Armory shows, worked out from the levels, the pool and the player's XP (no nodes): every level's items and
 ## whether each level is unlocked, the next one or locked, how many items are unlocked, and the words for an item. With
-## levelling off every level is unlocked. Items still being built (Access `dev`, the Weapon Torch while Woodland is)
+## levelling off every level is unlocked. Items still being built (Access `dev`)
 ## are listed only with Dev content on; any waiting for their feature (Pool.waiting) never are.
 
 enum State { UNLOCKED, NEXT, LOCKED }

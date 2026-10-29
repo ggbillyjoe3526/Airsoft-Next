@@ -56,9 +56,9 @@ drawing its graphics, it restarts on safe graphics by itself ([Settings](Setting
 **Settings › Save file** shows the folder and has an **Open folder** button. The game also keeps three daily restore
 points ([Saving and Bug Reports](Saving-and-Bug-Reports)).
 
-### Why is there only one field?
+### Why are there only two fields?
 
-More fields are being built and join the Match screen once they're playtested ([Roadmap](Roadmap)).
+Depot and Woodland are the fields for now. New fields are on the [Roadmap](Roadmap).
 
 ### How do I report a bug?
 

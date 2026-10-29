@@ -26,9 +26,10 @@ the energy.
 - **Colour:** eight bold schemes, four plain ones, and a **Realistic colours** switch that shows bold schemes as plain
   colours.
 - **BB weight**, from 0.20 g to 0.30 g, with a picture of the BB's flight, and the **hop-up** dial's starting
-  setting.
+  setting. **Glowing BBs** under it: At Night (the default), Always or Off. A glowing BB is drawn green, a little
+  larger at range, with a longer streak, so you can follow a shot all the way; it flies exactly like a white one.
 - **Power source:** which battery or gas it runs on ([Parts and Power](Parts-and-Power#power-sources)).
-- **Part tabs:** optic, grip, laser, barrel, muzzle part and magazine. A tab the replica can't take shows greyed out,
+- **Part tabs:** optic, grip, laser, barrel, muzzle part, magazine and light ([weapon torch](Parts-and-Power#lights)). A tab the replica can't take shows greyed out,
   with the mount it needs. Each part's card shows its picture and what it changes, better in green and worse in red.
 
 The replica's picture shows the parts fitted, in your colours, drawn to the same scale as the others so a pistol looks

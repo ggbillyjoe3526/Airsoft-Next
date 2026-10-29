@@ -60,7 +60,7 @@ its balance run plays each lighting and round mode in its own process, in parall
 - **One item** by pool ID, name or Key (`000007`, `"Red Dot"`, `redDot`) runs levels 1 to 3; **all** runs levels 1 to 3
   on every asset, without pictures.
 - **Balance** adds level 4. **Public** is the public gate: all four levels at full length.
-- **A map** by its id or name (`depot`, `"Neon Heights"`), or every map (levels 1 to 3, without perf runs or pictures).
+- **A map** by its id or name (`depot`, `"Woodland"`), or every map (levels 1 to 3, without perf runs or pictures).
   Its perf runs can be skipped, and name their environment (a cloud container, or the owner's PC).
 - **A mode** by its id or name (`attackDefend`, `"Attack and Defend"`): its rules and fit, its short matches on every
   map that hosts it, a full match on its first public map, the perf run on each host on the budget preset, and with

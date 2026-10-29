@@ -97,6 +97,7 @@ func test_title_menus_title_round_trips_keep_one_connection_per_signal() -> void
 
 
 func test_dev_content_toggle_adds_and_removes_the_dev_map_choice() -> void:
+	var catalog := DevContent.use_map() # every shipped map is public: Woodland tagged dev for the test
 	var main: Node = await _boot()
 	var s := Settings.shared()
 	var was_en := s.dev_enabled
@@ -115,6 +116,7 @@ func test_dev_content_toggle_adds_and_removes_the_dev_map_choice() -> void:
 	assert_true(page.map_ids().has(main._picks.map_id))
 	s.dev_enabled = was_en
 	s.dev.dev_content = was
+	DevContent.restore_map(catalog)
 
 
 func test_menu_scale_is_finite_positive_and_capped_across_window_sizes() -> void:

@@ -1,7 +1,7 @@
 extends GutTest
 ## The minimap's field drawing (MM3; the browser game's minimap layers, M23 and M34c), read pixel by pixel: Depot's
-## walls, low cover, the dock raised with its rim and the ramps, Neon Heights' storeys (the floors over a storey left
-## out, the street under it washed darker), storey_of, the size cap, nothing on the range, and the images freed with
+## walls, low cover, the dock raised with its rim and the ramps, storeys on the test field TowerBlock (the floors over a
+## storey left out, the street under it washed darker), storey_of, the size cap, nothing on the range, and the images freed with
 ## the field. Each map is drawn once for the file; the build time and bytes are printed.
 
 ## How far apart two colours may be per channel after the image's 8 bits.
@@ -15,7 +15,7 @@ var fields: Dictionary[String, MinimapField] = {}
 func before_all() -> void:
 	cfg = PlayTuning.load_default().minimap
 	var tuning := SimTuning.load_default()
-	for id: String in ["depot", "neonHeights", "range"]:
+	for id: String in ["depot", "range"]:
 		maps[id] = MapData.load_map(id, MapStyle.new(), tuning.rounds.team_size if id != "range" else 1)
 		var t0 := Time.get_ticks_usec()
 		fields[id] = MinimapField.build(maps[id], cfg)
@@ -23,6 +23,8 @@ func before_all() -> void:
 		var side := Vector2i.ZERO if f.layers.is_empty() else f.layers[0].get_size()
 		gut.p("%s: %d layer(s) of %s px at %.2f px/m, %.1f ms, %d KB" % [id, f.layers.size(), side, f.scale,
 				(Time.get_ticks_usec() - t0) / 1000.0, f.byte_size() / 1024])
+	maps["tower"] = TowerBlock.load_map(MapStyle.new(), tuning.rounds.team_size)
+	fields["tower"] = MinimapField.build(maps["tower"], cfg)
 
 
 func after_all() -> void:
@@ -63,10 +65,10 @@ func test_the_dock_has_a_rim_where_it_drops() -> void:
 	assert_gt(lift, luminance(cfg.raised_colour) - luminance(cfg.ground_colour), "the rim stands out more than the shade")
 
 
-func test_neon_heights_has_a_layer_per_storey() -> void:
-	var f := fields["neonHeights"]
+func test_a_field_in_storeys_has_a_layer_per_storey() -> void:
+	var f := fields["tower"]
 	assert_eq(f.layers.size(), 3)
-	assert_eq(f.floors, maps["neonHeights"].storeys)
+	assert_eq(f.floors, maps["tower"].storeys)
 	for img in f.layers:
 		assert_eq(img.get_size(), f.layers[0].get_size(), "the layers line up")
 	assert_eq(f.storey_of(0.0), 0)
@@ -80,25 +82,25 @@ func test_neon_heights_has_a_layer_per_storey() -> void:
 
 func test_a_storey_leaves_out_the_floors_over_it() -> void:
 	# (-10, -6): the street, the west building's 3 m floor, and its roof (a 6.0-6.3 m slab) over that.
-	assert_colour("neonHeights", 0, -10.0, -6.0, cfg.ground_colour, "the street: the 3 m floor over it left out")
-	assert_colour("neonHeights", 1, -10.0, -6.0, cfg.ground_colour, "the 3 m floor, its roof left out")
-	assert_colour("neonHeights", 2, -10.0, -6.0, cfg.ground_colour, "the roof is at the 6 m storey's feet")
+	assert_colour("tower", 0, -10.0, -6.0, cfg.ground_colour, "the street: the 3 m floor over it left out")
+	assert_colour("tower", 1, -10.0, -6.0, cfg.ground_colour, "the 3 m floor, its roof left out")
+	assert_colour("tower", 2, -10.0, -6.0, cfg.ground_colour, "the roof is at the 6 m storey's feet")
 
 
 func test_an_upper_storey_washes_the_street_darker() -> void:
 	# (0, 7.3): the street under the 6 m bridge.
 	var washed := cfg.ground_colour.blend(cfg.below_storey_colour)
-	assert_colour("neonHeights", 0, 0.0, 7.3, cfg.ground_colour, "the street on the street's storey")
-	assert_colour("neonHeights", 1, 0.0, 7.3, washed, "the street under the 3 m storey, the bridge left out")
-	assert_lt(luminance(pixel("neonHeights", 1, 0.0, 7.3)), luminance(pixel("neonHeights", 0, 0.0, 7.3)), "darker")
-	assert_colour("neonHeights", 2, 0.0, 7.3, cfg.ground_colour, "the bridge on its own storey")
-	assert_colour("neonHeights", 2, -10.0, 4.2, washed, "a 3 m floor open to the sky, under the 6 m storey")
+	assert_colour("tower", 0, 0.0, 7.3, cfg.ground_colour, "the street on the street's storey")
+	assert_colour("tower", 1, 0.0, 7.3, washed, "the street under the 3 m storey, the bridge left out")
+	assert_lt(luminance(pixel("tower", 1, 0.0, 7.3)), luminance(pixel("tower", 0, 0.0, 7.3)), "darker")
+	assert_colour("tower", 2, 0.0, 7.3, cfg.ground_colour, "the bridge on its own storey")
+	assert_colour("tower", 2, -10.0, 4.2, washed, "a 3 m floor open to the sky, under the 6 m storey")
 
 
 func test_a_storeys_own_cover_shows() -> void:
 	# A crate (3.0-4.2 m) on the west building's 3 m floor.
-	assert_colour("neonHeights", 1, -8.0, -4.0, cfg.low_colour, "a crate on the 3 m floor is low cover there")
-	assert_colour("neonHeights", 0, -8.0, -4.0, cfg.ground_colour, "and out of the street's drawing")
+	assert_colour("tower", 1, -8.0, -4.0, cfg.low_colour, "a crate on the 3 m floor is low cover there")
+	assert_colour("tower", 0, -8.0, -4.0, cfg.ground_colour, "and out of the street's drawing")
 
 
 func test_no_side_passes_the_cap() -> void:

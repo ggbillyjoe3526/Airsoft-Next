@@ -1,6 +1,6 @@
 extends GutTest
 ## QA for WL6 (bots by night): the range boundaries exactly, which preset plays at night, and that moving a point out of
-## a light pool never leaves its floor or region, on Woodland and on Neon Heights played at night.
+## a light pool never leaves its floor or region, on Woodland and on the test field TowerBlock (floors in storeys) at night.
 
 const DT := 1.0 / 60.0
 
@@ -49,22 +49,20 @@ func test_a_bot_loses_a_target_that_steps_from_the_light_into_the_dark() -> void
 func test_the_preset_played_decides_the_night() -> void:
 	var play := PlayTuning.load_default()
 	var woodland := MapData.load_map("woodland", play.map_style, 3)
-	var neon := MapData.load_map("neonHeights", play.map_style, 3)
+	var tower := TowerBlock.load_map(play.map_style, 3)
 	var depot := MapData.load_map("depot", play.map_style, 3)
 	assert_true(PlaySession.lighting_for(woodland, play, &"", &"").night, "Woodland")
-	assert_true(PlaySession.lighting_for(neon, play, &"", &"").night, "Neon Heights by default")
-	assert_false(PlaySession.lighting_for(neon, play, LightingConfig.DAY, &"").night, "Neon Heights picked for day")
+	assert_true(PlaySession.lighting_for(tower, play, &"", &"").night, "a map offering both: night by default")
+	assert_false(PlaySession.lighting_for(tower, play, LightingConfig.DAY, &"").night, "and picked for day")
 	assert_false(PlaySession.lighting_for(depot, play, &"", &"").night, "Depot")
 	assert_true(PlaySession.lighting_for(depot, play, &"", LightingConfig.NIGHT).night, "Depot, Dev: Time of day Night")
 	assert_false(PlaySession.lighting_for(woodland, play, &"", LightingConfig.DAY).night,
 			"Woodland, Dev: Time of day Day (a forced preset wins over the map's own)")
 
 
-## Every lit walkable spot of `map_id`'s light pools, moved out of the light: still on its floor, walkable, dark, a step
-## from where it was and in the same region on foot.
-func _sweep(map_id: String) -> void:
-	var play := PlayTuning.load_default()
-	var map := MapData.load_map(map_id, play.map_style, 3)
+## Every lit walkable spot of `map`'s light pools (`map_id` names it in the messages), moved out of the light: still on
+## its floor, walkable, dark, a step from where it was and in the same region on foot.
+func _sweep(map: MapData, map_id: String) -> void:
 	var nav := NavGrid.build(map, tuning.nav, tuning.body)
 	var w := BotWorld.new()
 	w.tuning = tuning
@@ -129,8 +127,8 @@ func _sweep(map_id: String) -> void:
 
 
 func test_out_of_light_stays_on_the_floor_and_region_on_woodland() -> void:
-	_sweep("woodland")
+	_sweep(MapData.load_map("woodland", PlayTuning.load_default().map_style, 3), "woodland")
 
 
-func test_out_of_light_stays_on_the_floor_and_region_on_neon_heights_at_night() -> void:
-	_sweep("neonHeights")
+func test_out_of_light_stays_on_the_floor_and_region_on_a_field_in_storeys() -> void:
+	_sweep(TowerBlock.load_map(PlayTuning.load_default().map_style, 3), "Tower Block")

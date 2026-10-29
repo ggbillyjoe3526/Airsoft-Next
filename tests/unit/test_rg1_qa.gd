@@ -89,7 +89,7 @@ func test_targets_far_from_the_path_change_no_event_and_draw_nothing_from_the_st
 
 
 func test_every_field_map_has_no_targets_and_no_warnings() -> void:
-	for id: String in ["depot", "woodland", "neonHeights"]:
+	for id: String in ["depot", "woodland"]:
 		var m := MapData.load_map(id, MapStyle.new(), 1)
 		assert_eq(m.targets.size(), 0, id)
 		assert_eq(m.warnings.size(), 0, id)

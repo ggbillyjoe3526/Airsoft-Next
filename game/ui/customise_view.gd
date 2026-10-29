@@ -2,8 +2,8 @@ class_name CustomiseView
 extends Control
 ## The Customise page body (concepts `colour.png`, `bbs.png`, `optic.png` and `magazine.png`): the way back, the replica's
 ## name and slot, the parts down the left (COLOUR, BBs, POWER, then OPTIC, GRIP, BARREL, MUZZLE, MAGAZINE, LASER and LIGHT,
-## each greyed with the mount it needs on a replica that can't take one; LIGHT greyed LATER while no light is on offer:
-## the Weapon Torch is dev while Woodland is, WL7), the replica's picture with the
+## each greyed with the mount it needs on a replica that can't take one; LIGHT greyed LATER while no light is on offer,
+## WL7), the replica's picture with the
 ## tab's controls under it and the Performance sheet on the right. COLOUR: the eight bold schemes, the four plain colours and
 ## the Realistic colours switch. BBs: the weight slider with Glowing BBs under it (At Night, Always, Off: WL8), and the
 ## hop-up's slider with its flight. POWER: the power sources that

@@ -123,17 +123,19 @@ func test_dev_content_off_with_a_dev_map_picked_keeps_a_playable_pick_and_play_e
 	var settings := Settings.new()
 	settings.dev_enabled = true
 	settings.dev.dev_content = true
+	var was := DevContent.use_map()
 	var picks := MatchPicks.new()
-	picks.map_id = "neonHeights"
+	picks.map_id = "woodland"
 	var page := MatchPage.new(picks, settings)
 	add_child_autofree(page)
 	settings.dev.dev_content = false
 	settings.changed.emit()
 	await wait_process_frames(1)
+	DevContent.restore_map(was)
 	assert_eq(picks.map_id, "depot")
 	assert_false(page.play_button().disabled)
 	assert_true(page.map_card("depot").is_picked())
-	assert_null(page.map_card("neonHeights"))
+	assert_null(page.map_card("woodland"))
 	assert_true(page.summary_text().begins_with("Depot"))
 
 

@@ -1,12 +1,12 @@
 extends GutTest
 ## Practice on any field (WL9; the browser game's map/practiceSpots.test.ts, practiceLayout.test.ts and
 ## rangeSessionMapPractice.test.ts, M94): Practice offered on every field, its targets laid out from the map's own data on
-## Depot, Neon Heights and Woodland (lane points facing back down their lane, the other end's spawns, points along long
+## Depot and Woodland (lane points facing back down their lane, the other end's spawns, points along long
 ## legs, each on the floor, none near your start or crowding another, crouched behind low cover, steel, movers and
 ## swingers where they fit), the START plate ahead of your start, the challenge lighting only what you can see, a best
 ## per map, and a practice session on Depot by day and on Woodland at night with your torch.
 
-const MAPS: Array[String] = ["depot", "neonHeights", "woodland"]
+const MAPS: Array[String] = ["depot", "woodland"]
 const RECORDS := "user://test_wl9_records.save"
 const AEG := "000002"
 const TORCH := "000020"
@@ -73,7 +73,7 @@ func _feet(s: RangeTarget.Spec) -> float:
 
 # --- the Match page ---
 
-func test_practice_is_offered_on_every_field_dev_ones_under_dev_content() -> void:
+func test_practice_is_offered_on_every_field() -> void:
 	var catalog := MapCatalog.shared()
 	for e in catalog.fields(true):
 		assert_true(MatchOptions.modes_offered(e).has(MatchOptions.MODE_PRACTICE), e.id)
@@ -82,7 +82,7 @@ func test_practice_is_offered_on_every_field_dev_ones_under_dev_content() -> voi
 	var public_ids := PackedStringArray()
 	for e in catalog.fields(false):
 		public_ids.append(e.id)
-	assert_false(public_ids.has("woodland"), "Woodland is Dev content")
+	assert_true(public_ids.has("woodland"), "Woodland is public (owner, 2026-10-29)")
 	assert_eq(MatchOptions.modes_offered(catalog.find("range")), PackedStringArray([MatchOptions.MODE_PRACTICE]))
 
 
@@ -105,7 +105,7 @@ func test_practice_picked_on_a_field_stays_picked_on_the_next_field() -> void:
 
 # --- the layout ---
 
-func test_targets_come_from_the_map_alone_on_depot_neon_heights_and_woodland() -> void:
+func test_targets_come_from_the_map_alone_on_depot_and_woodland() -> void:
 	for id in MAPS:
 		var c := cases[id]
 		var specs := c.specs
@@ -198,7 +198,24 @@ func test_crouched_figures_movers_and_swingers_stand_where_they_fit() -> void:
 				assert_eq(s.kind, RangeTarget.Kind.FIGURE)
 	assert_gt(crouched, 0, "behind low cover")
 	assert_gt(movers, 0, "on a lane's leg")
-	assert_gt(swingers, 0, "where a frame fits")
+	# No steel spot on Depot or Woodland has room for a frame (Neon Heights' did): the fit is tested on its own below.
+	gut.p("swingers on the fields: %d" % swingers)
+
+
+## A swinger's frame fits on open level floor, and not with a wall within its legs' reach.
+func test_a_swinger_fits_on_open_floor_and_not_beside_a_wall() -> void:
+	var floor_block := {"kind": "floor", "center": {"x": 0, "y": -0.25, "z": 0}, "size": {"x": 30, "y": 0.5, "z": 30}}
+	var wall := {"kind": "wall", "center": {"x": 1.0, "y": 1.0, "z": 0}, "size": {"x": 0.2, "y": 2, "z": 3}}
+	var spot := PracticeSpots.Spot.new()
+	for blocks: Array in [[floor_block], [floor_block, wall]]:
+		var map := MapData.parse(JSON.stringify({"name": "Flat", "blocks": blocks}), MapStyle.new(), 1)
+		var level := MapLevel.new()
+		add_child(level)
+		level.build(map, MapStyle.new(), tuning.body)
+		var nav := NavGrid.build(map, tuning.nav, tuning.body)
+		var fits := PracticeSpots._swinger_fits(spot, nav, level.query(), cfg)
+		assert_eq(fits, blocks.size() == 1, "open floor" if blocks.size() == 1 else "a wall 0.9 m to the side")
+		level.free()
 
 
 func test_the_start_plate_stands_ahead_of_your_start_in_plain_sight() -> void:
@@ -397,10 +414,7 @@ func test_practice_on_depot_has_no_bots_no_score_and_starts_you_at_end_0s_first_
 
 func test_practice_on_woodland_plays_at_night_with_your_torch_fitted() -> void:
 	var settings := Settings.new()
-	settings.dev_enabled = true
-	settings.dev.dev_content = true
 	var rules := LoadoutRules.standard()
-	rules.dev_content = true
 	var l := rules.default_loadout("Night")
 	rules.set_part(l, AEG, &"light", TORCH)
 	var session := PlaySession.new()
@@ -416,7 +430,7 @@ func test_practice_on_woodland_plays_at_night_with_your_torch_fitted() -> void:
 		fitted = fitted or light != null
 	assert_true(fitted, "your torch fitted")
 	assert_gt(session.state.targets.size(), 10)
-	assert_true(session.state.dev_content, "the torch and the map stay Dev")
+	assert_false(session.state.dev_content, "the torch and the map are public")
 
 
 func _start_yaw(targets: Array[RangeTarget]) -> float:

@@ -231,6 +231,7 @@ func test_the_catalogue_reads_what_it_can_and_names_the_rest() -> void:
 
 
 func test_the_match_pages_maps_follow_dev_content() -> void:
+	var catalog := DevContent.use_map()
 	var shared := Settings.shared()
 	var was_enabled := shared.dev_enabled
 	var was_content := shared.dev.dev_content
@@ -245,7 +246,7 @@ func test_the_match_pages_maps_follow_dev_content() -> void:
 	shared.mark_changed()
 	assert_eq(page.map_ids().size(), MapCatalog.shared().listed(true).size())
 	assert_gt(page.map_ids().size(), public_count)
-	main._picks.map_id = "neonHeights"
+	main._picks.map_id = "woodland"
 	shared.dev.dev_content = false
 	shared.mark_changed()
 	assert_eq(page.map_ids().size(), public_count)
@@ -255,6 +256,7 @@ func test_the_match_pages_maps_follow_dev_content() -> void:
 	shared.dev.dev_content = was_content
 	main.free()
 	shared.mark_changed()
+	DevContent.restore_map(catalog)
 
 
 # --- Left behind ---

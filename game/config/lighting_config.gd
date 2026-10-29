@@ -78,7 +78,7 @@ const PRESETS: Array[StringName] = [DAY, NIGHT]
 
 @export_group("Light pools")
 ## A map's lights (MapData.lights) under a night preset (LightPools). Fires and lanterns take these colours, whatever
-## the map says, kept at least 20° of hue from every team colour; a light of no kind keeps its own (a neon sign's).
+## the map says, kept at least 20° of hue from every team colour; a light of no kind keeps its own.
 @export var fire_colour: Color = Color8(255, 228, 160)
 @export var lantern_colour: Color = Color8(255, 232, 180)
 ## Real lights by Mesh detail (Low, Medium, High, Ultra): the nearest pools to the eye get one each, the rest are drawn.

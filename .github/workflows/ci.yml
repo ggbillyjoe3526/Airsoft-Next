@@ -194,7 +194,7 @@ jobs:
           retention-days: 14
 
   # The night guards: Woodland at 5v5, 50 to 70 s a match headless, tests/guards/test_woodland_guards.gd in five jobs
-  # of 8 or 16 matches (a test name's part picks them), and Neon Heights at night (test_night_guards.gd).
+  # of 8 or 16 matches (a test name's part picks them).
   night-guards:
     name: Night match guards, ${{ matrix.part.name }}
     runs-on: ubuntu-latest
@@ -208,7 +208,6 @@ jobs:
           - { name: "Woodland, Attack / Defend at Normal", file: test_woodland_guards, test: attack_defend_at_normal, log: night-guards-3 }
           - { name: "Woodland, Attack / Defend at Easy", file: test_woodland_guards, test: attack_defend_at_easy, log: night-guards-4 }
           - { name: "Woodland, both modes at Hard", file: test_woodland_guards, test: at_hard, log: night-guards-5 }
-          - { name: "Neon Heights at night", file: test_night_guards, test: "", log: night-guards-6 }
     steps:
       - uses: actions/checkout@v6
 

@@ -27,10 +27,10 @@ func _sets() -> Dictionary[String, AmbienceSet]:
 
 func test_every_ambience_has_a_day_and_a_night_set_with_beds() -> void:
 	assert_not_null(amb, "play_tuning.tres holds the ambiences")
-	assert_eq(AmbienceConfig.IDS, [&"yard", &"woods", &"city"] as Array[StringName])
+	assert_eq(AmbienceConfig.IDS, [&"yard", &"woods"] as Array[StringName])
 	for id in AmbienceConfig.IDS:
 		assert_true(amb.day.has(id) and amb.night.has(id), "%s by day and by night" % id)
-	assert_eq(_sets().size(), 6)
+	assert_eq(_sets().size(), 4)
 	for at: String in _sets():
 		assert_gt(_sets()[at].beds.size(), 0, "%s has a bed" % at)
 		assert_gt(_sets()[at].calls.size(), 0, "%s has a call" % at)
@@ -44,10 +44,6 @@ func test_the_sets_are_the_browsers() -> void:
 	assert_eq(_cues(amb.day[&"woods"]), ["ambience_bird", "ambience_creak"])
 	assert_eq(_loops(amb.night[&"woods"]), ["pines", "insects"])
 	assert_eq(_cues(amb.night[&"woods"]), ["ambience_owl", "ambience_creak"])
-	assert_eq(_loops(amb.day[&"city"]), ["traffic", "drones"])
-	assert_eq(_cues(amb.day[&"city"]), ["ambience_chime", "ambience_pigeon", "ambience_horn"])
-	assert_eq(_loops(amb.night[&"city"]), ["traffic", "neon"])
-	assert_eq(_cues(amb.night[&"city"]), ["ambience_arcade", "ambience_horn"])
 	var yard_bed := amb.day[&"yard"].beds[0]
 	assert_almost_eq(yard_bed.gain, 0.035, 1e-6, "the browser's yard bed")
 	assert_almost_eq(yard_bed.width, 0.7, 1e-6)
@@ -55,8 +51,6 @@ func test_the_sets_are_the_browsers() -> void:
 	assert_eq([birds.level, birds.pitch, birds.gap_min, birds.gap_max, birds.distance_min, birds.distance_max],
 			[0.35, 0.08, 7.0, 19.0, 22.0, 45.0])
 	assert_eq([birds.height, birds.rng_seed], [7.0, 1303])
-	assert_lt(amb.night[&"city"].beds[0].gain, amb.day[&"city"].beds[0].gain, "the night's traffic is quieter")
-	assert_almost_eq(amb.night[&"city"].beds[1].copy_offset, 0.00119, 1e-7, "the neon's second copy")
 
 
 func test_every_loop_and_cue_named_is_on_disk() -> void:
@@ -102,7 +96,8 @@ func test_no_bed_and_no_set_of_beds_together_is_louder_than_the_yards() -> void:
 
 func test_a_set_is_picked_by_id_and_time_of_day_an_unknown_one_plays_the_yard() -> void:
 	assert_eq(amb.set_for(&"woods", false), amb.day[&"woods"])
-	assert_eq(amb.set_for(&"city", true), amb.night[&"city"])
+	assert_eq(amb.set_for(&"woods", true), amb.night[&"woods"])
+	assert_eq(amb.set_for(&"city", true), amb.night[&"yard"], "the city went with Neon Heights: the yard")
 	assert_eq(amb.set_for(&"swamp", false), amb.day[&"yard"])
 	assert_eq(amb.set_for(&"swamp", true), amb.night[&"yard"])
 	assert_true(AmbienceConfig.known(&"woods"))
@@ -110,7 +105,7 @@ func test_a_set_is_picked_by_id_and_time_of_day_an_unknown_one_plays_the_yard() 
 
 
 func test_each_map_reads_its_ambience() -> void:
-	var want: Dictionary[String, StringName] = {"depot": &"yard", "woodland": &"woods", "neonHeights": &"city", "range": &"yard"}
+	var want: Dictionary[String, StringName] = {"depot": &"yard", "woodland": &"woods", "range": &"yard"}
 	for id: String in want:
 		var map := MapData.load_map(id, MapStyle.new(), 1)
 		assert_eq(map.ambience, want[id], id)
@@ -121,8 +116,10 @@ func test_a_map_naming_no_ambience_plays_the_yard_and_an_unknown_one_warns_and_p
 	var none := MapData.parse(JSON.stringify({"name": "Bare"}), MapStyle.new(), 1)
 	assert_eq(none.ambience, &"yard")
 	assert_eq(none.warnings, [] as Array[String], "no ambience is no warning")
+	var woods := MapData.parse(JSON.stringify({"ambience": "woods"}), MapStyle.new(), 1)
+	assert_eq(woods.ambience, &"woods")
 	var city := MapData.parse(JSON.stringify({"ambience": "city"}), MapStyle.new(), 1)
-	assert_eq(city.ambience, &"city")
+	assert_eq(city.ambience, &"yard", "the city went with Neon Heights: unknown now")
 	var unknown := MapData.parse(JSON.stringify({"ambience": "swamp"}), MapStyle.new(), 1)
 	assert_eq(unknown.ambience, &"yard")
 	assert_eq(unknown.warnings.size(), 1)

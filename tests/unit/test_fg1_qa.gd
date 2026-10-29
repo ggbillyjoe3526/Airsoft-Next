@@ -279,7 +279,7 @@ func test_the_step_allocates_no_objects() -> void:
 
 
 func test_nobody_can_work_the_rope_from_a_floor_above_the_pole() -> void:
-	for id: String in ["depot", "neonHeights", "woodland"]:
+	for id: String in ["depot", "woodland"]:
 		var m := MapData.load_map(id, MapStyle.new(), rules.team_size)
 		var overhead := 0
 		for b in m.blocks:

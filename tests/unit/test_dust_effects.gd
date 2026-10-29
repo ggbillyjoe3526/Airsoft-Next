@@ -205,7 +205,7 @@ func test_no_effect_colour_reads_as_a_team() -> void:
 	var teams := AccessibilityTable.read_file().colours
 	var style := PlayTuning.load_default().map_style
 	var colours: Dictionary[String, Color] = {"gas": cfg.gas_colour, "wind dust": cfg.dust_colour}
-	for id: String in ["depot", "range", "woodland", "neonHeights"]:
+	for id: String in ["depot", "range", "woodland"]:
 		colours[id + " kicked dust"] = MapData.load_map(id, style, 1).kicked_dust_tint
 	for what: String in colours:
 		assert_false(FieldChecks.reads_as_team(colours[what], teams), what)

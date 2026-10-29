@@ -45,7 +45,7 @@ sections here. For 0.1 Dev 1, the core slice: [Movement](#movement), [Shooting a
 
 - **Performance baselines.** Once the Godot performance run exists, run it on the low-spec laptop and on the desktop
   at Ultra, and send the thread its results: the budgets are set from them.
-- **Playing Woodland**, dev content until you make it public.
+- **Playing Woodland**, public since 2026-10-29: is it fun and fair at night?
 
 ## Movement
 
@@ -199,9 +199,9 @@ parts. To try every part before you have levelled, turn on Settings › Dev › 
 - [ ] **Glowing BBs (WL8)** (per replica): Customise › BBs, under BB weight: At Night (the default), Always or Off,
   each replica its own; quit and start again: still picked. With Always on Depot by day your BBs are green, a little
   larger at range, with a green streak; the bots' stay white. Do they read against the sky, the walls and the ground?
-- [ ] **Light (WL7; dev content, night fields).** Customise › Light offers None and the Weapon Torch on every replica,
-  the Cyber Pistol too. Without Dev content the slot shows LATER. Fit it, quit, start again: still fitted. On Depot by
-  day it does nothing and your replica in hand shows no torch.
+- [ ] **Light (WL7; night fields).** Customise › Light offers None and the Weapon Torch on every replica, the Cyber
+  Pistol too, with Dev content off (public with Woodland, NR1). Fit it, quit, start again: still fitted. On Depot by day
+  it does nothing and your replica in hand shows no torch.
 - [ ] **Your setup is kept.** Quit and start the game again: every pick is still
   there. Teammates carry replicas as they come;
   opponents carry kits of their own ([Bots](#bots)).
@@ -271,7 +271,7 @@ One BB hit puts anyone out. A round lasts up to 2:30 and the first team to 5 rou
   after starting the game opens with the referee's two short whistle blasts.
 - [ ] **Overtime flag (OV1, the rules; OT1).** In Elimination, hide until the clock runs out with both teams in (a
   Custom match at Round time 1:30 is quickest): the round goes on for 30 s with the clock at OT. Stand within a metre
-  of the spot (Depot: by the Box's east wall, just east of the middle; Neon Heights: on Neon Avenue by the middle;
+  of the spot (Depot: by the Box's east wall, just east of the middle;
   Woodland: the east meadow by the middle) and your team wins the round at once; with an enemy there too nobody wins;
   untouched, a draw and the round replays. Does 30 s feel right? Attack / Defend has none.
 - [ ] **Bots go for the overtime flag (OV2).** As above, with Dev settings › Bot intentions on: within about a second
@@ -355,14 +355,17 @@ flagpole stands in the walled loading bay. Three lanes lead there: **Dock Road**
   picture says, never in the air beside it or through it. Nothing new to hide behind. Compare Low with Medium (Low:
   flatter surfaces, same shapes) and say if the frame rate drops anywhere.
 
-### Woodland (dev content)
+### Woodland
 
-A wide wood: 120 × 80 m on a gentle slope up to the Knoll and its log fort, with three lanes (Pine Belt, Meadow,
-Creek with the cabin). Turn on Settings › Dev › Dev content, then pick it on Play. Step 26 builds it in greybox: since
-WL1 it loads and plays, since WL2 at 5v5 (6v6 under Custom), since WL3 at night, since WL4 with crowns, a forest,
-grass, puddles and fireflies, since WL5 with bushes, since WL6 with bots by night, since WL7 with the weapon torch,
-since WL8 with glowing BBs, since WL9 with practice; since WL10 the match guards and the balance report play it.
-Woodland stays dev content until you make it public (`data/maps.md`, its Tag) once you are happy with it.
+A wide wood: 120 × 80 m on a gentle slope up to the Knoll and its log fort, with three lanes (Pine Belt, Meadow, Creek
+with the cabin). Pick it on Play: it is public since 2026-10-29, Dev content off. Step 26 built it in greybox: since WL1
+it loads and plays, since WL2 at 5v5 (6v6 under Custom), since WL3 at night, since WL4 with crowns, a forest, grass,
+puddles and fireflies, since WL5 with bushes, since WL6 with bots by night, since WL7 with the weapon torch, since WL8
+with glowing BBs, since WL9 with practice; since WL10 the match guards and the balance report play it.
+
+- [ ] **Woodland is public and Neon Heights gone (NR1).** With Settings › Dev settings off, the Match screen shows
+  Depot, Woodland and the Range, and no DEV tag on Woodland; nowhere offers Neon Heights. Play a Woodland match to the
+  end: it counts on your records and gives XP. Your bots and the other team carry torches there.
 
 - [ ] **Walk the slopes (WL1).** Run up, down and across the Knoll's west face and West Hill: no jump is ever needed,
   you never slide when you stop or stand crouched on the face, your feet stay on the ground going downhill, and
@@ -393,10 +396,9 @@ Woodland stays dev content until you make it public (`data/maps.md`, its Tag) on
   and grass each step up. Note the frame time (`--perf`) at night on each preset in the meadow and the pine belt,
   with Settings › Graphics › Mesh detail at Low and at Ultra: the cloud counted triangles and draw calls only
   (`docs/records/WL4.md`).
-- [ ] **Depot by night and Neon Heights' Day / Night (WL3).** Settings › Dev › Time of day › Night: Depot's four
-  floodlight masts glow over the walls, its baked shade in corners stays, no warning. Back to Map's own, pick Neon
-  Heights on Play: a Day / Night row under the rules, Night lit; pick Day and the match plays by day. Woodland and
-  Depot show no row.
+- [ ] **Depot by night (WL3).** Settings › Dev › Time of day › Night: Depot's four floodlight masts glow over the
+  walls, its baked shade in corners stays, no warning. Back to Map's own: Woodland and Depot show no Day / Night row
+  (no map offers both since Neon Heights was cut).
 - [ ] **West Hill and the ravine (WL3).** From the Knoll by the east camp you can't see over West Hill into the west
   camp. The meadow has one low swell. The creek lane runs along a dry ravine, deeper from the middle of the field east;
   every slope walks, none needs a jump.
@@ -463,18 +465,6 @@ Once the rest of step 26 lands:
 - [ ] **Frame time in a night firefight (WL8).** With `--perf`, a 5v5 on Woodland on Low and on High, every BB
   glowing: the overlay's frame time and draws (two more draws while any glowing BB flies). Does it hold the budget?
 
-### Neon Heights (the Maps Update)
-
-A small three-floor market city with stairs, a Sky Bridge and a balcony, 4v4 to 5v5, Day or Night. It comes back with
-the Maps Update, in a new look with doors and interiors (`docs/ROADMAP.md`); these checks carry over.
-
-- [ ] **By Night.** The avenue, the atrium and the shopfronts sit in lamp light; stairwells and Level 1 rooms are
-  dark. In a dark room a bot spots you only close up (about 15 m), in lamp light from far off. Fair next to the
-  moonlit street (25 m)?
-- [ ] **Balance.** Play Elimination by Day and by Night: are the two ends even?
-- [ ] **The stairs.** Walk up an outdoor stair without jumping: you reach the landing without stopping. Sprint down
-  it: no drop.
-
 ## Bots
 
 You're on Alpha (blue) with two bot teammates against three Beta (orange) bots by default; Your team puts you on Beta.
@@ -501,7 +491,7 @@ You're on Alpha (blue) with two bot teammates against three Beta (orange) bots b
 - [ ] **Bot names and personalities (BN1).** Every bot has a name and plays the same way every match: a **Rusher** is
   first through the gap, an **Anchor** holds one spot aiming over cover, a **Flanker** takes a lane of its own, a
   **Careful** bot clears each corner. Can you tell them apart?
-- [ ] **At night** (Woodland, Neon Heights by Night): bots on every level hold posts out of lantern light.
+- [ ] **At night** (Woodland): bots on every level hold posts out of lantern light.
 - [ ] **Anchors (BP5).** In Elimination with over a minute left, give an anchor teammate Follow me (F), then end it
   with F again: it goes hunting.
 
@@ -518,10 +508,10 @@ Play › Match. The Rules row comes first: Skirmish (the standard match) or Cust
 opens every row (the Modes Update adds the other rule sets).
 
 - [ ] **The rows.** Rounds to win (3 to 10), Round time (1:30 to 5:00), Team size (the picked map's own: Depot 1v1
-  to 3v3, Neon Heights 1v1 to 5v5, Woodland 5v5 or 6v6, with Dev content), Opponents, Teammates, Friendly fire and
+  to 3v3, Woodland 5v5 or 6v6), Opponents, Teammates, Friendly fire and
   Ricochets count.
 - [ ] **Team size follows the map (WL2).** Custom 3v3 on Depot, pick Woodland: it shows 5v5; back to Depot: 3v3
-  again, and after a restart still 3v3. Skirmish plays each map's standard: Depot 3v3, Neon Heights 4v4, Woodland
+  again, and after a restart still 3v3. Skirmish plays each map's standard: Depot 3v3, Woodland
   5v5.
 - [ ] **A 1v1, a 2v2, first to 3.** The scoreboard and pips match the sizes; first to 3 swaps ends after round 2 and
   ends at 3. Do rounds feel too long or quick at that size?
@@ -539,14 +529,14 @@ The Match screen's Practice card, then Start practice.
 - [ ] **The range is in Depot's site (WL9).** Same lanes, plates, figures, movers, swingers and timed challenge as
   before, but over the walls you see Depot's world: its masts, watch tower, cranes, sheds, water tower and smoking
   chimneys (the yard is off to your right), not hills and pines. Your old best still shows in the pause menu.
-- [ ] **Practice on any field (WL9).** Pick Depot (Woodland and Neon Heights under Dev content), then Practice: no
+- [ ] **Practice on any field (WL9).** Pick Depot (or Woodland), then Practice: no
   bots, no score, you start at Alpha's first spawn facing a START plate a few metres ahead. Targets stand where Beta
   would play: on lane points watching back down their lane, at Beta's spawns, along the lanes; crouched ones behind
   low cover, plates, movers and swingers. Do any stand somewhere silly (in a wall, floating, facing a wall)? The
   readout says how far from you a BB landed; the minimap reads "Depot · Practice".
 - [ ] **The challenge on a field.** Switch Timed challenge on and shoot START: only targets you can see from where
   you stand light, none past 50 m. Depot keeps its own best, apart from the range's.
-- [ ] **Woodland practice at night (WL9).** With Dev content on and the torch fitted, practise on Woodland: it is
+- [ ] **Woodland practice at night (WL9).** With the torch fitted, practise on Woodland: it is
   night, T works your torch, and a figure 10 m out is easy to find by it.
 - [ ] **Reload and Esc › Loadout.** The spare gauges never run down. Change the BB weight or hop-up, go back and
   Resume: you're where you stood with the new setup. Walk downrange: nothing stops you.
@@ -688,8 +678,7 @@ pays XP ×1.5.
   Dash a mag" in reach; H tosses it and they say thanks. A pistol only gets a pistol's magazine.
 - [ ] **The minimap.** Top left, the way you look always up, you the white arrow; teammates are team-coloured dots
   (pinned to the edge when off it), grey once hit; an opponent you hear shows as a patch roughly where (dashed for
-  steps, a dot for a shot) for a few seconds. Gameplay › HUD › Minimap Fixed keeps north up (M83). On Neon Heights it
-  shows your floor.
+  steps, a dot for a shot) for a few seconds. Gameplay › HUD › Minimap Fixed keeps north up (M83).
 - [ ] **Markers off the minimap (BP5).** A ping, the overtime flag, an Extraction exit or a hold marker off to your
   left sits under the minimap, never behind it.
 
@@ -734,9 +723,9 @@ Headphones help: direction (in front, behind, above) comes through best on them.
   softly.
 - [ ] **Bots by ear.** Close your eyes: you can point at one, behind you too. Behind a container it sounds duller and
   quieter. A bot sprinting at you from about 20 m is heard most of the way, quieter than any shot.
-- [ ] **The field.** A very quiet outdoor bed with no audible loop and a small bird now and then; each field has its
-  own echo. Rare far-off extras (M86: a crow and a dog on Depot, a creaking branch on Woodland, pigeons on Neon
-  Heights): does any make you turn round?
+- [ ] **The field.** A very quiet outdoor bed with no audible loop and a small bird now and then; each field has its own
+  echo. Rare far-off extras (M86: a crow and a dog on Depot, a creaking branch on Woodland): does any make you turn
+  round?
 - [ ] **Getting hit.** The tick stands out and the world dips; while you walk off the field sounds muffled, the whistle
   stays clear. Pausing mid-burst and resuming makes no click.
 - [ ] **Settings › Audio.** Master, Effects, Power source volume (each replica's motor, gas and spring, yours and the

@@ -103,9 +103,9 @@ parity list (`legacy/browser/docs/FEATURES.md`) maps line by line onto these ste
 25. **Depot's layout reworked to the field checklist.** The layout, baked light, the skyline, noisy props, gas puffs and
     dust, in greybox and today's props (its models come after 0.1 Dev 1). Until then Depot and the range wear a
     temporary site dress drawn on the same boxes (DD1, owner 2026-10-25).
-26. **Woodland** (a Dev-only map, owner 2026-10-24). The field, sloping ground and bushes, night play, the weapon
-    torch, glowing BBs, the Day / Night switch, the practice range set in Depot and practice on any map, 5v5 and
-    6v6, on greybox and placeholder models where a new model would need Blender.
+26. **Woodland** (a Dev-only map, owner 2026-10-24; public since 2026-10-29). The field, sloping ground and bushes,
+    night play, the weapon torch, glowing BBs, the Day / Night switch, the practice range set in Depot and practice on
+    any map, 5v5 and 6v6, on greybox and placeholder models where a new model would need Blender.
 
 Last, at the owner's word (2026-10-22): the features he named, then everything that needs Blender, which he must be
 at his PC to connect.
@@ -186,13 +186,14 @@ The owner sorted every feature in the game and on this roadmap into Keep (in Bet
 - **Public in 0.1** (after the owner's playtest, as before): Depot with Elimination, Attack / Defend and custom matches;
   Easy, Normal and Hard (three levels since TL1, owner 2026-10-25: Hard is the old Pro); Woodland with night play,
   the weapon torch, glowing BBs and 5v5 / 6v6 (M88, owner 2026-10-06).
-- **Stays dev, public later:** Neon Heights (the Maps Update, with its new look), Extraction (the Modes Update, once
+- **Stays dev, public later:** Extraction (the Modes Update, once
   reworked), the Tournament and Pro CQB rule sets (the Modes Update, folded into the field rule presets). The Retro
   pixel filter, once 0.5, went public in the browser game's 0.1 Dev 5 (M96).
-- **Cut:** supply weekends and events, the Tone mapping choice, tracer BBs as their own option (glowing BBs do it),
-  Bomb, Intel grab, Free-for-all (battle royale is the owner's exception, 2026-10-06), the overshooting rule, gear that
-  only changes looks as its own system (it joins kit looks), a separate progression plan (the levels are the
-  progression), and the ideas listed under Declined in `docs/IDEAS.md`.
+- **Cut:** Neon Heights (owner, 2026-10-29: the game is Depot and Woodland), supply weekends and events, the Tone
+  mapping choice, tracer BBs as their own option (glowing BBs do it), Bomb, Intel grab, Free-for-all (battle royale is
+  the owner's exception, 2026-10-06), the overshooting rule, gear that only changes looks as its own system (it joins
+  kit looks), a separate progression plan (the levels are the progression), and the ideas listed under Declined in
+  `docs/IDEAS.md`.
 
 ## Open from the browser game
 
@@ -210,8 +211,8 @@ Design work the browser game's Beta left open. It applies to the rebuilt systems
   - **Briefing tips** (maybe): loading and round-start lines in the voice of a site safety briefing ("Goggles on in
     the field", "Call your hits loud").
   - **Hit players light up at night** (no for now): a hit player switches on a light as they call the hit, as at real
-    night games, so the walk-off reads in the dark and nobody shoots a player already out. Needed once Woodland is
-    public.
+    night games, so the walk-off reads in the dark and nobody shoots a player already out. Woodland is public since
+    2026-10-29, so it is the owner's call whether this comes into 0.1.
 
 ## 0.1: Early Access opens
 
@@ -313,11 +314,9 @@ After 0.1 the game grows through themed updates, each a mini expansion (owner, 2
   with forts and a quarry (elevation) first (owner, 2026-10-04); from the wider list, a CQB warehouse, urban streets, an
   industrial site, a village, a milsim-style compound, an indoor arena, a speedsoft arena and mixed terrain. Which, and
   in what order, is the owner's pick.
-- **Neon Heights goes public** with its new look, once the browser game's open map findings are fixed (overlapping
-  blocks, cases that open through walls, the east end winning first fights at night).
-- **Neon Heights' doors and interiors** (owner, 2026-10-17, the browser game's Beta 1 playtest; NH2). Doors players
-  and bots open and close, so an open door shows where someone went and a closed one may hide an enemy; furnished
-  shops, offices, storage rooms, cafes and a hotel. Built with its upper floors (NH1).
+- ~~**Neon Heights goes public**, with its doors and interiors (NH1, NH2).~~ **Cancelled** (owner, 2026-10-29): Neon
+  Heights is cut from the game. Doors players and bots open and close stay an idea for a new field
+  (`docs/IDEAS.md`).
 - **Weather** (from 0.1 Dev 6). A general weather system, not only rain and fog, picked like Day / Night: rain masks
   footsteps and drops BBs a little sooner; fog shortens how far you can see.
 - **Day and Night on every map** (maybe). The Day / Night switch (M34d) for every map, not only those built for both.
