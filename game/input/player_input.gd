@@ -80,6 +80,8 @@ var _mag_latch: bool = false
 var _mag_latch_wheel: bool = false
 ## The last Need a Mag sent (fill_order) was picked on the wheel; it stays until the next one is sent.
 var mag_from_wheel: bool = false
+## The last fill_order sent a Need a Mag of yours (the key or the wheel), not only a bot's playing you.
+var mag_sent: bool = false
 ## Orders can be given (allow_orders): the keys, and the wheel only while `_wheel_allowed` too.
 var _orders_allowed: bool = true
 var _wheel_allowed: bool = true
@@ -325,6 +327,7 @@ func fill_order(cmd: PlayerCommand) -> void:
 	cmd.order_from_wheel = _order_from_wheel
 	cmd.ping = _ping_latch
 	# A bot playing you (the smoke test) may press it too: a press of yours adds to it, never takes it away.
+	mag_sent = _mag_latch
 	if _mag_latch:
 		cmd.mag_hand_off = true
 		mag_from_wheel = _mag_latch_wheel

@@ -207,10 +207,12 @@ func test_a_bot_playing_you_keeps_its_own_press() -> void:
 	cmd.mag_hand_off = true
 	input.fill_order(cmd)
 	assert_true(cmd.mag_hand_off, "the pilot's press stands")
+	assert_false(input.mag_sent, "but it isn't yours (the smoke test counts only yours)")
 	_event(&"mag_hand_off", true)
 	cmd.mag_hand_off = false
 	input.fill_order(cmd)
 	assert_true(cmd.mag_hand_off, "yours adds to it")
+	assert_true(input.mag_sent)
 	_event(&"mag_hand_off", false)
 
 
@@ -362,6 +364,29 @@ func test_each_refusal_has_its_words() -> void:
 	}
 	for why: MagShare.Refusal in words:
 		assert_eq(HudMagLine.refusal_text(why, "Rook"), words[why])
+	assert_eq(HudMagLine.refusal_text(MagShare.Refusal.WAIT, "Rook", true), "Toss again in a moment",
+			"a toss waiting on the pool")
+	assert_eq(HudMagLine.refusal_text(MagShare.Refusal.WAIT, "Rook", true, true), "Your mag is still in the air")
+
+
+func test_a_toss_while_yours_is_in_the_air_says_so() -> void:
+	_match()
+	_last_mag(state.characters[ROOK])
+	_tick([ROOK])
+	_tick([YOU])
+	assert_eq(_line().text, "Mag to Rook")
+	var brick := state.characters[BRICK]
+	brick.position = Vector3(0.0, 0.0, 3.0)
+	brick.prev_position = brick.position
+	_last_mag(brick)
+	_tick([BRICK])
+	assert_eq(brick.mag.asked, YOU, "Brick asks you while your mag to Rook flies")
+	_tick([YOU])
+	var refused := state.events.first(GameEvent.Kind.MAG_REFUSED)
+	assert_not_null(refused)
+	if refused != null:
+		assert_eq(refused.value, MagShare.Refusal.WAIT)
+	assert_eq(_line().text, "Your mag is still in the air")
 
 
 func test_hidden_while_the_wheel_is_open_and_with_the_setting_off() -> void:

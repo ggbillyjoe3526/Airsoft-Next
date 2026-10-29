@@ -1954,6 +1954,12 @@ msgstr "No mag of yours fits %s's replica"
 msgid "HUD_MAG_WAIT"
 msgstr "Ask again in a moment"
 
+msgid "HUD_MAG_WAIT_IN_AIR"
+msgstr "Your mag is still in the air"
+
+msgid "HUD_MAG_WAIT_TOSS"
+msgstr "Toss again in a moment"
+
 msgid "HUD_MAG_ALREADY"
 msgstr "%s is already bringing you one"
 

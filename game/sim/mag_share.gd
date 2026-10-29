@@ -238,7 +238,7 @@ func press(c: Character, state: GameState, live: bool) -> void:
 	if not live or not Elimination.is_in_play(c):
 		_refuse(c, Refusal.NOT_NOW, -1, events)
 		return
-	var asker := _nearest_asker(c, state.characters, true)
+	var asker := nearest_asker(c, state.characters, true)
 	if asker != null:
 		_toss(c, asker, state)
 		return
@@ -252,7 +252,7 @@ func press(c: Character, state: GameState, live: bool) -> void:
 		else:
 			_ask(c, state)
 		return
-	asker = _nearest_asker(c, state.characters, false)
+	asker = nearest_asker(c, state.characters, false)
 	if asker == null:
 		_refuse(c, Refusal.NOT_LOW, -1, events)
 		return
@@ -371,8 +371,8 @@ func _toss(giver: Character, receiver: Character, state: GameState) -> void:
 
 
 ## The nearest teammate of `me` in play whose ask to it stands with nothing in the air to it yet: only one `me` can
-## toss to now if `in_reach`. Across the ground.
-func _nearest_asker(me: Character, chars: Array[Character], in_reach: bool) -> Character:
+## toss to now if `in_reach`. Across the ground. The press's own pick, which the HUD's line and wheel read (MH3).
+func nearest_asker(me: Character, chars: Array[Character], in_reach: bool) -> Character:
 	var best: Character = null
 	var best_d := INF
 	for o in chars:

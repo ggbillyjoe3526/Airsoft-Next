@@ -35,7 +35,6 @@ var _share: MagShare = null
 var _you: Character = null
 var _announcer: Announcer = null
 var _names := PackedStringArray()
-var _pick := MagShare.SparePick.new()
 var _plain: StyleBoxFlat = null
 var _ruled: StyleBoxFlat = null
 ## The notice up and until when (s of match time).
@@ -109,7 +108,8 @@ func on_tick(state: GameState, from_wheel: bool) -> void:
 			GameEvent.Kind.MAG_LOST when e.target == me or e.actor == me:
 				_say(tr("HUD_MAG_LOST"), state.time)
 			GameEvent.Kind.MAG_REFUSED when e.actor == me:
-				var why := refusal_text(e.value as MagShare.Refusal, _name(e.target))
+				var tossing := e.value == MagShare.Refusal.WAIT and e.target >= 0
+				var why := refusal_text(e.value as MagShare.Refusal, _name(e.target), tossing, tossing and _flying(state))
 				if from_wheel:
 					wheel_notice = why
 					if _announcer != null:
@@ -126,8 +126,9 @@ func update(wheel_open: bool, clear: bool) -> void:
 	visible = enabled and not _hidden and not text.is_empty()
 
 
-## The words for refusal `why` about the teammate named `who` ("" for none).
-static func refusal_text(why: MagShare.Refusal, who: String) -> String:
+## The words for refusal `why` about the teammate named `who` ("" for none); a WAIT refused a toss if `toss`, with a
+## magazine of yours still in the air if `in_air` (else every slot of the pool is).
+static func refusal_text(why: MagShare.Refusal, who: String, toss: bool = false, in_air: bool = false) -> String:
 	match why:
 		MagShare.Refusal.NOBODY:
 			return TranslationServer.translate("HUD_MAG_NOBODY")
@@ -136,7 +137,9 @@ static func refusal_text(why: MagShare.Refusal, who: String) -> String:
 		MagShare.Refusal.NO_SPARE:
 			return TranslationServer.translate("HUD_MAG_NO_SPARE") % who
 		MagShare.Refusal.WAIT:
-			return TranslationServer.translate("HUD_MAG_WAIT")
+			if in_air:
+				return TranslationServer.translate("HUD_MAG_WAIT_IN_AIR")
+			return TranslationServer.translate("HUD_MAG_WAIT_TOSS" if toss else "HUD_MAG_WAIT")
 		MagShare.Refusal.ALREADY:
 			return TranslationServer.translate("HUD_MAG_ALREADY") % who
 		MagShare.Refusal.TOO_FAR:
@@ -183,23 +186,25 @@ func _standing(state: GameState) -> void:
 	var me := _you
 	if not state.round_state.is_live() or state.round_state.practice or not Elimination.is_in_play(me):
 		return
-	var best: Character = null
-	var best_d := INF
+	var asking := false
 	for o in state.characters:
 		if o == me or o.team != me.team or o.mag.asked != me.id or o.mag.coming > 0 or not Elimination.is_in_play(o):
 			continue
 		_mark(o.id)
-		var d := Vector2(o.position.x - me.position.x, o.position.z - me.position.z).length()
-		if d < best_d:
-			best = o
-			best_d = d
+		asking = true
 	var bringer := me.mag.coming_from if me.mag.coming > 0 else me.mag.asked
 	_mark(bringer)
+	# The press's own pick (MagShare.nearest_asker): the nearest asker in reach, else the nearest one.
+	var best: Character = null
+	if asking:
+		best = _share.nearest_asker(me, state.characters, true)
+		_in_reach = best != null
+		if best == null:
+			best = _share.nearest_asker(me, state.characters, false)
 	if best != null:
 		_says = Says.NEEDS
 		_about = best.id
-		_metres = roundi(best_d)
-		_in_reach = _share.can_toss_to(me, best, _pick)
+		_metres = roundi(Vector2(best.position.x - me.position.x, best.position.z - me.position.z).length())
 	elif bringer >= 0:
 		_says = Says.BRINGING
 		_about = bringer
@@ -231,6 +236,14 @@ func _show(now: float) -> void:
 	if get_theme_stylebox(&"normal") != box:
 		add_theme_stylebox_override(&"normal", box)
 	visible = enabled and not _hidden and not words.is_empty()
+
+
+## A magazine you tossed is still in the air.
+func _flying(state: GameState) -> bool:
+	for t in state.mag_tosses:
+		if t.active and t.from_id == _you.id:
+			return true
+	return false
 
 
 func _name(id: int) -> String:

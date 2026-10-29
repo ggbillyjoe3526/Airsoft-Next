@@ -27,7 +27,8 @@ Mag hand-off. Concepts: `concepts/step27/wheel-need-a-mag.png`, `concepts/step27
   shows a hand-off refusal in the middle the way an order's notice shows (notices are now text, not the enum).
 - **The line** (`hud_mag_line.gd`, new; a Label on a navy plate at 69 % of the height): once a tick it reads the
   player's MAG_* events (tossed, caught, lost, refused: a 2.5 s notice, to the screen reader as well) and the state:
-  the nearest teammate asking you with nothing in the air to them ("Rook needs a mag · 12 m", underlined in your
+  the teammate a press would toss to (the sim's own `MagShare.nearest_asker`: the nearest asker in reach, else the
+  nearest) ("Rook needs a mag · 12 m", underlined in your
   team's colour when `MagShare.can_toss_to`), else the teammate your ask stands with or whose toss is in the air
   ("Brick is bringing you a mag"). It fills `marks` (by character id) for the chevrons. A string is made only when what
   the plate says changes; hidden while the wheel is open, under the scoreboard and the summary, and with the setting
@@ -47,6 +48,8 @@ Mag hand-off. Concepts: `concepts/step27/wheel-need-a-mag.png`, `concepts/step27
 
 ## Outside `touches`
 
+- `game/sim/mag_share.gd`: `_nearest_asker` is public (`nearest_asker`) so the line and the wheel read the press's own
+  pick (QA fix round 1).
 - `game/main.gd`: the smoke test's steps press H and pick Need a Mag on the wheel, and it fails without a press of
   yours answered (`mag_presses`): criterion 5's "the smoke test asks for a mag".
 - `docs/wiki/Bots.md` (one sentence linking Need a Mag), `docs/KNOWN_ISSUES.md`, `game/play/README.md`: docs.
@@ -108,6 +111,19 @@ through the commands:
 - `tools/check.sh`: see Gate.
 - Not verified: how it feels (the arc's readability, the line over bright walls, the catch sound's level) on the
   owner's display and Forward+; PLAYTEST › Squad orders and minimap lists what to try.
+
+## Fix round 1 (QA)
+
+- **Blocking:** the line named the nearest asker and checked reach for that one only, while a press tosses to the
+  nearest asker in reach (a nearer one behind a wall hid a farther one in the open: the wheel read Need a Mag, the
+  press tossed). `HudMagLine._standing` now uses `MagShare.nearest_asker` (in reach, else any), so they cannot drift;
+  `test_mh3_qa.gd` pins it.
+- **Advisory (a):** a WAIT refusing a toss now says "Your mag is still in the air" (one of yours flying) or "Toss again
+  in a moment" (every slot of the pool flying); "Ask again in a moment" stays for the ask gap.
+- **Advisory (b):** `mag_presses` counts only presses from the key or the wheel (`PlayerInput.mag_sent`), never the
+  autopilot's own.
+- Run: gdlint clean; `test_mh3_qa`, `test_mag_hand_off_hud` (24), `test_order_wheel_input`, `test_so4_orders_hud`,
+  `test_mag_share`, `test_play_session`: 109 of 109; smoke `[smoke] ok … orders=3 mags=2`, zero script errors.
 
 ## Gate
 
