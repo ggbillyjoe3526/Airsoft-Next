@@ -12,8 +12,10 @@ extends RefCounted
 ## a short queue (CalloutConfig.queue, the least urgent dropped when it is full), each dropped after Pace's wait, or when
 ## a gap it waited through now stops it. Hit players never talk. A player's ping is answered by one teammate (Going to
 ## your ping, Watching your ping), and a Contact call may mark its enemy in the ping book (Pings; callouts.md › Marks) on
-## a stream of its own, so marks never change the lines. Tagged (Extraction) and the magazine hand-off are read from the
-## file but not raised yet: their systems raise them.
+## a stream of its own, so marks never change the lines. The magazine hand-off (MH2, BotMagShare): a bot's ask (Need a
+## mag) and its setting off to bring one (Mag coming) are said once each, as soon as the pace lets the bot speak while it
+## still asks or brings it; a catch with BBs in it, Thanks for the mag. Tagged (Extraction) is read from the file but not
+## raised yet: its system raises it.
 
 const TEAMS := 2
 ## The events any teammate may say (the one nearest to where it happened), not only the bot it happened to: its own
@@ -81,6 +83,9 @@ var _said_at: PackedFloat64Array = PackedFloat64Array()
 var _last_mode: PackedInt32Array = PackedInt32Array()
 var _was_at_post: PackedByteArray = PackedByteArray()
 var _held_called: PackedByteArray = PackedByteArray()
+## Per bot: the ask (its character's MagShare.Hand.asked_at) and the job (Bot.mag_for_at) it last offered a call for.
+var _asked_at: PackedFloat64Array = PackedFloat64Array()
+var _bring_at: PackedFloat64Array = PackedFloat64Array()
 ## Per bot and character (bot × characters + character index): the start of the last sighting looked at.
 var _first_seen: PackedFloat64Array = PackedFloat64Array()
 var _characters: int = 0
@@ -148,6 +153,10 @@ func _size(state: GameState, bots: Array[Bot]) -> void:
 	_was_at_post.resize(bots.size())
 	_held_called.resize(bots.size())
 	_held_called.fill(0)
+	_asked_at.resize(bots.size())
+	_asked_at.fill(-INF)
+	_bring_at.resize(bots.size())
+	_bring_at.fill(-INF)
 	for i in bots.size():
 		_last_mode[i] = bots[i].mode
 		_was_at_post[i] = 1 if bots[i].at_post else 0
@@ -172,7 +181,8 @@ func _reset() -> void:
 	_held_called.fill(0)
 
 
-## What one of this tick's events gives to call: a hit, a reload, the flag going up, the overtime flag going up.
+## What one of this tick's events gives to call: a hit, a reload, a magazine caught, the flag going up, the overtime
+## flag going up.
 func _on_event(e: GameEvent, state: GameState, bots: Array[Bot]) -> void:
 	match e.kind:
 		GameEvent.Kind.CHARACTER_HIT:
@@ -184,6 +194,11 @@ func _on_event(e: GameEvent, state: GameState, bots: Array[Bot]) -> void:
 			var b := bots[i]
 			if _now - maxf(b.last_threat_at, b.last_seen_at()) <= _cfg.reload_threat:
 				_offer(b.character.team, CalloutsFile.Event.RELOADING, i, bots, "", 0, 0, -1)
+		GameEvent.Kind.MAG_CATCH:
+			# A teammate's toss caught by a bot, with BBs in it (MH2).
+			var i := _bot_index(bots, e.target)
+			if i >= 0 and e.value > 0 and Elimination.is_in_play(bots[i].character):
+				_offer(bots[i].character.team, CalloutsFile.Event.MAG_THANKS, i, bots, "", 0, 0, -1)
 		GameEvent.Kind.FLAG_ROPE:
 			var attackers := state.round_state.attackers
 			if e.value != 1 or attackers < 0 or attackers >= TEAMS:
@@ -273,6 +288,16 @@ func _watch(i: int, state: GameState, w: BotWorld) -> void:
 		elif b.flanking:
 			event = CalloutsFile.Event.FLANKING
 		_offer(t, event, i, bots, area_of(b.last_known), 0, 0, -1)
+	# Asking for a magazine, or setting off to bring one (MH2): each ask and each job once, as soon as the pace lets the
+	# bot speak (its own gap, the team's, nothing else waiting) while it still asks or brings it, so neither waits in the
+	# queue to be dropped: an ask often comes just after its Reloading, and its answer in the tick after the ask.
+	var hand := me.mag
+	if hand.asked >= 0 and hand.asked_at > _asked_at[i] and _pace_allows(i, bots):
+		_asked_at[i] = hand.asked_at
+		_offer(t, CalloutsFile.Event.NEED_MAG, i, bots, "", 0, 0, -1)
+	if b.mag_for != null and b.mag_for_at > _bring_at[i] and _pace_allows(i, bots):
+		_bring_at[i] = b.mag_for_at
+		_offer(t, CalloutsFile.Event.MAG_COMING, i, bots, "", 0, 0, -1)
 	# Settled at the spot it holds: once a round, whether it says so or not.
 	if b.at_post and _was_at_post[i] == 0 and _held_called[i] == 0:
 		_held_called[i] = 1
@@ -348,6 +373,18 @@ func _offer_from_team(team: int, event: int, own: int, at: Vector3, bots: Array[
 				speaker = i
 	if speaker >= 0:
 		_offer(team, event, speaker, bots, area, count, left, -1)
+
+
+## Whether bot `i` may speak now with nothing in its way: in play and outside its own gap, its team's gap passed and
+## nothing of its team waiting.
+func _pace_allows(i: int, bots: Array[Bot]) -> bool:
+	var talk := _teams[bots[i].character.team]
+	if not _may_speak(i, bots) or _now - talk.said_at < _file.pace.team_gap:
+		return false
+	for p in talk.queue:
+		if p.until >= _now:
+			return false
+	return true
 
 
 ## Bot `i` is in play and outside its own gap.

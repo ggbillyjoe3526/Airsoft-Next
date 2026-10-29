@@ -2,7 +2,7 @@ class_name DevSettings
 extends RefCounted
 ## The Dev tab's switches (the browser game's config/dev.ts), saved with the settings. They apply only while the Dev
 ## settings box is ticked (owner, 2026-10-04): `Settings.active_dev()` is these then, else the defaults. Game speed,
-## bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions and Disable levelling keep a match
+## bottomless magazines, ghost, bots hold fire, bots run low on BBs, spectate any bot, bot intentions and Disable levelling keep a match
 ## out of the records and give it no XP (DevCheats); Dev content lists maps tagged dev and keeps a match on one out
 ## too; Retro pixels changes only the look, and Robots (the hidden Easter egg, owner 2026-10-24) only who is drawn as
 ## a robot from the next match (FigureMix; everyone is human while it is off). Disable levelling unlocks every item to
@@ -21,6 +21,7 @@ var game_speed: float = 1.0
 var bottomless: bool = false
 var ghost: bool = false
 var bots_hold_fire: bool = false
+var bots_run_low: bool = false
 var spectate_bots: bool = false
 var bot_intent: bool = false
 var retro_pixels: bool = false
@@ -37,6 +38,7 @@ func cheats() -> DevCheats:
 	c.bottomless = bottomless
 	c.ghost = ghost
 	c.bots_hold_fire = bots_hold_fire
+	c.bots_run_low = bots_run_low
 	c.watching = spectate_bots or bot_intent or not time_of_day.is_empty()
 	c.levelling_off = disable_levelling
 	return c
@@ -46,7 +48,7 @@ func to_dict() -> Dictionary:
 	return {
 		"dev_content": dev_content, "disable_levelling": disable_levelling, "game_speed": game_speed,
 		"bottomless": bottomless, "ghost": ghost,
-		"bots_hold_fire": bots_hold_fire, "spectate_bots": spectate_bots, "bot_intent": bot_intent,
+		"bots_hold_fire": bots_hold_fire, "bots_run_low": bots_run_low, "spectate_bots": spectate_bots, "bot_intent": bot_intent,
 		"retro_pixels": retro_pixels, "robots": robots, "pretend_slow_frames": pretend_slow_frames,
 		"time_of_day": String(time_of_day),
 	}
@@ -63,6 +65,7 @@ func from_dict(data: Dictionary) -> void:
 	bottomless = _flag(data, "bottomless")
 	ghost = _flag(data, "ghost")
 	bots_hold_fire = _flag(data, "bots_hold_fire")
+	bots_run_low = _flag(data, "bots_run_low")
 	spectate_bots = _flag(data, "spectate_bots")
 	bot_intent = _flag(data, "bot_intent")
 	retro_pixels = _flag(data, "retro_pixels")

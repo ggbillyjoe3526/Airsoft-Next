@@ -5,9 +5,10 @@ extends RefCounted
 ## player's (docs/ARCHITECTURE.md › Contracts 2); BotBrain decides that command each tick from this.
 
 ## What it is doing: walking its lane (then hunting), fighting someone in sight, in cover, going to where someone was
-## seen or heard, in Attack / Defend at the pole (raising, pulling down or guarding it: BotFlag), or carrying out a squad
-## order from a teammate (SquadOrders).
-enum Mode { ADVANCE, FIGHT, COVER, SEARCH, FLAG, ORDER }
+## seen or heard, in Attack / Defend at the pole (raising, pulling down or guarding it: BotFlag), carrying out a squad
+## order from a teammate (SquadOrders), or the magazine hand-off: bringing a teammate one, or waiting for one
+## (BotMagShare).
+enum Mode { ADVANCE, FIGHT, COVER, SEARCH, FLAG, ORDER, MAG }
 ## In cover: down behind it, or up (over crouch cover, or leaning out round a corner) looking.
 enum CoverPhase { DOWN, PEEK }
 ## Its route: none, asked for (the controller plans one a tick), walking one, or none to be had.
@@ -189,6 +190,12 @@ var order_rush: bool = false
 var order_settled: bool = false
 var order_catching_up: bool = false
 var order_dropping_back: bool = false
+## The magazine hand-off (MH2, BotMagShare): the teammate it brings one to (null: none) and since when (s), whether it
+## sprints there, and the time it may press the hand-off again. Its own ask is its character's (Character.mag).
+var mag_for: Character = null
+var mag_for_at: float = -INF
+var mag_rush: bool = false
+var mag_press_at: float = -INF
 
 
 func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: int) -> void:
@@ -278,6 +285,10 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	order = SquadOrder.Kind.NONE
 	order_giver = null
 	order_rush = false
+	mag_for = null
+	mag_for_at = -INF
+	mag_rush = false
+	mag_press_at = -INF
 
 
 func forget_target() -> void:

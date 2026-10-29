@@ -2,7 +2,7 @@ class_name BotConfig
 extends Resource
 ## How the bots play, shared by every difficulty (the browser game's config/botsSenses.ts, botsMovement.ts,
 ## botsSquad.ts and squad.ts, Elimination and Attack / Defend): what they see and hear and how soon, how they aim and
-## fire, lanes, cover, searching, hunting, the pole and squad orders. How well a bot plays is its `skill`.
+## fire, lanes, cover, searching, hunting, the pole, squad orders and the magazine hand-off. How well a bot plays is its `skill`.
 ## bot_tuning.tres is the instance the game loads. Ranges are Vector2(min, max), drawn from each bot's own seeded
 ## stream.
 
@@ -316,6 +316,19 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 @export var overtime_flank_min_distance: float = 15.0
 @export var overtime_flank_offset: float = 6.0
 @export var overtime_flank_back: float = 6.0
+
+@export_group("Magazine hand-off")
+## The bots' side of the hand-off (MH2, BotMagShare; the browser game's config/magShare.ts): a bot bringing one sprints
+## while further than mag_hurry_distance (m) from the teammate, and walks on to within mag_walk_up_to (m) while it can't
+## toss yet; a bot that asked a player walks up to within mag_walk_up_to of them and waits. The rules (who is asked,
+## reach, flight, gaps) are the simulation's (MagShareConfig).
+@export var mag_hurry_distance: float = 8.0
+@export var mag_walk_up_to: float = 3.0
+## A bot presses the hand-off no more often than this (s), so a press the simulation refuses isn't repeated each tick.
+@export var mag_press_gap: float = 1.0
+## Dev settings › Bots run low on BBs: this long (s) into each round, once the teams have spread out, one bot a team in
+## turn is put on its last magazine (DevCheats.run_low), so the giver's walk over shows.
+@export var mag_dev_low_after: float = 8.0
 
 @export_group("Hunting")
 ## Once its lane is swept a bot hunts: the field in square sectors (m), the stalest of this many random spots (each

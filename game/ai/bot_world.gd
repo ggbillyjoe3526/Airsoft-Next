@@ -30,6 +30,9 @@ var overtime_flag: OvertimeFlag = OvertimeFlag.new()
 ## The dark on a field played at night (WL6): light pools, canopy and roofs, built once as the match loads (null by
 ## day, and sight is as it always was).
 var night: NightField = null
+## The magazine hand-off's rules (MH2): who has one to spare, who can be tossed one now (MagShare's, made with the bots
+## for their own checks; the simulation keeps its own).
+var mag_share: MagShare = null
 
 ## The field split into square sectors (BotConfig.hunt_sector_size) from (min_x, min_z): when each team last checked
 ## each one (-INF never).

@@ -601,6 +601,12 @@ msgstr "BOTS HOLD FIRE"
 msgid "DEV_BOTS_HOLD_FIRE_HELP"
 msgstr "No bot pulls its trigger: walk the map or watch them move without being shot."
 
+msgid "DEV_BOTS_RUN_LOW"
+msgstr "BOTS RUN LOW ON BBS"
+
+msgid "DEV_BOTS_RUN_LOW_HELP"
+msgstr "Early in each round one bot a team is put on its last magazine, so you can watch a teammate bring it one."
+
 msgid "DEV_SPECTATE_BOTS"
 msgstr "SPECTATE ANY BOT"
 
@@ -611,7 +617,7 @@ msgid "DEV_BOT_INTENT"
 msgstr "BOT INTENTIONS"
 
 msgid "DEV_BOT_INTENT_HELP"
-msgstr "A small label over each bot in play says what it is doing: advancing, fighting, in cover, searching."
+msgstr "A small label over each bot in play says what it is doing: advancing, fighting, in cover, searching, bringing a mag."
 
 msgid "DEV_RETRO_PIXELS"
 msgstr "RETRO PIXELS"
@@ -717,6 +723,12 @@ msgstr "At the flag"
 
 msgid "DEV_INTENT_ORDER"
 msgstr "Under orders"
+
+msgid "DEV_INTENT_MAG"
+msgstr "Bringing a mag"
+
+msgid "DEV_INTENT_MAG_WAIT"
+msgstr "Waiting for a mag"
 
 msgid "DEV_INTENT_NAMED"
 msgstr "%s · %s"
