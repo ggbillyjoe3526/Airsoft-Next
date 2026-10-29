@@ -1,7 +1,8 @@
 extends SceneTree
 ## Renders each match field from a high three-quarter camera, and the practice range from its firing line with its
-## targets and markings standing, each with its skyline and a wood its dressing (WL4), to assets/maps/<id>.jpg (the
-## Match page's map cards and the loading screen's backdrop, MN2 and RG4). Needs a display and OpenGL, so under xvfb:
+## targets and markings standing, each with its skyline and a wood and bushes its dressing (WL4, WL5), to
+## assets/maps/<id>.jpg (the Match page's map cards and the loading screen's backdrop, MN2 and RG4). Needs a display
+## and OpenGL, so under xvfb:
 ##   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 -s res://tools/map_pictures.gd
 ## Arguments after `--`: an output folder (default assets/maps/) and an optional map id to render alone. A map that
 ## can't load is skipped with its reasons.
@@ -77,7 +78,7 @@ func _render(map: MapData, play: PlayTuning) -> Image:
 	port.add_child(lighting)
 	_add_site(port, map, play, level, lighting)
 	_add_skyline(port, map, play, body)
-	_add_woods(port, map, play)
+	add_woods(port, map, play)
 	var camera := Camera3D.new()
 	camera.fov = FOV
 	port.add_child(camera)
@@ -143,13 +144,16 @@ func _add_skyline(port: SubViewport, map: MapData, play: PlayTuning, body: BodyC
 		skyline.set_smoke(true)
 
 
-## The map's wood as a match draws it on High by day (WoodsView: crowns, the forest, tufts, puddles and the floor), if
-## it has one.
-func _add_woods(port: SubViewport, map: MapData, play: PlayTuning) -> void:
+## The map's wood as a match draws it on High by day (WoodsView: crowns, the forest, tufts, puddles and the floor) and
+## its bushes (BushView), each if it has them.
+static func add_woods(port: Node, map: MapData, play: PlayTuning) -> void:
 	var woods := WoodsView.build(map, play.woods, play.skyline, play.lighting, play.map_style)
 	if woods != null:
 		port.add_child(woods)
 		woods.set_quality(GraphicsQuality.MeshDetail.HIGH, 0.0)
+	var bushes := BushView.build(map, play.woods)
+	if bushes != null:
+		port.add_child(bushes)
 
 
 ## Places `camera` to look at the middle of the map's blocks from far enough back that every corner of their box
