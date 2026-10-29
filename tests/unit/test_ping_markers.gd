@@ -406,7 +406,7 @@ func test_a_ping_in_a_match_shows_on_screen_and_the_minimap_and_pips() -> void:
 	assert_true(m.visible, "over the field")
 	assert_true(m.text().begins_with("PING · "))
 	assert_eq(session.hud().minimap().view().ping_count(), 1, "on the minimap")
-	assert_eq(_pips(session._audio), 1, "the pip")
+	assert_eq(session._audio._ping_at, p.at, "the pip started (it lasts 0.08 s, so a slow frame may see it over)")
 	session._open_pause()
 	assert_false(m.visible, "hidden in the pause menu")
 	session._resume()

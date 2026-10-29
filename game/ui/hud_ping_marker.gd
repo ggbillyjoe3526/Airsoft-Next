@@ -198,7 +198,8 @@ func _lay_out() -> void:
 func _fill_edge() -> void:
 	_edge_icon.set_look(_shape, _colour)
 	_chevron.set_look(_chevron.shape, _colour)
-	_edge_box.border_color = _colour
+	if _edge_box.border_color != _colour:
+		_edge_box.border_color = _colour
 	_edge_words.text = _text
 
 
