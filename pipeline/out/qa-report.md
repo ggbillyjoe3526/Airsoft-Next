@@ -25,14 +25,14 @@ a straight arm; no ray with a null world, hidden, or beyond the far line more th
 alternate frames; allocation per pose: none (value types only, one RayHit a figure). Smoke test passed.
 
 Tests added (tests/unit/test_figure_raise_qa.gd)
-- :99 no bone non-finite, no stretch, in 11 states x 2 kinds · regression guard, passes without the feature too
-- :122 IK limits stay finite · guard, same
-- :152 hit volume and character untouched · asserts high_ready > 0.5 first, fails with the raise stubbed out
-- :188 level within 0.25 s of a first shot · asserts the muzzle was 0.2 m above level before, fails without the raise
-- :205 hidden then shown, no stale raise · FAILS now (blocking 1)
-- :229 hidden/far/null-world rays · guard
-- :253 odd/even ids alternate rays · fails if the stagger is removed
-- :276 a figure ahead does not raise (BoxWorld has no figures; the real guard is the world-layer mask) · guard
+- :125 no bone non-finite, no stretch, in 11 states x 2 kinds · regression guard, passes without the feature too
+- :141 IK limits stay finite · guard, same
+- :167 hit volume and character untouched · asserts high_ready > 0.5 first, fails with the raise stubbed out
+- :200 level within 0.25 s of a first shot · asserts the muzzle was 0.2 m above level before, fails without the raise
+- :215 hidden then shown, no stale raise · FAILS now (blocking 1)
+- :234 hidden/far/null-world rays · guard
+- :260 odd/even ids alternate rays · fails if the stagger is removed
+- :283 a figure ahead does not raise (BoxWorld has no figures; the real guard is the world-layer mask) · guard
 
 Counts: test_figure_raise_qa 8 tests, 7 pass, 1 fails (blocking 1), 1 s. Touched files (raise, hit_area, hands, hands_qa,
 view, pose, body): 92 of 92 pass, 41 s. Smoke: pass. gdlint clean. No full parts or match guards (told not to).
