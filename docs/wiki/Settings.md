@@ -23,7 +23,8 @@ Volumes for **Master**, **Effects**, **Power source** (the motor or gas part of 
   **F11** or **Alt+Enter** switches between windowed and your last fullscreen mode.
 - **Monitor:** with two screens or more, the screen the window opens on.
 - **V-Sync** (off by default) and a **Frame rate** limit: Unlimited, or 30 to 360 frames a second. In the background
-  the game drops to 30 frames a second.
+  the game drops to 30 frames a second. The title and menus never draw more frames than your screen shows, whatever
+  the limit.
 - **Field of view** and **Show FPS**.
 
 ## Graphics

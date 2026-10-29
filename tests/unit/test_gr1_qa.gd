@@ -282,7 +282,7 @@ func test_an_old_file_without_the_graphics_fields_loads_and_keeps_its_values() -
 	assert_eq(got.graphics_custom, {} as Dictionary[String, Variant])
 	assert_eq(got.frame_limit, Settings.UNLIMITED)
 	assert_eq(got.monitor, Settings.MONITOR_HERE)
-	assert_eq(got.last_fullscreen, Settings.WindowMode.BORDERLESS)
+	assert_eq(got.last_fullscreen, Settings.WINDOW_MODE_DEFAULT)
 	assert_eq(got.renderer, Settings.Renderer.AUTO)
 	assert_false(got.first_start_seen)
 	assert_eq(got.load_message, "", "no complaint")
@@ -400,7 +400,7 @@ func test_the_monitor_edges() -> void:
 
 
 func test_last_fullscreen_renderer_and_first_start_edges() -> void:
-	var fs := {0: 1, 1: 1, 2: 2, 3: 1, -1: 1, 1.4: 1, 1.6: 2, 2.4: 1, 2.6: 1}
+	var fs := {0: 2, 1: 1, 2: 2, 3: 2, -1: 2, 1.4: 1, 1.6: 2, 2.4: 2, 2.6: 2}
 	for given: Variant in fs:
 		assert_eq(_loaded({"last_fullscreen": given}).last_fullscreen, fs[given] as Settings.WindowMode, "fullscreen %s" % given)
 	var rd := {0: 0, 1: 1, 2: 0, -1: 0, 0.6: 1, 1.4: 0, 1.6: 0}

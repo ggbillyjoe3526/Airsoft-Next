@@ -824,7 +824,8 @@ Play a release build (installer or zip) for these; running from the Godot editor
   the picture and HUD follow.
 - [ ] **First-start display (FB2).** A new save opens in exclusive fullscreen on the screen the game starts on, with
   V-Sync off and edge smoothing Off on Low, Medium, High and Ultra. An old save you never changed moves to these
-  once; Windowed, V-Sync or smoothing you chose yourself stays.
+  once; Windowed, V-Sync or smoothing you chose yourself stays. Pick Windowed, then F11: back to exclusive fullscreen.
+  On the title and menus F3 reads no more than your screen's refresh rate; in a match it follows your Frame rate limit.
 - [ ] **Mouse capture.** Play captures the mouse; Esc pauses and frees it; Resume captures it again with no jump on
   the first move. The pointer never leaves the window while captured; the back and forward side buttons do nothing
   unless bound.

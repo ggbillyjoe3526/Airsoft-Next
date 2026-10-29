@@ -145,6 +145,17 @@ func test_a_version_1_file_keeps_what_the_player_changed() -> void:
 	assert_eq(t.volumes[&"Effects"], 0.75, "a value near the old default is still the player's")
 
 
+func test_a_version_1_windowed_file_remembers_the_new_fullscreen_for_f11() -> void:
+	SaveFile.write(path, Settings.KIND, 1, {"window_mode": 0, "last_fullscreen": 1})
+	assert_eq(_again().last_fullscreen, Settings.WindowMode.EXCLUSIVE, "never left the old default")
+	SaveFile.write(path, Settings.KIND, 1, {"window_mode": 1, "last_fullscreen": 1})
+	var t := _again()
+	assert_eq(t.window_mode, Settings.WindowMode.BORDERLESS)
+	assert_eq(t.last_fullscreen, Settings.WindowMode.BORDERLESS, "a player in Borderless keeps it")
+	SaveFile.write(path, Settings.KIND, 2, {"window_mode": 0, "last_fullscreen": 1})
+	assert_eq(_again().last_fullscreen, Settings.WindowMode.BORDERLESS, "version 2: as saved")
+
+
 func test_a_version_2_file_is_not_moved_again() -> void:
 	SaveFile.write(path, Settings.KIND, 2, {
 		"window_mode": Settings.WindowMode.WINDOWED, "vsync": true,
@@ -328,7 +339,7 @@ func test_the_graphics_and_window_fields_start_at_their_defaults() -> void:
 	assert_eq(s.graphics_custom, {} as Dictionary[String, Variant])
 	assert_eq(s.frame_limit, Settings.UNLIMITED)
 	assert_eq(s.monitor, Settings.MONITOR_HERE)
-	assert_eq(s.last_fullscreen, Settings.WindowMode.BORDERLESS)
+	assert_eq(s.last_fullscreen, Settings.WINDOW_MODE_DEFAULT, "F11 goes back to the first start's mode")
 	assert_eq(s.renderer, Settings.Renderer.AUTO)
 	assert_false(s.first_start_seen)
 
@@ -380,7 +391,7 @@ func test_a_file_from_before_the_graphics_fields_loads_unchanged() -> void:
 	assert_eq(t.graphics_choice, Settings.GRAPHICS_AUTOMATIC)
 	assert_eq(t.frame_limit, Settings.UNLIMITED)
 	assert_eq(t.monitor, Settings.MONITOR_HERE)
-	assert_eq(t.last_fullscreen, Settings.WindowMode.BORDERLESS)
+	assert_eq(t.last_fullscreen, Settings.WINDOW_MODE_DEFAULT)
 	assert_eq(t.renderer, Settings.Renderer.AUTO)
 	assert_false(t.first_start_seen)
 
@@ -397,7 +408,7 @@ func test_each_bad_graphics_or_window_value_keeps_its_own_default() -> void:
 	assert_eq(t.graphics_choice, Settings.GRAPHICS_AUTOMATIC, "not a preset")
 	assert_eq(t.graphics_base, GraphicsTable.DEFAULT_PRESET, "Custom can't be built on Custom")
 	assert_eq(t.monitor, Settings.MONITOR_HERE)
-	assert_eq(t.last_fullscreen, Settings.WindowMode.BORDERLESS, "windowed isn't a fullscreen mode")
+	assert_eq(t.last_fullscreen, Settings.WINDOW_MODE_DEFAULT, "windowed isn't a fullscreen mode")
 	assert_eq(t.renderer, Settings.Renderer.AUTO)
 	assert_false(t.first_start_seen, "a number is not a flag")
 	assert_eq(t.frame_limit, Settings.UNLIMITED, "a negative limit")

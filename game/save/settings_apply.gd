@@ -73,16 +73,35 @@ static func apply_display(s: Settings, place: bool = false) -> void:
 	apply_frame_rate(s)
 
 
-## Engine.max_fps: the frame-rate limit, or DisplayConfig.background_fps (the lower of the two) while the game is in the
+## Engine.max_fps: the frame-rate limit (or the menus' refresh-rate cap, `menu_cap`, when lower), or DisplayConfig.background_fps (the lower of the two) while the game is in the
 ## background. The simulation's 60 ticks a second don't depend on it: a slower frame runs more ticks.
 static func apply_frame_rate(s: Settings) -> void:
 	var ds := screens()
 	var limit := s.frame_limit
+	var cap := menu_cap(ds)
+	if cap > 0:
+		limit = cap if limit == Settings.UNLIMITED else mini(limit, cap)
 	if not ds.focused:
 		var background := ds.config.background_fps
 		limit = background if limit == Settings.UNLIMITED else mini(limit, background)
 	if Engine.max_fps != limit:
 		Engine.max_fps = limit
+
+
+## The most frames a second the title, the menus and the loading screen draw (`ds.menus`): the display's refresh rate
+## (DisplayConfig.menu_fallback_fps when it doesn't say), so a light scene never runs uncapped with V-Sync off; 0 for
+## none: in a match, with no screen (headless) or with the cap off.
+static func menu_cap(ds: Screens) -> int:
+	if not ds.menus or not ds.config.menu_cap_to_refresh or ds.count() <= 0:
+		return 0
+	var hz := ds.rate(ds.current())
+	return roundi(hz) if hz > 0.0 else ds.config.menu_fallback_fps
+
+
+## The title and the menus are showing (`menus`, main.gd) or a match is loaded: the frame rate follows.
+static func set_menus(s: Settings, menus: bool) -> void:
+	screens().menus = menus
+	apply_frame_rate(s)
 
 
 ## The game came to the front (`focused`) or went to the background (unfocused or minimised): WindowWatch.
@@ -172,6 +191,8 @@ class Screens:
 	extends RefCounted
 	## False while the window is unfocused or minimised.
 	var focused: bool = true
+	## True while the title, the menus or the loading screen show (main.gd sets it): they draw at most the refresh rate.
+	var menus: bool = false
 	var config: DisplayConfig = DisplayConfig.new()
 
 	func mode() -> DisplayServer.WindowMode:

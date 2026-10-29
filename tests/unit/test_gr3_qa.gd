@@ -20,6 +20,7 @@ func before_each() -> void:
 	s = Settings.new(PlayTuning.new())
 	s.window_mode = Settings.WindowMode.WINDOWED # F11 from a window; the first-start default is pinned in test_settings.gd
 	s.vsync = true
+	s.last_fullscreen = Settings.WindowMode.BORDERLESS
 	DirAccess.make_dir_recursive_absolute(ROOT)
 	path = ROOT.path_join("settings.save")
 	SaveFile.remove(path)

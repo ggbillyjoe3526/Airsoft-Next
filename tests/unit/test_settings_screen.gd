@@ -606,6 +606,7 @@ func test_a_frame_rate_limit_applies_at_once_and_is_saved() -> void:
 
 func test_f11_switches_and_the_tab_follows_but_not_while_a_key_is_being_rebound() -> void:
 	var ds := _fake_screens()
+	s.last_fullscreen = Settings.WindowMode.BORDERLESS
 	s.window_mode = Settings.WindowMode.WINDOWED # F11 from a window; the first start's mode is pinned elsewhere
 	screen.open()
 	var watch := WindowWatch.new()

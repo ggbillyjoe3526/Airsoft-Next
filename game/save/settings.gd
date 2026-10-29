@@ -44,6 +44,7 @@ const WINDOW_MODE_DEFAULT := WindowMode.EXCLUSIVE
 const VSYNC_DEFAULT := false
 ## Version 1's defaults for the two (Windowed, V-Sync on).
 const WINDOW_MODE_DEFAULT_V1 := WindowMode.WINDOWED
+const LAST_FULLSCREEN_DEFAULT_V1 := WindowMode.BORDERLESS
 const VSYNC_DEFAULT_V1 := true
 ## Horizontal field of view on a 16:9 screen (degrees): the range and the default (owner, 2026-10-04: 90).
 const FOV_MIN := 70.0
@@ -88,8 +89,8 @@ var graphics_forced: StringName = &""
 var frame_limit: int = UNLIMITED
 ## The monitor's index, or MONITOR_HERE.
 var monitor: int = MONITOR_HERE
-## The fullscreen mode F11 goes back to: Borderless or Exclusive.
-var last_fullscreen: WindowMode = WindowMode.BORDERLESS
+## The fullscreen mode F11 goes back to: Borderless or Exclusive (the first start's mode until one is left).
+var last_fullscreen: WindowMode = WINDOW_MODE_DEFAULT
 ## Read at the next start (GR4).
 var renderer: Renderer = Renderer.AUTO
 ## The first-start notice has been shown (GR5).
@@ -180,6 +181,10 @@ static func migrate_defaults(data: Dictionary, version: int) -> Dictionary:
 	var mode: Variant = moved.get("window_mode")
 	if (mode is float or mode is int) and roundi(float(mode)) == WINDOW_MODE_DEFAULT_V1:
 		moved["window_mode"] = int(WINDOW_MODE_DEFAULT)
+		# a window that never left the old default has the old default remembered for F11 too
+		var remembered: Variant = moved.get("last_fullscreen")
+		if (remembered is float or remembered is int) and roundi(float(remembered)) == LAST_FULLSCREEN_DEFAULT_V1:
+			moved["last_fullscreen"] = int(WINDOW_MODE_DEFAULT)
 	var vsync_saved: Variant = moved.get("vsync")
 	if vsync_saved is bool and vsync_saved == VSYNC_DEFAULT_V1:
 		moved["vsync"] = VSYNC_DEFAULT
@@ -265,7 +270,7 @@ func from_dict(data: Dictionary) -> void:
 	_graphics_from(data)
 	frame_limit = nearest_frame_limit(_number(data, "frame_limit", UNLIMITED, UNLIMITED, INF))
 	monitor = roundi(_number(data, "monitor", MONITOR_HERE, MONITOR_HERE, MONITOR_MOST))
-	var fullscreen := roundi(_number(data, "last_fullscreen", WindowMode.BORDERLESS, WindowMode.BORDERLESS,
+	var fullscreen := roundi(_number(data, "last_fullscreen", WINDOW_MODE_DEFAULT, WindowMode.BORDERLESS,
 			WindowMode.EXCLUSIVE))
 	last_fullscreen = fullscreen as WindowMode
 	renderer = roundi(_number(data, "renderer", Renderer.AUTO, 0.0, Renderer.size() - 1.0)) as Renderer

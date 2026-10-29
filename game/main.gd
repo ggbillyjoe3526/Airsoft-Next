@@ -129,6 +129,7 @@ func _ready() -> void:
 	add_child(WindowWatch.new())
 	_build_screens()
 	_title.focus_start()
+	SettingsApply.set_menus(Settings.shared(), true)
 	_credits = Credits.new()
 	_credits.visible = false
 	_credits.closed.connect(_credits_closed)
@@ -338,7 +339,7 @@ func _start_play(smoke_practice: bool = false) -> void:
 	_play.staged = true
 	_show_loading(map_id, team)
 	_play.progressed.connect(_loading.set_progress_step)
-	_play.started.connect(_free_loading)
+	_play.started.connect(_on_play_started)
 	_play.left.connect(_end_play)
 	_play.shaders_warmed.connect(graphics.settle)
 	_play.loadout_requested.connect(_open_practice_loadout)
@@ -366,6 +367,12 @@ func _team_size() -> int:
 	return MatchOptions.team_size(MapCatalog.shared().find(_play.map_id), _play.custom_rules)
 
 
+## The match has drawn: the loading screen goes and the frame rate is the player's limit (no menu cap).
+func _on_play_started() -> void:
+	_free_loading()
+	SettingsApply.set_menus(Settings.shared(), false)
+
+
 func _free_loading() -> void:
 	if _loading != null:
 		_loading.queue_free()
@@ -384,6 +391,7 @@ func _open_practice_loadout() -> void:
 	_play.queue_free()
 	_play = null
 	_build_screens()
+	SettingsApply.set_menus(Settings.shared(), true)
 	_title.visible = false
 	_menus.visible = true
 	_menus.open_practice_loadout(_spot.slot as Loadout.Slot)
@@ -417,6 +425,7 @@ func _end_play() -> void:
 	_play.queue_free()
 	_play = null
 	_build_screens()
+	SettingsApply.set_menus(Settings.shared(), true)
 	_title.focus_start()
 	if from_practice:
 		# Leaving practice lands on the Match page, Practice still picked, a click from the range again.

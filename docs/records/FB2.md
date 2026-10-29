@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-29 | 1 | worker | see Verified | – | – |
+| 2026-10-29 | 1, fix round 1: menus capped at the refresh rate, F11 remembers the first start's fullscreen | worker | see Fix round 1 | – | – |
 
 ## Goal
 
@@ -58,3 +59,23 @@ and a save that still holds an old default moves to the new one.
 ## Gate
 
 gdlint clean; unit tests parts 1 and 2 pass, part 3 passed bar `test_save_bundle` (settings store now version 2), fixed and re-run green; smoke run passes; `wiki.py check` and `changelog.sh check` pass. Review pending.
+
+## Fix round 1 (performance, QA)
+
+- **Menus draw at most the display's refresh rate.** With V-Sync off and Frame limit Unlimited the title, menus and
+  loading screen drew uncapped. `SettingsApply.menu_cap` gives the display's refresh rate (`DisplayConfig.menu_fallback_fps`,
+  60, when it reports 0 or less) while `Screens.menus` is set; `apply_frame_rate` takes the lower of that, the player's
+  limit and the background rate. `main.gd` sets it at start, on returning from a match or the practice Loadout, and
+  clears it when the match has drawn (`started`), so the loading screen is capped and the match, its pause menu
+  included, runs on the player's limit alone. No cap with no screen (headless, smoke) or with
+  `DisplayConfig.menu_cap_to_refresh` off.
+- **F11 after Windowed:** `last_fullscreen` now defaults to `WINDOW_MODE_DEFAULT` (and a bad saved value falls back to
+  it), so Exclusive start, pick Windowed, F11 lands in Exclusive. A version 1 file at the old Windowed default also
+  moves its remembered Borderless to Exclusive; one in Borderless or Exclusive keeps its own.
+- **Defaults taken:** the cap is the refresh rate, a config switch and fallback, not code numbers; reason: a light scene
+  running uncapped heats the card and spins the fans, and V-Sync no longer holds it. The pause menu is part of the match
+  and stays as it was. A v1 Windowed save's remembered Borderless moves to Exclusive because F11 from that save should
+  go to the new default fullscreen; it cannot be told from "went Borderless, then Windowed", which is rare.
+- **Tests:** `test_settings_apply` (cap, lower limit wins, fallback at 0 and below, no screens, switch off, with the
+  background rate, F11 to Exclusive), `test_settings` (migration of the remembered fullscreen); the F11 tests that
+  assumed a Borderless default now set it up themselves.
