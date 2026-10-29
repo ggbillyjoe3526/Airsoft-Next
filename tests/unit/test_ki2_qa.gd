@@ -196,3 +196,79 @@ func test_the_rifle_reloads_empty_without_a_slide() -> void:
 	a.reload_left = 0.0
 	_frame()
 	assert_false(view._held[0].in_reload)
+
+
+func _modifiers(root: Node) -> Array[Node]:
+	return root.find_children("*", "SlideLockPose", true, false)
+
+
+func test_only_the_gas_pistol_gets_a_slide_modifier_and_it_sits_on_its_skeleton() -> void:
+	assert_eq(_modifiers(view._held[0].root).size(), 0, "the rifle has none")
+	var mods := _modifiers(_pistol().root)
+	assert_eq(mods.size(), 1)
+	assert_eq(mods[0].get_parent().get_class(), "Skeleton3D")
+	assert_false((mods[0] as SlideLockPose).active, "off until a lock")
+	assert_true(view._held[0].slide_hold == null)
+
+
+func test_a_model_without_the_slide_bone_or_the_clip_gets_no_modifier() -> void:
+	var scene := load("res://assets/models/replicas/aeg.glb") as PackedScene
+	var model := scene.instantiate() as Node3D
+	add_child_autofree(model)
+	var anim := model.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	assert_null(SlideLockPose.attach(model, anim))
+	assert_null(SlideLockPose.attach(model, null))
+	assert_eq(_modifiers(model).size(), 0)
+
+
+func test_a_realistic_colours_view_holds_the_slide_back_too() -> void:
+	view.queue_free()
+	c = Character.new(1, 0, Vector3.ZERO, 0.0, ReplicaStats.default_loadout())
+	a = c.armament
+	view = ReplicaView.new()
+	add_child_autofree(view)
+	view.setup(cfg, a.replicas, BoxWorld.new(), [] as Array[StringName], true)
+	assert_eq(_modifiers(_pistol().root).size(), 1)
+	var poses := await _poses()
+	assert_gt(poses.home.distance_to(poses.back), 0.01)
+	_quick_reload(0.0, 0.5)
+	await _settle()
+	assert_almost_eq(_pistol().slide.position, poses.back, EPS)
+
+
+func test_switching_replicas_back_and_forth_adds_and_frees_nothing() -> void:
+	var before := _pistol().root.get_child_count()
+	var nodes := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
+	for i in 6:
+		a.active = i % 2
+		_frame()
+		await _settle()
+	assert_eq(_modifiers(_pistol().root).size(), 1)
+	assert_eq(_pistol().root.get_child_count(), before)
+	assert_eq(Performance.get_monitor(Performance.OBJECT_NODE_COUNT), nodes, "no node added by switching")
+
+
+func test_a_pistol_hidden_by_a_switch_while_locked_comes_back_loaded_and_home() -> void:
+	var poses := await _poses()
+	a.ammo[1].mag = 0
+	_frame()
+	assert_true((_pistol().slide_hold as SlideLockPose).active)
+	a.active = 0
+	_frame()
+	a.ammo[1].mag = a.replicas[1].mag_size
+	a.active = 1
+	_frame()
+	await _settle()
+	assert_false((_pistol().slide_hold as SlideLockPose).active, "the hold is released")
+	assert_almost_eq(_pistol().slide.position, poses.home, EPS)
+
+
+func test_freeing_the_view_frees_every_modifier() -> void:
+	var tmp := ReplicaView.new()
+	add_child(tmp)
+	var nodes := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
+	tmp.setup(cfg, a.replicas, BoxWorld.new())
+	var with_view := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
+	assert_gt(with_view, nodes)
+	tmp.free()
+	assert_eq(Performance.get_monitor(Performance.OBJECT_NODE_COUNT), nodes - 1.0, "only the view itself went, nothing else left")
