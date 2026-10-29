@@ -6,9 +6,10 @@ extends RefCounted
 ##
 ## `ButtonWidth.group(buttons)` sets each button's `custom_minimum_size.x` to the widest `get_minimum_size().x` (the
 ## button's own size, which leaves out `custom_minimum_size`, so measuring never feeds back) and makes it hug that width
-## instead of filling its container. A group measures itself again when a button's words, font or theme change
-## (`minimum_size_changed`), so a translation, a rebound key name or a theme that arrives once the buttons are in the tree
-## all settle on their own. Each button keeps its group (meta), so nothing else needs to hold it, and it goes with them.
+## instead of filling its container. A button that is hidden (`visible` false: the pause menu's practice-only rows) sets no
+## width. A group measures itself again when a button's words, font, theme or visibility change (`minimum_size_changed`,
+## `visibility_changed`), so a translation, a rebound key name, a row shown at run time or a theme that arrives once the
+## buttons are in the tree all settle on their own. Each button keeps its group (meta), so nothing else needs to hold it, and it goes with them.
 
 ## The meta a button keeps its group in, and the one a button keeps its overlay in (see `overlay`).
 const META := &"button_width"
@@ -61,7 +62,8 @@ func refresh() -> void:
 	_buttons = live
 	var widest := 0.0
 	for b in live:
-		widest = maxf(widest, _natural(b))
+		if b.visible:
+			widest = maxf(widest, _natural(b))
 	_width = widest
 	for b in live:
 		b.size_flags_horizontal = _align
@@ -72,6 +74,7 @@ func _hold(b: Button) -> void:
 	_buttons.append(b)
 	b.set_meta(META, self)
 	b.minimum_size_changed.connect(refresh)
+	b.visibility_changed.connect(refresh)
 
 
 ## The width `b` needs on its own: its words and padding, and an overlay's room.

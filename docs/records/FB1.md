@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-29 | 1 | worker | see Verified and Gate | – | – |
+| 2026-10-29 | 1 | worker | see Verified and Gate; QA Fail (2 blocking), performance Pass | – | – |
+| 2026-10-29 | 1, fix round 1: focus returns after QUIT GAME?, hidden buttons set no width, one Esc cancels a rename | worker | see Fix round 1 | – | – |
 
 ## Goal
 
@@ -71,11 +72,28 @@ left). The Dev settings box, the Dev tab and every default value are left alone 
 - Not verified: how it feels to click and tab through (hover colours, the focus ring on CANCEL, the wordmark's hover),
   Forward+ rendering, Windows, a controller or a different UI scale.
 
+## Fix round 1 (QA)
+
+- **Blocking 1, focus lost when QUIT GAME? closes** (`quit_prompt.gd`, `main.gd`): the prompt remembers the control that
+  had the keyboard when it opened and gives it back in `close()` (START on the title, PLAY on Match, the Settings
+  control); if that is gone or hidden it releases the focus, and `Main._quit_closed` then gives the keyboard to the
+  screen's default (START on the title, `focus_page()` in the menus). `test_fb1_qa` pins both screens.
+- **Blocking 2, a hidden button set its group's width** (`button_width.gd`): `refresh` measures only buttons whose `visible`
+  is true, and every member's `visibility_changed` re-measures, so the pause menu in a match is as wide as SKIP TO NEXT
+  ROUND (299 px at 1080p; the hidden practice-only TIMED CHALLENGE row no longer counts) and a row shown at run time
+  joins the width. Picture: `fb1-after-pause-match.png` and `-practice.png` re-taken.
+- **Advisory, rename took two Esc** (`loadout_strip.gd`): the name field handles `ui_cancel` itself (accepts it and
+  cancels), so one Esc drops the rename. `test_fb1_menus` pins it (seen failing without the fix).
+- Run: gdlint clean; `test_fb1_qa` (14), `test_fb1_menus` (21), `test_settings_screen`, `test_settings_hunt`, `test_mn1_qa`,
+  `test_rg5_loadout`, `test_rg5_qa`, `test_lo2_qa`, `test_title_and_menus`, `test_loadout_screen`, `test_pause_menu`,
+  `test_match_page`: 222 of 222. Then part 1 865 of 865, part 2 1815 of 1815, part 3 912 of 912, smoke PASS (zero script
+  errors), wiki and changelog checks OK.
+
 ## Gate
 
 - gdlint clean on every changed `.gd`.
 - Unit tests: part 1 865 of 865; part 2 1800, 1797 on the first run, the three fixes (two tests of mine that counted the
   old behaviour: `test_match_page` team cards, `test_mn1_qa` Esc-to-close-settings; and `test_fg1_perf`'s Attack / Defend
   tick, a timing test that read 60 ms on a machine shared with other workers and passed alone), all pass on the re-run of
-  those three files; part 3 912 of 912.
+  those three files; part 3 912 of 912. Fix round 1: see its section.
 - `tools/smoke_test.sh`: PASS, zero script errors. `python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK.

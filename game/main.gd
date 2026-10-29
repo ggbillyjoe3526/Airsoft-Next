@@ -583,6 +583,13 @@ func ask_quit() -> void:
 
 func _quit_closed() -> void:
 	_quit_prompt = null
+	# the prompt gave the keyboard back to what had it; if that is gone, the screen's own default button takes it
+	if get_viewport().gui_get_focus_owner() != null:
+		return
+	if _title != null and _title.visible:
+		_title.focus_start()
+	elif _menus != null and _menus.visible:
+		_menus.focus_default()
 
 
 func _process(_delta: float) -> void:

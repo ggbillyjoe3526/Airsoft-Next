@@ -386,3 +386,26 @@ func test_the_pause_menus_settings_still_close_on_escape() -> void:
 	assert_true(pause.settings_open())
 	await _esc()
 	assert_false(pause.settings_open(), "in a match Esc closes the settings and leaves the pause menu")
+
+
+func test_one_escape_in_the_rename_field_cancels_the_rename() -> void:
+	var saved := SavedLoadouts.new(LoadoutRules.standard())
+	var page := LoadoutPage.new(saved, s)
+	page.save_path = "%s/loadouts-%d.save" % [ROOT, _n]
+	page.settings_path = "%s/settings-page-%d.save" % [ROOT, _n]
+	add_child_autofree(page)
+	await wait_process_frames(2)
+	var strip := page.strip()
+	var before := saved.carried().name
+	strip.start_rename()
+	await wait_process_frames(2)
+	strip.edit().text = "Typed"
+	assert_eq(get_viewport().gui_get_focus_owner(), strip.edit(), "the name field has the keyboard")
+	var e := InputEventKey.new()
+	e.keycode = KEY_ESCAPE
+	e.physical_keycode = KEY_ESCAPE
+	e.pressed = true
+	Input.parse_input_event(e)
+	await wait_process_frames(2)
+	assert_eq(strip.mode, LoadoutStrip.Mode.NORMAL, "the first Esc ends the rename (it took two)")
+	assert_eq(saved.carried().name, before, "and drops what was typed")

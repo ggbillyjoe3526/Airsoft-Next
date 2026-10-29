@@ -2,7 +2,8 @@ class_name QuitPrompt
 extends Control
 ## QUIT GAME? (owner, 2026-10-29): Esc anywhere in the menus, the title screen included, asks it. Over a shade, a panel in
 ## the settings question's look (SettingsSaveConfirm): the question, a line saying nothing is lost, and QUIT beside CANCEL.
-## The focus starts on CANCEL; CANCEL or Esc closes it, QUIT sends `confirmed` (the game quits).
+## The focus starts on CANCEL and returns to what had it when it closes; CANCEL or Esc closes it, QUIT sends `confirmed`
+## (the game quits).
 ## Built when asked and freed once it closes.
 
 ## QUIT was pressed.
@@ -26,6 +27,8 @@ const BUTTON_PAD := Vector2i(26, 12)
 
 var _quit: Button = null
 var _cancel: Button = null
+## The control that had the keyboard when it opened; it gets it back when the prompt closes.
+var _before: Control = null
 
 
 func _init() -> void:
@@ -88,6 +91,7 @@ func _init() -> void:
 
 
 func _ready() -> void:
+	_before = get_viewport().gui_get_focus_owner()
 	_cancel.grab_focus()
 
 
@@ -104,6 +108,12 @@ func cancel_button() -> Button:
 func close() -> void:
 	if is_queued_for_deletion():
 		return
+	# the keyboard goes back to where it was (START, PLAY, a Settings control), never to nothing
+	if _before != null and is_instance_valid(_before) and _before.is_visible_in_tree() \
+			and _before.focus_mode != Control.FOCUS_NONE:
+		_before.grab_focus()
+	else:
+		_cancel.release_focus()
 	closed.emit()
 	queue_free()
 

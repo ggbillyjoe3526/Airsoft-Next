@@ -218,9 +218,18 @@ func _build_edit(text: String) -> LineEdit:
 	e.add_theme_font_override("font", GameTheme.spaced_font(700, SPACING, NAME_SIZE))
 	e.add_theme_font_size_override("font_size", NAME_SIZE)
 	e.text_submitted.connect(_rename)
+	e.gui_input.connect(_edit_input)
 	# deferred: a strip freed with its edit still focused must not rebuild itself on the way out
 	e.focus_exited.connect(commit, CONNECT_DEFERRED)
 	return e
+
+
+## One Esc in the name field cancels the rename. (The LineEdit would end its own editing on the first Esc and swallow
+## it, so cancelling took two.)
+func _edit_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"ui_cancel") and not event.is_echo():
+		_edit.accept_event()
+		cancel()
 
 
 func _say(key: String, arg: String) -> void:
