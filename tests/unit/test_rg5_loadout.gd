@@ -122,7 +122,7 @@ func test_back_to_practice_comes_from_the_button_l_and_escape_and_l_does_nothing
 	menus._unhandled_input(_action(&"loadout"))
 	assert_signal_not_emitted(menus, "practice_requested")
 	menus._unhandled_input(_action(&"ui_cancel"))
-	assert_signal_emit_count(menus, "back", 1, "Esc goes back to the title as ever")
+	assert_signal_not_emitted(menus, "title_requested", "Esc in the menus is Main's quit question, not a way to the title")
 	menus.open_practice_loadout(Loadout.Slot.PRIMARY)
 	menus.top_bar().back_button().pressed.emit()
 	assert_signal_emit_count(menus, "practice_requested", 1)
@@ -130,7 +130,7 @@ func test_back_to_practice_comes_from_the_button_l_and_escape_and_l_does_nothing
 	assert_signal_emit_count(menus, "practice_requested", 2)
 	menus._unhandled_input(_action(&"ui_cancel"))
 	assert_signal_emit_count(menus, "practice_requested", 3)
-	assert_signal_emit_count(menus, "back", 1, "there is no title to go back to from here")
+	assert_signal_not_emitted(menus, "title_requested", "there is no title to go back to from here")
 	menus.leave_loadout()
 
 

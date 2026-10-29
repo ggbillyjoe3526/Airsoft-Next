@@ -18,16 +18,19 @@ func _boot() -> Node:
 	return main
 
 
-func test_escape_in_settings_closes_settings_and_stays_on_the_menus() -> void:
+func test_escape_in_settings_asks_to_quit_and_leaves_the_settings_and_menus_as_they_are() -> void:
 	var main: Node = await _boot()
 	main._show_menus()
 	main._menus.top_bar().tab_button(TopBar.Tab.SETTINGS).pressed.emit()
 	await wait_process_frames(1)
 	await _esc()
-	assert_null(main._settings_screen)
-	assert_true(main._menus.visible, "one Esc closes only the settings")
+	assert_not_null(main._quit_prompt, "Esc in the menus' settings asks QUIT GAME? (owner, 2026-10-29)")
+	assert_not_null(main._settings_screen, "the settings stay open under it")
+	assert_true(main._menus.visible)
 	assert_false(main._title.visible)
-	assert_eq(main._menus.top_bar().current(), TopBar.Tab.MATCH)
+	await _esc()
+	assert_true(main._quit_prompt == null or main._quit_prompt.is_queued_for_deletion(), "Esc again closes it")
+	assert_not_null(main._settings_screen)
 
 
 func test_credits_open_from_title_and_escape_closes_them_without_leaving_the_title() -> void:
@@ -88,12 +91,12 @@ func test_opening_and_closing_settings_and_credits_repeatedly_leaks_no_nodes() -
 func test_title_menus_title_round_trips_keep_one_connection_per_signal() -> void:
 	var main: Node = await _boot()
 	var n_start: int = main._title.start_pressed.get_connections().size()
-	var n_back: int = main._menus.back.get_connections().size()
+	var n_back: int = main._menus.title_requested.get_connections().size()
 	for i in 4:
 		main._show_menus()
 		main._show_title()
 	assert_eq(main._title.start_pressed.get_connections().size(), n_start)
-	assert_eq(main._menus.back.get_connections().size(), n_back)
+	assert_eq(main._menus.title_requested.get_connections().size(), n_back)
 
 
 func test_dev_content_toggle_adds_and_removes_the_dev_map_choice() -> void:

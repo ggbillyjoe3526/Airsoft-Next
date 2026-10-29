@@ -127,6 +127,7 @@ func test_a_load_message_shows_on_the_screen() -> void:
 
 
 func test_esc_closes_it_and_back_closes_it() -> void:
+	screen.esc_closes = true # as the pause menu opens it; in the menus Esc asks to quit instead
 	watch_signals(screen)
 	get_viewport().push_input(_key(KEY_ESCAPE))
 	assert_false(screen.visible, "Esc closes")

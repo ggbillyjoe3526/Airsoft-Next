@@ -134,7 +134,7 @@ func test_the_slanted_button_leans_right_inside_its_box() -> void:
 	assert_eq(p[3].x, 10.0, "the bottom left corner is the box's")
 
 
-func test_start_opens_the_menus_and_escape_goes_back_to_the_title() -> void:
+func test_start_opens_the_menus_and_escape_asks_to_quit_while_the_wordmark_goes_back_to_the_title() -> void:
 	var main: Node = add_child_autofree(MAIN.instantiate())
 	await wait_process_frames(2)
 	var title: TitleScreen = main._title
@@ -149,7 +149,12 @@ func test_start_opens_the_menus_and_escape_goes_back_to_the_title() -> void:
 	e.pressed = true
 	Input.parse_input_event(e)
 	await wait_process_frames(2)
-	assert_true(title.visible, "Esc on the menus goes back to the title")
+	assert_not_null(main._quit_prompt, "Esc on the menus asks QUIT GAME? (owner, 2026-10-29)")
+	assert_true(menus.visible)
+	main._quit_prompt.close()
+	menus.top_bar().wordmark().pressed.emit()
+	await wait_process_frames(2)
+	assert_true(title.visible, "the AIRSOFT wordmark goes back to the title")
 	assert_false(menus.visible)
 
 
