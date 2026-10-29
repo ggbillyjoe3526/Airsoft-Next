@@ -1,4 +1,4 @@
-Task: MH3 · QA commit (see git log, "MH3: QA tests") · Verdict: Fail
+Task: MH3 · QA commit (see git log, "MH3: QA tests") · Verdict: Fail (first round; see the re-check below: Pass)
 
 Blocking
 1. game/ui/hud_mag_line.gd:186-203 (_standing): the line and the wheel pick the NEAREST asker and check reach for that one only;
@@ -32,3 +32,12 @@ Not stubbed out one by one for the pins; they were checked by reading the code p
 Runs: test_mh3_qa 7/8 (1 intended failure); test_mag_hand_off_hud 22, order_wheel_input 17, so4_orders_hud 23, key_bindings 18,
 hud_prefs 13, mag_share 29, bot_mag_share 20, play_session 9: all pass. Smoke passes. Full tools/check.sh not run (told not to).
 Not testable headless: how the arc, line over bright walls and the sounds' level look and sound (owner's list in PLAYTEST).
+
+## Re-check of fix round 001a224 · QA commit (git log, "MH3: QA re-check") · Verdict: Pass
+- Blocking bug 1 fixed: HudMagLine._standing now uses the public MagShare.nearest_asker (nearest in reach, else nearest), the
+  press's own pick; tests/unit/test_mh3_qa.gd:115 now passes (8/8). Marks still cover every asker; no allocation added.
+- Advisories fixed: WAIT wording split (own mag in the air, toss again, ask again); the smoke test counts only presses of yours
+  (PlayerInput.mag_sent is set per fill_order, true only on the tick of a latched press). Minor: the in-air wording reads the
+  pool after the step, so a toss that landed the same tick would say the generic toss wait; harmless.
+- Runs: test_mh3_qa 8, mag_hand_off_hud 23, mag_share 29, bot_mag_share 20, order_wheel_input 17, so4_orders_hud 23, play_session 9,
+  key_bindings 18: 147 of 147. Smoke passes (orders=3 mags=2, zero script errors). No regressions found in the diff.
