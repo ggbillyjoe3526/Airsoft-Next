@@ -482,7 +482,7 @@ You're on Alpha (blue) with two bot teammates against three Beta (orange) bots b
 - [ ] **Fight a bot beside a wall or container.** It sidesteps away from the wall and keeps you in sight; on the
   dock's edge it never steps off. Bots by door frames don't fire into the frame.
 - [ ] **Every level hunts (M87).** Once their lane is swept, bots hunt the map's middle without walking into corners
-  they already saw empty; a round shouldn't drag to the clock.
+  they already saw empty; a round shouldn't drag to the clock. On Woodland they now check inside the hut too (KI1).
 - [ ] **Up close, a fair moment.** Walk into a Normal bot at 5 to 10 m: its first BBs go wide and walk in (its first
   hit takes about 1.5 s).
 - [ ] **The bots' kits (BG1).** Opponents carry kits from `bot-kits.md`: Easy the plainest, each level up more scoped,
@@ -599,6 +599,8 @@ pays XP ×1.5.
 - [ ] **Your team** (M98). Alpha or Beta, each with its colour dot, kept after you leave; Extraction hides the row. On
   Beta you start at Beta's end with the orange armband and an orange HUD (YOU tag, markers, minimap, wheel); bot
   opponents are "Alpha 1…3"; ends swap at half-time. Play each mode and map once on Beta.
+- [ ] **Last map and team (KI1).** Play a match on Woodland as Beta, quit the game and start it again: Match opens on
+  Woodland and Beta.
 - [ ] **Pause (Esc).** Everything freezes, the mouse is freed, and a solid screen shows the round and score with
   Resume, Settings and Quit ("Round 2 · Alpha (you) 1 – 0 Beta · first to 5"; Attack / Defend says "you attack" or
   "you defend").
@@ -656,7 +658,10 @@ pays XP ×1.5.
   for the next round".
 - [ ] **The order wheel (hold Z).** Five items round the crosshair (Need a Mag upper left), each with its key. The
   view stays still while a pointer lights the order it's on; let go on one to give it, or without moving to give none.
-  Walking continues; firing needs a new pull after. Orders > Click points and clicks instead.
+  Walking continues; firing needs a new pull after. Orders > Click points and clicks instead. A middle click while the
+  wheel is open pings nothing (KI1).
+- [ ] **Hold here at the end (KI1).** Give Hold here in the last round and win or lose the match: the diamond marker is
+  gone from the match results.
 - [ ] **Pings (middle mouse, PN1).** Ping the floor 20 to 30 m ahead: one teammate answers once in the feed ("Going to
   your ping" in its own words) and goes to look, each its own way (a rusher runs, a careful bot walks in); give Follow
   me first and one says it watches it instead and they stay with you. Ping the sky: nothing, and no answer. A double
@@ -734,7 +739,7 @@ Headphones help: direction (in front, behind, above) comes through best on them.
   shut. Empty, the rifle still whirrs and the pistol only clicks; the reloads sound different too.
 - [ ] **Impacts and steps.** A ringing ping off steel, a hollow knock on wood, a dry tick off concrete; a clank on
   steel ramps, a scuff on concrete, louder with kit rattling when you sprint and land; crouching and leaning rustle
-  softly.
+  softly. Lean into a wall and turn back and forth: a rustle at most every 0.6 s, not one each turn (KI1).
 - [ ] **Bots by ear.** Close your eyes: you can point at one, behind you too. Behind a container it sounds duller and
   quieter. A bot sprinting at you from about 20 m is heard most of the way, quieter than any shot.
 - [ ] **The field.** A very quiet outdoor bed with no audible loop and a small bird now and then; each field has its own
