@@ -1,13 +1,13 @@
 # FB6 · Back to the Match page, your team on the left, the sight even at any game speed (fix)
 
-**Review:** pending
+**Review:** critic Accept 7/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-30 | 1 | worker | see Verified; QA Fail (1 blocking: the drawn sight eased down after a respawn) | – | – |
-| 2026-10-30 | 1, fix round 1: snap on a jump the ticks can't explain (a respawn) and on a zero raise time | worker | see Fix round 1 | – | – |
+| 2026-10-30 | 1, fix round 1: snap on a jump the ticks can't explain (a respawn) and on a zero raise time | worker | see Fix round 1; QA Pass, performance Pass | Accept 7/8 (check 8: DECISIONS entry, added) | – |
 
 ## Goal
 
@@ -82,6 +82,15 @@ scoreboard. For example, I'm playing as Beta and it still reads ALPHA BETA. It s
   Beta's striped orange block and pips left, Alpha blue right) and `fb6-beta-tab-scoreboard.png` (BETA first, "your
   team").
 - Not verified: how the slowed and sped-up sight feels in play (owner).
+
+## Advisories left
+
+- **`hud.gd:867`** hides the crosshair on the sim's raise, not the drawn one, so at 25 % it can go up to 3 frames
+  early (critic).
+- **`aim_follow.gd`** reads `PlaySession.TICK` from a pure helper (critic).
+- **The `PAUSE_TITLE_SCREEN` key's name** no longer matches its text (critic).
+- **Above 60 fps at 100 %** the drawn sight trails by up to one tick, where it stepped before (QA, critic).
+- **A raise_scale under 0.6** would let a respawn ease for a few frames; no part reaches it today (QA).
 
 ## Gate
 

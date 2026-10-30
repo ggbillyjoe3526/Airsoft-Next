@@ -6,7 +6,7 @@ extends Control
 ## time has run out while the attackers work the rope. With gauge patterns on (set_patterned), Beta's filled pips and
 ## score block are striped (HudStyle.STRIPED_TEAM; GaugePattern, built once at setup) and the block's number gets a dark
 ## edge. Your team sits on the left (setup's `first`), the other on the right, each in its own colour, through half time
-## too (owner, 2026-10-29). Everything redraws or retypes only when a value changes; nothing is allocated per frame.
+## too (owner, 2026-10-30). Everything redraws or retypes only when a value changes; nothing is allocated per frame.
 
 var _teams: TeamConfig = null
 var _count: int = 0

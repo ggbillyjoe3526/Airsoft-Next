@@ -641,6 +641,10 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   title and Settings included, opens QUIT GAME? with QUIT and CANCEL, the focus on CANCEL; Esc again or CANCEL closes it.
   Anything with an Esc of its own takes it first (a dialog or popup, a key being rebound, the Loadout's rename or
   Customise, the credits and the report); in a match Esc stays the pause menu, and its Settings close on Esc.
+- **Leaving a match lands on the Match page, and your team is always on the left (owner, 2026-10-30; FB6).** Every
+  way out of a match or the range goes back to the menus' Match page with Play focused and the picks kept; only the
+  AIRSOFT wordmark opens the title. The score bar, the Tab scoreboard, the round table and the match summary put your
+  team first, on the left, in its own colour, half time included.
 - **Small menu rulings (owner, 2026-10-03 to 2026-10-07).** The tagline is "Call your hit. Go again." Menu headings and
   labels are in capitals, descriptions as written. Unbuilt items are listed greyed out with a LATER tag.
 - **The menus grow with a tall window as the HUD does (UX1, 2026-10-17).** They scale by the window height over 1080,

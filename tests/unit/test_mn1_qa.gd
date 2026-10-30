@@ -171,7 +171,7 @@ func test_a_match_frees_the_title_and_menus_and_leaving_rebuilds_them() -> void:
 	main._end_play()
 	await wait_process_frames(2)
 	assert_eq(_count_menus(main), 2, "title and menus back")
-	# FB6 (owner, 2026-10-29): back on the Match page with Play focused, not the title
+	# FB6 (owner, 2026-10-30): back on the Match page with Play focused, not the title
 	assert_true(main._menus.visible)
 	assert_false(main._title.visible)
 	assert_eq(get_viewport().gui_get_focus_owner(), main._menus.match_page().play_button())

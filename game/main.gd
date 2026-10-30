@@ -445,7 +445,7 @@ func _end_play() -> void:
 	_play = null
 	_build_screens()
 	SettingsApply.set_menus(Settings.shared(), true)
-	# Leaving a match or the range lands on the Match page with Play focused, the picks kept (owner, 2026-10-29); the
+	# Leaving a match or the range lands on the Match page with Play focused, the picks kept (owner, 2026-10-30); the
 	# title is the AIRSOFT wordmark away.
 	_show_menus()
 	_scale_menus()
