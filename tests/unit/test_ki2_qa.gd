@@ -28,7 +28,7 @@ func _new_view() -> void:
 
 
 func _frame() -> void:
-	view.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT)
+	view.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT, c.aim_raise)
 
 
 func _settle() -> void:

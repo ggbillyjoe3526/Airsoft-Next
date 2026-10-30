@@ -37,7 +37,7 @@ func _hands(replicas: Array[ReplicaConfig]) -> ReplicaView:
 
 
 func _frame(view: ReplicaView, c: Character) -> void:
-	view.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT)
+	view.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT, c.aim_raise)
 
 
 func _selector_pose(held: ReplicaView.Held) -> Transform3D:

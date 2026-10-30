@@ -171,8 +171,10 @@ func test_a_match_frees_the_title_and_menus_and_leaving_rebuilds_them() -> void:
 	main._end_play()
 	await wait_process_frames(2)
 	assert_eq(_count_menus(main), 2, "title and menus back")
-	assert_true(main._title.visible)
-	assert_eq(get_viewport().gui_get_focus_owner(), main._title.start_button())
+	# FB6 (owner, 2026-10-30): back on the Match page with Play focused, not the title
+	assert_true(main._menus.visible)
+	assert_false(main._title.visible)
+	assert_eq(get_viewport().gui_get_focus_owner(), main._menus.match_page().play_button())
 	assert_gt(main._menus.match_page().map_ids().size(), 0, "the Match page lists the maps again")
 
 

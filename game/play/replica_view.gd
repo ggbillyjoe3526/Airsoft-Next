@@ -130,8 +130,10 @@ func on_hit() -> void:
 	_hit_age = 0.0
 
 
-## Poses the replica in hand for `c`, `delta` seconds since the last frame; `eye` and `look` find walls in front.
-func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look: Vector3, delta: float) -> void:
+## Poses the replica in hand for `c`, `delta` seconds since the last frame, its sight raised `aim` (as drawn:
+## AimFollow); `eye` and `look` find walls in front.
+func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look: Vector3, delta: float,
+		aim: float) -> void:
 	var a := c.armament
 	var in_play := Elimination.is_in_play(c)
 	if in_play:
@@ -152,12 +154,12 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 		_show(a.active)
 	var held := _held[_active]
 	var follow := 1.0 - exp(-_cfg.return_rate * delta)
-	var steady := lerpf(1.0, _cfg.aim_steady, c.aim_raise)
+	var steady := lerpf(1.0, _cfg.aim_steady, aim)
 
 	# The sight line through the eye when aimed; the hip otherwise.
 	var hip: Vector3 = _cfg.hip.get(held.id, _cfg.hip_default)
 	var aimed := Vector3(0.0, 0.0, _cfg.aim_forward.get(held.id, _cfg.aim_forward_default)) - held.rear_sight
-	var raise := c.aim_raise * c.aim_raise * (3.0 - 2.0 * c.aim_raise)
+	var raise := aim * aim * (3.0 - 2.0 * aim)
 	var pos := hip.lerp(aimed, raise)
 	var rot := Vector3.ZERO
 
@@ -231,7 +233,7 @@ func update(c: Character, view_yaw: float, view_pitch: float, eye: Vector3, look
 	held.root.position = pos
 	held.root.rotation = rot
 	if _glass != null:
-		_glass.update(held.window, c.aim_raise)
+		_glass.update(held.window, aim)
 
 
 ## True while `a`'s replica in hand would hold a gas pistol's slide back: its magazine is empty and no reload is under

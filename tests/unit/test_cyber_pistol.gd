@@ -97,7 +97,7 @@ func _drawn_selector(held: ReplicaView.Held) -> Transform3D:
 
 
 func _frame(view: ReplicaView, c: Character) -> void:
-	view.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT)
+	view.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT, c.aim_raise)
 
 
 func test_its_selector_shows_the_fire_mode_even_while_the_fire_clip_plays() -> void:

@@ -12,6 +12,11 @@ static func step(c: Character, cmd: PlayerCommand, cfg: MovementConfig, dt: floa
 	# Reload and draw are as the last tick left them: a reload started this tick lowers the sight on the next.
 	# Not mid-vault: an aim held through one comes up again after it (BP5).
 	c.aiming = cmd.aim and not a.holstered and not a.reloading() and not a.drawing() and not c.vault.active
-	var r := a.replica()
-	var raise := dt / (cfg.aim_raise_time * (r.raise_scale if r != null else 1.0))
+	var raise := dt / raise_time(c, cfg)
 	c.aim_raise = minf(1.0, c.aim_raise + raise) if c.aiming else maxf(0.0, c.aim_raise - raise)
+
+
+## The seconds `c`'s sight takes to come all the way up (or down): aim_raise_time times its replica's raise_scale.
+static func raise_time(c: Character, cfg: MovementConfig) -> float:
+	var r := c.armament.replica()
+	return cfg.aim_raise_time * (r.raise_scale if r != null else 1.0)

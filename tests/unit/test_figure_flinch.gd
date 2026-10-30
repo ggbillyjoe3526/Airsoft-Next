@@ -313,7 +313,7 @@ func _hands(c: Character, motion: MotionScale = MotionScale.new()) -> ReplicaVie
 
 
 func _pose(hands: ReplicaView, c: Character, delta: float) -> Vector3:
-	hands.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, delta)
+	hands.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, delta, c.aim_raise)
 	return hands._held[c.armament.active].root.position
 
 

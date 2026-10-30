@@ -88,7 +88,7 @@ func _settled(c: Character, motion: MotionScale) -> Transform3D:
 	view.set_motion(motion)
 	var input := _player_input()
 	for i in SETTLE:
-		view.update(c, input, 1.0, DT)
+		view.update(c, input, 1.0, DT, c.aim_raise)
 	return view.transform
 
 
@@ -131,7 +131,7 @@ func _hands(c: Character, motion: MotionScale) -> ReplicaView:
 
 
 func _pose(hands: ReplicaView, c: Character, yaw: float = 0.0) -> void:
-	hands.update(c, yaw, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT)
+	hands.update(c, yaw, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT, c.aim_raise)
 
 
 ## How far a shot moves the replica in hand from where it rests, a frame after it, with `motion`.

@@ -191,7 +191,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	top.add_theme_constant_override("separation", roundi(HudStyle.AIM_GAP))
 	add_child(top)
 	_score = HudScore.new()
-	_score.setup(teams, _rounds.wins_needed)
+	_score.setup(teams, _rounds.wins_needed, player.team)
 	_score.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	top.add_child(_score)
 	_build_step_line(top)

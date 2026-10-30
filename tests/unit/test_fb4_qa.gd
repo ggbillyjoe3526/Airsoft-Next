@@ -44,7 +44,7 @@ func _hands(c: Character) -> ReplicaView:
 
 func _frames(hands: ReplicaView, c: Character, n: int) -> void:
 	for i in n:
-		hands.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT)
+		hands.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT, c.aim_raise)
 
 
 func _pose(hands: ReplicaView, c: Character) -> Transform3D:
