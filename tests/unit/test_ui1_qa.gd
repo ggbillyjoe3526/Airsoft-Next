@@ -781,3 +781,87 @@ func test_the_reload_choice_saves_both_values_by_mouse() -> void:
 	s.auto_reload = true
 	screen.open()
 	assert_eq(screen._auto_reload.selected(), 1, "the screen shows what was saved when it opens again")
+
+
+# --- Fix round 3: picks that change what a page says, and the GPU COST heading ---------------------------------------
+
+func test_clicking_each_bbs_pick_and_each_graphics_and_dev_choice_moves_no_box() -> void:
+	var menus := MenuScreen.new(MatchPicks.new(), s)
+	add_child_autofree(menus)
+	await wait_process_frames(3)
+	menus.show_loadout()
+	var page := menus.loadout_page()
+	page.show_customise()
+	await wait_process_frames(3)
+	var view := page.find_children("*", "CustomiseView", true, false)[0] as CustomiseView
+	view.show_tab(CustomiseView.Tab.BBS)
+	await wait_process_frames(3)
+	var clicked := await _click_picks(menus, "Customise BBs")
+	assert_gte(clicked, 3, "the BB picks were clicked")
+	# Graphics and Dev choices, by the mouse, with the layout of the screen held to the rects before each click
+	for t in screen._tabs.get_tab_count():
+		var title: String = screen._tabs.get_tab_title(t)
+		if title != "GRAPHICS" and title != "DEV":
+			continue
+		screen._tabs.current_tab = t
+		await wait_process_frames(3)
+		clicked += await _click_picks(screen._tabs.get_current_tab_control(), "Settings %s" % title)
+	assert_gt(clicked, 20, "choices of the BBs, Graphics and Dev pages were clicked")
+
+
+## Clicks every choice, switch and card under `scope` once, as the mouse does, and fails if any box under it moves or
+## changes size, or any button's words are cut. (Words of other labels may change: a pick sets what they read.)
+func _click_picks(scope: Node, what: String) -> int:
+	var list: Array[BaseButton] = []
+	_buttons(scope, list)
+	var n := 0
+	for b: BaseButton in list:
+		if not is_instance_valid(b) or not b.is_visible_in_tree():
+			continue
+		if not (b is MenuSwitch or b is MenuToggle or b is MenuCard or (b.toggle_mode and b.get_parent() is MenuChoice)):
+			continue
+		# the part tabs switch the page (what lies under changes by design); the crumb leaves it
+		if String(b.name).begins_with("Part_") or b.name == &"Back":
+			continue
+		_let_pointer_through()
+		var skip := _settings_skip(scope)
+		var rest := {}
+		_snap(scope, skip, rest)
+		await _click(b)
+		await wait_process_frames(2)
+		n += 1
+		var after := {}
+		_snap(scope, skip, after)
+		var moved := _changes(rest, after, false)
+		if not moved.is_empty():
+			fail_test("%s › %s: clicking it changes %d boxes: %s" % [what, b.name, moved.size(), ", ".join(moved.slice(0, 3))])
+		if is_instance_valid(b) and b is Button and _cut(b as Button) != "":
+			fail_test("%s › %s: %s" % [what, b.name, _cut(b as Button)])
+	return n
+
+
+func test_the_graphics_cost_heading_overlaps_nothing_and_is_not_cut() -> void:
+	for t in screen._tabs.get_tab_count():
+		if screen._tabs.get_tab_title(t) == "GRAPHICS":
+			screen._tabs.current_tab = t
+	await wait_process_frames(3)
+	var page := screen._tabs.get_current_tab_control()
+	var heads: Array[Label] = []
+	for n: Node in page.find_children("*", "Label", true, false):
+		var l := n as Label
+		if l.visible and l.is_visible_in_tree() and l.text == tr("GRAPHICS_COST_HEAD"):
+			heads.append(l)
+	assert_gt(heads.size(), 0, "the GPU COST heading shows")
+	for head: Label in heads:
+		var line := TextLine.new()
+		line.add_string(head.text, head.get_theme_font(&"font"), head.get_theme_font_size(&"font_size"))
+		assert_lte(line.get_line_width(), head.size.x + SLACK, "the heading's words fit their box")
+		var hit := PackedStringArray()
+		for n: Node in page.find_children("*", "Control", true, false):
+			var c := n as Control
+			if c == head or c.is_ancestor_of(head) or head.is_ancestor_of(c) or not c.is_visible_in_tree():
+				continue
+			if c is Label or c is BaseButton or c is Range:
+				if c.get_global_rect().size.x > 0.0 and c.get_global_rect().intersects(head.get_global_rect()):
+					hit.append("%s %s" % [c.name, c.get_global_rect()])
+		assert_eq(hit, PackedStringArray(), "nothing lies over the heading %s" % head.get_global_rect())

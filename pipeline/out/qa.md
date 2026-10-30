@@ -37,3 +37,9 @@ Tests added: tests/unit/test_ui1_qa.gd "every match page button is reachable and
 Advisory, small: Controls still has two prose lines (the key-binding hint and the order-wheel paragraph), HUD keeps "Auto: against Hard bots only.", the Armory keeps its XP paragraph, and the Graphics rows still end in unlabelled squares. The "For your card" tag sits 4 px above LOW. The Armory list is cut at the bottom by its scroll box, as intended. Nothing here blocks.
 
 Verdict: Pass
+
+## Re-check 2 at 12a4644 (fix round 3)
+
+test_ui1_qa.gd and test_ui1_menus.gd: 32 of 32 passed on the new head. Two tests added to test_ui1_qa.gd (19 tests, 19 pass, 14 s, gdlint clean): a real mouse click on every Customise BBs pick and every Graphics and Dev choice or switch, failing if any box under the page moves or resizes or any button's words are cut (the part tabs and the crumb are left out, they change the page by design); and the GPU COST heading, which must fit its words and have no label, button or slider over it. The Graphics, Dev, Customise BBs and Armory screens, and Controls, have no failures in the hammer at the 1920 layout that 1080p and 2160p share; the 3840x2160 static audit has the same lines as before (capped loadout names, labels hidden behind overlays), none new, nothing off the window. Pictures of 3840 Graphics (GPU COST sits over the squares of its own column, clear of the section heading and rows) and Customise BBs look clean. Advisory only: one prose line remains under Hop-up ("Turn it in a match with 4 and 5.").
+
+Verdict: Pass
