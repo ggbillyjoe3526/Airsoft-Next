@@ -93,8 +93,11 @@ func test_a_click_setting_is_saved_straight_away() -> void:
 
 
 func test_the_reload_row_starts_on_manual_and_switches_to_automatic() -> void:
-	assert_false(screen._auto_reload.button_pressed, "Manual by default (RL2)")
-	screen._auto_reload.button_pressed = true
+	# a choice of two words, MANUAL then AUTOMATIC, like Crouch and Aim (UI1)
+	assert_eq(screen._auto_reload.selected(), 0, "Manual by default (RL2)")
+	assert_eq(screen._auto_reload.button(0).text, "MANUAL")
+	screen._auto_reload.button(1).pressed.emit()
+	assert_eq(screen._auto_reload.selected(), 1)
 	assert_true(s.auto_reload)
 	assert_true(tuning.controls.auto_reload)
 	var back := Settings.new()

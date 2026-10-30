@@ -162,3 +162,12 @@ Verified: the Match, menu scale and match-related tests (23 files, 320 tests) pa
 
 Gate: gdlint clean on every changed `.gd`; unit tests part 1 885 of 885, part 2 1962 of 1962, part 3 955 of 955;
 `tools/smoke_test.sh` PASS with zero script errors; `python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK.
+
+## Rebased on main (RL2, FB6)
+
+Rebased onto `d35e82e` (RL2 #145, FB6 #146). The one conflict, `settings_screen.gd`: RL2's Reload row is a MANUAL /
+AUTOMATIC choice like Crouch and Aim (two words, so a choice, not a switch), `test_settings_screen.gd`'s RL2 test reads
+the choice. FB6 merged clean and its behaviour stands. Gate after the rebase: gdlint clean; `test_ui1_menus`,
+`test_ui1_qa`, `test_manual_reload`, `test_rl2_qa`, `test_fb6`, `test_fb6_qa`, `test_mn1_qa`, `test_settings_screen`
+146 of 146; unit parts 885 of 885, 2006 of 2006, 971 of 971; smoke PASS, zero script errors; wiki and changelog OK.
+Picture: `ui1-r2-after-1080-settings-0-controls-rebased.png`.
