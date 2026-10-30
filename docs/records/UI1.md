@@ -8,6 +8,7 @@
 |---|---|---|---|---|---|
 | 2026-10-30 | 1 | worker | see Verified and Gate | – | – |
 | 2026-10-30 | 1, fix round 1 | worker | see Fix round 1 | – | QA failed: FPS over the LVL chip; Match, Settings prose |
+| 2026-10-30 | 1, fix round 2 | worker | see Fix round 2 | – | 4K menus small, Match half empty (coordinator) |
 
 ## Goal
 
@@ -135,3 +136,29 @@ Gate: gdlint clean on every changed `.gd`; unit tests part 1 885 of 885, part 2 
 `tools/smoke_test.sh` PASS with zero script errors; `python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK.
 Seen but left: at 4K the menus draw at 1.5x (MenuScale's cap), so the compact Match page leaves more room below its
 columns there than at 1080 and 1440.
+
+## Fix round 2
+
+William plays at 4K, where the menus drew at 1.5x and left more than half the screen empty; at 1080 the Match page
+left its lower half empty.
+
+- **MenuScale.MAX_SCALE 2.0** (was 1.5, the browser game's MN1 value, not an owner ruling): 4K draws exactly as 1080 at
+  2x, with no content scale taken back; above 4K (5K and up) the menus hold at 2x. Default taken, noted in
+  `docs/DECISIONS.md` › The menus grow with a tall window. Nothing else read 1.5: the HUD sets the factor to 1 in play,
+  and the title, credits, settings and loading screens draw through the same stretch. `test_menu_scale.gd` and
+  `test_mn1_qa.gd` now expect 2x at 4K and 0.75 taken back at 5K.
+- **Match page on one grid:** the map cards in one row across the top (at least three equal columns, `GRID_COLUMNS`;
+  a fourth map would make a fourth), pictures 230 px; under them Mode, Rules, and Your team over Bots, each column as wide
+  as a map card and starting under one (`_column`, same 20 px gap); summary and PLAY at the foot as before. Controls keep
+  their round 1 sizes.
+- Looked at Loadout, Armory and Settings at 1080 and 2160 the same way: they now draw alike at both. Loadout and Armory
+  fill the screen. Audio and Display are short tabs in the full-height Settings panel: left as they are, since sizing
+  the panel to each tab would move its frame and BACK on every tab change, and splitting five sliders into columns
+  would not fill it.
+
+Verified: the Match, menu scale and match-related tests (23 files, 320 tests) pass; the round 1 tests stand. No
+`test_fb6*` exists on this branch (FB records stop at FB5), so none was run. Pictures:
+`/mnt/project-files/screenshots/dev1-feedback/ui1-r2-after-{720,1080,1440,2160}-*.png`.
+
+Gate: gdlint clean on every changed `.gd`; unit tests part 1 885 of 885, part 2 1962 of 1962, part 3 955 of 955;
+`tools/smoke_test.sh` PASS with zero script errors; `python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK.

@@ -656,7 +656,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Small menu rulings (owner, 2026-10-03 to 2026-10-07).** The tagline is "Call your hit. Go again." Menu headings and
   labels are in capitals, descriptions as written. Unbuilt items are listed greyed out with a LATER tag.
 - **The menus grow with a tall window as the HUD does (UX1, 2026-10-17).** They scale by the window height over 1080,
-  up to 1.5× at 4K, held back so the layout keeps 1500 px of width; 1080p and smaller draw as before.
+  up to 2× at 4K, so 4K draws exactly as 1080 does (UI1, 2026-10-30; was 1.5×, the browser game's, which left most of a
+  4K screen empty); 1080p and smaller draw as before.
 - **A menu page is pinned to the window; only its long part scrolls (UX1, 2026-10-17).** The top bar, the heading and the
   main button always show; long lists scroll inside, fading at the foot while more lies below.
 - **The order wheel is on Z (owner, 2026-10-04); Hold here X, Regroup V, Follow me F.** Orders end when their giver is

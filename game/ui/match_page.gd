@@ -1,9 +1,10 @@
 class_name MatchPage
 extends Control
-## The Match page's body (concept `match.png`, docs/records/MN2.md): map picture cards, mode cards with the rules under
-## them (MatchRulesBox: Skirmish's chips or Custom's rows, docs/records/CR2.md), your team and the bots' levels
-## (MatchBotsBox: Opponents and Teammates, docs/records/MN3.md); a one-line summary bottom left and the slanted PLAY
-## bottom right. A map that can't load (MapData's problems) is greyed with LATER, as a mode that isn't built. Picks go
+## The Match page's body (concept `match.png`, docs/records/MN2.md), laid out on one grid of equal columns (UI1 round 2):
+## the map picture cards in a row across the top, one a column; under them the modes, the rules (MatchRulesBox:
+## Skirmish's chips or Custom's rows, docs/records/CR2.md), and your team over the bots' levels (MatchBotsBox: Opponents
+## and Teammates, docs/records/MN3.md), each column's left edge under a map card's; a one-line summary bottom left and the
+## slanted PLAY bottom right. A map that can't load (MapData's problems) is greyed with LATER, as a mode that isn't built. Picks go
 ## into the MatchPicks it is given (kept by the entry scene across the menus' being freed). What reads the round tuning
 ## (the Elimination card, the maps a team size can't load) reads the Custom switches while Custom is picked, and the
 ## team size the picked map plays (data/maps.md: its standard, or the saved Custom size where it offers it).
@@ -14,9 +15,8 @@ signal play_pressed
 
 const MARGIN_X := 56
 const TOP := 40
-const COLUMN_GAP := 32
-const MAPS_WIDTH := 780.0
-const SIDE_WIDTH := 420.0
+## The gap under the map cards, before the row of columns (px).
+const ROW_GAP := 40
 const SECTION_GAP := 30
 const HEADING_GAP := 16
 const PLAY_RIGHT := 56.0
@@ -24,12 +24,11 @@ const PLAY_BOTTOM := 48.0
 const SUMMARY_LEFT := 56.0
 const SUMMARY_BOTTOM := 60.0
 const SUMMARY_SIZE := 18
-## Map cards: two a row; the picture is this tall with one row, shorter with two so both rows fit the page.
-const MAP_COLUMNS := 2
+## The page's grid: at least this many equal columns, MAP_GAP apart; the map cards share its width in one row (a fourth
+## map makes a fourth column), the columns under them its left edges. A card's picture is this tall.
+const GRID_COLUMNS := 3
 const MAP_GAP := 20
-const MAP_WIDTH := 380.0
-const MAP_IMAGE_HEIGHT_ONE_ROW := 400.0
-const MAP_IMAGE_HEIGHT_TWO_ROWS := 214.0
+const MAP_IMAGE_HEIGHT := 230.0
 const MAP_TEXT_PAD := Vector4(16.0, 12.0, 16.0, 14.0)
 const MAP_TEXT_GAP := 6
 const MAP_NAME_SIZE := 22
@@ -69,6 +68,8 @@ var _last_kind: StringName = &""
 var _play_tuning: PlayTuning = null
 var _catalog: MapCatalog = null
 var _maps_grid: GridContainer = null
+## The row of columns under the maps (modes, rules, your team and bots), on the maps' grid.
+var _columns: HBoxContainer = null
 var _modes_box: VBoxContainer = null
 var _map_cards: Dictionary[String, MenuCard] = {}
 var _mode_cards: Dictionary[String, MenuCard] = {}
@@ -223,13 +224,27 @@ func _build() -> void:
 	margin.add_theme_constant_override("margin_right", MARGIN_X)
 	margin.add_theme_constant_override("margin_top", TOP)
 	add_child(margin)
-	var columns := HBoxContainer.new()
-	columns.add_theme_constant_override("separation", COLUMN_GAP)
-	margin.add_child(columns)
-	columns.add_child(_build_maps())
-	columns.add_child(_build_middle())
-	columns.add_child(_build_side())
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", ROW_GAP)
+	margin.add_child(page)
+	page.add_child(_build_maps())
+	_columns = HBoxContainer.new()
+	_columns.name = "Columns"
+	_columns.add_theme_constant_override("separation", MAP_GAP)
+	page.add_child(_columns)
+	_column(_build_modes())
+	_rules = MatchRulesBox.new(picks, _settings, _tuning)
+	_rules.changed.connect(_on_rules_changed)
+	_column(_rules)
+	_column(_build_side())
 	_build_foot()
+
+
+## Adds `c` as one of the grid's equal columns.
+func _column(c: Control) -> void:
+	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	c.size_flags_stretch_ratio = 1.0
+	_columns.add_child(c)
 
 
 func _section(heading: Control) -> VBoxContainer:
@@ -259,30 +274,16 @@ func _text(text: String, size: int, weight: int, colour: Color) -> Label:
 
 func _build_maps() -> Control:
 	var column := _section(_heading(tr("MENU_MAP")))
-	column.custom_minimum_size = Vector2(MAPS_WIDTH, 0.0)
 	_maps_grid = GridContainer.new()
-	_maps_grid.columns = MAP_COLUMNS
+	_maps_grid.columns = GRID_COLUMNS
 	_maps_grid.add_theme_constant_override("h_separation", MAP_GAP)
 	_maps_grid.add_theme_constant_override("v_separation", MAP_GAP)
 	column.add_child(_maps_grid)
 	return column
 
 
-## The middle column: the mode cards, and the rules under them.
-func _build_middle() -> Control:
-	var column := VBoxContainer.new()
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_theme_constant_override("separation", SECTION_GAP)
-	column.add_child(_build_modes())
-	_rules = MatchRulesBox.new(picks, _settings, _tuning)
-	_rules.changed.connect(_on_rules_changed)
-	column.add_child(_rules)
-	return column
-
-
 func _build_modes() -> Control:
 	var column := _section(_heading(tr("MENU_MODE")))
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_modes_box = VBoxContainer.new()
 	_modes_box.add_theme_constant_override("separation", MODE_GAP)
 	column.add_child(_modes_box)
@@ -336,7 +337,6 @@ static func _centred(c: Control) -> Control:
 
 func _build_side() -> Control:
 	var side := VBoxContainer.new()
-	side.custom_minimum_size = Vector2(SIDE_WIDTH, 0.0)
 	side.add_theme_constant_override("separation", SECTION_GAP)
 	# Your team.
 	var team_head := MenuParts.heading_row(tr("MENU_TEAM"))
@@ -478,10 +478,10 @@ func _list_maps() -> void:
 		_map_cards[id].queue_free()
 	_map_cards.clear()
 	_unloadable = problems
-	var rows := ceili(float(ordered.size()) / MAP_COLUMNS)
-	var image_height := MAP_IMAGE_HEIGHT_ONE_ROW if rows <= 1 else MAP_IMAGE_HEIGHT_TWO_ROWS
+	# one row: a column a map, at least the grid's
+	_maps_grid.columns = maxi(GRID_COLUMNS, ordered.size())
 	for e in ordered:
-		var card := _map_card(e, image_height, problems[e.id])
+		var card := _map_card(e, MAP_IMAGE_HEIGHT, problems[e.id])
 		_maps_grid.add_child(card)
 		_map_cards[e.id] = card
 	_keep_a_playable_map()
@@ -505,7 +505,8 @@ func _map_card(e: MapCatalog.Entry, image_height: float, later: bool) -> MenuCar
 	var card := MenuCard.new()
 	card.name = "Map_" + e.id
 	card.ring = true
-	card.custom_minimum_size = Vector2(MAP_WIDTH, image_height + MAP_TEXT_PAD.y + MAP_TEXT_PAD.w + MAP_NAME_SIZE * 1.4 +
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.custom_minimum_size = Vector2(0.0, image_height + MAP_TEXT_PAD.y + MAP_TEXT_PAD.w + MAP_NAME_SIZE * 1.4 +
 			GameTheme.BORDER * 2)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 0)

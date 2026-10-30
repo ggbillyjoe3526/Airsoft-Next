@@ -130,7 +130,7 @@ func test_menu_scale_is_finite_positive_and_capped_across_window_sizes() -> void
 		var f := MenuScale.content_factor(size)
 		assert_true(sc > 0.0 and sc <= MenuScale.MAX_SCALE, "scale %s" % [size])
 		assert_true(f > 0.0 and f <= 1.0 + 1e-6, "factor %s" % [size])
-	assert_almost_eq(MenuScale.scale_for(Vector2(3840, 2160)), 1.5, 1e-5)
+	assert_almost_eq(MenuScale.scale_for(Vector2(3840, 2160)), 2.0, 1e-5)
 	assert_almost_eq(MenuScale.scale_for(Vector2(1280, 720)), 720.0 / 1080.0, 1e-5)
 
 
