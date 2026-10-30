@@ -1,24 +1,25 @@
-Task: SF1 · QA commit HEAD of this report · Verdict: Pass
+Task: SF2 · QA commit 39031f9+ · Verdict: Pass
 
-Blocking: none. I tried to break the throw, the flight, the cloud, the dazzle, the view, the panel and the input. Nothing failed.
+Blocking: none.
 
-Advisory (not SF1's rows in KNOWN_ISSUES; for a row or SF2):
-- game/sim/vault.gd:172-190 holds a reload, switch, selector, holster or hop-up press made during a vault and replays it after. A throw press made during a vault is dropped without a word (Grenades.press refuses it, and `throw_grenade` is not held). Press G while vaulting and nothing happens.
-- game/sim/simulation.gd:123-125: `Vault.try_start` is not gated by `Grenades.throwing`. A jump mid-windup starts a vault and the bomb is released mid-vault from the eye. Read from the code, not run (needs a vaultable obstacle).
-- game/play/grenade_view.gd:106-114 `on_tick` uses `events.first(FLASH_BANG)`, so two bangs in one tick draw one flare and light. The wash and the sound still play for both.
-- game/sim/grenades.gd:327-336 `_bang` emits DAZZLED (and the sound dip, sound_mix.gd) even when the new dazzle is shorter than the one running. The dip restarts for no change in the screen.
-- game/play/grenade_view.gd:233-237 `dazzle_wash` fades over the last 1.2 s of any dazzle, so a minimum 0.5 s dazzle peaks at about 0.42 white. A weak flash looks weaker than its strength implies. Design call for the playtest.
-- game/ui/loadout_gear.gd `_build_grenades` calls `SimTuning.load_default()` on every build of the page (disk read). It could use the tuning the page already has.
+Advisory (not blocking, none touched by a failing test):
+- game/ai/bot_bombs.gd:33-40 · a throw being turned to is kept up to 1 s after it was decided, whatever changes meanwhile (an enemy comes into sight, a teammate walks into the bang's range). The teammate and sight checks are made at decision time only. Small; can wait.
+- game/ai/bot_bombs.gd:26-32 · a flash whose release is dropped by the full pool (SF1 keeps the bomb, no bang) still has the bot looking away for windup + fuse + 0.3 s with nothing coming. Rare (12-slot pool); can wait.
+- game/ai/bot_brain.gd:28-34 · a dazzled bot returns before BotBombs: a pending turn waits out the dazzle, then is dropped by its 1 s window (pinned below), so the bomb is not thrown late. Fine as built.
+- Bots' bombs ignore the "Bots hold fire" dev cheat (only cmd.fire is cleared). Dev-only; can wait.
 
-Tests added (tests/unit/test_sf1_qa.gd, 38 tests, 172 asserts, all pass, 1.0 s):
-- :84-:215 GrenadeView · idle view, canister and cloud per slot, no cloud before the pop, bang light fading, wash white/soft/fading/gone, smoke wash by eye position and density, held canister only in the windup, 0-slot and oversized pool, no orphan nodes after free, no allocation per frame once warm · these call new APIs and fail to parse without the feature.
-- :222-:260 ReplicaPanel · bomb counts "SMOKE 1" / "FLASH 1", spend and respawn, no HOLSTERED flicker while throwing, HOLSTERED after a throw by a holstered replica, no hand leaves the row blank · mutated `if throwing: status = 0` to false: the flicker test failed.
-- :270-:312 KeyBindings · G and Y defaults, in project.godot's InputMap, no default key shared by two actions, rebinding smoke to Y swaps with flash, both ACT_ labels translated.
-- :314-:350 PlayerInput · a press arrives once, last of two wins, dropped while inactive and after release.
-- :353-:565 Sim edge cases · vault refused; sprint speed rides along; pool full at the release keeps the bomb and redraws; respawn mid-windup leaves no ghost throw; hit after release keeps the bomb flying and spent; round over mid-flight lets it pop; torch off in the throw and back on after, a torch press mid-windup does not switch it on; pitch straight up and down never tunnels under the floor; a throw at a wall an arm away stays on the thrower's side; eliminated characters are not dazzled; smoke dazzles nobody.
-- :585-:660 Smoke and bots · two clouds add, no depth before or after the cloud, from the middle out is one radius, a bot inside a cloud sees a far enemy only through a last wisp, a worn-off dazzle sees again.
-Checked against copies of the tree with a production line stubbed out (copy deleted): no `bring_up` after the throw failed 2 tests; no torch restore failed 1; no `stop()` on respawn failed 3; the status line failed 1. The rest (view, keys, input) fail without the feature by calling APIs that do not exist.
+Checked and clean: Bot.reset clears the pending throw, look-away and roll gap; a refused press (pool full, round not live) leaves the bot free to walk and not waiting; a dead teammate near the bang does not stop a flash; throw_pitch is NAN (never a number) for out of reach, straight down and far above; a last-known spot on the bot throws nothing; same seed twice gives identical bomb events (tick, thrower, kind); the view never jumps more than 0.08 rad on the tick a bomb is done (no snap back); Woodland (night, bushes), Depot Attack/Defend and Woodland Attack/Defend run 6000 ticks with no script error and no bot busy more than 33 ticks (limit 300).
 
-Suite: test_grenades.gd 26 pass; test_sf1_qa.gd 38 pass, 1.0 s. I did not run tools/check.sh, the smoke test or the full suite (running elsewhere in this tree); the smoke test and its time are the caller's.
+Tests added (tests/unit/test_sf2_qa.gd; BotBombs and throw_pitch do not exist at 1cc477f, so each fails there; I did not stub the feature out of the tree, the full suite is running in it):
+- :80 a_new_round_clears_a_throw_being_turned_to_and_the_look_away · Bot.reset state · would fail if reset left bomb_kind, away or roll gap
+- :94 a_throw_the_simulation_refuses_leaves_no_wait_and_no_hold · full pool: no PIN, bot not busy, walks on · fails if a refused press left bomb_kind or away set
+- :119 a_dazzle_longer_than_the_turn_window_drops_the_throw_instead_of_throwing_late · stale pending throw is dropped
+- :140 a_teammate_who_is_out_does_not_stop_a_flash_but_a_live_one_does · _mate_sees counts in-play mates only
+- :152 unreachable_or_degenerate_aims_give_no_pitch_and_no_throw · NAN guards, arc_point at t=0
+- :172 a_round_that_ends_while_it_turns_throws_nothing_and_leaves_no_wait · phase OVER, bomb kept
+- :221 the_same_seed_throws_the_same_bombs_and_the_view_does_not_snap_when_one_is_done · two Depot runs of 7000 ticks, equal event lists (only 4 throws in them, thin coverage)
+- :230 bots_never_stay_busy_with_a_bomb_for_long_on_woodland_or_in_attack_defend · 3 whole runs
 
-Not tested (needs a display or a person): how the puffs, flare, wash and held canister look; whether the 0.3 s windup, 13 m/s throw and 22 m flash feel right (PLAYTEST section); fullscreen and resize with the wash layer; the four rendered sounds; alt-tab during a windup (release() drops the latch, and the sim keeps the throw running).
+Result: test_sf2_qa.gd 8/8, 29 asserts, 61 s; gdlint clean. test_bot_bombs.gd, test_grenades.gd, test_sf1_qa.gd not re-run by me (the full suite is running in the tree). tools/check.sh and the smoke test not run (told not to). Raw output: pipeline/out/qa/sf2.log (uncommitted).
+
+Could not test: how the look-away and the blind-side push feel, that bots visibly turn their backs, and the throw animation (needs a display and play): the owner should watch a Normal Depot match for flashes that dazzle the thrower side-on.
