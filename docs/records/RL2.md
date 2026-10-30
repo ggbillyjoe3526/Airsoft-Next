@@ -1,12 +1,12 @@
 # RL2 · Manual reloads by default, with a prompt; Automatic in Settings (Dev 1 feedback, fix)
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-30 | 1 | worker | see Verified | – | – |
+| 2026-10-30 | 1 | worker | see Verified; QA Pass, performance Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -61,6 +61,14 @@ started a reload when a spare had BBs.
 - Picture (Compatibility, Xvfb, 1920 x 1080, a Depot `PlaySession`, your magazine emptied):
   `/mnt/project-files/screenshots/dev1-feedback/rl2-reload-prompt.png`.
 - Not verified: how it feels (whether the prompt is easy to spot without being in the way, on Forward+).
+
+## Advisories left
+
+- **`hud.gd:92`:** `var manual_reload` sits between the two leaves-notice fields (critic).
+- **The prompt has no HudAnnounce line**, so a screen reader never hears it (critic, QA).
+- **`docs/FEATURES.md:27`** (HUD line) doesn't mention the reload prompt (critic).
+- **After switching to Automatic from the pause menu** the prompt can linger one frame on resume (QA).
+- **The prompt also shows during a draw**; R then queues the reload and the prompt hides (QA).
 
 ## Gate
 
