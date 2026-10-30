@@ -110,8 +110,10 @@ func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		BotBrain.think(b, w, cmd, dt)
 		BotTorch.step(b, w, cmd)
 		BotMagShare.ask_when_low(b, w, cmd, sharing)
+		# Holding fire holds their bombs too (SF2).
 		if hold_fire:
 			cmd.fire = false
+			cmd.throw_grenade = Grenade.Kind.NONE
 
 
 ## What the bot driving `character_id` is doing (a Bot.Mode), or -1 when no bot drives it: the Dev settings' Bot
