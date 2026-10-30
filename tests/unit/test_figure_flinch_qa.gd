@@ -205,10 +205,10 @@ func test_a_zero_length_flinch_config_stays_finite() -> void:
 	var hands := ReplicaView.new()
 	add_child_autofree(hands)
 	hands.setup(cfg_view, c.armament.replicas, BoxWorld.new())
-	hands.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT)
+	hands.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT, c.aim_raise)
 	c.status = Character.Status.CALLING
 	hands.on_hit()
-	hands.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT)
+	hands.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, DT, c.aim_raise)
 	assert_true(hands._held[c.armament.active].root.position.is_finite(), "a zero drop time never poses NaN")
 
 
@@ -222,7 +222,7 @@ func _hands(c: Character) -> ReplicaView:
 
 
 func _pose(hands: ReplicaView, c: Character, delta: float) -> Vector3:
-	hands.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, delta)
+	hands.update(c, 0.0, 0.0, Vector3(0.0, 1.6, 0.0), Vector3.FORWARD, delta, c.aim_raise)
 	return hands._held[c.armament.active].root.position
 
 

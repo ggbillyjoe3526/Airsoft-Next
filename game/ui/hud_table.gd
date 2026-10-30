@@ -208,6 +208,14 @@ func heading_text() -> String:
 	return "%s · %s · %s" % [_heading, _heading_sub, _heading_note]
 
 
+## Each team's name, top first: for tests.
+func team_names() -> PackedStringArray:
+	var out := PackedStringArray()
+	for t in _teams:
+		out.append(t.name)
+	return out
+
+
 func team_notes() -> PackedStringArray:
 	var out := PackedStringArray()
 	for t in _teams:

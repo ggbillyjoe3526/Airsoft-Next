@@ -70,4 +70,4 @@ and Rules as NOT USED, and keeps your picks for your next match.
 4. The next match starts <!-- wiki:config play_tuning.rematch_delay --> seconds after the summary appears, or at once when you click. That click never fires a
    shot.
 
-The pause menu (Esc) shows the map, mode and round, the match's seed, and has **Quit match** to leave.
+The pause menu (Esc) shows the map, mode and round, the match's seed, and has **Quit match** to leave: you land on the Match page, ready to play again.

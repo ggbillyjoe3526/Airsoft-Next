@@ -173,7 +173,7 @@ msgid "PAUSE_RESUME"
 msgstr "Resume"
 
 msgid "PAUSE_TITLE_SCREEN"
-msgstr "Leave to the title screen"
+msgstr "Back to the menus"
 
 msgid "PLAY_CLICK"
 msgstr "Click to play"

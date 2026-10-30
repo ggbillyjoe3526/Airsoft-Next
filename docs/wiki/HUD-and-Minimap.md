@@ -7,6 +7,7 @@ where your team is. It always reflects the real state of the match. Much of it c
 ## The top bar
 
 Each team's score as pips filling toward the win, the round clock, the round number and the target ("FIRST TO 5").
+Your team is always on the left in its own colour (Alpha blue, Beta orange), even after the ends swap at half time.
 In Attack / Defend it adds **ATK** and **DEF** tags and the **FLAG** gauge, and "OT" on the clock in overtime. Big
 slanted banners call the round start, half time with the ends swapped, and who took the round or the match.
 
@@ -69,8 +70,8 @@ notices.
 ## Scoreboard
 
 Hold **Tab** for the scoreboard over the field while the match keeps playing: the map, mode, bots' level and team
-size, the round and its time, each team's score and players still in, and every player's hits this round, hits, times
-hit, BBs fired, accuracy and time in play. Players out this round are greyed with an **OUT** tag.
+size, the round and its time, each team's score and players still in (your team first), and every player's hits this
+round, hits, times hit, BBs fired, accuracy and time in play. Players out this round are greyed with an **OUT** tag.
 
 ## What got you
 

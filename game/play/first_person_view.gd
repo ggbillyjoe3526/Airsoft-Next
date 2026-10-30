@@ -11,12 +11,16 @@ extends Node3D
 ## is a real spot from the rail while lit (WL7, `set_torch`): with a light in your kit, on Medium and up, one of the
 ## preset's real lights, casting shadows on High and Ultra with Sun shadows on; else TorchBeams draws it as a haze.
 
-## Recoil on screen follows the simulation's at this rate (1/s), so a 60 Hz kick reads smoothly at any frame rate.
+## Recoil on screen follows the simulation's at this rate (1/s of simulation time), so a 60 Hz kick reads smoothly at
+## any frame rate and game speed.
 const RECOIL_FOLLOW := 40.0
 ## The share of a lean the eye's pace is measured over (FirstPersonView._ease_lean).
 const LEAN_PACE_STEP := 0.01
 
 var camera: Camera3D = null
+## Seconds of simulation time per real second (the pacer's rate: the Dev settings' game speed); the recoil follows over
+## the simulation's time, so slowed it eases between the ticks instead of stepping with them.
+var sim_rate: float = 1.0
 var _view: ViewConfig = null
 var _body: BodyConfig = null
 var _hits: HitConfig = null
@@ -78,13 +82,14 @@ func set_motion(motion: MotionScale) -> void:
 	_motion = motion
 
 
-## Places the eyes for `c` at `fraction` of the way from its last tick to this one. `own`: your own character, looking
-## where your mouse does; else (spectating, or out) where `c` looks.
-func update(c: Character, input: PlayerInput, fraction: float, delta: float, own: bool = true) -> void:
+## Places the eyes for `c` at `fraction` of the way from its last tick to this one, zoomed for `aim`, the sight's raise
+## as drawn (AimFollow). `own`: your own character, looking where your mouse does; else (spectating, or out) where `c`
+## looks.
+func update(c: Character, input: PlayerInput, fraction: float, delta: float, aim: float, own: bool = true) -> void:
 	var crouch := lerpf(c.prev_crouch_amount, c.crouch_amount, fraction)
 	var lean := lerpf(c.prev_lean, c.lean, fraction)
 	var feet := c.prev_position.lerp(c.position, fraction)
-	_recoil = lerpf(_recoil, c.armament.recoil, 1.0 - exp(-RECOIL_FOLLOW * delta))
+	_recoil = lerpf(_recoil, c.armament.recoil, 1.0 - exp(-RECOIL_FOLLOW * delta * sim_rate))
 	var yaw := input.view_yaw
 	var pitch := input.view_pitch
 	if not own or not Elimination.is_in_play(c):
@@ -102,7 +107,7 @@ func update(c: Character, input: PlayerInput, fraction: float, delta: float, own
 	if _torch != null:
 		_show_torch(c)
 	var r := c.armament.replica()
-	var zoom := lerpf(1.0, aimed_zoom(r, _view), c.aim_raise)
+	var zoom := lerpf(1.0, aimed_zoom(r, _view), aim)
 	input.zoom = zoom
 	camera.fov = _view.vertical_fov(zoom)
 

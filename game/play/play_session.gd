@@ -5,7 +5,7 @@ extends Node3D
 ## frame (the camera, the replica in hand, BBs, puffs, the other players, sound and the HUD). You play Alpha with bot
 ## teammates against bots on Beta, as many a side as the map plays (data/maps.md: Depot three, Woodland five or six),
 ## Elimination rounds to five wins. Esc pauses; losing focus pauses too. Emits
-## `left` when the player leaves to the title screen. The Dev settings apply here and follow every change
+## `left` when the player leaves (to the menus' Match page). The Dev settings apply here and follow every change
 ## (game speed, bottomless magazines, ghost, bots hold fire, spectate any bot, bot intentions, Retro pixels, End the
 ## round now): the cheats through the simulation (DevCheats), the views built only while on. The graphics drawn follow
 ## too (GraphicsApply's `applied`: the sun's shadows, ambient occlusion and the wind dust), without rebuilding the field.
@@ -173,6 +173,8 @@ var _nav_task: int = -1
 var _nav_out: Array[NavGrid] = []
 var _first_frame_due: bool = false
 var _pacer: TickPacer = TickPacer.new()
+## The sight's raise as drawn for whoever the view is through (FB6: even at any game speed).
+var _aim := AimFollow.new()
 ## Spectate any bot: on, and who it follows (-1: the next to be picked); the trigger last tick, to move on per pull.
 var _spectate_any: bool = false
 var _watch_id: int = -1
@@ -1008,9 +1010,12 @@ func _process(delta: float) -> void:
 	var fraction := _pacer.fraction(Engine.get_physics_interpolation_fraction())
 	var watched := spectated()
 	_debug.viewer_id = watched.id
-	_eyes.update(watched, _input, fraction, delta, watched == player)
+	var aim := _aim.update(watched, _tuning.movement, delta * _pacer.rate)
+	_eyes.sim_rate = _pacer.rate
+	_eyes.update(watched, _input, fraction, delta, aim, watched == player)
 	var look := -_eyes.global_basis.z
-	_hands.update(player, _input.view_yaw, _input.view_pitch, _eyes.global_position, look, delta)
+	_hands.update(player, _input.view_yaw, _input.view_pitch, _eyes.global_position, look, delta,
+			aim if watched == player else player.aim_raise)
 	# Your replica only through your own eyes (update shows it whenever you are in play).
 	_hands.visible = _hands.visible and watched == player
 	_bbs.update(state.bbs, PLAYER_ID, _hands.muzzle_position() - _eyes.global_position, fraction, TICK,

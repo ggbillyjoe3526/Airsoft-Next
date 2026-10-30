@@ -544,10 +544,10 @@ func test_the_view_s_spot_follows_the_torch_and_its_mode() -> void:
 	var spot := eyes.torch()
 	assert_not_null(spot)
 	assert_true(spot.shadow_enabled, "shadows on High and Ultra")
-	eyes.update(c, input, 1.0, DT)
+	eyes.update(c, input, 1.0, DT, c.aim_raise)
 	assert_false(spot.visible, "off")
 	c.torch_on = true
-	eyes.update(c, input, 1.0, DT)
+	eyes.update(c, input, 1.0, DT, c.aim_raise)
 	assert_true(spot.visible, "lit")
 	assert_eq(spot.spot_range, 40.0)
 	assert_almost_eq(spot.spot_angle, 14.0, 1e-4, "its spill's half angle")

@@ -441,15 +441,13 @@ func _end_play() -> void:
 	_record_menus()
 	_perf.watch(null)
 	_free_loading()
-	var from_practice := _play.practice and not _smoke
 	_play.queue_free()
 	_play = null
 	_build_screens()
 	SettingsApply.set_menus(Settings.shared(), true)
-	_title.focus_start()
-	if from_practice:
-		# Leaving practice lands on the Match page, Practice still picked, a click from the range again.
-		_show_menus()
+	# Leaving a match or the range lands on the Match page with Play focused, the picks kept (owner, 2026-10-29); the
+	# title is the AIRSOFT wordmark away.
+	_show_menus()
 	_scale_menus()
 
 

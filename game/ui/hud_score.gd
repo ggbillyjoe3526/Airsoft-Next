@@ -5,13 +5,17 @@ extends Control
 ## an ATK tag (yellow) and a DEF tag (dark) sit on the two blocks, and the clock reads "OT" and the overtime left once
 ## time has run out while the attackers work the rope. With gauge patterns on (set_patterned), Beta's filled pips and
 ## score block are striped (HudStyle.STRIPED_TEAM; GaugePattern, built once at setup) and the block's number gets a dark
-## edge. Everything redraws or retypes only when a value changes; nothing is allocated per frame.
+## edge. Your team sits on the left (setup's `first`), the other on the right, each in its own colour, through half time
+## too (owner, 2026-10-29). Everything redraws or retypes only when a value changes; nothing is allocated per frame.
 
 var _teams: TeamConfig = null
 var _count: int = 0
 var _side_width: float = 0.0
 var _clock_x: float = 0.0
-## Both sides' pips, side 0 first: the filled shape and the closed outline.
+## The team on the left, and each team's colour block's x (by team).
+var _first: int = 0
+var _block_x: Array[float] = [0.0, 0.0]
+## Both teams' pips, team 0 first, each laid out on its own end: the filled shape and the closed outline.
 var _shapes: Array[PackedVector2Array] = []
 var _outlines: Array[PackedVector2Array] = []
 var _filled: Vector2i = Vector2i.ZERO
@@ -32,8 +36,10 @@ var _block_stripes := GaugePattern.new()
 var _pip_stripes: Array[GaugePattern] = []
 
 
-func setup(teams: TeamConfig, wins_needed: int) -> void:
+## `first` is the team drawn on the left (yours); every other call here still names teams, never ends.
+func setup(teams: TeamConfig, wins_needed: int, first: int = 0) -> void:
 	_teams = teams
+	_first = clampi(first, 0, 1)
 	name = "HudScore"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_count = maxi(1, wins_needed)
@@ -42,19 +48,22 @@ func setup(teams: TeamConfig, wins_needed: int) -> void:
 	var height := HudStyle.SCORE_HEIGHT
 	_clock_x = _side_width + block
 	custom_minimum_size = Vector2(_side_width * 2.0 + block * 2.0 + HudStyle.CLOCK_WIDTH, height)
-	var block_x: Array[float] = [_side_width, _clock_x + HudStyle.CLOCK_WIDTH]
-	var side_x: Array[float] = [0.0, block_x[1] + block]
+	# by end: left, right
+	var end_block_x: Array[float] = [_side_width, _clock_x + HudStyle.CLOCK_WIDTH]
+	var end_pips_x: Array[float] = [0.0, end_block_x[1] + block]
 	for side in 2:
+		var end := _end_of(side)
+		_block_x[side] = end_block_x[end]
 		for i in _count:
-			_add_pip(side_x[side] + HudStyle.SIDE_PAD + i * (HudStyle.PIP_SIZE.x + HudStyle.PIP_GAP))
+			_add_pip(end_pips_x[end] + HudStyle.SIDE_PAD + i * (HudStyle.PIP_SIZE.x + HudStyle.PIP_GAP))
 		var l := HudStyle.label(self, HudStyle.SCORE_SIZE, 800, HudStyle.ink_on(teams.colours[side]),
 				HORIZONTAL_ALIGNMENT_CENTER)
-		l.position = Vector2(block_x[side], 0.0)
+		l.position = Vector2(_block_x[side], 0.0)
 		l.size = Vector2(block, height)
 		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		_score_labels.append(l)
 		if side == HudStyle.STRIPED_TEAM:
-			_block_stripes.set_rect(Rect2(block_x[side], 0.0, block, height))
+			_block_stripes.set_rect(Rect2(_block_x[side], 0.0, block, height))
 			for i in _count:
 				var stripes := GaugePattern.new()
 				stripes.set_shape(_shapes[side * _count + i])
@@ -77,7 +86,7 @@ func setup(teams: TeamConfig, wins_needed: int) -> void:
 	for side in 2:
 		var tag := HudStyle.label(self, HudStyle.TAG_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER,
 				HudStyle.SPACING_ROUND)
-		tag.position = Vector2(block_x[side], -HudStyle.TAG_HEIGHT)
+		tag.position = Vector2(_block_x[side], -HudStyle.TAG_HEIGHT)
 		tag.size = Vector2(block, HudStyle.TAG_HEIGHT)
 		tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		tag.visible = false
@@ -111,6 +120,21 @@ func pip_count() -> int:
 ## How many of `side`'s pips are filled.
 func pips_filled(side: int) -> int:
 	return _filled.x if side == 0 else _filled.y
+
+
+## The team drawn on the left.
+func first_team() -> int:
+	return _first
+
+
+## Which end `side` (a team) is drawn at: 0 left, 1 right.
+func _end_of(side: int) -> int:
+	return side ^ _first
+
+
+## The x of `side`'s colour block: for tests.
+func block_x(side: int) -> float:
+	return _block_x[side]
 
 
 ## The number `side`'s block shows.
@@ -175,9 +199,9 @@ func _draw() -> void:
 	var side_back := HudStyle.backing_on(self, HudStyle.BACKING_SIDE)
 	var right := _clock_x + HudStyle.CLOCK_WIDTH
 	draw_rect(Rect2(0.0, 0.0, _side_width, h), side_back)
-	draw_rect(Rect2(_side_width, 0.0, block, h), _teams.colours[0])
 	draw_rect(Rect2(_clock_x, 0.0, HudStyle.CLOCK_WIDTH, h), HudStyle.backing_on(self, HudStyle.BACKING_CLOCK))
-	draw_rect(Rect2(right, 0.0, block, h), _teams.colours[1])
+	for side in 2:
+		draw_rect(Rect2(_block_x[side], 0.0, block, h), _teams.colours[side])
 	if _patterned:
 		_block_stripes.draw(self)
 	draw_rect(Rect2(right + block, 0.0, _side_width, h), side_back)

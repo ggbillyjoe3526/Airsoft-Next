@@ -612,6 +612,8 @@ pays XP ×1.5.
   screen. Esc on the title, on any menu page and in Settings asks **QUIT GAME?** with the focus on CANCEL; Esc again or
   CANCEL closes it and QUIT leaves. A dialog's, a key rebind's and the Loadout's rename Esc still come first (the
   credits close, a key waiting stops waiting); in a match Esc is still the pause menu, and its Settings close on Esc.
+- [ ] **Leaving lands on Match (FB6).** Quit a match from the pause menu, and leave practice: both open the Match page
+  with PLAY focused (Enter starts again) and your picks kept, never the title; AIRSOFT still opens the title.
 - [ ] **Buttons are as wide as their words (FB1).** Look through the title's notice, Match, Loadout, Settings (every
   tab), the pause menu and the quit question at 1920×1080 and 1280×720: no button has a field of empty space in it, and
   the buttons of a group (the bar's tabs, a Settings row's choices, QUIT and CANCEL) are one width. Settings' **BACK**
@@ -648,6 +650,9 @@ pays XP ×1.5.
 - [ ] **Round end stamp.** WON, LOST or DRAW stamps at the end of a round and stays 2 s, then the round's table holds
   about 4 s before the next round (RE1); a click after half a second moves on. Long enough to read, never a wait?
   A click held through the skip fires nothing until you let go; at 720 px the word sits clear of a two-line banner.
+- [ ] **Your team on the left (FB6).** Play a match as Beta: the score bar reads BETA (orange, striped with gauge
+  patterns on) left of the clock and ALPHA (blue) right, and stays so after half time; Tab and the round's table list
+  Beta first. As Alpha it reads as before.
 - [ ] **HIT! under the score bar** (HD2). Get hit as the last of your side (stand still): HIT!, the walk-off line and
   LOST stack under the score bar, none over the clock, and LOST does not jump when the walk-off ends. Try 150 % HUD size.
 - [ ] **Feed position** (Settings › HUD). Bottom left moves the feed there; top right is the default.
@@ -752,6 +757,9 @@ file, Dev).
   here or in Graphics.
 - [ ] **Dev group.** Debug info, BB paths, Game speed (25 % to 200 %), Bottomless magazines and Ghost (BBs pass
   through you) change play; with any on, the summary says Dev settings kept the match out of your records.
+- [ ] **Aiming at any game speed (FB6).** Set Game speed to 25 %, 50 %, 150 % and 200 % and hold right click with iron
+  sights, the red dot and the 2× scope: the zoom and the replica come up smoothly every time, no stutter slowed and no
+  uneven jumps sped up; fire aimed at 25 %: the climb eases, never steps.
 - [ ] **Settings › Dev › Tone mapping** (RV2). Neutral by default; AgX and ACES change the colours at once, and the
   colours go back to Neutral when you set it back; a match played with AgX still counts.
 - [ ] **Dev playtesting aids** (M90). **+500 XP**, **Level up** and **Reset level** change your level at once and
