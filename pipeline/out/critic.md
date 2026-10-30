@@ -1,23 +1,32 @@
-Task: HD2 · HIT! over the score bar when your hit ends the round (Fix, Dev 1 bug pass)
+Task: RL2 · Manual reloads by default, with an R RELOAD prompt; Automatic in Settings (fix)
 Attempt: 1 of 4
-Head: 724357c (checks: worker gdlint, targeted 102, unit part 1 885/885, smoke, wiki/changelog on bf3b903; QA 24 HD2 tests on 724357c, which adds only QA tests; CI runs parts 2-3)
+Head: 28ae917 (checks passed on it: QA's tools/check.sh green, 3802/3802, smoke, wiki, changelog, licences)
 Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
 Score: 8/8 → Accept
 Evidence:
-1. Brief met: the stack hangs MIDDLE_GAP under `_top`'s real bottom (hud.gd:1225), from MARGIN while the summary hides the bar (hud.gd:1222-1228); the cards hang XP_GAP under its foot and fit the height left (hud.gd:1234-1245, 558, 566, floor hud.gd:42); the slot keeps the banner still (hud.gd:865) and the next banner clears it (hud.gd:1149). Pictures hd2-after-*.png and hd2-qa-150-cards.png show HIT! and LOST clear of the bar and the table on screen at 150 %.
-2. No contract in ARCHITECTURE › Contracts names the HUD layout; `MatchSummary.set_top`/`column_height` are additions (match_summary.gd:117, 126).
-3. Signal-driven seat/hang (hud.gd:301-303); the per-frame `_fit_summary`/`_fit_round_result` in update (hud.gd:832-837) read cached minimum sizes and write scale only on change (set_fit early-outs): no allocation. The slot is measured once on the rising edge. QA and performance: Pass.
-4. test_hd2_hit_call_stack.gd `test_the_banner_keeps_its_place_as_the_hit_call_ends` fails without `_hit_hold` (the banner rises by the call's height); QA's stale-slot and on-screen-at-150 % tests fail on 1877de8.
-5-8. Presentation only, typed, constants named (MIDDLE_GAP, CARDS_FIT_FLOOR); no new nodes per round; record, changelog note and PLAYTEST line present; the wiki never placed the call, so no page change.
-Advisories (non-blocking):
-- When the round's table gives way to the match summary the bar hides and the stack (the match banner) jumps up to MARGIN, about 110 px at 1080p; the slot avoids that jump at the call's end but not here. Owner's call.
-- hud.gd is 1257 lines; a later Beta tidy could move the stack and card hanging into a small HudMiddle helper.
-- performance.md was measured on 1877de8, before the fix round; the round's added per-frame fit was read here (no allocation), not run.
-- A hit call arriving while a banner is already up pushes the banner down by the call's height (QA advisory).
-Owner should test in the game (Forward+):
-- Be the last of your side hit: HIT!, the walk-off line and LOST stack under the score bar, none over the clock.
-- Let the walk-off end with LOST up: LOST does not jump; the next round's ROUND 2 banner sits right under the bar.
-- Same at HUD size 150 % on Attack / Defend (FLAG gauge): the round's table stays on screen and readable.
-- Finish a match: the summary and XP card fit under the match banner; note whether the banner's jump up as the summary opens bothers you.
-- Resize the window mid-summary (and 4:3 / ultrawide): cards stay on screen.
-- HIT! sits higher than before, near the bar: does it still read in a fight?
+1. No auto-reload under Manual: armament.gd:+327 `next_spare() >= 0 and not cmd.manual_reload`; prompt with the bound
+   key: hud.gd:+840 show_when(manual_reload and in_play and is_live() and reload_due()), hud_reload_prompt.gd:+37-46;
+   setting: settings.gd:+72/+249 (default Manual, old saves load Manual), settings_screen.gd:+246 row, en.po.
+2. Commands contract kept: the setting rides PlayerCommand (player_command.gd:+27), the one interface every controller
+   uses; bots and pilots reset it to false and keep their own reload (match guard and the Depot same-play test).
+3. Per frame: one bool copy (play_session.gd:+1047) and short-circuited field reads; reload_due/next_spare loop
+   without allocating; key text rebuilt only on hidden -> shown and on resume. Perf: Pass.
+4. test_manual_reload.gd:57 fails on origin/main (RELOAD_START 1, not 0); QA's vault test fails with the old vault.gd.
+5. Rule in Armament (sim), HUD only reads reload_due and the command; typed throughout; pads and gap are named consts.
+6. A dry click then a deliberate mag change is airsoft; the owner's ruling is in DECISIONS, Automatic kept for those
+   who want it; the prompt is the one named exception to "no hints".
+7. Prompt is its own 50-line script, built once, child of the HUD, no signals or timers; the settings lambda is
+   connected once in _build_controls.
+8. Scope is the owner's ask; DECISIONS, wiki (Settings, How to Play, HUD), PLAYTEST, sim README, changelog note done.
+Advisories (not blocking):
+- hud.gd:+92 `var manual_reload` sits between `_leaves_notice` and `_leaves_left`; move it below the leaves pair.
+- hud.gd:+840 the prompt has no HudAnnounce line, so a screen reader never hears RELOAD (QA advisory); KNOWN_ISSUES
+  row or a follow-up.
+- docs/FEATURES.md:27 HUD line doesn't list the reload prompt; for the changelog agent.
+Owner should test in the game:
+- Empty the AEG on Manual: each pull clicks once, R RELOAD shows under the crosshair, R loads and it goes.
+- Is the prompt easy to spot mid-fight without covering the target (Forward+, 1080p and 1440p)?
+- Rebind Reload in Settings from the pause menu, resume: the prompt names the new key.
+- Switch to Automatic: the empty pull reloads as before and no prompt shows.
+- With a vault prompt up and an empty magazine: both read, neither jumps about.
+- Run dry with no spare left: no prompt, OUT OF BBS on the panel.
