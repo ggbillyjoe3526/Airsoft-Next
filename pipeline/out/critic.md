@@ -1,35 +1,43 @@
-Task: FB6 · Back to the Match page, your team on the left, the sight even at any game speed (fix)
-Attempt: 1 of 4
-Head: 8aae085 (gates green on 01ed47f; 8aae085 adds only QA's test_fb6_qa.gd probes and qa.md, 22/22 run by QA)
-Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✗
-Score: 7/8 → Accept (QA Pass after fix round 1; performance Pass on ed36aab, the fix round touched only aim_follow.gd's snap)
-Evidence:
-1. A: main.gd:450 `_show_menus()` on every leave (Play focused, picks kept). B: hud.gd:189 passes player.team; hud_score.gd:55-58
-   place each team's block, pips, score and tag at `_end_of(side)`, :203-204 colours by team; Tab, round table, summary already
-   yours first (pinned). C: aim_follow.gd:21-33 drawn raise at the sim's own raise speed over sim time; play_session.gd:1013-1018
-   feeds the camera (first_person_view.gd:110), the replica (replica_view.gd:157,162) and the glass (:236); recoil over sim time :92.
-2. No contract in ARCHITECTURE › Contracts covers HudScore, the views, Aiming or the leave path.
-3. aim_follow.gd:21-33 floats only; play_session.gd:1013-1018 no new objects; hud_score `_block_x` built once in setup.
-4. test_fb6.gd:185 asserts an equal step and a narrower FOV every frame at 25-200 %: the old view holds 3 frames in 4 at 25 %
-   (the control at :175 proves it); :28 and :68 fail on main (record). QA's respawn pair (test_fb6_qa.gd:357, :370) pins the fix.
-5. AimFollow is a pure RefCounted; Aiming.raise_time (aiming.gd:19) is the tick's own formula, so view and sim can't drift.
-6. Normal speed is unchanged where it matters: at 100 % and 30/60 fps drawn == sim (QA measured 0) and the recoil formula is the
-   old one at rate 1.0; above 60 fps it trails by at most a tick (~16 ms) where main stepped. Toy feel untouched.
+Task: UI1 · Compact, steady menus after William's second look (fix, UI)
+Attempt: 1 of 4 (after two fix rounds and the rebase onto RL2 and FB6)
+Head: 8c99eaf (checks passed on bea0818; only QA's test and report commits since)
+Checks: 1 ✗ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
+Score: 7/8 → Retry (near miss, judgment)
+QA: Pass on re-check (pipeline/out/qa.md). Performance: Pass twice, no regression, no per-frame allocation.
+Items 2, 4 and 5 are met: the tag has its own room above the preset (settings_graphics_page.gd:244-261, test_ui1_menus.gd:392),
+every Button state has a box with the same margins (game_theme.gd:66, :203-227), the crumb is dressed in all five states
+(customise_view.gd:440), and real-pointer tests would fail without each (test_ui1_menus.gd:149, :210; test_ui1_qa.gd:491).
 Failed checks, with evidence:
-8. [judgment] The owner's two standing rules (leaving lands on the Match page; your team on the left, through half time) are
-   cited as "(owner, 2026-10-29)" in main.gd:448 and hud_score.gd:8-9 but not added to docs/DECISIONS.md, as FB1 and FB4 did.
-Must-fix before the push (non-blocking): one DECISIONS.md entry "(owner, 2026-10-29; FB6)" for A and B.
-Advisories:
-- hud.gd:867 still hides the crosshair on the sim's aim_raise < 0.5: at 25 % it can vanish up to 3 frames before the drawn
-  zoom crosses half. Feed it the drawn raise if the owner notices.
-- aim_follow.gd:26-27 reads PlaySession.TICK, a node class's constant, from a pure helper; the tick length belongs in sim.
-- PAUSE_TITLE_SCREEN now reads "Back to the menus"; rename the key when next touched.
-- pipeline/out/qa.md (and this file) are committed on the branch; strip pipeline/out/ before the push (never committed).
-- Run tools/check.sh on the final head (8aae085's probe tests were run alone, not in a full unit run).
-- QA: below raise_scale 0.8 (not in today's data) a respawn still eases a few frames; revisit if a faster part lands.
+1. [judgment] Item 1 ("go over the entire menu UI ... only keep text if it is important ... make it professional") is
+   not met everywhere. Widths and steadiness are now right; prose and one unreadable element remain on screens the
+   owner will open:
+   - settings_graphics_page.gd:310 every Graphics row ends in three unlabelled squares; their meaning is only a tooltip,
+     so the row doesn't read. The doc at :616 still says it draws "GPU" and three squares; it doesn't.
+   - customise_view.gd:655, :687, :331 the BBs page keeps three paragraphs (weight 3 lines, hop-up 2, glowing BBs 2), and
+     the glowing-BBs one rewrites itself on every pick (the owner's "change of text"). The replica list's and colour
+     groups' notes went to tooltips; these were missed.
+   - settings_screen.gd:291 the order-wheel paragraph explains Hover / Click; Crouch, Aim and Reload's choices carry none.
+   - armory_summary.gd:199 the 3-line XP paragraph under HOW XP IS EARNED.
+   - settings_screen.gd:436, :443-511 the Dev tab: a full-width intro paragraph and a sentence on every row (14 rows).
+Must-fix for the next attempt:
+- settings_graphics_page.gd:310 one short label over each column's squares (e.g. GPU COST), no sentence; fix :616's doc.
+- customise_view.gd:655, :687, :331 the three blurbs become tooltips; keep at most "Turn it in a match with 4 and 5".
+- settings_screen.gd:291 SETTINGS_ORDERS_HELP becomes the Order wheel choice's tooltip (SettingsScreen.explain).
+- armory_summary.gd:199 one row (Difficulty: Easy ×0.5 · Normal ×1 · Hard ×1.5); the rest its tooltip.
+- settings_screen.gd:436-511 Dev intro cut to one short line (the records warning); each row's note its tooltip.
+Advisories, judged against the owner's words (not blocking):
+- Keep the key-binding hint (settings_screen.gd:293): without it nobody finds Backspace clears or that keys swap.
+- Keep "Auto: against Hard bots only." (settings_hud_page.gd:165): five words, and Auto means nothing without them.
+- FOR YOUR CARD 4 px above LOW: it sits above, in its own room, not over the button; item 2 is met.
+- Match (match_page.gd): the grid is coherent but leaves the area under Mode and Rules empty; team buttons are 48 px
+  against the 34 px control height. Worth a look once the owner has played it, not a blocker.
+- settings_hud_page.gd:219 HUD SIZE's default mark prints "100%" under the knob beside the value's "100%".
+- Accessibility's "Your system asks for reduced motion: It doesn't say" reads oddly (en.po:3077).
+- settings_screen.gd is 764 lines (665 on main); split a page out when next touched.
 Owner should test in the game:
-- Quit match and Leave practice: the Match page with PLAY focused; AIRSOFT still opens the title.
-- As Beta: score bar BETA (orange) left, ALPHA right, still so after half time; as Alpha unchanged.
-- ADS at 25 % and 150 % with irons, red dot and 2x scope: zoom and replica rise smoothly, no stutter or uneven jumps.
-- ADS at 100 % on a 144 Hz screen: feels as before (no added float or lag).
-- Fire aimed at 25 %: the climb eases between ticks, never steps.
+- At 4K, click every Settings switch and choice: nothing else on the screen moves or changes.
+- Customise: press LOADOUT, hold, drag off, let go: it always reads LOADOUT.
+- Graphics: FOR YOUR CARD sits above its preset, never over it.
+- Hover the moved help (map and mode cards, presets, render scale, window mode): the tooltips show soon enough.
+- Match at 1080 and 4K: whether the layout reads balanced to you.
+- Show FPS on: the figure sits bottom right, clear of the menus and the HUD.
