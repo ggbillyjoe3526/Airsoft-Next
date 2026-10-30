@@ -38,7 +38,7 @@ grenade and the rigs and pouches that decide carrying stay in 0.2.
 - **The throw is held by the sim, not the input.** A press starts a throw that runs on its own; a second press does
   nothing until it ends. Simpler than hold-to-cook, and bots use the same command.
 - **The bomb is a sphere of radius 4 cm against the level only.** Characters don't stop it (KNOWN_ISSUES).
-- **Smoke is an ellipsoid (4 m wide, 2.2 m tall, lifted 1.2 m), not particles, in the sim:** cheap, seedable and the
+- **Smoke is an ellipsoid (radii 4 m across and 2.2 m up, its middle 1.2 m up), not particles, in the sim:** cheap, seedable and the
   same for bots and for the view.
 - **The view's puffs are drawn from the sim's cloud, 28 per smoke,** with proximity fade so walls and the floor don't cut
   them hard.
