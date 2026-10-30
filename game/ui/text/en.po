@@ -766,6 +766,9 @@ msgstr "· FOLLOW OPPONENTS"
 msgid "BOTS_NO_MATES"
 msgstr "No teammates in a 1v1."
 
+msgid "BOTS_NO_MATES_TAG"
+msgstr "· NONE IN A 1V1"
+
 msgid "MENU_RULES"
 msgstr "RULES"
 
@@ -869,7 +872,7 @@ msgid "RULES_SKIRMISH_BLURB"
 msgstr "The match as you know it: %s, first to %d, %s rounds, friendly fire %s."
 
 msgid "RULES_CUSTOM_BLURB"
-msgstr "Every switch is yours. Custom matches stay out of the records and give XP at no more than %s."
+msgstr "Stays out of the records; XP at most %s."
 
 msgid "RULES_TEAM_SIZE"
 msgstr "Team size"

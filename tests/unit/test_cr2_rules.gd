@@ -60,8 +60,7 @@ func test_picking_custom_shows_the_rows_and_its_blurb_and_reaches_the_picks() ->
 	assert_false(box.chips_visible())
 	assert_true(box.rows_visible())
 	var cap := LevelTable.shared().multiplier(LevelTable.CUSTOM)
-	assert_eq(box.blurb_text(), "Every switch is yours. Custom matches stay out of the records and give XP at no more "
-			+ "than ×%s." % ArmoryFacts.multiplier_text(cap))
+	assert_eq(box.blurb_text(), "Stays out of the records; XP at most ×%s." % ArmoryFacts.multiplier_text(cap))
 	assert_eq(_settings.custom_rules.to_dict(), CustomRules.new().to_dict(), "picking saves nothing and changes nothing")
 	box.rules_button(SKIRMISH).pressed.emit()
 	assert_eq(_picks.rules, SKIRMISH)

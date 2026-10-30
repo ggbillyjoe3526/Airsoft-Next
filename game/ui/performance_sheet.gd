@@ -7,7 +7,7 @@ extends PanelContainer
 
 const PAD := Vector2i(24, 22)
 const WIDTH := 500.0
-const SUB_SIZE := 14
+## The gap under the title.
 const SUB_GAP := 16
 const ROW_HEIGHT := 38.0
 const ROW_GAP := 12
@@ -23,11 +23,12 @@ const WORDS_SIZE := 15
 const WORDS_GAP := 6
 const WORDS_TOP := 14
 
-var _sub: Label = null
 var _rows: Array[Dictionary] = []
 var _better: Label = null
 var _worse: Label = null
 var _capped: Label = null
+## The lines in words and the gap above them: shown only when one of them is, so the panel ends at its last row.
+var _words_pad: MarginContainer = null
 
 
 func _init() -> void:
@@ -39,17 +40,18 @@ func _init() -> void:
 	add_child(column)
 	column.add_child(MenuParts.spaced(TranslationServer.translate("PERF_TITLE"), 22, 800, GameTheme.MUTED,
 			GameTheme.SPACING_HEADING))
-	column.add_child(_gap(SUB_GAP / 2))
-	_sub = MenuParts.text("", SUB_SIZE, 600, GameTheme.DIM)
-	_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(_sub)
 	column.add_child(_gap(SUB_GAP))
 	for spec in LoadoutPerformance.SPECS:
 		_rows.append(_build_row(column, spec))
-	column.add_child(_gap(WORDS_TOP))
-	_better = _words(column, GameTheme.GOOD)
-	_worse = _words(column, GameTheme.BAD)
-	_capped = _words(column, GameTheme.YELLOW)
+	_words_pad = MenuParts.padded(0.0, WORDS_TOP, 0.0, 0.0)
+	_words_pad.visible = false
+	column.add_child(_words_pad)
+	var words := VBoxContainer.new()
+	words.add_theme_constant_override("separation", WORDS_GAP)
+	_words_pad.add_child(words)
+	_better = _words(words, GameTheme.GOOD)
+	_worse = _words(words, GameTheme.BAD)
+	_capped = _words(words, GameTheme.YELLOW)
 
 
 ## The row for `field`'s value label, for the tests and the screenshots.
@@ -78,8 +80,9 @@ func capped_line() -> String:
 	return _capped.text if _capped.visible else ""
 
 
+## What the sheet compares, in words: the panel's tooltip (UI1: the line under the title only explained).
 func sub_text() -> String:
-	return _sub.text
+	return tooltip_text
 
 
 ## True if the row for `field` is on show.
@@ -90,11 +93,11 @@ func row_shown(field: StringName) -> bool:
 	return false
 
 
-## Shows `sheet` under the line `sub`. `extra` names the tab-only rows this page wants (Zoom aimed, Aim in); with `words`
+## Shows `sheet`, with `sub` as the panel's tooltip. `extra` names the tab-only rows this page wants (Zoom aimed, Aim in); with `words`
 ## false the better and worse lines are left off (a part tab says it under its cards).
 func show_sheet(sheet: LoadoutPerformance.Sheet, sub: String, extra: PackedStringArray = PackedStringArray(),
 		words: bool = true) -> void:
-	_sub.text = sub
+	tooltip_text = sub
 	for i in sheet.rows.size():
 		var row := sheet.rows[i]
 		var ui: Dictionary = _rows[i]
@@ -119,6 +122,7 @@ func show_sheet(sheet: LoadoutPerformance.Sheet, sub: String, extra: PackedStrin
 	_capped.visible = capped
 	if capped:
 		_capped.text = TranslationServer.translate("PERF_CAPPED") % sheet.limit
+	_words_pad.visible = _better.visible or _worse.visible or _capped.visible
 
 
 func _set_line(label: Label, key: String, names: PackedStringArray) -> void:
@@ -175,7 +179,6 @@ func _words(into: Control, colour: Color) -> Label:
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.visible = false
 	into.add_child(l)
-	into.add_child(_gap(WORDS_GAP))
 	return l
 
 

@@ -190,6 +190,7 @@ func _init(pictures: ReplicaPictures, facts: LoadoutFacts) -> void:
 	columns.add_child(_build_stage())
 	_sheet = PerformanceSheet.new()
 	_sheet.custom_minimum_size = Vector2(SIDE_WIDTH, 0.0)
+	_sheet.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	columns.add_child(_sheet)
 	# the crumb last, so it is drawn and hit above the body
 	_build_crumb()
@@ -554,10 +555,9 @@ func _sub_head(words: String, note: String) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", SUB_GAP)
 	row.add_child(MenuParts.spaced(words, SUB_HEAD_SIZE, 800, GameTheme.MUTED, SUB_HEAD_SPACING))
-	if note != "":
-		var n := MenuParts.text(note, SUB_NOTE_SIZE, 600, GameTheme.DIM)
-		n.size_flags_vertical = Control.SIZE_SHRINK_END
-		row.add_child(n)
+	# what the group is: its tooltip (UI1: the tiles say it)
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.tooltip_text = note
 	return row
 
 

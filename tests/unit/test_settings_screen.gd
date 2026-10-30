@@ -672,6 +672,7 @@ func _access() -> SettingsAccessPage:
 
 
 ## Every label's and rich label's words under `node`, rich text without its tags.
+## Every word `node` shows: its labels and, as help moved to them (UI1), its tooltips.
 func _words(node: Node) -> String:
 	var out := PackedStringArray()
 	for n: Node in node.find_children("*", "", true, false):
@@ -679,6 +680,8 @@ func _words(node: Node) -> String:
 			out.append((n as Label).text)
 		elif n is RichTextLabel:
 			out.append((n as RichTextLabel).get_parsed_text())
+		if n is Control and (n as Control).tooltip_text != "":
+			out.append((n as Control).tooltip_text)
 	return " ".join(out)
 
 
@@ -716,12 +719,15 @@ func test_the_accessibility_tab_has_the_concept_s_rows() -> void:
 	var words := _words(page)
 	for want: String in ["TEAM COLOURS", "STANDARD", "HIGH CONTRAST", "IN USE", "#8ccfff", "#b8460c",
 			"Blue and orange: they stay apart", "Light blue and dark orange, apart in lightness too",
-			"From the next match.", "the figures when the next match starts", "GAUGE PATTERNS", "Patterns",
-			"Stripes as well as colour", "SCREEN READER MESSAGES", "Read out", "Reads hit calls, your hit and round results",
-			"SOUND CUES", "Show cues", "Red is the default.", "Two dots a step (up to 22 m)",
+			"From the next match.", "the figures when the next match starts", "GAUGE PATTERNS",
+			"Stripes as well as colour", "SCREEN READER MESSAGES", "Reads hit calls, your hit and round results",
+			"SOUND CUES", "Red is the default.", "Two dots a step (up to 22 m)",
 			"Arrowhead a shot (up to 60 m)", "HIT tag a hit call (up to 60 m)", "Shown through walls", "REDUCED MOTION",
 			"Follow system uses your computer's", "Off: the replica sways", "On: no weapon sway or drifting dust",
 			"The recoil climb stays", "Your system asks for reduced motion: It doesn't say"]:
+		assert_string_contains(words, want)
+	# the switches' row labels, in capitals as every row label is (UI1)
+	for want: String in ["PATTERNS", "READ OUT", "SHOW CUES"]:
 		assert_string_contains(words, want)
 	assert_eq(_texts(page.motion()), PackedStringArray(["FOLLOW SYSTEM", "OFF", "ON"]))
 	assert_eq(page.cue_colour().selected(), AccessibilityConfig.CUE_COLOUR_DEFAULT, "red by default")

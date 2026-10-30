@@ -12,17 +12,15 @@ extends VBoxContainer
 ## The rule set or a Custom switch changed.
 signal changed
 
-const PICKER_GAP := 12
-const PICKER_HEIGHT := 48.0
-const PICKER_SIZE := 22
+const PICKER_GAP := 8
 ## The room a rule set's button keeps at each side of its words (px).
-const PICKER_PAD_X := 36
+const PICKER_PAD_X := 24
 const BLURB_SIZE := 15
 const BLURB_TOP := 8
 const BLURB_BOTTOM := 10
-const CHIP_GAP := 10
-const CHIP_SIZE := 16
-const CHIP_PAD := Vector2(14.0, 8.0)
+const CHIP_GAP := 8
+const CHIP_SIZE := 14
+const CHIP_PAD := Vector2(12.0, 6.0)
 const CHIP_WORD_GAP := 5
 const ROW_GAP := 8
 const ROW_LABEL_WIDTH := 170.0
@@ -191,6 +189,10 @@ func show_tuning(tuning: SimTuning) -> void:
 	for rules: String in _pickers:
 		_pickers[rules].set_picked(rules == _picks.rules)
 	_blurb.text = _blurb_text(custom)
+	# Skirmish's sentence only repeats its chips: its picker's tooltip. Custom's says what Custom costs (no records, less
+	# XP), which a player would not expect: it shows (UI1)
+	_blurb.visible = custom and not _unused
+	_pickers[MatchOptions.RULES_SKIRMISH].tooltip_text = _blurb_text(false)
 	for chip in _chips.get_children():
 		_chips.remove_child(chip)
 		chip.queue_free()
@@ -221,9 +223,9 @@ func _build_picker() -> Control:
 		b.ring = true
 		b.text_pad = PICKER_PAD_X
 		b.refresh()
-		b.custom_minimum_size = Vector2(0.0, PICKER_HEIGHT)
-		b.add_theme_font_override("font", GameTheme.font(800))
-		b.add_theme_font_size_override("font_size", PICKER_SIZE)
+		b.custom_minimum_size = Vector2(0.0, GameTheme.CONTROL_HEIGHT)
+		b.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, GameTheme.CONTROL_SIZE))
+		b.add_theme_font_size_override("font_size", GameTheme.CONTROL_SIZE)
 		b.add_theme_constant_override("outline_size", 0)
 		for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 			b.add_theme_color_override(colour, GameTheme.TEXT)
@@ -294,9 +296,9 @@ func _choice_row(key: String, label: String, words: PackedStringArray) -> MenuCh
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var choice := MenuChoice.new(words, true)
 	right.add_child(choice)
+	# the row's line says what the pick does: its tooltip, so a pick whose line wraps differently moves no row (UI1)
 	var sub := MenuParts.text("", SUB_SIZE, 500, GameTheme.MUTED)
-	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	sub.add_theme_constant_override("line_spacing", 0)
+	sub.visible = false
 	right.add_child(sub)
 	_subs[key] = sub
 	_add_row(label, right)
@@ -334,7 +336,7 @@ func _build_time_of_day() -> void:
 	_time.name = "TimeOfDay"
 	right.add_child(_time)
 	_time_sub = MenuParts.text("", SUB_SIZE, 500, GameTheme.MUTED)
-	_time_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_time_sub.visible = false
 	right.add_child(_time_sub)
 	_add_row(tr("RULES_TIME_OF_DAY"), right, _time_rows)
 	_time.picked.connect(_on_time_of_day)
@@ -358,6 +360,7 @@ func _show_time_of_day() -> void:
 		_time.button(i).visible = offered.has(LightingConfig.PRESETS[i])
 	_time.put(LightingConfig.PRESETS.find(played))
 	_time_sub.text = tr("RULE_TIME_BLURB_%s" % String(played).to_upper())
+	_explain(_time, _time_sub.text)
 
 
 func _on_time_of_day(index: int) -> void:
@@ -445,3 +448,11 @@ func _show_switches() -> void:
 	_subs["WINS"].text = MatchOptions.choice_blurb("WINS", r.wins_needed)
 	_subs["FRIENDLY_FIRE"].text = MatchOptions.choice_blurb("FRIENDLY_FIRE", int(r.friendly_fire))
 	_subs["RICOCHETS"].text = MatchOptions.choice_blurb("RICOCHETS", int(r.ricochets_count))
+	for key: String in _subs:
+		_explain(_subs[key].get_parent().get_child(0) as MenuChoice, _subs[key].text)
+
+
+## Puts `words` as the tooltip of each of `choice`'s buttons.
+static func _explain(choice: MenuChoice, words: String) -> void:
+	for b: Node in choice.get_children():
+		(b as Button).tooltip_text = words
