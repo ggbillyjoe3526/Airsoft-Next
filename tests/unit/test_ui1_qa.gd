@@ -739,3 +739,45 @@ func test_turning_on_show_fps_does_not_cover_the_level_chip_or_any_other_menu_co
 			if c is Button or c is Label or c.name == "LevelChip":
 				covered.append("%s %s" % [c.name, c.get_global_rect()])
 	assert_eq(covered, PackedStringArray(), "the figure %s lies over nothing the menu shows" % label.get_global_rect())
+
+
+# --- The re-laid Match page, every state -----------------------------------------------------------------------------
+
+func test_every_match_page_button_is_reachable_and_still_in_every_map_mode_and_rules_state() -> void:
+	var menus := MenuScreen.new(MatchPicks.new(), s)
+	add_child_autofree(menus)
+	await wait_process_frames(3)
+	var page := menus.match_page()
+	var touched := 0
+	var window := menus.get_viewport().get_visible_rect()
+	for map_id: String in page.map_ids():
+		for mode: String in MatchOptions.MODES:
+			for rules: String in [MatchOptions.RULES_SKIRMISH, MatchOptions.RULES_CUSTOM]:
+				page.map_card(map_id).pressed.emit()
+				page.mode_card(mode).pressed.emit()
+				page.rules_box().rules_button(rules).pressed.emit()
+				await wait_process_frames(3)
+				var what := "Match %s, %s, %s" % [map_id, mode, rules]
+				touched += await _hammer(menus, what)
+				var list: Array[BaseButton] = []
+				_buttons(menus, list)
+				for b: BaseButton in list:
+					if not window.encloses(b.get_global_rect()):
+						fail_test("%s: %s lies outside the window %s" % [what, b.name, b.get_global_rect()])
+	assert_gt(touched, 200, "every state's buttons were touched")
+
+
+func test_the_reload_choice_saves_both_values_by_mouse() -> void:
+	# Manual is the old off, Automatic the old on
+	await _show_tab_of(screen._auto_reload)
+	var words := PackedStringArray([screen._auto_reload.button(0).text, screen._auto_reload.button(1).text])
+	assert_eq(words, PackedStringArray(["MANUAL", "AUTOMATIC"]), "the choice's words")
+	await _click(screen._auto_reload.button(1))
+	assert_true(s.auto_reload, "Automatic is on")
+	assert_true(_saved().auto_reload, "and saved")
+	await _click(screen._auto_reload.button(0))
+	assert_false(s.auto_reload, "Manual is off")
+	assert_false(_saved().auto_reload, "and saved")
+	s.auto_reload = true
+	screen.open()
+	assert_eq(screen._auto_reload.selected(), 1, "the screen shows what was saved when it opens again")
