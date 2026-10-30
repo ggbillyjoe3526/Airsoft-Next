@@ -1,12 +1,12 @@
 # SF2 · Bots throw their smoke and flash bombs
 
-**Review:** critic Accept ?/8 · qa ? · performance ?
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-30 | 1 | worker | ? | ? | – |
+| 2026-10-30 | 1 | worker | ✓ (see Gate); QA Pass, performance Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -42,17 +42,55 @@ the bombs they have carried since SF1, and hear them go off.
   bomb. Smoking a crossing, a plant or a retreat needs the team plan to know where the danger is (KNOWN_ISSUES).
 - **The look away holds even with someone in sight:** facing its own bang would blind the bot for longer than the
   wait.
+- **Out of sight, a smoke goes toward where the bot knows the threat to be** (`last_known`), never where the enemy
+  really is; with no idea, no smoke (the critic's advisory, taken after its review; its test fails without it).
+- **Bots hold fire holds their bombs too** (Dev settings; QA's advisory).
 - **Teammates are checked, not told to look away:** bots can't coordinate, so a bot doesn't flash where one would see
   it.
 
 ## Verified
 
-To fill.
+- `tests/unit/test_bot_bombs.gd`, 14 tests:
+  - the throw's pitch comes down where aimed (both arcs), and none out of reach;
+  - a bot's smoke settles about where it meant;
+  - the turn, then the throw along the line to a threat in sight, or to the spot it knows when out of sight;
+  - no smoke out of cover, unpinned, too near or far, or with a cloud already between;
+  - a flash round a corner: the bot looks away, the enemy is dazzled and the thrower not, then it pushes;
+  - no flash that would go off in the air over a wall, at a spot in sight, too near or far, by a teammate, or with
+    none left;
+  - a failed roll waits its gap, and a throw it can't turn to in time is given up;
+  - an enemy's bang and pop are heard, a teammate's not, and a pop past its reach not;
+  - each level throws more often, and the bombs' rolls are their own stream;
+  - whole Depot matches at Normal over two seeds: 16 rounds, 13 smokes and 11 flashes, with 6 enemies, 0 teammates
+    and 0 throwers dazzled.
+- QA's `tests/unit/test_sf2_qa.gd`, 8 tests: the reset, a refused throw, a dazzle mid-turn, the teammate check, NaN
+  aims, the same seed twice, no snap back, and Woodland and Attack / Defend runs with no script error.
+- Two older tests now know the bombs: a throw puts the replica down but is no holster (`test_bots`), and the skill's
+  bomb chances are fields added after the levels moved (`test_tl1_qa`).
+- Performance (headless, Depot, three seeds): `BotController.think` takes 483 µs a tick on average, against 490 on
+  main; a decision tick takes 163 µs at most; nothing allocates per tick.
+- **Not verified:** how it feels to play against, how often is too often, and whether turning away makes a flash too
+  easy to dodge: PLAYTEST › Smoke and flash bombs.
 
 ## Known issues left
 
 - Bots throw only in the two situations above, and they don't move round or under a cloud on purpose (KNOWN_ISSUES).
 
+## Advisories left
+
+- A throw being turned to stays decided for up to 1 s; a teammate who walks into the bang's reach meanwhile isn't
+  checked again (QA).
+- With the bomb pool full at the release (12 slots), no bang comes, but the bot still looks away (QA).
+- A route point's flash has no least distance, so one can land a metre ahead of the thrower (critic).
+- Bots' first rolls aren't spread out, so several can decide on one tick (about 70 rays at worst each; performance);
+  `_mate_sees` repeats its rays per route point.
+
 ## Gate
 
-To fill.
+Worker's run on 95f8545, 2026-10-30:
+- gdlint clean, and the changelog notes and wiki (25 pages) OK.
+- Unit tests: parts 1, 2 and 3 passed 898, 2034 and 1031 (3963 in all), run side by side.
+- Smoke test passed (`[smoke] ok … rounds=8`, zero script errors), and the licence notices are unchanged.
+
+The first run, on db29874, failed the two older tests above. The critic's smoke fix came after this run:
+`test_bot_bombs` and `test_sf2_qa` pass on it, and CI runs the rest. Match guards were not run locally; CI runs them.

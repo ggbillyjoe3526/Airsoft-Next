@@ -56,8 +56,13 @@ static func _try_smoke(b: Bot, w: BotWorld, target: Character) -> bool:
 	if b.mode != Bot.Mode.COVER or target == null or me.grenades.left(Grenade.Kind.SMOKE) <= 0 \
 			or w.time - b.suppressed_at > cfg.smoke_under_fire_for:
 		return false
+	# Out of sight, the threat is where the bot last knew it to be, as everywhere else in its head.
+	if not b.target_visible and not b.has_last_known:
+		return false
+	var feet := target.position if b.target_visible else b.last_known
 	var eye := BotSenses.eye_of(me, w.tuning)
-	var threat := BotSenses.eye_of(target, w.tuning)
+	var threat := BotSenses.eye_of(target, w.tuning) if b.target_visible \
+			else b.last_known + Vector3(0.0, w.tuning.body.stand_eye_height, 0.0)
 	var dist := _flat(eye, threat)
 	if dist < cfg.smoke_min_distance or dist > cfg.smoke_max_distance \
 			or Grenades.smoke_depth(w.grenades, w.tuning.grenades, eye, threat) > 0.0:
@@ -66,8 +71,7 @@ static func _try_smoke(b: Bot, w: BotWorld, target: Character) -> bool:
 	if b.bomb_rng.randf() >= b.skill.smoke_chance:
 		return false
 	var reach := minf(dist * cfg.smoke_at_share, cfg.smoke_reach) / dist
-	var at := Vector3(lerpf(me.position.x, target.position.x, reach), me.position.y,
-			lerpf(me.position.z, target.position.z, reach))
+	var at := Vector3(lerpf(me.position.x, feet.x, reach), me.position.y, lerpf(me.position.z, feet.z, reach))
 	return _aim(b, w, eye, at, Grenade.Kind.SMOKE)
 
 

@@ -45,7 +45,7 @@ or drop (`docs/ROADMAP.md` › What 0.1 is).
 - Bots play Attack / Defend: attackers walk to the middle then raise the flag, one on the rope and the others guarding it from cover; defenders hold near the pole, chase only what is near it, and the two nearest pull a raised flag down; two defenders on a lane stand side by side, and Hard pairs set a crossfire (FG2b, FG2, TL1)
 - Levels and XP: matches give XP for playing, winning, each round you won and took part in, and each hit, less for a shorter match and multiplied by difficulty; levels 1 to 10 unlock replicas, power sources and parts; records keep wins and losses per difficulty and mode, best accuracy from 30 BBs and the longest win streak (LV1, SM1)
 - Match numbers: every player's hits, times hit, friendly hits, BBs fired and time in play for the round and the match, and what got you on each hit (where from, how far, held angle, time in view), which the What got you card shows when your hit is called (MI1, WG1)
-- Smoke and flash bombs: one smoke and one flash each round, thrown with G and Y (rebindable); smoke hides you from bots but never BBs, and a flash blinds anyone facing it up to 22 m, teammates included (SF1)
+- Smoke and flash bombs: one smoke and one flash each round, thrown with G and Y (rebindable); smoke hides you from bots but never BBs, and a flash blinds anyone facing it up to 22 m, teammates included, and looking away from a flash keeps you safe; bots throw theirs too (SF1, SF2)
 
 ## Menus and settings
 

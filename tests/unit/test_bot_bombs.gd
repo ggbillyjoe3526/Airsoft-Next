@@ -111,6 +111,7 @@ func test_a_bot_s_smoke_settles_near_where_it_meant_it_to() -> void:
 	var b: Bot = m[2]
 	var s: GameState = m[1]
 	b.mode = Bot.Mode.COVER
+	b.target_visible = true
 	var thrown := _run(m, 60, func() -> void: b.suppressed_at = s.time, GameEvent.Kind.GRENADE_THROW)
 	assert_eq(thrown, 1, "one smoke thrown")
 	assert_eq(s.characters[0].grenades.smoke, 0)
@@ -132,6 +133,7 @@ func test_a_pinned_bot_turns_to_its_smoke_then_throws_it_along_the_line_to_the_t
 	var s: GameState = m[1]
 	var w: BotWorld = m[3]
 	b.mode = Bot.Mode.COVER
+	b.target_visible = true
 	var cmd := PlayerCommand.new()
 	cmd.reset(0.0, 0.0)
 	b.suppressed_at = s.time
@@ -150,6 +152,26 @@ func test_a_pinned_bot_turns_to_its_smoke_then_throws_it_along_the_line_to_the_t
 			"thrown at the threat")
 
 
+func test_a_pinned_bot_that_lost_sight_smokes_toward_where_it_knows_the_threat_to_be() -> void:
+	var m := _match(_world(), Vector3(8.0, 0.0, -16.0))
+	var b: Bot = m[2]
+	var s: GameState = m[1]
+	b.mode = Bot.Mode.COVER
+	b.target_visible = false
+	b.has_last_known = true
+	b.last_known = Vector3(-8.0, tuning.body.rest_gap, -16.0)
+	assert_eq(_run(m, 60, func() -> void: b.suppressed_at = s.time, GameEvent.Kind.GRENADE_THROW), 1)
+	var bomb := s.grenades[0]
+	assert_almost_eq(Vector2(bomb.velocity.x, bomb.velocity.z).normalized().dot(Vector2(-8.0, -16.0).normalized()), 1.0,
+			0.01, "at the spot it knows, not where the enemy really is")
+	var lost := _match(_world(), Vector3(8.0, 0.0, -16.0))
+	var nowhere: Bot = lost[2]
+	var ls: GameState = lost[1]
+	nowhere.mode = Bot.Mode.COVER
+	assert_eq(_run(lost, 60, func() -> void: nowhere.suppressed_at = ls.time, GameEvent.Kind.GRENADE_THROW), 0,
+			"no idea where they are: no smoke")
+
+
 func test_no_smoke_out_of_cover_unpinned_too_close_or_far_or_with_a_cloud_already_there() -> void:
 	for case: int in 5:
 		var foe := Vector3(0.0, 0.0, -20.0)
@@ -161,6 +183,7 @@ func test_no_smoke_out_of_cover_unpinned_too_close_or_far_or_with_a_cloud_alread
 		var b: Bot = m[2]
 		var s: GameState = m[1]
 		b.mode = Bot.Mode.SEARCH if case == 0 else Bot.Mode.COVER
+		b.target_visible = true
 		if case == 4:
 			var cloud := s.grenades[3]
 			cloud.launch(Grenade.Kind.SMOKE, 2, Vector3(0.0, 0.04, -10.0), Vector3.ZERO)
