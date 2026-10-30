@@ -5,7 +5,7 @@ matches against bots on purpose-built airsoft fields: plastic replicas, visible 
 "HIT!", walk off, reset, go again. Single player against bots only.
 
 It is the same game as the browser version (frozen at `0.1-beta.1`, its code kept in `legacy/browser/`), rebuilt as an
-installable desktop game. Versions restart at 0.1 Dev 1.
+installable desktop game. Versions restarted at 0.1 Dev 1.
 
 The [wiki](https://github.com/ggbillyjoe3526/airsoft/wiki) explains the game for players: controls, rules, every
 replica's stats, maps, modes, bots, settings, patch notes and the roadmap. Its pages are `docs/wiki/`, published on
@@ -13,13 +13,24 @@ every merge (`docs/wiki/README.md`).
 
 ## Status
 
-**Building 0.1 Dev 1.** Depot is playable against stand-in targets (no bots yet): press *Play Depot* on the title
-screen. The plan is `docs/ROADMAP.md`; what is happening now is `docs/HANDOFF.md`.
+**[0.1 Dev 1](https://github.com/ggbillyjoe3526/airsoft/releases/tag/0.1-dev.1) is out (2026-10-30); 0.1 Dev 2 is
+being built.** The plan is `docs/ROADMAP.md`; what is happening now is `docs/HANDOFF.md`.
+
+**What's in 0.1 Dev 1:** the first build. Two maps, Depot and Woodland, and a practice range; the AEG Rifle and the GBB
+Pistol, with attachments, power options and the Armory to earn them; Elimination and Attack / Defend against bots on
+three difficulty levels, with squad orders, callouts and the magazine hand-off; the hit call, the walk-off and the
+dead zone; settings, saves, accessibility options and a bug report button. Its full notes are `CHANGELOG.md` ›
+0.1 Dev 1.
+
+**Coming in 0.1 Dev 2:** basic smoke and flash bombs, thrown by bots too, then Depot and Woodland redesigned larger and
+dressed in the new art direction.
 
 ## Run it
 
 - **Players:** download the Windows installer or zip, or the Linux build, from the
-  [Releases page](https://github.com/ggbillyjoe3526/airsoft/releases) once 0.1 Dev 1 is tagged.
+  [0.1 Dev 1 release page](https://github.com/ggbillyjoe3526/airsoft/releases/tag/0.1-dev.1): the Windows
+  installer (`Airsoft-0.1-dev.1-Windows-Setup.exe`), the Windows zip or the Linux zip. The installer is not signed
+  yet, so Windows warns about it: choose *More info*, then *Run anyway*.
 - **From source:** install Godot **4.7.2** (standard, not .NET), choose *Import*, pick this folder's `project.godot`
   and press F5.
 - **If the game won't open, or closes while drawing:** start it on the simpler renderer, which runs on almost any

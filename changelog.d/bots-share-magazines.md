@@ -1,6 +1,0 @@
-### Bots share magazines
-- A bot running low on BBs now asks the nearest teammate with a magazine to spare ("Need a mag!"), and a bot asked comes over and tosses it ("Mag coming!"), sprinting while far off; the catcher may say thanks.
-- A fight or cover comes first, then bringing a magazine, then a squad order. A bot never gives away its last full spare of the replica it fights with, but hands over its unused pistol's.
-- Dev settings › Bots run low on BBs puts one bot a team on its last magazine early in each round, to watch it happen; Bot intentions shows a bot bringing or waiting for a mag.
-- Need a Mag on H, and as the order wheel's fifth item: toss a magazine to a teammate who asked you and is in reach (the item then reads Toss a Mag), or ask for one when you are low, with a radio click when your ask is heard. The magazine arcs and spins from hand to hand, with its own toss and catch sounds.
-- A line under the crosshair says who needs a mag and how far (underlined in your team's colour once in reach), whose is coming, what you caught and why a press did nothing, never which key to press; a small magazine sits by the chevron of a teammate asking you or bringing you one. Settings › HUD › Mag hand-off turns them off, and Screen reader messages read the line's notices.
