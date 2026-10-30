@@ -87,8 +87,8 @@ func test_a_click_setting_is_saved_straight_away() -> void:
 	screen._invert.button_pressed = true
 	assert_true(tuning.controls.invert_y)
 	assert_true(FileAccess.file_exists(screen.save_path))
-	screen._crouch.button_pressed = true
-	screen._aim.button_pressed = true
+	screen._crouch.button(1).pressed.emit()
+	screen._aim.button(1).pressed.emit()
 	assert_true(tuning.controls.crouch_toggle and tuning.controls.aim_toggle)
 
 
@@ -552,16 +552,19 @@ func _labels(node: Node, into: PackedStringArray) -> PackedStringArray:
 func test_the_display_tab_has_the_concept_s_rows() -> void:
 	_fake_screens()
 	var page := screen._display_page
-	assert_eq(_texts(page.window_choice()), PackedStringArray(["WINDOWED", "BORDERLESS FULLSCREEN",
-			"EXCLUSIVE FULLSCREEN"]))
+	assert_eq(_texts(page.window_choice()), PackedStringArray(["WINDOWED", "BORDERLESS", "FULLSCREEN"]),
+			"short words on the buttons (UI1)")
 	assert_eq(page.window_choice().selected(), Settings.WindowMode.EXCLUSIVE, "exclusive fullscreen by default")
 	var words := " ".join(_labels(page, PackedStringArray()))
-	for want: String in ["F11", "Alt", "Enter", "switches between a window and fullscreen", "FRAME RATE", "V-SYNC",
-			"FRAME-RATE LIMIT", "still plays at 60 ticks a second", "In the background it draws 30", "FIELD OF VIEW",
-			"SHOW FPS", "Frames a second, top right."]:
+	for want: String in ["F11", "Alt", "Enter", "switches at any time", "FRAME RATE", "V-SYNC",
+			"FRAME-RATE LIMIT", "FIELD OF VIEW", "SHOW FPS"]:
 		assert_string_contains(words, want)
+	# the longer explanations are tooltips now (UI1)
+	assert_string_contains(page.limit_choice().button(0).tooltip_text, "still plays at 60 ticks a second")
+	assert_string_contains(page.limit_choice().button(0).tooltip_text, "In the background it draws 30")
+	assert_eq(page.show_fps().tooltip_text, "Frames a second, top right.")
 	assert_eq(_texts(page.limit_choice()), PackedStringArray(["30", "60", "120", "144", "165", "240", "360",
-			"UNLIMITED"]))
+			"OFF"]))
 	assert_eq(page.limit_choice().selected(), Settings.FRAME_LIMITS.size(), "Unlimited by default")
 	assert_false(page.vsync().button_pressed, "V-Sync off by default (owner, 2026-10-29)")
 	assert_eq(page.vsync_note(), "No tearing, at most the screen’s 144 a second. Off: a little less input delay.")

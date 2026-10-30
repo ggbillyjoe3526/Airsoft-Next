@@ -2200,6 +2200,30 @@ msgstr "%s with 1 change (marked). Picking a preset sets every row below again."
 msgid "GRAPHICS_CUSTOM_MANY"
 msgstr "%s with %d changes (marked). Picking a preset sets every row below again."
 
+msgid "GRAPHICS_CUSTOM_NONE_SHORT"
+msgstr "%s with no changes yet."
+
+msgid "GRAPHICS_CUSTOM_ONE_SHORT"
+msgstr "%s with 1 change (marked)."
+
+msgid "GRAPHICS_CUSTOM_MANY_SHORT"
+msgstr "%s with %d changes (marked)."
+
+msgid "GRAPHICS_CUSTOM_RESET"
+msgstr "Picking a preset sets every row again."
+
+msgid "GRAPHICS_AUTOMATIC_SHORT"
+msgstr "picked for your graphics card."
+
+msgid "GRAPHICS_CHOSEN"
+msgstr "every row as the preset sets it."
+
+msgid "GRAPHICS_FORCED_SHORT"
+msgstr "this run draws %s whatever is chosen here."
+
+msgid "GRAPHICS_RENDERER_NEXT_START"
+msgstr "From the next start."
+
 msgid "GRAPHICS_LEAD_FORCED"
 msgstr "--graphics=%s:"
 
@@ -2348,7 +2372,7 @@ msgid "GRAPHICS_RESET"
 msgstr "Reset to For your card (%s)"
 
 msgid "GRAPHICS_RESET_NOTE"
-msgstr "Every row applies at once. The squares say how much each takes from your graphics card."
+msgstr "Squares: what a row takes from your graphics card."
 
 msgid "GRAPHICS_YOUR_SYSTEM"
 msgstr "YOUR SYSTEM"
@@ -2711,7 +2735,7 @@ msgid "SETTINGS_KEYS_OR"
 msgstr "or"
 
 msgid "SETTINGS_KEYS_LINE"
-msgstr "switches between a window and fullscreen at any time, in menus and in play."
+msgstr "switches at any time"
 
 msgid "SETTINGS_MONITOR"
 msgstr "MONITOR"
@@ -2736,6 +2760,15 @@ msgstr "FRAME-RATE LIMIT"
 
 msgid "SETTINGS_UNLIMITED"
 msgstr "Unlimited"
+
+msgid "SETTINGS_NO_LIMIT"
+msgstr "Off"
+
+msgid "SETTINGS_MODE_BORDERLESS"
+msgstr "Borderless"
+
+msgid "SETTINGS_MODE_FULLSCREEN"
+msgstr "Fullscreen"
 
 msgid "SETTINGS_FRAME_LIMIT_HELP"
 msgstr "The most frames a second the game draws: a laptop runs cooler and quieter. The game still plays at %d ticks a second. In the background it draws %d."

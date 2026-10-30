@@ -298,20 +298,20 @@ func test_an_old_or_wild_settings_file_shows_hover() -> void:
 	var s := Settings.new(PlayTuning.new())
 	s.from_dict({"sensitivity": 1.0})
 	var screen := _screen(s)
-	assert_false(screen._wheel_pick.button_pressed, "no saved choice: Hover")
-	assert_eq(screen._wheel_pick.text, "Hover")
+	assert_eq(screen._wheel_pick.selected(), 0, "no saved choice: Hover")
+	assert_eq(screen._wheel_pick.button(0).text, "HOVER")
 	s.from_dict({"wheel_pick": 99})
 	screen._refresh()
-	assert_false(screen._wheel_pick.button_pressed, "out of range: Hover")
+	assert_eq(screen._wheel_pick.selected(), 0, "out of range: Hover")
 	s.from_dict({"wheel_pick": "click"})
 	screen._refresh()
-	assert_false(screen._wheel_pick.button_pressed, "not a number: Hover")
+	assert_eq(screen._wheel_pick.selected(), 0, "not a number: Hover")
 
 
 func test_the_order_wheel_row_is_saved_and_reaches_the_game() -> void:
 	var s := Settings.new(PlayTuning.new())
 	var screen := _screen(s)
-	screen._wheel_pick.button_pressed = true
+	screen._wheel_pick.button(1).pressed.emit()
 	assert_eq(s.tuning.controls.wheel_pick, ControlsConfig.WheelPick.CLICK, "the live controls follow at once")
 	assert_eq(s.to_dict()["wheel_pick"], int(ControlsConfig.WheelPick.CLICK), "and it is in what is saved")
 	var back := Settings.new(PlayTuning.new())

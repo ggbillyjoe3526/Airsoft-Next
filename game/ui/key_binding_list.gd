@@ -10,9 +10,11 @@ signal rebound
 ## Something to tell the player, in one line.
 signal note(text: String)
 
-const ROW_LABEL_WIDTH := 344.0
-const KEY_BUTTON_WIDTH := 200.0
-const ROW_GAP := 4
+const ROW_LABEL_WIDTH := 300.0
+## One fixed width for every key's box (a field, owner 2026-10-29), wide enough for the longest key name and PRESS A KEY.
+const KEY_BUTTON_WIDTH := 170.0
+const ROW_GAP := 6
+const ROW_SEPARATION := 8
 
 var _settings: Settings = null
 var _buttons: Dictionary[StringName, Array] = {}
@@ -28,14 +30,17 @@ func _ready() -> void:
 	add_theme_constant_override("separation", ROW_GAP)
 	for action: StringName in KeyBindings.ACTIONS:
 		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", ROW_SEPARATION)
 		var label := Label.new()
 		label.text = tr(label_key(action))
+		GameTheme.row_label(label)
 		label.custom_minimum_size = Vector2(ROW_LABEL_WIDTH, 0.0)
 		row.add_child(label)
 		var pair: Array[Button] = []
 		for slot in KeyBindings.SLOTS:
 			var b := Button.new()
-			b.custom_minimum_size = Vector2(KEY_BUTTON_WIDTH, 0.0)
+			GameTheme.small_button(b)
+			b.custom_minimum_size.x = KEY_BUTTON_WIDTH
 			b.pressed.connect(begin.bind(action, slot))
 			row.add_child(b)
 			pair.append(b)

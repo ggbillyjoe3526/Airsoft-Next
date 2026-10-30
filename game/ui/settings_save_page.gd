@@ -285,7 +285,8 @@ func _build_your_save(col: VBoxContainer) -> void:
 	row.add_child(_when)
 	_warnings = _note_label("", GameTheme.BAD)
 	col.add_child(_warnings)
-	col.add_child(_note_label(tr("SAVE_AUTOMATIC_HELP"), GameTheme.MUTED))
+	# what saves, and when: the status line's tooltip (UI1)
+	status.tooltip_text = tr("SAVE_AUTOMATIC_HELP")
 	var grid := GridContainer.new()
 	grid.columns = TILE_COLUMNS
 	grid.add_theme_constant_override("h_separation", TILE_GAP)
@@ -325,7 +326,8 @@ func _build_folder(col: VBoxContainer) -> void:
 	_open = _button("SAVE_OPEN_FOLDER", Color(0.0, 0.0, 0.0, 0.0), GameTheme.YELLOW, GameTheme.TEXT)
 	_open.pressed.connect(_open_folder)
 	row.add_child(_open)
-	col.add_child(_note_label(tr("SAVE_FOLDER_HELP"), GameTheme.MUTED))
+	_path.tooltip_text = tr("SAVE_FOLDER_HELP")
+	_path.mouse_filter = Control.MOUSE_FILTER_PASS
 	_folder_note = _note_label(tr("SAVE_FOLDER_UNOPENED"), GameTheme.BAD)
 	_folder_note.visible = false
 	col.add_child(_folder_note)
@@ -706,8 +708,8 @@ static func paint(b: Button, fill: Color, edge: Color, ink: Color, size: int, pa
 	var looks: Dictionary[String, StyleBoxFlat] = {"normal": GameTheme.box(fill, edge, pad.x, pad.y),
 			"hover": GameTheme.box(hover, edge, pad.x, pad.y), "pressed": GameTheme.box(hover, edge, pad.x, pad.y),
 			"disabled": GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), GameTheme.LINE, pad.x, pad.y)}
-	for state: String in looks:
-		b.add_theme_stylebox_override(state, looks[state])
+	GameTheme.dress(b, looks["normal"], looks["hover"], looks["pressed"])
+	b.add_theme_stylebox_override("disabled", looks["disabled"])
 	for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		b.add_theme_color_override(colour, ink)
 	b.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, size))
