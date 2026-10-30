@@ -1,17 +1,42 @@
-Task: HD2 · QA re-check after fix round 1 (worker bf3b903) · Verdict: Pass
+Task: RL2 · QA commit (see git log, subject "RL2 QA") · Verdict: Pass
 
-Both blocking findings are fixed.
-1. Cards on screen: at 150% with the hit call and banner up (720p, 1080p, 4K, 21:9, 4:3) the XP card, summary panels and round table all sit inside the screen. The stack hangs from MARGIN while the summary hides the score bar, and `_fit_summary` / `_fit_round_result` shrink the cards to the height left.
-2. Stale slot: the next round's banner now sits right under the score bar after a round-ending hit (ROUND 2 at 143, was 287).
+Scope: git diff origin/main...HEAD (24ed35c). Hunted manual vs automatic across: empty with and without spares,
+held AUTO trigger and a burst running dry, vault, sprint, swap to the pistol and back, a draw with R queued, a spare
+arriving while empty (magazine toss), range/practice, pause/resume with a rebind, death, round over, holster, bots, and
+the settings row and save/load.
 
-Worst case, 150% HUD size, level-up card, call + banner
-- Summary (bar hidden, step line up): fit 0.665, about 1.0 effective with the HUD size, so text keeps its 17 px.
-- Round table under the call, banner, step-down line: scale 0.62 (0.93 effective, about 16 px text). With the flag gauge as well (Attack / Defend): 0.49 (0.74 effective, about 12 px text), still readable and on screen.
-- Only when the capture warning is forced on as well does it reach the 0.25 floor (about 6 px), which cannot happen at a round's end (the warning needs a live round).
-- The floor never clips: the table at 0.25 still ends inside the screen.
-Scaling about the top middle: the summary panels, XP card and round table are all mouse-ignore (no buttons), so nothing to click where drawn. The summary's click to start the next match is handled elsewhere.
-Refit: HUD size and window changes mid-summary (80 / 150%, 16:9, 4:3, 21:9) keep every card inside the screen (new test).
-Picture: /mnt/project-files/screenshots/dev1-feedback/hd2-qa-150-cards.png (150%, call, banner, step line, flag gauge, round table). The table is on screen and small but legible.
+Blocking: none.
 
-Tests: tests/unit/test_hd2_qa.gd 10 tests (two new: refit mid-summary, readable round table), all pass with test_hd2_hit_call_stack (14 tests, 0 failing). gdlint clean. Full unit_tests.sh and smoke: worker reports 885/885 and OK; not re-run.
-Advisory: a hit call arriving while a banner is up pushes the banner down by the call's height (no overlap).
+Advisory (not blocking, for KNOWN_ISSUES or a later look):
+- game/ui/hud.gd:840 · the prompt is not read to a screen reader (HudAnnounce has no line for it) and nothing flashes
+  it for players who do not look under the crosshair; the owner's brief only asked for a prompt.
+- game/play/play_session.gd:1047 · `_hud.manual_reload` reads the player's last command; after Settings is changed to
+  Automatic from the pause menu, the prompt lingers until the first physics tick after resume (one frame). Harmless.
+- game/ui/hud.gd:840 · the prompt also shows while a draw is under way (R then only queues the reload); correct, the
+  press is kept, and it hides once R is pressed (reload_queued).
+
+Checked and fine: a dry click while sprinting is not made at all (can_fire false) and R still loads; the setting
+rides the command through a vault (vaulting_command and with_held_presses) and into the range pilot / autopilot / bots
+(reset to false, so they keep the dry-click reload); the eliminated and idle commands never pull a trigger; a corrupt
+"auto_reload" (string, number, null, array) loads Manual and Automatic round-trips; a missing file is Manual.
+
+Tests added: tests/unit/test_rl2_qa.gd (15, all pass)
+- :41 held AUTO trigger runs dry: 3 shots, one dry click, no reload · fails with the dry-click reload (Automatic path).
+- :54 burst dry midway ends, no reload · same.
+- :66 no spare: no prompt, dry click, R refused · pins reload_due and RELOAD_REFUSED under Manual.
+- :77 swap to the pistol and back never loads the empty rifle · same.
+- :96 R during a draw queues, prompt not due after; reload runs once up.
+- :112 sprint: no dry click, R loads.
+- :122 a spare arriving while empty makes the prompt due but never loads.
+- :133 the setting holds through a vault; :152 Automatic through a vault still reloads · checked by restoring
+  origin/main game/sim/vault.gd: the Manual vault test then fails (2 asserts), restored afterwards.
+- :165 eliminated command; :178 prompt hides at round OVER and returns; :195 holstered and swapped-to-full hide;
+  :210 a rebind shows on refresh_key, not before; :228 prompt ignores the mouse, no orphan; :239 corrupt values and a file
+  round trip.
+
+Runs: targeted 218/218 (pipeline/out/qa/targeted.txt); tools/check.sh: gdlint, changelog, wiki, units 1-3 (3802/3802),
+smoke, licences all green (pipeline/out/qa/check.txt).
+Not tested: how the prompt looks and reads in play on Forward+, a real rebind through the settings UI and resume, and
+focus loss with the prompt up (needs a display); for the owner's list.
+
+Verdict: Pass
