@@ -36,8 +36,8 @@ replays the same match.
 
 What to play in the build in your hands: your checklist of open checks is
 `/mnt/project-files/playtest/0.1-dev2-checklist.md` in the project's shared files (0.1 Dev 1's, all done, is
-`0.1-dev1-checklist.md`), and each pull request names its sections here. For the core slice: [Movement](#movement), [Shooting and reloads](#shooting-and-reloads),
-[BBs](#bbs), [Players and replicas](#players-and-replicas), [Rounds and matches](#rounds-and-matches),
+`0.1-dev1-checklist.md`), and each pull request names its sections here. For the core slice:
+[Movement](#movement), [Shooting and reloads](#shooting-and-reloads), [BBs](#bbs), [Players and replicas](#players-and-replicas), [Rounds and matches](#rounds-and-matches),
 [Depot](#depot), [Bots](#bots) and [Builds and the desktop](#builds-and-the-desktop).
 
 ### Only you can do these

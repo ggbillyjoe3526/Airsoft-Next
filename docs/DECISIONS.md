@@ -62,13 +62,10 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
   callouts and adaptive difficulty are built after Woodland (`docs/ROADMAP.md` › Build order, step 27, one step since
   2026-10-24), so the
   core systems (match info, minimap, sound, bots) come first.
-- **Blender work comes last (owner, 2026-10-22).** Anything that needs Blender (figures, first-person arms, Inspect,
-  replica and part remodels, Depot's set dressing, the art pass) is step 28 (was 32), because the owner must be at
-  his PC to connect Blender. Code-only parts, built against today's placeholder models, may still go earlier.
 - **No Blender step in 0.1 Dev 1 (owner, 2026-10-29).** Step 28 is scrapped: modelling Depot now is wasted if the
   map is redesigned. After step 27 the owner playtests, a feedback and bug pass follows, then he tags 0.1 Dev 1. 0.1
   Dev 2 redesigns Depot and Woodland and dresses them with CC0 assets; Blender work starts when he says, Depot's
-  models first, then Woodland's. This replaces the step 28 above. 0.1 Dev 2 also brings basic smoke and flash
+  models first, then Woodland's. This replaces the 2026-10-22 ruling that made Blender step 28 (archived). 0.1 Dev 2 also brings basic smoke and flash
   bombs, thrown by bots too; the CO2 sound grenade, rigs and pouches and the rest stay in 0.2.
 - **The Blender step covers Depot, human figures and replicas only (owner, 2026-10-24).** Step 28 models Depot's assets
   (with the range's, which lives in Depot; the tutorial was dropped on 2026-10-25), the human figures with your
@@ -124,12 +121,11 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
 - **The sequence is 0.1 Dev 1, Dev 2, Dev 3 …, then 0.1 Beta 1, Beta 2 …, then 0.1 (owner, 2026-10-18).** "The first
   playable build will be tagged as "0.1 Dev 1" … and then finally on to 0.1." The first public release is named 0.1;
   its tag keeps the 2026-10-05 form, `0.1.0`.
-- **A release's version comes from the owner's tag and is never bumped by hand (owner, 2026-10-18).** The release workflow
-  writes it into the build, exports Windows and Linux and publishes a pre-release with notes from the changelog.
-- **Between releases, `config/version` names the build being made (owner, 2026-10-30: "Update the game to version 0.1
-  Dev 2").** Once a tag is out, the next pull request sets `project.godot`'s `config/version` to the next name, so a
-  source run and a dry-run build read "0.1 Dev 2", not the build already released. The release still writes its tag's
-  name into the build.
+- **A release's version comes from the owner's tag (owner, 2026-10-18); between releases `config/version` names the
+  build being made (owner, 2026-10-30).** The release workflow writes the tag's name into the build, exports Windows
+  and Linux and publishes a pre-release with notes from the changelog. Once a tag is out, the release checklist's pull
+  request sets `project.godot`'s `config/version` to the next name ("Update the game to version 0.1 Dev 2"), so a
+  source run and a dry-run build name the build being made, not the one already released.
 
 ## How work runs
 
@@ -240,7 +236,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   to drop a glTF model into the assets folder (M25a) doesn't carry.
 - **Today's models are temporary placeholders; the owner redesigns them all in Blender at higher quality (owner,
   2026-10-18).** They were built small for a web browser. His art pass covers players, replicas, attachments and
-  other assets, at step 28 of `docs/ROADMAP.md` › Build order (Blender work comes last, owner 2026-10-22); until then every task uses the current models.
+  other assets when he starts Blender work (owner, 2026-10-29: after 0.1 Dev 1, Depot's models first); until then
+  every task uses the current models.
 - **Baked light is our own per-vertex bake, not LightmapGI or SDFGI (owner, 2026-10-24: take the recommended defaults;
   DP2).** LightmapGI bakes only in the editor on a GPU, so neither a cloud session nor CI could make or check it.
   `tools/bake_light.gd` bakes headless, on the engine's TriangleMesh rays: per vertex of the greybox cut into 0.5 m
