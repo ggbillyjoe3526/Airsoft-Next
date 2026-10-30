@@ -1,15 +1,15 @@
 # UI1 · Compact, steady menus after William's second look (fix, UI)
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-30 | 1 | worker | see Verified and Gate | – | – |
+| 2026-10-30 | 1 | worker | see Verified and Gate; QA Fail, performance Pass | – | – |
 | 2026-10-30 | 1, fix round 1 | worker | see Fix round 1 | – | QA failed: FPS over the LVL chip; Match, Settings prose |
-| 2026-10-30 | 1, fix round 2 | worker | see Fix round 2 | – | 4K menus small, Match half empty (coordinator) |
-| 2026-10-30 | 2 (fix round 3) | worker | see Fix round 3 | Retry 7/8 | prose on BBs, Armory, Dev, order wheel; unlabelled squares |
+| 2026-10-30 | 1, fix round 2 | worker | see Fix round 2; QA Pass, performance Pass | Retry 7/8 | 4K menus small, Match half empty (coordinator) |
+| 2026-10-30 | 2 (fix round 3) | worker | see Fix round 3; QA Pass | Accept 8/8 | prose on BBs, Armory, Dev, order wheel; unlabelled squares |
 
 ## Goal
 
@@ -94,6 +94,13 @@ scope; every setting and behaviour is kept.
   the switch press `ui1-after-1080-switch-display-*.png`.
 - Not verified: how tooltips feel (delay, where they show), Forward+, Windows, a 4K screen with Windows scaling,
   keyboard-only navigation beyond the focus ring.
+
+## Advisories left
+
+- **HUD SIZE** repeats "100%" under the slider at the default; hide the number there (critic).
+- **Match:** empty room under Mode and Rules; team buttons 48 px tall against 34 for other controls (critic, QA).
+- **The reduced-motion line** "It doesn't say" reads oddly; `settings_screen.gd` is about 770 lines (critic).
+- **Kept on purpose:** the key-binding hint, "Auto: against Hard bots only." and the hop-up line (critic).
 
 ## Gate
 
