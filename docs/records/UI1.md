@@ -81,11 +81,19 @@ scope; every setting and behaviour is kept.
   its notice, QUIT GAME?, the credits, both pause menus and the report panel; nothing past the window's edge; no label
   cut by a clipping box (seen failing on the old Armory and on a wordmark box narrower than the word); the tag above its
   preset, centred, not inside it.
-- Updated on purpose: `test_settings_screen.gd`, `test_so4_qa.gd`, `test_fb1_menus.gd`, `test_cr2_rules.gd`.
-- Pictures: see the report.
+- Updated on purpose: `test_settings_screen.gd` (help counted in tooltips; row labels in capitals), `test_so4_qa.gd`,
+  `test_so4_orders_hud.gd` (the order wheel and Crouch / Aim are choices), `test_fb1_menus.gd` (a switch has no words),
+  `test_cr2_rules.gd` (Custom's shorter line), `test_match_page.gd` (the map line is a tooltip), `test_rg4_practice.gd`
+  (the faded part is the level row's margin). `MenuChoice` now shows a pick sent as `pressed` from code too.
+- Pictures (Compatibility under Xvfb): `/mnt/project-files/screenshots/dev1-feedback/ui1-after-{720,1080,1440}-*.png`
+  for every screen, `ui1-after-2160-*.png` (Match, Loadout, Armory, Controls, Graphics), before pictures
+  `ui1-before-720-*.png` and `ui1-before-main-1080-*.png`, the pressed crumb `ui1-{before,after}-crumb-loadout-pressed-zoom.png`,
+  the switch press `ui1-after-1080-switch-display-*.png`.
 - Not verified: how tooltips feel (delay, where they show), Forward+, Windows, a 4K screen with Windows scaling,
   keyboard-only navigation beyond the focus ring.
 
 ## Gate
 
-- Pending.
+- gdlint clean on every changed `.gd`.
+- Unit tests: part 1 885 of 885, part 2 1961 of 1961, part 3 936 of 936 (the full run after the last change).
+- `tools/smoke_test.sh`: PASS, zero script errors. `python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK.

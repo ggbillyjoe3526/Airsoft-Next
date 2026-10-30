@@ -79,4 +79,6 @@ func add(b: Button) -> void:
 
 
 func _on_pressed(index: int) -> void:
+	# the pick shows whoever pressed it (a click toggles the button; a `pressed` sent from code does not)
+	put(index)
 	picked.emit(index)
