@@ -636,6 +636,14 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   Cards with a picture or a paragraph (maps, modes, replicas, parts) are panels, not buttons, and still fill their
   column; quiet text links (Report a Bug, Licences, Rename) are words, not boxes; a key's box in the Controls list is a
   field and keeps one fixed width.
+- **Compact, steady menus; help only where it is needed (owner, 2026-10-29; UI1).** "Go over the entire menu UI and
+  make it more compact … There should be no overlayed elements, clipping, change of text, movement … Only keep
+  text/descriptions/information if it is important." Every menu control is one height (`GameTheme.CONTROL_HEIGHT`, 34 px
+  at 1080p) on one type scale (labels 16 px capitals, controls 14 px, notes 14 px); a switch is a fixed-size pill with no
+  words. Pressing, hovering or picking anything moves and resizes nothing else, and every button carries every state's
+  box (`GameTheme.dress`), so no state cuts its words. A line of help stays on screen only where a player would be stuck
+  or surprised (the key-binding hint, the order wheel's Hover and Click, "From the next start.", what Custom rules
+  cost); the rest is the row's tooltip.
 - **The wordmark goes home, and Esc anywhere in the menus asks to quit (owner, 2026-10-29; FB1).** A click on AIRSOFT in
   the top bar goes to the title screen (not from the Loadout in practice, which has no title). Esc in the menus, the
   title and Settings included, opens QUIT GAME? with QUIT and CANCEL, the focus on CANCEL; Esc again or CANCEL closes it.

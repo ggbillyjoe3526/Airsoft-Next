@@ -3,7 +3,7 @@ extends CheckButton
 ## A Settings On/Off switch: a pill with a knob, yellow with the knob at the right when on, the line colour with the knob
 ## at the left when off (UI1). It has no words, and its size is fixed (WIDTH by GameTheme.CONTROL_HEIGHT) whatever its
 ## state, hovered or pressed: every state's box is empty and the pill is drawn here, so clicking it moves nothing beside it
-## (owner, 2026-10-30: "on/off toggles ... still affect other UI elements"; the old switch was words in a box, and the box
+## (owner, 2026-10-29: "on/off toggles ... still affect other UI elements"; the old switch was words in a box, and the box
 ## Godot drew while it was on under the pointer had other margins, so the row shrank by 8 px as it was clicked).
 
 ## The control's width, the pill's size and the knob's inset (px at 1080p).

@@ -14,7 +14,7 @@ signal closed
 ## The shade over the screen (the page colour, this opaque), the panel's width, its inner margins and the yellow rule on
 ## top (px at 1080p).
 const SHADE_ALPHA := 0.72
-const WIDTH := 560.0
+const WIDTH := 420.0
 const PAD := Vector2i(36, 30)
 const RULE := 5
 ## The words' sizes, the gap between the parts and the buttons' margins (px).

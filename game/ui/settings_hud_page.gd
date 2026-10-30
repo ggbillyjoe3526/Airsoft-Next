@@ -226,6 +226,10 @@ func _hud_size_row(column: Control) -> HSlider:
 
 ## The minimap's section: Turn (Rotating or Fixed) with a note under it, and the two samples beside them.
 func _build_minimap(right: VBoxContainer) -> void:
+	# the section's gap goes above the whole block: the samples start level with the heading
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0.0, SettingsScreen.SECTION_GAP)
+	right.add_child(gap)
 	var block := HBoxContainer.new()
 	right.add_child(block)
 	var rows := VBoxContainer.new()

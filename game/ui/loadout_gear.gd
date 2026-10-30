@@ -46,6 +46,9 @@ const REPLICA_PICTURE_PAD := Vector2(10.0, 8.0)
 const REPLICA_NAME_SIZE := 20
 const REPLICA_SUB_SIZE := 15
 const REPLICA_TEXT_GAP := 4
+## The list is never narrower than a picture and a name, in a window too small for the page (its old, larger heading
+## used to hold it this wide).
+const REPLICAS_MIN_WIDTH := 320.0
 ## The range's note under the list (concept `loadout-practice.png`): the gap above, the padding (left past the rule, top,
 ## right, bottom; the left is past the rule), the rule's width, the kicker's and the words' sizes and the words' extra line spacing (px at 1080p).
 const NOTE_GAP := 28
@@ -300,6 +303,7 @@ func _build_grenades() -> Control:
 func _build_replicas() -> Control:
 	var column := MenuParts.section(MenuParts.heading(tr("LOADOUT_REPLICAS")))
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.custom_minimum_size.x = REPLICAS_MIN_WIDTH
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override("separation", REPLICA_GAP)
 	column.add_child(list)

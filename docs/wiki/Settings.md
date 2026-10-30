@@ -2,8 +2,9 @@
 
 Open **Settings** from the title screen's top bar or the pause menu. Every change applies at once, even in the middle
 of a match, and is saved straight away. If the settings file is ever damaged, the game starts on the defaults and
-says so. **Back**, a small button at the bottom left, closes Settings. A switch (On, Off, Hold, Toggle) keeps its size
-when you press it, so nothing around it moves.
+says so. **Back**, a small button at the bottom left, closes Settings. An On/Off setting is a switch: yellow with the
+knob at the right when on. Nothing on the screen moves or changes size when you press a switch or pick a choice. Rest
+the pointer on a row to see what it does.
 
 ## Controls
 
@@ -20,11 +21,11 @@ Volumes for **Master**, **Effects**, **Power source** (the motor or gas part of 
 
 ## Display
 
-- **Window mode:** Windowed, Borderless fullscreen or Exclusive fullscreen. A new game opens in Exclusive fullscreen, on the screen the
-  game starts on; after that it opens in the mode you left.
+- **Window mode:** Windowed, Borderless (a borderless fullscreen window) or Fullscreen (exclusive). A new game opens in
+  Fullscreen, on the screen the game starts on; after that it opens in the mode you left.
   **F11** or **Alt+Enter** switches between windowed and your last fullscreen mode.
 - **Monitor:** with two screens or more, the screen the window opens on.
-- **V-Sync** (off by default) and a **Frame rate** limit: Unlimited, or 30 to 360 frames a second. In the background
+- **V-Sync** (off by default) and a **Frame-rate limit**: 30 to 360 frames a second, or Off for no limit. In the background
   the game drops to 30 frames a second. The title and menus never draw more frames than your screen shows, whatever
   the limit.
 - **Field of view** and **Show FPS**.

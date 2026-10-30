@@ -298,6 +298,7 @@ func test_an_old_or_wild_settings_file_shows_hover() -> void:
 	var s := Settings.new(PlayTuning.new())
 	s.from_dict({"sensitivity": 1.0})
 	var screen := _screen(s)
+	screen.open()
 	assert_eq(screen._wheel_pick.selected(), 0, "no saved choice: Hover")
 	assert_eq(screen._wheel_pick.button(0).text, "HOVER")
 	s.from_dict({"wheel_pick": 99})

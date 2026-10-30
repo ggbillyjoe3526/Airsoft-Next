@@ -621,6 +621,13 @@ pays XP ×1.5.
 - [ ] **Switches stay put (FB1).** Press each On / Off (and Hold / Toggle) switch on every Settings tab: nothing beside
   it moves, resizes or vanishes. On Graphics the "FOR YOUR CARD" tag is whole, and pressing a switch (the preset
   becomes Custom) doesn't shift the rows under the preset line.
+- [ ] **Compact and steady menus (UI1).** At 1920×1080, 1280×720 and your 4K screen go through the title, Match,
+  Loadout, Customise (every part), Armory, every Settings tab, the pause menu, QUIT GAME?, Report a Bug and the
+  credits. Buttons and switches are one height and one type size; no word is cut, nothing lies over anything else and
+  nothing runs off the window (the Armory's starting kit wraps to a second line). Click every switch and choice, hover,
+  hold the mouse down and let go: nothing else on the screen moves or changes size. In Customise press and hold
+  **‹ LOADOUT**: it still reads LOADOUT. On Graphics **FOR YOUR CARD** sits above its preset. Rest the pointer on a row,
+  a bot level, a mode or a map card: its old line of help is the tooltip. Tell me any help you now miss.
 - [ ] **The top bar** on every screen after the title: MATCH, LOADOUT, ARMORY, SETTINGS, your level and XP bar on the
   right, the current place marked.
 - [ ] **The Match screen** (START). 01 Map as picture cards (a Day | Night switch where a map has both), 02 Mode as
