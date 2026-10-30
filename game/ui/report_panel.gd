@@ -406,10 +406,9 @@ func _button(parent: Control, words: String, edge: Color, solid: bool) -> Button
 	b.add_theme_font_override("font", GameTheme.spaced_font(800, BUTTON_SPACING, BUTTON_SIZE))
 	b.add_theme_font_size_override("font_size", BUTTON_SIZE)
 	var fill := edge if solid else GameTheme.CARD
-	b.add_theme_stylebox_override("normal", GameTheme.box(fill, edge, BUTTON_PAD_X, 0))
-	b.add_theme_stylebox_override("pressed", GameTheme.box(fill, edge, BUTTON_PAD_X, 0))
-	b.add_theme_stylebox_override("hover", GameTheme.box(fill.lightened(HOVER_LIGHTEN) if solid else GameTheme.CARD_HI, edge,
-			BUTTON_PAD_X, 0))
+	var plain := GameTheme.box(fill, edge, BUTTON_PAD_X, 0)
+	GameTheme.dress(b, plain, GameTheme.box(fill.lightened(HOVER_LIGHTEN) if solid else GameTheme.CARD_HI, edge,
+			BUTTON_PAD_X, 0), plain)
 	if solid:
 		for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 			b.add_theme_color_override(colour, GameTheme.YELLOW_INK)

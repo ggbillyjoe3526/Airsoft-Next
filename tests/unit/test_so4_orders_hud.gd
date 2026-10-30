@@ -364,16 +364,18 @@ func test_settings_has_the_order_wheel_row() -> void:
 	screen.settings = s
 	screen.save_path = SAVE
 	add_child_autofree(screen)
+	screen.open()
+	# Hover | Click, a choice since UI1
 	var row := screen._wheel_pick
 	assert_not_null(row)
-	assert_false(row.button_pressed, "Hover by default")
-	assert_eq(row.text, "Hover")
-	row.button_pressed = true
+	assert_eq(row.selected(), 0, "Hover by default")
+	assert_eq([row.button(0).text, row.button(1).text], ["HOVER", "CLICK"])
+	row.button(1).pressed.emit()
 	assert_eq(s.wheel_pick, ControlsConfig.WheelPick.CLICK)
-	assert_eq(row.text, "Click")
-	row.button_pressed = false
+	assert_eq(row.selected(), 1)
+	row.button(0).pressed.emit()
 	assert_eq(s.wheel_pick, ControlsConfig.WheelPick.HOVER)
 	s.wheel_pick = ControlsConfig.WheelPick.CLICK
 	screen._refresh()
-	assert_true(row.button_pressed, "shows what is saved")
+	assert_eq(row.selected(), 1, "shows what is saved")
 	DirAccess.remove_absolute(SAVE)

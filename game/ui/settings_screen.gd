@@ -15,14 +15,22 @@ extends Control
 signal closed
 
 const MARGIN_X := 56.0
-const MARGIN_Y := 40.0
+const MARGIN_Y := 28.0
 const SAVE_DELAY := 0.5
-const ROW_LABEL_WIDTH := 320.0
-const SLIDER_WIDTH := 420.0
-const READOUT_WIDTH := 90.0
-const BOX_WIDTH := 150.0
+## The rows' one design (UI1): a name LABEL_WIDTH wide, ROW_SEPARATION, then the control, every row at least
+## GameTheme.CONTROL_HEIGHT tall and ROW_GAP apart; a section's heading SECTION_GAP under the row before it.
+const ROW_LABEL_WIDTH := 280.0
+const ROW_SEPARATION := 16
+const SLIDER_WIDTH := 280.0
+const READOUT_WIDTH := 72.0
+const BOX_WIDTH := 120.0
 const ROW_GAP := 8
-const SECTION_GAP := 20
+const SECTION_GAP := 18
+## The Controls tab's two columns: the left's width and the gap (px).
+const CONTROLS_LEFT := 760.0
+const COLUMN_GAP := 48
+## The page heading's size (px at 1080p).
+const HEADING_SIZE := 34
 ## cm/360 boxes: the widest range a typed figure may be in before it is held to the sensitivity's range.
 const CM_MIN := 0.1
 const CM_MAX := 1000.0
@@ -43,6 +51,8 @@ var settings: Settings = null
 var save_path: String = Settings.PATH
 ## Whether Esc closes the screen (the pause menu's settings); off in the menus, where Esc asks QUIT GAME? instead.
 var esc_closes: bool = false
+## Whether the SETTINGS heading shows: not under the menus' top bar, whose lit SETTINGS tab already says it.
+var show_heading: bool = true
 ## The match's End the round now, set when opened from the pause menu (returns false when no round is live); empty
 ## from the title screen.
 var end_round: Callable = Callable()
@@ -59,6 +69,7 @@ var crash_now: Callable = Callable()
 var log_test_error: Callable = Callable()
 
 var _back: Button = null
+var _heading: Label = null
 var _tabs: TabContainer = null
 var _load_message: Label = null
 var _note: Label = null
@@ -69,10 +80,12 @@ var _aim_sensitivity: HSlider = null
 var _cm: SpinBox = null
 var _dpi: SpinBox = null
 var _invert: CheckButton = null
-var _crouch: CheckButton = null
-var _aim: CheckButton = null
-var _wheel_pick: CheckButton = null
-var _auto_reload: CheckButton = null
+## Hold or Toggle (0, 1), the order wheel's Hover or Click (0, 1) and Reload's Manual or Automatic (0, 1): two words
+## each, so a choice, not a switch.
+var _crouch: MenuChoice = null
+var _aim: MenuChoice = null
+var _wheel_pick: MenuChoice = null
+var _auto_reload: MenuChoice = null
 var _volume: Dictionary[StringName, HSlider] = {}
 var _display_page: SettingsDisplayPage = null
 var _graphics_page: SettingsGraphicsPage = null
@@ -110,11 +123,12 @@ func _ready() -> void:
 	box.offset_bottom = -MARGIN_Y
 	box.add_theme_constant_override("separation", ROW_GAP)
 	add_child(box)
-	var heading := Label.new()
-	heading.text = tr("SETTINGS_TITLE").to_upper()
-	heading.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, GameTheme.LARGE_SIZE))
-	heading.add_theme_font_size_override("font_size", GameTheme.LARGE_SIZE)
-	box.add_child(heading)
+	_heading = Label.new()
+	_heading.text = tr("SETTINGS_TITLE").to_upper()
+	_heading.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, HEADING_SIZE))
+	_heading.add_theme_font_size_override("font_size", HEADING_SIZE)
+	_heading.visible = show_heading
+	box.add_child(_heading)
 	_load_message = Label.new()
 	_load_message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_load_message.add_theme_color_override("font_color", GameTheme.YELLOW)
@@ -130,16 +144,24 @@ func _ready() -> void:
 	_build_access()
 	_build_save()
 	_build_dev()
-	_note = Label.new()
-	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	box.add_child(_note)
-	# BACK is a small button at the bottom left, as wide as its words (owner, 2026-10-29)
+	# the foot: BACK, a small button at the bottom left as wide as its words (owner, 2026-10-29), and the note of the last
+	# action beside it in a line of its own width, so a note never moves the tabs
+	var foot := HBoxContainer.new()
+	foot.add_theme_constant_override("separation", ROW_SEPARATION)
+	box.add_child(foot)
 	_back = Button.new()
 	_back.name = "Back"
 	_back.text = tr("SETTINGS_BACK").to_upper()
+	GameTheme.small_button(_back, GameTheme.YELLOW)
 	_back.pressed.connect(close)
 	ButtonWidth.group([_back])
-	box.add_child(_back)
+	foot.add_child(_back)
+	_note = Label.new()
+	GameTheme.note_label(_note)
+	_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_note.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	foot.add_child(_note)
 	_timer = Timer.new()
 	_timer.one_shot = true
 	_timer.wait_time = SAVE_DELAY
@@ -219,7 +241,19 @@ func _changed(immediate: bool = false) -> void:
 # --- Controls ---
 
 func _build_controls() -> void:
-	var page := _page(tr("SETTINGS_CONTROLS"))
+	var tab := _page(tr("SETTINGS_CONTROLS"))
+	# two columns: the mouse, stance and order wheel on the left, the keys on the right
+	var columns := HBoxContainer.new()
+	columns.add_theme_constant_override("separation", COLUMN_GAP)
+	tab.add_child(columns)
+	var page := VBoxContainer.new()
+	page.custom_minimum_size.x = CONTROLS_LEFT
+	page.add_theme_constant_override("separation", ROW_GAP)
+	columns.add_child(page)
+	var keys := VBoxContainer.new()
+	keys.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	keys.add_theme_constant_override("separation", ROW_GAP)
+	columns.add_child(keys)
 	add_section(page, tr("SETTINGS_MOUSE"))
 	_sensitivity = add_slider_row(page, "SETTINGS_SENSITIVITY", Sensitivity.MIN, Sensitivity.MAX, Sensitivity.STEP, "%.2f")
 	_sensitivity.value_changed.connect(_on_sensitivity)
@@ -235,38 +269,39 @@ func _build_controls() -> void:
 		settings.invert_y = on
 		_applied(SettingsApply.apply_controls, true))
 	add_section(page, tr("SETTINGS_STANCE"))
-	_crouch = add_check_row(page, "SETTINGS_CROUCH", "SETTINGS_TOGGLE", "SETTINGS_HOLD")
-	_crouch.toggled.connect(func(on: bool) -> void:
-		settings.crouch_toggle = on
+	var hold_toggle: Array[String] = ["SETTINGS_HOLD", "SETTINGS_TOGGLE"]
+	_crouch = add_choice_row(page, "SETTINGS_CROUCH", hold_toggle)
+	_crouch.picked.connect(func(i: int) -> void:
+		settings.crouch_toggle = i == 1
 		_applied(SettingsApply.apply_controls, true))
-	_aim = add_check_row(page, "SETTINGS_AIM", "SETTINGS_TOGGLE", "SETTINGS_HOLD")
-	_aim.toggled.connect(func(on: bool) -> void:
-		settings.aim_toggle = on
+	_aim = add_choice_row(page, "SETTINGS_AIM", hold_toggle)
+	_aim.picked.connect(func(i: int) -> void:
+		settings.aim_toggle = i == 1
 		_applied(SettingsApply.apply_controls, true))
-	_auto_reload = add_check_row(page, "SETTINGS_RELOAD", "SETTINGS_RELOAD_AUTO", "SETTINGS_RELOAD_MANUAL")
-	_auto_reload.toggled.connect(func(on: bool) -> void:
-		settings.auto_reload = on
+	# Manual or Automatic (RL2), a choice like Crouch and Aim (UI1)
+	_auto_reload = add_choice_row(page, "SETTINGS_RELOAD", ["SETTINGS_RELOAD_MANUAL", "SETTINGS_RELOAD_AUTO"])
+	_auto_reload.picked.connect(func(i: int) -> void:
+		settings.auto_reload = i == 1
 		_applied(SettingsApply.apply_controls, true))
-	add_section(page, tr("SETTINGS_KEYS"))
-	var hint := Label.new()
-	hint.text = tr("SETTINGS_KEYS_HINT")
-	hint.add_theme_font_size_override("font_size", GameTheme.SMALL_SIZE)
-	page.add_child(hint)
+	add_section(page, tr("SETTINGS_ORDERS"))
+	_wheel_pick = add_choice_row(page, "SETTINGS_ORDER_WHEEL", ["SETTINGS_WHEEL_HOVER", "SETTINGS_WHEEL_CLICK"])
+	_wheel_pick.picked.connect(func(i: int) -> void:
+		settings.wheel_pick = ControlsConfig.WheelPick.CLICK if i == 1 else ControlsConfig.WheelPick.HOVER
+		_applied(SettingsApply.apply_controls, true))
+	# how Hover and Click work: the choice's tooltip, no paragraph under it (UI1 round 3)
+	explain(_wheel_pick.get_parent() as Control, tr("SETTINGS_ORDERS_HELP"))
+	add_section(keys, tr("SETTINGS_KEYS"))
+	add_help(keys, "SETTINGS_KEYS_HINT")
 	_keys = KeyBindingList.new(settings)
 	_keys.rebound.connect(func() -> void: _changed(true))
 	_keys.note.connect(func(text: String) -> void: _note.text = text)
-	page.add_child(_keys)
+	keys.add_child(_keys)
 	var reset := Button.new()
-	reset.text = tr("SETTINGS_KEYS_RESET")
+	reset.text = tr("SETTINGS_KEYS_RESET").to_upper()
+	GameTheme.small_button(reset)
 	reset.pressed.connect(_keys.reset_all)
 	ButtonWidth.group([reset])
-	page.add_child(reset)
-	add_section(page, tr("SETTINGS_ORDERS"))
-	add_help(page, "SETTINGS_ORDERS_HELP")
-	_wheel_pick = add_check_row(page, "SETTINGS_ORDER_WHEEL", "SETTINGS_WHEEL_CLICK", "SETTINGS_WHEEL_HOVER")
-	_wheel_pick.toggled.connect(func(on: bool) -> void:
-		settings.wheel_pick = ControlsConfig.WheelPick.CLICK if on else ControlsConfig.WheelPick.HOVER
-		_applied(SettingsApply.apply_controls, true))
+	keys.add_child(reset)
 
 
 func _on_sensitivity(v: float) -> void:
@@ -399,33 +434,38 @@ func can_replace() -> bool:
 func _build_dev() -> void:
 	_dev_page = _page(tr("SETTINGS_DEV"))
 	var page := _dev_page as VBoxContainer
-	add_help(page, "DEV_INTRO")
+	# one line, the records warning; which settings it means is its tooltip, and each row's note the row's (UI1 round 3)
+	var intro := add_help(page, "DEV_RECORDS_LINE")
+	intro.tooltip_text = tr("DEV_INTRO")
+	intro.mouse_filter = Control.MOUSE_FILTER_PASS
 	add_section(page, tr("DEV_SWITCHES"))
 	_speed = add_slider_row(page, "DEV_GAME_SPEED", DevCheats.SPEED_MIN * 100.0, DevCheats.SPEED_MAX * 100.0,
 			DevSettings.SPEED_STEP * 100.0, "%d %%")
 	_speed.value_changed.connect(func(v: float) -> void:
 		settings.dev.game_speed = v / 100.0
 		_changed())
-	add_help(page, "DEV_GAME_SPEED_HELP")
+	explain(_speed.get_parent() as Control, tr("DEV_GAME_SPEED_HELP"))
 	for field: StringName in DEV_SWITCHES:
 		var key := "DEV_" + String(field).to_upper()
 		var check := add_check_row(page, key, "SETTINGS_ON", "SETTINGS_OFF")
 		check.toggled.connect(_on_dev_switch.bind(field))
 		_dev_checks[field] = check
-		add_help(page, key + "_HELP")
+		explain(check.get_parent() as Control, tr(key + "_HELP"))
 	_build_time_of_day(page)
 	add_section(page, tr("DEV_ACTIONS"))
 	var end_row := add_row(page, "DEV_END_ROUND")
 	_end_round = Button.new()
-	_end_round.text = tr("DEV_END_ROUND_BUTTON")
+	_end_round.text = tr("DEV_END_ROUND_BUTTON").to_upper()
+	GameTheme.small_button(_end_round)
 	_end_round.pressed.connect(_on_end_round)
 	end_row.add_child(_end_round)
-	add_help(page, "DEV_END_ROUND_HELP")
+	explain(end_row, tr("DEV_END_ROUND_HELP"))
 	var level_row := add_row(page, "DEV_RESET_LEVEL")
 	var reset_level := Button.new()
-	reset_level.text = tr("DEV_RESET_LEVEL_BUTTON")
+	reset_level.text = tr("DEV_RESET_LEVEL_BUTTON").to_upper()
+	GameTheme.small_button(reset_level)
 	level_row.add_child(reset_level)
-	add_help(page, "DEV_RESET_LEVEL_HELP")
+	explain(level_row, tr("DEV_RESET_LEVEL_HELP"))
 	_confirm_level = ConfirmationDialog.new()
 	_confirm_level.title = tr("DEV_RESET_LEVEL_TITLE")
 	_confirm_level.dialog_text = tr("DEV_RESET_LEVEL_QUESTION")
@@ -448,7 +488,7 @@ func _build_time_of_day(page: VBoxContainer) -> void:
 	_time_of_day.picked.connect(func(i: int) -> void:
 		settings.dev.time_of_day = DEV_TIMES[i]
 		_changed(true))
-	add_help(page, "DEV_TIME_OF_DAY_HELP")
+	explain(row, tr("DEV_TIME_OF_DAY_HELP"))
 
 
 ## Dev › Time of day's choice.
@@ -461,16 +501,18 @@ func _build_dev_checks(page: VBoxContainer) -> Array[Button]:
 	var error_row := add_row(page, "DEV_TEST_ERROR")
 	var error := Button.new()
 	error.name = "LogTestError"
-	error.text = tr("DEV_TEST_ERROR_BUTTON")
+	error.text = tr("DEV_TEST_ERROR_BUTTON").to_upper()
+	GameTheme.small_button(error)
 	error.pressed.connect(_on_test_error)
 	error_row.add_child(error)
-	add_help(page, "DEV_TEST_ERROR_HELP")
+	explain(error_row, tr("DEV_TEST_ERROR_HELP"))
 	var crash_row := add_row(page, "DEV_CRASH")
 	var crash := Button.new()
 	crash.name = "CrashNow"
-	crash.text = tr("DEV_CRASH_BUTTON")
+	crash.text = tr("DEV_CRASH_BUTTON").to_upper()
+	GameTheme.small_button(crash)
 	crash_row.add_child(crash)
-	add_help(page, "DEV_CRASH_HELP")
+	explain(crash_row, tr("DEV_CRASH_HELP"))
 	_confirm_crash = ConfirmationDialog.new()
 	_confirm_crash.title = tr("DEV_CRASH_TITLE")
 	_confirm_crash.dialog_text = tr("DEV_CRASH_QUESTION")
@@ -537,10 +579,10 @@ func _refresh() -> void:
 	_dpi.set_value_no_signal(settings.mouse_dpi)
 	_show_cm()
 	set_check(_invert, settings.invert_y)
-	set_check(_crouch, settings.crouch_toggle)
-	set_check(_aim, settings.aim_toggle)
-	set_check(_auto_reload, settings.auto_reload)
-	set_check(_wheel_pick, settings.wheel_pick == ControlsConfig.WheelPick.CLICK)
+	_crouch.put(int(settings.crouch_toggle))
+	_aim.put(int(settings.aim_toggle))
+	_auto_reload.put(int(settings.auto_reload))
+	_wheel_pick.put(int(settings.wheel_pick == ControlsConfig.WheelPick.CLICK))
 	_keys.refresh()
 	for bus: StringName in Settings.VOLUME_BUSES:
 		set_slider(_volume[bus], settings.volumes[bus] * 100.0)
@@ -573,26 +615,50 @@ func _page(title: String) -> VBoxContainer:
 
 
 func add_section(page: Control, text: String) -> void:
-	var gap := Control.new()
-	gap.custom_minimum_size = Vector2(0.0, SECTION_GAP)
-	page.add_child(gap)
+	if page.get_child_count() > 0:
+		var gap := Control.new()
+		gap.custom_minimum_size = Vector2(0.0, SECTION_GAP)
+		page.add_child(gap)
+	page.add_child(section_label(text))
+
+
+## A section's heading: `text` in spaced capitals, muted.
+static func section_label(text: String) -> Label:
 	var label := Label.new()
 	label.text = text.to_upper()
-	label.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_HEADING, GameTheme.HEADING_SIZE))
-	label.add_theme_font_size_override("font_size", GameTheme.HEADING_SIZE)
+	label.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_SECTION,
+			GameTheme.SECTION_SIZE))
+	label.add_theme_font_size_override("font_size", GameTheme.SECTION_SIZE)
 	label.add_theme_color_override("font_color", GameTheme.MUTED)
-	page.add_child(label)
+	return label
 
 
-## A row under `page` with its label (`label_key` translated, `width` px wide) first.
+## A row under `page`: its name (`label_key` translated, in capitals, `width` px wide), then what the caller adds; at
+## least one control tall.
 func add_row(page: Control, label_key: String, width: float = ROW_LABEL_WIDTH) -> HBoxContainer:
 	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", ROW_SEPARATION)
+	row.custom_minimum_size.y = GameTheme.CONTROL_HEIGHT
 	var label := Label.new()
 	label.text = tr(label_key)
+	GameTheme.row_label(label)
 	label.custom_minimum_size = Vector2(width, 0.0)
 	row.add_child(label)
 	page.add_child(row)
 	return row
+
+
+## A label and a row of choices (`keys` translated), none picked yet.
+func add_choice_row(page: Control, label_key: String, keys: Array[String],
+		width: float = ROW_LABEL_WIDTH) -> MenuChoice:
+	var row := add_row(page, label_key, width)
+	var words := PackedStringArray()
+	for key in keys:
+		words.append(tr(key))
+	var choice := MenuChoice.new(words)
+	choice.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(choice)
+	return choice
 
 
 ## A label, a slider and its figure; `fmt` shows the value.
@@ -608,6 +674,10 @@ func add_slider_row(page: Control, label_key: String, lo: float, hi: float, step
 	row.add_child(slider)
 	var readout := Label.new()
 	readout.custom_minimum_size = Vector2(READOUT_WIDTH, 0.0)
+	readout.add_theme_font_override("font", GameTheme.font(700))
+	readout.add_theme_font_size_override("font_size", GameTheme.LABEL_SIZE)
+	readout.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	readout.size_flags_vertical = Control.SIZE_FILL
 	row.add_child(readout)
 	slider.set_meta(&"readout", readout)
 	slider.set_meta(&"format", fmt)
@@ -631,23 +701,56 @@ func _spin_row(page: Control, label_key: String, lo: float, hi: float, step: flo
 	spin.min_value = lo
 	spin.max_value = hi
 	spin.step = step
-	spin.custom_minimum_size = Vector2(BOX_WIDTH, 0.0)
+	spin.custom_minimum_size = Vector2(BOX_WIDTH, GameTheme.CONTROL_HEIGHT)
+	spin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	spin.get_line_edit().add_theme_font_size_override("font_size", GameTheme.LABEL_SIZE)
+	spin.get_line_edit().add_theme_stylebox_override("normal", GameTheme.box(GameTheme.CARD, GameTheme.LINE,
+			GameTheme.CONTROL_PAD_X, 0))
+	spin.get_line_edit().add_theme_stylebox_override("focus", GameTheme.box(GameTheme.CARD, GameTheme.YELLOW,
+			GameTheme.CONTROL_PAD_X, 0))
 	row.add_child(spin)
 	return spin
 
 
-## A help line under a row, wrapped and in a quieter colour.
-func add_help(page: Control, key: String) -> void:
+## A help line under a row, wrapped and quiet, `indent` px in (under the controls, past the rows' names).
+func add_help(page: Control, key: String, indent: float = 0.0) -> Label:
 	var help := Label.new()
 	help.text = tr(key)
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	help.add_theme_color_override("font_color", GameTheme.MUTED)
-	help.add_theme_font_size_override("font_size", GameTheme.SMALL_SIZE)
+	GameTheme.note_label(help)
+	if indent > 0.0:
+		var margin := StyleBoxEmpty.new()
+		margin.content_margin_left = indent
+		help.add_theme_stylebox_override("normal", margin)
 	page.add_child(help)
+	return help
 
 
-## A label and a switch whose text says its state (`on_key` or `off_key`). The switch keeps one size whatever its state
-## (MenuSwitch), so pressing it moves nothing beside it.
+## A quiet note after a row's control (`text` as given), on the row's line.
+func add_note(row: Control, text: String) -> Label:
+	var note := Label.new()
+	note.text = text
+	GameTheme.note_label(note)
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(note)
+	return note
+
+
+## Puts `text` as the tooltip of `row` and of every button and slider in it, so the explanation of a row is under the
+## pointer wherever it rests on the row (UI1: help that would only clutter the page).
+func explain(row: Control, text: String) -> void:
+	row.tooltip_text = text
+	if row.mouse_filter == Control.MOUSE_FILTER_IGNORE:
+		row.mouse_filter = Control.MOUSE_FILTER_PASS
+	for c: Node in row.find_children("*", "", true, false):
+		if (c is BaseButton or c is Range) and (c as Control).tooltip_text == "":
+			(c as Control).tooltip_text = text
+
+
+## A label and an On/Off switch (MenuSwitch: a pill of one size, so pressing it moves nothing beside it); `on_key`
+## and `off_key` name its states in words.
 func add_check_row(page: Control, label_key: String, on_key: String, off_key: String,
 		width: float = ROW_LABEL_WIDTH) -> CheckButton:
 	var row := add_row(page, label_key, width)
@@ -656,7 +759,7 @@ func add_check_row(page: Control, label_key: String, on_key: String, off_key: St
 	return check
 
 
-## Moves a switch without sending a change, and its text with it.
+## Moves a switch without sending a change.
 func set_check(check: CheckButton, on: bool) -> void:
 	var switch := check as MenuSwitch
 	if switch != null:

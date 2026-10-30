@@ -206,9 +206,7 @@ func actions(words_in_order: PackedStringArray) -> void:
 		var solid := i == 0
 		var normal := GameTheme.box(GameTheme.YELLOW if solid else Color(0.0, 0.0, 0.0, 0.0), GameTheme.YELLOW)
 		var lit := GameTheme.box(GameTheme.YELLOW.lightened(0.15) if solid else GameTheme.CARD_HI, GameTheme.YELLOW)
-		b.add_theme_stylebox_override("normal", normal)
-		b.add_theme_stylebox_override("hover", lit)
-		b.add_theme_stylebox_override("pressed", lit)
+		GameTheme.dress(b, normal, lit, lit)
 		b.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, BUTTON_SIZE))
 		b.add_theme_font_size_override("font_size", BUTTON_SIZE)
 		var ink := GameTheme.YELLOW_INK if solid else GameTheme.TEXT

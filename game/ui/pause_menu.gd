@@ -418,11 +418,9 @@ func _seed_row_box() -> Control:
 	_report_button.size_flags_horizontal = Control.SIZE_SHRINK_END | Control.SIZE_EXPAND
 	_report_button.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_HEADING, REPORT_SIZE))
 	_report_button.add_theme_font_size_override("font_size", REPORT_SIZE)
-	for state: String in ["normal", "pressed", "disabled"]:
-		_report_button.add_theme_stylebox_override(state, GameTheme.box(GameTheme.CARD, GameTheme.LINE, REPORT_PAD.x,
-				REPORT_PAD.y))
-	_report_button.add_theme_stylebox_override("hover", GameTheme.box(GameTheme.CARD_HI, GameTheme.LINE, REPORT_PAD.x,
-			REPORT_PAD.y))
+	var chip := GameTheme.box(GameTheme.CARD, GameTheme.LINE, REPORT_PAD.x, REPORT_PAD.y)
+	GameTheme.dress(_report_button, chip, GameTheme.box(GameTheme.CARD_HI, GameTheme.LINE, REPORT_PAD.x, REPORT_PAD.y),
+			chip)
 	_report_button.pressed.connect(open_report)
 	row.add_child(_report_button)
 	foot.add_child(_error_row())
@@ -527,20 +525,15 @@ func _button(parent: Control, text: String, main: bool) -> Button:
 	b.add_theme_font_size_override("font_size", BUTTON_SIZE)
 	if main:
 		var ink := GameTheme.YELLOW_INK
-		for state: String in ["normal", "pressed", "disabled"]:
-			b.add_theme_stylebox_override(state, GameTheme.box(GameTheme.YELLOW, GameTheme.YELLOW, BUTTON_PAD_X,
-					BUTTON_PAD_Y))
-		b.add_theme_stylebox_override("hover", GameTheme.box(GameTheme.YELLOW.lightened(0.15), GameTheme.YELLOW,
-				BUTTON_PAD_X, BUTTON_PAD_Y))
+		var solid := GameTheme.box(GameTheme.YELLOW, GameTheme.YELLOW, BUTTON_PAD_X, BUTTON_PAD_Y)
+		GameTheme.dress(b, solid, GameTheme.box(GameTheme.YELLOW.lightened(0.15), GameTheme.YELLOW, BUTTON_PAD_X,
+				BUTTON_PAD_Y), solid)
 		for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 			b.add_theme_color_override(colour, ink)
 		b.add_theme_stylebox_override("focus", GameTheme.focus_box())
 	else:
-		for state: String in ["normal", "pressed", "disabled"]:
-			b.add_theme_stylebox_override(state, GameTheme.box(GameTheme.CARD, GameTheme.LINE, BUTTON_PAD_X,
-					BUTTON_PAD_Y))
-		b.add_theme_stylebox_override("hover", GameTheme.box(GameTheme.CARD_HI, GameTheme.LINE, BUTTON_PAD_X,
-				BUTTON_PAD_Y))
+		var plain := GameTheme.box(GameTheme.CARD, GameTheme.LINE, BUTTON_PAD_X, BUTTON_PAD_Y)
+		GameTheme.dress(b, plain, GameTheme.box(GameTheme.CARD_HI, GameTheme.LINE, BUTTON_PAD_X, BUTTON_PAD_Y), plain)
 	parent.add_child(b)
 	return b
 

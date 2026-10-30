@@ -33,6 +33,8 @@ func _ready() -> void:
 	box.add_child(heading)
 	_text = TextEdit.new()
 	_text.editable = false
+	# long lines wrap: unwrapped, a licence's copyright line ran past the box's right edge (UI1)
+	_text.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(_text)
 	_back = Button.new()

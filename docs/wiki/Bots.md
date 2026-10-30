@@ -24,8 +24,9 @@ of the light when they hold a spot or hunt for you; Easy bots stand wherever the
 
 ## Difficulty
 
-The Match screen's **Bots** section has two rows, **Opponents** and **Teammates**, each Easy, Normal or Hard, with a
-line on how that level plays. A new player starts on Normal. Your teammates follow the opponents' level until you pick
+The Match screen's **Bots** section has two rows, **Opponents** and **Teammates**, each Easy, Normal or Hard; rest the
+pointer on a level to read how it plays. The XP the match pays shows after **Opponents** (XP ×1). A new player starts on
+Normal. Your teammates follow the opponents' level until you pick
 one; "Follow opponents" puts them back.
 
 | Level | How it plays |

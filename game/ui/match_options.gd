@@ -213,10 +213,9 @@ static func teammates_level(opponents: String, picked: String) -> String:
 	return picked if not picked.is_empty() else opponents
 
 
-## The Opponents row's line for `level` (the browser game's DIFFICULTIES blurb), with the match's XP multiplier `xp` in
-## bold and `lit` (bbcode).
-static func opponents_blurb(level: String, xp: float, lit: Color) -> String:
-	return "%s %s" % [_tr("BOT_%s_BLURB" % level.to_upper()), xp_note(xp, lit)]
+## The Opponents row's line for `level` (the browser game's DIFFICULTIES blurb).
+static func opponents_blurb(level: String) -> String:
+	return _tr("BOT_%s_BLURB" % level.to_upper())
 
 
 ## The Teammates row's line for `level` (the browser game's TEAMMATE_DIFFICULTIES blurb).
@@ -224,9 +223,9 @@ static func teammates_blurb(level: String) -> String:
 	return _tr("BOT_%s_MATES" % level.to_upper())
 
 
-## "XP ×1.5" in bold and `lit` (bbcode).
-static func xp_note(xp: float, lit: Color) -> String:
-	return "[color=#%s][b]%s[/b][/color]" % [lit.to_html(false), _tr("BOT_XP") % ArmoryFacts.multiplier_text(xp)]
+## "XP ×1.5": the match's XP multiplier.
+static func xp_note(xp: float) -> String:
+	return _tr("BOT_XP") % ArmoryFacts.multiplier_text(xp)
 
 
 static func _tr(key: String) -> String:

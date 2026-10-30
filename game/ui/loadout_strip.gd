@@ -18,6 +18,9 @@ const ACTION_GAP := 8
 const ACTION_PAD := 10
 const DASH := 6.0
 const EDIT_WIDTH := 260.0
+## The most room a loadout's name takes on its card (px): a longer one ends in "…" and the card's tooltip is the whole
+## name, so five cards of the longest names and the actions fit the window (UI1).
+const NAME_WIDTH := 170.0
 
 signal mode_changed
 
@@ -26,6 +29,8 @@ var mode: Mode = Mode.NORMAL
 
 ## The card of each loadout (null while its name is being typed).
 var _cards: Array[MenuCard] = []
+## Each card's name label, by loadout (null while its name is being typed).
+var _names: Array[Label] = []
 var _new: MenuCard = null
 var _edit: LineEdit = null
 var _actions: Dictionary[StringName, Button] = {}
@@ -98,12 +103,24 @@ func start_remove() -> void:
 
 
 func _fit() -> void:
+	for i in _names.size():
+		if _names[i] != null and _cap_name(_names[i]):
+			_cards[i].tooltip_text = saved.slots[i].name
 	var all: Array[MenuCard] = _cards.duplicate()
 	all.append(_new)
 	for card_node: MenuCard in all:
 		if card_node != null and card_node.get_child_count() > 0:
 			card_node.custom_minimum_size.x = (card_node.get_child(0) as Control).get_combined_minimum_size().x \
 					+ GameTheme.BORDER * 2
+
+
+## A name wider than NAME_WIDTH takes NAME_WIDTH and ends in "…" (true); a shorter one keeps its own width.
+static func _cap_name(label: Label) -> bool:
+	var font := label.get_theme_font(&"font")
+	var natural := font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0,
+			label.get_theme_font_size(&"font_size")).x
+	label.custom_minimum_size.x = ceilf(minf(natural, NAME_WIDTH))
+	return natural > NAME_WIDTH
 
 
 func _set_mode(m: Mode) -> void:
@@ -128,6 +145,7 @@ func _rebuild() -> void:
 		remove_child(child)
 		child.queue_free()
 	_cards.clear()
+	_names.clear()
 	_actions.clear()
 	_new = null
 	_prompt = null
@@ -136,6 +154,7 @@ func _rebuild() -> void:
 			_edit = _build_edit(saved.slots[i].name)
 			add_child(_edit)
 			_cards.append(null)
+			_names.append(null)
 			continue
 		var c := _build_card(i)
 		add_child(c)
@@ -179,7 +198,11 @@ func _build_card(index: int) -> MenuCard:
 	row.add_child(key)
 	var label := MenuParts.spaced(saved.slots[index].name.to_upper(), NAME_SIZE, 700,
 			GameTheme.TEXT if lit else GameTheme.MUTED, SPACING)
+	label.name = "Name"
+	# its width is set once it can be measured (_fit): up to NAME_WIDTH, then "…"
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(label)
+	_names.append(label)
 	var pad := MenuParts.padded(PAD_X, 0, PAD_X, 0)
 	pad.add_child(row)
 	c.add_content(pad)
@@ -201,9 +224,8 @@ func _build_new() -> MenuCard:
 	c.add_content(pad)
 	# the dashes take the place of the card's own line
 	var none := Color(0.0, 0.0, 0.0, 0.0)
-	for state: String in ["normal", "pressed", "disabled"]:
-		c.add_theme_stylebox_override(state, GameTheme.box(GameTheme.CARD, none, 0, 0))
-	c.add_theme_stylebox_override("hover", GameTheme.box(GameTheme.CARD_HI, none, 0, 0))
+	var plain := GameTheme.box(GameTheme.CARD, none, 0, 0)
+	GameTheme.dress(c, plain, GameTheme.box(GameTheme.CARD_HI, none, 0, 0), plain)
 	c.add_child(Dashes.new())
 	c.pressed.connect(_create)
 	return c

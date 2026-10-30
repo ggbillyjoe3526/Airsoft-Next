@@ -3,8 +3,8 @@ extends MenuChoice
 ## A row of colour squares of which one is picked (the concept `hud-options.png`'s crosshair colours): the picked one
 ## framed in white. A MenuChoice, so Tab reaches them, Space or Enter picks and `picked` tells the page.
 
-const SIDE := 34.0
-const SWATCH_GAP := 8
+const SIDE := 28.0
+const SWATCH_GAP := 6
 const FRAME := 3
 
 
@@ -20,8 +20,5 @@ func _init(colours: Array[Color]) -> void:
 		var plain := GameTheme.box(colour, GameTheme.LINE, 0, 0)
 		var lit := GameTheme.box(colour, GameTheme.TEXT, 0, 0)
 		lit.set_border_width_all(FRAME)
-		for state: String in ["normal", "hover"]:
-			b.add_theme_stylebox_override(state, plain)
-		for state: String in ["pressed", "hover_pressed"]:
-			b.add_theme_stylebox_override(state, lit)
+		GameTheme.dress(b, plain, plain, lit)
 		add(b)

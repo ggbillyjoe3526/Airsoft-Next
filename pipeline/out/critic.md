@@ -1,35 +1,36 @@
-Task: FB6 · Back to the Match page, your team on the left, the sight even at any game speed (fix)
-Attempt: 1 of 4
-Head: 8aae085 (gates green on 01ed47f; 8aae085 adds only QA's test_fb6_qa.gd probes and qa.md, 22/22 run by QA)
-Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✗
-Score: 7/8 → Accept (QA Pass after fix round 1; performance Pass on ed36aab, the fix round touched only aim_follow.gd's snap)
-Evidence:
-1. A: main.gd:450 `_show_menus()` on every leave (Play focused, picks kept). B: hud.gd:189 passes player.team; hud_score.gd:55-58
-   place each team's block, pips, score and tag at `_end_of(side)`, :203-204 colours by team; Tab, round table, summary already
-   yours first (pinned). C: aim_follow.gd:21-33 drawn raise at the sim's own raise speed over sim time; play_session.gd:1013-1018
-   feeds the camera (first_person_view.gd:110), the replica (replica_view.gd:157,162) and the glass (:236); recoil over sim time :92.
-2. No contract in ARCHITECTURE › Contracts covers HudScore, the views, Aiming or the leave path.
-3. aim_follow.gd:21-33 floats only; play_session.gd:1013-1018 no new objects; hud_score `_block_x` built once in setup.
-4. test_fb6.gd:185 asserts an equal step and a narrower FOV every frame at 25-200 %: the old view holds 3 frames in 4 at 25 %
-   (the control at :175 proves it); :28 and :68 fail on main (record). QA's respawn pair (test_fb6_qa.gd:357, :370) pins the fix.
-5. AimFollow is a pure RefCounted; Aiming.raise_time (aiming.gd:19) is the tick's own formula, so view and sim can't drift.
-6. Normal speed is unchanged where it matters: at 100 % and 30/60 fps drawn == sim (QA measured 0) and the recoil formula is the
-   old one at rate 1.0; above 60 fps it trails by at most a tick (~16 ms) where main stepped. Toy feel untouched.
-Failed checks, with evidence:
-8. [judgment] The owner's two standing rules (leaving lands on the Match page; your team on the left, through half time) are
-   cited as "(owner, 2026-10-29)" in main.gd:448 and hud_score.gd:8-9 but not added to docs/DECISIONS.md, as FB1 and FB4 did.
-Must-fix before the push (non-blocking): one DECISIONS.md entry "(owner, 2026-10-29; FB6)" for A and B.
-Advisories:
-- hud.gd:867 still hides the crosshair on the sim's aim_raise < 0.5: at 25 % it can vanish up to 3 frames before the drawn
-  zoom crosses half. Feed it the drawn raise if the owner notices.
-- aim_follow.gd:26-27 reads PlaySession.TICK, a node class's constant, from a pure helper; the tick length belongs in sim.
-- PAUSE_TITLE_SCREEN now reads "Back to the menus"; rename the key when next touched.
-- pipeline/out/qa.md (and this file) are committed on the branch; strip pipeline/out/ before the push (never committed).
-- Run tools/check.sh on the final head (8aae085's probe tests were run alone, not in a full unit run).
-- QA: below raise_scale 0.8 (not in today's data) a respawn still eases a few frames; revisit if a faster part lands.
+Task: UI1 · Compact, steady menus after William's second look (fix, UI)
+Attempt: 2 of 4 (fix round 3, after attempt 1's Retry 7/8)
+Head: 12a4644 (worker's gate: unit parts 885, 2006, 976 all pass, smoke PASS; Godot not run by the critic, QA is in the tree)
+Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
+Score: 8/8 → Accept, final once QA's re-check at 12a4644 says Pass (a missing or failing QA report holds it at Retry)
+Performance: Pass at bea0818 stands by reading. Round 3 adds no _process and no per-frame work: tooltips are strings
+set at build time, _cost_heading runs once per column, and the glow pick sets three tooltip strings per pick.
+Attempt 1's five must-fixes, each closed (seen in code and in the ui1-r3-after-1080 pictures):
+- Graphics: GPU COST heads each column's squares (settings_graphics_page.gd _cost_heading); the CostSquares doc is
+  corrected. Picture settings-3-graphics: both columns labelled, right-aligned over the squares.
+- Customise › BBs: the weight and hop-up paragraphs are the slider and readout tooltips; one line stays, "Turn it in a
+  match with 4 and 5." (CUSTOMISE_HOP_KEYS); the glow blurb is the choice's tooltip, so a pick rewrites nothing
+  (customise_view.gd _slider_block, glow refresh). Picture bbs-as-comes: no paragraphs.
+- Controls: the order-wheel paragraph is the choice's tooltip via explain (settings_screen.gd), like Crouch and Aim.
+- Armory: one Difficulty row, Easy ×0.5 · Normal ×1 · Hard ×1.5, with the rest as its tooltip (armory_summary.gd).
+- Dev: one records line; the full list and every row's note are tooltips (settings_screen.gd _build_dev).
+Check 4: three new tests in test_ui1_menus.gd assert the paragraphs are gone and their words are tooltips, GPU COST over
+each column, and a glow pick moving or rewriting nothing. Each would fail on f20e018. test_armory.gd and
+test_glow_bbs.gd follow the new row and tooltip.
+Items 2, 4 and 5 stay met (attempt 1's evidence: test_ui1_menus.gd:149, :210, :392; test_ui1_qa.gd:491).
+Must-fix: none.
+HUD SIZE's duplicate "100%" (settings_hud_page.gd:219): not a must-fix. It is the default mark under the track and
+overlaps nothing. Its job is to show where the default is once the value moves; only at the default does it repeat
+the readout. Advisory: hide its words while the value equals the default, or draw it as a tick without a number.
+Advisories (not blocking):
+- Match: the area under Mode and Rules is empty, and the team buttons are 48 px tall against the 34 px control height.
+- Accessibility: "Your system asks for reduced motion: It doesn't say" reads oddly (en.po:3077).
+- Customise pictures show COLOUR and BBs both outlined: a focus ring left by the picture script, as it was in round 2.
+  Check by hand that a mouse pick leaves only one outlined.
+- settings_screen.gd has grown to about 770 lines (665 on main); split a page out when next touched.
 Owner should test in the game:
-- Quit match and Leave practice: the Match page with PLAY focused; AIRSOFT still opens the title.
-- As Beta: score bar BETA (orange) left, ALPHA right, still so after half time; as Alpha unchanged.
-- ADS at 25 % and 150 % with irons, red dot and 2x scope: zoom and replica rise smoothly, no stutter or uneven jumps.
-- ADS at 100 % on a 144 Hz screen: feels as before (no added float or lag).
-- Fire aimed at 25 %: the climb eases between ticks, never steps.
+- At 4K, click every Settings switch and choice: nothing else on the screen moves or changes.
+- Customise: press LOADOUT, hold, drag off and let go: it always reads LOADOUT.
+- Graphics: FOR YOUR CARD sits above its preset, and GPU COST reads as the squares' heading.
+- Hover the moved help (BB weight, hop-up, glowing BBs, order wheel, Dev rows, Difficulty): the tooltips come soon enough.
+- Match at 1080 and 4K: whether the layout reads balanced to you.

@@ -1,9 +1,10 @@
 class_name MatchPage
 extends Control
-## The Match page's body (concept `match.png`, docs/records/MN2.md): map picture cards, mode cards with the rules under
-## them (MatchRulesBox: Skirmish's chips or Custom's rows, docs/records/CR2.md), your team and the bots' levels
-## (MatchBotsBox: Opponents and Teammates, docs/records/MN3.md); a one-line summary bottom left and the slanted PLAY
-## bottom right. A map that can't load (MapData's problems) is greyed with LATER, as a mode that isn't built. Picks go
+## The Match page's body (concept `match.png`, docs/records/MN2.md), laid out on one grid of equal columns (UI1 round 2):
+## the map picture cards in a row across the top, one a column; under them the modes, the rules (MatchRulesBox:
+## Skirmish's chips or Custom's rows, docs/records/CR2.md), and your team over the bots' levels (MatchBotsBox: Opponents
+## and Teammates, docs/records/MN3.md), each column's left edge under a map card's; a one-line summary bottom left and the
+## slanted PLAY bottom right. A map that can't load (MapData's problems) is greyed with LATER, as a mode that isn't built. Picks go
 ## into the MatchPicks it is given (kept by the entry scene across the menus' being freed). What reads the round tuning
 ## (the Elimination card, the maps a team size can't load) reads the Custom switches while Custom is picked, and the
 ## team size the picked map plays (data/maps.md: its standard, or the saved Custom size where it offers it).
@@ -14,9 +15,8 @@ signal play_pressed
 
 const MARGIN_X := 56
 const TOP := 40
-const COLUMN_GAP := 32
-const MAPS_WIDTH := 860.0
-const SIDE_WIDTH := 420.0
+## The gap under the map cards, before the row of columns (px).
+const ROW_GAP := 40
 const SECTION_GAP := 30
 const HEADING_GAP := 16
 const PLAY_RIGHT := 56.0
@@ -24,39 +24,35 @@ const PLAY_BOTTOM := 48.0
 const SUMMARY_LEFT := 56.0
 const SUMMARY_BOTTOM := 60.0
 const SUMMARY_SIZE := 18
-## Map cards: two a row; the picture is this tall with one row, shorter with two so both rows fit the page.
-const MAP_COLUMNS := 2
+## The page's grid: at least this many equal columns, MAP_GAP apart; the map cards share its width in one row (a fourth
+## map makes a fourth column), the columns under them its left edges. A card's picture is this tall.
+const GRID_COLUMNS := 3
 const MAP_GAP := 20
-const MAP_WIDTH := 420.0
-const MAP_IMAGE_HEIGHT_ONE_ROW := 400.0
-const MAP_IMAGE_HEIGHT_TWO_ROWS := 250.0
-const MAP_TEXT_PAD := Vector4(18.0, 16.0, 18.0, 18.0)
+const MAP_IMAGE_HEIGHT := 230.0
+const MAP_TEXT_PAD := Vector4(16.0, 12.0, 16.0, 14.0)
 const MAP_TEXT_GAP := 6
-const MAP_NAME_SIZE := 26
-const MAP_BLURB_SIZE := 16
+const MAP_NAME_SIZE := 22
 const TAG_GAP := 8
-const MODE_GAP := 14
-const MODE_PAD := Vector2(20.0, 18.0)
-const MODE_HEIGHT := 94.0
-## A blurb that wraps makes its card this much taller for each extra line (the concept's 1.35 line height), the text
-## measured at the width the card gives it: the middle column less the card's padding and border.
-const MODE_LINE := 21.6
-const MODE_TEXT_WIDTH := 1920.0 - 2.0 * MARGIN_X - MAPS_WIDTH - SIDE_WIDTH - 2.0 * COLUMN_GAP - 2.0 * MODE_PAD.x \
-		- 2.0 * GameTheme.BORDER
-const MODE_NAME_SIZE := 22
-const MODE_BLURB_SIZE := 16
+const MODE_GAP := 8
+## The room a mode's button keeps at each side of its name (px).
+const MODE_PAD_X := 24
 const TEAM_GAP := 12
-const TEAM_HEIGHT := 66.0
-const TEAM_NAME_SIZE := 22
+const TEAM_HEIGHT := 48.0
+const TEAM_NAME_SIZE := 18
 ## The room a team's name keeps at each side: past its colour bar on the left (px).
-const TEAM_TEXT_PAD := 28
+const TEAM_TEXT_PAD := 24
 ## How much of a team's colour tints a picked team card.
 const TEAM_TINT := 0.06
 ## Attack / Defend's line under the team cards: its size, and the team's name lightened to read on the page.
 const ATTACK_LINE_SIZE := 16
 const TEAM_NAME_LIGHTEN := 0.25
-## A mode card's "Needs a map with a flagpole" in a dimmed yellow.
+## A mode card's "Needs a map with a flagpole" in a dimmed yellow, and its size.
 const NEEDS_DARKEN := 0.3
+const NEEDS_SIZE := 14
+## The summary line's width: it never changes as the picks do.
+const SUMMARY_WIDTH := 1100.0
+## The Play button's words, one for a match and one for Practice.
+const PLAY_KEYS: Array[String] = ["MENU_PLAY", "MENU_GO_PRACTICE"]
 
 var picks: MatchPicks = null
 
@@ -72,6 +68,8 @@ var _last_kind: StringName = &""
 var _play_tuning: PlayTuning = null
 var _catalog: MapCatalog = null
 var _maps_grid: GridContainer = null
+## The row of columns under the maps (modes, rules, your team and bots), on the maps' grid.
+var _columns: HBoxContainer = null
 var _modes_box: VBoxContainer = null
 var _map_cards: Dictionary[String, MenuCard] = {}
 var _mode_cards: Dictionary[String, MenuCard] = {}
@@ -93,16 +91,20 @@ var _needs_pole: Dictionary[String, Control] = {}
 ## Under the team cards in Attack / Defend: ATK, the team attacking first, and the rest of the line.
 var _attack_row: HBoxContainer = null
 var _attack_team: Label = null
+var _attack_room: MarginContainer = null
+## Whether Attack / Defend's line shows (its room is always kept).
+var _attack_shown: bool = false
 var _rules: MatchRulesBox = null
 var _bots: MatchBotsBox = null
 ## The mode cards' blurbs (Elimination's reads the rounds to win).
-var _mode_blurbs: Dictionary[String, Label] = {}
 ## A mode card's FIELDS ONLY tag, shown while the picked map doesn't host the mode.
 var _only_tags: Dictionary[String, MenuTag] = {}
 ## The Custom size the maps were last checked for (0 under Skirmish): each is checked at the size it would play.
 var _checked_custom: int = -1
-var _summary_map: Label = null
-var _summary_rest: Label = null
+## The summary line: the map in bold, then the rest.
+var _summary: RichTextLabel = null
+var _summary_map: String = ""
+var _summary_rest: String = ""
 var _play: Button = null
 
 
@@ -122,6 +124,9 @@ func _init(picked: MatchPicks = null, settings: Settings = null) -> void:
 
 
 func _enter_tree() -> void:
+	# measured once in the tree too: the button's theme_changed can come while the page is not yet under the menus'
+	# theme, and its children's theme is only settled after this
+	_fit_play.call_deferred()
 	if not _settings.changed.is_connected(_on_rules_changed):
 		_settings.changed.connect(_on_rules_changed)
 
@@ -184,15 +189,15 @@ func map_check_size() -> int:
 	return _tuning.rounds.team_size
 
 
-## A mode card's blurb as shown.
+## A mode card's blurb: its tooltip, so every card is one height whatever the rules say (UI1).
 func mode_blurb(mode: String) -> String:
-	return _mode_blurbs[mode].text
+	return _mode_cards[mode].tooltip_text
 
 
 ## The summary line as shown: "Depot · Elimination · Alpha · Normal bots", with " · Easy teammates" when they play
 ## another level than the opponents and " · Custom 2v2" under Custom.
 func summary_text() -> String:
-	return _summary_map.text + _summary_rest.text
+	return _summary_map + _summary_rest
 
 
 ## Whether a listed map can't be played (its file is refused).
@@ -207,7 +212,7 @@ func says_needs_pole(mode: String) -> bool:
 
 ## The line under the team cards in Attack / Defend ("Alpha attacks first, ..."), or "" while it is hidden.
 func attack_line() -> String:
-	if not _attack_row.visible:
+	if not _attack_shown:
 		return ""
 	return "%s %s" % [_attack_team.text, tr("MENU_ATTACKS_FIRST")]
 
@@ -219,13 +224,27 @@ func _build() -> void:
 	margin.add_theme_constant_override("margin_right", MARGIN_X)
 	margin.add_theme_constant_override("margin_top", TOP)
 	add_child(margin)
-	var columns := HBoxContainer.new()
-	columns.add_theme_constant_override("separation", COLUMN_GAP)
-	margin.add_child(columns)
-	columns.add_child(_build_maps())
-	columns.add_child(_build_middle())
-	columns.add_child(_build_side())
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", ROW_GAP)
+	margin.add_child(page)
+	page.add_child(_build_maps())
+	_columns = HBoxContainer.new()
+	_columns.name = "Columns"
+	_columns.add_theme_constant_override("separation", MAP_GAP)
+	page.add_child(_columns)
+	_column(_build_modes())
+	_rules = MatchRulesBox.new(picks, _settings, _tuning)
+	_rules.changed.connect(_on_rules_changed)
+	_column(_rules)
+	_column(_build_side())
 	_build_foot()
+
+
+## Adds `c` as one of the grid's equal columns.
+func _column(c: Control) -> void:
+	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	c.size_flags_stretch_ratio = 1.0
+	_columns.add_child(c)
 
 
 func _section(heading: Control) -> VBoxContainer:
@@ -255,72 +274,69 @@ func _text(text: String, size: int, weight: int, colour: Color) -> Label:
 
 func _build_maps() -> Control:
 	var column := _section(_heading(tr("MENU_MAP")))
-	column.custom_minimum_size = Vector2(MAPS_WIDTH, 0.0)
 	_maps_grid = GridContainer.new()
-	_maps_grid.columns = MAP_COLUMNS
+	_maps_grid.columns = GRID_COLUMNS
 	_maps_grid.add_theme_constant_override("h_separation", MAP_GAP)
 	_maps_grid.add_theme_constant_override("v_separation", MAP_GAP)
 	column.add_child(_maps_grid)
 	return column
 
 
-## The middle column: the mode cards, and the rules under them.
-func _build_middle() -> Control:
-	var column := VBoxContainer.new()
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_theme_constant_override("separation", SECTION_GAP)
-	column.add_child(_build_modes())
-	_rules = MatchRulesBox.new(picks, _settings, _tuning)
-	_rules.changed.connect(_on_rules_changed)
-	column.add_child(_rules)
-	return column
-
-
 func _build_modes() -> Control:
 	var column := _section(_heading(tr("MENU_MODE")))
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_modes_box = VBoxContainer.new()
 	_modes_box.add_theme_constant_override("separation", MODE_GAP)
 	column.add_child(_modes_box)
+	var cards: Array[Button] = []
 	for mode in MatchOptions.MODES:
+		# a row of one choice-height button, one width for the three (owner, 2026-10-29), and its tags after it: a tag
+		# showing or going moves nothing (UI1: the cards were 464 x 64 bars with one word)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", TAG_GAP)
 		var card := MenuCard.new()
 		card.name = "Mode_" + mode
-		card.custom_minimum_size = Vector2(0.0, MODE_HEIGHT)
-		var pad := _padded(MODE_PAD.x, MODE_PAD.y, MODE_PAD.x, MODE_PAD.y)
-		var rows := VBoxContainer.new()
-		rows.add_theme_constant_override("separation", MAP_TEXT_GAP)
-		pad.add_child(rows)
-		var title := HBoxContainer.new()
-		title.add_theme_constant_override("separation", TAG_GAP + 2)
-		title.add_child(_text(tr(MatchOptions.MODE_NAME[mode]).to_upper(), MODE_NAME_SIZE, 800, GameTheme.TEXT))
+		card.text = tr(MatchOptions.MODE_NAME[mode]).to_upper()
+		card.ring = true
+		card.text_pad = MODE_PAD_X
+		card.refresh()
+		card.custom_minimum_size = Vector2(0.0, GameTheme.CONTROL_HEIGHT)
+		card.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, GameTheme.CONTROL_SIZE))
+		card.add_theme_font_size_override("font_size", GameTheme.CONTROL_SIZE)
+		card.add_theme_constant_override("outline_size", 0)
+		for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color",
+				"font_focus_color"]:
+			card.add_theme_color_override(colour, GameTheme.TEXT)
+		card.pressed.connect(_pick_mode.bind(mode))
+		row.add_child(card)
 		if not MatchOptions.BUILT_MODES.has(mode):
-			title.add_child(MenuTag.later())
+			row.add_child(_centred(MenuTag.later()))
 		var only := MenuTag.grey(MatchOptions.FIELDS_ONLY_KEY)
 		only.name = "OnlyTag"
 		only.visible = false
-		title.add_child(only)
+		row.add_child(_centred(only))
 		_only_tags[mode] = only
-		rows.add_child(title)
-		var blurb := _text("", MODE_BLURB_SIZE, 600, GameTheme.MUTED)
-		blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		rows.add_child(blurb)
-		_mode_blurbs[mode] = blurb
 		if MatchOptions.POLE_MODES.has(mode):
-			var needs := _text(tr("MENU_NEEDS_POLE"), MODE_BLURB_SIZE, 700, GameTheme.YELLOW.darkened(NEEDS_DARKEN))
+			var needs := _text(tr("MENU_NEEDS_POLE"), NEEDS_SIZE, 700, GameTheme.YELLOW.darkened(NEEDS_DARKEN))
 			needs.name = "NeedsPole"
 			needs.visible = false
-			rows.add_child(needs)
+			needs.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			row.add_child(needs)
 			_needs_pole[mode] = needs
-		card.add_content(pad)
-		card.pressed.connect(_pick_mode.bind(mode))
-		_modes_box.add_child(card)
+		_modes_box.add_child(row)
 		_mode_cards[mode] = card
+		cards.append(card)
+	ButtonWidth.group(cards)
 	return column
+
+
+## `c` held at its own height, in the middle of a row.
+static func _centred(c: Control) -> Control:
+	c.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return c
 
 
 func _build_side() -> Control:
 	var side := VBoxContainer.new()
-	side.custom_minimum_size = Vector2(SIDE_WIDTH, 0.0)
 	side.add_theme_constant_override("separation", SECTION_GAP)
 	# Your team.
 	var team_head := MenuParts.heading_row(tr("MENU_TEAM"))
@@ -356,8 +372,14 @@ func _build_side() -> Control:
 	_attack_team = _text("", ATTACK_LINE_SIZE, 700, GameTheme.TEXT)
 	_attack_row.add_child(_attack_team)
 	_attack_row.add_child(_text(tr("MENU_ATTACKS_FIRST"), ATTACK_LINE_SIZE, 600, GameTheme.MUTED))
-	_attack_row.visible = false
-	team.add_child(_attack_row)
+	# its room is kept whether it shows or not (it is see-through when not), so the bots under it never move as the mode
+	# changes (UI1); the room fades with the team cards under Practice
+	_attack_row.modulate.a = 0.0
+	_attack_room = MarginContainer.new()
+	_attack_room.name = "AttacksFirstRoom"
+	_attack_room.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_attack_room.add_child(_attack_row)
+	team.add_child(_attack_room)
 	side.add_child(team)
 	# The bots' levels.
 	_bots = MatchBotsBox.new(picks)
@@ -374,10 +396,19 @@ func _build_foot() -> void:
 	summary.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	summary.offset_left = SUMMARY_LEFT
 	summary.offset_bottom = -SUMMARY_BOTTOM
-	_summary_map = _text("", SUMMARY_SIZE, 800, GameTheme.TEXT)
-	_summary_rest = _text("", SUMMARY_SIZE, 600, GameTheme.MUTED)
-	summary.add_child(_summary_map)
-	summary.add_child(_summary_rest)
+	_summary = RichTextLabel.new()
+	_summary.bbcode_enabled = true
+	_summary.fit_content = true
+	_summary.scroll_active = false
+	_summary.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_summary.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_summary.custom_minimum_size.x = SUMMARY_WIDTH
+	_summary.add_theme_font_override("normal_font", GameTheme.font(600))
+	_summary.add_theme_font_override("bold_font", GameTheme.font(800))
+	_summary.add_theme_font_size_override("normal_font_size", SUMMARY_SIZE)
+	_summary.add_theme_font_size_override("bold_font_size", SUMMARY_SIZE)
+	_summary.add_theme_color_override("default_color", GameTheme.MUTED)
+	summary.add_child(_summary)
 	add_child(summary)
 	_play = Button.new()
 	_play.name = "Play"
@@ -389,7 +420,19 @@ func _build_foot() -> void:
 	_play.offset_right = -PLAY_RIGHT
 	_play.offset_bottom = -PLAY_BOTTOM
 	_play.pressed.connect(func() -> void: play_pressed.emit())
+	_play.theme_changed.connect(_fit_play)
 	add_child(_play)
+
+
+## PLAY and PRACTICE take one width, the wider's, so the button never changes size as the mode does (UI1).
+func _fit_play() -> void:
+	var now := _play.text
+	var widest := 0.0
+	for key: String in PLAY_KEYS:
+		_play.text = tr(key)
+		widest = maxf(widest, _play.get_minimum_size().x)
+	_play.text = now
+	_play.custom_minimum_size.x = widest
 
 
 ## A margin container with the given margins (left, top, right, bottom).
@@ -435,10 +478,10 @@ func _list_maps() -> void:
 		_map_cards[id].queue_free()
 	_map_cards.clear()
 	_unloadable = problems
-	var rows := ceili(float(ordered.size()) / MAP_COLUMNS)
-	var image_height := MAP_IMAGE_HEIGHT_ONE_ROW if rows <= 1 else MAP_IMAGE_HEIGHT_TWO_ROWS
+	# one row: a column a map, at least the grid's
+	_maps_grid.columns = maxi(GRID_COLUMNS, ordered.size())
 	for e in ordered:
-		var card := _map_card(e, image_height, problems[e.id])
+		var card := _map_card(e, MAP_IMAGE_HEIGHT, problems[e.id])
 		_maps_grid.add_child(card)
 		_map_cards[e.id] = card
 	_keep_a_playable_map()
@@ -462,8 +505,9 @@ func _map_card(e: MapCatalog.Entry, image_height: float, later: bool) -> MenuCar
 	var card := MenuCard.new()
 	card.name = "Map_" + e.id
 	card.ring = true
-	card.custom_minimum_size = Vector2(MAP_WIDTH, image_height + MAP_TEXT_PAD.y + MAP_TEXT_PAD.w + MAP_NAME_SIZE * 1.4 +
-			MAP_TEXT_GAP + MAP_BLURB_SIZE * 1.4 + GameTheme.BORDER * 2)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.custom_minimum_size = Vector2(0.0, image_height + MAP_TEXT_PAD.y + MAP_TEXT_PAD.w + MAP_NAME_SIZE * 1.4 +
+			GameTheme.BORDER * 2)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 0)
 	column.add_child(_picture(e.id, image_height))
@@ -480,7 +524,8 @@ func _map_card(e: MapCatalog.Entry, image_height: float, later: bool) -> MenuCar
 	if later:
 		title.add_child(MenuTag.later())
 	text.add_child(title)
-	text.add_child(_text(e.blurb, MAP_BLURB_SIZE, 500, GameTheme.MUTED))
+	# the map in a line: the card's tooltip (UI1)
+	card.tooltip_text = e.blurb
 	pad.add_child(text)
 	column.add_child(pad)
 	card.add_content(column)
@@ -562,18 +607,9 @@ func _pick_team(team: int) -> void:
 	_refresh()
 
 
-## A mode card's height for its `blurb`: MODE_HEIGHT, and a line more for each the blurb wraps past its first.
-func _mode_height(blurb: String) -> float:
-	var font := GameTheme.font(600)
-	var wrapped := font.get_multiline_string_size(blurb, HORIZONTAL_ALIGNMENT_LEFT, MODE_TEXT_WIDTH, MODE_BLURB_SIZE, -1,
-			TextServer.BREAK_WORD_BOUND | TextServer.BREAK_MANDATORY)
-	var lines := roundi(wrapped.y / font.get_height(MODE_BLURB_SIZE))
-	return MODE_HEIGHT + maxi(0, lines - 1) * MODE_LINE
-
-
 ## Lights the picks and greys what the picked map doesn't host or isn't built; rewrites the summary.
 func _refresh() -> void:
-	if _summary_map == null or _play == null:
+	if _summary == null or _play == null:
 		return
 	# Another map picked (by hand, or the picked one fell back): its own team size.
 	if _tuned_map != picks.map_id:
@@ -613,21 +649,24 @@ func _refresh() -> void:
 	for t in _team_cards.size():
 		_team_cards[t].set_picked(t == picks.team)
 	var practice := picks.mode == MatchOptions.MODE_PRACTICE
-	_attack_row.visible = MatchOptions.POLE_MODES.has(picks.mode)
-	var team_parts: Array[Control] = [_team_row, _attack_row]
+	_attack_shown = MatchOptions.POLE_MODES.has(picks.mode)
+	_attack_row.modulate.a = 1.0 if _attack_shown else 0.0
+	var team_parts: Array[Control] = [_team_row, _attack_room]
 	MenuParts.set_unused(team_parts, _team_tag, practice)
 	_rules.set_unused(practice)
 	_bots.set_unused(practice)
-	_play.text = tr("MENU_START_PRACTICE" if practice else "MENU_PLAY")
+	_play.text = tr("MENU_GO_PRACTICE" if practice else "MENU_PLAY")
 	_attack_team.text = tr(MatchOptions.TEAM_KEYS[picks.team])
 	var colour := _teams.colours[picks.team].lightened(TEAM_NAME_LIGHTEN)
 	_attack_team.add_theme_color_override("font_color", colour)
 	_bots.show_picks(_tuning.rounds.team_size, picks.rules == MatchOptions.RULES_CUSTOM)
-	_summary_map.text = entry.display_name if entry != null else picks.map_id
-	for mode: String in _mode_blurbs:
+	_summary_map = entry.display_name if entry != null else picks.map_id
+	for mode: String in _mode_cards:
 		var blurb_text := tr(MatchOptions.MODE_BLURB[mode])
-		_mode_blurbs[mode].text = blurb_text % _tuning.rounds.wins_needed if blurb_text.contains("%d") else blurb_text
-		_mode_cards[mode].custom_minimum_size.y = _mode_height(_mode_blurbs[mode].text)
+		_mode_cards[mode].tooltip_text = blurb_text % _tuning.rounds.wins_needed if blurb_text.contains("%d") \
+				else blurb_text
 	var mates := MatchOptions.teammates_level(picks.bots, picks.teammates) if _tuning.rounds.team_size > 1 else ""
-	_summary_rest.text = " · " + MatchOptions.summary_rest(picks.mode, picks.team, picks.bots,
+	_summary_rest = " · " + MatchOptions.summary_rest(picks.mode, picks.team, picks.bots,
 			picks.custom_rules(_settings), mates, _tuning.rounds.team_size)
+	_summary.text = "[b][color=#%s]%s[/color][/b]%s" % [GameTheme.TEXT.to_html(false), _summary_map.replace("[", "[lb]"),
+			_summary_rest.replace("[", "[lb]")]

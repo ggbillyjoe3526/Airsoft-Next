@@ -56,8 +56,10 @@ func test_the_page_shows_the_chips_the_summary_and_play() -> void:
 	assert_eq(page.summary_text(), "Depot · Elimination · Alpha · Normal bots")
 	assert_eq(page.play_button().text, "PLAY")
 	var words := _labels(page)
-	for expected: String in ["MAP", "MODE", "YOUR TEAM", "BOTS", "RULES", "DEPOT", "An abandoned warehouse yard."]:
+	for expected: String in ["MAP", "MODE", "YOUR TEAM", "BOTS", "RULES", "DEPOT"]:
 		assert_true(words.has(expected), expected)
+	# the map's line is its card's tooltip (UI1)
+	assert_eq(page.map_card("depot").tooltip_text, "An abandoned warehouse yard.")
 
 
 # --- modes ---

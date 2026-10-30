@@ -12,13 +12,11 @@ signal changed(immediate: bool)
 
 ## The columns' widths (the right one takes the rest), the labels' widths and the sliders' (px).
 const LEFT_WIDTH := 780.0
-const COLUMN_GAP := 40
+const COLUMN_GAP := 48
 const LEFT_LABEL := 200.0
 const RIGHT_LABEL := 230.0
-const SLIDER_WIDTH := 300.0
+const SLIDER_WIDTH := SettingsScreen.SLIDER_WIDTH
 ## The space before a row's note (px).
-const NOTE_GAP := 14
-const NOTE_SIZE := 15
 const PX := "%d px"
 const PERCENT := "%d%%"
 ## The minimap's samples: the map they draw, the gap between them (px) and the sample's scene: you at THUMB_AT looking
@@ -135,8 +133,8 @@ func build(screen: SettingsScreen) -> void:
 		_prefs().feed_corner = i as HudPrefs.FeedCorner
 		_after(true))
 	_lines = _choice(right, "SETTINGS_FEED_LINES", ["SETTINGS_FADE", "SETTINGS_KEEP"], RIGHT_LABEL, "")
-	_note(_lines.get_parent() as Control, "").text = tr("SETTINGS_FEED_LINES_NOTE") % [roundi(HudConfig.new().feed_line_time),
-			HudPrefs.KEPT_LINES]
+	_screen.explain(_lines.get_parent() as Control, tr("SETTINGS_FEED_LINES_NOTE") % [
+			roundi(HudConfig.new().feed_line_time), HudPrefs.KEPT_LINES])
 	_lines.picked.connect(func(i: int) -> void:
 		_prefs().feed_lines = i as HudPrefs.FeedLines
 		_after(true))
@@ -162,7 +160,9 @@ func build(screen: SettingsScreen) -> void:
 		_prefs().panel_opacity = v / 100.0
 		_after(false))
 	_what_got_you = _choice(right, "SETTINGS_WHAT_GOT_YOU", ["SETTINGS_AUTO", "SETTINGS_ON", "SETTINGS_OFF"],
-			RIGHT_LABEL, "SETTINGS_WHAT_GOT_YOU_NOTE")
+			RIGHT_LABEL, "")
+	# what Auto means would surprise: said beside it
+	_screen.add_note(_what_got_you.get_parent() as Control, tr("SETTINGS_WHAT_GOT_YOU_NOTE"))
 	_what_got_you.picked.connect(func(i: int) -> void:
 		_screen.settings.what_got_you = i as Settings.WhatGotYou
 		changed.emit(true))
@@ -217,7 +217,7 @@ func _hud_size_row(column: Control) -> HSlider:
 	var step := roundf(AccessibilityConfig.HUD_SIZE_STEP * 100.0)
 	var slider := _narrow(_screen.add_slider_row(column, "SETTINGS_HUD_SIZE", lo, hi, step, PERCENT, RIGHT_LABEL))
 	slider.add_child(Mark.new(AccessibilityConfig.HUD_SIZE_DEFAULT * 100.0, PERCENT))
-	_note(slider.get_parent() as Control, "").text = tr("SETTINGS_HUD_SIZE_NOTE") % [lo, hi]
+	_screen.explain(slider.get_parent() as Control, tr("SETTINGS_HUD_SIZE_NOTE") % [lo, hi])
 	slider.value_changed.connect(func(v: float) -> void:
 		_prefs().hud_size = v / 100.0
 		_after(false))
@@ -226,6 +226,10 @@ func _hud_size_row(column: Control) -> HSlider:
 
 ## The minimap's section: Turn (Rotating or Fixed) with a note under it, and the two samples beside them.
 func _build_minimap(right: VBoxContainer) -> void:
+	# the section's gap goes above the whole block: the samples start level with the heading
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0.0, SettingsScreen.SECTION_GAP)
+	right.add_child(gap)
 	var block := HBoxContainer.new()
 	right.add_child(block)
 	var rows := VBoxContainer.new()
@@ -239,7 +243,8 @@ func _build_minimap(right: VBoxContainer) -> void:
 		_prefs().minimap_turn = i as HudPrefs.MinimapTurn
 		_show_turn(_prefs().minimap_turn)
 		changed.emit(true))
-	rows.add_child(_turn_note())
+	_screen.explain(_turn.get_parent() as Control, "%s %s %s %s" % [tr("SETTINGS_MINIMAP_ROTATING_LEAD"),
+			tr("SETTINGS_MINIMAP_ROTATING_NOTE"), tr("SETTINGS_MINIMAP_FIXED_LEAD"), tr("SETTINGS_MINIMAP_FIXED_NOTE")])
 	_thumbs_row = HBoxContainer.new()
 	_thumbs_row.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_thumbs_row.add_theme_constant_override("separation", THUMB_GAP)
@@ -251,26 +256,6 @@ func _build_minimap(right: VBoxContainer) -> void:
 	# The samples draw Depot's field, built once the first time the tab is seen; the team colours follow a set picked
 	# on the Accessibility tab when this one shows again.
 	_thumbs_row.visibility_changed.connect(_on_shown)
-
-
-## The note under Turn: each word's lead in the text colour and bold.
-func _turn_note() -> RichTextLabel:
-	var note := RichTextLabel.new()
-	note.bbcode_enabled = true
-	note.fit_content = true
-	note.scroll_active = false
-	note.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	note.add_theme_font_override("normal_font", GameTheme.font(600))
-	note.add_theme_font_override("bold_font", GameTheme.font(800))
-	note.add_theme_font_size_override("normal_font_size", NOTE_SIZE)
-	note.add_theme_font_size_override("bold_font_size", NOTE_SIZE)
-	note.add_theme_color_override("default_color", GameTheme.MUTED)
-	var lead := GameTheme.TEXT.to_html(false)
-	note.text = "[b][color=#%s]%s[/color][/b] %s [b][color=#%s]%s[/color][/b] %s" % [lead,
-			tr("SETTINGS_MINIMAP_ROTATING_LEAD"), tr("SETTINGS_MINIMAP_ROTATING_NOTE"), lead,
-			tr("SETTINGS_MINIMAP_FIXED_LEAD"), tr("SETTINGS_MINIMAP_FIXED_NOTE")]
-	return note
 
 
 ## Marks the sample of the turn chosen.
@@ -333,6 +318,7 @@ func _choice(column: Control, label_key: String, keys: Array[String], width: flo
 	for key in keys:
 		words.append(tr(key))
 	var choice := MenuChoice.new(words)
+	choice.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(choice)
 	if note_key != "":
 		_note(row, note_key)
@@ -342,6 +328,7 @@ func _choice(column: Control, label_key: String, keys: Array[String], width: flo
 func _swatches(column: Control, label_key: String, note_key: String) -> MenuSwatches:
 	var row := _screen.add_row(column, label_key, LEFT_LABEL)
 	var swatches := MenuSwatches.new(HudPrefs.COLOURS)
+	swatches.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(swatches)
 	if note_key != "":
 		_note(row, note_key)
@@ -364,20 +351,10 @@ static func _narrow(slider: HSlider) -> HSlider:
 	return slider
 
 
-## A quiet note at the end of `row` (`key` translated; "" leaves it for the caller).
-func _note(row: Control, key: String) -> Label:
-	var note := Label.new()
-	note.text = tr(key) if key != "" else ""
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	note.add_theme_color_override("font_color", GameTheme.MUTED)
-	note.add_theme_font_size_override("font_size", NOTE_SIZE)
-	var gap := StyleBoxEmpty.new()
-	gap.content_margin_left = NOTE_GAP
-	note.add_theme_stylebox_override("normal", gap)
-	row.add_child(note)
-	return note
+## A row's explanation (`key` translated): its tooltip, not words on the page (UI1: only what a player would be stuck
+## without is written out).
+func _note(row: Control, key: String) -> void:
+	_screen.explain(row, tr(key))
 
 
 ## One sample of the minimap's turn: the panel as it shows with that turn, framed in yellow while it is the one chosen,

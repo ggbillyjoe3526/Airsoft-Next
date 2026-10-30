@@ -87,14 +87,17 @@ func test_a_click_setting_is_saved_straight_away() -> void:
 	screen._invert.button_pressed = true
 	assert_true(tuning.controls.invert_y)
 	assert_true(FileAccess.file_exists(screen.save_path))
-	screen._crouch.button_pressed = true
-	screen._aim.button_pressed = true
+	screen._crouch.button(1).pressed.emit()
+	screen._aim.button(1).pressed.emit()
 	assert_true(tuning.controls.crouch_toggle and tuning.controls.aim_toggle)
 
 
 func test_the_reload_row_starts_on_manual_and_switches_to_automatic() -> void:
-	assert_false(screen._auto_reload.button_pressed, "Manual by default (RL2)")
-	screen._auto_reload.button_pressed = true
+	# a choice of two words, MANUAL then AUTOMATIC, like Crouch and Aim (UI1)
+	assert_eq(screen._auto_reload.selected(), 0, "Manual by default (RL2)")
+	assert_eq(screen._auto_reload.button(0).text, "MANUAL")
+	screen._auto_reload.button(1).pressed.emit()
+	assert_eq(screen._auto_reload.selected(), 1)
 	assert_true(s.auto_reload)
 	assert_true(tuning.controls.auto_reload)
 	var back := Settings.new()
@@ -552,16 +555,21 @@ func _labels(node: Node, into: PackedStringArray) -> PackedStringArray:
 func test_the_display_tab_has_the_concept_s_rows() -> void:
 	_fake_screens()
 	var page := screen._display_page
-	assert_eq(_texts(page.window_choice()), PackedStringArray(["WINDOWED", "BORDERLESS FULLSCREEN",
-			"EXCLUSIVE FULLSCREEN"]))
+	assert_eq(_texts(page.window_choice()), PackedStringArray(["WINDOWED", "BORDERLESS", "FULLSCREEN"]),
+			"short words on the buttons (UI1)")
 	assert_eq(page.window_choice().selected(), Settings.WindowMode.EXCLUSIVE, "exclusive fullscreen by default")
 	var words := " ".join(_labels(page, PackedStringArray()))
-	for want: String in ["F11", "Alt", "Enter", "switches between a window and fullscreen", "FRAME RATE", "V-SYNC",
-			"FRAME-RATE LIMIT", "still plays at 60 ticks a second", "In the background it draws 30", "FIELD OF VIEW",
-			"SHOW FPS", "Frames a second, top right."]:
+	for want: String in ["FRAME RATE", "V-SYNC",
+			"FRAME-RATE LIMIT", "FIELD OF VIEW", "SHOW FPS"]:
 		assert_string_contains(words, want)
+	# the longer explanations are tooltips now (UI1), the keys too (UI1 round 1)
+	for want: String in ["F11", "Alt", "Enter", "switches at any time"]:
+		assert_string_contains(page.window_choice().button(0).tooltip_text, want)
+	assert_string_contains(page.limit_choice().button(0).tooltip_text, "still plays at 60 ticks a second")
+	assert_string_contains(page.limit_choice().button(0).tooltip_text, "In the background it draws 30")
+	assert_eq(page.show_fps().tooltip_text, "Frames a second, bottom right.")
 	assert_eq(_texts(page.limit_choice()), PackedStringArray(["30", "60", "120", "144", "165", "240", "360",
-			"UNLIMITED"]))
+			"OFF"]))
 	assert_eq(page.limit_choice().selected(), Settings.FRAME_LIMITS.size(), "Unlimited by default")
 	assert_false(page.vsync().button_pressed, "V-Sync off by default (owner, 2026-10-29)")
 	assert_eq(page.vsync_note(), "No tearing, at most the screen’s 144 a second. Off: a little less input delay.")
@@ -669,6 +677,7 @@ func _access() -> SettingsAccessPage:
 
 
 ## Every label's and rich label's words under `node`, rich text without its tags.
+## Every word `node` shows: its labels and, as help moved to them (UI1), its tooltips.
 func _words(node: Node) -> String:
 	var out := PackedStringArray()
 	for n: Node in node.find_children("*", "", true, false):
@@ -676,6 +685,8 @@ func _words(node: Node) -> String:
 			out.append((n as Label).text)
 		elif n is RichTextLabel:
 			out.append((n as RichTextLabel).get_parsed_text())
+		if n is Control and (n as Control).tooltip_text != "":
+			out.append((n as Control).tooltip_text)
 	return " ".join(out)
 
 
@@ -713,12 +724,15 @@ func test_the_accessibility_tab_has_the_concept_s_rows() -> void:
 	var words := _words(page)
 	for want: String in ["TEAM COLOURS", "STANDARD", "HIGH CONTRAST", "IN USE", "#8ccfff", "#b8460c",
 			"Blue and orange: they stay apart", "Light blue and dark orange, apart in lightness too",
-			"From the next match.", "the figures when the next match starts", "GAUGE PATTERNS", "Patterns",
-			"Stripes as well as colour", "SCREEN READER MESSAGES", "Read out", "Reads hit calls, your hit and round results",
-			"SOUND CUES", "Show cues", "Red is the default.", "Two dots a step (up to 22 m)",
+			"From the next match.", "the figures when the next match starts", "GAUGE PATTERNS",
+			"Stripes as well as colour", "SCREEN READER MESSAGES", "Reads hit calls, your hit and round results",
+			"SOUND CUES", "Red is the default.", "Two dots a step (up to 22 m)",
 			"Arrowhead a shot (up to 60 m)", "HIT tag a hit call (up to 60 m)", "Shown through walls", "REDUCED MOTION",
 			"Follow system uses your computer's", "Off: the replica sways", "On: no weapon sway or drifting dust",
 			"The recoil climb stays", "Your system asks for reduced motion: It doesn't say"]:
+		assert_string_contains(words, want)
+	# the switches' row labels, in capitals as every row label is (UI1)
+	for want: String in ["PATTERNS", "READ OUT", "SHOW CUES"]:
 		assert_string_contains(words, want)
 	assert_eq(_texts(page.motion()), PackedStringArray(["FOLLOW SYSTEM", "OFF", "ON"]))
 	assert_eq(page.cue_colour().selected(), AccessibilityConfig.CUE_COLOUR_DEFAULT, "red by default")

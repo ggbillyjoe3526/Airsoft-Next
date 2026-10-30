@@ -249,6 +249,8 @@ func _open_settings() -> void:
 		_settings_screen = SettingsScreen.new()
 		_settings_screen.settings = Settings.shared()
 		_settings_screen.restart = _restart
+		# under the top bar, whose lit SETTINGS tab names the screen
+		_settings_screen.show_heading = false
 		_settings_screen.closed.connect(_settings_closed)
 		add_child(_settings_screen)
 		# under the top bar, which stays on show
@@ -313,7 +315,7 @@ func _keeps_picks() -> bool:
 	return not (_smoke or DisplayServer.get_name() == "headless")
 
 
-## Opens the match picked: practice when the Match page has Practice picked (START PRACTICE) or `smoke_practice` is given
+## Opens the match picked: practice when the Match page has Practice picked (PRACTICE) or `smoke_practice` is given
 ## (the smoke test's way in).
 func _start_play(smoke_practice: bool = false) -> void:
 	if _play != null:

@@ -23,8 +23,7 @@ const RIGHT_LABEL := 230.0
 const SLIDER_WIDTH := 300.0
 ## A note beside a row or under a section: its size and the space before it (px); the room between a heading and its
 ## LATER tag.
-const NOTE_SIZE := 15
-const NOTE_GAP := 14
+const NOTE_SIZE := GameTheme.NOTE_SIZE
 const TAG_GAP := 14
 ## The colour set cards: the room between them, their inner margins, their title's size, the swatches' height, their
 ## words' size and inner margin, and the gap between the two swatches (px).
@@ -51,8 +50,6 @@ const SAMPLE_GAP := 22
 const SAMPLE_WORD_SIZE := 12
 const SAMPLE_PIPS := 5
 const SAMPLE_SCORE: Array[int] = [3, 2]
-## The system line's inner margins (px).
-const SYSTEM_PAD := Vector2i(14, 6)
 const PERCENT := "%d%%"
 ## The sound cue sample beside the key and the gaps between them, between the key's lines and after each icon (px).
 const CUE_ROW_GAP := 18
@@ -166,7 +163,7 @@ func _build_team_colours(body: VBoxContainer) -> void:
 		var resolved := TeamColours.resolve(colour_set as TeamColours.Set, false, null, _screen.settings.tuning.teams)
 		row.add_child(_set_card(colour_set as TeamColours.Set, resolved.figures))
 		_hud_sets.append(resolved.hud)
-	_screen.add_help(body, "SETTINGS_TEAM_COLOURS_NOTE")
+	_screen.explain(row, tr("SETTINGS_TEAM_COLOURS_NOTE"))
 
 
 ## One set's card: its name with IN USE while picked, its figures' two colours with their codes, and its blurb.
@@ -192,7 +189,8 @@ func _set_card(colour_set: TeamColours.Set, teams: TeamConfig) -> MenuCard:
 	for side in 2:
 		swatches.add_child(_swatch(tr(teams.names[side]), teams.colours[side]))
 	rows.add_child(swatches)
-	rows.add_child(_lead_note(SET_LEADS[colour_set], SET_NOTES[colour_set]))
+	# what the set is for: the card's tooltip (UI1)
+	card.tooltip_text = "%s %s" % [tr(SET_LEADS[colour_set]), tr(SET_NOTES[colour_set])]
 	card.add_content(pad)
 	# The content is laid over the card, so the card takes its height (the blurb's wraps are known only once laid out).
 	pad.minimum_size_changed.connect(func() -> void:
@@ -235,12 +233,16 @@ func _show_set(colour_set: TeamColours.Set) -> void:
 func _build_patterns(body: VBoxContainer) -> void:
 	_patterns = _screen.add_check_row(body, "SETTINGS_PATTERNS", "SETTINGS_ON", "SETTINGS_OFF", LEFT_LABEL)
 	_note(_patterns.get_parent() as Control, "SETTINGS_PATTERNS_NOTE")
+	# the sample sits on the switch's row, after it
+	var switch_row := _patterns.get_parent() as HBoxContainer
 	_patterns.toggled.connect(func(on: bool) -> void:
 		_screen.settings.gauge_patterns = on
 		_show_sample()
 		changed.emit(true))
-	body.add_child(_build_sample())
-	_screen.add_help(body, "SETTINGS_PATTERNS_HELP")
+	var sample := _build_sample()
+	sample.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	switch_row.add_child(sample)
+	_screen.explain(switch_row, "%s %s" % [tr("SETTINGS_PATTERNS_NOTE"), tr("SETTINGS_PATTERNS_HELP")])
 	_show_sample()
 
 
@@ -292,7 +294,7 @@ func _build_read_out(body: VBoxContainer) -> void:
 	_read_out.toggled.connect(func(on: bool) -> void:
 		_screen.settings.read_out = on
 		changed.emit(true))
-	_screen.add_help(body, "SETTINGS_READ_OUT_NOTE")
+	_note(_read_out.get_parent() as Control, "SETTINGS_READ_OUT_NOTE")
 
 
 # --- Sound cues ---
@@ -313,6 +315,7 @@ func _build_cues(body: VBoxContainer) -> void:
 		changed.emit(false))
 	var colour_row := _screen.add_row(body, "SETTINGS_COLOUR", RIGHT_LABEL)
 	_cue_colour = MenuSwatches.new(HudPrefs.COLOURS)
+	_cue_colour.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	colour_row.add_child(_cue_colour)
 	_note(colour_row, "SETTINGS_CUE_COLOUR_NOTE")
 	_cue_colour.picked.connect(func(i: int) -> void:
@@ -348,9 +351,7 @@ func _build_cues(body: VBoxContainer) -> void:
 		words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		line.add_child(words)
 		i += 1
-	var help := MenuParts.text(tr("SETTINGS_CUES_HELP"), NOTE_SIZE, 600, GameTheme.MUTED)
-	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	key_lines.add_child(help)
+	_screen.explain(row, tr("SETTINGS_CUES_HELP"))
 	_show_cues()
 
 
@@ -382,19 +383,21 @@ func _build_motion(body: VBoxContainer) -> void:
 	for key in MOTION_KEYS:
 		words.append(tr(key))
 	_motion = MenuChoice.new(words)
+	_motion.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(_motion)
 	_motion.picked.connect(func(i: int) -> void:
 		_screen.settings.reduced_motion = i as Settings.ReducedMotion
 		changed.emit(true))
-	# Each choice's blurb (the browser game's REDUCED_MOTION_CHOICES), its name first.
-	var blurb := _lead_note("", "")
+	# Each choice's blurb (the browser game's REDUCED_MOTION_CHOICES), its name first: the row's tooltip (UI1)
+	var blurb := PackedStringArray()
 	for key: String in ["SETTINGS_MOTION_SYSTEM", "SETTINGS_MOTION_OFF", "SETTINGS_MOTION_ON"]:
-		blurb.text += ("" if blurb.text == "" else " ") + _bold(tr(key + "_LEAD")) + " " + tr(key + "_NOTE")
-	body.add_child(blurb)
+		blurb.append(tr(key + "_LEAD") + " " + tr(key + "_NOTE"))
+	_screen.explain(row, " ".join(blurb))
+	# what the system asks for, under the choices: Follow system means it
 	_system = MenuParts.text("", NOTE_SIZE, 600, GameTheme.MUTED)
-	_system.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_system.add_theme_stylebox_override("normal", GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), GameTheme.LINE,
-			SYSTEM_PAD.x, SYSTEM_PAD.y))
+	var indent := StyleBoxEmpty.new()
+	indent.content_margin_left = RIGHT_LABEL + SettingsScreen.ROW_SEPARATION
+	_system.add_theme_stylebox_override("normal", indent)
 	body.add_child(_system)
 
 
@@ -411,12 +414,13 @@ func _column(width: float) -> VBoxContainer:
 ## A section's heading under `column` (`key` translated, its LATER tag after it) and the body its rows go in; build()
 ## greys the body and shows the tag while the section is in `LATER`.
 func _section(column: VBoxContainer, key: String, section: Section) -> VBoxContainer:
-	var gap := Control.new()
-	gap.custom_minimum_size.y = SettingsScreen.SECTION_GAP
-	column.add_child(gap)
+	if column.get_child_count() > 0:
+		var gap := Control.new()
+		gap.custom_minimum_size.y = SettingsScreen.SECTION_GAP
+		column.add_child(gap)
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", TAG_GAP)
-	head.add_child(MenuParts.heading(tr(key).to_upper()))
+	head.add_child(SettingsScreen.section_label(tr(key)))
 	var tag := MenuTag.later()
 	head.add_child(tag)
 	column.add_child(head)
@@ -455,17 +459,9 @@ static func _bold(words: String) -> String:
 	return "[b][color=#%s]%s[/color][/b]" % [GameTheme.TEXT.to_html(false), words]
 
 
-## A quiet note at the end of `row` (`key` translated).
-func _note(row: Control, key: String) -> Label:
-	var note := MenuParts.text(tr(key), NOTE_SIZE, 600, GameTheme.MUTED)
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var gap := StyleBoxEmpty.new()
-	gap.content_margin_left = NOTE_GAP
-	note.add_theme_stylebox_override("normal", gap)
-	row.add_child(note)
-	return note
+## A row's explanation (`key` translated): its tooltip (UI1: only what a player would be stuck without is written out).
+func _note(row: Control, key: String) -> void:
+	_screen.explain(row, tr(key))
 
 
 ## One part of the gauge patterns sample, drawn as the HUD draws it (HudStyle's pips, a score block, a magazine box) at

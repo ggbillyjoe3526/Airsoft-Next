@@ -565,6 +565,9 @@ msgstr "HOP-UP MORE"
 msgid "SETTINGS_DEV"
 msgstr "DEV"
 
+msgid "DEV_RECORDS_LINE"
+msgstr "Matches played with these changed stay out of your records."
+
 msgid "DEV_INTRO"
 msgstr "For trying things out. Every switch is off until you turn it on. With Game speed, Bottomless magazines, Ghost, Bots hold fire, Bots run low on BBs, Spectate any bot, Bot intentions, Time of day or Disable levelling changed, matches don't go into your records."
 
@@ -766,6 +769,9 @@ msgstr "· FOLLOW OPPONENTS"
 msgid "BOTS_NO_MATES"
 msgstr "No teammates in a 1v1."
 
+msgid "BOTS_NO_MATES_TAG"
+msgstr "· NONE IN A 1V1"
+
 msgid "MENU_RULES"
 msgstr "RULES"
 
@@ -869,7 +875,7 @@ msgid "RULES_SKIRMISH_BLURB"
 msgstr "The match as you know it: %s, first to %d, %s rounds, friendly fire %s."
 
 msgid "RULES_CUSTOM_BLURB"
-msgstr "Every switch is yours. Custom matches stay out of the records and give XP at no more than %s."
+msgstr "Stays out of the records; XP at most %s."
 
 msgid "RULES_TEAM_SIZE"
 msgstr "Team size"
@@ -1229,7 +1235,10 @@ msgid "CUSTOMISE_WEIGHT_BLURB"
 msgstr "Heavier BBs hold their line in the wind and keep a little more energy, but leave the barrel slower: more time for the other player to see them coming."
 
 msgid "CUSTOMISE_HOP_BLURB"
-msgstr "Backspin that lifts the BB to fly flat. Too little and it drops early; too much and it climbs. Turn it in a match with 4 and 5."
+msgstr "Backspin that lifts the BB to fly flat. Too little and it drops early; too much and it climbs."
+
+msgid "CUSTOMISE_HOP_KEYS"
+msgstr "Turn it in a match with 4 and 5."
 
 msgid "CUSTOMISE_GLOW_BBS"
 msgstr "GLOWING BBS"
@@ -1686,6 +1695,9 @@ msgstr "%d more"
 
 msgid "ARMORY_MULTIPLIER"
 msgstr "%s ×%s"
+
+msgid "ARMORY_EARN_DIFFICULTY"
+msgstr "Difficulty"
 
 msgid "ARMORY_EARN_NOTE"
 msgstr "Then times the difficulty: %s. A first-to-5 win on Normal gives about %d XP. Practice, and matches with Dev settings, give none."
@@ -2200,6 +2212,30 @@ msgstr "%s with 1 change (marked). Picking a preset sets every row below again."
 msgid "GRAPHICS_CUSTOM_MANY"
 msgstr "%s with %d changes (marked). Picking a preset sets every row below again."
 
+msgid "GRAPHICS_CUSTOM_NONE_SHORT"
+msgstr "%s with no changes yet."
+
+msgid "GRAPHICS_CUSTOM_ONE_SHORT"
+msgstr "%s with 1 change (marked)."
+
+msgid "GRAPHICS_CUSTOM_MANY_SHORT"
+msgstr "%s with %d changes (marked)."
+
+msgid "GRAPHICS_CUSTOM_RESET"
+msgstr "Picking a preset sets every row again."
+
+msgid "GRAPHICS_AUTOMATIC_SHORT"
+msgstr "picked for your graphics card."
+
+msgid "GRAPHICS_CHOSEN"
+msgstr "every row as the preset sets it."
+
+msgid "GRAPHICS_FORCED_SHORT"
+msgstr "this run draws %s whatever is chosen here."
+
+msgid "GRAPHICS_RENDERER_NEXT_START"
+msgstr "Applies on restart"
+
 msgid "GRAPHICS_LEAD_FORCED"
 msgstr "--graphics=%s:"
 
@@ -2341,14 +2377,14 @@ msgstr "High"
 msgid "GRAPHICS_CHOICE_ULTRA"
 msgstr "Ultra"
 
-msgid "GRAPHICS_COST"
-msgstr "GPU"
-
 msgid "GRAPHICS_RESET"
 msgstr "Reset to For your card (%s)"
 
-msgid "GRAPHICS_RESET_NOTE"
-msgstr "Every row applies at once. The squares say how much each takes from your graphics card."
+msgid "GRAPHICS_COST_HEAD"
+msgstr "GPU COST"
+
+msgid "GRAPHICS_COST_TIP"
+msgstr "What this row takes from your graphics card: the more squares, the more work."
 
 msgid "GRAPHICS_YOUR_SYSTEM"
 msgstr "YOUR SYSTEM"
@@ -2575,8 +2611,8 @@ msgstr "FIELDS ONLY"
 msgid "MENU_NOT_USED"
 msgstr "NOT USED"
 
-msgid "MENU_START_PRACTICE"
-msgstr "START PRACTICE"
+msgid "MENU_GO_PRACTICE"
+msgstr "PRACTICE"
 
 msgid "MENU_SUMMARY_PRACTICE"
 msgstr "%s · No bots, no score"
@@ -2711,7 +2747,7 @@ msgid "SETTINGS_KEYS_OR"
 msgstr "or"
 
 msgid "SETTINGS_KEYS_LINE"
-msgstr "switches between a window and fullscreen at any time, in menus and in play."
+msgstr "switches at any time"
 
 msgid "SETTINGS_MONITOR"
 msgstr "MONITOR"
@@ -2737,11 +2773,20 @@ msgstr "FRAME-RATE LIMIT"
 msgid "SETTINGS_UNLIMITED"
 msgstr "Unlimited"
 
+msgid "SETTINGS_NO_LIMIT"
+msgstr "Off"
+
+msgid "SETTINGS_MODE_BORDERLESS"
+msgstr "Borderless"
+
+msgid "SETTINGS_MODE_FULLSCREEN"
+msgstr "Fullscreen"
+
 msgid "SETTINGS_FRAME_LIMIT_HELP"
 msgstr "The most frames a second the game draws: a laptop runs cooler and quieter. The game still plays at %d ticks a second. In the background it draws %d."
 
 msgid "SETTINGS_SHOW_FPS_HELP"
-msgstr "Frames a second, top right."
+msgstr "Frames a second, bottom right."
 
 msgid "SETTINGS_MONITOR_HELP"
 msgstr "Only with two screens or more."

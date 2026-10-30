@@ -20,7 +20,6 @@ const CHIP_KIND_SIZE := 12
 const CHIP_FILL := Color(1.0, 1.0, 1.0, 0.03)
 const LOCKED_ALPHA := 0.4
 const NEXT_EDGE := 7
-const NOTE_SIZE := 15
 const NOTE_GAP := 12
 const HEAD_BOTTOM := 12
 
@@ -60,10 +59,9 @@ func _heading() -> Control:
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override("separation", NOTE_GAP)
 	line.add_child(MenuParts.heading(tr("ARMORY_LEVELS_HEAD")))
-	var note := MenuParts.text(tr("ARMORY_LEVELS_NOTE"), NOTE_SIZE, 600, GameTheme.DIM)
-	note.size_flags_vertical = Control.SIZE_SHRINK_END
-	note.add_theme_constant_override("line_spacing", 0)
-	line.add_child(note)
+	# that unlocks stay, and the Dev switch that unlocks all: the heading's tooltip (UI1)
+	line.mouse_filter = Control.MOUSE_FILTER_PASS
+	line.tooltip_text = tr("ARMORY_LEVELS_NOTE")
 	return line
 
 
@@ -81,14 +79,16 @@ func _row(r: ArmoryFacts.Row) -> Control:
 	line.add_theme_constant_override("separation", 0)
 	panel.add_child(line)
 	line.add_child(_head(r))
-	var items := HBoxContainer.new()
+	# a row of more items than fit wraps onto a second line (the starting kit ran off the window's right edge)
+	var items := HFlowContainer.new()
 	items.name = "Items"
-	items.add_theme_constant_override("separation", ITEMS_GAP)
+	items.add_theme_constant_override("h_separation", ITEMS_GAP)
+	items.add_theme_constant_override("v_separation", ITEMS_GAP)
 	items.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	items.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	if r.state == ArmoryFacts.State.LOCKED:
 		items.modulate.a = LOCKED_ALPHA
-	var room := MenuParts.padded(ITEMS_PAD, 0.0, ITEMS_PAD, 0.0)
+	var room := MenuParts.padded(ITEMS_PAD, ITEMS_PAD, ITEMS_PAD, ITEMS_PAD)
 	room.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	room.add_child(items)
 	line.add_child(room)

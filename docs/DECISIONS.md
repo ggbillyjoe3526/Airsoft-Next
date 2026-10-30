@@ -636,6 +636,14 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   Cards with a picture or a paragraph (maps, modes, replicas, parts) are panels, not buttons, and still fill their
   column; quiet text links (Report a Bug, Licences, Rename) are words, not boxes; a key's box in the Controls list is a
   field and keeps one fixed width.
+- **Compact, steady menus; help only where it is needed (owner, 2026-10-29; UI1).** "Go over the entire menu UI and
+  make it more compact … There should be no overlayed elements, clipping, change of text, movement … Only keep
+  text/descriptions/information if it is important." Every menu control is one height (`GameTheme.CONTROL_HEIGHT`, 34 px
+  at 1080p) on one type scale (labels 16 px capitals, controls 14 px, notes 14 px); a switch is a fixed-size pill with no
+  words. Pressing, hovering or picking anything moves and resizes nothing else, and every button carries every state's
+  box (`GameTheme.dress`), so no state cuts its words. A line of help stays on screen only where a player would be stuck
+  or surprised (the key-binding hint, the order wheel's Hover and Click, "From the next start.", what Custom rules
+  cost); the rest is the row's tooltip.
 - **The wordmark goes home, and Esc anywhere in the menus asks to quit (owner, 2026-10-29; FB1).** A click on AIRSOFT in
   the top bar goes to the title screen (not from the Loadout in practice, which has no title). Esc in the menus, the
   title and Settings included, opens QUIT GAME? with QUIT and CANCEL, the focus on CANCEL; Esc again or CANCEL closes it.
@@ -648,7 +656,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Small menu rulings (owner, 2026-10-03 to 2026-10-07).** The tagline is "Call your hit. Go again." Menu headings and
   labels are in capitals, descriptions as written. Unbuilt items are listed greyed out with a LATER tag.
 - **The menus grow with a tall window as the HUD does (UX1, 2026-10-17).** They scale by the window height over 1080,
-  up to 1.5× at 4K, held back so the layout keeps 1500 px of width; 1080p and smaller draw as before.
+  up to 2× at 4K, so 4K draws exactly as 1080 does (UI1, 2026-10-30; was 1.5×, the browser game's, which left most of a
+  4K screen empty); 1080p and smaller draw as before.
 - **A menu page is pinned to the window; only its long part scrolls (UX1, 2026-10-17).** The top bar, the heading and the
   main button always show; long lists scroll inside, fading at the foot while more lies below.
 - **The order wheel is on Z (owner, 2026-10-04); Hold here X, Regroup V, Follow me F.** Orders end when their giver is

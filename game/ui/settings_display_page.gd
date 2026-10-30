@@ -1,32 +1,22 @@
 class_name SettingsDisplayPage
 extends HBoxContainer
-## The settings' Display tab (concept `settings-display.png`): the window (Window mode as Windowed,
-## Borderless fullscreen or Exclusive fullscreen, with the F11 and Alt+Enter line; Monitor, shown only with two screens
-## or more, each as its number, size and rate) and the frame rate (V-Sync, and the frame-rate limit from 30 to 360 or
-## Unlimited) and the view (field of view, Show FPS), in one column (the concept's second column no longer fits beside
-## choices that are one width each). Each choice is applied at once through SettingsApply and
-## `changed` asks the screen to save it. F11 pressed while the tab shows moves Window mode with it (`Settings.changed`).
+## The settings' Display tab (concept `settings-display.png`): the window (Window mode as Windowed, Borderless or
+## Fullscreen, the F11 and Alt+Enter keys in its tooltip; Monitor, shown only with two screens or more, each as its
+## number, size and rate) and the frame rate (V-Sync, and the frame-rate limit from 30 to 360 or Off) and the view (field
+## of view, Show FPS), in one column. The longer explanations are the rows' tooltips (UI1: help only where a player would
+## be stuck). Each choice is applied at once through SettingsApply and `changed` asks the screen to save it. F11 pressed
+## while the tab shows moves Window mode with it (`Settings.changed`).
 
 ## A choice landed: saved now (`immediate`, a click) or a moment after a slider stops.
 signal changed(immediate: bool)
 
-## The column's width, the labels' width, the slider's and a note's beside a row (px).
-const LEFT_WIDTH := 1010.0
+## The column's width and the labels' width (px).
+const LEFT_WIDTH := 1100.0
 const COLUMN_GAP := 48
-const LEFT_LABEL := 250.0
-const SLIDER_WIDTH := 300.0
-const NOTE_WIDTH := 300.0
-## The space before a note beside a row, the notes' text size, and the room between the key line's parts (px).
-const NOTE_GAP := 14
-const NOTE_SIZE := 15
-const KEYS_GAP := 4
-## A key cap's text size, inner margins and corner rounding (px).
-const CAP_SIZE := 13
-const CAP_PAD := Vector2i(6, 0)
-const CAP_RADIUS := 4
+const LEFT_LABEL := SettingsScreen.ROW_LABEL_WIDTH
 const FOV_STEP := 1.0
-## The window modes in Settings.WindowMode's order.
-const WINDOW_KEYS: Array[String] = ["SETTINGS_WINDOWED", "SETTINGS_BORDERLESS", "SETTINGS_EXCLUSIVE"]
+## The window modes in Settings.WindowMode's order, as the buttons name them (short: the long names are the notices').
+const WINDOW_KEYS: Array[String] = ["SETTINGS_WINDOWED", "SETTINGS_MODE_BORDERLESS", "SETTINGS_MODE_FULLSCREEN"]
 ## A screen whose refresh rate the system doesn't give reports this or less.
 const NO_RATE := 0.0
 
@@ -34,9 +24,7 @@ var _screen: SettingsScreen = null
 var _window: MenuChoice = null
 var _monitor_row: HBoxContainer = null
 var _monitor: MenuChoice = null
-var _monitor_note: Label = null
 var _vsync: CheckButton = null
-var _vsync_note: Label = null
 var _limit: MenuChoice = null
 var _fov: HSlider = null
 var _fps: CheckButton = null
@@ -90,8 +78,9 @@ func vsync() -> CheckButton:
 	return _vsync
 
 
+## V-Sync's explanation (its tooltip).
 func vsync_note() -> String:
-	return _vsync_note.text
+	return _vsync.tooltip_text
 
 
 func limit_choice() -> MenuChoice:
@@ -133,7 +122,7 @@ func _column(width: float) -> VBoxContainer:
 	return c
 
 
-## Window: the mode, the keys' line under it, and Monitor (filled in on refresh).
+## Window: the mode (its keys in its tooltip), and Monitor (filled in on refresh).
 func _build_window(column: VBoxContainer) -> void:
 	_screen.add_section(column, tr("SETTINGS_WINDOW"))
 	var row := _screen.add_row(column, "SETTINGS_WINDOW_MODE", LEFT_LABEL)
@@ -141,41 +130,29 @@ func _build_window(column: VBoxContainer) -> void:
 	for key in WINDOW_KEYS:
 		words.append(tr(key))
 	_window = MenuChoice.new(words)
+	_window.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_window.picked.connect(func(i: int) -> void:
 		SettingsApply.pick_window_mode(_screen.settings, i as Settings.WindowMode)
 		changed.emit(true))
 	row.add_child(_window)
-	_build_keys_line(column)
+	_screen.explain(row, keys_tip())
 	_monitor_row = _screen.add_row(column, "SETTINGS_MONITOR", LEFT_LABEL)
-	_monitor_note = _note(_monitor_row, tr("SETTINGS_MONITOR_HELP"))
+	_monitor_row.tooltip_text = tr("SETTINGS_MONITOR_HELP")
 	_monitor_row.visible = false
 
 
-## "[F11] or [Alt]+[Enter] switches between a window and fullscreen ...", under the mode's choices; the keys named in
-## the player's layout.
-func _build_keys_line(column: VBoxContainer) -> void:
-	var line := HBoxContainer.new()
-	line.add_theme_constant_override("separation", KEYS_GAP)
-	var indent := Control.new()
-	indent.custom_minimum_size.x = LEFT_LABEL - KEYS_GAP
-	line.add_child(indent)
+## "F11 or Alt+Enter switches at any time.", the window mode row's tooltip (UI1: no hint line beside it); the keys
+## named in the player's layout.
+func keys_tip() -> String:
 	var config := SettingsApply.screens().config
-	_cap(line, KeyNames.name_of(config.toggle_key))
-	_word(line, tr("SETTINGS_KEYS_OR"))
-	_cap(line, KeyNames.name_of(KEY_ALT))
-	_word(line, "+")
-	_cap(line, KeyNames.name_of(config.alt_toggle_keys[0]))
-	var rest := _word(line, tr("SETTINGS_KEYS_LINE"))
-	rest.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	rest.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(line)
+	return "%s %s %s+%s %s." % [KeyNames.name_of(config.toggle_key), tr("SETTINGS_KEYS_OR"), KeyNames.name_of(KEY_ALT),
+			KeyNames.name_of(config.alt_toggle_keys[0]), tr("SETTINGS_KEYS_LINE")]
 
 
-## Frame rate: V-Sync with its note, the limit's choices and the line under them.
+## Frame rate: V-Sync and the limit's choices, each explained in its tooltip.
 func _build_frame_rate(column: VBoxContainer) -> void:
 	_screen.add_section(column, tr("SETTINGS_FRAME_RATE"))
 	_vsync = _screen.add_check_row(column, "SETTINGS_VSYNC", "SETTINGS_ON", "SETTINGS_OFF", LEFT_LABEL)
-	_vsync_note = _note(_vsync.get_parent() as HBoxContainer, "")
 	_vsync.toggled.connect(func(on: bool) -> void:
 		_screen.settings.vsync = on
 		SettingsApply.apply_display(_screen.settings)
@@ -184,21 +161,20 @@ func _build_frame_rate(column: VBoxContainer) -> void:
 	var words := PackedStringArray()
 	for limit in Settings.FRAME_LIMITS:
 		words.append(str(limit))
-	words.append(tr("SETTINGS_UNLIMITED"))
+	words.append(tr("SETTINGS_NO_LIMIT"))
 	_limit = MenuChoice.new(words)
+	_limit.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_limit.picked.connect(func(i: int) -> void:
 		var limits := Settings.FRAME_LIMITS
 		_screen.settings.frame_limit = limits[i] if i < limits.size() else Settings.UNLIMITED
 		SettingsApply.apply_frame_rate(_screen.settings)
 		changed.emit(true))
 	row.add_child(_limit)
-	var help := _quiet_label(column)
-	help.text = tr("SETTINGS_FRAME_LIMIT_HELP") % [Engine.physics_ticks_per_second,
+	var help := tr("SETTINGS_FRAME_LIMIT_HELP") % [Engine.physics_ticks_per_second,
 			SettingsApply.screens().config.background_fps]
-	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var indent := StyleBoxEmpty.new()
-	indent.content_margin_left = LEFT_LABEL
-	help.add_theme_stylebox_override("normal", indent)
+	row.tooltip_text = help
+	for i in _limit.get_child_count():
+		_limit.button(i).tooltip_text = help
 
 
 ## View: the field of view and Show FPS.
@@ -206,13 +182,12 @@ func _build_view(column: VBoxContainer) -> void:
 	_screen.add_section(column, tr("SETTINGS_VIEW"))
 	_fov = _screen.add_slider_row(column, "SETTINGS_FOV", Settings.FOV_MIN, Settings.FOV_MAX, FOV_STEP, "%d°",
 			LEFT_LABEL)
-	_fov.custom_minimum_size.x = SLIDER_WIDTH
 	_fov.value_changed.connect(func(v: float) -> void:
 		_screen.settings.fov = v
 		SettingsApply.apply_controls(_screen.settings)
 		changed.emit(false))
 	_fps = _screen.add_check_row(column, "SETTINGS_SHOW_FPS", "SETTINGS_ON", "SETTINGS_OFF", LEFT_LABEL)
-	_note(_fps.get_parent() as HBoxContainer, tr("SETTINGS_SHOW_FPS_HELP"))
+	_fps.tooltip_text = tr("SETTINGS_SHOW_FPS_HELP")
 	_fps.toggled.connect(func(on: bool) -> void:
 		_screen.settings.show_fps = on
 		changed.emit(true))
@@ -242,12 +217,12 @@ func _show_monitors() -> void:
 		else:
 			words.append(tr("SETTINGS_MONITOR_LINE_NO_RATE") % [i + 1, size.x, size.y])
 	_monitor = MenuChoice.new(words)
+	_monitor.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_monitor.picked.connect(func(i: int) -> void:
 		SettingsApply.pick_monitor(_screen.settings, i)
 		_show_vsync_note()
 		changed.emit(true))
 	_monitor_row.add_child(_monitor)
-	_monitor_row.move_child(_monitor_note, -1)
 	# the screen the window is on now (dragged since the start, it may not be the saved one)
 	var on := ds.current()
 	_monitor.put(on if on >= 0 else SettingsApply.monitor_now(_screen.settings, ds))
@@ -259,49 +234,6 @@ func _show_vsync_note() -> void:
 	var at := ds.current()
 	var rate := ds.rate(at) if at >= 0 and at < ds.count() else NO_RATE
 	if rate > NO_RATE:
-		_vsync_note.text = tr("SETTINGS_VSYNC_HELP") % roundi(rate)
+		_vsync.tooltip_text = tr("SETTINGS_VSYNC_HELP") % roundi(rate)
 	else:
-		_vsync_note.text = tr("SETTINGS_VSYNC_HELP_NO_RATE")
-
-
-func _quiet_label(parent: Control) -> Label:
-	var l := Label.new()
-	l.add_theme_color_override("font_color", GameTheme.MUTED)
-	l.add_theme_font_size_override("font_size", NOTE_SIZE)
-	l.add_theme_font_override("font", GameTheme.font(600))
-	parent.add_child(l)
-	return l
-
-
-## A quiet note beside a row, wrapped at NOTE_WIDTH.
-func _note(row: HBoxContainer, text: String) -> Label:
-	var note := _quiet_label(row)
-	note.text = text
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.custom_minimum_size.x = NOTE_WIDTH
-	note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var gap := StyleBoxEmpty.new()
-	gap.content_margin_left = NOTE_GAP
-	note.add_theme_stylebox_override("normal", gap)
-	return note
-
-
-## A key's name in a rounded outline (the concept's key cap).
-func _cap(line: HBoxContainer, key_name: String) -> void:
-	var cap := Label.new()
-	cap.text = key_name
-	cap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	cap.add_theme_font_override("font", GameTheme.font(800))
-	cap.add_theme_font_size_override("font_size", CAP_SIZE)
-	cap.add_theme_color_override("font_color", GameTheme.TEXT)
-	var box := GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), GameTheme.MUTED, CAP_PAD.x, CAP_PAD.y)
-	box.set_corner_radius_all(CAP_RADIUS)
-	cap.add_theme_stylebox_override("normal", box)
-	line.add_child(cap)
-
-
-func _word(line: HBoxContainer, text: String) -> Label:
-	var word := _quiet_label(line)
-	word.text = text
-	word.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	return word
+		_vsync.tooltip_text = tr("SETTINGS_VSYNC_HELP_NO_RATE")

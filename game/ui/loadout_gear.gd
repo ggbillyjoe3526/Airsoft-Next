@@ -38,8 +38,7 @@ const LABEL_POS := Vector2(18.0, 14.0)
 const NAME_SIZE := 24
 const SUB_SIZE := 16
 const KEY_SIZE := 13
-const OFF_HEIGHT := 73.0
-const OFF_NOTE_SIZE := 16
+const OFF_HEIGHT := 48.0
 const REPLICA_GAP := 12
 const REPLICA_HEIGHT := 92.0
 const REPLICA_PICTURE := Vector2(188.0, 0.0)
@@ -47,9 +46,10 @@ const REPLICA_PICTURE_PAD := Vector2(10.0, 8.0)
 const REPLICA_NAME_SIZE := 20
 const REPLICA_SUB_SIZE := 15
 const REPLICA_TEXT_GAP := 4
-const HINT_SIZE := 15
-const HINT_GAP := 16
-## The range's note under the hint (concept `loadout-practice.png`): the gap above, the padding (left past the rule, top,
+## The list is never narrower than a picture and a name, in a window too small for the page (its old, larger heading
+## used to hold it this wide).
+const REPLICAS_MIN_WIDTH := 320.0
+## The range's note under the list (concept `loadout-practice.png`): the gap above, the padding (left past the rule, top,
 ## right, bottom; the left is past the rule), the rule's width, the kicker's and the words' sizes and the words' extra line spacing (px at 1080p).
 const NOTE_GAP := 28
 const NOTE_PAD := Vector4(18.0, 14.0, 18.0, 16.0)
@@ -108,6 +108,8 @@ func _init(pictures: ReplicaPictures, facts: LoadoutFacts) -> void:
 	columns.add_child(_build_replicas())
 	_sheet = PerformanceSheet.new()
 	_sheet.custom_minimum_size = Vector2(SIDE_WIDTH, 0.0)
+	# as tall as its rows: filling the column took it down onto CUSTOMISE (UI1)
+	_sheet.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	columns.add_child(_sheet)
 	_build_foot()
 
@@ -286,16 +288,14 @@ func _build_grenades() -> Control:
 	box.custom_minimum_size = Vector2(0.0, OFF_HEIGHT)
 	box.add_theme_stylebox_override("panel", GameTheme.box(GameTheme.CARD, GameTheme.LINE, int(LABEL_POS.x), 10))
 	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 10)
 	head.add_child(MenuParts.spaced(tr("LOADOUT_GRENADES"), LABEL_SIZE, 800, GameTheme.MUTED, LABEL_SPACING))
 	head.add_child(MenuTag.later())
 	column.add_child(head)
-	var note := MenuParts.text(tr("LOADOUT_GRENADES_LATER"), OFF_NOTE_SIZE, 700, GameTheme.DIM)
-	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	note.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	note.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	column.add_child(note)
+	# the LATER tag says it; the words are its tooltip (UI1)
+	box.tooltip_text = tr("LOADOUT_GRENADES_LATER")
 	box.add_child(column)
 	return box
 
@@ -303,6 +303,7 @@ func _build_grenades() -> Control:
 func _build_replicas() -> Control:
 	var column := MenuParts.section(MenuParts.heading(tr("LOADOUT_REPLICAS")))
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.custom_minimum_size.x = REPLICAS_MIN_WIDTH
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override("separation", REPLICA_GAP)
 	column.add_child(list)
@@ -311,12 +312,6 @@ func _build_replicas() -> Control:
 		var later := rules.config(item) == null
 		var lock := rules.unlock_level(item.id) if not later and rules.is_locked(item.id) else -1
 		list.add_child(_replica_row(item, later, lock))
-	var hint := MenuParts.text(tr("LOADOUT_HINT"), HINT_SIZE, 600, GameTheme.DIM)
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var gap := Control.new()
-	gap.custom_minimum_size = Vector2(0.0, HINT_GAP - MenuParts.HEADING_GAP)
-	column.add_child(gap)
-	column.add_child(hint)
 	_note = _build_range_note()
 	column.add_child(_note)
 	return column
@@ -389,6 +384,9 @@ func _replica_row(item: Pool.Item, later: bool, lock_level: int) -> MenuCard:
 	var card := MenuCard.new()
 	card.name = "Replica_%s" % item.id
 	card.custom_minimum_size = Vector2(0.0, REPLICA_HEIGHT)
+	# how to pick, swap and customise: the card's tooltip (UI1: it was a paragraph under the list)
+	if not later and lock_level < 0:
+		card.tooltip_text = tr("LOADOUT_HINT")
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 0)
 	var pad := MenuParts.padded(REPLICA_PICTURE_PAD.x, REPLICA_PICTURE_PAD.y, REPLICA_PICTURE_PAD.x,

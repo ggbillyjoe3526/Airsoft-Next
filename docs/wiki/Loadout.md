@@ -17,14 +17,14 @@ the GBB Pistol. The Grenades slot waits for grenades, which come in a later upda
 Beside your replicas, the Performance sheet compares your setup with the replica as it comes: **better in green,
 worse in red**. It covers energy, fire rate, magazines, handling and the rest, adds **Zoom aimed** and **Aim in** for
 an optic and a **Rattles** warning for a hi-cap magazine, and says when the [site limit](Replicas#site-limits) capped
-the energy.
+the energy. Point at the panel to read what got better and worse in words.
 
 ## Customise
 
 **CUSTOMISE** tunes one replica at a time:
 
-- **Colour:** eight bold schemes, four plain ones, and a **Realistic colours** switch that shows bold schemes as plain
-  colours.
+- **Colour:** eight bold schemes, four plain ones, and a **Realistic colours everywhere** switch that shows every bold
+  scheme as its plain colour, yours and the bots'.
 - **BB weight**, from 0.20 g to 0.30 g, with a picture of the BB's flight, and the **hop-up** dial's starting
   setting. **Glowing BBs** under it: At Night (the default), Always or Off. A glowing BB is drawn green, a little
   larger at range, with a longer streak, so you can follow a shot all the way; it flies exactly like a white one.
