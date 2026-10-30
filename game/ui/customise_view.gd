@@ -436,9 +436,11 @@ func _build_crumb() -> void:
 	_back.text = tr("CUSTOMISE_BACK")
 	_back.add_theme_font_override("font", GameTheme.spaced_font(700, GameTheme.SPACING_TAB, BACK_SIZE))
 	_back.add_theme_font_size_override("font_size", BACK_SIZE)
-	for state: String in ["normal", "disabled"]:
-		_back.add_theme_stylebox_override(state, GameTheme.box(GameTheme.CARD, GameTheme.LINE, BACK_PAD.x, BACK_PAD.y))
-	_back.add_theme_stylebox_override("hover", GameTheme.box(GameTheme.CARD_HI, GameTheme.LINE, BACK_PAD.x, BACK_PAD.y))
+	# every state its own box with the same margins: the pressed box was the theme's, 2 px wider each side, and a press
+	# cut the last letter (UI1: "LOADOU")
+	GameTheme.dress(_back, GameTheme.box(GameTheme.CARD, GameTheme.LINE, BACK_PAD.x, BACK_PAD.y),
+			GameTheme.box(GameTheme.CARD_HI, GameTheme.LINE, BACK_PAD.x, BACK_PAD.y),
+			GameTheme.box(GameTheme.CARD_HI, GameTheme.YELLOW, BACK_PAD.x, BACK_PAD.y))
 	_back.pressed.connect(func() -> void: back_requested.emit())
 	row.add_child(_back)
 	_crumb_name = MenuParts.spaced("", CRUMB_NAME_SIZE, 800, GameTheme.TEXT, 0.02)

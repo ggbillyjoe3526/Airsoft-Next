@@ -142,6 +142,9 @@ func _build_block() -> void:
 	wordmark.add_theme_font_size_override("font_size", WORDMARK_SIZE)
 	var box := Control.new()
 	box.custom_minimum_size = Vector2(0.0, WORDMARK_BOX)
+	# the line's room under the capitals is cut, so the box is the wordmark's whole height and the tagline's own room
+	# starts under it (UI1: no two controls over each other)
+	box.clip_contents = true
 	box.add_child(wordmark)
 	block.add_child(box)
 	block.add_child(_space(TAG_GAP))

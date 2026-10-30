@@ -176,9 +176,7 @@ func _build_back() -> PanelContainer:
 	_back_button.name = "Back"
 	_back_button.focus_mode = Control.FOCUS_ALL
 	var clear := StyleBoxEmpty.new()
-	for state: String in ["normal", "pressed", "disabled"]:
-		_back_button.add_theme_stylebox_override(state, clear)
-	_back_button.add_theme_stylebox_override("hover", GameTheme.box(BACK_HOVER, Color(0.0, 0.0, 0.0, 0.0), 0, 0))
+	GameTheme.dress(_back_button, clear, GameTheme.box(BACK_HOVER, Color(0.0, 0.0, 0.0, 0.0), 0, 0), clear)
 	_back_button.add_theme_stylebox_override("focus", GameTheme.focus_box())
 	_back_button.pressed.connect(func() -> void: practice_pressed.emit())
 	plate.add_child(_back_button)
@@ -196,8 +194,7 @@ func _build_mark() -> Button:
 	b.add_theme_font_override("font", GameTheme.spaced_font(800, 0.02, MARK_SIZE))
 	b.add_theme_font_size_override("font_size", MARK_SIZE)
 	var none := StyleBoxEmpty.new()
-	for state: String in ["normal", "hover", "pressed", "disabled"]:
-		b.add_theme_stylebox_override(state, none)
+	GameTheme.dress(b, none, none, none)
 	b.add_theme_stylebox_override("focus", GameTheme.focus_box())
 	b.add_theme_color_override("font_color", GameTheme.TEXT)
 	b.add_theme_color_override("font_disabled_color", GameTheme.TEXT)
@@ -236,8 +233,7 @@ func _style_tab(tab: Tab) -> void:
 	if b.disabled:
 		face.content_margin_right = TAG_GAP
 
-	for state: String in ["normal", "hover", "pressed", "disabled"]:
-		b.add_theme_stylebox_override(state, face)
+	GameTheme.dress(b, face, face, face)
 	b.add_theme_stylebox_override("focus", GameTheme.focus_box())
 	for c: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_disabled_color"]:
 		b.add_theme_color_override(c, colour if c != "font_hover_color" or lit else GameTheme.TEXT)

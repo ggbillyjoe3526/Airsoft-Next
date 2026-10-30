@@ -12,7 +12,8 @@ const LARGE_SIZE := 40
 const COUNT_SIZE := 64
 const HUGE_SIZE := 88
 const TAB_SIZE := 20
-const HEADING_SIZE := 22
+## A section heading: one size on every menu (UI1).
+const HEADING_SIZE := 16
 const MAIN_BUTTON_SIZE := 32
 
 ## The palette (menus.html of the concept).
@@ -50,6 +51,19 @@ const LINK_BUTTON := &"QuietLink"
 ## The same with a rule under it (Licences).
 const LINK_UNDERLINED := &"QuietLinkRuled"
 const UNDERLINE_GAP := 4
+## The menus' one compact scale (UI1): every choice, switch, field and small button is CONTROL_HEIGHT tall, its words
+## CONTROL_SIZE capitals with CONTROL_PAD_X each side; a row's name is LABEL_SIZE capitals, a section's heading
+## SECTION_SIZE, a help line NOTE_SIZE (px at 1080p).
+const CONTROL_HEIGHT := 34
+const CONTROL_SIZE := 14
+const CONTROL_PAD_X := 14
+const LABEL_SIZE := 16
+const SECTION_SIZE := HEADING_SIZE
+const NOTE_SIZE := 14
+const SPACING_LABEL := 0.04
+const SPACING_SECTION := SPACING_HEADING
+## The Button states a box is drawn in (focus is drawn over one of them).
+const BUTTON_STATES: Array[String] = ["normal", "hover", "pressed", "hover_pressed", "disabled"]
 
 static var _theme: Theme = null
 static var _fonts: Dictionary[int, Font] = {}
@@ -97,6 +111,45 @@ static func box(fill: Color, edge: Color = Color(0.0, 0.0, 0.0, 0.0), margin_x: 
 	s.content_margin_top = margin_y
 	s.content_margin_bottom = margin_y
 	return s
+
+
+## Gives `b` its own box for every state (`plain` when idle and disabled, `hover` under the pointer, `lit` pressed or
+## picked, under the pointer or not), and has it measured by its largest box. Boxes of one button should share their
+## margins: a button is not measured again as the pointer moves, so a state with wider margins cut its words (UI1:
+## Customise's LOADOUT read LOADOU while pressed).
+static func dress(b: Button, plain: StyleBox, hover: StyleBox, lit: StyleBox) -> void:
+	b.add_theme_stylebox_override("normal", plain)
+	b.add_theme_stylebox_override("disabled", plain)
+	b.add_theme_stylebox_override("hover", hover)
+	b.add_theme_stylebox_override("pressed", lit)
+	b.add_theme_stylebox_override("hover_pressed", lit)
+	b.add_theme_constant_override("align_to_largest_stylebox", 1)
+
+
+## The menus' small button: CONTROL_HEIGHT tall, its words in CONTROL_SIZE capitals, a card box edged in `edge` (the
+## line colour, or yellow for the one to press), lit yellow when pressed.
+static func small_button(b: Button, edge: Color = LINE) -> void:
+	var plain := box(CARD, edge, CONTROL_PAD_X, 0)
+	dress(b, plain, box(CARD_HI, edge, CONTROL_PAD_X, 0), box(CARD_HI, YELLOW, CONTROL_PAD_X, 0))
+	b.add_theme_font_override("font", spaced_font(800, SPACING_TAB, CONTROL_SIZE))
+	b.add_theme_font_size_override("font_size", CONTROL_SIZE)
+	b.custom_minimum_size.y = CONTROL_HEIGHT
+
+
+## A row's name: capitals in LABEL_SIZE (owner, 2026-10-03: menu labels are capitals).
+static func row_label(l: Label) -> void:
+	l.text = l.text.to_upper()
+	l.add_theme_font_override("font", spaced_font(700, SPACING_LABEL, LABEL_SIZE))
+	l.add_theme_font_size_override("font_size", LABEL_SIZE)
+	l.add_theme_color_override("font_color", TEXT)
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+
+## A help line: NOTE_SIZE words in the muted colour.
+static func note_label(l: Label) -> void:
+	l.add_theme_font_override("font", font(600))
+	l.add_theme_font_size_override("font_size", NOTE_SIZE)
+	l.add_theme_color_override("font_color", MUTED)
 
 
 ## A slider's round yellow knob (`SLIDER_GRABBER` px, edge smoothed; the concept's `rules-custom.png` round time).
@@ -147,25 +200,31 @@ static func _add_text(t: Theme) -> void:
 
 
 static func _add_buttons(t: Theme) -> void:
-	var states: Dictionary[String, Color] = {"normal": CARD, "hover": CARD_HI, "pressed": CARD_HI, "disabled": CARD}
-	for type: StringName in [&"Button", &"OptionButton"]:
+	# every state has a box with the same margins, hover_pressed included (a toggle that is down under the pointer: without
+	# it Godot's own 4 px box was drawn and measured, and a switch shrank as it was clicked, UI1); and a button is
+	# measured by its largest box, so no state can cut its words
+	var states: Dictionary[String, Color] = {"normal": CARD, "hover": CARD_HI, "pressed": CARD_HI,
+			"hover_pressed": CARD_HI, "disabled": CARD}
+	t.set_constant("align_to_largest_stylebox", "Button", 1)
+	for type: StringName in [&"Button", &"OptionButton", &"CheckButton", &"CheckBox"]:
 		for state: String in states:
-			var edge := YELLOW if state == "pressed" else LINE
+			var edge := YELLOW if state == "pressed" or state == "hover_pressed" else LINE
 			t.set_stylebox(state, type, box(states[state], edge))
 		t.set_stylebox("focus", type, focus_box())
 		t.set_color("font_color", type, TEXT)
 		t.set_color("font_hover_color", type, TEXT)
 		t.set_color("font_pressed_color", type, TEXT)
 		t.set_color("font_focus_color", type, TEXT)
+		t.set_color("font_hover_pressed_color", type, TEXT)
 		t.set_color("font_disabled_color", type, DIM)
 		t.set_font("font", type, spaced_font(700, SPACING_TAB, BODY_SIZE))
 	# The slanted main button.
 	t.set_type_variation(MAIN_BUTTON, "Button")
-	for state: String in ["normal", "hover", "pressed", "disabled", "focus"]:
+	for state: String in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
 		var slant := SlantStyle.new()
 		slant.fill = YELLOW
 		slant.outline_only = state == "focus"
-		if state == "hover" or state == "pressed":
+		if state == "hover" or state == "pressed" or state == "hover_pressed":
 			slant.fill = YELLOW.lightened(0.15)
 		if state == "disabled":
 			slant.fill = DIM
@@ -174,14 +233,15 @@ static func _add_buttons(t: Theme) -> void:
 		slant.set_content_margin(SIDE_LEFT, MAIN_MARGIN_X)
 		slant.set_content_margin(SIDE_RIGHT, MAIN_MARGIN_X)
 		t.set_stylebox(state, MAIN_BUTTON, slant)
-	for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+	for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color",
+			"font_focus_color"]:
 		t.set_color(colour, MAIN_BUTTON, YELLOW_INK)
 	t.set_font("font", MAIN_BUTTON, spaced_font(800, SPACING_MAIN, MAIN_BUTTON_SIZE))
 	t.set_font_size("font_size", MAIN_BUTTON, MAIN_BUTTON_SIZE)
 	# The quiet text button.
 	t.set_type_variation(LINK_BUTTON, "Button")
 	var none := StyleBoxEmpty.new()
-	for state: String in ["normal", "hover", "pressed", "disabled"]:
+	for state: String in BUTTON_STATES:
 		t.set_stylebox(state, LINK_BUTTON, none)
 	t.set_stylebox("focus", LINK_BUTTON, focus_box())
 	t.set_color("font_color", LINK_BUTTON, MUTED)
@@ -191,7 +251,7 @@ static func _add_buttons(t: Theme) -> void:
 	t.set_font("font", LINK_BUTTON, font(600))
 	t.set_font_size("font_size", LINK_BUTTON, SMALL_SIZE)
 	t.set_type_variation(LINK_UNDERLINED, LINK_BUTTON)
-	for state: String in ["normal", "hover", "pressed", "disabled"]:
+	for state: String in BUTTON_STATES:
 		var rule := StyleBoxFlat.new()
 		rule.draw_center = false
 		rule.border_width_bottom = BORDER

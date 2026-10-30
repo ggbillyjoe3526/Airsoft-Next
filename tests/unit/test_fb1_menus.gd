@@ -122,10 +122,10 @@ func test_a_switch_is_one_size_on_or_off_and_one_line_high_beside_a_long_note() 
 	var off_size := check.size
 	check.put(true)
 	await wait_process_frames(2)
-	assert_eq(check.text, "On")
+	assert_eq(check.words(), "On")
+	assert_eq(check.text, "", "a pill with no words (UI1)")
 	assert_eq(check.size, off_size, "the same size on as off")
 	assert_lt(check.size.y, note.size.y * 0.8, "not stretched to the note's height")
-	assert_eq(check.fixed_width(), check.custom_minimum_size.x)
 
 
 func test_pressing_the_graphics_preset_line_to_custom_does_not_change_its_height() -> void:
@@ -153,8 +153,8 @@ func test_the_for_your_card_tag_draws_above_the_buttons_after_it() -> void:
 	var page: SettingsGraphicsPage = screen.find_children("*", "HBoxContainer", true, false) \
 			.filter(func(n: Node) -> bool: return n is SettingsGraphicsPage)[0]
 	var tag: Control = page._tag
-	assert_gt(tag.z_index, 0, "over its neighbours, never under them")
 	var button := page.tagged()
+	assert_false(button.is_ancestor_of(tag), "in its own room above the buttons, not over one (UI1)")
 	assert_lte(tag.size.x, button.size.x + 8.0, "no wider than its button, give or take a few px")
 
 

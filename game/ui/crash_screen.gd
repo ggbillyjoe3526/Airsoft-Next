@@ -329,9 +329,8 @@ func _build_facts(parent: Control) -> void:
 		_seed_button.add_theme_font_override("font", GameTheme.spaced_font(800, MINI_SPACING, MINI_SIZE))
 		_seed_button.add_theme_font_size_override("font_size", MINI_SIZE)
 		_seed_button.add_theme_color_override("font_color", GameTheme.MUTED)
-		for state: String in ["normal", "hover", "pressed"]:
-			_seed_button.add_theme_stylebox_override(state, GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), GameTheme.LINE,
-					MINI_PAD.x, MINI_PAD.y))
+		var mini := GameTheme.box(Color(0.0, 0.0, 0.0, 0.0), GameTheme.LINE, MINI_PAD.x, MINI_PAD.y)
+		GameTheme.dress(_seed_button, mini, mini, mini)
 		_seed_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		_seed_button.pressed.connect(_on_copy_seed)
 		row.add_child(_seed_button)
@@ -420,9 +419,8 @@ func _button(parent: Control, key: String, fill: Color, edge: Color, ink: Color)
 	b.custom_minimum_size.y = BUTTON_HEIGHT
 	b.add_theme_font_override("font", GameTheme.spaced_font(800, BUTTON_SPACING, BUTTON_SIZE))
 	b.add_theme_font_size_override("font_size", BUTTON_SIZE)
-	b.add_theme_stylebox_override("normal", GameTheme.box(fill, edge, BUTTON_PAD, 0))
-	b.add_theme_stylebox_override("hover", GameTheme.box(fill.lightened(0.1), edge, BUTTON_PAD, 0))
-	b.add_theme_stylebox_override("pressed", GameTheme.box(fill.lightened(0.1), GameTheme.YELLOW, BUTTON_PAD, 0))
+	GameTheme.dress(b, GameTheme.box(fill, edge, BUTTON_PAD, 0), GameTheme.box(fill.lightened(0.1), edge, BUTTON_PAD, 0),
+			GameTheme.box(fill.lightened(0.1), GameTheme.YELLOW, BUTTON_PAD, 0))
 	for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		b.add_theme_color_override(colour, ink)
 	parent.add_child(b)

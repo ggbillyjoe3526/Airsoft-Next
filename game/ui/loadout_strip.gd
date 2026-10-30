@@ -201,9 +201,8 @@ func _build_new() -> MenuCard:
 	c.add_content(pad)
 	# the dashes take the place of the card's own line
 	var none := Color(0.0, 0.0, 0.0, 0.0)
-	for state: String in ["normal", "pressed", "disabled"]:
-		c.add_theme_stylebox_override(state, GameTheme.box(GameTheme.CARD, none, 0, 0))
-	c.add_theme_stylebox_override("hover", GameTheme.box(GameTheme.CARD_HI, none, 0, 0))
+	var plain := GameTheme.box(GameTheme.CARD, none, 0, 0)
+	GameTheme.dress(c, plain, GameTheme.box(GameTheme.CARD_HI, none, 0, 0), plain)
 	c.add_child(Dashes.new())
 	c.pressed.connect(_create)
 	return c

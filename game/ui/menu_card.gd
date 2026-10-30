@@ -67,9 +67,8 @@ func refresh() -> void:
 func _restyle() -> void:
 	var edge := accent if _picked else GameTheme.LINE
 	var face := picked_fill if _picked else fill
-	for state: String in ["normal", "pressed", "disabled"]:
-		add_theme_stylebox_override(state, _box(face, edge))
-	add_theme_stylebox_override("hover", _box(face if _picked else face.lightened(HOVER_LIGHTEN), edge))
+	var plain := _box(face, edge)
+	GameTheme.dress(self, plain, _box(face if _picked else face.lightened(HOVER_LIGHTEN), edge), plain)
 	add_theme_stylebox_override("focus", GameTheme.focus_box())
 	if bar.a > 0.0:
 		if _bar == null:

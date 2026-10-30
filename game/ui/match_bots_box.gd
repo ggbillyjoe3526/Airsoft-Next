@@ -157,8 +157,8 @@ func _follow_button() -> Button:
 	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	b.add_theme_font_override("font", GameTheme.spaced_font(700, SIDE_LABEL_SPACING, SIDE_LABEL_SIZE))
 	b.add_theme_font_size_override("font_size", SIDE_LABEL_SIZE)
-	for state: String in ["normal", "hover", "pressed", "hover_pressed"]:
-		b.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	var none := StyleBoxEmpty.new()
+	GameTheme.dress(b, none, none, none)
 	b.add_theme_stylebox_override("focus", GameTheme.focus_box())
 	b.add_theme_color_override("font_color", GameTheme.DIM)
 	for colour: String in ["font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
