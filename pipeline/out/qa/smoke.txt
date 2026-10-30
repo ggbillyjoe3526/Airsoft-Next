@@ -1,0 +1,1 @@
+PASS: smoke run with zero script errors ([smoke] ok frames=2354 credits_chars=99652 shots=288 impacts=478 rounds=6 plates=5 orders=3 mags=2)

@@ -1,41 +1,27 @@
-Task: FB5 · QA commit 2c20265 · Verdict: Fail
+Task: UI1 · QA commit c666111 · Verdict: Fail
+
+Method: every control of every menu screen driven with real pointer events pushed at the window (hover, press, drag off while held, release elsewhere) and by keyboard focus and Enter, at 1280x720, 1920x1080, 2560x1440 and 3840x2160 (about 61 screens: title and notices, Match, Loadout with rename/new/duplicate/remove, Customise, Armory, all 8 Settings tabs, both pause menus, quit prompt, report, credits). Own pictures: ui1-qa-<width>-<screen>.png in /mnt/project-files/screenshots/dev1-feedback/.
 
 Blocking
-1. Stale raise when a figure is shown again. game/play/figure_view.gd `_raise_target` (about line 331): on a pose where the
-   stride skips the ray it returns `_pose.raise_target`, the value from before the figure was hidden. `animate` then snaps
-   (`_pose.snap()`), so the first pose after hide/show draws the old raise (0.99) even if the figure now faces open ground,
-   and it eases off over about 5 frames. Seen with the spectated bot switching, a round change turning a figure away. Trigger:
-   raise at a wall for an even number of poses, hide, turn the character, show. Pinned (fails now):
-   test_hidden_and_shown_again_the_raise_is_not_stale. Fix: take the ray on a snap (`_raise_wait = 0` when `_snap`).
+1. Show FPS on lies over the LVL chip. game/ui/fps_readout.gd:8 (MARGIN 12, top-right) lands on the top bar's LevelChip (game/ui/top_bar.gd:263) at 1920x1080: figure (1821,12 87x28) over chip (1775,22 89x39). The owner's item 4, an on/off toggle disturbing other UI, is still true for this one. Repro: Settings, Display, Show FPS on. Pinned by a failing test (below); it also fails on main, so the fix is new work.
+2. Item 1 is not met on Match: the three Mode cards are 464x64 bars with one word each, the map cards are 420 wide with large pictures, the PLAY button is 480 wide, and the Mode column is wider than its words need. Settings still keeps prose the owner asked removed: "Ultra: every row as the preset sets it.", "Squares: what a row takes from your graphics card.", "From the next start.", the F11 / Alt+Enter hint on Display, "Draws 1920 x 1080.", and the unlabelled squares ending every Graphics row. A designer would cut or fold each into a tooltip.
 
-Advisory
-- The record's "a bot never fires from a raised replica" holds from the second shot on only. The first shot of a burst at a
-  wall leaves a replica that is still raised: the SHOT event reads `muzzle_position` before the 0.08 s ease (play_session.gd
-  `_breathe`, torch_beams.gd origin), so a gas replica's puff starts at the raised muzzle (0.2 m or more above level). BBs
-  and hit volumes are unaffected (sim origin). The replica is level within 0.25 s (test below).
-- Bushes/foliage are not colliders, so no raise there; the level ray masks WORLD_LAYER only, so a teammate in front never
-  raises a bot. There is no glass surface in the game. The player has no figure (play_session skips PLAYER_ID), so "your own
-  figure" is only ever the watched bot's.
+Advisory (not UI1's, for KNOWN_ISSUES)
+- Five saved loadouts with 20-letter names run the strip past the window: Remove ends at x=2000 of 1920 (game/ui/loadout_strip.gd, slots and actions), so Remove and the buttons beside it cannot be pressed. Test is pending, not failing.
+- Save File tab shows the save path clipped with an ellipsis; BB-slider drags make the Performance panel jump in height.
+- The "For your card" tag sits 4 px above LOW; tight but not overlapping the preset row. Title and pause-menu overlap lines in the hammer log are labels behind overlays, not visible.
 
-Checked, no fault: hit volumes and character state after a raised pose are equal to before (no game/sim file is in the
-diff; hang_tilt only feeds figure_hands.gd); no non-finite bone and no arm stretched past its rest length by the raise in
-11 states x human/robot at a wall (standing, crouched, lean L/R, air, vault, mid reload, mid switch, pistol, calling the
-hit, walking off); FigureReady.reach stays finite at zero length, full stretch, 3x out of reach, behind the shoulder and
-a straight arm; no ray with a null world, hidden, or beyond the far line more than the stride allows; ids 0 and 1 cast on
-alternate frames; allocation per pose: none (value types only, one RayHit a figure). Smoke test passed.
+What held (no failure found): no control moved, resized, changed words or clipped on hover, press, drag-off or release-off on any Settings tab, Match, Loadout, Customise (LOADOUT crumb stays whole in every state), Armory, pause menus, title, quit prompt, credits, report; nothing runs off the window at 1280, 1920, 2560 or 3840 except the five-long-names strip. Keyboard focus and Enter on every switch and choice moved nothing (a focus-driven scroll is not a move). Crouch, Aim and Order wheel choices save the same values (Hold/Hover off, Toggle/Click on); Window mode and the frame-rate limit map to the same values, Off is still unlimited.
 
-Tests added (tests/unit/test_figure_raise_qa.gd)
-- :125 no bone non-finite, no stretch, in 11 states x 2 kinds · regression guard, passes without the feature too
-- :141 IK limits stay finite · guard, same
-- :167 hit volume and character untouched · asserts high_ready > 0.5 first, fails with the raise stubbed out
-- :200 level within 0.25 s of a first shot · asserts the muzzle was 0.2 m above level before, fails without the raise
-- :215 hidden then shown, no stale raise · FAILS now (blocking 1)
-- :234 hidden/far/null-world rays · guard
-- :260 odd/even ids alternate rays · fails if the stagger is removed
-- :283 a figure ahead does not raise (BoxWorld has no figures; the real guard is the world-layer mask) · guard
+Tests added (tests/unit/test_ui1_qa.gd, 15 tests; each checked by running the file against origin/main in a copy):
+- :322 settings buttons, all 8 tabs, held / dragged off / released elsewhere, no move, size or word change, no cut words · passes on main for Settings, fails on main for the pages below.
+- :332 keyboard focus on every settings control moves nothing · :342 Enter on switches and choices moves no box · :373 key list waits for a key and cancels whole.
+- :410 title, notices, quit prompt, credits, report · :441 both pause menus · :464 Match, Loadout, all Customise tabs, Armory · fails on main (10 failures: wide cards moving, clipped crumb).
+- :491 LOADOUT crumb whole when hovered, pressed, dragged off, focused · fails on main (LOADOU).
+- :538 Crouch, Aim, Order wheel save the same values by mouse · :572 Window mode and frame-rate limit keep values and new words · :602 every switch and toggle flips by mouse.
+- :624 the detector itself sees cut words and a growing box (self-check) · :654 pointer reaches every Match button.
+- :672 long-name strip, pending (advisory) · :706 Show FPS covers nothing, FAILS (blocking 1).
 
-Counts: test_figure_raise_qa 8 tests, 7 pass, 1 fails (blocking 1), 1 s. Touched files (raise, hit_area, hands, hands_qa,
-view, pose, body): 92 of 92 pass, 41 s. Smoke: pass. gdlint clean. No full parts or match guards (told not to).
-Not testable here: how the raise looks in motion (pictures wall/stack/crate look right; elbows not flipped); the raise during a
-reload clip looks odd or not (hand at the belt is rotated about the grip; only the stretch was measured).
-Commit note: trailers put last as the rules file asks, `Agent: qa` above them (qa.md says last line; the critic may want it swapped).
+Suites: unit parts 1, 2, 3 = 885, 1961, 951 tests; the only failure is :706. Smoke passes with zero script errors. This file 15 tests, 13 pass, 1 fails, 1 pending, 10 s.
+Could not test: real-GPU rendering, monitor DPI and multi-monitor (headless and Xvfb Compatibility only); how it feels to use goes to the owner.
+Raw output: pipeline/out/qa/.

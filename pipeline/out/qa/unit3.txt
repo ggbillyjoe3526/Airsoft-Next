@@ -1,0 +1,3 @@
+FAIL: res://tests/unit/test_ui1_qa.gd test_turning_on_show_fps_does_not_cover_the_level_chip_or_any_other_menu_control: [PACKED_STRING_ARRAY(["LevelChip [P: (1775.0, 22.0), S: (89.0, 39.0)]", "@Label@170241 [P: (1793.0, 30.0), S: (35.0, 23.0)]", "@Label@170242 [P: (1834.0, 30.0), S: (12.0, 23.0)]"])] expected to equal [PACKED_STRING_ARRAY([])]:  the figure [P: (1826.0, 12.0), S: (82.0, 28.0)] lies over nothing the menu shows
+part 3: Tests 951 Passing Tests 949 Failing Tests 1
+FAIL: unit tests failed (exit 1, see unit-3.log)

@@ -1,46 +1,27 @@
-Task: FB6 · QA commit see git log · 
+Task: UI1 · QA commit c666111 · Verdict: Fail
+
+Method: every control of every menu screen driven with real pointer events pushed at the window (hover, press, drag off while held, release elsewhere) and by keyboard focus and Enter, at 1280x720, 1920x1080, 2560x1440 and 3840x2160 (about 61 screens: title and notices, Match, Loadout with rename/new/duplicate/remove, Customise, Armory, all 8 Settings tabs, both pause menus, quit prompt, report, credits). Own pictures: ui1-qa-<width>-<screen>.png in /mnt/project-files/screenshots/dev1-feedback/.
+
 Blocking
-1. game/play/aim_follow.gd:21-22 · a respawn drags the drawn sight behind the simulation (breaks the record's "never ahead of the simulation"
-   and "exactly as before at normal speed"). Character.respawn() (game/sim/character.gd:168, called from game/sim/round.gd:223) sets
-   aim_raise to 0 and the view is warped to the spawn, but the follower (still in play, same id) eases down from where it was.
-   Repro (100 %, 60 fps): aim held until the sight is up (drawn 1.0), c.respawn(), hold aim: drawn runs 0.89, 0.78, 0.67, 0.56 while the
-   simulation reads 0.11, 0.22, 0.33, 0.44; so the first ~0.2 s of the new round show a zoom-out then back in, where main shows the
-   sight coming up from the hip. Applies to a survivor still aiming at the next round (and a rematch). Fix: snap when the simulation's
-   raise falls by more than one step (or on respawn), not only when out or on a new view. Pinned by two failing tests below.
+1. Show FPS on lies over the LVL chip. game/ui/fps_readout.gd:8 (MARGIN 12, top-right) lands on the top bar's LevelChip (game/ui/top_bar.gd:263) at 1920x1080: figure (1821,12 87x28) over chip (1775,22 89x39). The owner's item 4, an on/off toggle disturbing other UI, is still true for this one. Repro: Settings, Display, Show FPS on. Pinned by a failing test (below); it also fails on main, so the fix is new work.
+2. Item 1 is not met on Match: the three Mode cards are 464x64 bars with one word each, the map cards are 420 wide with large pictures, the PLAY button is 480 wide, and the Mode column is wider than its words need. Settings still keeps prose the owner asked removed: "Ultra: every row as the preset sets it.", "Squares: what a row takes from your graphics card.", "From the next start.", the F11 / Alt+Enter hint on Display, "Draws 1920 x 1080.", and the unlabelled squares ending every Graphics row. A designer would cut or fold each into a tooltip.
 
-Advisory
-- aim_follow.gd:22 · aim_raise_time 0 with a 0 sim_delta gives 0/0, so the raise and the FOV become NaN (a game speed cannot be 0, so
-  only a zero-length frame with a zero tuning value). Guard with maxf(raise_time, EPS) if the tuning can ever reach 0.
-- At 100 % on a frame rate above 60 the drawn sight trails the simulation by up to a tick (measured 0.074 of the raise at 90 fps, 0.102
-  at 144 fps, 0.083 at 240; 0 at 30 and 60 fps), about 16 ms. It is smooth where main stepped, and never ahead; not visible, but it is
-  a difference from main at normal speed. After releasing, the zoom keeps closing by at most one tick for a frame or two (bounded, tested).
-- Not covered by this change (not new): at 150 % positions, figures and BBs still step 1 then 2 ticks (the record's own KNOWN_ISSUES note).
+Advisory (not UI1's, for KNOWN_ISSUES)
+- Five saved loadouts with 20-letter names run the strip past the window: Remove ends at x=2000 of 1920 (game/ui/loadout_strip.gd, slots and actions), so Remove and the buttons beside it cannot be pressed. Test is pending, not failing.
+- Save File tab shows the save path clipped with an ellipsis; BB-slider drags make the Performance panel jump in height.
+- The "For your card" tag sits 4 px above LOW; tight but not overlapping the preset row. Title and pause-menu overlap lines in the hammer log are labels behind overlays, not visible.
 
-Checked, no bug found
-- A: Quit match, Leave practice, the refusal's back button, leave from the match summary and from the round table: Match page, Play
-  focused, title hidden, tree unpaused, mouse visible. Picks (team Beta, map) kept and the next Play is Beta on the same map. Two leaves
-  in a row leave main's children equal. Settings open before a match close at Play and open again after leaving. Leaving practice then
-  picking Elimination plays a match (no stale practice spot). The wordmark still opens the title.
-- B: pips, blocks, tags and stripes sit at their own end for first = 0/1, 1/3/5/10 pips, flanking the clock, out-of-range first clamps;
-  ATK/DEF follow the team through a swap and in a real Beta Attack/Defend session (ATK over the left block when Beta attacks); score
-  text and OT read the same on both bars; stripes follow Beta's block. Tab scoreboard, round table and summary were already pinned.
-- C: at 25/100/150 % the rise is even and never ahead (worker's tests); a game speed change mid-aim, a release mid-raise, a replica swap
-  with another raise_scale and an out character all end in range and at the hip. Recoil at rate 1.0 is the old formula exactly.
+What held (no failure found): no control moved, resized, changed words or clipped on hover, press, drag-off or release-off on any Settings tab, Match, Loadout, Customise (LOADOUT crumb stays whole in every state), Armory, pause menus, title, quit prompt, credits, report; nothing runs off the window at 1280, 1920, 2560 or 3840 except the five-long-names strip. Keyboard focus and Enter on every switch and choice moved nothing (a focus-driven scroll is not a move). Crouch, Aim and Order wheel choices save the same values (Hold/Hover off, Toggle/Click on); Window mode and the frame-rate limit map to the same values, Off is still unlimited.
 
-Tests added (tests/unit/test_fb6_qa.gd, 20: 18 pass, 2 pin the blocking bug)
-- :47-:130 (A, 7) · leave routes, picks kept, node counts, settings state, no stale practice spot · not run against main; they need FB6's Match-page landing
-- :151-:215 (B, 6) · layout at any pip count, clamp, ATK/DEF in a swap and in a real Beta session, OT, stripes · not run against main; HudScore.setup(first) does not exist there
-- :275-:380 (C, 7) · 100 % lag bound at 30-240 fps, 60 fps equality, release, speed change, replica swap, respawn x2 · the respawn pair (:357, :370) fails on this branch
+Tests added (tests/unit/test_ui1_qa.gd, 15 tests; each checked by running the file against origin/main in a copy):
+- :322 settings buttons, all 8 tabs, held / dragged off / released elsewhere, no move, size or word change, no cut words · passes on main for Settings, fails on main for the pages below.
+- :332 keyboard focus on every settings control moves nothing · :342 Enter on switches and choices moves no box · :373 key list waits for a key and cancels whole.
+- :410 title, notices, quit prompt, credits, report · :441 both pause menus · :464 Match, Loadout, all Customise tabs, Armory · fails on main (10 failures: wide cards moving, clipped crumb).
+- :491 LOADOUT crumb whole when hovered, pressed, dragged off, focused · fails on main (LOADOU).
+- :538 Crouch, Aim, Order wheel save the same values by mouse · :572 Window mode and frame-rate limit keep values and new words · :602 every switch and toggle flips by mouse.
+- :624 the detector itself sees cut words and a growing box (self-check) · :654 pointer reaches every Match button.
+- :672 long-name strip, pending (advisory) · :706 Show FPS covers nothing, FAILS (blocking 1).
 
-Counts: test_fb6_qa 20 (2 failing, the pinned respawn bug), test_fb6 9/9, test_mn1_qa all pass. gdlint clean. The full suite and
-the smoke test were not rerun by QA (only the targeted files).
-Could not test: how the 25 % / 150 % sight feels, a real window and mouse capture on leaving (owner's list).
-
-Re-check (fix round 01ed47f)
-- tests/unit/test_fb6_qa.gd, 22 tests, all pass; test_fb6.gd passes; the two respawn tests (:357, :370) now pass. gdlint clean.
-- Snap threshold probed: normal aim in, out and flicks never snap at 25/100/150/200 % x 30/60/144/240 fps x raise_scale 0.3/0.6/1.0/1.6 (zero frames jump past one step).
-- A respawn from a full sight snaps (down on the first frame) at 25/100/150 % x 60/144 fps x raise_scale 0.8/1.0/1.6/2.5 (the reachable range in data/stats.md: angled grip 0.8 x red dot 1, up to long barrel, vertical grip, silencer, 2x scope).
-- Advisory: below that range (raise_scale 0.5 at 150 %, 0.3 at 100 % and 150 %, 60 fps) a respawn still eases for a few frames (0.67 and 0.44 to 0.63), because the leeway is wider than the raise. Not reachable with today's data; matters only if a faster part is added.
-- The NaN advisory is fixed (a zero raise time snaps). The 100 %, above-60-fps lag (up to a tick) is unchanged and still advisory.
-
-Verdict: Pass
+Suites: unit parts 1, 2, 3 = 885, 1961, 951 tests; the only failure is :706. Smoke passes with zero script errors. This file 15 tests, 13 pass, 1 fails, 1 pending, 10 s.
+Could not test: real-GPU rendering, monitor DPI and multi-monitor (headless and Xvfb Compatibility only); how it feels to use goes to the owner.
+Raw output: pipeline/out/qa/.
