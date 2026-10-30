@@ -1,6 +1,6 @@
 # Handoff
 
-What is happening now (as of 2026-10-29), for a session picking up the work. The plan is `docs/ROADMAP.md`, the
+What is happening now (as of 2026-10-30), for a session picking up the work. The plan is `docs/ROADMAP.md`, the
 rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
 
 ## Now
@@ -34,10 +34,10 @@ rulings `docs/DECISIONS.md`, how work runs `docs/PROCESS.md`.
 - **Step 27 is done (2026-10-29).** Steps 1 to 26 are built (parity with the browser's 0.1 Beta 1), plus three bot
   levels. Step 27 added bot callouts (CO1, CO2; #124, #125), the overtime flag (OV1 to OV3; #126 to #128), pings and
   ping markers (PN1, PN2; #129, #131) and the magazine hand-off (MH1 to MH3; #133, #134 and this one).
-- **After step 27 (owner, 2026-10-29):** the owner playtests, then a feedback and full bug pass against KNOWN_ISSUES,
-  then he tags 0.1 Dev 1. The Blender step is scrapped from 0.1 Dev 1; 0.1 Dev 2 redesigns Depot and Woodland with
-  CC0 dressing, and Blender starts when he says (Depot, then Woodland).
-- **Waiting on the owner:** his play-through of `/mnt/project-files/playtest/0.1-dev1-checklist.md`.
+- **0.1 Dev 1 is out (2026-10-30):** the owner tagged `0.1-dev.1` on 33271ac after his playtest and the bug pass, and
+  its installer check passed. `config/version` reads "0.1 Dev 2", the build being made (owner, 2026-10-30).
+- **0.1 Dev 2 (owner, 2026-10-30):** basic smoke and flash bombs first, thrown by bots too; the Depot and Woodland
+  redesign and CC0 dressing come later. Blender starts when he says (Depot, then Woodland).
 - **Crouch and aim are both held** (owner, 2026-10-18), changed in the Depot thread.
 
 ## Where to look

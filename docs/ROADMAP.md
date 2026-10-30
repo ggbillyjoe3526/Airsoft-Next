@@ -7,12 +7,12 @@ in `docs/PROCESS.md`.
 ## Where we are
 
 - **Building the game.** The game restarted on 2026-10-18 as an installable desktop game built with Godot and
-  Blender. The core slice is built; the rest of 0.1 follows in the [build order](#build-order) below, and version
-  names wait until the owner picks them up again (owner, 2026-10-18). The browser game it replaces stopped at its 0.1
-  Beta 1; its old repository is no longer on GitHub, and its code is in `legacy/browser/`.
-- **Last tag:** none yet. The owner creates tags.
-- **0.1 Dev 1 is the core slice:** Depot, the AEG Rifle and the GBB Pistol, bots and Elimination. The rest of 0.1
-  ([What 0.1 is](#what-01-is)) follows in later Dev builds, rebuilt from the browser game's rules and tests.
+  Blender. The browser game it replaces stopped at its 0.1 Beta 1; its old repository is no longer on GitHub, and its
+  code is in `legacy/browser/`.
+- **Last tag:** `0.1-dev.1`, [0.1 Dev 1](https://github.com/ggbillyjoe3526/airsoft/releases/tag/0.1-dev.1)
+  (2026-10-30). The owner creates tags.
+- **Building 0.1 Dev 2** (owner, 2026-10-30): basic smoke and flash bombs, thrown by bots too, then Depot and Woodland
+  redesigned larger and dressed (step 28). The rest of 0.1 ([What 0.1 is](#what-01-is)) follows in later Dev builds.
 - **The release path** (owner, 2026-10-12): 0.1 Dev builds, 0.1 Beta, then 0.1 (tagged `0.1.0`) opens Early
   Access to the public.
   Themed updates follow (Replica, Modes, Maps, Progression and any more), up to 1.0, the full launch. See
@@ -128,10 +128,9 @@ at his PC to connect.
 
 ## Builds
 
-No builds yet: 0.1 Dev 1 is the first.
-
 | Build | Date | What it brought | Tag |
 |---|---|---|---|
+| [0.1 Dev 1](https://github.com/ggbillyjoe3526/airsoft/releases/tag/0.1-dev.1) | 2026-10-30 | The first build: Depot, Woodland and the range; the AEG Rifle and GBB Pistol with attachments and the Armory; bots, squad orders and callouts; Elimination and Attack / Defend; settings, saves and accessibility; the Windows installer and the Linux build | `0.1-dev.1` |
 
 Only full releases are tagged (owner, 2026-10-01): playtests in between are plain commits. The browser game's builds
 are listed in its own repository. The versioning policy (what Dev and Beta mean, tag names, branches) is in

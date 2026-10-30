@@ -126,6 +126,10 @@ binds; the rest goes in the task's record. When this file nears 50 KB, move supe
   its tag keeps the 2026-10-05 form, `0.1.0`.
 - **A release's version comes from the owner's tag and is never bumped by hand (owner, 2026-10-18).** The release workflow
   writes it into the build, exports Windows and Linux and publishes a pre-release with notes from the changelog.
+- **Between releases, `config/version` names the build being made (owner, 2026-10-30: "Update the game to version 0.1
+  Dev 2").** Once a tag is out, the next pull request sets `project.godot`'s `config/version` to the next name, so a
+  source run and a dry-run build read "0.1 Dev 2", not the build already released. The release still writes its tag's
+  name into the build.
 
 ## How work runs
 

@@ -4,9 +4,8 @@ How to run the game and what to check when you play it. Each pull request names 
 plays them all. A change that alters what a section describes updates that section. Tick a box when the game behaves
 as described; anything else is worth reporting ([Reporting what you find](#reporting-what-you-find)).
 
-**Nothing is playable until 0.1 Dev 1.** Each section applies once its feature lands; `docs/FEATURES.md` lists what
-has. The checks are carried from the browser game, whose guide (with the reasons and exact figures) stays readable in
-`legacy/browser/docs/` until 0.1.
+Each section applies once its feature lands; `docs/FEATURES.md` lists what has. The checks are carried from the
+browser game, whose guide (with the reasons and exact figures) stays readable in `legacy/browser/docs/` until 0.1.
 
 ## Get the game running
 
@@ -36,8 +35,8 @@ replays the same match.
 ## Play these first
 
 What to play in the build in your hands: your checklist of open checks is
-`/mnt/project-files/playtest/0.1-dev1-checklist.md` in the project's shared files, and each pull request names its
-sections here. For 0.1 Dev 1, the core slice: [Movement](#movement), [Shooting and reloads](#shooting-and-reloads),
+`/mnt/project-files/playtest/0.1-dev2-checklist.md` in the project's shared files (0.1 Dev 1's, all done, is
+`0.1-dev1-checklist.md`), and each pull request names its sections here. For the core slice: [Movement](#movement), [Shooting and reloads](#shooting-and-reloads),
 [BBs](#bbs), [Players and replicas](#players-and-replicas), [Rounds and matches](#rounds-and-matches),
 [Depot](#depot), [Bots](#bots) and [Builds and the desktop](#builds-and-the-desktop).
 
@@ -750,6 +749,9 @@ file, Dev).
 
 - [ ] **Search and notes.** Typing "shadow" shows only matching rows with "N settings found"; pointing at a row says
   what it does, and in Graphics what it costs.
+- [ ] **Long help wraps (TT1).** Rest the pointer on a row with a long help line (Display › Frame limit, Save
+  file › the folder, Dev › Time of day, a row near the bottom): the help wraps onto several lines no wider than about a third of
+  the screen, and every word stays on screen, at 1080p, at 4K and in a small window.
 - [ ] **Mouse.** Under the sensitivity, Turn distance (cm/360) with a cm box and a DPI box (800 at first), and the
   same sensitivity for CS2 and Valorant.
 - [ ] **Aim button and Sprint key: Toggle.** One right click keeps the sight up; sprint or a switch to the pistol

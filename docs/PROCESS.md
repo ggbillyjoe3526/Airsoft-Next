@@ -48,8 +48,9 @@ ends, time passes or small improvements pile up.
   Neither starts automatically.
 - **The number is the product, the stage is its state.** Milestones and critic cycles give development granularity;
   they don't each get a version.
-- **The build shows its version, never bumped by hand** (owner, 2026-10-18). The release workflow writes the tag's
-  version into the build before Godot exports, so the title screen names the tag it was built from.
+- **The build shows its version** (owner, 2026-10-18). The release workflow writes the tag's version into the build
+  before Godot exports, so the title screen names the tag it was built from. Between releases `config/version` names
+  the build being made: the release checklist's pull request sets it to the next name (owner, 2026-10-30).
 
 ## Placing work
 
@@ -92,7 +93,8 @@ release description:
 4. **Any other "latest release" mention:** run
    `grep -rn "dev\.[0-9]\|beta\.[0-9]\|Dev [0-9]\|Beta [0-9]" README.md docs/ CLAUDE.md --exclude-dir=records`
    and update each line that names the previous release as current (history and policy examples stay as they are).
-   The title screen's version needs nothing: the release workflow writes it.
+   The title screen's version needs nothing at release: the release workflow writes it. Then set `config/version` in
+   `project.godot` to the next name (after "0.1 Dev 1", "0.1 Dev 2"), so a source run names the build being made.
 5. **The release itself:** check the GitHub release has the three downloads and that the installed game's title
    screen names the new tag. If the Release run in Actions failed, its log says why.
 6. **The archive check:** run `wc -c docs/*.md`. A live doc over about 50 KB gets its finished parts moved word for

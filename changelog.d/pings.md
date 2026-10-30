@@ -1,6 +1,0 @@
-### Pings
-- Press the middle mouse button (Squad: ping a spot in Settings › Controls) to mark where your crosshair meets the field, up to 120 m away, for your bot teammates. An opponent you can see under the crosshair is marked as a contact instead; the sky marks nothing.
-- Your teammates take a ping as somewhere worth a look for 20 s: one sets off to check it the way it plays, or watches it when it is under your order or holding a post, and one of them answers in the feed ("Going to your ping", "Watching your ping"). A teammate in a fight carries on.
-- One ping each at a time, a double click is one ping, and pings clear each round. They do nothing while you are out or on the range. A teammate calling Contact may also mark that enemy for you.
-- A ping shows as a ring in your team's colour with "PING · 9 M" under it, with a soft pip in your ear; a teammate's Contact mark is a diamond in the other team's colour over where the enemy was seen, and it never follows them. Markers pop in, stay 7 seconds and fade over the last one, sit under the minimap when off screen, and show on the minimap too.
-- Settings › HUD › Ping markers (On by default) hides the markers only: pings, the pip and the answers go on.

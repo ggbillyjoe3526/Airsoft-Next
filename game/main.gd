@@ -115,6 +115,7 @@ func _ready() -> void:
 	OS.add_logger(error_log)
 	_smoke = OS.get_cmdline_user_args().has("--smoke")
 	_launch_seed = LaunchSeed.parse(OS.get_cmdline_user_args())
+	TooltipWrap.install(get_tree())
 	print("[boot] Airsoft %s on Godot %s" % [Version.current(), Engine.get_version_info()["string"]])
 	print(RendererOverride.boot_line(GraphicsApply.machine()))
 	if not graphics.restart.is_valid():

@@ -60,6 +60,9 @@ const CONTROL_PAD_X := 14
 const LABEL_SIZE := 16
 const SECTION_SIZE := HEADING_SIZE
 const NOTE_SIZE := 14
+## A tooltip wraps at this width (px at 1080p; TooltipWrap): about sixty characters of body text, and room to sit
+## beside the pointer on a 1080p screen.
+const TOOLTIP_WIDTH := 640.0
 const SPACING_LABEL := 0.04
 const SPACING_SECTION := SPACING_HEADING
 ## The Button states a box is drawn in (focus is drawn over one of them).
