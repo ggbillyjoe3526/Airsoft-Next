@@ -21,6 +21,12 @@ seeds the browser game used, so they sound as they did.
 - `cues/ping_pip_1.wav`: your ping's pip (PN2; the browser game's AUDIO.pingPip, played live by its whistle's beep),
   rendered by the same tool from SoundConfig's ping_pip numbers (a plain 1700 Hz sine, 0.08 s, the whistle's fade in
   and out) at full scale: it plays at `ping_pip_gain` (`tests/unit/test_ping_markers.gd` checks the file).
+- `cues/grenade_pin_<n>.wav`, `grenade_bounce_<n>.wav`, `smoke_pop_<n>.wav` and `flash_bang_<n>.wav` (1 to 3): the
+  smoke and flash bombs (SF1), made for this game, so never in the browser game. `tools/render_grenades.gd` renders
+  them from its own constants and seeds (the pin's metal tink and scrape, a canister's hollow knock, the smoke's pop
+  and fading hiss, the flash's short crack and thump), each scaled to a 0.9 peak; their levels are SoundConfig's. To
+  re-render: `godot --headless --path . -s res://tools/render_grenades.gd`, then `godot --headless --path . --import`.
+  The throw itself plays `magToss`.
 - Not baked in: the room reverb and distance muffling, which were applied live; in Godot they belong to the audio buses
   and `AudioStreamPlayer3D`.
 

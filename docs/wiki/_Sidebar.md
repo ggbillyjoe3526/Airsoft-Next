@@ -10,6 +10,7 @@
 - [Replicas](Replicas)
 - [Parts and Power](Parts-and-Power)
 - [Loadout](Loadout)
+- [Grenades](Grenades)
 - [Levels and Unlocks](Levels-and-Unlocks)
 
 **Matches**

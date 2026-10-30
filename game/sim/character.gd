@@ -90,6 +90,11 @@ var torch_time: float = 0.0
 var ghost: bool = false
 ## Its side of the magazine hand-off (MagShare): its ask and what is coming to it, cleared at each respawn.
 var mag: MagShare.Hand = MagShare.Hand.new()
+## Its smoke and flash bombs and its throw under way (Grenades, SF1), refilled at each respawn.
+var grenades: Grenades.Hand = Grenades.Hand.new()
+## Dazzled by a flash (Grenades): seconds left, and how long the dazzle was when it began (for its fade).
+var dazzle_left: float = 0.0
+var dazzle_total: float = 0.0
 
 
 func _init(character_id: int = 0, character_team: int = 0, spawn: Vector3 = Vector3.ZERO, facing: float = 0.0,
@@ -181,3 +186,6 @@ func respawn() -> void:
 	torch_time = 0.0
 	mag.clear()
 	armament.refill()
+	grenades.refill()
+	dazzle_left = 0.0
+	dazzle_total = 0.0

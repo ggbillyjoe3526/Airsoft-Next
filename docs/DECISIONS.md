@@ -343,6 +343,17 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Steps on gravel and steel plate carry 1.35 times as far (2026-10-15, NP1; DP4).** The simulation names the ground
   under a character (`WorldQuery.surface_under`) and puts the carry on the step, so bots, the audio, the sound cues and
   the minimap read one answer. Walking stays silent on every ground.
+- **Smoke and flash bombs: one of each a round, thrown with G and Y (2026-10-30, SF1; Claude's defaults, the owner
+  asked for basic ones in 0.1 Dev 2).** Every player and bot carries one smoke and one flash, refilled each round and
+  on the range after each throw; nothing is chosen in the Loadout yet. A throw is a quick 0.3 s windup (the replica
+  lowered), the canister thrown where you look a little lofted, then the replica back up. Bombs bounce and roll; they
+  never hit or eliminate anyone. Numbers are in `game/config/grenade_config.gd`.
+- **Smoke hides, it never stops BBs (SF1).** The cloud (8 m across, about 15 s at full) blocks bots' sight like a wall
+  does; BBs fly through it. Your own screen goes milky inside it. Bots aim a little through its thin edge.
+- **A flash blinds whoever faces it, teammates and the thrower too (SF1).** Up to 22 m, with a clear line from the eyes;
+  full at 6 m and inside 60 degrees of the view, a quarter looking away. 0.5 to 3.5 s. A blinded bot stops shooting,
+  loses its target and crouches; a blinded player gets a white wash and a dip in the sound, softer with reduced motion.
+  No ringing, no lasting tinnitus: a toy's bang (pillar 2).
 
 ## Bots and balance
 

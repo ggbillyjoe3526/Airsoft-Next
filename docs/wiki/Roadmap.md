@@ -18,12 +18,13 @@ every part and power source, the Loadout, levels and the Armory, Easy, Normal an
 kits and callouts, Elimination with its overtime flag, Attack / Defend and Custom matches, the practice range in Depot's
 site, Practice on any field and the timed challenge, squad orders, pings and the magazine hand-off, the minimap, the
 hit feed, scoreboard and match summary, the sound pass, graphics presets, accessibility options, the save file screen,
-the crash screen and bug reports. The rest of this wiki describes all of it.
+the crash screen and bug reports, and smoke and flash bombs for you (bots carry theirs but don't throw them yet).
+The rest of this wiki describes all of it.
 
 ### Next
 
-- **0.1 Dev 2:** Depot and Woodland redesigned and dressed with free models and textures, and a basic **smoke bomb**
-  and **flash bomb**, thrown by bots too.
+- **0.1 Dev 2:** Depot and Woodland redesigned and dressed with free models and textures, and bots throwing their
+  **smoke** and **flash bombs** too.
 
 ### Then: the art pass
 
@@ -40,7 +41,8 @@ order is still open: whichever comes first takes the next number.
 
 - A **spring sniper rifle**: one shot per bolt cycle, long reach and a loud crack.
 - A **variable scope** and a **holographic sight**.
-- **Grenades, smoke and flash bombs** for the Loadout's Grenades slot, airsoft style.
+- **More grenades** for the Loadout's Grenades slot, airsoft style: a CO2 sound grenade, and more from the smoke and
+  flash bombs.
 - **Chest rigs, belts and pouches** that decide what you carry, and an inventory.
 - **Gas cooling:** rapid fire cools a gas replica's magazine and weakens its shots for a while.
 - A chrono check before each match, more parts, and more replica types after the sniper (maybe DMRs, SMGs and

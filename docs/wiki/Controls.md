@@ -20,6 +20,8 @@ so W A S D stays W A S D on any keyboard layout.
   ([Squad Orders](Squad-Orders#pings)).
 - **Squad: need a mag** (H) tosses a magazine to a teammate who asked you, or asks for one when you are low
   ([Squad Orders](Squad-Orders#need-a-mag)); it is also the order wheel's fifth item.
+- **Throw smoke** (G) and **Throw flash** (Y) throw a smoke bomb or a flash bomb where you look
+  ([Grenades](Grenades)).
 
 ## Keys you can't change
 

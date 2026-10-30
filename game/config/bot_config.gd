@@ -31,6 +31,9 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## seen, deeper in or behind one is not. The same as what stops a BB (BallisticsConfig.leaf_stop_depth; a test holds
 ## them equal): if you can't see through it, a BB can't get through.
 @export var foliage_see_through: float = 0.6
+## How much smoke a bot sees someone through (m of cloud along the line, by its density; Grenades.smoke_depth, SF1):
+## close by in a cloud, or through its thin edge, it still makes someone out. Up close as anywhere: smoke is thick.
+@export var smoke_see_through: float = 0.8
 ## How far gunfire carries (m).
 @export var hearing_distance: float = 22.0
 ## How far an enemy's footsteps carry (m): running, sprinting, a landing, a vault (DECISIONS 2026-10-13). Walking and

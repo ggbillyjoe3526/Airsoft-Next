@@ -1,9 +1,9 @@
 class_name LoadoutGear
 extends Control
 ## The Loadout tab's gear page body (concept `gear.png`): CARRIED (the primary and the secondary, the picked slot ringed in
-## yellow, and the grenades slot greyed LATER), YOUR REPLICAS (each replica to carry, the cards of those carried tagged with
-## their slot, the ones the game can't play yet greyed LATER and the ones not unlocked yet greyed with their level),
-## the hint, the Performance sheet and the slanted CUSTOMISE.
+## yellow, and the grenades carried every round: a smoke and a flash, SF1), YOUR REPLICAS (each replica to carry, the
+## cards of those carried tagged with their slot, the ones the game can't play yet greyed LATER and the ones not
+## unlocked yet greyed with their level), the hint, the Performance sheet and the slanted CUSTOMISE.
 ## A replica's picture sits inside its card with room round it, kept in shape, so it can't touch the card's lines at any
 ## window size. The page owner reads `slot_picked`, `replica_picked` and `customise_requested` and calls `refresh`.
 
@@ -39,6 +39,9 @@ const NAME_SIZE := 24
 const SUB_SIZE := 16
 const KEY_SIZE := 13
 const OFF_HEIGHT := 48.0
+## The grenades row: each bomb's words (Grenade.Kind order, NONE unused) and its colour dot's size (px).
+const GRENADE_KEYS: Array[String] = ["", "LOADOUT_SMOKE", "LOADOUT_FLASH"]
+const GRENADE_DOT := 10.0
 const REPLICA_GAP := 12
 const REPLICA_HEIGHT := 92.0
 const REPLICA_PICTURE := Vector2(188.0, 0.0)
@@ -281,22 +284,31 @@ func _key_chip(number: int) -> Control:
 	return chip
 
 
+## The grenades every loadout carries each round (SF1): the label, then each bomb's count and name in its canister's
+## colour (GrenadeView). Nothing to pick yet: chest rigs and pouches decide what you carry in a later version.
 func _build_grenades() -> Control:
 	var box := PanelContainer.new()
 	box.name = "Grenades"
-	box.modulate.a = MenuCard.GREYED_ALPHA
 	box.custom_minimum_size = Vector2(0.0, OFF_HEIGHT)
 	box.add_theme_stylebox_override("panel", GameTheme.box(GameTheme.CARD, GameTheme.LINE, int(LABEL_POS.x), 10))
-	var column := VBoxContainer.new()
-	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 10)
-	head.add_child(MenuParts.spaced(tr("LOADOUT_GRENADES"), LABEL_SIZE, 800, GameTheme.MUTED, LABEL_SPACING))
-	head.add_child(MenuTag.later())
-	column.add_child(head)
-	# the LATER tag says it; the words are its tooltip (UI1)
-	box.tooltip_text = tr("LOADOUT_GRENADES_LATER")
-	box.add_child(column)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_BEGIN
+	row.add_theme_constant_override("separation", CARD_GAP)
+	row.add_child(MenuParts.spaced(tr("LOADOUT_GRENADES"), LABEL_SIZE, 800, GameTheme.MUTED, LABEL_SPACING))
+	var bombs := SimTuning.load_default().grenades
+	var carried: Array[int] = [0, bombs.smoke_carried, bombs.flash_carried]
+	for kind: int in [Grenade.Kind.SMOKE, Grenade.Kind.FLASH]:
+		var item := MenuParts.text(tr(GRENADE_KEYS[kind]) % carried[kind], LABEL_SIZE, 700, GameTheme.TEXT)
+		item.name = GRENADE_KEYS[kind]
+		var dot := ColorRect.new()
+		dot.color = GrenadeView.BODY_COLOURS[kind]
+		dot.custom_minimum_size = Vector2(GRENADE_DOT, GRENADE_DOT)
+		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(dot)
+		row.add_child(item)
+	box.tooltip_text = tr("LOADOUT_GRENADES_TIP")
+	box.add_child(row)
 	return box
 
 

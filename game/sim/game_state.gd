@@ -25,6 +25,8 @@ var match_number: int = 0
 var wind: Wind = null
 ## The magazines in the air (MagShare), a pool of MagShareConfig.max_tosses made once.
 var mag_tosses: Array[MagShare.Toss] = []
+## The smoke and flash bombs thrown (Grenades, SF1), a pool of GrenadeConfig.max_grenades made once.
+var grenades: Array[Grenade] = []
 ## Until when each of the level's noisy props (PropNoise, by index) stays quiet after a knock or a ring (s, as `time`):
 ## grown to one per prop on the first tick.
 var prop_quiet: PackedFloat64Array = PackedFloat64Array()
@@ -43,6 +45,7 @@ func _init(seed_value: int = 0, tuning: SimTuning = null) -> void:
 	round_state = RoundState.new()
 	wind = Wind.still(t.wind)
 	mag_tosses = MagShare.make_tosses(t.mag_share.max_tosses)
+	grenades = Grenades.make_pool(t.grenades.max_grenades)
 
 
 ## The character with `character_id`, or null.
