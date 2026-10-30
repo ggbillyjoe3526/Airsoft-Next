@@ -42,6 +42,10 @@ grenade and the rigs and pouches that decide carrying stay in 0.2.
   same for bots and for the view.
 - **The view's puffs are drawn from the sim's cloud, 28 per smoke,** with proximity fade so walls and the floor don't cut
   them hard.
+- **No vault starts mid-throw** (QA's advisory): a Jump press then hops instead, and the wall is vaulted once the bomb
+  has left the hand. A press of G or Y during a vault is dropped, not kept for after it like a reload.
+- **A flash that would dazzle less than the dazzle running makes no event** (QA's advisory), so the sound doesn't dip
+  again for nothing.
 - **Throw speed 13 m/s lofted 0.12 and half the thrower's own speed:** about 13 m on flat ground.
 
 ## Verified

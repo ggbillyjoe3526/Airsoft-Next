@@ -122,7 +122,9 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		# stays as it was and other presses wait for the vault's end (BP5).
 		if in_play and not c.vault.active:
 			cmd = Vault.with_held_presses(c.vault, cmd, _after_vault)
-			Vault.try_start(c, cmd, tuning, query, state.events)
+			# No vault mid-throw: the bomb leaves the hand first.
+			if not Grenades.throwing(c):
+				Vault.try_start(c, cmd, tuning, query, state.events)
 		if in_play and c.vault.active:
 			cmd = Vault.vaulting_command(c, cmd, _vaulting)
 		# A bomb's press puts the replica down; while throwing, the trigger and sights are let go.

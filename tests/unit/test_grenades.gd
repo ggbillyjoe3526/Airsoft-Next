@@ -240,6 +240,34 @@ func test_a_hit_during_the_windup_drops_the_throw_and_keeps_the_bomb() -> void:
 	assert_eq(c.grenades.flash, 1)
 
 
+func test_no_vault_starts_mid_throw_but_one_does_after_it() -> void:
+	var w := _world()
+	# A 0.85 m wall 0.7 m ahead of character 0, which faces -Z.
+	w.add_box(Vector3(0.0, 0.425, -0.85), Vector3(6.0, 0.85, 0.3))
+	var m := _match(w)
+	var sim: Simulation = m[0]
+	var s: GameState = m[1]
+	var cmds := _commands(s)
+	var c := s.characters[0]
+	_place(c, Vector3(0.0, tuning.body.rest_gap, 0.0), 0.0)
+	_run(sim, s, cmds, 2)
+	cmds[0].throw_grenade = Grenade.Kind.SMOKE
+	sim.step(s, cmds, DT)
+	cmds[0].throw_grenade = Grenade.Kind.NONE
+	cmds[0].jump = true
+	sim.step(s, cmds, DT)
+	assert_true(Grenades.throwing(c))
+	assert_false(c.vault.active, "the bomb leaves the hand first")
+	cmds[0].jump = false
+	# The press hopped instead; a second after it the throw is over and the feet are down again.
+	_run(sim, s, cmds, 60)
+	assert_false(Grenades.throwing(c))
+	assert_true(c.grounded)
+	cmds[0].jump = true
+	sim.step(s, cmds, DT)
+	assert_true(c.vault.active, "the same wall is vaulted once the throw is over")
+
+
 func test_the_bomb_leaves_the_eyes_along_the_lofted_view_at_the_throw_speed() -> void:
 	var m := _match(_world())
 	var sim: Simulation = m[0]
@@ -446,6 +474,23 @@ func test_a_wall_between_shields_from_a_flash_and_teammates_are_dazzled_too() ->
 	sim.step(s, _commands(s), DT)
 	assert_eq(behind.dazzle_left, 0.0, "the wall shields")
 	assert_gt(mate.dazzle_left, 0.0, "a teammate in the open is dazzled")
+
+
+func test_a_shorter_dazzle_keeps_the_longer_one_and_makes_no_event() -> void:
+	var m := _match(_world())
+	var sim: Simulation = m[0]
+	var s: GameState = m[1]
+	var c := s.characters[3]
+	_place(c, Vector3(0.0, 0.0, 4.0), 0.0)
+	for i in 3:
+		_place(s.characters[i], Vector3(-25.0, 0.0, i * 2.0), 0.0)
+	c.dazzle_left = cfg.dazzle_max + 1.0
+	c.dazzle_total = c.dazzle_left
+	_flash_at(s, Vector3(0.0, 0.04, 0.0), cfg)
+	sim.step(s, _commands(s), DT)
+	assert_eq(s.events.count_of(GameEvent.Kind.FLASH_BANG), 1)
+	assert_eq(s.events.count_of(GameEvent.Kind.DAZZLED), 0, "nothing changed for it")
+	assert_almost_eq(c.dazzle_left, cfg.dazzle_max + 1.0, DT * 1.5)
 
 
 func test_a_dazzle_wears_off() -> void:

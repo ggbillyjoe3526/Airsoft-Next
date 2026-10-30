@@ -377,9 +377,11 @@ func _bang(g: Grenade, state: GameState) -> void:
 		var seconds := dazzle_time(strength, cfg)
 		if seconds <= 0.0:
 			continue
-		if seconds > c.dazzle_left:
-			c.dazzle_left = seconds
-			c.dazzle_total = seconds
+		# A shorter dazzle than the one running changes nothing, so it makes no event (no second dip in the sound).
+		if seconds <= c.dazzle_left:
+			continue
+		c.dazzle_left = seconds
+		c.dazzle_total = seconds
 		var e := state.events.add(GameEvent.Kind.DAZZLED)
 		e.actor = g.owner
 		e.target = c.id
