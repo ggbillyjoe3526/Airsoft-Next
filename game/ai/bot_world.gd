@@ -33,6 +33,8 @@ var night: NightField = null
 ## The magazine hand-off's rules (MH2): who has one to spare, who can be tossed one now (MagShare's, made with the bots
 ## for their own checks; the simulation keeps its own).
 var mag_share: MagShare = null
+## The smoke and flash bombs thrown (SF1; GameState.grenades, the same pool): their clouds hide whoever is behind them.
+var grenades: Array[Grenade] = []
 
 ## The field split into square sectors (BotConfig.hunt_sector_size) from (min_x, min_z): when each team last checked
 ## each one (-INF never).

@@ -46,6 +46,9 @@ The font ships inside the game's export. Its licence ships in `THIRD_PARTY_NOTIC
   (SP3, 2026-10-22), and `ping_pip_1.wav`, the ping's pip from the same tool (PN2, 2026-10-26). No outside source; same licence as the code. To re-render after those numbers change:
   `godot --headless --path . -s res://tools/render_whistle.gd`, then `godot --headless --path . --import`, and commit
   the files with their `.import` files.
+- **The smoke and flash bombs' sounds:** `assets/audio/cues/grenade_pin_1.wav` to `_3`, and the same three of
+  `grenade_bounce`, `smoke_pop` and `flash_bang`, synthesised by our own `tools/render_grenades.gd` (SF1, 2026-10-30).
+  No outside source; same licence as the code. Re-render them the same way as the whistle, with that tool.
 - **Art references:** the owner's six reference pictures of the target look and his arm and hand study
   (owner-supplied, 2026-10-18), in `docs/art/references/` (`docs/ART.md` › The target). Not game assets: Godot
   ignores the folder and no export ships it.

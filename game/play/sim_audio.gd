@@ -12,7 +12,10 @@ extends Node
 ## callout (on_calls): a teammate's in your ear, panned toward them, an enemy's from where they stand when close,
 ## through walls. Your own ping placed plays a soft pip in your ear (on_ping, PN2); a teammate's answer is its callout.
 ## The magazine hand-off (MH3): your ask taken plays the radio's double click, a toss its magToss from the thrower and
-## its catch magCatch from the catcher. Kit rustles as a crouch, a stand or a lean starts (FoleyTracker, from the state: bots never hear it);
+## its catch magCatch from the catcher. Smoke and flash bombs (SF1): the pin and the throw from the thrower, a bomb's
+## knock where it bounces (louder the harder), a smoke's pop and hiss and a flash's bang (far: bang_reach) from the
+## bomb, muffled by the walls between. Kit rustles as a crouch, a stand or a lean starts (FoleyTracker, from the
+## state: bots never hear it);
 ## a landing thuds louder and lower the harder it comes down, with a rustle under a hard one. The referee's whistle
 ## (WhistleQueue) on the Interface bus: two short blasts start a round, three quick short ones put Elimination's
 ## overtime flag up, one long ends a round, three more end the match, and the range's Time is one long. The map's ambience: its beds by day or night on the Ambience bus and its calls round
@@ -142,7 +145,8 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 		_prop.append(_load("prop_%s" % s))
 	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault",
 			"foley_holster", "magRattle", "rope_up", "rope_down", "steelRing", "radio_ack", "foley_crouch", "foley_stand",
-			"foley_lean", "whistle_short", "whistle_long", "torchClick", "ping_pip", "magToss", "magCatch"]:
+			"foley_lean", "whistle_short", "whistle_long", "torchClick", "ping_pip", "magToss", "magCatch", "grenade_pin",
+			"grenade_bounce", "smoke_pop", "flash_bang"]:
 		_load(cue)
 	_set_muffle(cfg.muffled_cutoff_hz)
 	for i in cfg.field_voices:
@@ -221,6 +225,20 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 				var catcher := state.character(e.target)
 				_play(&"magCatch", catcher.eye(_body) if catcher != null else e.position, e.target == player_id,
 						_cfg.mechanism_gain, Kind.MECHANISM, BUS_EFFECTS, 1.0, 0.0, catcher)
+			GameEvent.Kind.GRENADE_PIN:
+				_mechanism(&"grenade_pin", state, e, own)
+			GameEvent.Kind.GRENADE_THROW:
+				_mechanism(&"magToss", state, e, own)
+			GameEvent.Kind.GRENADE_BOUNCE:
+				var hard := minf(1.0, e.reach / maxf(_cfg.bounce_full_speed, 0.001))
+				_play(&"grenade_bounce", e.position, false, _cfg.bounce_gain * hard, Kind.PROP, BUS_EFFECTS, 1.0,
+						_cfg.prop_reach, null, true)
+			GameEvent.Kind.SMOKE_POP:
+				_play(&"smoke_pop", e.position, false, _cfg.smoke_pop_gain, Kind.PROP, BUS_EFFECTS, 1.0, _cfg.prop_reach,
+						null, true)
+			GameEvent.Kind.FLASH_BANG:
+				_play(&"flash_bang", e.position, false, _cfg.bang_gain, Kind.SHOT, BUS_EFFECTS, 1.0, _cfg.bang_reach, null,
+						true)
 			GameEvent.Kind.BB_IMPACT:
 				if e.target < 0:
 					if _in_reach(e.position, _cfg.max_distance) and _impacts.take(now):

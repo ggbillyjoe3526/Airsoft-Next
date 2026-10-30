@@ -59,6 +59,14 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var prop_pitch: float = 0.08
 @export var prop_spread_db: float = 1.5
 @export var prop_reach: float = 26.0
+## Smoke and flash bombs (SF1): a bomb's knock where it bounces (at the gain times its speed into the surface over
+## bounce_full_speed, at most the gain) and a smoke's pop and hiss, both heard out to prop_reach; a flash's bang, heard
+## out to bang_reach (m). The pin and the throw are mechanisms (mechanism_gain).
+@export var bounce_gain: float = 0.7
+@export var bounce_full_speed: float = 6.0
+@export var smoke_pop_gain: float = 0.8
+@export var bang_gain: float = 1.0
+@export var bang_reach: float = 60.0
 ## Attack / Defend's flag rope ratcheting a notch at the pole (FLAG_ROPE), heard from the pole.
 @export var rope_gain: float = 0.8
 @export var rope_pitch: float = 0.04
@@ -137,6 +145,11 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var whistle_dip_attack: float = 0.03
 @export var whistle_dip_hold: float = 0.6
 @export var whistle_dip_release: float = 0.15
+## A flash dazzling you (SF1) dulls the field the same way, held for flash_dip_hold of the dazzle's seconds.
+@export var flash_dip_depth: float = 0.3
+@export var flash_dip_attack: float = 0.01
+@export var flash_dip_hold: float = 0.6
+@export var flash_dip_release: float = 0.8
 ## Muffling through walls (SP2; the browser game's AUDIO.occlusion): rays from your ears to a character's feet raised by
 ## each of the ray heights (m: knees and head); the blocked share glides a low-pass from occlusion_open_hz to
 ## occlusion_muffled_hz on a log scale and the level from 1 to occlusion_muffled_gain. The half and full buses sit at

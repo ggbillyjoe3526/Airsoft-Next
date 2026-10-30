@@ -10,7 +10,9 @@ duplicate, replace or remove it. The one picked is carried into the next match.
 
 Each loadout has a **primary** and a **secondary** replica. The tab shows the two you carry and every replica you can
 carry; replicas you haven't unlocked yet show greyed out with their level. A new player starts with the AEG Rifle and
-the GBB Pistol. The Grenades slot waits for grenades, which come in a later update ([Roadmap](Roadmap)).
+the GBB Pistol. Every loadout carries the same **grenades** each round: one smoke bomb and one flash bomb
+([Grenades](Grenades)). Picking what you carry comes with chest rigs and pouches in a later update
+([Roadmap](Roadmap)).
 
 ## The Performance sheet
 

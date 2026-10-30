@@ -12,7 +12,8 @@ extends Node
 ## orders can't be given (`allow_orders`). Ping (PN1) fills the next tick's ping once, dead where the order keys are (on
 ## the range); the simulation drops one while you are out. Need a Mag (MH3: its key, or the wheel's item) fills the next
 ## tick's mag_hand_off once, dead on the range and while you are out (where the wheel is); `mag_from_wheel` says
-## whether the last one sent was picked on the wheel, for where its refusal shows.
+## whether the last one sent was picked on the wheel, for where its refusal shows. Throw smoke and Throw flash (SF1)
+## fill the next tick's throw_grenade once (the last pressed, if both).
 
 ## The actions in project.godot's input map.
 const FORWARD := &"move_forward"
@@ -43,6 +44,9 @@ const ORDER_WHEEL := &"order_wheel"
 const PING := &"ping"
 ## The magazine hand-off (MH3): toss one to a teammate asking you in reach, else ask for one (MagShare).
 const MAG := &"mag_hand_off"
+## Throw a smoke bomb or a flash bomb (SF1).
+const THROW_SMOKE := &"throw_smoke"
+const THROW_FLASH := &"throw_flash"
 
 ## The view, absolute (rad): yaw 0 looks down -Z and turns left positive; pitch up positive.
 var view_yaw: float = 0.0
@@ -60,6 +64,7 @@ var _reload_latch: bool = false
 var _mode_latch: bool = false
 var _holster_latch: bool = false
 var _torch_latch: bool = false
+var _throw_latch: Grenade.Kind = Grenade.Kind.NONE
 var _slot_latch: int = -1
 ## Hop-up notches pressed since the last tick (more lift positive).
 var _hop_steps: int = 0
@@ -178,6 +183,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_slot_steps = 0
 	elif event.is_action(TORCH):
 		_torch_latch = true
+	elif event.is_action(THROW_SMOKE):
+		_throw_latch = Grenade.Kind.SMOKE
+	elif event.is_action(THROW_FLASH):
+		_throw_latch = Grenade.Kind.FLASH
 	elif event.is_action(HOP_UP_LESS):
 		_hop_steps -= 1
 	elif event.is_action(HOP_UP_MORE):
@@ -317,6 +326,7 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.hop_up_steps = _hop_steps
 	cmd.holster = _holster_latch
 	cmd.toggle_torch = _torch_latch
+	cmd.throw_grenade = _throw_latch
 	if _slot_steps != 0:
 		cmd.switch_to = posmod(held_slot + _slot_steps, SLOTS.size())
 	cmd.mag_hand_off = false
@@ -363,6 +373,7 @@ func _clear_latches() -> void:
 	_mode_latch = false
 	_holster_latch = false
 	_torch_latch = false
+	_throw_latch = Grenade.Kind.NONE
 	_slot_latch = -1
 	_slot_steps = 0
 	_hop_steps = 0

@@ -3,8 +3,8 @@ extends Node
 ## The field's mix (presentation; the browser game's CORE-30 and CORE-34): the Field bus, which Effects and Ambience feed
 ## and Interface goes round, is low-passed and turned down while the character you play is out of play (heard from the
 ## side line) and dipped under a cue that must be read: your own hit, the referee's whistle at a round's or the match's
-## end, the range's Time. The shape is a DuckEnvelope, eased every frame; the tick's events start it (on_tick). Setup
-## also sets the occlusion buses' corners and levels from SoundConfig. Leaving play (this node leaving the tree: quit,
+## end, the range's Time; and dulled while a flash dazzles you (SF1). The shape is a DuckEnvelope, eased every frame;
+## the tick's events start it (on_tick). Setup also sets the occlusion buses' corners and levels from SoundConfig. Leaving play (this node leaving the tree: quit,
 ## a scene change mid-dip) leaves Field at 0 dB with its filter off, so menus are never muffled.
 
 const BUS_FIELD := &"Field"
@@ -53,6 +53,9 @@ func on_tick(state: GameState, player_id: int) -> void:
 		match e.kind:
 			GameEvent.Kind.CHARACTER_HIT when e.target == player_id:
 				envelope.dip(cfg.hit_dip_depth, cfg.hit_dip_attack, cfg.hit_dip_hold, cfg.hit_dip_release)
+			GameEvent.Kind.DAZZLED when e.target == player_id:
+				envelope.dip(cfg.flash_dip_depth, cfg.flash_dip_attack, e.reach * cfg.flash_dip_hold,
+						cfg.flash_dip_release)
 			GameEvent.Kind.ROUND_OVER, GameEvent.Kind.MATCH_OVER:
 				_whistle_dip(cfg)
 			GameEvent.Kind.CHALLENGE when e.actor == player_id and e.value == RangeChallenge.Cue.TIME:

@@ -357,6 +357,23 @@ func _turn_hop_up(actor: int, steps: int, rules: ReplicaRulesConfig, events: Sim
 	e.value2 = 1 if not is_equal_approx(dial, before) else 0
 
 
+## The replica goes down for a throw (Grenades): away as holstered, silently, a reload, a draw and a burst stopped as a
+## switch's are.
+func put_down() -> void:
+	holstered = true
+	reload_left = 0.0
+	draw_left = 0.0
+	pending_press = 0.0
+	burst_shots_left = 0
+	reload_queued = false
+
+
+## The replica in hand comes back up after a throw: `scale` times its draw time, with its DRAW event.
+func bring_up(actor: int, events: SimEvents, scale: float) -> void:
+	if not replicas.is_empty():
+		_draw(active, actor, events, scale)
+
+
 ## Brings the replica in `slot` up, out of the holster or in place of the one in hand: `scale` times its draw time (1
 ## for a switch). Cancels a reload, a burst and a queued reload.
 func _draw(slot: int, actor: int, events: SimEvents, scale: float = 1.0) -> void:

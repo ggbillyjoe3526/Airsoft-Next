@@ -15,7 +15,10 @@ extends RefCounted
 ## an event for the bots' controller and changes nothing here, and so does a ping (PN1). A run into a noisy prop knocks it, and a BB landing hard
 ## on steel rings it (PropNoise, NP1). The weapon torch switches after the replica (Torch); hit, it goes out. The
 ## magazine hand-off's press is taken with the squad order, before the character moves (out of play it is refused), and
-## the magazines in the air land after the BBs fly, so a catcher hit this tick loses it (MagShare, MH1).
+## the magazines in the air land after the BBs fly, so a catcher hit this tick loses it (MagShare, MH1). A smoke or
+## flash bomb's press is taken after the vault (none while vaulting) and puts the replica down before it is used; the
+## throw under way lets go of the trigger and sights and releases the bomb after the replica, and the bombs fly, pop and
+## go bang after the magazines land; a new round clears them (Grenades, SF1).
 
 var tuning: SimTuning = null
 var query: WorldQuery = null
@@ -31,6 +34,8 @@ var nav: NavGrid = null
 var noise: PropNoise = null
 ## The magazine hand-off's rules (MH1), made with the simulation.
 var mag_share: MagShare = null
+## The smoke and flash bombs' rules (SF1), made with the simulation.
+var grenades: Grenades = null
 ## Followed by characters with no command this tick.
 var _idle: PlayerCommand = PlayerCommand.new()
 ## Followed by characters that have been hit: they take no orders from their controller.
@@ -39,6 +44,8 @@ var _eliminated: PlayerCommand = PlayerCommand.new()
 ## presses made during it (Vault).
 var _vaulting: PlayerCommand = PlayerCommand.new()
 var _after_vault: PlayerCommand = PlayerCommand.new()
+## Followed while throwing a bomb: the command with its trigger and sights let go (Grenades.throwing_command).
+var _throwing: PlayerCommand = PlayerCommand.new()
 ## Where a ping's view met the field (one at a time).
 var _ping_hit: RayHit = RayHit.new()
 
@@ -52,9 +59,10 @@ func _init(sim_tuning: SimTuning, world: WorldQuery, character_mover: CharacterM
 	kill_y = level_kill_y
 	noise = PropNoise.new(sim_tuning.noise, world)
 	mag_share = MagShare.new(sim_tuning, world)
+	grenades = Grenades.new(sim_tuning, world)
 
 
-## A fresh match: a new breeze, everyone at their end's spawns, round 1 live.
+## A fresh match: a new breeze, everyone at their end's spawns with the bombs everyone carries, round 1 live.
 func start_match(state: GameState) -> void:
 	state.events.clear()
 	state.match_number += 1
@@ -62,6 +70,9 @@ func start_match(state: GameState) -> void:
 	state.wind.draw(Seeds.wind_seed(state.match_seed, state.match_number), tuning.wind)
 	for t in state.mag_tosses:
 		t.active = false
+	Grenades.clear(state.grenades)
+	for c in state.characters:
+		c.grenades.carry(tuning.grenades.smoke_carried, tuning.grenades.flash_carried)
 	Round.start_match(state.round_state, state.characters, ends, state.bbs, tuning, state.events)
 
 
@@ -111,9 +122,16 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		# stays as it was and other presses wait for the vault's end (BP5).
 		if in_play and not c.vault.active:
 			cmd = Vault.with_held_presses(c.vault, cmd, _after_vault)
-			Vault.try_start(c, cmd, tuning, query, state.events)
+			# No vault mid-throw: the bomb leaves the hand first.
+			if not Grenades.throwing(c):
+				Vault.try_start(c, cmd, tuning, query, state.events)
 		if in_play and c.vault.active:
 			cmd = Vault.vaulting_command(c, cmd, _vaulting)
+		# A bomb's press puts the replica down; while throwing, the trigger and sights are let go.
+		if in_play:
+			grenades.press(c, cmd, live, state.grenades, state.events)
+			if Grenades.throwing(c):
+				cmd = Grenades.throwing_command(cmd, _throwing)
 		if in_play:
 			Aiming.step(c, cmd, tuning.movement, dt)
 		else:
@@ -140,7 +158,9 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		# BBs leave from the eyes, wherever a lean puts them; none through a vault or the moment after it.
 		Armament.step(c, cmd, Lean.eye(c, tuning.body, tuning.hits), kick, live and c.fire_lockout <= 0.0, state.bbs,
 				state.rng, state.events, tuning, dt, 0.0 if c.vault.active else c.fire_lockout)
-		# After the armament: a switch or holster this tick to no light in hand puts the torch out.
+		# The bomb leaves the hand from the eyes, as BBs do; the replica comes back up after it.
+		grenades.step_throw(c, Lean.eye(c, tuning.body, tuning.hits), state.grenades, state.events, dt)
+		# After the armament and the throw: a switch, holster or throw this tick to no light in hand puts the torch out.
 		Torch.step(c, toggle_torch, state.events, dt)
 		# A ping looks where the view is now, after the turn and the shot's kick.
 		_ping(c, commands, live and not state.round_state.practice, state.events)
@@ -151,14 +171,21 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		noise.ring(state, first_bb_event)
 	# After the BBs: a catcher hit this tick is out of play, and the magazine is lost.
 	mag_share.step(state, sharing, dt)
+	grenades.step(state, dt, kill_y)
 	if state.round_state.practice:
 		# Practice has no rounds: it's always live, with no clock.
 		RangeTargets.step(state.targets, tuning, dt, state.rng)
 		state.challenge.step(state.targets, state.events, tuning.targets, dt, state.rng, state.cheats.any())
 		for c in state.characters:
 			RangeTargets.refill_spares(c.armament)
+			# Bombs too: practise as many throws as you like.
+			if not Grenades.throwing(c):
+				c.grenades.refill()
 	else:
 		Round.step(state.round_state, state.characters, ends, state.bbs, tuning, state.events, dt)
+		# A new round: the last round's bombs and smoke are gone.
+		if state.events.first(GameEvent.Kind.ROUND_START) != null:
+			Grenades.clear(state.grenades)
 	state.tick += 1
 	state.time += dt
 

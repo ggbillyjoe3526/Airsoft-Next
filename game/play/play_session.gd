@@ -151,6 +151,8 @@ var _figure_lines: Vector2 = Vector2.ZERO
 var _thrown: ThrownMagazines = null
 ## The hand-off's magazines in the air (MH3): a pool made once a match (none on the range).
 var _mag_tosses: MagTossView = null
+## The smoke and flash bombs: canisters, clouds, the bang and the screen's wash (SF1).
+var _grenades: GrenadeView = null
 var _audio: SimAudio = null
 ## The field's mix: muffled while you are out, dipped under your hit and the whistle (SoundMix).
 var _mix: SoundMix = null
@@ -662,8 +664,12 @@ func _build_views(ui: CanvasLayer) -> void:
 		_mag_tosses = MagTossView.new()
 		add_child(_mag_tosses)
 		_mag_tosses.setup(state.mag_tosses.size(), state.characters, _figure_models, _sim.mag_share)
+	_grenades = GrenadeView.new()
+	add_child(_grenades)
+	_grenades.setup(state.grenades.size(), _tuning.grenades, _light.night)
 	var first_use: Array[Material] = [_bbs.drawn_material(), _puffs.drawn_material(), _gas.drawn_material(),
 			_kicked.drawn_material(), contact.material, _dust.drawn_material()]
+	first_use.append_array(_grenades.materials())
 	first_use.append_array(_bbs.glow_materials())
 	if _bbs.trail_material() != null:
 		first_use.append(_bbs.trail_material())
@@ -901,6 +907,7 @@ func _after_tick() -> void:
 	_recent.record(state.tick, state.events, PLAYER_ID)
 	if _targets_view != null:
 		_targets_view.on_tick(state)
+	_grenades.on_tick(state)
 	var events := state.events
 	for i in events.count:
 		var e := events.items[i]
@@ -1038,6 +1045,7 @@ func _process(delta: float) -> void:
 		_thrown.update(delta)
 	if _mag_tosses != null:
 		_mag_tosses.update(state, fraction, TICK)
+	_grenades.update(state, fraction, delta, watched, eye)
 	for f in _figures:
 		var c: Character = state.characters[f.character_id]
 		f.update(c, fraction, delta)
@@ -1455,6 +1463,8 @@ func _apply_motion() -> void:
 		_woods.set_motion(motion)
 	if _overtime_flag != null:
 		_overtime_flag.rises = not settings.reduces_motion_now()
+	if _grenades != null:
+		_grenades.soft_flash = settings.reduces_motion_now()
 	_hud.set_motion(motion)
 
 

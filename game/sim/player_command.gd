@@ -48,6 +48,8 @@ var ping: bool = false
 ## The magazine hand-off (one-shot; MH1): toss a magazine to the nearest teammate asking you who is in reach, else ask
 ## for one if you are low, else nothing but a refusal (MagShare.press).
 var mag_hand_off: bool = false
+## Throw a bomb of this kind (one-shot; Grenades, SF1): NONE throws nothing.
+var throw_grenade: Grenade.Kind = Grenade.Kind.NONE
 
 
 ## Back to no input, looking along (yaw, pitch).
@@ -74,6 +76,7 @@ func reset(view_yaw: float = 0.0, view_pitch: float = 0.0) -> void:
 	toggle_torch = false
 	ping = false
 	mag_hand_off = false
+	throw_grenade = Grenade.Kind.NONE
 
 
 func copy_from(other: PlayerCommand) -> void:
@@ -99,3 +102,4 @@ func copy_from(other: PlayerCommand) -> void:
 	toggle_torch = other.toggle_torch
 	ping = other.ping
 	mag_hand_off = other.mag_hand_off
+	throw_grenade = other.throw_grenade

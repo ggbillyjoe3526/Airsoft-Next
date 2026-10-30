@@ -31,6 +31,10 @@ New ideas the owner wants to think about (owner, 2026-10-06). Roadmap items he m
 - **A civilian outfit for some figures (AX1, 2026-10-17).** Two of the human's six looks in everyday clothes (a hoodie,
   work trousers) under the team carrier, so a match reads more like a Sunday site. It needs a second outfit texture
   from the figure's Blender source; the owner kept today's figures in Beta 1.
+- **Throwing better (SF1, 2026-10-30).** An arc preview while you hold the key, an underhand roll for a short throw
+  round a corner, and cooking a flash for a shorter fuse. Left out of the basic smoke and flash bombs.
+- **Choosing your grenades (SF1).** Swap the smoke for a second flash, or the other way round, in the Loadout's
+  Grenades slot. Today every player and bot carries one of each; the 0.2 rigs and pouches decide carrying.
 - **Clutch moments.** A "last one standing" banner and a clutch count in your records.
 - **Match wagers.** Stake some of a match's XP on winning it, for more XP if you do.
 - **A downside for the 11.1 V LiPo Battery.** It fires 15 % faster with no number made worse; a cost (more kick, a

@@ -888,7 +888,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		# On the screen, not the HUD's scaled root: the crosshair keeps its own size.
 		_gap = CrosshairDraw.gap(_prefs, tan(spread) / tan(half_fov) * size.y * _hud_size * 0.5)
 	if not a.replicas.is_empty():
-		_replica.refresh(a)
+		_replica.refresh(a, c.grenades)
 		if a.active != _hop_slot and _hop_left > 0.0:
 			_hop_left = 0.0
 			_replica.hide_hop()

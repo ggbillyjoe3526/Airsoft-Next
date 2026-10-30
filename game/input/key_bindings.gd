@@ -17,7 +17,7 @@ const ACTIONS: Array[StringName] = [
 	&"move_forward", &"move_back", &"move_left", &"move_right", &"walk", &"sprint", &"crouch", &"jump",
 	&"lean_left", &"lean_right", &"fire", &"aim", &"reload", &"fire_mode", &"slot_1", &"slot_2", &"holster",
 	&"torch", &"slot_next", &"slot_previous", &"hop_up_less", &"hop_up_more", &"scoreboard", &"order_follow", &"order_hold",
-	&"order_regroup", &"order_wheel", &"ping", &"mag_hand_off", &"loadout",
+	&"order_regroup", &"order_wheel", &"ping", &"mag_hand_off", &"throw_smoke", &"throw_flash", &"loadout",
 ]
 ## Actions that can never be left keyless (owner rule, DECISIONS › Menus, HUD, settings and accessibility).
 const ESSENTIAL: Array[StringName] = [&"fire", &"move_forward", &"move_back", &"move_left", &"move_right"]
@@ -52,6 +52,8 @@ const DEFAULTS: Dictionary = {
 	&"order_regroup": [KEY_V],
 	&"ping": [-MOUSE_BUTTON_MIDDLE],
 	&"mag_hand_off": [KEY_H],
+	&"throw_smoke": [KEY_G],
+	&"throw_flash": [KEY_Y],
 	&"loadout": [KEY_L],
 }
 ## Keys that can't be bound: Esc (menus), PrintScreen, Pause, F11 (fullscreen), the debug keys (F3 the overlay, F4 BB

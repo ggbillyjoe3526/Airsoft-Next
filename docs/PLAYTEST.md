@@ -603,6 +603,26 @@ pays XP ×1.5.
   yard!"), never cutting in over your hit.
 - [ ] **Settings › HUD at 1080p** now scrolls a little: the minimap's note sits under the fold. Fine, or worth fitting?
 
+## Smoke and flash bombs (SF1)
+
+Every round you carry one smoke bomb (G) and one flash bomb (Y); the replica panel shows what's left. Bots don't throw
+theirs yet (SF2).
+
+- [ ] **The throw.** Press G: the pin clicks, your replica drops for about half a second, the canister goes where you
+  look (a little above it) and the replica comes back up. Does it feel quick enough mid-fight, or too slow to be worth
+  it? Can you lob one over a container, and does a sprinting throw carry further?
+- [ ] **The smoke.** About 1 s after it lands, a pop and a hiss, and a pale cloud about 8 m wide grows over 2.5 s,
+  stays about 15 s, then thins away. Bots on the far side lose you: walk across behind it and see if they fire. BBs still
+  fly through it. Is it big enough to cover a crossing, and does it last too long?
+- [ ] **Inside the smoke.** Walk into the cloud: your screen goes milky and you can see only a few metres. At night
+  (Woodland) the cloud is darker. Too thick, or not enough?
+- [ ] **The flash.** Throw one round a corner at bots: a bang and a white flash 1.5 s after it leaves your hand. Bots
+  that faced it (up to 22 m, with a clear line) stop shooting, crouch and look about for up to 3.5 s; behind a wall
+  nothing happens. Throw one at your own feet: your screen goes white and the sound dips, then fades back. Is the
+  blinding fair, and is it fun rather than annoying?
+- [ ] **Reduced motion** (Settings › Accessibility): your own flash is a softer wash, not full white.
+- [ ] **Practice range.** Throw both: they come back once the throw ends, so you can keep throwing.
+
 ## Menus
 
 - [ ] **The title screen.** Only "AIRSOFT", the tagline "Call your hit. Go again." and **START**. The build sits small at the bottom right with **Licences** over it, a

@@ -211,7 +211,9 @@ on a night field. It fits every replica, the Cyber Pistol too. Public with Woodl
 
 ### Grenades
 
-Grenades, smoke and flash bombs come in a later version (the Replica Update). The Loadout's Grenades slot waits for them.
+A basic smoke bomb and flash bomb arrive in 0.1 Dev 2 (SF1): everyone carries one of each every round, with their
+numbers in `game/config/grenade_config.gd`, so they are not items in this table. Picking what you carry, and more
+grenades (the CO2 sound grenade), come with chest rigs and pouches in the Replica Update.
 
 | ID | Name | Key | Fits | Access |
 |---|---|---|---|---|

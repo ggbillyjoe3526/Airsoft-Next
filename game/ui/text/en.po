@@ -63,6 +63,12 @@ msgstr "Leaves in the way · step clear to shoot"
 msgid "HUD_HOLSTERED"
 msgstr "Holstered"
 
+msgid "HUD_SMOKE"
+msgstr "Smoke %d"
+
+msgid "HUD_FLASH"
+msgstr "Flash %d"
+
 msgid "HUD_ROUND"
 msgstr "Round %d"
 
@@ -1000,8 +1006,14 @@ msgstr "SECONDARY"
 msgid "LOADOUT_GRENADES"
 msgstr "GRENADES"
 
-msgid "LOADOUT_GRENADES_LATER"
-msgstr "Grenades, smoke and flash bombs come later."
+msgid "LOADOUT_GRENADES_TIP"
+msgstr "Carried every round: one smoke and one flash bomb, thrown with Throw smoke and Throw flash. Picking what you carry comes with chest rigs and pouches."
+
+msgid "LOADOUT_SMOKE"
+msgstr "%d × SMOKE"
+
+msgid "LOADOUT_FLASH"
+msgstr "%d × FLASH"
 
 msgid "LOADOUT_HINT"
 msgstr "Pick a slot, then a replica to carry in it. Picking one already carried swaps the two.\nDouble-click a carried replica, or CUSTOMISE, to change its colour, BBs, hop-up and power."
@@ -1919,6 +1931,12 @@ msgstr "SQUAD: PING A SPOT"
 
 msgid "ACT_MAG_HAND_OFF"
 msgstr "SQUAD: NEED A MAG"
+
+msgid "ACT_THROW_SMOKE"
+msgstr "THROW SMOKE"
+
+msgid "ACT_THROW_FLASH"
+msgstr "THROW FLASH"
 
 msgid "ACT_LOADOUT"
 msgstr "LOADOUT (PRACTICE)"
