@@ -154,7 +154,8 @@ var _weight: LoadoutSlider = null
 var _weight_big: Label = null
 var _weight_note: Label = null
 var _glow_bbs: MenuChoice = null
-var _glow_blurb: Label = null
+## The glow choice's words for its pick: its buttons' tooltip, so a pick rewrites no line on the page (UI1 round 3).
+var _glow_blurb: String = ""
 var _hop: LoadoutSlider = null
 var _hop_big: Label = null
 var _hop_note: Label = null
@@ -241,7 +242,7 @@ func glow_choice() -> MenuChoice:
 	return _glow_bbs
 
 
-func glow_blurb() -> Label:
+func glow_blurb() -> String:
 	return _glow_blurb
 
 
@@ -328,7 +329,9 @@ func refresh(slot: Loadout.Slot, realistic: bool) -> void:
 	_weight_note.text = tr("CUSTOMISE_AS_IT_COMES") % (tr("LOADOUT_GRAMS") % base.bb_weight)
 	var glow := f.saved.carried().glow_of(item.id)
 	_glow_bbs.put(glow)
-	_glow_blurb.text = tr(GLOW_BLURBS[glow])
+	_glow_blurb = tr(GLOW_BLURBS[glow])
+	for i in GLOW_KEYS.size():
+		_glow_bbs.button(i).tooltip_text = _glow_blurb
 	_hop.put(t.hop_up)
 	_hop_big.text = tr("CUSTOMISE_PERCENT") % roundi(t.hop_up * 100.0)
 	_hop_note.text = tr("CUSTOMISE_AS_IT_COMES") % (tr("CUSTOMISE_PERCENT") % roundi(base.hop_up_dial * 100.0))
@@ -669,11 +672,6 @@ func _build_bbs() -> Control:
 	var choice_wrap := MenuParts.padded(0, SUB_GAP, 0, 0)
 	choice_wrap.add_child(_glow_bbs)
 	weight_column.add_child(choice_wrap)
-	_glow_blurb = MenuParts.text("", BLURB_SIZE, 600, GameTheme.MUTED)
-	_glow_blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var blurb_wrap := MenuParts.padded(0, BLURB_GAP, 0, 0)
-	blurb_wrap.add_child(_glow_blurb)
-	weight_column.add_child(blurb_wrap)
 	page.add_child(weight_column)
 	var hop_column := VBoxContainer.new()
 	hop_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -684,7 +682,7 @@ func _build_bbs() -> Control:
 	var hop_ticks: Array[String] = []
 	for key in HOP_TICKS:
 		hop_ticks.append(tr(key))
-	_slider_block(hop_column, _hop, hop_ticks, "CUSTOMISE_HOP_BLURB")
+	_slider_block(hop_column, _hop, hop_ticks, "CUSTOMISE_HOP_BLURB", "CUSTOMISE_HOP_KEYS")
 	_hop_big = hop_column.get_node("Big/Value") as Label
 	_hop_note = hop_column.get_node("Big/Note") as Label
 	_hop.value_changed.connect(func(v: float) -> void: hop_up_set.emit(v))
@@ -697,8 +695,11 @@ func _build_bbs() -> Control:
 	return page
 
 
-## The big readout with its note, the slider, its three ticks and the blurb, added to `column`.
-func _slider_block(column: VBoxContainer, slider: LoadoutSlider, ticks: Array[String], blurb_key: String) -> void:
+## The big readout with its note, the slider and its three ticks, added to `column`; `blurb_key`'s words are the
+## readout's and the slider's tooltip (UI1 round 3: no paragraph under a slider), and `line_key`'s, if any, the one short
+## line kept under it.
+func _slider_block(column: VBoxContainer, slider: LoadoutSlider, ticks: Array[String], blurb_key: String,
+		line_key: String = "") -> void:
 	var big := HBoxContainer.new()
 	big.name = "Big"
 	big.add_theme_constant_override("separation", SUB_GAP)
@@ -721,11 +722,15 @@ func _slider_block(column: VBoxContainer, slider: LoadoutSlider, ticks: Array[St
 		l.horizontal_alignment = [HORIZONTAL_ALIGNMENT_LEFT, HORIZONTAL_ALIGNMENT_CENTER, HORIZONTAL_ALIGNMENT_RIGHT][i]
 		row.add_child(l)
 	column.add_child(row)
-	var blurb := MenuParts.text(tr(blurb_key), BLURB_SIZE, 600, GameTheme.MUTED)
-	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var wrap := MenuParts.padded(0, BLURB_GAP, 0, 0)
-	wrap.add_child(blurb)
-	column.add_child(wrap)
+	var tip := tr(blurb_key)
+	slider.tooltip_text = tip
+	big.tooltip_text = tip
+	big.mouse_filter = Control.MOUSE_FILTER_PASS
+	if line_key != "":
+		var line := MenuParts.text(tr(line_key), BLURB_SIZE, 600, GameTheme.MUTED)
+		var wrap := MenuParts.padded(0, BLURB_GAP, 0, 0)
+		wrap.add_child(line)
+		column.add_child(wrap)
 
 
 func _build_power() -> Control:

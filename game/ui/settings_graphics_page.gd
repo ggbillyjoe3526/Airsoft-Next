@@ -262,10 +262,32 @@ func _place_tag() -> void:
 
 
 func _build_sections(column: VBoxContainer, sections: Dictionary[String, Array], width: float) -> void:
+	var first := true
 	for key: String in sections:
 		_screen.add_section(column, tr(key))
+		if first:
+			_cost_heading(column)
+			first = false
 		for id: StringName in sections[key]:
 			_rows[id] = _build_row(column, id, width)
+
+
+## GPU COST at the right of the column's first section heading, over the squares that end each row under it (UI1
+## round 3: the squares read as a column, not a riddle); the longer words are its tooltip and the squares'.
+func _cost_heading(column: VBoxContainer) -> void:
+	var heading := column.get_child(column.get_child_count() - 1) as Control
+	column.remove_child(heading)
+	var row := HBoxContainer.new()
+	row.name = "CostHeading"
+	column.add_child(row)
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(heading)
+	var cost := SettingsScreen.section_label(tr("GRAPHICS_COST_HEAD"))
+	cost.name = "GpuCost"
+	cost.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	cost.tooltip_text = tr("GRAPHICS_COST_TIP")
+	cost.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.add_child(cost)
 
 
 ## One row: its control (a switch, a slider or a row of choices) from the table, a note, its cost squares.
@@ -613,7 +635,7 @@ class Mark:
 		draw_circle(Vector2(-Line.MARK_LEFT, size.y * 0.5), Line.MARK_RADIUS, GameTheme.YELLOW)
 
 
-## What a row takes from the graphics card: "GPU" and three squares, as many filled as its cost.
+## What a row takes from the graphics card: three squares, as many filled as its cost, under the column's GPU COST.
 class CostSquares:
 	extends Control
 	const SIDE := 9.0

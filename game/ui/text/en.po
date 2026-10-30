@@ -565,6 +565,9 @@ msgstr "HOP-UP MORE"
 msgid "SETTINGS_DEV"
 msgstr "DEV"
 
+msgid "DEV_RECORDS_LINE"
+msgstr "Matches played with these changed stay out of your records."
+
 msgid "DEV_INTRO"
 msgstr "For trying things out. Every switch is off until you turn it on. With Game speed, Bottomless magazines, Ghost, Bots hold fire, Bots run low on BBs, Spectate any bot, Bot intentions, Time of day or Disable levelling changed, matches don't go into your records."
 
@@ -1232,7 +1235,10 @@ msgid "CUSTOMISE_WEIGHT_BLURB"
 msgstr "Heavier BBs hold their line in the wind and keep a little more energy, but leave the barrel slower: more time for the other player to see them coming."
 
 msgid "CUSTOMISE_HOP_BLURB"
-msgstr "Backspin that lifts the BB to fly flat. Too little and it drops early; too much and it climbs. Turn it in a match with 4 and 5."
+msgstr "Backspin that lifts the BB to fly flat. Too little and it drops early; too much and it climbs."
+
+msgid "CUSTOMISE_HOP_KEYS"
+msgstr "Turn it in a match with 4 and 5."
 
 msgid "CUSTOMISE_GLOW_BBS"
 msgstr "GLOWING BBS"
@@ -1689,6 +1695,9 @@ msgstr "%d more"
 
 msgid "ARMORY_MULTIPLIER"
 msgstr "%s ×%s"
+
+msgid "ARMORY_EARN_DIFFICULTY"
+msgstr "Difficulty"
 
 msgid "ARMORY_EARN_NOTE"
 msgstr "Then times the difficulty: %s. A first-to-5 win on Normal gives about %d XP. Practice, and matches with Dev settings, give none."
@@ -2370,6 +2379,9 @@ msgstr "Ultra"
 
 msgid "GRAPHICS_RESET"
 msgstr "Reset to For your card (%s)"
+
+msgid "GRAPHICS_COST_HEAD"
+msgstr "GPU COST"
 
 msgid "GRAPHICS_COST_TIP"
 msgstr "What this row takes from your graphics card: the more squares, the more work."

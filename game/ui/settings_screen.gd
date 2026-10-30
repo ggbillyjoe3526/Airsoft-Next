@@ -288,7 +288,8 @@ func _build_controls() -> void:
 	_wheel_pick.picked.connect(func(i: int) -> void:
 		settings.wheel_pick = ControlsConfig.WheelPick.CLICK if i == 1 else ControlsConfig.WheelPick.HOVER
 		_applied(SettingsApply.apply_controls, true))
-	add_help(page, "SETTINGS_ORDERS_HELP", ROW_LABEL_WIDTH + ROW_SEPARATION)
+	# how Hover and Click work: the choice's tooltip, no paragraph under it (UI1 round 3)
+	explain(_wheel_pick.get_parent() as Control, tr("SETTINGS_ORDERS_HELP"))
 	add_section(keys, tr("SETTINGS_KEYS"))
 	add_help(keys, "SETTINGS_KEYS_HINT")
 	_keys = KeyBindingList.new(settings)
@@ -433,20 +434,23 @@ func can_replace() -> bool:
 func _build_dev() -> void:
 	_dev_page = _page(tr("SETTINGS_DEV"))
 	var page := _dev_page as VBoxContainer
-	add_help(page, "DEV_INTRO")
+	# one line, the records warning; which settings it means is its tooltip, and each row's note the row's (UI1 round 3)
+	var intro := add_help(page, "DEV_RECORDS_LINE")
+	intro.tooltip_text = tr("DEV_INTRO")
+	intro.mouse_filter = Control.MOUSE_FILTER_PASS
 	add_section(page, tr("DEV_SWITCHES"))
 	_speed = add_slider_row(page, "DEV_GAME_SPEED", DevCheats.SPEED_MIN * 100.0, DevCheats.SPEED_MAX * 100.0,
 			DevSettings.SPEED_STEP * 100.0, "%d %%")
 	_speed.value_changed.connect(func(v: float) -> void:
 		settings.dev.game_speed = v / 100.0
 		_changed())
-	add_note(_speed.get_parent() as Control, tr("DEV_GAME_SPEED_HELP"))
+	explain(_speed.get_parent() as Control, tr("DEV_GAME_SPEED_HELP"))
 	for field: StringName in DEV_SWITCHES:
 		var key := "DEV_" + String(field).to_upper()
 		var check := add_check_row(page, key, "SETTINGS_ON", "SETTINGS_OFF")
 		check.toggled.connect(_on_dev_switch.bind(field))
 		_dev_checks[field] = check
-		add_note(check.get_parent() as Control, tr(key + "_HELP"))
+		explain(check.get_parent() as Control, tr(key + "_HELP"))
 	_build_time_of_day(page)
 	add_section(page, tr("DEV_ACTIONS"))
 	var end_row := add_row(page, "DEV_END_ROUND")
@@ -455,13 +459,13 @@ func _build_dev() -> void:
 	GameTheme.small_button(_end_round)
 	_end_round.pressed.connect(_on_end_round)
 	end_row.add_child(_end_round)
-	add_note(end_row, tr("DEV_END_ROUND_HELP"))
+	explain(end_row, tr("DEV_END_ROUND_HELP"))
 	var level_row := add_row(page, "DEV_RESET_LEVEL")
 	var reset_level := Button.new()
 	reset_level.text = tr("DEV_RESET_LEVEL_BUTTON").to_upper()
 	GameTheme.small_button(reset_level)
 	level_row.add_child(reset_level)
-	add_note(level_row, tr("DEV_RESET_LEVEL_HELP"))
+	explain(level_row, tr("DEV_RESET_LEVEL_HELP"))
 	_confirm_level = ConfirmationDialog.new()
 	_confirm_level.title = tr("DEV_RESET_LEVEL_TITLE")
 	_confirm_level.dialog_text = tr("DEV_RESET_LEVEL_QUESTION")
@@ -484,7 +488,7 @@ func _build_time_of_day(page: VBoxContainer) -> void:
 	_time_of_day.picked.connect(func(i: int) -> void:
 		settings.dev.time_of_day = DEV_TIMES[i]
 		_changed(true))
-	add_note(row, tr("DEV_TIME_OF_DAY_HELP"))
+	explain(row, tr("DEV_TIME_OF_DAY_HELP"))
 
 
 ## Dev › Time of day's choice.
@@ -501,14 +505,14 @@ func _build_dev_checks(page: VBoxContainer) -> Array[Button]:
 	GameTheme.small_button(error)
 	error.pressed.connect(_on_test_error)
 	error_row.add_child(error)
-	add_note(error_row, tr("DEV_TEST_ERROR_HELP"))
+	explain(error_row, tr("DEV_TEST_ERROR_HELP"))
 	var crash_row := add_row(page, "DEV_CRASH")
 	var crash := Button.new()
 	crash.name = "CrashNow"
 	crash.text = tr("DEV_CRASH_BUTTON").to_upper()
 	GameTheme.small_button(crash)
 	crash_row.add_child(crash)
-	add_note(crash_row, tr("DEV_CRASH_HELP"))
+	explain(crash_row, tr("DEV_CRASH_HELP"))
 	_confirm_crash = ConfirmationDialog.new()
 	_confirm_crash.title = tr("DEV_CRASH_TITLE")
 	_confirm_crash.dialog_text = tr("DEV_CRASH_QUESTION")

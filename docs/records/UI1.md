@@ -9,6 +9,7 @@
 | 2026-10-30 | 1 | worker | see Verified and Gate | – | – |
 | 2026-10-30 | 1, fix round 1 | worker | see Fix round 1 | – | QA failed: FPS over the LVL chip; Match, Settings prose |
 | 2026-10-30 | 1, fix round 2 | worker | see Fix round 2 | – | 4K menus small, Match half empty (coordinator) |
+| 2026-10-30 | 2 (fix round 3) | worker | see Fix round 3 | Retry 7/8 | prose on BBs, Armory, Dev, order wheel; unlabelled squares |
 
 ## Goal
 
@@ -171,3 +172,34 @@ the choice. FB6 merged clean and its behaviour stands. Gate after the rebase: gd
 `test_ui1_qa`, `test_manual_reload`, `test_rl2_qa`, `test_fb6`, `test_fb6_qa`, `test_mn1_qa`, `test_settings_screen`
 146 of 146; unit parts 885 of 885, 2006 of 2006, 971 of 971; smoke PASS, zero script errors; wiki and changelog OK.
 Picture: `ui1-r2-after-1080-settings-0-controls-rebased.png`.
+
+## Fix round 3 (attempt 2)
+
+The critic's Retry 7/8 (`pipeline/out/critic.md`) named five places where prose or an unreadable element remained.
+
+- **Graphics:** each column's first section heading carries **GPU COST** at its right, over the squares that end each
+  row (`_cost_heading`); its tooltip and the squares' say what they mean. The CostSquares doc no longer claims a "GPU"
+  word.
+- **Customise › BBs:** the weight and hop-up paragraphs are their slider's and readout's tooltips; the hop-up keeps one
+  line, "Turn it in a match with 4 and 5." (`CUSTOMISE_HOP_KEYS`). The glowing-BBs paragraph is the choice's tooltip,
+  set on each pick, so a pick rewrites and moves nothing on the page.
+- **Controls:** the order wheel's Hover / Click paragraph is the choice's tooltip (`explain`), like Crouch, Aim and
+  Reload.
+- **Armory:** HOW XP IS EARNED ends in one row, Difficulty · Easy ×0.5 · Normal ×1 · Hard ×1.5; the typical-win and
+  Practice / Dev sentence is its tooltip.
+- **Dev:** the intro is one line, "Matches played with these changed stay out of your records.", the full list its
+  tooltip; every row's sentence is the row's tooltip.
+
+Kept, as the critic advised: the key-binding hint and "Auto: against Hard bots only." Left as advisories for later: the
+Match page's room under Mode and Rules, HUD SIZE's default mark, the reduced-motion line's wording, splitting
+`settings_screen.gd`.
+
+Verified: three new tests in `test_ui1_menus.gd` (GPU COST over each column's squares and ending where they end; the
+BBs page shows no paragraph, keeps the one line, and a glow pick moves and rewrites nothing; the wheel, Armory and Dev
+show no prose and carry it in tooltips); `test_armory.gd` and `test_glow_bbs.gd` read the row and the tooltip.
+Pictures: `/mnt/project-files/screenshots/dev1-feedback/ui1-r3-after-{720,1080,1440,2160}-*.png` (Graphics, Controls,
+Dev, Armory, Customise and its BBs page).
+
+Gate: gdlint clean on every changed `.gd`; the affected tests (UI1 menus and QA, settings screen, Armory, glow BBs,
+Loadout, Customise parts, FB1, SO4, GR2) 233 of 233; unit parts 885 of 885, 2006 of 2006, 976 of 976; smoke PASS with
+zero script errors; wiki and changelog OK.

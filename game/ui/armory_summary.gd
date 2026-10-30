@@ -22,8 +22,6 @@ const NEXT_NAME_SIZE := 30
 const NEXT_NOTE_SIZE := 15
 const NEXT_COLUMN_GAP := 12
 const EARN_ROW_HEIGHT := 32
-const EARN_NOTE_SIZE := 14
-const EARN_NOTE_GAP := 10
 ## The XP a typical first-to-5 win on Normal gives, in levels.md's pace note ("about 250 XP").
 const TYPICAL_WIN_XP := 250
 const MULTIPLIER_SEPARATOR := " · "
@@ -196,10 +194,12 @@ func _earn_panel() -> Control:
 	for level in MatchOptions.BOT_LEVELS:
 		multipliers.append(tr("ARMORY_MULTIPLIER") % [tr("BOT_" + level.to_upper()),
 				ArmoryFacts.multiplier_text(_facts.table.multiplier(StringName(level)))])
-	var note := MenuParts.text(tr("ARMORY_EARN_NOTE") % [MULTIPLIER_SEPARATOR.join(multipliers), TYPICAL_WIN_XP],
-			EARN_NOTE_SIZE, 600, GameTheme.DIM)
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(_gapped(note, EARN_NOTE_GAP, 0))
+	# one row of the multipliers; the rest of what it means is the row's tooltip (UI1 round 3: no paragraph)
+	var difficulty := _earn_row(tr("ARMORY_EARN_DIFFICULTY"), MULTIPLIER_SEPARATOR.join(multipliers))
+	difficulty.name = "Difficulty"
+	difficulty.tooltip_text = tr("ARMORY_EARN_NOTE") % [MULTIPLIER_SEPARATOR.join(multipliers), TYPICAL_WIN_XP]
+	difficulty.mouse_filter = Control.MOUSE_FILTER_PASS
+	column.add_child(difficulty)
 	return panel
 
 

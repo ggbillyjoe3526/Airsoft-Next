@@ -6,6 +6,7 @@
 - The bots' XP multiplier shows after **OPPONENTS**; Attack / Defend's "attacks first" line no longer pushes the bots down; **PLAY** keeps one width when it becomes **PRACTICE**.
 - The Match screen reads as one screen: the maps in a row across the top, and Mode, Rules, Your team and Bots in columns under them; the modes are short buttons like the rest, the team buttons smaller and **PLAY** narrower.
 - On a 4K screen the menus draw exactly as on a 1080p one, twice the size, instead of smaller with most of the screen empty.
+- Customise's BBs page, the Armory's XP panel, the order wheel and the Dev tab keep their explanations in tooltips; the Graphics tab heads its squares **GPU COST**.
 - Settings says less: the line under Graphics' preset, the squares' key, the render scale's size and Display's F11 / Alt+Enter hint are tooltips now, and the renderer just says **Applies on restart**. The squares explain themselves when you point at them.
 - **Show FPS** puts the figure in the bottom-right corner, where it covers neither the level chip in the menus nor anything in a match.
 - Five saved loadouts with long names fit the Loadout screen: a long name ends in "…" and shows whole when you point at it.

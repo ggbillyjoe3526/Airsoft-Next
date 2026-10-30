@@ -575,3 +575,77 @@ func test_the_fps_figure_sits_under_the_hud_s_corner_panel_at_every_hud_size() -
 	var panel_foot := window.end.y - Hud.MARGIN * AccessibilityConfig.HUD_SIZE_RANGE.x
 	assert_gt(r.position.y, panel_foot, "under the replica panel at the smallest HUD size")
 	assert_string_starts_with(label.text, "FPS")
+
+
+# --- Fix round 3: the prose the critic found ------------------------------------------------------------------------
+
+func test_each_graphics_column_heads_its_squares_with_gpu_cost() -> void:
+	screen.show_graphics()
+	await wait_process_frames(3)
+	var page: SettingsGraphicsPage = screen._graphics_page
+	var heads := page.find_children("GpuCost", "Label", true, false)
+	assert_eq(heads.size(), 2, "one over each column's squares")
+	var squares := page.find_children("*", "Control", true, false).filter(
+			func(n: Node) -> bool: return n is SettingsGraphicsPage.CostSquares)
+	for head: Label in heads:
+		assert_eq(head.text, "GPU COST")
+		assert_ne(head.tooltip_text, "", "the longer words are its tooltip")
+		var under := squares.filter(func(q: Control) -> bool:
+			return absf(q.get_global_rect().end.x - head.get_global_rect().end.x) < 1.0)
+		assert_gt(under.size(), 0, "squares end where their heading ends")
+
+
+func test_the_bbs_page_keeps_one_short_line_and_a_glow_pick_moves_or_rewrites_nothing() -> void:
+	var menus := MenuScreen.new(MatchPicks.new(), s)
+	add_child_autofree(menus)
+	await wait_process_frames(2)
+	menus.show_loadout()
+	var page := menus.loadout_page()
+	page.save_path = "%s/loadouts-%d.save" % [ROOT, _n]
+	var saved := page.strip().saved
+	var before_save := saved.to_dict()
+	page.show_customise(0)
+	var view := page.customise()
+	view.show_tab(CustomiseView.Tab.BBS)
+	await wait_process_frames(4)
+	var bbs := view.find_child("BbsPage", true, false)
+	var words := " | ".join(_words_on_show(bbs))
+	for gone: String in [tr("CUSTOMISE_WEIGHT_BLURB"), tr("CUSTOMISE_HOP_BLURB"), tr("CUSTOMISE_GLOW_NIGHT_BLURB")]:
+		assert_false(words.contains(gone), "no paragraph: %s" % gone.left(30))
+	assert_true(words.contains("Turn it in a match with 4 and 5."), "the one short line stays")
+	assert_eq(view.weight_slider().tooltip_text, tr("CUSTOMISE_WEIGHT_BLURB"))
+	var rects := {}
+	_rects(bbs, [], rects)
+	var shown := _words_on_show(bbs)
+	view.glow_choice().button(Loadout.Glow.OFF).pressed.emit()
+	await wait_process_frames(3)
+	var after := {}
+	_rects(bbs, [], after)
+	assert_eq(_moved(rects, after), PackedStringArray(), "a glow pick moves nothing")
+	assert_eq(_words_on_show(bbs), shown, "and rewrites no words on the page")
+	assert_eq(view.glow_choice().button(0).tooltip_text, tr("CUSTOMISE_GLOW_OFF_BLURB"), "its words are the tooltip")
+	saved.from_dict(before_save)
+	saved.dirty = false
+
+
+func test_the_order_wheel_the_armory_and_dev_say_their_longer_words_in_tooltips() -> void:
+	var controls := _tabs().get_child(0)
+	assert_false(" | ".join(_words_on_show(controls)).contains(tr("SETTINGS_ORDERS_HELP")), "no wheel paragraph")
+	var wheel := screen._wheel_pick
+	assert_eq(wheel.button(0).tooltip_text, tr("SETTINGS_ORDERS_HELP"), "the wheel's choice explains Hover and Click")
+	var tabs := _tabs()
+	tabs.current_tab = screen._dev_page.get_parent().get_index()
+	await wait_process_frames(3)
+	var dev_words := _words_on_show(screen._dev_page)
+	assert_true(dev_words.has(tr("DEV_RECORDS_LINE")), "one records line")
+	for w: String in dev_words:
+		assert_false(w.contains(tr("DEV_INTRO")) or w.contains(tr("DEV_GHOST_HELP")) or w.contains(tr("DEV_CRASH_HELP")),
+				"no sentence beside a Dev row: %s" % w.left(30))
+	var menus := MenuScreen.new(MatchPicks.new(), s)
+	add_child_autofree(menus)
+	await wait_process_frames(2)
+	menus.show_armory()
+	await wait_process_frames(3)
+	var armory_words := " | ".join(_words_on_show(menus))
+	assert_false(armory_words.contains("Then times the difficulty"), "no XP paragraph on the Armory")
+	assert_true(armory_words.contains("Easy ×0.5 · Normal ×1 · Hard ×1.5"), "the multipliers in one row")
