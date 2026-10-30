@@ -71,5 +71,6 @@ scoreboard. For example, I'm playing as Beta and it still reads ALPHA BETA. It s
 
 ## Gate
 
-gdlint clean on every changed script; `tools/unit_tests.sh` 1, 2 and 3, `tools/smoke_test.sh`, `python3 tools/wiki.py
-check` and `tools/changelog.sh check`: see the hand-off report.
+gdlint clean on every changed script; `tools/unit_tests.sh` 1 (885/885), 2 (1970/1970) and 3 (928/928);
+`tools/smoke_test.sh` PASS (9 rounds, 348 shots, 5 plates, zero script errors); `python3 tools/wiki.py check` OK (24
+pages); `tools/changelog.sh check` OK.
