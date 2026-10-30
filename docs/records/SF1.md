@@ -1,12 +1,12 @@
 # SF1 · Smoke and flash bombs
 
-**Review:** critic Accept ?/8 · qa ? · performance ?
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-30 | 1 | worker | ? | ? | – |
+| 2026-10-30 | 1 | worker | ✓ (see Gate); QA Pass, performance Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -38,10 +38,10 @@ grenade and the rigs and pouches that decide carrying stay in 0.2.
 - **The throw is held by the sim, not the input.** A press starts a throw that runs on its own; a second press does
   nothing until it ends. Simpler than hold-to-cook, and bots use the same command.
 - **The bomb is a sphere of radius 4 cm against the level only.** Characters don't stop it (KNOWN_ISSUES).
-- **Smoke is an ellipsoid (radii 4 m across and 2.2 m up, its middle 1.2 m up), not particles, in the sim:** cheap, seedable and the
-  same for bots and for the view.
-- **The view's puffs are drawn from the sim's cloud, 28 per smoke,** with proximity fade so walls and the floor don't cut
-  them hard.
+- **Smoke is an ellipsoid (radii 4 m across and 2.2 m up, its middle 1.2 m up), not particles, in the sim:** cheap,
+  seedable and the same for bots and for the view.
+- **The view's puffs are drawn from the sim's cloud, 28 per smoke,** with proximity fade so walls and the floor don't
+  cut them hard.
 - **No vault starts mid-throw** (QA's advisory): a Jump press then hops instead, and the wall is vaulted once the bomb
   has left the hand. A press of G or Y during a vault is dropped, not kept for after it like a reload.
 - **A flash that would dazzle less than the dazzle running makes no event** (QA's advisory), so the sound doesn't dip
@@ -50,7 +50,23 @@ grenade and the rigs and pouches that decide carrying stay in 0.2.
 
 ## Verified
 
-To fill.
+- `tests/unit/test_grenades.gd`, 28 tests: carrying and refills, the press, windup, release and redraw, refusals,
+  flight, bounce and settling, the smoke's life and depth, BBs through smoke, the flash's dazzle by distance, angle
+  and walls, teammates, wear-off, a new round, the range, bots in and beside smoke, a dazzled bot, no vault mid-throw,
+  a shorter dazzle, and no allocation once warm. The vault test fails without its fix.
+- QA's `tests/unit/test_sf1_qa.gd`, 38 tests: GrenadeView (canisters, clouds, light, wash, held canister, frees, no
+  allocation), the replica panel's counts, keys and rebinding, the input latch, and sim edge cases. QA checked four of
+  them fail with the feature stubbed out.
+- Four older tests now know the bombs: the event order (`test_mh1_qa`), the prewarmed materials (`test_play_session`),
+  the night's real lights leave out the bombs' hidden flash light (`test_night_light_qa`), and the torch rebinds to J
+  now G throws smoke (`test_torch`).
+- Screenshots of the smoke, its edge from inside, the throw and a fading dazzle (Compatibility under Xvfb), in the
+  shared files under `concepts/gr1-grenades/`.
+- Performance (headless): +22 nodes in a match (the pooled view, made once), 0 orphans, teardown back to main's
+  counts; `GrenadeView.update` 20 µs a frame idle and 231 µs with all 12 slots smoking; `smoke_depth` about 2 µs a
+  sight line.
+- **Not verified:** how it looks and costs on a GPU, how the throw and the blinding feel, and the sounds: PLAYTEST ›
+  Smoke and flash bombs.
 
 ## Known issues left
 
@@ -59,6 +75,21 @@ To fill.
 - Bombs pass through characters; no throw animation on the figure; the held canister is a plain cylinder.
 - A torch goes off for the throw; a frame hitch can skip the flare.
 
+## Advisories left
+
+- The torch comes back on after a throw by setting its state, so with no click; going off for the throw clicks
+  (critic).
+- `GrenadeView.smoke_inside` recomputes the cloud's shape that `Grenades` owns, and two view values (the wash's 2 and
+  the held canister's 0.75) are unnamed (critic).
+- Two bangs in one tick draw one flare; a weakest dazzle (0.5 s) peaks at about 0.42 white (QA).
+- A G or Y press during a vault is dropped, not kept for after it (QA).
+- Every bot sight line walks the 12-slot pool even with nothing thrown (about 1.5 µs), and the view checks 12 slots a
+  frame (20 µs); an active count would make both free (performance).
+
 ## Gate
 
-To fill.
+Worker's run on 5470dc8, 2026-10-30: gdlint clean; changelog notes and wiki (25 pages) OK; unit tests parts 1, 2 and 3
+passed 885, 2034 and 1016 (3935 in all, the parts run side by side); smoke test passed (`[smoke] ok frames=3145 …
+rounds=9`, zero script errors); licence notices unchanged. The first full run, on 2ff1634, failed the four older tests
+above and the sound files' count (379 to 391), all fixed. Match guards not run locally: no bomb is thrown in a bot
+match yet, so they play as before; CI runs them.
