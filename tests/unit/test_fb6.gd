@@ -238,3 +238,19 @@ func test_recoil_on_screen_eases_over_simulation_time() -> void:
 		eyes.update(c, input, 1.0, DT, 0.0)
 		var want := 0.1 * (1.0 - exp(-FirstPersonView.RECOIL_FOLLOW * DT * rate))
 		assert_almost_eq(eyes._recoil, want, EPS, "%s: a frame follows the kick over the simulation's time" % rate)
+
+
+func test_the_sight_snaps_when_the_raise_takes_no_time_or_jumps_further_than_the_ticks_can_move_it() -> void:
+	var cfg := MovementConfig.new()
+	var c := Character.new(0, 0, Vector3.ZERO, 0.0, ReplicaStats.default_loadout())
+	var follow := AimFollow.new()
+	follow.update(c, cfg, DT)
+	cfg.aim_raise_time = 0.0
+	c.aim_raise = 1.0
+	var drawn := follow.update(c, cfg, DT)
+	assert_eq(drawn, 1.0, "no raise time: drawn as the simulation's, never 0 / 0")
+	cfg.aim_raise_time = 0.15
+	c.aim_raise = 0.0
+	assert_eq(follow.update(c, cfg, DT * 0.25), 0.0, "a drop of the whole raise in a quarter tick is a jump: snapped")
+	c.aim_raise = PlaySession.TICK / Aiming.raise_time(c, cfg)
+	assert_lt(follow.update(c, cfg, DT * 0.25), c.aim_raise, "one tick's move at 25 % is eased, not snapped")

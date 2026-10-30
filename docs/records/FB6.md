@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-30 | 1 | worker | see Verified | – | – |
+| 2026-10-30 | 1 | worker | see Verified; QA Fail (1 blocking: the drawn sight eased down after a respawn) | – | – |
+| 2026-10-30 | 1, fix round 1: snap on a jump the ticks can't explain (a respawn) and on a zero raise time | worker | see Fix round 1 | – | – |
 
 ## Goal
 
@@ -50,6 +51,19 @@ scoreboard. For example, I'm playing as Beta and it still reads ALPHA BETA. It s
 - **Only the sight path:** at 150 % everything else drawn between two ticks (positions, figures, BBs) still moves one
   tick on one frame and two on the next; spreading that needs more than one past tick kept. Not seen as a problem yet
   (KNOWN_ISSUES).
+
+- **Up to a tick behind at 100 % above 60 fps:** the drawn sight trails the simulation by at most a tick, as the
+  interpolated positions do (QA, accepted as interpolation lag).
+- **A jump is a gap wider than this frame's ticks, the step and one tick's slack** (`AimFollow.JUMP_SLACK_TICKS`): a
+  respawn's drop to the hip snaps at once; a raise quicker than 3 ticks a frame (sped up, a very fast optic) eases.
+
+## Fix round 1
+
+- QA: on a new round `Character.respawn` puts `aim_raise` to 0 while the view warps to the spawn, and the follower
+  eased down from the old raise (drawn ahead of the simulation, a zoom-out at the spawn). `AimFollow` now snaps when
+  the simulation's raise is further off than this frame's ticks can have moved it, and when the raise time is 0 (no
+  0 / 0). `test_fb6_qa.gd`'s two respawn tests pass; `test_fb6.gd` adds the zero time and the jump against a tick's
+  move at 25 %. Gates: gdlint clean; unit tests 885/885, 1991/1991, 928/928; smoke PASS (8 rounds, zero script errors).
 
 ## Verified
 
