@@ -1,9 +1,10 @@
 class_name PerformanceSheet
 extends PanelContainer
 ## The Performance panel on the Loadout and Customise pages (concept `.perf`): a row for each figure with its bar and value,
-## the value green when it beats the replica as it comes and red when it falls short, then a line in words of what got better
-## and worse, and a yellow CAPPED tag with its line when the site limit cut the energy. Rows are built once; `show_sheet`
-## changes their texts, bars and colours.
+## the value green when it beats the replica as it comes and red when it falls short, and a yellow CAPPED tag when the site
+## limit cut the energy. What got better and worse, in words, is the panel's tooltip and the limit's line the energy row's,
+## so the panel keeps one height while a slider is dragged (UI1 round 1). Rows are built once; `show_sheet` changes their
+## texts, bars and colours.
 
 const PAD := Vector2i(24, 22)
 const WIDTH := 500.0
@@ -19,16 +20,13 @@ const UNIT_SIZE := 13
 const UNIT_GAP := 5
 const BAR_HEIGHT := 8.0
 const BAR_BACK := Color(1.0, 1.0, 1.0, 0.08)
-const WORDS_SIZE := 15
-const WORDS_GAP := 6
-const WORDS_TOP := 14
 
 var _rows: Array[Dictionary] = []
-var _better: Label = null
-var _worse: Label = null
-var _capped: Label = null
-## The lines in words and the gap above them: shown only when one of them is, so the panel ends at its last row.
-var _words_pad: MarginContainer = null
+## What the sheet compares, and the lines in words of what got better, worse and capped ("" for none).
+var _sub: String = ""
+var _better: String = ""
+var _worse: String = ""
+var _capped: String = ""
 
 
 func _init() -> void:
@@ -43,15 +41,6 @@ func _init() -> void:
 	column.add_child(_gap(SUB_GAP))
 	for spec in LoadoutPerformance.SPECS:
 		_rows.append(_build_row(column, spec))
-	_words_pad = MenuParts.padded(0.0, WORDS_TOP, 0.0, 0.0)
-	_words_pad.visible = false
-	column.add_child(_words_pad)
-	var words := VBoxContainer.new()
-	words.add_theme_constant_override("separation", WORDS_GAP)
-	_words_pad.add_child(words)
-	_better = _words(words, GameTheme.GOOD)
-	_worse = _words(words, GameTheme.BAD)
-	_capped = _words(words, GameTheme.YELLOW)
 
 
 ## The row for `field`'s value label, for the tests and the screenshots.
@@ -67,22 +56,23 @@ func capped_tag() -> Control:
 	return _rows[0]["tag"]
 
 
+## What got better, in the panel's tooltip; "" for nothing.
 func better_line() -> String:
-	return _better.text if _better.visible else ""
+	return _better
 
 
 func worse_line() -> String:
-	return _worse.text if _worse.visible else ""
+	return _worse
 
 
-## The line in words about the site limit; "" when nothing was capped.
+## The line in words about the site limit, in the energy row's tooltip; "" when nothing was capped.
 func capped_line() -> String:
-	return _capped.text if _capped.visible else ""
+	return _capped
 
 
-## What the sheet compares, in words: the panel's tooltip (UI1: the line under the title only explained).
+## What the sheet compares, in words: the start of the panel's tooltip (UI1: the line under the title only explained).
 func sub_text() -> String:
-	return tooltip_text
+	return _sub
 
 
 ## True if the row for `field` is on show.
@@ -93,11 +83,11 @@ func row_shown(field: StringName) -> bool:
 	return false
 
 
-## Shows `sheet`, with `sub` as the panel's tooltip. `extra` names the tab-only rows this page wants (Zoom aimed, Aim in); with `words`
+## Shows `sheet`, with `sub` and what got better and worse as the panel's tooltip. `extra` names the tab-only rows this page wants (Zoom aimed, Aim in); with `words`
 ## false the better and worse lines are left off (a part tab says it under its cards).
 func show_sheet(sheet: LoadoutPerformance.Sheet, sub: String, extra: PackedStringArray = PackedStringArray(),
 		words: bool = true) -> void:
-	tooltip_text = sub
+	_sub = sub
 	for i in sheet.rows.size():
 		var row := sheet.rows[i]
 		var ui: Dictionary = _rows[i]
@@ -117,21 +107,27 @@ func show_sheet(sheet: LoadoutPerformance.Sheet, sub: String, extra: PackedStrin
 				TranslationServer.translate(row.name_key), row.as_comes_text, unit]
 	var capped := sheet.capped
 	(_rows[0]["tag"] as Control).visible = capped
-	_set_line(_better, "PERF_BETTER", sheet.keys_with(1, extra) if words else PackedStringArray())
-	_set_line(_worse, "PERF_WORSE", sheet.keys_with(-1, extra) if words else PackedStringArray())
-	_capped.visible = capped
+	_better = _line("PERF_BETTER", sheet.keys_with(1, extra) if words else PackedStringArray())
+	_worse = _line("PERF_WORSE", sheet.keys_with(-1, extra) if words else PackedStringArray())
+	_capped = TranslationServer.translate("PERF_CAPPED") % sheet.limit if capped else ""
 	if capped:
-		_capped.text = TranslationServer.translate("PERF_CAPPED") % sheet.limit
-	_words_pad.visible = _better.visible or _worse.visible or _capped.visible
+		var energy := _rows[0]["row"] as Control
+		energy.tooltip_text = "%s\n%s" % [energy.tooltip_text, _capped]
+	var tip := PackedStringArray([sub])
+	for l: String in [_better, _worse]:
+		if l != "":
+			tip.append(l)
+	tooltip_text = "\n".join(tip)
 
 
-func _set_line(label: Label, key: String, names: PackedStringArray) -> void:
-	label.visible = not names.is_empty()
-	if label.visible:
-		var words := PackedStringArray()
-		for n in names:
-			words.append(TranslationServer.translate(n))
-		label.text = TranslationServer.translate(key) % ", ".join(words)
+## `key`'s line naming the rows `names`; "" for none.
+static func _line(key: String, names: PackedStringArray) -> String:
+	if names.is_empty():
+		return ""
+	var words := PackedStringArray()
+	for n in names:
+		words.append(TranslationServer.translate(n))
+	return TranslationServer.translate(key) % ", ".join(words)
 
 
 func _build_row(into: Control, spec: Dictionary) -> Dictionary:
@@ -172,14 +168,6 @@ func _build_row(into: Control, spec: Dictionary) -> Dictionary:
 	unit.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	cell.add_child(unit)
 	return {"field": spec["field"], "row": row, "fill": fill, "value": value, "unit": unit, "tag": tag}
-
-
-func _words(into: Control, colour: Color) -> Label:
-	var l := MenuParts.text("", WORDS_SIZE, 700, colour)
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.visible = false
-	into.add_child(l)
-	return l
 
 
 func _gap(height: int) -> Control:

@@ -2,7 +2,7 @@
 
 The practice range is where you learn how BBs fly: no bots, no score and no XP. It stands in its own lot beside
 [Depot](Maps#depot)'s yard, under the same sun and sky. Pick **Range** on the Match screen (its only mode is Practice)
-and press **START PRACTICE**. You can also practise on a field: see [Practice on a field](#practice-on-a-field).
+and press **PRACTICE**. You can also practise on a field: see [Practice on a field](#practice-on-a-field).
 
 ![The range in Depot's site: three lanes of targets, with Depot's water tower and buildings beyond the walls](images/range-in-depot.jpg)
 
@@ -35,7 +35,7 @@ instead.
 
 ## Practice on a field
 
-Every field offers **Practice** too: pick the field, then Practice, and press **START PRACTICE**. There are no bots and
+Every field offers **Practice** too: pick the field, then Practice, and press **PRACTICE**. There are no bots and
 no score, and you start at one end of the field.
 
 - **Targets stand where the other team would play:** steel plates, swinging plates, figures (crouched behind low

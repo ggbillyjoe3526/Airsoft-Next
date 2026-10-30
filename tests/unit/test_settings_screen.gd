@@ -556,13 +556,15 @@ func test_the_display_tab_has_the_concept_s_rows() -> void:
 			"short words on the buttons (UI1)")
 	assert_eq(page.window_choice().selected(), Settings.WindowMode.EXCLUSIVE, "exclusive fullscreen by default")
 	var words := " ".join(_labels(page, PackedStringArray()))
-	for want: String in ["F11", "Alt", "Enter", "switches at any time", "FRAME RATE", "V-SYNC",
+	for want: String in ["FRAME RATE", "V-SYNC",
 			"FRAME-RATE LIMIT", "FIELD OF VIEW", "SHOW FPS"]:
 		assert_string_contains(words, want)
-	# the longer explanations are tooltips now (UI1)
+	# the longer explanations are tooltips now (UI1), the keys too (UI1 round 1)
+	for want: String in ["F11", "Alt", "Enter", "switches at any time"]:
+		assert_string_contains(page.window_choice().button(0).tooltip_text, want)
 	assert_string_contains(page.limit_choice().button(0).tooltip_text, "still plays at 60 ticks a second")
 	assert_string_contains(page.limit_choice().button(0).tooltip_text, "In the background it draws 30")
-	assert_eq(page.show_fps().tooltip_text, "Frames a second, top right.")
+	assert_eq(page.show_fps().tooltip_text, "Frames a second, bottom right.")
 	assert_eq(_texts(page.limit_choice()), PackedStringArray(["30", "60", "120", "144", "165", "240", "360",
 			"OFF"]))
 	assert_eq(page.limit_choice().selected(), Settings.FRAME_LIMITS.size(), "Unlimited by default")

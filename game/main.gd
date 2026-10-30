@@ -315,7 +315,7 @@ func _keeps_picks() -> bool:
 	return not (_smoke or DisplayServer.get_name() == "headless")
 
 
-## Opens the match picked: practice when the Match page has Practice picked (START PRACTICE) or `smoke_practice` is given
+## Opens the match picked: practice when the Match page has Practice picked (PRACTICE) or `smoke_practice` is given
 ## (the smoke test's way in).
 func _start_play(smoke_practice: bool = false) -> void:
 	if _play != null:

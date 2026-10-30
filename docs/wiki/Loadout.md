@@ -17,7 +17,7 @@ the GBB Pistol. The Grenades slot waits for grenades, which come in a later upda
 Beside your replicas, the Performance sheet compares your setup with the replica as it comes: **better in green,
 worse in red**. It covers energy, fire rate, magazines, handling and the rest, adds **Zoom aimed** and **Aim in** for
 an optic and a **Rattles** warning for a hi-cap magazine, and says when the [site limit](Replicas#site-limits) capped
-the energy.
+the energy. Point at the panel to read what got better and worse in words.
 
 ## Customise
 

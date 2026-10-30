@@ -474,3 +474,104 @@ func test_the_pause_menus_and_the_report_panel_have_no_cut_words_and_no_overlaps
 	panel.open(info)
 	await _steady(panel, "Report a bug")
 	panel.close()
+
+
+# --- Fix round 1 -----------------------------------------------------------------------------------------------------
+
+## Every shown label's words under `scope`.
+func _words_on_show(scope: Node) -> PackedStringArray:
+	var out := PackedStringArray()
+	for l: Node in scope.find_children("*", "Label", true, false):
+		if (l as Label).is_visible_in_tree() and (l as Label).text != "":
+			out.append((l as Label).text)
+	return out
+
+
+func test_graphics_and_display_keep_no_prose_beside_their_rows_and_say_it_in_tooltips() -> void:
+	screen.show_graphics()
+	await wait_process_frames(3)
+	var page: SettingsGraphicsPage = screen._graphics_page
+	var words := " | ".join(_words_on_show(page))
+	for gone: String in ["every row as the preset sets it", "Squares", "Draws", "From the next start"]:
+		assert_false(words.contains(gone), "no \"%s\" on the Graphics tab" % gone)
+	assert_true(words.contains(tr("GRAPHICS_RENDERER_NEXT_START")), "the renderer's short restart note stays")
+	assert_eq(tr("GRAPHICS_RENDERER_NEXT_START"), "Applies on restart")
+	var scale := page.line(GraphicsQuality.RENDER_SCALE)
+	assert_string_starts_with(scale.slider.tooltip_text, "Draws ", "the size it draws at is the slider's tooltip")
+	var squares := page.find_children("*", "Control", true, false).filter(
+			func(n: Node) -> bool: return n is SettingsGraphicsPage.CostSquares)
+	assert_gt(squares.size(), 0)
+	for sq: Control in squares:
+		assert_eq(sq.tooltip_text, tr("GRAPHICS_COST_TIP"), "the squares explain themselves")
+	var display: SettingsDisplayPage = screen._display_page
+	var shown := " | ".join(_words_on_show(display))
+	assert_false(shown.contains(tr("SETTINGS_KEYS_LINE")), "no F11 hint line on Display")
+	var window_row := display.find_children("*", "MenuChoice", true, false)[0] as MenuChoice
+	assert_eq(window_row.button(0).tooltip_text, display.keys_tip(), "the keys are the window mode's tooltip")
+	assert_string_contains(display.keys_tip(), "Alt+")
+
+
+func test_dragging_the_bb_weight_keeps_the_performance_panel_one_size_even_as_it_caps() -> void:
+	var menus := MenuScreen.new(MatchPicks.new(), s)
+	add_child_autofree(menus)
+	await wait_process_frames(2)
+	menus.show_loadout()
+	var page := menus.loadout_page()
+	page.save_path = "%s/loadouts-%d.save" % [ROOT, _n]
+	var saved := page.strip().saved
+	var before := saved.to_dict()
+	# a low site limit: the CAPPED tag shows too
+	saved.rules.stats.site_limits[&"rifle"] = 0.5
+	page.show_customise(0)
+	var view := page.customise()
+	view.show_tab(CustomiseView.Tab.BBS)
+	await wait_process_frames(4)
+	var sheet := view.sheet()
+	var slider := view.weight_slider()
+	var size := sheet.size
+	var bar := (sheet.value_label(&"speed").get_parent().get_parent() as Control).get_child(1) as Control
+	var bar_width := bar.size.x
+	var g := slider.min_value
+	while g <= slider.max_value + 1e-6:
+		slider.value = g
+		await wait_process_frames(2)
+		assert_eq(sheet.size, size, "%.2f g: the panel keeps its size" % g)
+		assert_eq(bar.size.x, bar_width, "%.2f g: the bars keep their width" % g)
+		g += slider.step
+	assert_true(sheet.capped_tag().visible, "capped all along")
+	saved.from_dict(before)
+	saved.dirty = false
+
+
+func test_the_save_folder_s_path_is_shown_whole_however_long() -> void:
+	var tabs := _tabs()
+	tabs.current_tab = screen._save_tab.get_parent().get_index()
+	await wait_process_frames(3)
+	var page := screen.save_page()
+	assert_not_null(page)
+	page.folder = "/home/a-player-with-a-long-name/.local/share/godot/app_userdata/Airsoft/and/deeper/still/folder"
+	page.refresh()
+	await wait_process_frames(3)
+	var path := page.folder_path()
+	assert_eq(path.text, page.folder)
+	assert_false(path.clip_text, "not clipped")
+	assert_eq(path.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING, "no ellipsis")
+	assert_eq(path.get_visible_line_count(), path.get_line_count(), "every line of it shows")
+	assert_lte(path.get_global_rect().end.x, path.get_parent_control().get_global_rect().end.x + SLACK)
+
+
+func test_the_fps_figure_sits_under_the_hud_s_corner_panel_at_every_hud_size() -> void:
+	var readout := FpsReadout.new(s)
+	add_child_autofree(readout)
+	s.show_fps = true
+	s.changed.emit()
+	await wait_process_frames(3)
+	var label := readout.find_children("*", "Label", true, false)[0] as Label
+	var window := get_viewport().get_visible_rect()
+	var r := label.get_global_rect()
+	assert_almost_eq(r.end.x, window.end.x - FpsReadout.MARGIN, 1.0, "in the right corner")
+	assert_almost_eq(r.end.y, window.end.y - FpsReadout.MARGIN, 1.0, "at the bottom")
+	# the replica panel keeps Hud.MARGIN, scaled by the HUD size, from the bottom; the top bar's chip is far above
+	var panel_foot := window.end.y - Hud.MARGIN * AccessibilityConfig.HUD_SIZE_RANGE.x
+	assert_gt(r.position.y, panel_foot, "under the replica panel at the smallest HUD size")
+	assert_string_starts_with(label.text, "FPS")

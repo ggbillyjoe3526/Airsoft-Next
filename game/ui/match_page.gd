@@ -15,7 +15,7 @@ signal play_pressed
 const MARGIN_X := 56
 const TOP := 40
 const COLUMN_GAP := 32
-const MAPS_WIDTH := 860.0
+const MAPS_WIDTH := 780.0
 const SIDE_WIDTH := 420.0
 const SECTION_GAP := 30
 const HEADING_GAP := 16
@@ -27,22 +27,21 @@ const SUMMARY_SIZE := 18
 ## Map cards: two a row; the picture is this tall with one row, shorter with two so both rows fit the page.
 const MAP_COLUMNS := 2
 const MAP_GAP := 20
-const MAP_WIDTH := 420.0
+const MAP_WIDTH := 380.0
 const MAP_IMAGE_HEIGHT_ONE_ROW := 400.0
-const MAP_IMAGE_HEIGHT_TWO_ROWS := 250.0
-const MAP_TEXT_PAD := Vector4(18.0, 16.0, 18.0, 18.0)
+const MAP_IMAGE_HEIGHT_TWO_ROWS := 214.0
+const MAP_TEXT_PAD := Vector4(16.0, 12.0, 16.0, 14.0)
 const MAP_TEXT_GAP := 6
-const MAP_NAME_SIZE := 26
+const MAP_NAME_SIZE := 22
 const TAG_GAP := 8
-const MODE_GAP := 14
-const MODE_PAD := Vector2(20.0, 18.0)
-const MODE_HEIGHT := 64.0
-const MODE_NAME_SIZE := 22
+const MODE_GAP := 8
+## The room a mode's button keeps at each side of its name (px).
+const MODE_PAD_X := 24
 const TEAM_GAP := 12
-const TEAM_HEIGHT := 66.0
-const TEAM_NAME_SIZE := 22
+const TEAM_HEIGHT := 48.0
+const TEAM_NAME_SIZE := 18
 ## The room a team's name keeps at each side: past its colour bar on the left (px).
-const TEAM_TEXT_PAD := 28
+const TEAM_TEXT_PAD := 24
 ## How much of a team's colour tints a picked team card.
 const TEAM_TINT := 0.06
 ## Attack / Defend's line under the team cards: its size, and the team's name lightened to read on the page.
@@ -54,7 +53,7 @@ const NEEDS_SIZE := 14
 ## The summary line's width: it never changes as the picks do.
 const SUMMARY_WIDTH := 1100.0
 ## The Play button's words, one for a match and one for Practice.
-const PLAY_KEYS: Array[String] = ["MENU_PLAY", "MENU_START_PRACTICE"]
+const PLAY_KEYS: Array[String] = ["MENU_PLAY", "MENU_GO_PRACTICE"]
 
 var picks: MatchPicks = null
 
@@ -287,38 +286,52 @@ func _build_modes() -> Control:
 	_modes_box = VBoxContainer.new()
 	_modes_box.add_theme_constant_override("separation", MODE_GAP)
 	column.add_child(_modes_box)
+	var cards: Array[Button] = []
 	for mode in MatchOptions.MODES:
+		# a row of one choice-height button, one width for the three (owner, 2026-10-29), and its tags after it: a tag
+		# showing or going moves nothing (UI1: the cards were 464 x 64 bars with one word)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", TAG_GAP)
 		var card := MenuCard.new()
 		card.name = "Mode_" + mode
-		card.custom_minimum_size = Vector2(0.0, MODE_HEIGHT)
-		var pad := _padded(MODE_PAD.x, MODE_PAD.y, MODE_PAD.x, MODE_PAD.y)
-		var rows := VBoxContainer.new()
-		rows.add_theme_constant_override("separation", MAP_TEXT_GAP)
-		pad.add_child(rows)
-		var title := HBoxContainer.new()
-		title.add_theme_constant_override("separation", TAG_GAP + 2)
-		title.add_child(_text(tr(MatchOptions.MODE_NAME[mode]).to_upper(), MODE_NAME_SIZE, 800, GameTheme.TEXT))
+		card.text = tr(MatchOptions.MODE_NAME[mode]).to_upper()
+		card.ring = true
+		card.text_pad = MODE_PAD_X
+		card.refresh()
+		card.custom_minimum_size = Vector2(0.0, GameTheme.CONTROL_HEIGHT)
+		card.add_theme_font_override("font", GameTheme.spaced_font(800, GameTheme.SPACING_TAB, GameTheme.CONTROL_SIZE))
+		card.add_theme_font_size_override("font_size", GameTheme.CONTROL_SIZE)
+		card.add_theme_constant_override("outline_size", 0)
+		for colour: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color",
+				"font_focus_color"]:
+			card.add_theme_color_override(colour, GameTheme.TEXT)
+		card.pressed.connect(_pick_mode.bind(mode))
+		row.add_child(card)
 		if not MatchOptions.BUILT_MODES.has(mode):
-			title.add_child(MenuTag.later())
+			row.add_child(_centred(MenuTag.later()))
 		var only := MenuTag.grey(MatchOptions.FIELDS_ONLY_KEY)
 		only.name = "OnlyTag"
 		only.visible = false
-		title.add_child(only)
+		row.add_child(_centred(only))
 		_only_tags[mode] = only
-		rows.add_child(title)
 		if MatchOptions.POLE_MODES.has(mode):
-			# on the name's line, so showing it moves nothing
 			var needs := _text(tr("MENU_NEEDS_POLE"), NEEDS_SIZE, 700, GameTheme.YELLOW.darkened(NEEDS_DARKEN))
 			needs.name = "NeedsPole"
 			needs.visible = false
 			needs.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			title.add_child(needs)
+			row.add_child(needs)
 			_needs_pole[mode] = needs
-		card.add_content(pad)
-		card.pressed.connect(_pick_mode.bind(mode))
-		_modes_box.add_child(card)
+		_modes_box.add_child(row)
 		_mode_cards[mode] = card
+		cards.append(card)
+	ButtonWidth.group(cards)
 	return column
+
+
+## `c` held at its own height, in the middle of a row.
+static func _centred(c: Control) -> Control:
+	c.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return c
 
 
 func _build_side() -> Control:
@@ -411,7 +424,7 @@ func _build_foot() -> void:
 	add_child(_play)
 
 
-## PLAY and START PRACTICE take one width, the wider's, so the button never changes size as the mode does (UI1).
+## PLAY and PRACTICE take one width, the wider's, so the button never changes size as the mode does (UI1).
 func _fit_play() -> void:
 	var now := _play.text
 	var widest := 0.0
@@ -641,7 +654,7 @@ func _refresh() -> void:
 	MenuParts.set_unused(team_parts, _team_tag, practice)
 	_rules.set_unused(practice)
 	_bots.set_unused(practice)
-	_play.text = tr("MENU_START_PRACTICE" if practice else "MENU_PLAY")
+	_play.text = tr("MENU_GO_PRACTICE" if practice else "MENU_PLAY")
 	_attack_team.text = tr(MatchOptions.TEAM_KEYS[picks.team])
 	var colour := _teams.colours[picks.team].lightened(TEAM_NAME_LIGHTEN)
 	_attack_team.add_theme_color_override("font_color", colour)

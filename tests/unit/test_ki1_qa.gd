@@ -66,7 +66,7 @@ func test_the_range_remembered_opens_the_page_on_practice_and_a_field_pick_leave
 	add_child_autofree(page)
 	assert_eq(picks.map_id, "range")
 	assert_eq(picks.mode, MatchOptions.MODE_PRACTICE, "the range hosts Practice alone")
-	assert_eq(page.play_button().text, "START PRACTICE")
+	assert_eq(page.play_button().text, "PRACTICE")
 	assert_eq(picks.team, PlaySession.TEAM_BETA, "the team is kept for the next field")
 	page.map_card("depot").pressed.emit()
 	assert_eq(picks.mode, MatchOptions.MODE_ELIMINATION, "off the range, a field's mode again")

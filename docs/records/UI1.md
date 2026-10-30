@@ -7,6 +7,7 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-30 | 1 | worker | see Verified and Gate | – | – |
+| 2026-10-30 | 1, fix round 1 | worker | see Fix round 1 | – | QA failed: FPS over the LVL chip; Match, Settings prose |
 
 ## Goal
 
@@ -97,3 +98,40 @@ scope; every setting and behaviour is kept.
 - gdlint clean on every changed `.gd`.
 - Unit tests: part 1 885 of 885, part 2 1961 of 1961, part 3 936 of 936 (the full run after the last change).
 - `tools/smoke_test.sh`: PASS, zero script errors. `python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK.
+
+## Fix round 1
+
+QA (`pipeline/out/qa.md`) failed attempt 1 on two counts and listed three advisories; all five are fixed.
+
+- **Show FPS** sits in the bottom-right corner, 4 px in (`game/ui/fps_readout.gd`). The top right lay over the LVL
+  chip; the top centre (tried first) is only 3 px above the HUD's score bar and touches it at HUD size 80 %. The bottom
+  right is clear: the menus' Play and Customise end 47 px up, the HUD's replica panel 25.6 px up at its smallest size.
+- **Match:** each mode is a choice-height button sized to its word (`MODE_PAD_X`), the three one width, with LATER and
+  ONLY tags after it; maps 380 px wide (two a row, pictures 214 px), team buttons 48 px; PLAY is sized to its widest
+  word, now **PRACTICE** (`MENU_GO_PRACTICE`, was START PRACTICE), so it no longer changes width.
+- **Settings prose:** the line under Preset is gone (its words are every preset button's tooltip; `blurb()` still
+  returns the lead); the reset row's squares key is gone (each row's squares carry `GRAPHICS_COST_TIP`); "Draws W × H"
+  is the render scale's tooltip; the F11 / Alt+Enter line is the window mode's tooltip (`keys_tip()`); the renderer's
+  note is **Applies on restart**.
+- **Loadout strip:** a name takes at most `NAME_WIDTH` 170 px and ends in "…", the card's tooltip the whole name.
+  Five 20-letter names and the actions, the Replace prompt and Remove's question all fit 1920 (QA's test, now an assert).
+- **Performance panel:** better, worse and capped in words are tooltips (the panel's, the energy row's), so it is one
+  height while BB weight is dragged; the value colours and the CAPPED tag stay. The part tabs already showed it so.
+- **Save folder** wraps anywhere (`AUTOWRAP_ARBITRARY`) instead of an ellipsis, so the whole path shows.
+- **Raw logs** `pipeline/out/qa/` and `pipeline/out/qa-report.md` are out of the index; only `qa.md` stays.
+
+Defaults taken: these supersede attempt 1's "picture cards stay large" for modes (the owner's bar is compact) and its
+"help that stays on screen" for the squares' key and the renderer note. The Performance words became tooltips rather
+than a reserved block, because a block tall enough for every case is an empty area most of the time.
+
+Verified: new tests in `test_ui1_menus.gd` (no prose beside Graphics and Display rows, the tooltips say it; BB weight
+dragged over its range keeps the panel's size and bar width; the save path whole; the FPS figure under the HUD's
+corner panel), each of the BB and save tests seen failing on the old code; `test_fb1_menus.gd`'s preset-line test now
+checks there is no line and the story is the buttons' tooltip; QA's `test_ui1_qa.gd` :672 and :706 pass.
+Pictures: `/mnt/project-files/screenshots/dev1-feedback/ui1-r1-after-{720,1080,1440,2160}-*.png`, with
+`loadout-long`, `loadout-long-replace`, `bbs-light`, `bbs-as-comes`, `bbs-heavy`, `menus-fps` and `play-fps`.
+
+Gate: gdlint clean on every changed `.gd`; unit tests part 1 885 of 885, part 2 1961 of 1961, part 3 955 of 955;
+`tools/smoke_test.sh` PASS with zero script errors; `python3 tools/wiki.py check` OK; `tools/changelog.sh check` OK.
+Seen but left: at 4K the menus draw at 1.5x (MenuScale's cap), so the compact Match page leaves more room below its
+columns there than at 1080 and 1440.

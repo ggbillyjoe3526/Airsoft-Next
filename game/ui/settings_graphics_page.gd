@@ -22,9 +22,6 @@ const RIGHT_LABEL := 230.0
 const SLIDER_WIDTH := 260.0
 ## The notes' text size and the space between the blocks of a column (px).
 const NOTE_SIZE := GameTheme.NOTE_SIZE
-## The line under Preset is one line of room whatever it says (its words are short: the rest is its tooltip), so a
-## change that turns the preset to Custom moves nothing under it (FB1, UI1).
-const BLURB_LINES := 1
 const BLOCK_GAP := 12.0
 ## The For your card tag's own room above the preset buttons (px): its height and the gap under it.
 const TAG_GAP := 3.0
@@ -104,9 +101,10 @@ var _preset: MenuChoice = null
 var _tag: Label = null
 ## The tag's room above the preset buttons.
 var _tag_room: Control = null
-var _blurb: RichTextLabel = null
+## The preset's story (which preset is on and why), the preset row's tooltip: no line of prose under it (UI1).
+var _story: String = ""
+var _preset_row: HBoxContainer = null
 var _rows: Dictionary[StringName, Line] = {}
-var _draws: Label = null
 var _reset: Button = null
 var _card: Label = null
 var _renderer: Label = null
@@ -189,8 +187,9 @@ func preset_choice() -> MenuChoice:
 	return _preset
 
 
+## The preset's state in words ("Custom: High with 2 changes."), the first line of the preset row's tooltip.
 func blurb() -> String:
-	return _blurb.get_parsed_text()
+	return _story
 
 
 func reset_button() -> Button:
@@ -221,9 +220,10 @@ func _column(width: float) -> VBoxContainer:
 
 
 ## Preset: Low to Ultra and Custom with the For your card tag in its own room above the pick's (never over a button:
-## UI1), and the line under them.
+## UI1); what is on and why is the row's tooltip.
 func _build_preset(column: VBoxContainer) -> void:
 	var row := _screen.add_row(column, "GRAPHICS_PRESET", LEFT_LABEL)
+	_preset_row = row
 	# the name sits level with the buttons, under the tag's room
 	var label := row.get_child(0) as Label
 	label.size_flags_vertical = Control.SIZE_SHRINK_END
@@ -249,23 +249,6 @@ func _build_preset(column: VBoxContainer) -> void:
 	_tag_room.custom_minimum_size.y = _tag.get_combined_minimum_size().y + TAG_GAP
 	# the tag follows its button wherever the row lays it out
 	_preset.sort_children.connect(_place_tag)
-	_blurb = RichTextLabel.new()
-	_blurb.bbcode_enabled = true
-	_blurb.fit_content = true
-	_blurb.scroll_active = false
-	_blurb.autowrap_mode = TextServer.AUTOWRAP_OFF
-	_blurb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_blurb.add_theme_font_override("normal_font", GameTheme.font(600))
-	_blurb.add_theme_font_override("bold_font", GameTheme.font(800))
-	_blurb.add_theme_font_size_override("normal_font_size", NOTE_SIZE)
-	_blurb.add_theme_font_size_override("bold_font_size", NOTE_SIZE)
-	_blurb.add_theme_color_override("default_color", GameTheme.MUTED)
-	_blurb.custom_minimum_size.y = ceilf(BLURB_LINES * maxf(GameTheme.font(600).get_height(NOTE_SIZE),
-			GameTheme.font(800).get_height(NOTE_SIZE)))
-	var indent := StyleBoxEmpty.new()
-	indent.content_margin_left = LEFT_LABEL + SettingsScreen.ROW_SEPARATION
-	_blurb.add_theme_stylebox_override("normal", indent)
-	column.add_child(_blurb)
 
 
 ## Puts the tag centred over the card's pick, in its room above the buttons.
@@ -319,14 +302,12 @@ func _build_row(column: VBoxContainer, id: StringName, width: float) -> Line:
 		line.choice.picked.connect(func(i: int) -> void: _on_level(id, line.levels[i]))
 	if NOTES.has(id):
 		line.row.tooltip_text = tr(NOTES[id])
-	var gap: Label = _quiet_label(line.row, NOTE_SIZE)
+	# the room that puts the squares at the column's right edge
+	var gap := Control.new()
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	gap.size_flags_vertical = Control.SIZE_FILL
-	gap.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	if id == GraphicsQuality.RENDER_SCALE:
-		# the size it draws at, after the figure
-		_draws = gap
-	line.row.add_child(CostSquares.new(r.cost, tr("GRAPHICS_COST")))
+	line.row.add_child(gap)
+	line.row.add_child(CostSquares.new(r.cost, tr("GRAPHICS_COST_TIP")))
 	var simpler := probe.rendering_method == GraphicsPick.COMPATIBILITY
 	line.grey(_table, probe.rendering_method, tr("GRAPHICS_NOT_WITH_SIMPLER" if simpler else "GRAPHICS_NOT_ON_RENDERER"))
 	return line
@@ -371,7 +352,7 @@ func _build_renderer(column: VBoxContainer) -> void:
 	_renderer_choice.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(_renderer_choice)
 	_renderer_choice.picked.connect(_on_renderer)
-	# "From the next start" is what surprises; the rest is the tooltip
+	# that it waits for the next start is what surprises; the rest is the tooltip
 	_note(row, "GRAPHICS_RENDERER_NEXT_START")
 	row.tooltip_text = tr("GRAPHICS_RENDERER_NOTE")
 
@@ -387,7 +368,6 @@ func _build_reset(column: VBoxContainer) -> void:
 	GameTheme.small_button(_reset, GameTheme.YELLOW)
 	_reset.pressed.connect(_on_reset)
 	row.add_child(_reset)
-	_note(row, "GRAPHICS_RESET_NOTE")
 
 
 func _quiet_label(parent: Control, font_size: int) -> Label:
@@ -467,8 +447,8 @@ func _preset_index(choice: StringName) -> int:
 	return at if at >= 0 else GraphicsTable.PRESETS.size()
 
 
-## The line under Preset: its lead in bold (the preset, Automatic, Custom or the launch option), then a few words; the
-## longer story is its tooltip.
+## The preset row's tooltip: its lead (the preset, Automatic, Custom or the launch option) and a few words, then the
+## longer story. Allocates: on opening and after a change only.
 func _show_blurb(s: Settings, values: GraphicsQuality) -> void:
 	var lead := ""
 	var body := ""
@@ -497,19 +477,31 @@ func _show_blurb(s: Settings, values: GraphicsQuality) -> void:
 		lead = tr("GRAPHICS_LEAD") % on_name
 		body = tr("GRAPHICS_CHOSEN")
 		more = tr(BLURB_KEY % String(on).to_upper())
-	_blurb.text = "[b][color=#%s]%s[/color][/b] %s" % [GameTheme.TEXT.to_html(false), _escaped(lead), _escaped(body)]
-	_blurb.tooltip_text = "%s %s" % [more, tr("GRAPHICS_STUTTER")]
+	_story = "%s %s" % [lead, body]
+	_tell(_preset_row, "%s\n%s %s" % [_story, more, tr("GRAPHICS_STUTTER")])
 
 
-static func _escaped(text: String) -> String:
-	return text.replace("[", "[lb]")
+## Puts `text` as the tooltip of `row` and of every button and slider in it (they take the pointer, so the row's own
+## tip would never show over them).
+static func _tell(row: Control, text: String) -> void:
+	row.tooltip_text = text
+	for c: Node in row.find_children("*", "", true, false):
+		if c is BaseButton or c is Range:
+			(c as Control).tooltip_text = text
 
 
-## The size the 3D view is drawn at, the window's at the render scale `percent`.
+## The size the 3D view is drawn at, the window's at the render scale `percent`: the row's tooltip (UI1).
 func _show_draws(percent: int) -> void:
 	var window := Vector2(get_window().size) if is_inside_tree() else Vector2.ZERO
 	var drawn := (window * percent / GraphicsApply.PERCENT).round()
-	_draws.text = tr("GRAPHICS_DRAWS") % [int(drawn.x), int(drawn.y)]
+	var line: Line = _rows.get(GraphicsQuality.RENDER_SCALE)
+	if line != null and not line.shut:
+		_tell(line.row, draws_text(drawn))
+
+
+## "Draws 1920 × 1080." for the size `drawn` (tests read it).
+func draws_text(drawn: Vector2) -> String:
+	return tr("GRAPHICS_DRAWS") % [int(drawn.x), int(drawn.y)]
 
 
 func _show_system() -> void:
@@ -631,7 +623,7 @@ class CostSquares:
 	var _cost: int = 0
 	var _word: String = ""
 
-	## `word` names the squares in their tooltip (they are explained once, beside Reset: UI1).
+	## `word` explains the squares, their tooltip (no line of prose about them: UI1).
 	func _init(cost: int, word: String) -> void:
 		_cost = cost
 		_word = word

@@ -317,8 +317,8 @@ func _build_folder(col: VBoxContainer) -> void:
 	row.add_theme_constant_override("separation", ROW_GAP)
 	col.add_child(row)
 	_path = MenuParts.text("", NOTE_SIZE + 2, 600, GameTheme.TEXT)
-	_path.clip_text = true
-	_path.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# a path has no spaces: it wraps anywhere, so it is shown whole however long the player's folder is (UI1 round 1)
+	_path.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	_path.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_path.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_path.add_theme_stylebox_override("normal", GameTheme.box(GameTheme.BG, GameTheme.LINE, PATH_PAD.x, PATH_PAD.y))

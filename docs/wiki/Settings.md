@@ -28,7 +28,7 @@ Volumes for **Master**, **Effects**, **Power source** (the motor or gas part of 
 - **V-Sync** (off by default) and a **Frame-rate limit**: 30 to 360 frames a second, or Off for no limit. In the background
   the game drops to 30 frames a second. The title and menus never draw more frames than your screen shows, whatever
   the limit.
-- **Field of view** and **Show FPS**.
+- **Field of view** and **Show FPS** (the figure sits in the bottom-right corner).
 
 ## Graphics
 

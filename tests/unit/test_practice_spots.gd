@@ -94,7 +94,7 @@ func test_practice_picked_on_a_field_stays_picked_on_the_next_field() -> void:
 	page.mode_card("practice").pressed.emit()
 	assert_eq(page.picks.mode, MatchOptions.MODE_PRACTICE)
 	assert_false(page.mode_card("practice").disabled, "Depot hosts Practice")
-	assert_eq(page.play_button().text, "START PRACTICE")
+	assert_eq(page.play_button().text, "PRACTICE")
 	page.map_card("woodland").pressed.emit()
 	assert_eq(page.picks.mode, MatchOptions.MODE_PRACTICE, "still Practice on Woodland")
 	page.map_card("range").pressed.emit()

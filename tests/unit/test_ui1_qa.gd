@@ -688,17 +688,26 @@ func test_a_full_loadout_strip_of_long_names_stays_inside_the_window() -> void:
 	await wait_process_frames(6)
 	var window := menus.get_viewport().get_visible_rect()
 	var out := PackedStringArray()
-	for c: Node in strip.get_children():
-		var ctl := c as Control
-		if ctl != null and ctl.visible and ctl.get_global_rect().end.x > window.end.x + SLACK:
-			out.append("%s ends at %.0f of %.0f" % [ctl.name, ctl.get_global_rect().end.x, window.end.x])
+	# each mode the strip has: its actions, Replace's prompt and Remove's question (UI1 round 1)
+	for step: Callable in [Callable(), strip.start_replace, strip.start_remove]:
+		if step.is_valid():
+			strip.cancel()
+			step.call()
+			await wait_process_frames(6)
+		for c: Node in strip.get_children():
+			var ctl := c as Control
+			if ctl != null and ctl.visible and ctl.get_global_rect().end.x > window.end.x + SLACK:
+				out.append("mode %d: %s ends at %.0f of %.0f" % [strip.mode, ctl.name, ctl.get_global_rect().end.x,
+						window.end.x])
+	strip.cancel()
+	await wait_process_frames(6)
+	var first := strip.card(0)
+	var name_label := first.find_child("Name", true, false) as Label
+	assert_eq(first.tooltip_text, "Close quarters rifle", "a cut name is whole in the card's tooltip")
+	assert_lte(name_label.size.x, LoadoutStrip.NAME_WIDTH + 1.0, "the name takes no more than its room")
 	saved.from_dict(before)
 	saved.dirty = false
-	# Advisory, not UI1's: the strip is as UI1 found it. It stays pending until the strip wraps or shortens names.
-	if not out.is_empty():
-		pending("five saved loadouts with 20-letter names run past the window: %s" % ", ".join(out))
-	else:
-		assert_true(true, "the strip fits")
+	assert_eq(out, PackedStringArray(), "five saved loadouts with 20-letter names stay inside the window")
 
 
 # --- The frame-rate figure and the menu bar --------------------------------------------------------------------------

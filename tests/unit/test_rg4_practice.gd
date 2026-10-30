@@ -77,7 +77,7 @@ func test_picking_the_range_picks_practice_and_greys_team_bots_and_rules() -> vo
 	assert_eq(page.picks.mode, MatchOptions.MODE_PRACTICE)
 	assert_true(page.mode_card("practice").is_picked())
 	assert_true(page.mode_card("elimination").disabled)
-	assert_eq(page.play_button().text, "START PRACTICE")
+	assert_eq(page.play_button().text, "PRACTICE")
 	assert_true(page.rules_box().is_unused())
 	assert_true(page.bots_box().is_unused())
 	# the level row sits in its gap's margin since UI1: that is the faded part

@@ -2225,7 +2225,7 @@ msgid "GRAPHICS_FORCED_SHORT"
 msgstr "this run draws %s whatever is chosen here."
 
 msgid "GRAPHICS_RENDERER_NEXT_START"
-msgstr "From the next start."
+msgstr "Applies on restart"
 
 msgid "GRAPHICS_LEAD_FORCED"
 msgstr "--graphics=%s:"
@@ -2368,14 +2368,11 @@ msgstr "High"
 msgid "GRAPHICS_CHOICE_ULTRA"
 msgstr "Ultra"
 
-msgid "GRAPHICS_COST"
-msgstr "GPU"
-
 msgid "GRAPHICS_RESET"
 msgstr "Reset to For your card (%s)"
 
-msgid "GRAPHICS_RESET_NOTE"
-msgstr "Squares: what a row takes from your graphics card."
+msgid "GRAPHICS_COST_TIP"
+msgstr "What this row takes from your graphics card: the more squares, the more work."
 
 msgid "GRAPHICS_YOUR_SYSTEM"
 msgstr "YOUR SYSTEM"
@@ -2602,8 +2599,8 @@ msgstr "FIELDS ONLY"
 msgid "MENU_NOT_USED"
 msgstr "NOT USED"
 
-msgid "MENU_START_PRACTICE"
-msgstr "START PRACTICE"
+msgid "MENU_GO_PRACTICE"
+msgstr "PRACTICE"
 
 msgid "MENU_SUMMARY_PRACTICE"
 msgstr "%s · No bots, no score"
@@ -2777,7 +2774,7 @@ msgid "SETTINGS_FRAME_LIMIT_HELP"
 msgstr "The most frames a second the game draws: a laptop runs cooler and quieter. The game still plays at %d ticks a second. In the background it draws %d."
 
 msgid "SETTINGS_SHOW_FPS_HELP"
-msgstr "Frames a second, top right."
+msgstr "Frames a second, bottom right."
 
 msgid "SETTINGS_MONITOR_HELP"
 msgstr "Only with two screens or more."
