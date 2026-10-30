@@ -21,6 +21,10 @@ var aim: bool = false
 ## Trigger held. Semi fires on the press only.
 var fire: bool = false
 var reload: bool = false
+## The controller's reload setting, not a press: on, an empty magazine stays in until a reload is asked (the player's
+## Settings › Controls › Reload: Manual, RL2), and the trigger only clicks dry; off (bots, the pilots), the dry click
+## also starts a reload when a spare has BBs.
+var manual_reload: bool = false
 ## Loadout slot to switch to, or -1 for none.
 var switch_to: int = -1
 ## Step the selector of the replica in hand to its next mode (one-shot).
@@ -59,6 +63,7 @@ func reset(view_yaw: float = 0.0, view_pitch: float = 0.0) -> void:
 	aim = false
 	fire = false
 	reload = false
+	manual_reload = false
 	switch_to = -1
 	cycle_fire_mode = false
 	lean = 0.0
@@ -83,6 +88,7 @@ func copy_from(other: PlayerCommand) -> void:
 	aim = other.aim
 	fire = other.fire
 	reload = other.reload
+	manual_reload = other.manual_reload
 	switch_to = other.switch_to
 	cycle_fire_mode = other.cycle_fire_mode
 	lean = other.lean

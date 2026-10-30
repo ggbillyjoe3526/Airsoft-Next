@@ -72,6 +72,7 @@ var _invert: CheckButton = null
 var _crouch: CheckButton = null
 var _aim: CheckButton = null
 var _wheel_pick: CheckButton = null
+var _auto_reload: CheckButton = null
 var _volume: Dictionary[StringName, HSlider] = {}
 var _display_page: SettingsDisplayPage = null
 var _graphics_page: SettingsGraphicsPage = null
@@ -241,6 +242,10 @@ func _build_controls() -> void:
 	_aim = add_check_row(page, "SETTINGS_AIM", "SETTINGS_TOGGLE", "SETTINGS_HOLD")
 	_aim.toggled.connect(func(on: bool) -> void:
 		settings.aim_toggle = on
+		_applied(SettingsApply.apply_controls, true))
+	_auto_reload = add_check_row(page, "SETTINGS_RELOAD", "SETTINGS_RELOAD_AUTO", "SETTINGS_RELOAD_MANUAL")
+	_auto_reload.toggled.connect(func(on: bool) -> void:
+		settings.auto_reload = on
 		_applied(SettingsApply.apply_controls, true))
 	add_section(page, tr("SETTINGS_KEYS"))
 	var hint := Label.new()
@@ -534,6 +539,7 @@ func _refresh() -> void:
 	set_check(_invert, settings.invert_y)
 	set_check(_crouch, settings.crouch_toggle)
 	set_check(_aim, settings.aim_toggle)
+	set_check(_auto_reload, settings.auto_reload)
 	set_check(_wheel_pick, settings.wheel_pick == ControlsConfig.WheelPick.CLICK)
 	_keys.refresh()
 	for bus: StringName in Settings.VOLUME_BUSES:

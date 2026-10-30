@@ -187,6 +187,7 @@ static func vaulting_command(c: Character, cmd: PlayerCommand, out: PlayerComman
 	out.reset(cmd.yaw, cmd.pitch)
 	out.fire = c.armament.trigger_was_down
 	out.aim = c.armament.aim_was_down
+	out.manual_reload = cmd.manual_reload # a setting, not a press: it holds through the vault
 	return out
 
 

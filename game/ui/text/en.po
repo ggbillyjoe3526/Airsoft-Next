@@ -54,6 +54,9 @@ msgstr "Ricochet: play on"
 msgid "HUD_VAULT"
 msgstr "%s to vault"
 
+msgid "HUD_RELOAD"
+msgstr "RELOAD"
+
 msgid "HUD_LEAVES_IN_THE_WAY"
 msgstr "Leaves in the way · step clear to shoot"
 
@@ -356,13 +359,22 @@ msgid "SETTINGS_OFF"
 msgstr "Off"
 
 msgid "SETTINGS_STANCE"
-msgstr "CROUCH AND AIM"
+msgstr "CROUCH, AIM AND RELOAD"
 
 msgid "SETTINGS_CROUCH"
 msgstr "CROUCH"
 
 msgid "SETTINGS_AIM"
 msgstr "AIM DOWN SIGHTS"
+
+msgid "SETTINGS_RELOAD"
+msgstr "RELOAD"
+
+msgid "SETTINGS_RELOAD_AUTO"
+msgstr "Automatic"
+
+msgid "SETTINGS_RELOAD_MANUAL"
+msgstr "Manual"
 
 msgid "SETTINGS_KEYS"
 msgstr "KEY BINDINGS"

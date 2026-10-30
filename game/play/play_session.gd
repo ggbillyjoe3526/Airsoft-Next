@@ -1044,6 +1044,7 @@ func _process(delta: float) -> void:
 	if _torches != null:
 		_torches.update(state.characters, watched, fraction, _figure_of, _eyes.camera)
 	_hud.show_board(_input.scoreboard_held())
+	_hud.manual_reload = _commands[PLAYER_ID].manual_reload # the prompt follows the rule the sim used (RL2)
 	_hud.update(state, _input.zoom, delta)
 	_hud.place_team_markers(_eyes.camera, state.characters, watched, fraction)
 	var yaw := _view_yaw(watched, fraction)
@@ -1317,8 +1318,9 @@ func _resume() -> void:
 	_pause.close()
 	get_tree().paused = false
 	_capture()
+	# the settings, opened from the pause menu, may have rebound the Reload key (and in practice the Loadout's)
+	_hud.reload_prompt().refresh_key()
 	if practice:
-		# the settings, opened from the pause menu, may have rebound the Loadout's key
 		_hud.range_readout().refresh_key()
 
 

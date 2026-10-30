@@ -8,7 +8,8 @@ when you press it, so nothing around it moves.
 ## Controls
 
 Hip and aimed mouse sensitivity (also as centimetres per 360° at your mouse's DPI), invert vertical look, crouch and
-aim as hold or toggle, two keys for every action, and the **Squad orders** section with Order wheel: Hover or Click.
+aim as hold or toggle, Reload: Manual (the default: you press the Reload key) or Automatic (an empty trigger pull
+reloads), two keys for every action, and the **Squad orders** section with Order wheel: Hover or Click.
 The default keys are on [Controls](Controls).
 
 ## Audio

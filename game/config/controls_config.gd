@@ -17,6 +17,10 @@ extends Resource
 @export var crouch_toggle: bool = false
 ## Aim down sights stays up until pressed again; off, the default, aim is held (owner, 2026-10-18).
 @export var aim_toggle: bool = false
+## Off, the default, reloads are manual: an empty replica stays empty and a prompt asks for the Reload key; on, a
+## trigger pull on an empty replica reloads it (Settings › Controls › Reload; owner, 2026-10-29, RL2). PlayerInput
+## writes it into each command (PlayerCommand.manual_reload).
+@export var auto_reload: bool = false
 
 ## How an order on the order wheel is given (Settings › Controls › Order wheel, M23): HOVER, point at it and let go of
 ## the wheel's key (let go in the middle to give nothing), the default; CLICK, point at it and click (letting go of the

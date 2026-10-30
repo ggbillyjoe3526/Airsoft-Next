@@ -167,6 +167,9 @@ var mode: RoundState.Mode = RoundState.Mode.ELIMINATION
 ## Called after every tick's step with the state and the bots (a test's own watch, such as what each bot sees through
 ## bushes, WL5); none by default.
 var each_tick: Callable = Callable()
+## Every bot's command marked a manual reload after it thinks (RL2): the simulation never reloads on a dry click, so
+## only the bots' own reload loads their replicas. Off by default (the bots' commands as they fill them).
+var manual_reload: bool = false
 ## Played at night (WL6): the bots see by the map's NightField, built once each match. On by default for a map that
 ## offers no day (Woodland); on a map that offers both a test sets it for the night.
 var night: bool = false
@@ -339,6 +342,9 @@ func play(seed_value: int, max_seconds: float) -> MatchTally:
 	while t.ticks < limit and not t.finished:
 		var searched := nav.searches
 		bots.think(state, commands, DT)
+		if manual_reload:
+			for cmd in commands:
+				cmd.manual_reload = true
 		if order_due:
 			commands[follow_leader].squad_order = SquadOrder.Kind.FOLLOW
 			order_due = false

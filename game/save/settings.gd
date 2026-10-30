@@ -67,6 +67,9 @@ var invert_y: bool = false
 ## Crouch and aim are held by default (owner, 2026-10-18).
 var crouch_toggle: bool = false
 var aim_toggle: bool = false
+## Reloads are manual by default: R loads an empty replica, with a prompt (owner, 2026-10-29). A file from before has no
+## value, so it loads Manual too.
+var auto_reload: bool = false
 ## How an order on the order wheel is given: Hover by default.
 var wheel_pick: ControlsConfig.WheelPick = ControlsConfig.WheelPick.HOVER
 ## The mouse's DPI, only to show sensitivity as cm/360 and to type it.
@@ -216,7 +219,8 @@ func to_dict() -> Dictionary:
 		vol[String(bus)] = volumes[bus]
 	var out := {
 		"sensitivity": sensitivity, "aim_sensitivity": aim_sensitivity, "invert_y": invert_y,
-		"crouch_toggle": crouch_toggle, "aim_toggle": aim_toggle, "wheel_pick": int(wheel_pick), "mouse_dpi": mouse_dpi,
+		"crouch_toggle": crouch_toggle, "aim_toggle": aim_toggle, "auto_reload": auto_reload,
+		"wheel_pick": int(wheel_pick), "mouse_dpi": mouse_dpi,
 		"bindings": bindings.to_dict(), "volumes": vol, "window_mode": int(window_mode), "vsync": vsync,
 		"fov": fov, "show_fps": show_fps, "realistic_colours": realistic_colours, "what_got_you": int(what_got_you),
 		"hud": hud.to_dict(), "custom_rules": custom_rules.to_dict(), "practice_challenge": practice_challenge,
@@ -242,6 +246,7 @@ func from_dict(data: Dictionary) -> void:
 	invert_y = _flag(data, "invert_y", false)
 	crouch_toggle = _flag(data, "crouch_toggle", false)
 	aim_toggle = _flag(data, "aim_toggle", false)
+	auto_reload = _flag(data, "auto_reload", false)
 	var picks := ControlsConfig.WheelPick.size() - 1.0
 	wheel_pick = roundi(_number(data, "wheel_pick", ControlsConfig.WheelPick.HOVER, 0.0, picks)) as ControlsConfig.WheelPick
 	mouse_dpi = roundi(_number(data, "mouse_dpi", Sensitivity.DPI_DEFAULT, Sensitivity.DPI_MIN, Sensitivity.DPI_MAX))

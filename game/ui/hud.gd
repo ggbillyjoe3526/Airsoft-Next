@@ -22,7 +22,8 @@ extends Control
 ## Callouts is on (`on_calls`). Screen reader messages read the hit feed, the calls, your hit and the rounds' turns
 ## through a live region that is never drawn (HudAnnounce, `set_read_out`). Your team's pings show as markers over the
 ## field (HudPingMarkers, `place_pings`) and on the minimap while Settings › HUD › Ping markers is on (PN2). Text is
-## only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16).
+## only rebuilt when what it shows changes. No hints teaching the controls (owner, 2026-10-16), but for the reload prompt
+## under the crosshair while reloads are manual (HudReloadPrompt; owner, 2026-10-29).
 
 const MARGIN := 32.0
 ## The replica panel's lane, bottom right: as wide as its hop-up note, as tall as its notes and panel.
@@ -85,6 +86,10 @@ var _hit_held: bool = false
 var _vault_prompt: Label = null
 var _vault_left: float = 0.0
 var _leaves_notice: Label = null
+## The reload prompt under them (RL2), and whether reloads are manual: the player's command says so each tick (the play
+## scene copies PlayerCommand.manual_reload here), so the prompt follows the rule the simulation used.
+var _reload_prompt: HudReloadPrompt = null
+var manual_reload: bool = false
 var _leaves_left: float = 0.0
 var _xp: XpCard = null
 var _watching: Label = null
@@ -237,7 +242,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_hit_hold.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hit_hold.visible = false
 	middle.add_child(_hit_hold)
-	# The vault prompt, just under the crosshair.
+	# The vault prompt, the leaves' line and the reload prompt, just under the crosshair.
 	var prompt := VBoxContainer.new()
 	_place(prompt, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-TOP_WIDTH * 0.5, cfg.vault_prompt_drop, TOP_WIDTH, 0.0))
 	add_child(prompt)
@@ -251,6 +256,8 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_leaves_notice.add_theme_constant_override("outline_size", 6)
 	_leaves_notice.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.55))
 	_leaves_notice.visible = false
+	_reload_prompt = HudReloadPrompt.new()
+	prompt.add_child(_reload_prompt)
 	_hit_label = HudStyle.label(middle, GameTheme.HUGE_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	_hit_label.text = tr("HUD_YOU_ARE_HIT")
 	_hit_sub = HudStyle.label(middle, GameTheme.BODY_SIZE, 600, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
@@ -637,6 +644,15 @@ func holds_results() -> bool:
 	return _round_result.holds_results()
 
 
+## The reload prompt (RL2), and whether it shows.
+func reload_prompt() -> HudReloadPrompt:
+	return _reload_prompt
+
+
+func reload_prompt_shown() -> bool:
+	return _reload_prompt.visible
+
+
 ## Whether "Leaves in the way · step clear to shoot" shows.
 func leaves_notice_shown() -> bool:
 	return _leaves_notice.visible
@@ -821,6 +837,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	_vault_prompt.visible = _vault_left > 0.0 and in_play
 	_leaves_left = maxf(0.0, _leaves_left - delta)
 	_leaves_notice.visible = _leaves_left > 0.0 and in_play
+	_reload_prompt.show_when(manual_reload and in_play and state.round_state.is_live() and a.reload_due())
 	# The round's stamp stays up as long as the table under it, the match's banner as long as the XP.
 	if _stats != null:
 		_round_result.update(state, _stats, _player)
