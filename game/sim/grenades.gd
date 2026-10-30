@@ -279,9 +279,32 @@ static func dazzle_strength(eye: Vector3, look: Vector3, at: Vector3, c: Grenade
 	return clampf(near * facing, 0.0, 1.0)
 
 
-## How long a dazzle of `strength` (0..1) lasts (s): none for none, else at least dazzle_min.
+## The view pitch (rad) that throws a bomb from `eye`, standing still, to come down at `at` by the release's speed and
+## loft: the low arc, or the high one with `high`; NAN where `at` is out of reach (or straight above or below). The
+## bounce and roll after are left to the thrower (BotBombs aims short).
+static func throw_pitch(eye: Vector3, at: Vector3, c: GrenadeConfig, high: bool = false) -> float:
+	var d := Vector2(at.x - eye.x, at.z - eye.z).length()
+	if d < EPSILON:
+		return NAN
+	var v2 := c.throw_speed * c.throw_speed
+	var root := v2 * v2 - c.gravity * (c.gravity * d * d + 2.0 * (at.y - eye.y) * v2)
+	if root < 0.0:
+		return NAN
+	var rise := (v2 + sqrt(root)) if high else (v2 - sqrt(root))
+	return clampf(atan(rise / (c.gravity * d)) - c.loft, -PI * 0.5, PI * 0.5)
+
+
+## Where a bomb thrown standing still from `eye` along view `yaw` and `pitch` is `t` s after the release, with no
+## bounce yet.
+static func arc_point(eye: Vector3, yaw: float, pitch: float, c: GrenadeConfig, t: float) -> Vector3:
+	var lofted := clampf(pitch + c.loft, -PI * 0.5, PI * 0.5)
+	var flat := cos(lofted) * c.throw_speed * t
+	return eye + Vector3(-sin(yaw) * flat, sin(lofted) * c.throw_speed * t - 0.5 * c.gravity * t * t, -cos(yaw) * flat)
+
+
+## How long a dazzle of `strength` (0..1) lasts (s): none under dazzle_least, else at least dazzle_min.
 static func dazzle_time(strength: float, c: GrenadeConfig) -> float:
-	if strength <= 0.0:
+	if strength <= 0.0 or strength < c.dazzle_least:
 		return 0.0
 	return maxf(c.dazzle_min, strength * c.dazzle_max)
 

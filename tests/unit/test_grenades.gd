@@ -456,7 +456,8 @@ func test_a_dazzle_is_shorter_looking_away_and_further_off_and_none_past_its_rea
 	assert_almost_eq(Grenades.dazzle_strength(eye, ahead, mid, cfg), 0.5, 1e-3, "half way out")
 	assert_eq(Grenades.dazzle_strength(eye, ahead, Vector3(0.0, 1.6, -cfg.flash_reach - 0.1), cfg), 0.0)
 	assert_eq(Grenades.dazzle_time(0.0, cfg), 0.0)
-	assert_eq(Grenades.dazzle_time(0.01, cfg), cfg.dazzle_min, "a glance still dazzles a moment")
+	assert_eq(Grenades.dazzle_time(cfg.dazzle_least, cfg), cfg.dazzle_min, "a glance still dazzles a moment")
+	assert_eq(Grenades.dazzle_time(cfg.dazzle_least * 0.5, cfg), 0.0, "turned nearly away, nothing (SF2)")
 	assert_eq(Grenades.dazzle_time(1.0, cfg), cfg.dazzle_max)
 
 

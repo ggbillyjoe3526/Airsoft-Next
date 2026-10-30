@@ -352,12 +352,19 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
 - **Smoke hides, it never stops BBs (SF1).** The cloud (8 m across, about 15 s at full) blocks bots' sight like a wall
   does; BBs fly through it. Your own screen goes milky inside it. Bots aim a little through its thin edge.
 - **A flash blinds whoever faces it, teammates and the thrower too (SF1).** Up to 22 m, with a clear line from the eyes;
-  full at 6 m and inside 60 degrees of the view, a quarter looking away. 0.5 to 3.5 s. A blinded bot stops shooting,
+  full at 6 m and inside 60 degrees of the view, nothing looking (nearly) straight away (SF2: turning away is the
+  counter, so a bot can look away from its own). 0.5 to 3.5 s. A blinded bot stops shooting,
   loses its target and crouches; a blinded player gets a white wash and a dip in the sound, softer with reduced motion.
   No ringing, no lasting tinnitus: a toy's bang (pillar 2).
 
 ## Bots and balance
 
+- **Bots throw their bombs as a player would (2026-10-30, SF2; Claude's defaults).** A smoke when pinned in cover
+  (an enemy BB close in the last 2 s) by someone 8 to 35 m off with no cloud between them yet, half way to them; a flash
+  round a corner it is searching toward, 4 to 16 m off, landing before its bang and never where a teammate close by
+  would see it, then it looks away until the bang and pushes. A chance each time it may, every 1.5 s at most: Easy 0.3,
+  Normal 0.5, Hard 0.7. The rolls come from each bot's own bomb stream. Bots hear an enemy's bang to 40 m and a pop to
+  20 m. Numbers in `game/config/bot_config.gd` › Smoke and flash bombs.
 - **Bots are ordinary characters driven by the same commands as the player, with human limits (2026-09-30).** A 120°
   view, sight checks 10 times a second, a reaction delay, a capped turn rate and aim error. They never fire with a
   teammate in the line of fire. A test proves no bot aims at someone it hasn't seen or heard (M37).

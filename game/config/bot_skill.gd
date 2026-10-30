@@ -59,3 +59,7 @@ extends Resource
 ## Elimination's overtime flag (OV2): how long after it goes up the bot sets off for it (s), the whistle taken in. Easy
 ## is slowest, Hard quickest (the browser game's Normal, Hard and Pro).
 @export var overtime_reaction: Vector2 = Vector2(0.5, 1.2)
+## The chance (0 to 1) it throws its smoke when pinned in cover, and its flash before pushing round a corner, each time
+## it may (BotConfig.bomb_roll_gap; SF2).
+@export var smoke_chance: float = 0.3
+@export var flash_chance: float = 0.3

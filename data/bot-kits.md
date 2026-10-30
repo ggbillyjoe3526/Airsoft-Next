@@ -37,7 +37,7 @@ The kits are the bots' own: what you have unlocked never changes them.
 - **Dev gear.** A kit holding a pool.md asset whose Access is `dev` is picked only with Dev content on, and such a
   match stays out of the records.
 - **Not here.** Weapon torches: on a night field every bot carries one by rule (pool.md › Lights). BB weight and the
-  hop-up stay as each replica comes. Every bot carries one smoke and one flash bomb a round, as you do (SF1).
+  hop-up stay as each replica comes. Every bot carries one smoke and one flash bomb a round, as you do (SF1), and throws them (SF2).
 
 The kits are first guesses for the owner's playtest. Easy carries the most factory replicas; each level up carries
 more and better matched gear; Hard never factory. The Cyber Pistol turns up now and then from Normal up. Rushers lean

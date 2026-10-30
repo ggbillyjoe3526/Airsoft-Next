@@ -74,11 +74,12 @@ at its level, never how well (`BotPersonality`).
 |---|---|
 | `bot_controller.gd` | `BotController`: owns the bots; before each step one route search, then each bot's command; after it, hearing and the round's plan |
 | `bot_world.gd` | `BotWorld`: what every bot thinks with (tuning, rays, nav grid, lanes, cover, everyone, the plan, the time, each team's hunt memory, the night field); moving a spot out of the light |
-| `bot.gd` | `Bot`: one bot's own state (mode, contacts, aim, route, lane, cover, timers) and its seeded stream |
+| `bot.gd` | `Bot`: one bot's own state (mode, contacts, aim, route, lane, cover, timers, the throw it is making) and its seeded streams (its own and its bombs') |
 | `bot_brain.gd` | The tick: look, pick a mode (advance, fight, cover, search, flag, order), move, aim, fire, reload; dazzled by a flash (SF1), it ducks where it stands and does nothing else |
 | `night_field.gd` | `NightField`: the dark on a field played at night (light pools by floor, the canopy grid, roofs), from the map's data once a match, and who stands in a lit torch's beam; how far someone at a point is made out |
 | `bot_torch.gd` | `BotTorch`: the torch light the bots' sight reads, once a perception interval; each bot's switch by what it is doing (fighting within 20 m, the end of a search), held 1.5 s at least |
-| `bot_senses.gd`, `bot_hearing.gd` | Sight (view cone, walls, bodies, no more than 0.6 m of bush beyond close awareness, no more than 0.8 m of a smoke bomb's cloud at any distance, nothing while dazzled, SF1, the night's range, which part shows) and hearing (gunfire, feet and further on loud ground, hit calls, near misses, a knock on a noisy prop as a step, a ring off steel faintly; walls judged by `SoundPath`) |
+| `bot_bombs.gd` | `BotBombs` (SF2): a smoke when pinned in cover by someone at range, a flash round a corner before a push (where it lands before the bang and no teammate near would see it), then a look away until the bang; the skill's chance from the bot's own bomb stream, along an arc clear of the level |
+| `bot_senses.gd`, `bot_hearing.gd` | Sight (view cone, walls, bodies, no more than 0.6 m of bush beyond close awareness, no more than 0.8 m of a smoke bomb's cloud at any distance, nothing while dazzled, SF1, the night's range, which part shows) and hearing (gunfire, feet and further on loud ground, hit calls, near misses, a knock on a noisy prop as a step, a ring off steel faintly, an enemy's flash bang or smoke pop (SF2); walls judged by `SoundPath`) |
 | `bot_aim.gd`, `bot_combat.gd` | Turning, aim error that settles, lead; bursts, line-of-fire checks (no fire through more than 0.25 m of bush), reloads |
 | `bot_holster.gd` | Holstering on a long, calm sprint through its own half, drawing again on a threat |
 | `bot_angles.gd` | Held angles: the corners and doorways in view where someone would step out, from the level's walls alone |

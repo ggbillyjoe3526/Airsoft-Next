@@ -2,8 +2,8 @@ class_name BotHearing
 ## What the bots hear and feel of a tick (the browser game's ai/hearing.ts, without cases): gunfire (as far as the
 ## shooter's replica is heard: a silencer halves it), a teammate's hit call, running, sprinting, landing and vaulting
 ## feet (further on loud ground: the event's carry), a rattling magazine, a run into a noisy prop (heard as a step on
-## whoever knocked it, out to the prop's reach), a BB ringing off steel (faint: see _hear), and enemy BBs landing
-## close. Each gives a rough guess of where the enemy
+## whoever knocked it, out to the prop's reach), a BB ringing off steel (faint: see _hear), enemy BBs landing
+## close, and an enemy's smoke popping or flash going bang (SF2). Each gives a rough guess of where the enemy
 ## is, off by up to hearing_error of the distance; walls between muffle a sound to wall_hearing of its range, judged by
 ## SoundPath's rays, as the player's muffling is. Hearing never counts as sight: a bot still reacts when the enemy then
 ## appears. Reads the tick's events after the step; writes only the bots' memory. Allocates nothing.
@@ -39,6 +39,12 @@ static func observe(state: GameState, w: BotWorld) -> void:
 				var knocker := _character(w, e.actor)
 				if knocker != null and Elimination.is_in_play(knocker):
 					_hear(w, knocker, e.position, knocker.position, e.reach, null)
+			GameEvent.Kind.FLASH_BANG, GameEvent.Kind.SMOKE_POP:
+				# An enemy's bomb going off (SF2): news of someone where it went off, a flash's from further.
+				var thrower := _character(w, e.actor)
+				if thrower != null:
+					var reach := w.cfg.bang_hearing if e.kind == GameEvent.Kind.FLASH_BANG else w.cfg.pop_hearing
+					_hear(w, thrower, e.position, e.position, reach, null, e.position)
 			GameEvent.Kind.PROP_RING:
 				# Heard where it rang, as a guess there, and faintly.
 				var shooter := _character(w, e.actor)

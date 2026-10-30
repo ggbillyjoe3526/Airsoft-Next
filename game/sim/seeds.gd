@@ -21,6 +21,9 @@ const ROSTER_XOR := 0x6e616d65
 ## The bots' callouts' stream (Callouts) is the seed with these bits flipped, as the browser game's SEED_SALT
 ## (ai/callouts.ts): what they say never moves another roll.
 const CALLOUT_XOR := 0x5ca11
+## A bot's bombs' stream (BotBombs, SF2) is its own stream's seed with these bits flipped: whether it throws never moves
+## another of its rolls.
+const BOMB_XOR := 0xb0b5
 
 
 ## `seed × multiplier + add`, wrapped to 32 bits (GDScript's 64-bit integers wrap on overflow, keeping the low 32 bits
@@ -75,3 +78,9 @@ static func stream(seed_value: int) -> RandomNumberGenerator:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value & MASK_32
 	return rng
+
+
+## Bot stream `bot_seed_value`'s bombs' stream's seed (BotBombs, SF2): apart from the bot's own, so a throw's roll moves
+## none of its other rolls.
+static func bomb_seed(bot_seed_value: int) -> int:
+	return (bot_seed_value & MASK_32) ^ BOMB_XOR
