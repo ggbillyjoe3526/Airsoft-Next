@@ -99,8 +99,9 @@ func test_whole_bot_matches_play_out_fairly_over_seeds() -> void:
 					rescued += 1
 			# A bot puts its replica away only in its own half, and draws it once past halfway (BotHolster).
 			for b in bots.world.bots:
+				# A bomb's throw puts the replica down too (SF2): not a holster.
 				if b.character.armament.holstered and bots.world.planner.in_enemy_half(b) \
-						and Elimination.is_in_play(b.character):
+						and Elimination.is_in_play(b.character) and not Grenades.throwing(b.character):
 					away_in_enemy_half += 1
 			if finished:
 				break
