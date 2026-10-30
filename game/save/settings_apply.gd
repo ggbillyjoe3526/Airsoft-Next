@@ -29,6 +29,7 @@ static func apply_controls(s: Settings) -> void:
 	c.invert_y = s.invert_y
 	c.crouch_toggle = s.crouch_toggle
 	c.aim_toggle = s.aim_toggle
+	c.auto_reload = s.auto_reload
 	c.wheel_pick = s.wheel_pick
 	s.tuning.view.horizontal_fov_16x9 = s.fov
 

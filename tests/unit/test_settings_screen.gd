@@ -92,6 +92,16 @@ func test_a_click_setting_is_saved_straight_away() -> void:
 	assert_true(tuning.controls.crouch_toggle and tuning.controls.aim_toggle)
 
 
+func test_the_reload_row_starts_on_manual_and_switches_to_automatic() -> void:
+	assert_false(screen._auto_reload.button_pressed, "Manual by default (RL2)")
+	screen._auto_reload.button_pressed = true
+	assert_true(s.auto_reload)
+	assert_true(tuning.controls.auto_reload)
+	var back := Settings.new()
+	back.load_file(screen.save_path)
+	assert_true(back.auto_reload, "saved straight away")
+
+
 func test_a_typed_cm_per_360_sets_the_sensitivity() -> void:
 	screen._dpi.value = 800.0
 	screen._cm.value = 40.0

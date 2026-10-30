@@ -622,6 +622,12 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   opens on). V-Sync is off. Edge smoothing is Off, on every graphics preset (a player who turns it on keeps it, as
   Custom). A save from before (settings version 1) moves a value still equal to the old default to the new one, once;
   a value the player changed is kept. Reset to defaults gives the new values.
+- **Reloads are manual by default (owner, 2026-10-29; RL2).** "Weapons currently automatically reload. This shouldn't
+  happen. By default a prompt should come up for the player to press the R button. In the settings there can be a
+  setting to toggle between manual and automatic reloads." Settings › Controls › Reload: Manual (the default; an empty
+  trigger pull only clicks dry, and a prompt with the Reload key as bound shows under the crosshair) or Automatic (the
+  empty pull reloads, as before). The prompt is the one exception to "no hints teaching the controls". Bots reload by
+  their own command either way.
 - **A button is as wide as its words, and a group is one width (owner, 2026-10-29; FB1).** "Buttons should not be wider
   than the text in them, however keep the width consistent." Each button is its words plus the theme's padding; the
   buttons of one group (a row, a column or a bar on one screen) all take the widest one's width, set by one helper

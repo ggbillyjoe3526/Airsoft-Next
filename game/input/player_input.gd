@@ -287,6 +287,7 @@ func _close_wheel() -> void:
 func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	if not active:
 		cmd.reset(view_yaw, view_pitch)
+		cmd.manual_reload = not _controls.auto_reload
 		_clear_latches()
 		return
 	cmd.forward = Input.get_action_strength(FORWARD) - Input.get_action_strength(BACK)
@@ -310,6 +311,7 @@ func fill(cmd: PlayerCommand, held_slot: int = 0) -> void:
 	cmd.fire = not _fire_held_back and (Input.is_action_pressed(FIRE) or _fire_latch)
 	cmd.jump = _jump_latch # a press, not a hold: holding Space doesn't hop on every landing
 	cmd.reload = _reload_latch
+	cmd.manual_reload = not _controls.auto_reload
 	cmd.cycle_fire_mode = _mode_latch
 	cmd.switch_to = _slot_latch
 	cmd.hop_up_steps = _hop_steps

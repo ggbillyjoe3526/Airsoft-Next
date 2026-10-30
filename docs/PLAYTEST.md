@@ -84,8 +84,10 @@ The rifle holds 60 BBs and the pistol 18, each with 4 magazines a round. Nothing
 - [ ] **Shoot at a far wall.** BBs fly, take a moment to arrive and drop at long range; the pistol's drop sooner.
 - [ ] **Fire half a magazine, then press R.** A magazine swap plays (rifle 1.8 s, pistol 1.2 s); the gauges show your
   spares and the half-used one goes back in the pouch.
-- [ ] **Empty a magazine, then pull the trigger.** The empty pull starts a reload by itself. With a full magazine in,
-  R does nothing and says why (no topping up).
+- [ ] **Empty a magazine, then pull the trigger** (RL2). Each pull only clicks dry and a small R RELOAD prompt shows
+  under the crosshair; R reloads and the prompt goes. Rebind Reload, and the prompt names the new key. With Settings ›
+  Controls › Reload on Automatic, the empty pull starts a reload by itself and no prompt shows. With a full magazine
+  in, R does nothing and says why (no topping up). Is the prompt easy to spot without getting in the way?
 - [ ] **Use up every magazine.** You can't fire again that round; the next round starts you full.
 - [ ] **Empty the GBB Pistol.** On the last BB its slide locks back and stays back; through the reload the magazine
   goes in first and the slide closes near the end. The gauges under the count show every magazine: the loaded one

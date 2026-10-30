@@ -17,7 +17,9 @@ and a gauge for every magazine you carry, the loaded one first, then your spares
 shows dark, so you can read them without colour. A low magazine turns yellow, and **HOLSTERED**, **RELOADING**,
 **LAST MAG** or **OUT OF BBS** show when they apply. Turning the hop-up dial shows its setting here for a moment.
 
-The crosshair opens with your spread, so it tells you how steady you are.
+The crosshair opens with your spread, so it tells you how steady you are. Under it, a **RELOAD** prompt with your
+Reload key shows while your magazine is empty and you have one to load, unless reloads are Automatic in Settings; it
+goes as the reload starts.
 
 ## Hit feed and teammate markers
 

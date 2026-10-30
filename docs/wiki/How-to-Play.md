@@ -75,9 +75,11 @@ included.
 ## Magazines and reloading
 
 You carry a set of magazines, and nothing refills during a round. Press **R** to swap in your fullest spare; the old
-magazine keeps what was left in it. An empty trigger pull clicks dry and starts a reload at once. The replica panel
-shows a gauge for every magazine you carry, and a low magazine turns yellow. The GBB Pistol's slide locks back on its
-last BB and closes as the new magazine seats.
+magazine keeps what was left in it. When your magazine runs empty a trigger pull only clicks dry, and a small
+**R RELOAD** prompt under the crosshair shows the key to press (it names your own key if you rebound it). With
+[Settings](Settings#controls) › Controls › Reload on Automatic, an empty trigger pull clicks dry and starts a reload at
+once instead. The replica panel shows a gauge for every magazine you carry, and a low magazine turns yellow. The GBB
+Pistol's slide locks back on its last BB and closes as the new magazine seats.
 
 ## Aiming and accuracy
 

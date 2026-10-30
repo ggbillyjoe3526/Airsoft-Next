@@ -164,6 +164,15 @@ func reloading() -> bool:
 	return reload_left > 0.0
 
 
+## A reload is all the replica in hand waits for: its magazine is empty, a spare has BBs, and nothing is under way (no
+## reload, none queued for the end of a draw, not holstered). The HUD's reload prompt shows on it (RL2).
+func reload_due() -> bool:
+	if replicas.is_empty() or holstered or reload_left > 0.0 or reload_queued:
+		return false
+	var loaded := ammo[active]
+	return loaded.mag <= 0 and loaded.next_spare() >= 0
+
+
 func drawing() -> bool:
 	return draw_left > 0.0
 
@@ -303,7 +312,8 @@ static func step(c: Character, cmd: PlayerCommand, eye: Vector3, kick_scale: flo
 		return
 
 	if ammo_now.mag <= 0:
-		# Empty: one dry click per pull (a burst that runs dry clicks once and ends), then a reload if a spare has BBs.
+		# Empty: one dry click per pull (a burst that runs dry clicks once and ends), then a reload if a spare has BBs
+		# and the controller reloads automatically.
 		var click := false
 		if mode == ReplicaConfig.FireMode.AUTO:
 			click = not a.dry_fired_this_pull
@@ -314,7 +324,8 @@ static func step(c: Character, cmd: PlayerCommand, eye: Vector3, kick_scale: flo
 			a.dry_fired_this_pull = true
 			a.pending_press = 0.0
 			a._event(events, GameEvent.Kind.DRY_FIRE, c.id)
-			if ammo_now.next_spare() >= 0:
+			# A manual reload (the player's setting, RL2) leaves it empty: only R loads it.
+			if ammo_now.next_spare() >= 0 and not cmd.manual_reload:
 				a._start_reload(c.id, events)
 		return
 
