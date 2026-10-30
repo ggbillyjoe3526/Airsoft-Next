@@ -382,3 +382,45 @@ func test_an_aim_held_through_the_respawn_is_never_drawn_ahead_of_the_simulation
 		h.frame()
 	for i in h.drawn.size():
 		assert_true(h.drawn[i] <= h.sim[i] + EPS, "frame %d: drawn %s ahead of the simulation's %s" % [i, h.drawn[i], h.sim[i]])
+
+
+# --- Re-check: the snap threshold ---
+
+## Frames of aim in and out (held, released, flicked) count a snap when the drawn raise moves further than the frame's step.
+func _snaps(fps: float, rate: float, scale: float) -> int:
+	var h := _harness(fps, rate)
+	h.c.armament.replicas[h.c.armament.active].raise_scale = scale
+	var step := h.frame_dt * rate / Aiming.raise_time(h.c, h.tuning.movement)
+	var snaps := 0
+	var pattern: Array[int] = [90, 90, 20, 15, 5, 40, 120, 60]
+	for n in pattern.size():
+		h.cmd.aim = n % 2 == 0
+		for i in pattern[n] * 3:
+			var before := h.drawn[h.drawn.size() - 1] if not h.drawn.is_empty() else 0.0
+			h.frame()
+			if absf(h.drawn[h.drawn.size() - 1] - before) > step + EPS:
+				snaps += 1
+	return snaps
+
+
+func test_normal_aiming_in_and_out_never_snaps_at_any_speed_frame_rate_or_optic() -> void:
+	for rate: float in [0.25, 1.0, 1.5, 2.0]:
+		for fps: float in [30.0, 60.0, 144.0, 240.0]:
+			for scale: float in [0.3, 0.6, 1.0, 1.6]:
+				assert_eq(_snaps(fps, rate, scale), 0, "rate %s fps %s raise_scale %s snapped" % [rate, fps, scale])
+
+
+func test_a_respawn_from_a_full_sight_snaps_at_every_speed_frame_rate_and_optic() -> void:
+	for rate: float in [0.25, 1.0, 1.5]:
+		for fps: float in [60.0, 144.0]:
+			for scale: float in [0.8, 1.0, 1.6, 2.5]:
+				var h := _harness(fps, rate)
+				h.c.armament.replicas[h.c.armament.active].raise_scale = scale
+				h.cmd.aim = true
+				for i in 600:
+					h.frame()
+				assert_eq(h.drawn[h.drawn.size() - 1], 1.0)
+				h.c.respawn()
+				h.cmd.aim = false
+				h.frame()
+				assert_eq(h.drawn[h.drawn.size() - 1], 0.0, "rate %s fps %s scale %s: down at once" % [rate, fps, scale])

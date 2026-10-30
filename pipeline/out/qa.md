@@ -1,5 +1,4 @@
-Task: FB6 · QA commit see git log · Verdict: Fail
-
+Task: FB6 · QA commit see git log · 
 Blocking
 1. game/play/aim_follow.gd:21-22 · a respawn drags the drawn sight behind the simulation (breaks the record's "never ahead of the simulation"
    and "exactly as before at normal speed"). Character.respawn() (game/sim/character.gd:168, called from game/sim/round.gd:223) sets
@@ -37,4 +36,11 @@ Counts: test_fb6_qa 20 (2 failing, the pinned respawn bug), test_fb6 9/9, test_m
 the smoke test were not rerun by QA (only the targeted files).
 Could not test: how the 25 % / 150 % sight feels, a real window and mouse capture on leaving (owner's list).
 
-Verdict: Fail
+Re-check (fix round 01ed47f)
+- tests/unit/test_fb6_qa.gd, 22 tests, all pass; test_fb6.gd passes; the two respawn tests (:357, :370) now pass. gdlint clean.
+- Snap threshold probed: normal aim in, out and flicks never snap at 25/100/150/200 % x 30/60/144/240 fps x raise_scale 0.3/0.6/1.0/1.6 (zero frames jump past one step).
+- A respawn from a full sight snaps (down on the first frame) at 25/100/150 % x 60/144 fps x raise_scale 0.8/1.0/1.6/2.5 (the reachable range in data/stats.md: angled grip 0.8 x red dot 1, up to long barrel, vertical grip, silencer, 2x scope).
+- Advisory: below that range (raise_scale 0.5 at 150 %, 0.3 at 100 % and 150 %, 60 fps) a respawn still eases for a few frames (0.67 and 0.44 to 0.63), because the leeway is wider than the raise. Not reachable with today's data; matters only if a faster part is added.
+- The NaN advisory is fixed (a zero raise time snaps). The 100 %, above-60-fps lag (up to a tick) is unchanged and still advisory.
+
+Verdict: Pass
