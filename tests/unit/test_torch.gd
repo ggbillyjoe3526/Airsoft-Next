@@ -454,7 +454,7 @@ func test_t_is_the_weapon_torch_key_and_rebindable() -> void:
 	assert_has(KeyBindings.ACTIONS, &"torch")
 	assert_eq(Array(keys.codes(&"torch")), [KEY_T])
 	assert_eq(TranslationServer.translate(KeyBindingList.label_key(&"torch")), "WEAPON TORCH")
-	assert_eq(keys.rebind(&"torch", KEY_G), KeyBindings.Result.BOUND)
+	assert_eq(keys.rebind(&"torch", KEY_J), KeyBindings.Result.BOUND, "a free key (G throws smoke since SF1)")
 	var older := KeyBindings.new()
 	older.load_dict({"reload": [KEY_R]})
 	assert_eq(Array(older.codes(&"torch")), [KEY_T], "a settings file from before it keeps the default")

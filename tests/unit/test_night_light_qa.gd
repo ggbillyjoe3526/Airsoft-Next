@@ -57,8 +57,13 @@ func _session(map_id: String, settings: Settings, pick: StringName = &"") -> Pla
 	return session
 
 
+## The night's real lights under `node`: the bombs' flash light (SF1), hidden until a bang, is not one.
 func _lights_in(node: Node) -> int:
-	return node.find_children("*", "OmniLight3D", true, false).size()
+	var n := 0
+	for light in node.find_children("*", "OmniLight3D", true, false):
+		if not light.get_parent() is GrenadeView:
+			n += 1
+	return n
 
 
 func test_a_stale_bake_still_warns_at_night() -> void:

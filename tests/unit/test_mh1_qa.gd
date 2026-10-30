@@ -92,7 +92,7 @@ func test_the_five_events_are_appended_after_every_older_kind() -> void:
 	assert_eq(GameEvent.Kind.MAG_CATCH, GameEvent.Kind.MAG_TOSS + 1)
 	assert_eq(GameEvent.Kind.MAG_LOST, GameEvent.Kind.MAG_CATCH + 1)
 	assert_eq(GameEvent.Kind.MAG_REFUSED, GameEvent.Kind.MAG_LOST + 1)
-	assert_eq(GameEvent.Kind.values().max(), GameEvent.Kind.MAG_REFUSED, "the last kind")
+	assert_eq(GameEvent.Kind.GRENADE_PIN, GameEvent.Kind.MAG_REFUSED + 1, "the bombs' kinds come after (SF1)")
 
 
 func test_a_thrower_put_out_in_the_air_still_lands_its_magazine() -> void:
