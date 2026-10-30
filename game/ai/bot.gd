@@ -197,10 +197,23 @@ var mag_for_at: float = -INF
 var mag_rush: bool = false
 var mag_press_at: float = -INF
 
+## Its smoke and flash bombs (SF2, BotBombs), from their own stream (Seeds.bomb_seed): the throw it is turning to
+## (NONE: none) and its view, until when it turns before giving up, when it may next roll for one, and after a flash,
+## until when it looks away (that way) before it pushes.
+var bomb_rng: RandomNumberGenerator = null
+var bomb_kind: Grenade.Kind = Grenade.Kind.NONE
+var bomb_yaw: float = 0.0
+var bomb_pitch: float = 0.0
+var bomb_aim_until: float = -INF
+var bomb_roll_at: float = -INF
+var bomb_away_until: float = -INF
+var bomb_away_yaw: float = 0.0
+
 
 func _init(body: Character, seed_value: int, bot_skill: BotSkill, roster_size: int) -> void:
 	character = body
 	rng = Seeds.stream(seed_value)
+	bomb_rng = Seeds.stream(Seeds.bomb_seed(seed_value))
 	skill = bot_skill
 	for i in roster_size:
 		contacts.append(Contact.new())
@@ -236,6 +249,10 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	sprint_gap = 0.0
 	suppressed_at = -INF
 	ping_at = -INF
+	bomb_kind = Grenade.Kind.NONE
+	bomb_aim_until = -INF
+	bomb_roll_at = -INF
+	bomb_away_until = -INF
 	route.clear()
 	route_leg = 0
 	route_state = RouteState.NONE

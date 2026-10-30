@@ -3,7 +3,8 @@ class_name BotBrain
 ## fire and reload, all written into the PlayerCommand its body follows, as the player's input is. The modes: walk its
 ## lane, then hunt (advance); fight someone in sight; get into cover and peek from it (over crouch cover, or leaning out
 ## round a corner); go to where someone was seen or heard (search); in Attack / Defend, work or guard the pole (flag);
-## carry out a teammate's squad order (order); bring a teammate a magazine or wait for one (mag). Allocates nothing.
+## carry out a teammate's squad order (order); bring a teammate a magazine or wait for one (mag). Its smoke and flash
+## bombs are BotBombs'. Allocates nothing.
 
 ## The vault check's answer for a bot on a vault leg (one at a time: bots think in turn).
 static var _vault_check: VaultState = VaultState.new()
@@ -61,7 +62,9 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 	if _leaning_out(b):
 		cmd.lean = b.cover.lean
 	var eye := BotSenses.eye_of(me, w.tuning)
-	var off_aim := BotCombat.aim(b, w, target, eye, moving, cmd, dt)
+	# Busy with a bomb, its view is the throw's (BotBombs), not the fight's.
+	var bombing := BotBombs.busy(b, w)
+	var off_aim := PI if bombing else BotCombat.aim(b, w, target, eye, moving, cmd, dt)
 	cmd.yaw = b.aim_yaw
 	cmd.pitch = b.aim_pitch
 	if moving:
@@ -99,6 +102,7 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 	BotCombat.shoot(b, w, target, eye, off_aim, cmd, dt)
 	BotCombat.reload_when_due(b, w, cmd)
 	BotHolster.step(b, w, cmd, dt)
+	BotBombs.step(b, w, target, cmd, dt)
 
 
 ## Picks the mode for this tick from what `b` knows and how it is doing.

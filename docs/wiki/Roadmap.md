@@ -18,13 +18,12 @@ every part and power source, the Loadout, levels and the Armory, Easy, Normal an
 kits and callouts, Elimination with its overtime flag, Attack / Defend and Custom matches, the practice range in Depot's
 site, Practice on any field and the timed challenge, squad orders, pings and the magazine hand-off, the minimap, the
 hit feed, scoreboard and match summary, the sound pass, graphics presets, accessibility options, the save file screen,
-the crash screen and bug reports, and smoke and flash bombs for you (bots carry theirs but don't throw them yet).
+the crash screen and bug reports, and smoke and flash bombs, thrown by you and the bots.
 The rest of this wiki describes all of it.
 
 ### Next
 
-- **0.1 Dev 2:** Depot and Woodland redesigned and dressed with free models and textures, and bots throwing their
-  **smoke** and **flash bombs** too.
+- **0.1 Dev 2:** Depot and Woodland redesigned and dressed with free models and textures.
 
 ### Then: the art pass
 

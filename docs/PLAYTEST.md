@@ -605,8 +605,8 @@ pays XP ×1.5.
 
 ## Smoke and flash bombs (SF1)
 
-Every round you carry one smoke bomb (G) and one flash bomb (Y); the replica panel shows what's left. Bots don't throw
-theirs yet (SF2).
+Every round you carry one smoke bomb (G) and one flash bomb (Y); the replica panel shows what's left. Bots carry the
+same and throw them (SF2).
 
 - [ ] **The throw.** Press G: the pin clicks, your replica drops for about half a second, the canister goes where you
   look (a little above it) and the replica comes back up. Does it feel quick enough mid-fight, or too slow to be worth
@@ -620,6 +620,12 @@ theirs yet (SF2).
   that faced it (up to 22 m, with a clear line) stop shooting, crouch and look about for up to 3.5 s; behind a wall
   nothing happens. Throw one at your own feet: your screen goes white and the sound dips, then fades back. Is the
   blinding fair, and is it fun rather than annoying?
+- [ ] **Turn away.** Throw a flash, then turn your back on it before the bang: nothing. Side on, a short wash.
+- [ ] **Bots' smoke (SF2).** Pin a bot in cover from 10 to 30 m with steady fire: now and then it smokes the line
+  between you (more often on Hard). Does it read as a bot buying time, and is it annoying how often?
+- [ ] **Bots' flash (SF2).** Let a bot hear you round a corner, then wait: it may flash the corner, turn its back and
+  come through after the bang. Look away when you hear the pin and the bounce: can you beat it? Note any bot that
+  flashes its own teammates or itself.
 - [ ] **Reduced motion** (Settings › Accessibility): your own flash is a softer wash, not full white.
 - [ ] **Practice range.** Throw both: they come back once the throw ends, so you can keep throwing.
 

@@ -343,6 +343,42 @@ const DEFAULT_PATH := "res://game/config/bot_tuning.tres"
 ## A sector counts as checked once a bot sees a spot in it empty within this range (m).
 @export var hunt_clear_range: float = 19.0
 
+@export_group("Smoke and flash bombs")
+## When a bot throws its bombs (SF2, BotBombs; the rules are the simulation's GrenadeConfig). It rolls the skill's chance
+## at most every bomb_roll_gap s while it may. It turns to the throw at its turn rate and presses once within
+## bomb_aim_within_deg, giving up after bomb_aim_time s; it aims bomb_aim_short of the way, for the bounce and roll, and
+## throws only along an arc clear of the level, checked in bomb_arc_steps rays.
+@export var bomb_roll_gap: float = 1.5
+@export var bomb_aim_within_deg: float = 4.0
+@export var bomb_aim_time: float = 1.0
+@export var bomb_aim_short: float = 0.75
+@export var bomb_arc_steps: int = 6
+## Smoke: in cover with an enemy BB close within smoke_under_fire_for s, at a threat smoke_min_distance to
+## smoke_max_distance m away and no cloud between them yet, it smokes the line to it: smoke_at_share of the way, at most
+## smoke_reach m out.
+@export var smoke_under_fire_for: float = 2.0
+@export var smoke_min_distance: float = 8.0
+@export var smoke_max_distance: float = 35.0
+@export var smoke_at_share: float = 0.5
+@export var smoke_reach: float = 12.0
+## Flash: searching toward a spot flash_min_distance to flash_max_distance m away that it can't see (the eyes'
+## flash_spot_height m over it), it flashes there, or at the first of its route's next flash_route_points points the bang
+## (flash_bang_height m up) would be seen from there; never where a teammate is within flash_mate_clear m of the bang,
+## or within flash_mate_sight m with a clear line to it. Then it looks away until flash_wait_after s past the bang, and
+## pushes.
+@export var flash_min_distance: float = 4.0
+@export var flash_max_distance: float = 16.0
+@export var flash_spot_height: float = 1.5
+@export var flash_mate_clear: float = 8.0
+@export var flash_mate_sight: float = 16.0
+@export var flash_route_points: int = 3
+@export var flash_bang_height: float = 0.3
+@export var flash_wait_after: float = 0.3
+## Hearing them (BotHearing): an enemy's flash bang out to bang_hearing m, a smoke's pop out to pop_hearing m, heard as
+## news of someone where it went off.
+@export var bang_hearing: float = 40.0
+@export var pop_hearing: float = 20.0
+
 @export_group("Night sight")
 ## How far a bot makes someone out on a field played at night (m; the browser game's NIGHT_SIGHT, WL6), by the light
 ## the target stands in: a light pool (as far as by day), the moonlit open, under the trees, or indoors in the dark (a

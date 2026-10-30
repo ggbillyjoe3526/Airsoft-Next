@@ -9,7 +9,8 @@ and call their hits honestly, by the same rules as you.
 Bots know only what they see and hear:
 
 - They see in a **120° view** in front of them, never through walls.
-- They hear running, sprinting, vaults, landings, knocked props and shots. Walls muffle what they hear. **Walking and
+- They hear running, sprinting, vaults, landings, knocked props, shots, and a [flash's bang or a smoke's
+  pop](Grenades). Walls muffle what they hear. **Walking and
   moving crouched are silent**, so you can sneak up on a bot that hasn't seen you.
 - A rattling hi-cap magazine gives you away to bots close by, and a silencer halves how far your shots carry.
 - They react after a moment, and their aim settles before it is steady. They never fire with a teammate in the way,
@@ -94,6 +95,12 @@ it a moment after the whistles (slowest on Easy, quickest on Hard), still fighti
 and careful bots first watch it from cover close by, aiming at it, for a few seconds, unless they are the last of their
 team or the overtime is nearly over; a flanker may come at it round the side. A bot you gave an order keeps to it. On
 each team the bot nearest the flag calls it, naming where it stands.
+
+## Smoke and flash bombs
+
+Every bot carries a smoke and a flash bomb a round, as you do, and throws them: a smoke when pinned in cover by
+someone at range, a flash round a corner before it pushes, then it looks away until the bang. Harder bots throw more
+often. [Grenades](Grenades) has the rules.
 
 ## Magazines
 

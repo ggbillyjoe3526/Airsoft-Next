@@ -57,10 +57,12 @@ extends Resource
 @export var flash_fuse: float = 1.5
 ## Anyone in play with a clear line from its eyes to the bang is dazzled: fully within flash_full m, not at all beyond
 ## flash_reach m, by distance in between; fully looking within flash_cone_deg of it, behind_share looking away, by the
-## view's angle in between. A full dazzle lasts dazzle_max s; anything weaker at least dazzle_min.
+## view's angle in between: looking straight away, nothing (SF2: turning away is the counter). A full dazzle lasts
+## dazzle_max s; anything weaker at least dazzle_min, and one under dazzle_least of full not at all.
 @export var flash_full: float = 6.0
 @export var flash_reach: float = 22.0
 @export var flash_cone_deg: float = 60.0
-@export var behind_share: float = 0.25
+@export var behind_share: float = 0.0
 @export var dazzle_max: float = 3.5
 @export var dazzle_min: float = 0.5
+@export var dazzle_least: float = 0.1

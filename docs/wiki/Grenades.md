@@ -32,12 +32,17 @@ flash and a bang. Anyone with a clear line from their eyes to it is **dazzled**:
 is dulled, and a dazzled bot can't see anything and ducks where it stands.
 
 - How long a dazzle lasts depends on how close you are and how directly you were looking at it, from <!-- wiki:config grenade_config.dazzle_min --> seconds at
-  the edge to <!-- wiki:config grenade_config.dazzle_max --> seconds looking straight at it up close. Turning away
-  helps, but not completely.
+  the edge to <!-- wiki:config grenade_config.dazzle_max --> seconds looking straight at it up close. **Turn away**: side
+  on it still gets you, but looking away from it, nothing does.
 - A wall between you and the flash keeps you safe. Smoke doesn't.
 - **It dazzles everyone,** your own team and you too. Throw it round a corner, not at your own feet.
 
 ## Bots
 
-Bots carry the same bombs and react to yours: smoke hides you from them, and a flash blinds them for a moment. Bots
-throwing their own is coming next ([Roadmap](Roadmap)).
+Bots carry the same bombs, throw them, and react to yours: smoke hides you from them, and a flash blinds them for a
+moment.
+
+- **A bot pinned in cover** by someone shooting at it from range may smoke the line between them.
+- **A bot pushing round a corner** to where it heard you may flash it first, then look away until the bang and come
+  through. It never flashes where a teammate close by would see it.
+- Bots hear a bang or a smoke's pop and come to look. Harder bots throw more often.

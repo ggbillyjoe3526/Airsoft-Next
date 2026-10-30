@@ -11,8 +11,8 @@ in `docs/PROCESS.md`.
   code is in `legacy/browser/`.
 - **Last tag:** `0.1-dev.1`, [0.1 Dev 1](https://github.com/ggbillyjoe3526/airsoft/releases/tag/0.1-dev.1)
   (2026-10-30). The owner creates tags.
-- **Building 0.1 Dev 2** (owner, 2026-10-30): basic smoke and flash bombs, thrown by bots too, then Depot and Woodland
-  redesigned larger and dressed (step 28). The rest of 0.1 ([What 0.1 is](#what-01-is)) follows in later Dev builds.
+- **Building 0.1 Dev 2** (owner, 2026-10-30): basic smoke and flash bombs, thrown by bots too (done: SF1, SF2), then
+  Depot and Woodland redesigned larger and dressed (step 28). The rest of 0.1 ([What 0.1 is](#what-01-is)) follows in later Dev builds.
 - **The release path** (owner, 2026-10-12): 0.1 Dev builds, 0.1 Beta, then 0.1 (tagged `0.1.0`) opens Early
   Access to the public.
   Themed updates follow (Replica, Modes, Maps, Progression and any more), up to 1.0, the full launch. See
@@ -124,7 +124,7 @@ at his PC to connect.
     (Depot's models first, then Woodland's). Neon Heights is removed and Woodland is public (owner, 2026-10-29).
     0.1 Dev 2 also brings a basic smoke bomb and flash bomb, thrown by bots too; the rest waits for 0.2 (owner,
     2026-10-29). SF1 builds them for players (one of each a round, G and Y), with bots blinded by a flash and unable
-    to see through smoke; SF2 has the bots throw them. The redesign's look follows the new art direction (DECISIONS,
+    to see through smoke; SF2 has the bots throw them (done). The redesign's look follows the new art direction (DECISIONS,
     2026-10-29): `docs/ART.md` is rewritten at its start.
 
 ## Builds

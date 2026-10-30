@@ -18,10 +18,14 @@ func after_each() -> void:
 	SaveFile.remove(RECORDS)
 
 
+## Fields added after the levels moved, each held by its own task's tests: the bombs' chances (SF2, test_bot_bombs).
+const LATER_FIELDS: Array[String] = ["smoke_chance", "flash_chance"]
+
+
 func _described(s: BotSkill) -> String:
 	var out: PackedStringArray = []
 	for p in s.get_property_list():
-		if int(p.usage) & PROPERTY_USAGE_SCRIPT_VARIABLE:
+		if int(p.usage) & PROPERTY_USAGE_SCRIPT_VARIABLE and not String(p.name) in LATER_FIELDS:
 			out.append("%s=%s" % [p.name, str(s.get(p.name))])
 	return ";".join(out)
 
