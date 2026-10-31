@@ -11,6 +11,10 @@ extends RefCounted
 ## What a ping marks: a spot on the field, or an enemy seen there.
 enum Kind { SPOT, CONTACT }
 
+## A PING event's value for a ping placed on the full-screen map at its position (FM1); 1 is one along the view that met
+## the field, 0 one at nothing.
+const ON_MAP := GameEvent.PING_ON_MAP
+
 
 ## One character's ping: who placed it and their team, what it marks, where the marker goes (the point the view met, or
 ## the enemy's chest), the floor spot the bots go to or watch (the nearest walkable one to the point, or the enemy's
@@ -72,12 +76,23 @@ func clear() -> void:
 ## their last ping is less than PingConfig.min_gap old (a double click is one ping). An enemy in play under the view,
 ## nearer than what it meets behind them and seen by the bots' sight rules from the pinger's eyes (BotSenses
 ## .visible_part, as far as a ping reaches: so never one hidden in a bush, in the dark or behind a body), makes it a
-## contact; otherwise it marks the floor in front of what the view met.
+## contact; otherwise it marks the floor in front of what the view met. One placed on the full-screen map (FM1: value
+## 2) marks the floor there (map_spot), never an enemy: the map shows only what your side heard.
 func place(e: GameEvent, now: float, w: BotWorld) -> Ping:
 	var leader := _character(w, e.actor)
 	var p := of(e.actor)
 	if leader == null or p == null or not Elimination.is_in_play(leader) or now - p.at < _cfg.min_gap:
 		return null
+	if e.value == ON_MAP:
+		var at := map_spot(e.position, w)
+		if not SquadOrders.is_spot(at):
+			return null
+		p.kind = Kind.SPOT
+		p.enemy_id = -1
+		p.point = at
+		p.spot = at
+		_placed(p, leader, now, false)
+		return p
 	var met := e.value == 1
 	var eye := e.position
 	var dir := e.direction
@@ -96,6 +111,26 @@ func place(e: GameEvent, now: float, w: BotWorld) -> Ping:
 		return null
 	_placed(p, leader, now, false)
 	return p
+
+
+## Where a Go there ping `e` (FM1, PlayerCommand.ping_move) sends the pinger's teammates: the floor in front of what
+## the view met (as a spot ping's), or for one on the map, map_spot; NO_SPOT (SquadOrders) for a view that met nothing.
+func move_spot(e: GameEvent, w: BotWorld) -> Vector3:
+	if e.value == ON_MAP:
+		return map_spot(e.position, w)
+	if e.value != 1:
+		return SquadOrders.NO_SPOT
+	return _floor_spot(e.position + e.direction * e.reach, e.direction, e.reach, w)
+
+
+## The floor spot for a ping on the full-screen map at `at` (x and z picked, y the floor of the storey shown): the
+## nearest walkable one within PingConfig.map_snap, judged map_lift above that floor; NO_SPOT with none (inside a
+## building's walls, off the field).
+func map_spot(at: Vector3, w: BotWorld) -> Vector3:
+	if w.nav == null:
+		return SquadOrders.NO_SPOT
+	var k := w.nav.nearest_walkable(at + Vector3.UP * _cfg.map_lift, _cfg.map_snap)
+	return w.nav.node_position(k) if k >= 0 else SquadOrders.NO_SPOT
 
 
 ## A teammate's sighting call marks `enemy` for its team (Callouts, data/callouts.md › Marks): `caller`'s ping, a
