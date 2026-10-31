@@ -9,7 +9,7 @@ var depot: MapData = null
 
 
 func before_all() -> void:
-	depot = MapData.load_map("depot", play.map_style, 1)
+	depot = YardMap.load_map(play.map_style, 1)
 
 
 func _build(map: MapData = depot) -> SkylineView:

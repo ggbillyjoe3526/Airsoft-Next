@@ -428,6 +428,16 @@ func skill_for(level: StringName) -> BotSkill:
 	return skill
 
 
+## This tuning as bots play `map`: a map naming its own bot sight (MapData.bot_sight, a hall with longer views, DR1)
+## sees that far, on a copy; otherwise this config itself.
+func for_map(map: MapData) -> BotConfig:
+	if map == null or map.bot_sight <= 0.0 or is_equal_approx(map.bot_sight, view_distance):
+		return self
+	var out := duplicate() as BotConfig
+	out.view_distance = map.bot_sight
+	return out
+
+
 ## The game's bot tuning (bot_tuning.tres), or the built-in values with a warning if it can't be loaded.
 static func load_default() -> BotConfig:
 	var res := load(DEFAULT_PATH) as BotConfig

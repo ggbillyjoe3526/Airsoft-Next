@@ -118,8 +118,26 @@ func test_gravel_and_steel_plate_carry_1_35_and_the_rest_1() -> void:
 		assert_eq(noise.carry(s), 1.0)
 
 
-func test_depots_level_lists_its_noisy_props_and_none_of_its_walls() -> void:
+func test_the_halls_drums_barrels_containers_racks_and_crates_are_noisy_and_its_plywood_is_not() -> void:
 	var map := MapData.load_map("depot", MapStyle.new(), tuning.rounds.team_size)
+	var level := MapLevel.new()
+	add_child(level)
+	level.build(map, MapStyle.new(), tuning.body)
+	var props := PropNoise.new(noise, level.query())
+	var kinds: Dictionary[StringName, int] = {}
+	for i in props.count():
+		kinds[level.query().block_kinds[props.block[i]]] = 1
+	for k: StringName in [&"drum", &"barrel", &"container", &"rack", &"crate"]:
+		assert_true(kinds.has(k), "the hall's %s is noisy" % k)
+	for k: StringName in [&"plywood", &"pillar", &"net", &"wall"]:
+		assert_false(kinds.has(k), "the hall's %s is silent" % k)
+	assert_true(props.rings, "the hall's steel rings")
+	level.free()
+
+
+# The old Depot (the yard fixture since DR1) and its skip, generator, IBC, toilet and pallet loads.
+func test_depots_level_lists_its_noisy_props_and_none_of_its_walls() -> void:
+	var map := YardMap.load_map(MapStyle.new(), 3)
 	var level := MapLevel.new()
 	add_child(level)
 	level.build(map, MapStyle.new(), tuning.body)

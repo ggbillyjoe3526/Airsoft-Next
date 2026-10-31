@@ -20,7 +20,7 @@ var spot: Vector3 = Vector3.ZERO
 
 
 func before_all() -> void:
-	map = MapData.load_map("depot", MapStyle.new(), tuning.rounds.team_size)
+	map = YardMap.load_map(MapStyle.new(), tuning.rounds.team_size) # the old Depot: its open overtime flag (DR1)
 	level = MapLevel.new()
 	add_child(level)
 	level.build(map, MapStyle.new(), tuning.body)

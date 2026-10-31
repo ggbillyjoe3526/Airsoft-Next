@@ -159,7 +159,7 @@ func test_a_pause_holds_the_lines_on_screen() -> void:
 func test_there_is_one_marker_for_each_teammate_only() -> void:
 	session = _session()
 	await wait_physics_frames(2)
-	assert_eq(session.hud().team_markers().count(), SimTuning.new().rounds.team_size - 1)
+	assert_eq(session.hud().team_markers().count(), session._tuning.rounds.team_size - 1)
 
 
 func test_teammates_get_a_marker_and_enemies_never_do() -> void:
@@ -171,7 +171,7 @@ func test_teammates_get_a_marker_and_enemies_never_do() -> void:
 	var camera := Camera3D.new()
 	add_child_autofree(camera)
 	var mate := state.characters[1]
-	var enemy := state.characters[4]
+	var enemy := state.characters[state.characters.size() - 1]
 	for c: Character in [mate, enemy]:
 		c.position = Vector3(20.0, 0.0, -8.0)
 		c.prev_position = c.position
@@ -203,16 +203,16 @@ func test_a_teammate_crouched_behind_low_cover_gets_a_hollow_marker() -> void:
 	add_child_autofree(camera)
 	var hud := session.hud()
 	var markers := hud.team_markers()
-	# Depot's sandbags (1.2 m high, z -9 to -7.8 at x -8.8), seen from a few metres off at a low aim.
-	var behind := Vector3(-8.8, 0.0, -9.6)
-	camera.global_position = Vector3(-8.8, 1.3, -4.0)
+	# A crate in Depot's Chrono hall (1.1 m high, z 4.5 to 5.5 at x -4), seen from a few metres off at a low aim.
+	var behind := Vector3(-4.0, 0.0, 6.2)
+	camera.global_position = Vector3(-4.0, 1.3, 0.0)
 	camera.look_at(behind + Vector3.UP)
 	mate.position = behind
 	mate.prev_position = behind
 	mate.crouch_amount = 1.0
 	_place_all(hud, camera, state)
 	assert_true(markers.is_shown(mate.id), "seen through cover too")
-	assert_true(markers.is_hollow(mate.id), "crouched behind the sandbags: hidden, though the marker clears them")
+	assert_true(markers.is_hollow(mate.id), "crouched behind the crate: hidden, though the marker clears them")
 	mate.crouch_amount = 0.0
 	_place_all(hud, camera, state)
 	assert_false(markers.is_hollow(mate.id), "standing, the head shows over them")

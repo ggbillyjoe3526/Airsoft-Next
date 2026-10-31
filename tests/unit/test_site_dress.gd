@@ -23,8 +23,14 @@ func _map(id: String) -> MapData:
 func _level(m: MapData, site: SiteLook) -> MapLevel:
 	var level := MapLevel.new()
 	add_child_autofree(level)
-	level.build(m, play.map_style, tuning.body, play.baked_light, play.lighting, false, site)
+	level.build(m, play.map_style, tuning.body, play.baked_light, LightingConfig.for_map(play.lighting, null, m,
+			LightingConfig.DAY), false, site)
 	return level
+
+
+## The old yard (YardMap; Depot until DR1): its gravel beds, dock, sandbags and stencils, dressed as before.
+func _yard() -> MapData:
+	return YardMap.load_map(play.map_style, tuning.rounds.team_size)
 
 
 func _drawn(level: MapLevel) -> MeshInstance3D:
@@ -58,7 +64,7 @@ func test_every_block_of_depot_and_the_range_has_a_finish_of_its_own() -> void:
 
 
 func test_the_gravel_beds_dock_and_slab_are_told_apart() -> void:
-	var m := _map("depot")
+	var m := _yard()
 	var finishes: Dictionary[StringName, int] = {}
 	for b in m.blocks:
 		if b.kind == &"floor":
@@ -139,8 +145,8 @@ func test_a_map_paints_no_more_bay_lines_than_the_shader_draws() -> void:
 	assert_eq(warnings.size(), 2, "the extras warned: %s" % [warnings])
 
 
-func test_depot_paints_bay_lines_on_open_slab_and_a_hazard_lip_on_its_dock() -> void:
-	var m := _map("depot")
+func test_the_yard_paints_bay_lines_on_open_slab_and_a_hazard_lip_on_its_dock() -> void:
+	var m := _yard()
 	assert_gt(m.site.lines.size(), 0, "Depot paints its bay lines")
 	var slab: MapData.Block = null
 	var dock: MapData.Block = null
@@ -175,8 +181,8 @@ func test_depot_paints_bay_lines_on_open_slab_and_a_hazard_lip_on_its_dock() -> 
 	assert_eq(mat.get_shader_parameter(&"hazard_lip"), look.hazard_lip)
 
 
-func test_depot_s_stencils_name_its_areas_on_a_wall_and_read_against_it() -> void:
-	var m := _map("depot")
+func test_the_yard_s_stencils_name_its_areas_on_a_wall_and_read_against_it() -> void:
+	var m := _yard()
 	var areas: Array[String] = []
 	for a in m.areas:
 		areas.append(a.name)
@@ -195,7 +201,7 @@ func test_depot_s_stencils_name_its_areas_on_a_wall_and_read_against_it() -> voi
 
 
 func test_the_site_mesh_is_the_greybox_s_faces_with_sandbags_drawn_inside_their_bags() -> void:
-	var m := _map("depot")
+	var m := _yard()
 	var level := _level(m, look)
 	assert_not_null(level.site_material())
 	var site := _drawn(level)
@@ -283,7 +289,7 @@ func test_details_stay_within_their_blocks_or_out_of_reach() -> void:
 
 
 func test_sandbags_fill_their_stacks() -> void:
-	var m := _map("depot")
+	var m := _yard()
 	var dress := SiteDress.build(m, look, _level(m, look).site_material())
 	add_child_autofree(dress)
 	var shades := PackedFloat32Array()

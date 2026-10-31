@@ -32,8 +32,13 @@ func _map(id: String) -> MapData:
 func _level(m: MapData, site: SiteLook, night: bool = false) -> MapLevel:
 	var level := MapLevel.new()
 	add_child_autofree(level)
-	level.build(m, play.map_style, tuning.body, play.baked_light, play.lighting, night, site)
+	level.build(m, play.map_style, tuning.body, play.baked_light, _sun(m), night, site)
 	return level
+
+
+## The sun `m` is baked under: the day preset as the map sets it (PlaySession passes the same).
+func _sun(m: MapData) -> LightingConfig:
+	return LightingConfig.for_map(play.lighting, null, m, LightingConfig.DAY)
 
 
 func _drawn(level: MapLevel) -> MeshInstance3D:
@@ -90,7 +95,7 @@ func _slot_box(c0: PackedFloat32Array, c1: PackedFloat32Array, v: int) -> Array:
 func _rays(m: MapData, site: SiteLook) -> PackedStringArray:
 	var level := MapLevel.new()
 	add_child(level)
-	level.build(m, play.map_style, tuning.body, play.baked_light, play.lighting, false, site)
+	level.build(m, play.map_style, tuning.body, play.baked_light, _sun(m), false, site)
 	var out := PackedStringArray()
 	for blk in m.blocks:
 		if blk.rise != MapData.Rise.NONE or blk.size.y < 0.5:
@@ -127,8 +132,8 @@ func test_the_site_key_changes_nothing_the_simulation_reads() -> void:
 		assert_eq(dressed.areas.size(), plain.areas.size())
 		assert_eq(dressed.ends.size(), plain.ends.size())
 		assert_eq(dressed.skyline.size(), plain.skyline.size())
-		var hash_a := BakedLight.hash_of(dressed, play.map_style, play.lighting, play.baked_light)
-		var hash_b := BakedLight.hash_of(plain, play.map_style, play.lighting, play.baked_light)
+		var hash_a := BakedLight.hash_of(dressed, play.map_style, _sun(dressed), play.baked_light)
+		var hash_b := BakedLight.hash_of(plain, play.map_style, _sun(plain), play.baked_light)
 		assert_eq(hash_a, hash_b, "%s: the bake's hash is the same" % id)
 		var nav_a := NavGrid.build(dressed, tuning.nav, tuning.body)
 		var nav_b := NavGrid.build(plain, tuning.nav, tuning.body)
@@ -180,7 +185,7 @@ func test_every_site_vertex_sits_inside_the_box_and_finish_its_channels_name() -
 
 
 func test_the_baked_site_mesh_keeps_the_tiles_and_draws_sandbags_inside_their_bags() -> void:
-	var m := _map("depot")
+	var m := _map("range") # Depot's hall has no sandbags; the range keeps two stacks
 	var level := _level(m, look)
 	level.set_baked_light(true)
 	assert_true(level.baked_light_drawn())
@@ -275,6 +280,8 @@ func test_every_mesh_detail_but_low_draws_the_full_site() -> void:
 
 func test_a_match_on_low_reaches_the_dress_and_its_bags_too() -> void:
 	var session := PlaySession.new()
+	session.map_id = "range" # Depot's hall has no sandbags; the range keeps two stacks
+	session.practice = true
 	session.autopilot = true
 	add_child_autofree(session)
 	await wait_physics_frames(2)
@@ -327,10 +334,15 @@ func test_a_greybox_map_given_a_look_stays_greybox() -> void:
 
 func test_every_parameter_the_site_shaders_read_is_set_by_the_game() -> void:
 	for id in DRESSED:
-		var mat := SiteSurface.material(look, _map(id))
+		var m := _map(id)
+		var mat := SiteSurface.material(look, m)
+		# the wet mask is set only on a map with puddles; without one wet_rect's zero width skips it in the shader
+		var unread: Array[StringName] = [&"low"]
+		if m.puddles.is_empty():
+			unread.append_array([&"wet_tex", &"wet_rect"])
 		var unset: Array[String] = []
 		for u: Dictionary in mat.shader.get_shader_uniform_list():
-			if u["name"] != &"low" and mat.get_shader_parameter(u["name"]) == null:
+			if not unread.has(StringName(u["name"])) and mat.get_shader_parameter(u["name"]) == null:
 				unset.append(u["name"])
 		assert_eq(unset, [] as Array[String], "%s: a renamed parameter would be set on nothing and read as zero" % id)
 	var lighting := FieldLighting.build(play.lighting)
@@ -430,7 +442,7 @@ func _dress_cycle(id: String) -> void:
 	var m := _map(id)
 	var level := MapLevel.new()
 	add_child(level)
-	level.build(m, play.map_style, tuning.body, play.baked_light, play.lighting, false, look)
+	level.build(m, play.map_style, tuning.body, play.baked_light, _sun(m), false, look)
 	level.set_baked_light(true)
 	level.set_baked_light(false)
 	var dress := SiteDress.build(m, look, level.site_material())
@@ -488,7 +500,7 @@ func test_leaving_a_dressed_match_over_and_over_leaves_no_node_or_resource() -> 
 
 
 func _parse(mutate: Callable) -> MapData:
-	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(MapData.DIR + "depot.json"))
+	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(YardMap.PATH)) # the old yard keeps a sail
 	mutate.call(d["dressing"])
 	return MapData.parse(JSON.stringify(d), play.map_style, tuning.rounds.team_size)
 
@@ -509,7 +521,7 @@ func test_a_bad_stencil_or_sail_is_left_out_of_a_real_map_and_the_good_ones_stay
 		(site["stencils"] as Array).append("Hall")
 		(site["sails"] as Array).append({"corners": [], "post": 0.5}))
 	assert_true(m.ok())
-	var clean := _map("depot")
+	var clean := YardMap.load_map(play.map_style, tuning.rounds.team_size)
 	assert_eq(m.site.stencils.size(), clean.site.stencils.size(), "the good stencils stay")
 	assert_eq(m.site.sails.size(), clean.site.sails.size(), "the good sail stays")
 	var warned := m.warnings.filter(func(w: String) -> bool: return w.contains("dressing.site"))

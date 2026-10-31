@@ -13,7 +13,9 @@ in `docs/PROCESS.md`.
   (2026-10-30). The owner creates tags.
 - **Building 0.1 Dev 2** (owner, 2026-10-30): basic smoke and flash bombs, thrown by bots too (done: SF1, SF2), a
   full-screen map and a Go there ping (owner, 2026-10-31; done: FM1), then Depot and Woodland redesigned larger and
-  dressed (step 28). The rest of 0.1 ([What 0.1 is](#what-01-is)) follows in later Dev builds.
+  dressed (step 28). Depot is the owner's concept 3, an indoor hall (2026-10-31): the map (done: DR1), then doors
+  (DO1), two flags in Attack / Defend (AB1) and its CC0 dress (DR2). The rest of 0.1 ([What 0.1 is](#what-01-is))
+  follows in later Dev builds.
 - **The release path** (owner, 2026-10-12): 0.1 Dev builds, 0.1 Beta, then 0.1 (tagged `0.1.0`) opens Early
   Access to the public.
   Themed updates follow (Replica, Modes, Maps, Progression and any more), up to 1.0, the full launch. See

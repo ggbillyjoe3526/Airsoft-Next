@@ -24,6 +24,8 @@ enum Canvas {
 	&"sandbags": Canvas.FABRIC, &"skip": Canvas.PAINT, &"ramp": Canvas.TREAD, &"timber": Canvas.TIMBER,
 	&"frame": Canvas.PAINT, &"steel": Canvas.PAINT, &"hazard": Canvas.PAINT, &"net": Canvas.FABRIC,
 	&"flag": Canvas.FABRIC, &"coping": Canvas.PRECAST, &"sail": Canvas.FABRIC, &"default": Canvas.PAINT,
+	&"drum": Canvas.PAINT, &"barrel": Canvas.PAINT, &"pillar": Canvas.PAINT, &"netting": Canvas.FABRIC,
+	&"sofa": Canvas.FABRIC,
 }
 @export var paints: Dictionary[StringName, Color] = {
 	&"slab": Color(0.56, 0.54, 0.5), &"dock": Color(0.6, 0.58, 0.54), &"gravel": Color(0.56, 0.54, 0.5),
@@ -36,6 +38,10 @@ enum Canvas {
 	&"timber": Color(0.62, 0.55, 0.4), &"frame": Color(1.0, 1.0, 1.0), &"steel": Color(0.5, 0.5, 0.48),
 	&"hazard": Color(0.86, 0.72, 0.12), &"net": Color(0.29, 0.31, 0.22), &"flag": Color(0.74, 0.6, 0.16),
 	&"coping": Color(0.7, 0.68, 0.64), &"sail": Color(0.9, 0.86, 0.76), &"default": Color(0.6, 0.6, 0.6),
+	# Depot's hall (DR1), MapStyle's colours: tan fibre drums, olive-grey barrels, raspberry pillars, teal netting, a
+	# plum sofa, each off both team hues.
+	&"drum": Color(0.72, 0.64, 0.36), &"barrel": Color(0.3, 0.33, 0.28), &"pillar": Color(0.62, 0.16, 0.4),
+	&"netting": Color(0.2, 0.55, 0.53), &"sofa": Color(0.42, 0.31, 0.48),
 }
 @export var accents: Dictionary[StringName, Color] = {
 	&"dock": Color(0.86, 0.72, 0.12), &"gravel": Color(0.42, 0.39, 0.35), &"wall_outer": Color(0.55, 0.56, 0.52),
@@ -70,7 +76,8 @@ enum Canvas {
 	&"sandbags": Vector2(0.97, 0.0), &"skip": Vector2(0.5, 0.3), &"ramp": Vector2(0.45, 0.7),
 	&"timber": Vector2(0.85, 0.0), &"frame": Vector2(0.5, 0.4), &"steel": Vector2(0.4, 0.7),
 	&"hazard": Vector2(0.6, 0.0), &"net": Vector2(1.0, 0.0), &"flag": Vector2(1.0, 0.0),
-	&"coping": Vector2(0.8, 0.0), &"sail": Vector2(1.0, 0.0),
+	&"coping": Vector2(0.8, 0.0), &"sail": Vector2(1.0, 0.0), &"drum": Vector2(0.8, 0.0), &"barrel": Vector2(0.45, 0.6),
+	&"pillar": Vector2(0.4, 0.6), &"netting": Vector2(1.0, 0.0), &"sofa": Vector2(0.95, 0.0),
 }
 ## The finish of each block kind; a kind not listed is `default`. Floors, walls, containers and barriers pick among
 ## theirs by shape (`finish_of`).
@@ -78,6 +85,7 @@ enum Canvas {
 	&"floor": &"slab", &"wall": &"wall_inner", &"container": &"container", &"plywood": &"plywood", &"crate": &"crate",
 	&"barrier": &"hoarding", &"wrapped": &"wrapped", &"rack": &"rack", &"gabion": &"gabion", &"toilet": &"toilet",
 	&"ibc": &"ibc", &"generator": &"generator", &"sandbags": &"sandbags", &"skip": &"skip", &"ramp": &"ramp",
+	&"drum": &"drum", &"barrel": &"barrel", &"pillar": &"pillar", &"net": &"netting", &"sofa": &"sofa",
 }
 ## A floor this thin (m) or thinner is a gravel bed, one standing on the ground (its centre above 0) the dock; a wall
 ## this tall (m) or more is the perimeter's; a barrier this low or lower and this long or longer is a precast

@@ -20,7 +20,7 @@ func after_all() -> void:
 
 
 func _depot() -> MapData:
-	return MapData.load_map("depot", style, 1)
+	return YardMap.load_map(style, 1)
 
 
 func _ramp(m: MapData, rise: MapData.Rise) -> MapData.Block:

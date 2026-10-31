@@ -28,6 +28,13 @@ extends Resource
 	&"tree": RayHit.Surface.WOOD,
 	&"log": RayHit.Surface.WOOD,
 	&"fence": RayHit.Surface.WOOD,
+	# Depot's warehouse (DR1): fibre drums and the sofa soak BBs up like wood, steel barrels and pillars ring, and the
+	# netting's fine mesh stops a BB dead, nearest to wood.
+	&"drum": RayHit.Surface.WOOD,
+	&"barrel": RayHit.Surface.METAL,
+	&"pillar": RayHit.Surface.METAL,
+	&"net": RayHit.Surface.WOOD,
+	&"sofa": RayHit.Surface.WOOD,
 }
 ## Each kind's greybox colour (sRGB). Kinds not listed take `default_colour`.
 @export var colours: Dictionary[StringName, Color] = {
@@ -50,6 +57,13 @@ extends Resource
 	&"tree": Color(0.37, 0.34, 0.29),
 	&"log": Color(0.50, 0.46, 0.40),
 	&"fence": Color(0.58, 0.53, 0.45),
+	# Depot's warehouse (DR1), off both team hues: tan fibre drums, olive-grey steel barrels, raspberry steel pillars,
+	# teal netting, a plum sofa.
+	&"drum": Color(0.72, 0.64, 0.36),
+	&"barrel": Color(0.30, 0.33, 0.28),
+	&"pillar": Color(0.62, 0.16, 0.40),
+	&"net": Color(0.20, 0.55, 0.53),
+	&"sofa": Color(0.42, 0.31, 0.48),
 }
 ## Surfaces drawn in their own colour whatever their block's kind (RayHit.Surface to sRGB): a gravel bed on the slab.
 @export var surface_colours: Dictionary[int, Color] = {

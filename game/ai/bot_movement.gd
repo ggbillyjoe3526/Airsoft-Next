@@ -98,8 +98,9 @@ static func _pick_flag_spot(b: Bot, w: BotWorld) -> void:
 
 
 ## Overtime (OV2): the way to the flag at `flag` goes round by a point overtime_flank_offset to one side of the straight
-## way and overtime_flank_back short of the flag (walkable, on the flag's floor), so it comes at it from the side; none
-## from closer than overtime_flank_min_distance, or where neither side has floor.
+## way and overtime_flank_back short of the flag (walkable, on the flag's floor; where a pillar or a hut's clearance
+## covers that point, the nearest walkable spot within the nav's snap), so it comes at it from the side; none from
+## closer than overtime_flank_min_distance, or where neither side has floor near.
 static func _overtime_flank_point(b: Bot, w: BotWorld, flag: Vector3) -> void:
 	var cfg := w.cfg
 	var p := b.character.position
@@ -113,9 +114,17 @@ static func _overtime_flank_point(b: Bot, w: BotWorld, flag: Vector3) -> void:
 		var side := first if i == 0 else -first
 		var x := flag.x - u.x * cfg.overtime_flank_back - u.y * cfg.overtime_flank_offset * side
 		var z := flag.z - u.y * cfg.overtime_flank_back + u.x * cfg.overtime_flank_offset * side
-		if not _on_same_floor(w, flag, x, z):
-			continue
-		b.flank_goal = Vector3(x, w.nav.floor_at(Vector3(x, flag.y, z)), z)
+		var goal := Vector3(x, flag.y, z)
+		if _on_same_floor(w, flag, x, z):
+			goal.y = w.nav.floor_at(goal)
+		else:
+			var k := w.nav.nearest_walkable(goal, w.tuning.nav.snap)
+			if k < 0:
+				continue
+			goal = w.nav.node_position(k)
+			if absf(goal.y - flag.y) > w.tuning.body.max_step:
+				continue
+		b.flank_goal = goal
 		b.flanking = true
 		return
 

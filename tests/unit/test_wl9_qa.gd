@@ -1,17 +1,15 @@
 extends GutTest
-## WL9 hunted for what the worker's own tests leave open: the range's layout and Depot's play area byte for byte as
+## WL9 hunted for what the worker's own tests leave open: the range's layout byte for byte as
 ## before the move into Depot's site (owner, 2026-10-24), the range's skyline clear of its blocks, no practice target
 ## inside a solid block, the pause menu's Timed challenge row coming back, an older records file loading clean, the
 ## Match page after the saved Range and Practice, and Practice resumed on a field after the Loadout.
 
-## SHA-256 of the pretty-printed, key-sorted JSON of the range's gameplay keys and of Depot's, taken from the files as
-## they stood on main before WL9 (the dressing is what WL9 changes; none of these keys are dressing).
+## SHA-256 of the pretty-printed, key-sorted JSON of the range's gameplay keys, taken from the file as it stood on main
+## before WL9 (the dressing is what WL9 changes; none of these keys are dressing). Depot's twin went with DR1, which
+## rebuilt Depot as the hall; the old play area is the yard fixture (tests/support/maps/yard.json).
 const RANGE_KEYS: Array[String] = ["name", "blocks", "killY", "spawns", "deadZones", "lanes", "targets", "bakedLight",
 		"keepClear"]
 const RANGE_PLAY_SHA := "a6c3b53cd243442018d2a4dd670abe004bbcd369ff5b44b4e52a874358712511"
-const DEPOT_KEYS: Array[String] = ["name", "blocks", "killY", "spawns", "deadZones", "lanes", "flag", "overtimeFlag",
-		"extraction", "bakedLight", "areas"]
-const DEPOT_PLAY_SHA := "c96f37e960034f6ae25f84475684debcdeed0e231840d3cf95f1857fd152488a"
 const MAPS: Array[String] = ["depot", "woodland"]
 
 var tuning: SimTuning = SimTuning.load_default()
@@ -29,11 +27,6 @@ func _sha_of(path: String, keys: Array[String]) -> String:
 func test_the_ranges_layout_data_is_exactly_what_it_was_before_it_moved_into_depot() -> void:
 	assert_eq(_sha_of("res://data/maps/range.json", RANGE_KEYS), RANGE_PLAY_SHA,
 			"blocks, lanes, targets, spawns, dead zones, kill height, baked light and keep-clear are untouched")
-
-
-func test_depots_play_area_is_exactly_what_it_was_before_its_water_tower_and_shed_moved() -> void:
-	assert_eq(_sha_of("res://data/maps/depot.json", DEPOT_KEYS), DEPOT_PLAY_SHA,
-			"only skyline pieces moved: nothing reachable or BB-blocking changed")
 
 
 func test_the_ranges_skyline_pokes_into_none_of_its_blocks() -> void:

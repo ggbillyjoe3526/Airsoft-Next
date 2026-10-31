@@ -152,12 +152,15 @@ func test_a_flanker_whose_roll_came_up_goes_round_a_side_point_once_and_not_from
 	assert_gte(_flat(p, spot), config.overtime_flank_min_distance, "far enough out to flank")
 	BotMovement.enter_flag(b, w)
 	assert_true(b.flanking, "round the side first")
+	# The side point itself, or where the hall's huts and pillars cover it the nearest walkable spot within the snap.
+	assert_true(nav.is_walkable_at(b.flank_goal), "on walkable ground")
+	var reach := tuning.nav.snap
 	assert_almost_eq(_flat(b.flank_goal, spot), Vector2(config.overtime_flank_offset, config.overtime_flank_back).length(),
-			0.05)
+			reach)
 	# Off the straight way to the flag, to one side of it.
 	var u := Vector2(spot.x - p.x, spot.z - p.z).normalized()
 	var side := absf((b.flank_goal.x - spot.x) * -u.y + (b.flank_goal.z - spot.z) * u.x)
-	assert_almost_eq(side, config.overtime_flank_offset, 0.05)
+	assert_almost_eq(side, config.overtime_flank_offset, reach)
 	assert_false(b.overtime_flank, "used up")
 	assert_eq(b.flag_goal, spot, "then on for the foot")
 	# From close by it goes straight.

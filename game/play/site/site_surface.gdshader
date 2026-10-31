@@ -27,7 +27,7 @@ const int FLAG_HAZARD = 2;
 const int FLAG_PALETTE = 4;
 const int FLAG_TINT = 8;
 const int FLAG_NO_BEVEL = 16;
-const int FINISHES = 32;
+const int FINISHES = 40;
 const int MARK_TUFT = 0;
 const int MARK_CHIP = 1;
 const int MARK_RUST_FOOT = 2;
@@ -45,11 +45,11 @@ const int MARK_DIRT_FOOT = 13;
 const int MARK_BAY_LINE = 14;
 const int LINES = 16;
 
-uniform int modes[32];
-uniform vec3 paints[32];
-uniform vec3 accents[32];
-uniform vec2 bands[32];
-uniform vec2 pbr[32];
+uniform int modes[40];
+uniform vec3 paints[40];
+uniform vec3 accents[40];
+uniform vec2 bands[40];
+uniform vec2 pbr[40];
 uniform vec3 container_paint[8];
 uniform vec3 marks[15];
 // The slab's painted bay lines: centre (x, z) and half size (x, z); the dock's hazard lip, from and to below its top.

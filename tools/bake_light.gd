@@ -38,7 +38,8 @@ func _run() -> void:
 			failed = true
 			continue
 		var started := Time.get_ticks_msec()
-		var bake := bake_map(m, tuning.map_style, tuning.lighting, tuning.baked_light)
+		var sun := LightingConfig.for_map(tuning.lighting, null, m, LightingConfig.DAY)
+		var bake := bake_map(m, tuning.map_style, sun, tuning.baked_light)
 		var path := BakeConfig.path_for(m.baked_light_file)
 		DirAccess.make_dir_recursive_absolute(BakeConfig.DIR)
 		var err := save(bake, path)

@@ -20,6 +20,6 @@ warning; a map with no row is not listed.
 
 | Id | Name | Kind | Tag | Min | Standard | Max | Blurb |
 |---|---|---|---|---|---|---|---|
-| depot | Depot | field | public | 1 | 3 | 3 | An abandoned warehouse yard. |
+| depot | Depot | field | public | 5 | 5 | 6 | An indoor airsoft hall: three lanes, two dark tunnels. |
 | woodland | Woodland | field | public | 5 | 5 | 6 | A wide wood with a hill, at night. |
 | range | Range | range | public | 1 | 1 | 1 | Targets 10 to 60 m. No bots, no score. |

@@ -42,6 +42,8 @@ const SOUND_NAMES: PackedStringArray = ["steel", "clank", "rattle", "glass", "pl
 	# Smaller steel: a generator, an IBC's cage.
 	&"generator": Sound.CLANK,
 	&"ibc": Sound.CLANK,
+	# A hall's steel oil drums (DR1).
+	&"drum": Sound.CLANK,
 	# Loose things on and in them: a rack's stock, a stall's pans, the cans in a vending machine.
 	&"rack": Sound.RATTLE,
 	&"stall": Sound.RATTLE,
@@ -51,6 +53,8 @@ const SOUND_NAMES: PackedStringArray = ["steel", "clank", "rattle", "glass", "pl
 	# Hollow plastic: a site toilet, an arcade cabinet.
 	&"toilet": Sound.PLASTIC,
 	&"cabinet": Sound.PLASTIC,
+	# A hall's plastic barrels (DR1).
+	&"barrel": Sound.PLASTIC,
 	# Timber: crates, pallet loads, Woodland's board fence.
 	&"crate": Sound.WOOD,
 	&"wrapped": Sound.WOOD,

@@ -2,6 +2,7 @@ extends GutTest
 ## Depot's ports and the Box (DP1), with Jolt rays on the built level: through every port a standing eye sees out and a
 ## crouched one does not, no port or Box opening can be vaulted, a BB fired up inside the Box stops on its roof, and bots
 ## from each end walk into the Box by its doors. The ports are found in the data: a sill and a lintel over one footprint.
+## On the old yard (tests/support/maps/yard.json, YardMap) since Depot became the indoor hall (DR1).
 
 const DT := 1.0 / 60.0
 ## The Box (its area in depot.json): its walls' outer faces, x then z.
@@ -39,7 +40,7 @@ class Port:
 
 
 func before_all() -> void:
-	map = MapData.load_map("depot", style, tuning.rounds.team_size)
+	map = YardMap.load_map(style, tuning.rounds.team_size)
 	assert_true(map.ok(), str(map.problems))
 	level = MapLevel.new()
 	add_child(level)

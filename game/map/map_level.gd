@@ -29,6 +29,8 @@ const GRID_LINE := 2
 const REBAKE := "rebake with tools/bake_light.gd"
 ## Sloping ground is drawn in tiles of whole ground squares at most this many metres a side (WL4).
 const TERRAIN_TILE := 32.0
+## An indoor field's ceiling collider's thickness (m), over the roof's height (DR1).
+const CEILING_THICKNESS := 0.2
 
 
 var map: MapData = null
@@ -98,6 +100,8 @@ func build(m: MapData, style: MapStyle, body: BodyConfig, light: BakeConfig = nu
 		_bodies[b.surface].add_child(shape)
 	if m.terrain != null:
 		_add_terrain_shapes(m.terrain)
+	if m.roof_height > 0.0:
+		_add_ceiling(m)
 	_cast = RayCast3D.new()
 	_cast.name = "LevelRay"
 	_cast.top_level = true
@@ -169,6 +173,23 @@ func _notification(what: int) -> void:
 		for rid in _rids:
 			PhysicsServer3D.free_rid(rid)
 		_rids.clear()
+
+
+## An indoor field's roof as BBs meet it (DR1): steel sheeting over the blocks' whole footprint at the roof's height,
+## so a lob never leaves the hall. Drawn by RoofView, never by the greybox; no block, so the bake, the nav grid and the
+## minimap never see it.
+func _add_ceiling(m: MapData) -> void:
+	var area := m.footprint()
+	if not area.has_area():
+		return
+	var shape := CollisionShape3D.new()
+	shape.name = "Ceiling"
+	var box := BoxShape3D.new()
+	box.size = Vector3(area.size.x, CEILING_THICKNESS, area.size.y)
+	shape.shape = box
+	var middle := area.get_center()
+	shape.position = Vector3(middle.x, m.roof_height + CEILING_THICKNESS * 0.5, middle.y)
+	_bodies[RayHit.Surface.METAL].add_child(shape)
 
 
 ## Sloping ground drawn in tiles under one node, each in the greybox's material, casting shadows: built once, the

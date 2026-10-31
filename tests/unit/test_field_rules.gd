@@ -11,6 +11,8 @@ var tuning: SimTuning
 var maps: Dictionary[String, MapData] = {}
 var navs: Dictionary[String, NavGrid] = {}
 var results: Dictionary[String, Array] = {}
+## The old yard's nav grid (DR1): the rules broken one at a time on its layout.
+var yard_nav: NavGrid = null
 
 
 func before_all() -> void:
@@ -26,6 +28,7 @@ func before_all() -> void:
 		var nav: NavGrid = NavGrid.build(m, tuning.nav, tuning.body) if m.ok() else null
 		navs[e.id] = nav
 		results[e.id] = FieldChecks.run(e, m, nav, style, teams, FieldStandard.allowed_clashes(e.id))
+	yard_nav = NavGrid.build(_depot(), tuning.nav, tuning.body)
 
 
 func after_all() -> void:
@@ -34,9 +37,9 @@ func after_all() -> void:
 	results.clear()
 
 
-## A fresh copy of Depot's data, to break.
+## A fresh copy of the old yard's data (YardMap, Depot until DR1), to break.
 func _depot() -> MapData:
-	return MapData.load_map("depot", style, 1)
+	return YardMap.load_map(style, 1)
 
 
 ## The one result for `id` in `list`.
@@ -127,7 +130,7 @@ func test_a_spawn_lifted_half_a_metre_fails_on_floor() -> void:
 	var m := _depot()
 	var p := m.ends[0].spawns[0].position
 	m.ends[0].spawns[0].position = p + Vector3(0, 0.5, 0)
-	var r := FieldChecks.on_floor(m, navs["depot"])
+	var r := FieldChecks.on_floor(m, yard_nav)
 	assert_eq(r.status, FieldChecks.Status.FAIL)
 	assert_string_contains(r.text, "end 0 spawn 1 at %s is 0.5 m off the floor" % FieldChecks.at(p + Vector3(0, 0.5, 0)))
 
@@ -136,10 +139,10 @@ func test_each_field_reads_its_overtime_flag_and_one_lifted_fails_on_floor() -> 
 	for id in maps:
 		assert_true(maps[id].has_overtime_flag, "%s has a spot for the overtime flag" % id)
 	var m := _depot()
-	assert_eq(m.overtime_flag, Vector3(2.0, 0.0, 1.6), "Depot's spot, as in its file")
+	assert_eq(m.overtime_flag, Vector3(2.0, 0.0, 1.6), "the yard's spot, as in its file")
 	assert_false(MapData.load_map("range", style, 1).has_overtime_flag, "the range has none")
 	m.overtime_flag += Vector3(0, 0.5, 0)
-	var r := FieldChecks.on_floor(m, navs["depot"])
+	var r := FieldChecks.on_floor(m, yard_nav)
 	assert_eq(r.status, FieldChecks.Status.FAIL)
 	assert_string_contains(r.text, "the overtime flag at %s is 0.5 m off the floor" % FieldChecks.at(m.overtime_flag))
 
@@ -245,7 +248,7 @@ func test_the_colour_rule_is_hsl_on_linear_rgb_as_the_browser_measured() -> void
 
 func test_a_walkable_spot_in_no_area_fails_areas() -> void:
 	var m := _depot()
-	var nav := navs["depot"]
+	var nav := yard_nav
 	var spot := Vector3.INF
 	for k in nav.node_count():
 		if nav.walkable[k] == 1:
@@ -270,7 +273,7 @@ func test_a_name_holding_no_walkable_spot_fails_areas() -> void:
 	nowhere.z0 = 500.0
 	nowhere.z1 = 510.0
 	m.areas.append(nowhere)
-	var r := FieldChecks.areas(m, navs["depot"])
+	var r := FieldChecks.areas(m, yard_nav)
 	assert_eq(r.status, FieldChecks.Status.FAIL)
 	assert_string_contains(r.text, "Nowhere")
 

@@ -110,6 +110,10 @@ const PRESETS: Array[StringName] = [DAY, NIGHT]
 class Override:
 	extends RefCounted
 	var key: float = NAN
+	## The sun's height and heading (degrees, as sun_elevation and sun_heading): an indoor field's roof lamps light
+	## from nearly straight over it (DR1).
+	var sun_elevation: float = NAN
+	var sun_heading: float = NAN
 	var fill: float = NAN
 	var exposure_scale: float = NAN
 	var sky_horizon: Color = Color(0, 0, 0, 0)
@@ -173,6 +177,10 @@ func night_sky() -> bool:
 
 
 func _override(o: Override) -> void:
+	if not is_nan(o.sun_elevation):
+		sun_elevation = clampf(o.sun_elevation, 1.0, 90.0)
+	if not is_nan(o.sun_heading):
+		sun_heading = o.sun_heading
 	if not is_nan(o.key) and override_key > 0.0:
 		sun_energy *= o.key / override_key
 	if not is_nan(o.fill) and override_fill > 0.0:
