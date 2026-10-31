@@ -98,6 +98,29 @@ func test_no_spawn_is_seen_from_the_floor() -> void:
 	assert_eq(seen.size(), 0, "spawns seen: %s" % [seen.slice(0, 5)])
 
 
+func test_all_the_floor_outside_the_named_areas_is_racking_or_plywood_rooms() -> void:
+	# Dead space is solid to 3 m (the concept): every spot of the hall in no area stands in a tall block, so no zone edit
+	# opens a crack in the racking (DR1 critic, attempt 3: a 0.5 m strip by the north chicane). Every 0.5 m.
+	var tall: Array[MapData.Block] = []
+	for blk in map.blocks:
+		if blk.center.y + blk.size.y * 0.5 >= 2.0:
+			tall.append(blk)
+	var open := PackedStringArray()
+	for i in 216:
+		for j in 144:
+			var p := Vector3(-54.0 + 0.25 + i * 0.5, 0.0, -36.0 + 0.25 + j * 0.5)
+			if MapAreas.area_at(map.areas, p) != "":
+				continue
+			var inside := false
+			for blk in tall:
+				if absf(p.x - blk.center.x) < blk.size.x * 0.5 and absf(p.z - blk.center.z) < blk.size.z * 0.5:
+					inside = true
+					break
+			if not inside:
+				open.append(str(p))
+	assert_eq(open.size(), 0, "open dead space at %s" % [open.slice(0, 5)])
+
+
 func test_no_lane_starts_or_ends_inside_a_spawn_room() -> void:
 	# A defender or an anchor holds its lane's points nearest its own end (RoundPlanner): those stand at the chicanes'
 	# outer mouths, never in the spawn room, whose screens see nothing (DR1 critic, attempt 2).

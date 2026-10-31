@@ -77,8 +77,7 @@ const EXCEPTIONS: Dictionary[String, Dictionary] = {
 	"depot": {
 		"sightline": 66.0,
 		"sightline_reason": "across the open Chrono hall on the middle lane, Lower mid to Upper mid, 65 m: the owner "
-				+ "asked for a larger, more open hall with longer sight lines and approved concept 3 and its open "
-				+ "middle (2026-10-31, DR1); bots there see 55 m. This line itself is put to him, pending his answer",
+				+ "kept the hall's open middle and this line over breaking it up (2026-10-31, DR1); bots there see 55 m",
 	},
 	"woodland": {
 		"sightline": 141.0,

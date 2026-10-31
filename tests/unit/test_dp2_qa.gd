@@ -10,7 +10,7 @@ const SWITCHES := 12
 ## The meshes the base (origin/main 79969e6) drew, as SHA-256 of vertices, normals and colours (first 16 hex). Woodland
 ## left it in WL1, its ground drawn at last.
 const BASE_HASHES: Dictionary[String, String] = {
-	"depot": "e4b5bd2e7539a5da", # the hall (DR1)
+	"depot": "586553a4cee7abfd", # the hall (DR1)
 	"range": "b0e002855c8e8370",
 }
 

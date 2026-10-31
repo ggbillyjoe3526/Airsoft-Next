@@ -145,11 +145,12 @@ func test_every_spawn_walks_out_through_its_chicane_to_the_floor_without_a_vault
 
 func test_the_middle_of_every_chicane_gap_is_open_to_the_nav_grid() -> void:
 	var shut := PackedStringArray()
-	# The middle of each outer screen's gap (the stairs' two, the A stairs' and the ramp's) and of each corridor
-	# between screens.
-	for p: Vector3 in [Vector3(-51.25, 0, -13.0), Vector3(-51.25, 0, 5.0), Vector3(51.75, 0, -4.5),
-			Vector3(51.75, 0, 13.0), Vector3(-47.0, 0, -11.5), Vector3(-47.0, 0, 3.5), Vector3(47.0, 0, -3.0),
-			Vector3(47.0, 0, 11.5)]:
+	# The middle of each outer screen's gap (the stairs' two, the A stairs' and the ramp's), of each inner screen's gap
+	# and of each corridor between screens (the chicanes as widened on attempt 3).
+	for p: Vector3 in [Vector3(-51.0, 0, -13.0), Vector3(-51.0, 0, 5.0), Vector3(51.75, 0, -4.5),
+			Vector3(51.75, 0, 13.5), Vector3(-47.7, 0, -9.0), Vector3(-47.7, 0, 1.0), Vector3(47.7, 0, -0.5),
+			Vector3(47.7, 0, 9.5), Vector3(-49.5, 0, -11.0), Vector3(-49.5, 0, 3.0), Vector3(49.5, 0, -2.5),
+			Vector3(49.5, 0, 11.5)]:
 		if not nav.is_walkable_at(p):
 			shut.append(str(p))
 	assert_eq(shut.size(), 0, "a chicane gap shut to the nav grid: %s" % [shut])
@@ -180,8 +181,8 @@ func test_the_overtime_flank_point_from_every_side_is_on_the_flags_floor_and_rea
 	world.tuning = tuning
 	world.nav = nav
 	world.query = level.query()
-	var char := Character.new(0, 1, Vector3.ZERO, 0.0, ReplicaStats.default_loadout())
-	var b := Bot.new(char, 1, cfg.skill_for(&"normal"), 1)
+	var body := Character.new(0, 1, Vector3.ZERO, 0.0, ReplicaStats.default_loadout())
+	var b := Bot.new(body, 1, cfg.skill_for(&"normal"), 1)
 	var wrong_floor := PackedStringArray()
 	var cut_off := PackedStringArray()
 	var no_wall := PackedStringArray()
@@ -193,7 +194,7 @@ func test_the_overtime_flank_point_from_every_side_is_on_the_flags_floor_and_rea
 	for deg in 360:
 		var a := deg_to_rad(float(deg))
 		var u := Vector2(cos(a), sin(a))
-		char.position = Vector3(spot.x - u.x * 25.0, spot.y, spot.z - u.y * 25.0)
+		body.position = Vector3(spot.x - u.x * 25.0, spot.y, spot.z - u.y * 25.0)
 		# Where both nominal side points are covered, the old code gave no flank at all.
 		var covered := 0
 		for side: float in [-1.0, 1.0]:

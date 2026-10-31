@@ -8,7 +8,8 @@
 |---|---|---|---|---|---|
 | 2026-10-31 | 1 | thread | parts 2 and 3 red | Retry 6/8 | a 70 m lane down the east wall through the defenders' spawn; an exception without the owner's word; stale docs |
 | 2026-10-31 | 2 | thread | match guards red (follow) | Retry 7/8 | lanes ended inside the spawn rooms, so defenders held in a chicane; squads queued in the chicanes |
-| 2026-10-31 | 3 | thread | pending | pending | – |
+| 2026-10-31 | 3 | thread | green on b1d7177 | Retry 7/8 | a 0.5 m crack in the racking by the north chicane, from a zone edit |
+| 2026-10-31 | 4 | thread | pending | pending | – |
 
 ## Goal
 
@@ -39,9 +40,10 @@ the callout names kept, the Range its own map.
 - The old yard is `tests/support/maps/yard.json` (`YardMap`), without its bake: the tests written against its layout
   (bots, ports and the Box, crossfires, flag holds, the hall wall vault) load it; the Custom rules tests read Depot's
   5v5 and 6v6; the dress tests take sandbags from the range and the bad-sail case from the yard.
-- Each spawn room's two mouths are chicanes of two crate screens (gaps and the corridor between 2.5 to 3 m, so a squad
-  following its leader doesn't queue; the outer gap ends short of the spawn line and the inner one starts past it, so no
-  line through both reaches a spawn; the spawn rooms' areas take the chicanes in), the spawns 1.2 m apart, and every
+- Each spawn room's two mouths are chicanes of two crate screens (the corridor between 3 m, the gaps 2 m by the west
+  stairs' rack and 2.6 to 3.5 m elsewhere, so a squad following its leader doesn't queue; the outer gap ends short of
+  the spawn line and the inner one starts past it, so no line through both reaches a spawn; the spawn rooms' areas take
+  the chicanes in), the spawns 1.2 m apart, and every
   lane starts and ends at a chicane's outer mouth, where defenders hold (critic, attempt 2); and a crate screen stands
   at the Drum alley's mouth in the Box yard (critic, attempt 1: the concept's single screens left a 70 m line down the
   east wall through the defenders' spawn, and a 65 m line from the Lounge to the Box yard; the concept measured spawn
@@ -50,6 +52,7 @@ the callout names kept, the Range its own map.
   whose side point is covered by a hut or pillar goes to the nearest walkable spot within the nav's snap
   (`BotMovement._overtime_flank_point`); the QA recheck found Depot's flankers never flanked, the hall's overtime flag
   being inside the Chrono hall's hut.
+- A test scans the hall every 0.5 m: every spot in no named area is inside a block 2 m or taller (critic, attempt 3).
 - `tests/unit/test_depot_hall.gd` (new): the file loads clean with six a side, the roof's lamps cast no shadow, a ray
   up meets the ceiling as steel, bots see 55 m on a copy, the sun's angle, no spawn seen from anywhere on the floor
   outside its own room (both sites, stairs and ramps included; it fails on attempt 1's layout), and the run times
@@ -64,8 +67,8 @@ the callout names kept, the Range its own map.
 - Practice: the end-1 spawn targets test runs on the yard; the hall's 53 lane points can fill the 48-target cap before
   the far spawns are tried (those spawns are behind chicanes, out of sight, either way).
 - Sightline exception: the longest line is 64.6 m, across the open Chrono hall from Lower mid to Upper mid, against the
-  field standard's 34 m. It is in `FieldStandard.EXCEPTIONS` at 66 m and put to the owner as a question (keep it open,
-  or break it up to about 48 m); his answer goes in DECISIONS.
+  field standard's 34 m. Asked to keep it open or break it up to about 48 m, the owner kept it open (2026-10-31,
+  DECISIONS); it is in `FieldStandard.EXCEPTIONS` at 66 m.
 
 ## Checks
 

@@ -145,12 +145,13 @@ zone("B alley", "x", 38, 7.5, 41, 17.5)                          # Garage <-> B 
 add("crates", -46.4, -8.6, -45.6, 1.2)
 # Each stairs mouth is a chicane of two screens, so no straight line from the Yard, the Pens or the stairs reaches a
 # spawn (DR1 critic): in by the screen's west gap, along between them, out by the inner screen's east gap.
-# Gaps and the corridor between are 2.5 to 3 m, so a squad following its leader out doesn't queue (the follow guard).
+# The corridor between is 3 m and the gaps 2 m (outer, by the stairs' rack) to 2.6 m, so a squad following its leader
+# out doesn't queue (the follow guard).
 # The outer screen's gap ends west of the spawn line and the inner one's starts east of it, so no line through both
 # reaches a spawn.
-add("crates", -50.0, -13.5, -44.5, -12.5)             # north stairs screen, gap west
+add("crates", -50.0, -13.5, -45.0, -12.5)             # north stairs screen, gap west
 add("crates", -54.0, -9.5, -49.0, -8.5)               # inner screen, gap east
-add("crates", -50.0, 4.5, -44.5, 5.5)                 # south stairs screen, gap west
+add("crates", -50.0, 4.5, -45.0, 5.5)                 # south stairs screen, gap west
 add("crates", -54.0, 0.5, -49.0, 1.5)                 # inner screen, gap east
 SPAWNS_W = [(-50.0, z) for z in (-7.5, -6.3, -5.1, -3.9, -2.7, -1.5)]
 DEAD_W = (-52.8, -4.5)                                # the dead zone, behind the spawn line
