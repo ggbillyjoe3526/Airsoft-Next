@@ -45,20 +45,59 @@ def blocks() -> list[dict]:
     out.append(block("wall", -L.W - t, 0, L.H, L.W + t, L.ROOF, L.H + t))
     out.append(block("wall", -L.W - t, 0, -L.H, -L.W, L.ROOF, L.H))
     out.append(block("wall", L.W, 0, -L.H, L.W + t, L.ROOF, L.H))
+    boxes: list[list] = []
     for p in L.pieces:
         k, x1, z1, x2, z2, h = p["kind"], p["x1"], p["z1"], p["x2"], p["z2"], p["h"]
         kind = KINDS[k]
         if k == "window":
             kind = "container" if p["tag"] == "port" else kind
-            out.append(block(kind, x1, 0, z1, x2, SILL, z2))
-            out.append(block(kind, x1, LINTEL, z1, x2, p["h"], z2))
+            boxes.append([kind, x1, 0, z1, x2, SILL, z2])
+            boxes.append([kind, x1, LINTEL, z1, x2, p["h"], z2])
         elif k == "lid":
-            out.append(block(kind, x1, L.LID_H, z1, x2, L.LID_H + h, z2))
+            boxes.append([kind, x1, L.LID_H, z1, x2, L.LID_H + h, z2])
         elif p["tag"] == "boxroof":
-            out.append(block(kind, x1, 2.6, z1, x2, 2.6 + h, z2))
+            boxes.append([kind, x1, 2.6, z1, x2, 2.6 + h, z2])
         else:
-            out.append(block(kind, x1, 0, z1, x2, h, z2))
+            boxes.append([kind, x1, 0, z1, x2, h, z2])
+    unseat(boxes)
+    out.extend(block(*b) for b in boxes)
     return out
+
+
+# Two blocks may share no more than this every way (FieldStandard.SEAM_SLACK is 0.025 m).
+SEAM = 0.02
+
+
+def _overlap(a: list, b: list, axis: int) -> float:
+    return min(a[axis + 4], b[axis + 4]) - max(a[axis + 1], b[axis + 1])
+
+
+def _trim_end(a: list, b: list, whole: bool) -> bool:
+    """Shortens `a` along its long side to the face of `b` where `b` sits over one of its ends: walls meeting at a
+    corner or a T, a lid over a tunnel's bend. With `whole`, only where `b` spans all of `a`'s width there, so the cut
+    leaves no gap (a lid's bend, a wall's T). False when it can't."""
+    axis = 0 if a[4] - a[1] >= a[6] - a[3] else 2
+    across = 2 - axis
+    if whole and (b[across + 1] > a[across + 1] + SEAM or b[across + 4] < a[across + 4] - SEAM):
+        return False
+    lo, hi = a[axis + 1], a[axis + 4]
+    if b[axis + 1] <= lo + SEAM and b[axis + 4] < hi:
+        a[axis + 1] = b[axis + 4]
+        return True
+    if b[axis + 4] >= hi - SEAM and b[axis + 1] > lo:
+        a[axis + 4] = b[axis + 1]
+        return True
+    return False
+
+
+def unseat(boxes: list[list]) -> None:
+    """Two pieces drawn to the same line (two walls at a corner, a wall into a dead block, two lids at a tunnel's bend)
+    overlap by half a thickness; each pair is cut back so they meet face to face (field.blocks)."""
+    for i, a in enumerate(boxes):
+        for b in boxes[:i]:
+            if all(_overlap(a, b, k) > SEAM for k in range(3)):
+                if not any(_trim_end(x, y, whole) for whole in (True, False) for x, y in ((a, b), (b, a))):
+                    raise SystemExit(f"{a} and {b} cross: neither ends on the other")
 
 
 def spot(x: float, z: float, yaw: float) -> dict:
@@ -121,7 +160,9 @@ def build() -> dict:
         "lighting": {"presets": ["day"], "overrides": {"day": {
             "key": {"elevation": 76, "heading": 25, "intensity": 1.1}, "hemi": {"intensity": 0.55}}}},
         "bakedLight": {"file": "depot"},
-        "dressing": {"site": site()},
+        # The yard's dust: motes in the lamps' light and the grey puff feet kick up off the slab.
+        "dressing": {"seed": 4127, "motes": {"tint": 14210767}, "kickedDust": {"tint": 12171184, "scale": 1},
+                     "site": site()},
         "areas": areas(),
     }
 

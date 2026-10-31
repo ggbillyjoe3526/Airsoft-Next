@@ -88,20 +88,20 @@ func test_a_dev_map_remembered_with_dev_content_off_opens_on_depot_and_keeps_the
 
 func test_a_remembered_map_the_catalogue_now_refuses_falls_back_to_one_that_plays() -> void:
 	var picks := MatchPicks.new()
-	picks.recall(_load({"last_map": "depot", "last_team": 0}))
+	picks.recall(_load({"last_map": "ghost", "last_team": 0}))
 	var was := DevContent.use_map()
 	var settings := Settings.new()
 	settings.dev.dev_content = true
 	var page := MatchPage.new(picks, settings)
 	add_child_autofree(page)
-	# A catalogue giving Depot four a side: more than its three spawns an end, so MapData refuses it.
+	# A catalogue naming a field with no file yet, so MapData refuses it.
 	page._catalog = MapCatalog.parse(FileAccess.get_file_as_string(MapCatalog.PATH).replace(
-			"| depot | Depot | field | public | 1 | 3 | 3 |", "| depot | Depot | field | public | 1 | 4 | 4 |"))
+			"| range | Range |", "| ghost | Ghost | field | public | 5 | 5 | 6 | No file yet. |\n| range | Range |"))
 	page._offered = PackedStringArray()
 	page._list_maps()
 	DevContent.restore_map(was)
-	assert_true(page.is_unloadable("depot"))
-	assert_eq(picks.map_id, "woodland", "the remembered map can't load: the first that can")
+	assert_true(page.is_unloadable("ghost"))
+	assert_eq(picks.map_id, "depot", "the remembered map can't load: the first that can")
 	assert_false(page.play_button().disabled)
 
 

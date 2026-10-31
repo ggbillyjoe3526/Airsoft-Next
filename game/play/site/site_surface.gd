@@ -14,7 +14,7 @@ const FLAG_TINT := 8
 const FLAG_NO_BEVEL := 16
 const PIECE_SHIFT := 8
 ## The shader's finish slots and container paints.
-const SLOTS := 32
+const SLOTS := 40
 const PAINTS := 8
 ## The most bay lines the shader draws (SiteDressing.LINES).
 const LINES := SiteDressing.LINES

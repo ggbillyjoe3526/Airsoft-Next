@@ -175,28 +175,25 @@ func _notification(what: int) -> void:
 		_rids.clear()
 
 
-## Sloping ground drawn in tiles under one node, each in the greybox's material, casting shadows: built once, the
-## baked light's switch leaves them be (no bake covers sloping ground).
 ## An indoor field's roof as BBs meet it (DR1): steel sheeting over the blocks' whole footprint at the roof's height,
 ## so a lob never leaves the hall. Drawn by RoofView, never by the greybox; no block, so the bake, the nav grid and the
 ## minimap never see it.
 func _add_ceiling(m: MapData) -> void:
-	var lo := Vector2(INF, INF)
-	var hi := Vector2(-INF, -INF)
-	for b in m.blocks:
-		lo = lo.min(Vector2(b.center.x - b.size.x * 0.5, b.center.z - b.size.z * 0.5))
-		hi = hi.max(Vector2(b.center.x + b.size.x * 0.5, b.center.z + b.size.z * 0.5))
-	if not is_finite(lo.x):
+	var area := m.footprint()
+	if not area.has_area():
 		return
 	var shape := CollisionShape3D.new()
 	shape.name = "Ceiling"
 	var box := BoxShape3D.new()
-	box.size = Vector3(hi.x - lo.x, CEILING_THICKNESS, hi.y - lo.y)
+	box.size = Vector3(area.size.x, CEILING_THICKNESS, area.size.y)
 	shape.shape = box
-	shape.position = Vector3((lo.x + hi.x) * 0.5, m.roof_height + CEILING_THICKNESS * 0.5, (lo.y + hi.y) * 0.5)
+	var middle := area.get_center()
+	shape.position = Vector3(middle.x, m.roof_height + CEILING_THICKNESS * 0.5, middle.y)
 	_bodies[RayHit.Surface.METAL].add_child(shape)
 
 
+## Sloping ground drawn in tiles under one node, each in the greybox's material, casting shadows: built once, the
+## baked light's switch leaves them be (no bake covers sloping ground).
 func _add_ground_tiles(t: TerrainGrid) -> void:
 	var ground := Node3D.new()
 	ground.name = "Ground"

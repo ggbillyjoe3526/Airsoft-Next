@@ -10,7 +10,7 @@ const SWITCHES := 12
 ## The meshes the base (origin/main 79969e6) drew, as SHA-256 of vertices, normals and colours (first 16 hex). Woodland
 ## left it in WL1, its ground drawn at last.
 const BASE_HASHES: Dictionary[String, String] = {
-	"depot": "3c3d06c7d4c874e9",
+	"depot": "f7fc8dc3e93578f4", # the hall (DR1)
 	"range": "b0e002855c8e8370",
 }
 
@@ -34,7 +34,8 @@ func _level(map_id: String) -> MapLevel:
 func _level_of(m: MapData) -> MapLevel:
 	var level := MapLevel.new()
 	add_child_autofree(level)
-	level.build(m, play.map_style, body, play.baked_light, play.lighting)
+	var sun := LightingConfig.for_map(play.lighting, null, m, LightingConfig.DAY) # the sun the map is baked under
+	level.build(m, play.map_style, body, play.baked_light, sun)
 	return level
 
 
@@ -219,13 +220,13 @@ func test_the_replaced_mesh_is_freed_and_the_new_one_is_where_the_old_was() -> v
 
 
 func test_the_boxs_roof_is_sealed_for_bbs_and_for_the_sun() -> void:
-	var level := _level("depot")
+	var level := _level_of(YardMap.load_map(play.map_style, 1)) # the old yard's Box (DR1)
 	await wait_physics_frames(2)
 	var box: MapAreas.Area = null
 	for a in level.map.areas:
 		if a.name == "Box":
 			box = a
-	assert_not_null(box, "Depot names the Box")
+	assert_not_null(box, "the yard names the Box")
 	var q := level.query()
 	var hit := RayHit.new()
 	var leaks := 0

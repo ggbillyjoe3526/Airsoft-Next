@@ -23,6 +23,9 @@ func before_all() -> void:
 		var side := Vector2i.ZERO if f.layers.is_empty() else f.layers[0].get_size()
 		gut.p("%s: %d layer(s) of %s px at %.2f px/m, %.1f ms, %d KB" % [id, f.layers.size(), side, f.scale,
 				(Time.get_ticks_usec() - t0) / 1000.0, f.byte_size() / 1024])
+	# the old yard (DR1): its dock, ramps and barriers, drawn as before
+	maps["yard"] = YardMap.load_map(MapStyle.new(), tuning.rounds.team_size)
+	fields["yard"] = MinimapField.build(maps["yard"], cfg)
 	maps["tower"] = TowerBlock.load_map(MapStyle.new(), tuning.rounds.team_size)
 	fields["tower"] = MinimapField.build(maps["tower"], cfg)
 
@@ -33,8 +36,8 @@ func after_all() -> void:
 	cfg = null
 
 
-func test_depot_is_one_layer_at_the_layer_scale() -> void:
-	var f := fields["depot"]
+func test_the_yard_is_one_layer_at_the_layer_scale() -> void:
+	var f := fields["yard"]
 	assert_eq(f.layers.size(), 1, "no storeys, one image")
 	assert_eq(f.scale, cfg.layer_scale)
 	assert_eq(f.layers[0].get_size(), Vector2i(510, 330), "51 m by 33 m of floor at 10 px/m")
@@ -42,25 +45,25 @@ func test_depot_is_one_layer_at_the_layer_scale() -> void:
 	assert_eq(f.storey_of(1.2), 0)
 
 
-func test_depot_walls_cover_floors_and_ramps() -> void:
-	assert_colour("depot", 0, -17.5, 0.0, cfg.tall_colour, "the long wall by the toilets is tall")
-	assert_colour("depot", 0, -11.6, 0.0, cfg.low_colour, "the 1.2 m barrier is low cover")
-	assert_colour("depot", 0, -21.4, 11.8, cfg.tall_colour, "two crates stacked are tall")
-	assert_colour("depot", 0, -0.5, -15.4, cfg.low_colour, "sandbags on the dock: low over the dock's floor")
-	assert_colour("depot", 0, -2.5, 0.0, cfg.ground_colour, "open yard is ground")
-	assert_colour("depot", 0, 9.5, -14.5, cfg.raised_colour, "the loading dock is raised floor")
-	assert_colour("depot", 0, -3.2, -14.6, cfg.ramp_colour, "the west ramp up to the dock")
-	assert_colour("depot", 0, 12.2, -14.6, cfg.ramp_colour, "the east ramp up to the dock")
+func test_the_yards_walls_cover_floors_and_ramps() -> void:
+	assert_colour("yard", 0, -17.5, 0.0, cfg.tall_colour, "the long wall by the toilets is tall")
+	assert_colour("yard", 0, -11.6, 0.0, cfg.low_colour, "the 1.2 m barrier is low cover")
+	assert_colour("yard", 0, -21.4, 11.8, cfg.tall_colour, "two crates stacked are tall")
+	assert_colour("yard", 0, -0.5, -15.4, cfg.low_colour, "sandbags on the dock: low over the dock's floor")
+	assert_colour("yard", 0, -2.5, 0.0, cfg.ground_colour, "open yard is ground")
+	assert_colour("yard", 0, 9.5, -14.5, cfg.raised_colour, "the loading dock is raised floor")
+	assert_colour("yard", 0, -3.2, -14.6, cfg.ramp_colour, "the west ramp up to the dock")
+	assert_colour("yard", 0, 12.2, -14.6, cfg.ramp_colour, "the east ramp up to the dock")
 
 
 ## The browser's known issue: the dock a shade off the yard, so a patch over it read as one below. The rim marks the
 ## dock's drop on the yard side; where a ramp meets it there is none.
 func test_the_dock_has_a_rim_where_it_drops() -> void:
-	assert_ne(pixel("depot", 0, 9.5, -14.5), pixel("depot", 0, 4.0, -12.5), "dock and yard differ")
-	assert_colour("depot", 0, 4.0, -13.05, cfg.drop_colour, "the rim along the dock's yard side")
-	assert_colour("depot", 0, 4.0, -12.8, cfg.ground_colour, "the yard past the rim")
-	assert_colour("depot", 0, -2.1, -14.6, cfg.ramp_colour, "no rim where the west ramp meets the dock")
-	assert_colour("depot", 0, 11.1, -14.6, cfg.ramp_colour, "nor the east one")
+	assert_ne(pixel("yard", 0, 9.5, -14.5), pixel("yard", 0, 4.0, -12.5), "dock and yard differ")
+	assert_colour("yard", 0, 4.0, -13.05, cfg.drop_colour, "the rim along the dock's yard side")
+	assert_colour("yard", 0, 4.0, -12.8, cfg.ground_colour, "the yard past the rim")
+	assert_colour("yard", 0, -2.1, -14.6, cfg.ramp_colour, "no rim where the west ramp meets the dock")
+	assert_colour("yard", 0, 11.1, -14.6, cfg.ramp_colour, "nor the east one")
 	var lift := luminance(cfg.raised_colour) - luminance(cfg.drop_colour)
 	assert_gt(lift, luminance(cfg.raised_colour) - luminance(cfg.ground_colour), "the rim stands out more than the shade")
 

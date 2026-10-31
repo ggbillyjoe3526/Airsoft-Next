@@ -18,7 +18,7 @@ var mm: HudMinimap = null
 
 
 func before_all() -> void:
-	map = MapData.load_map("depot", MapStyle.new(), 1)
+	map = YardMap.load_map(MapStyle.new(), 1)
 
 
 func before_each() -> void:

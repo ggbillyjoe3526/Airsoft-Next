@@ -240,12 +240,18 @@ static func presets_in(map_id: String) -> Array[StringName]:
 
 ## The middle of its blocks (x, z), where the skyline faces and fades from and the moon is turned from.
 func middle() -> Vector2:
+	var area := footprint()
+	return (area.position + area.end) * 0.5
+
+
+## Its blocks' footprint (x, z), where a roof's ceiling hangs; an empty rect at the origin without a block.
+func footprint() -> Rect2:
 	var lo := Vector2(INF, INF)
 	var hi := Vector2(-INF, -INF)
 	for b in blocks:
 		lo = lo.min(Vector2(b.center.x - b.size.x * 0.5, b.center.z - b.size.z * 0.5))
 		hi = hi.max(Vector2(b.center.x + b.size.x * 0.5, b.center.z + b.size.z * 0.5))
-	return (lo + hi) * 0.5 if lo.x <= hi.x else Vector2.ZERO
+	return Rect2(lo, hi - lo) if lo.x <= hi.x else Rect2()
 
 
 ## The top of the highest floor or ramp or the terrain under (x, z), or -INF off them all (for tools and tests).

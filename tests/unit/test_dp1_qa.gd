@@ -30,7 +30,7 @@ class Port:
 
 
 func before_all() -> void:
-	map = MapData.load_map("depot", style, tuning.rounds.team_size)
+	map = YardMap.load_map(style, tuning.rounds.team_size)
 	assert_true(map.ok(), str(map.problems))
 	level = MapLevel.new()
 	add_child(level)

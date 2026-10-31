@@ -29,7 +29,7 @@ var view: SkylineView = null
 
 
 func before_all() -> void:
-	depot = MapData.load_map("depot", play.map_style, 1)
+	depot = YardMap.load_map(play.map_style, 1) # the old yard and its skyline (DR1)
 	view = SkylineView.build(depot, play.skyline, play.lighting, body.stand_eye_height)
 
 
@@ -118,7 +118,7 @@ func test_no_skyline_colour_reads_as_a_team() -> void:
 	var teams := AccessibilityTable.read_file().colours
 	for id: String in ["depot", "range", "woodland"]:
 		var m := MapData.load_map(id, play.map_style, 1)
-		var v := SkylineView.build(m, play.skyline, play.lighting, body.stand_eye_height) if id != "depot" else view
+		var v := SkylineView.build(m, play.skyline, play.lighting, body.stand_eye_height)
 		if v == null:
 			continue
 		var seen: Dictionary[Color, bool] = {}

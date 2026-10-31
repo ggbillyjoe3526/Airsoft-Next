@@ -28,7 +28,7 @@ func test_the_shipped_maps_offer_the_owner_s_sizes() -> void:
 	var cat := MapCatalog.read_file()
 	assert_eq(cat.problems, [] as Array[String])
 	var want: Dictionary[String, Array] = {
-		"depot": [1, 3, 3], "woodland": [5, 5, 6], "range": [1, 1, 1],
+		"depot": [5, 5, 6], "woodland": [5, 5, 6], "range": [1, 1, 1],
 	}
 	for id: String in want:
 		var e := cat.find(id)
@@ -73,9 +73,11 @@ func test_nothing_offers_seven_a_side() -> void:
 
 
 func test_a_map_plays_a_picked_size_it_offers_else_its_standard() -> void:
-	var cat := MapCatalog.shared()
+	# a small field of 1v1 to 3v3 beside the shipped ones, as Depot was until DR1
+	var cat := MapCatalog.parse(FileAccess.get_file_as_string(MapCatalog.PATH).replace("| range | Range |",
+			"| small | Small | field | public | 1 | 3 | 3 | A small field. |\n| range | Range |"))
 	var woodland := cat.find("woodland")
-	var depot := cat.find("depot")
+	var depot := cat.find("small")
 	assert_eq(woodland.team_size_for(3), 5)
 	assert_eq(woodland.team_size_for(6), 6)
 	assert_eq(depot.team_size_for(6), 3)
@@ -93,7 +95,7 @@ func test_a_map_plays_a_picked_size_it_offers_else_its_standard() -> void:
 	var played := MatchOptions.match_tuning(base, woodland, null)
 	assert_eq(played.rounds.team_size, 5)
 	assert_eq(base.rounds.team_size, 3, "the loaded tuning is never written")
-	assert_same(MatchOptions.match_tuning(base, depot, null), base, "Depot plays the loaded tuning as it is")
+	assert_same(MatchOptions.match_tuning(base, depot, null), base, "a 3v3 field plays the loaded tuning as it is")
 
 
 func test_every_size_a_field_offers_has_a_spawn_and_a_dead_zone_spot_each() -> void:
@@ -130,7 +132,7 @@ func _pick_size(page: MatchPage, n: int) -> void:
 func test_the_team_size_row_offers_only_the_picked_map_s_sizes() -> void:
 	var page := _page(MatchOptions.RULES_CUSTOM)
 	var box := page.rules_box()
-	assert_eq(box.offered_sizes(), [1, 2, 3] as Array[int], "Depot")
+	assert_eq(box.offered_sizes(), [5, 6] as Array[int], "Depot")
 	page.map_card("woodland").pressed.emit()
 	assert_eq(box.offered_sizes(), [5, 6] as Array[int], "Woodland")
 	for id in page.map_ids():
@@ -141,36 +143,34 @@ func test_the_team_size_row_offers_only_the_picked_map_s_sizes() -> void:
 
 func test_picking_a_map_sets_its_standard_size() -> void:
 	var page := _page(MatchOptions.RULES_SKIRMISH)
-	assert_eq(page.chip_texts()[0], "3 v 3")
+	assert_eq(page.chip_texts()[0], "5 v 5")
 	page.map_card("woodland").pressed.emit()
 	assert_eq(page.chip_texts()[0], "5 v 5")
 	assert_eq(page.map_check_size(), 5)
 	assert_string_contains(page.rules_box().blurb_text(), "5v5")
 	page.map_card("depot").pressed.emit()
-	assert_eq(page.chip_texts()[0], "3 v 3")
+	assert_eq(page.chip_texts()[0], "5 v 5")
 
 
 func test_a_saved_custom_size_is_kept_where_the_map_allows_it() -> void:
 	var settings := Settings.new()
 	var page := _page(MatchOptions.RULES_CUSTOM, settings)
 	var box := page.rules_box()
-	_pick_size(page, 3)
-	assert_eq(_saved_size(), 3)
+	assert_eq(page.map_check_size(), 5, "the default 3 is not Depot's: its standard")
+	assert_eq(settings.custom_rules.team_size, 3, "the saved size is kept")
+	_pick_size(page, 5)
+	assert_eq(_saved_size(), 5)
 	page.map_card("woodland").pressed.emit()
-	assert_eq(page.map_check_size(), 5, "Depot 3v3 to Woodland 5v5")
+	assert_eq(page.map_check_size(), 5, "Depot 5v5 to Woodland 5v5")
 	assert_eq(box.team_size_choice().selected(), CustomRules.TEAM_SIZES.find(5))
 	assert_true(page.summary_text().ends_with("Custom 5v5"), page.summary_text())
-	assert_eq(settings.custom_rules.team_size, 3, "the saved size is kept")
-	assert_eq(_saved_size(), 3)
-	page.map_card("depot").pressed.emit()
-	assert_eq(page.map_check_size(), 3, "and back to 3v3")
-	assert_eq(box.team_size_choice().selected(), CustomRules.TEAM_SIZES.find(3))
-	assert_eq(_saved_size(), 3, "saved")
+	assert_eq(_saved_size(), 5)
 	page.map_card("woodland").pressed.emit()
 	_pick_size(page, 6)
 	assert_eq(_saved_size(), 6, "6v6 picked on Woodland is saved")
 	page.map_card("depot").pressed.emit()
-	assert_eq(page.map_check_size(), 3, "Depot plays its standard")
+	assert_eq(page.map_check_size(), 6, "Depot plays the saved 6v6 too")
+	assert_eq(box.team_size_choice().selected(), CustomRules.TEAM_SIZES.find(6))
 	page.map_card("woodland").pressed.emit()
 	assert_eq(page.map_check_size(), 6, "Woodland plays the saved 6v6 again")
 	assert_eq(box.row_blurbs()[0], "You and five bot teammates against six bots.")
@@ -183,7 +183,7 @@ func test_an_old_save_loads_unchanged() -> void:
 	settings.load_file(SAVE)
 	assert_eq(settings.custom_rules.to_dict(), old)
 	var page := _page(MatchOptions.RULES_CUSTOM, settings)
-	assert_eq(page.map_check_size(), 2, "Depot offers 2v2")
+	assert_eq(page.map_check_size(), 5, "2 is not Depot's: its standard")
 	assert_eq(settings.custom_rules.to_dict(), old, "opening the page writes nothing over it")
 
 
@@ -249,12 +249,12 @@ func test_a_6v6_on_woodland_gives_everyone_a_spawn_and_a_dead_zone_spot_of_their
 
 # --- the route search budget ---
 
-## A Depot world of `count` bots, each wanting a route across the yard.
+## A world of `count` bots on the old yard (YardMap), each wanting a route across it.
 func _world(count: int, budget: int) -> BotWorld:
 	var tuning := SimTuning.load_default().duplicate() as SimTuning
 	tuning.nav = tuning.nav.duplicate() as NavConfig
 	tuning.nav.search_budget = budget
-	var map := MapData.load_map("depot", PlayTuning.load_default().map_style, 3)
+	var map := YardMap.load_map(PlayTuning.load_default().map_style, 3) # the old yard (DR1)
 	var w := BotWorld.new()
 	w.tuning = tuning
 	w.cfg = BotConfig.load_default()

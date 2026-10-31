@@ -16,7 +16,7 @@ static func build(map: MapData, cfg: RoofConfig) -> RoofView:
 		return null
 	var view := RoofView.new()
 	view.name = "Roof"
-	var area := field_rect(map).grow(cfg.ceiling_overhang)
+	var area := map.footprint().grow(cfg.ceiling_overhang)
 	var y := map.roof_height
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -46,18 +46,6 @@ static func build(map: MapData, cfg: RoofConfig) -> RoofView:
 		view._materials.append(view._lamps.material_override)
 		view.add_child(view._lamps)
 	return view
-
-
-## The field's footprint (x, z) from its blocks.
-static func field_rect(map: MapData) -> Rect2:
-	var lo := Vector2(INF, INF)
-	var hi := Vector2(-INF, -INF)
-	for b in map.blocks:
-		lo = lo.min(Vector2(b.center.x - b.size.x * 0.5, b.center.z - b.size.z * 0.5))
-		hi = hi.max(Vector2(b.center.x + b.size.x * 0.5, b.center.z + b.size.z * 0.5))
-	if not is_finite(lo.x):
-		return Rect2()
-	return Rect2(lo, hi - lo)
 
 
 ## The materials to draw once before play, so the first look up doesn't hitch.

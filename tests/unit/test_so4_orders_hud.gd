@@ -328,6 +328,8 @@ func test_the_marker_follows_the_hold_in_a_match() -> void:
 	var session := PlaySession.new()
 	session.mode = MatchOptions.MODE_ELIMINATION
 	session.bots_active = false
+	# Open to the sky, so looking straight up meets nothing (Depot's hall has a ceiling to look at).
+	session.map_id = "woodland"
 	add_child_autofree(session)
 	await wait_physics_frames(3)
 	var player := session.player
