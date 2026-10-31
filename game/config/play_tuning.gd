@@ -18,6 +18,8 @@ const DEFAULT_PATH := "res://game/config/play_tuning.tres"
 @export var night_lighting: LightingConfig = LightingConfig.new()
 @export var baked_light: BakeConfig = BakeConfig.new()
 @export var skyline: SkylineConfig = SkylineConfig.new()
+## An indoor field's roof (DR1: Depot's hall).
+@export var roof: RoofConfig = RoofConfig.new()
 @export var woods: WoodsConfig = WoodsConfig.new()
 @export var teams: TeamConfig = TeamConfig.new()
 @export var debug_view: DebugViewConfig = DebugViewConfig.new()

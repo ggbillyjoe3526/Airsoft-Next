@@ -12,32 +12,26 @@ finished models coming later ([Roadmap](Roadmap)).
 
 ## Depot
 
-**An abandoned warehouse yard**, played in the sun. Alpha starts at the east end and Beta in the west in
-Elimination, and the teams swap ends at half time.
+**An indoor airsoft hall**, 108 by 72 metres under one roof, in 5v5 or 6v6. Alpha starts at the east end and Beta in
+the west in Elimination, and the teams swap ends at half time.
 
-![Depot's Main Gate, looking east into the Bay](images/depot-main-gate.jpg)
+![Depot's Chrono hall, under the roof lamps](images/depot-chrono-hall.jpg)
 
-- **The look:** Depot is dressed as an airsoft site: a concrete slab with joints, puddles and yellow bay lines,
-  painted breeze-block walls, shipping containers with the site's white chevron, plywood walls, crates with battens,
-  sandbags, a hazard-striped lip on the loading dock, a shade sail over it and each area's name stencilled on a wall,
-  under a sky with soft clouds. It's a stand-in until the
-  final models arrive; every piece is exactly where the cover always was, so nothing about how Depot plays changed.
+- **Three lanes** wind from end to end between plywood rooms and racking you can't enter: the **Shoot House** and
+  the **Lounge** to the north, the open **Chrono hall** in the middle, the **Huts** and the **Box yard** to the
+  south. No lane runs straight; each bends round the dead space.
+- **Links** join the lanes: open cuts and galleries, two tight alleys, and two **tunnels**, one in each half. The
+  tunnels are unlit and bend twice: dark, but never pitch black.
+- **The roof:** a dark steel ceiling on red trusses, with rows of lamps. A BB fired up stops at the ceiling.
+- **Long sight lines** down the Chrono hall and the yards: bots on Depot see 55 metres, further than on other fields.
+- **The Box** sits in the Box yard: a roofed container you can fight inside, and container rows with ports guard
+  B site.
+- **Not mirrored:** the halves differ, but they're balanced. Both teams reach the Chrono hall together; Beta reaches
+  the Lounge first and Alpha the Box yard, by about the same margin.
+- **Attack / Defend** puts a flagpole on A site, at the defenders' end ([Modes](Modes#attack--defend)).
+- Fields are greybox for now: plain blocks in the site's colours, with props and the final models coming later.
 
-- **The Box** sits in the middle: a roofed shipping container you can fight inside, with offset doors and ports.
-- **The Office** has a hall with a low wall you can vault in both directions, and a west room. Gravel beds at its
-  doors crunch underfoot.
-- **Port walls:** four plywood walls have a port at standing height. Stand to see and shoot through; crouch and you're
-  hidden. They can't be vaulted.
-- **Noisy props:** run or sprint into a steel skip or a container and it booms, and generators, IBC tanks, racks,
-  plastic toilets, wooden crates and wrapped pallets knock too. Players and bots hear it as your footsteps. A BB that
-  hits steel hard makes it ring.
-- **Attack / Defend** puts a flagpole at the defenders' flag spot ([Modes](Modes#attack--defend)).
-- Beyond the walls stand a concrete watch tower to the north, an old aircraft fuselage past the east wall with its fin
-  showing, four light masts at the corners, and chimneys, a crane, silos and sheds further out. On Medium graphics and
-  up three chimneys smoke, bending with the wind. None of it can be reached.
-- Birds, a crow and a dog call from around the yard.
-
-![The Office hall](images/depot-office-hall.jpg)
+![A dark tunnel between two lanes](images/depot-tunnel.jpg)
 
 ### Areas
 

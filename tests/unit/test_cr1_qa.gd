@@ -105,10 +105,10 @@ func test_a_session_plays_a_custom_copy_and_the_skirmish_one_after_it() -> void:
 	session.map_id = "depot"
 	session.match_seed = 3
 	session.autopilot = true
-	session.custom_rules = _rules(1, 7)
+	session.custom_rules = _rules(6, 7)
 	add_child_autofree(session)
 	await wait_physics_frames(2)
-	assert_eq(session.state.characters.size(), 2, "1v1: two characters")
+	assert_eq(session.state.characters.size(), 12, "6v6: twelve characters")
 	assert_eq(session._tuning.rounds.wins_needed, 7)
 	assert_false(session._tuning.hits.friendly_fire)
 	assert_false(session.counts_for_records())
@@ -120,12 +120,12 @@ func test_a_session_plays_a_custom_copy_and_the_skirmish_one_after_it() -> void:
 	again.autopilot = true
 	add_child_autofree(again)
 	await wait_physics_frames(2)
-	assert_eq(again.state.characters.size(), 6, "the next Skirmish is 3v3 again")
+	assert_eq(again.state.characters.size(), 10, "the next Skirmish is 5v5 again")
 	assert_eq(again._tuning.rounds.wins_needed, 5)
 	assert_true(again._tuning.hits.friendly_fire)
 
 
-func test_a_one_a_side_attack_defend_session_sets_up() -> void:
+func test_a_six_a_side_attack_defend_session_sets_up() -> void:
 	var s := Settings.new(PlayTuning.new())
 	var session := PlaySession.new()
 	session.settings = s
@@ -133,10 +133,10 @@ func test_a_one_a_side_attack_defend_session_sets_up() -> void:
 	session.match_seed = 4
 	session.mode = MatchOptions.MODE_ATTACK_DEFEND
 	session.autopilot = true
-	session.custom_rules = _rules(1)
+	session.custom_rules = _rules(6)
 	add_child_autofree(session)
 	await wait_physics_frames(2)
 	assert_eq(session.state.round_state.mode, RoundState.Mode.ATTACK_DEFEND)
-	assert_eq(session.state.characters.size(), 2)
+	assert_eq(session.state.characters.size(), 12)
 	await wait_physics_frames(120)
 	assert_true(session.state.round_state.number >= 1)

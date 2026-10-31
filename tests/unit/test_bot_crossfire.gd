@@ -16,7 +16,7 @@ var bots: BotController = null
 
 
 func before_all() -> void:
-	map = MapData.load_map("depot", MapStyle.new(), tuning.rounds.team_size)
+	map = YardMap.load_map(MapStyle.new(), tuning.rounds.team_size)
 	level = MapLevel.new()
 	add_child(level)
 	level.build(map, MapStyle.new(), tuning.body)

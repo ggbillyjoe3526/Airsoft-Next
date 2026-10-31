@@ -11,9 +11,12 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 
 | Area | Issue | Class | Found |
 |---|---|---|---|
+| Play | Depot's door gaps stand open: the doors that open and shut, and the noise they make, are DO1, next (DR1) | fix now | 2026-10-31 |
+| Play | Attack / Defend on Depot has one flag, on A site, and defenders hold their first lane points about 37 m from it; two flags (A and B) are AB1, next (DR1) | fix now | 2026-10-31 |
+| Audio | Depot still plays the yard's ambience under its roof (birds, a crow, a dog): an indoor hall sound waits for a later pass (DR1) | can wait | 2026-10-31 |
+| Art | Depot's Lounge is lit like the rest of the hall though the concept had it dim; the roof lamps over it are only spaced wider (DR1) | can wait | 2026-10-31 |
 | Wiki | Some numbers and keys in the wiki's prose are typed, not generated, and the check can't see them drift: squad order keys, the minimap's 22 m / 60 m hearing, the Hard team's 30 s push, three restore points, the 38 m / 26 m flat ranges (WK1). Patch Notes also lists features added and later replaced, as the changelog notes do | document | 2026-10-25 |
-| Art | Depot's site dress has no free-standing props (cones, drums, pallets, hard cases): each would need a collider and change the layout. They wait for Depot's redesign in 0.1 Dev 2 (DD1) | can wait | 2026-10-25 |
-| Art | Depot's skyline is still the greybox's beyond the dressed walls, only its watch tower given a net and flag (DD1); the models replace it at step 28 | can wait | 2026-10-25 |
+| Art | Depot's hall is greybox: no free-standing props (drums, barrels, pallets, cones) yet; its CC0 dress is DR2, next after doors and flags. Its site look draws the pillars plain grey (DR1) | can wait | 2026-10-31 |
 | Art | The site dress's frame time on Low and on the owner's PC is unmeasured: the cloud renders on llvmpipe only. One more draw for the details, one for the bags and seven stencils; the site shader costs more per pixel than the greybox's (DD1) | playtest | 2026-10-25 |
 | Bots | Noisy props, rings and loud ground are NP1's first guesses, to tune in play: on Depot at Normal bots knock about 0.4 props and ring steel about 8 times a round (DP4) | playtest | 2026-10-24 |
 | Bots | Bots throw a smoke only to break a pin in cover and a flash only before pushing a search round a corner (SF2): no smoke to cross open ground or cover a plant, no flash to clear a room they hold. They don't walk round a cloud or wait for it to clear, and a bot that smoked doesn't move under it on purpose. Depot at Normal: about 0.6 smokes and 0.9 flashes a round across ten bots | can wait | 2026-10-30 |

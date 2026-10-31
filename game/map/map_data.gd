@@ -131,6 +131,13 @@ var has_moon_over: bool = false
 var lighting_overrides: Dictionary[StringName, LightingConfig.Override] = {}
 ## Its pools of light (`lights`), drawn under a night preset, in the file's order.
 var lights: Array[Light] = []
+## How far its bots make someone out (m, `botSight` in the file: BotConfig.for_map), for a hall with longer views than
+## the default; 0 on a map naming none, where BotConfig.view_distance holds.
+var bot_sight: float = 0.0
+## An indoor field's roof (`roof` in the file, DR1): its underside's height (m) over the floor, 0 on a field open to
+## the sky, and its lamp panels (x, z), drawn by RoofView. A BB stops on it (MapLevel's ceiling).
+var roof_height: float = 0.0
+var roof_lamps: PackedVector2Array = PackedVector2Array()
 ## The floor heights (m) of a map built in storeys, lowest first (such as 0, 3 and 6); empty on a map of one.
 var storeys: PackedFloat64Array = PackedFloat64Array()
 ## Why the file was refused; empty when it loaded.
@@ -183,6 +190,8 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m.night = d.get("night", false) is bool and bool(d.get("night", false))
 	m._read_lighting(d.get("lighting"))
 	m._read_lights(d.get("lights"))
+	m._read_roof(d.get("roof"))
+	m.bot_sight = maxf(0.0, _number(d.get("botSight"), 0.0))
 	m._read_foliage(d.get("foliage"))
 	m.skyline = SkylinePiece.read(d.get("dressing"), m.warnings)
 	m._read_kicked_dust(d.get("dressing"))
@@ -497,6 +506,8 @@ static func _override(d: Dictionary) -> LightingConfig.Override:
 	var night_sky: Dictionary = d.get("nightSky") if d.get("nightSky") is Dictionary else {}
 	o.fill = _number(hemi.get("intensity"), NAN)
 	o.key = _number(key.get("intensity"), NAN)
+	o.sun_elevation = _number(key.get("elevation"), NAN)
+	o.sun_heading = _number(key.get("heading"), NAN)
 	o.exposure_scale = _number(d.get("exposureScale"), NAN)
 	o.sky_horizon = _colour(sky.get("horizon"))
 	o.fog_colour = _colour(fog.get("colour"))
@@ -504,6 +515,28 @@ static func _override(d: Dictionary) -> LightingConfig.Override:
 	o.fill_ground = _colour(hemi.get("ground"))
 	o.stars = int(_number(night_sky.get("stars"), -1.0))
 	return o
+
+
+## `roof`: {height over 0, lamps: [{x, z}, ...]}; anything else is no roof, with a warning. A lamp without both numbers
+## is left out, with a warning.
+func _read_roof(raw: Variant) -> void:
+	if raw == null:
+		return
+	var d: Dictionary = raw if raw is Dictionary else {}
+	var height := _number(d.get("height"), 0.0)
+	if height <= 0.0:
+		warnings.append("roof is not {\"height\": metres over 0, \"lamps\": [...]}; no roof")
+		return
+	roof_height = height
+	var lamps: Variant = d.get("lamps", [])
+	for raw_lamp: Variant in (lamps as Array if lamps is Array else []):
+		var at: Dictionary = raw_lamp if raw_lamp is Dictionary else {}
+		var x := _number(at.get("x"), NAN)
+		var z := _number(at.get("z"), NAN)
+		if is_nan(x) or is_nan(z):
+			warnings.append("a roof lamp is not {x, z}; left out")
+			continue
+		roof_lamps.append(Vector2(x, z))
 
 
 ## `lights`: each {position, radius over 0, colour, kind (optional: LIGHT_KINDS)}; one that isn't is left out.

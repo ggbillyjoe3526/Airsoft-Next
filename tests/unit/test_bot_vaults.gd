@@ -185,7 +185,7 @@ func _play(height: float) -> Array:
 
 
 func test_depots_hall_wall_is_the_one_way_over_each_way() -> void:
-	var map := MapData.load_map("depot", MapStyle.new(), tuning.rounds.team_size)
+	var map := YardMap.load_map(MapStyle.new(), tuning.rounds.team_size)
 	var level := MapLevel.new()
 	add_child(level)
 	level.build(map, MapStyle.new(), tuning.body)

@@ -7,7 +7,7 @@ again. You play single player against bots, as one of two teams, Alpha in blue a
 It is tactical but never grim: replicas kick like toys, BBs puff on what they hit, and where you stand and how you move
 decide a fight more than the gear you carry.
 
-![Depot, the first field: the Box seen from the Alley](images/depot-box.jpg)
+![Depot, an indoor airsoft hall: the Box in the Box yard](images/depot-box.jpg)
 
 ## Start here
 
