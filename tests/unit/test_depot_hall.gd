@@ -98,6 +98,15 @@ func test_no_spawn_is_seen_from_the_floor() -> void:
 	assert_eq(seen.size(), 0, "spawns seen: %s" % [seen.slice(0, 5)])
 
 
+func test_no_lane_starts_or_ends_inside_a_spawn_room() -> void:
+	# A defender or an anchor holds its lane's points nearest its own end (RoundPlanner): those stand at the chicanes'
+	# outer mouths, never in the spawn room, whose screens see nothing (DR1 critic, attempt 2).
+	for lane in map.lanes:
+		for k: int in [0, 1, lane.size() - 2, lane.size() - 1]:
+			var area := MapAreas.area_at(map.areas, lane[k])
+			assert_false(area == "Staging" or area == "Loading bay", "lane point %s is in %s" % [lane[k], area])
+
+
 func test_both_teams_reach_the_middle_together_and_each_owns_a_side_lane() -> void:
 	var nav := NavGrid.build(map, tuning.nav, tuning.body)
 	var run := tuning.movement.run_speed

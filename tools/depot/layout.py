@@ -98,14 +98,14 @@ def zone(name, lane, x1, z1, x2, z2, light="lit"):
 
 # ================================================================ ZONES
 # West end (Beta in Elimination, attackers in Attack / Defend at the start)
-zone("Staging", "end", -54, -12, -44, 4)
-zone("North stairs", "n", -52, -22, -45, -12)
+zone("Staging", "end", -54, -13, -44, 4.5)        # its chicanes too
+zone("North stairs", "n", -52, -22, -45, -13)
 zone("Yard", "n", -54, -35, -36, -22)
 zone("Shoot House", "n", -36, -35, -10, -20)
 zone("Mid exit", "m", -44, -6, -34, 2)
 zone("Upper mid", "m", -34, -16, -20, 2)
 zone("Doors", "m", -20, -16, -12, -8)
-zone("South stairs", "s", -52, 4, -45, 16)
+zone("South stairs", "s", -52, 4.5, -45, 16)
 zone("Pens", "s", -54, 16, -36, 35)
 zone("Huts", "s", -36, 18, -12, 35)
 # Centre
@@ -116,10 +116,10 @@ zone("Box yard", "s", -12, 13, 12, 32)
 zone("Offices", "n", 10, -35, 30, -22)
 zone("A site", "n", 30, -35, 54, -17)
 zone("A stairs", "n", 46, -17, 53, -4)
-zone("Loading bay", "end", 44, -4, 54, 12)
+zone("Loading bay", "end", 44, -4, 54, 13)         # its chicanes too
 zone("Lower mid", "m", 14, -6, 30, 12)
 zone("Garage", "m", 30, 0, 44, 8)
-zone("B ramp", "s", 46, 12, 53, 17)
+zone("B ramp", "s", 46, 13, 53, 17)
 zone("Containers", "s", 12, 16, 32, 35)
 zone("B site", "s", 32, 17, 54, 35)
 
@@ -145,11 +145,14 @@ zone("B alley", "x", 38, 7.5, 41, 17.5)                          # Garage <-> B 
 add("crates", -46.4, -8.6, -45.6, 1.2)
 # Each stairs mouth is a chicane of two screens, so no straight line from the Yard, the Pens or the stairs reaches a
 # spawn (DR1 critic): in by the screen's west gap, along between them, out by the inner screen's east gap.
-add("crates", -50.5, -13.5, -44.5, -12.5)             # north stairs screen, gap west
-add("crates", -54.0, -10.5, -48.5, -9.5)              # inner screen, gap east
-add("crates", -50.5, 4.5, -44.5, 5.5)                 # south stairs screen, gap west
-add("crates", -54.0, 1.5, -48.5, 2.5)                 # inner screen, gap east
-SPAWNS_W = [(-50.0, z) for z in (-8.0, -6.5, -5.0, -3.5, -2.0, -0.5)]
+# Gaps and the corridor between are 2.5 to 3 m, so a squad following its leader out doesn't queue (the follow guard).
+# The outer screen's gap ends west of the spawn line and the inner one's starts east of it, so no line through both
+# reaches a spawn.
+add("crates", -50.0, -13.5, -44.5, -12.5)             # north stairs screen, gap west
+add("crates", -54.0, -9.5, -49.0, -8.5)               # inner screen, gap east
+add("crates", -50.0, 4.5, -44.5, 5.5)                 # south stairs screen, gap west
+add("crates", -54.0, 0.5, -49.0, 1.5)                 # inner screen, gap east
+SPAWNS_W = [(-50.0, z) for z in (-7.5, -6.3, -5.1, -3.9, -2.7, -1.5)]
 DEAD_W = (-52.8, -4.5)                                # the dead zone, behind the spawn line
 
 # --- Yard (18 x 13): the west end room
@@ -251,11 +254,11 @@ add("crates", 45.6, -1.2, 46.4, 8.6)
 # Each mouth is a chicane of two screens, so no straight line from A site, the stairs, the ramp or B site reaches a
 # spawn (DR1 critic: one screen left the east wall a 70 m lane through the spawn): in by the screen's east gap, along
 # between them, out by the inner screen's west gap.
-add("crates", 45.5, -5.0, 50.5, -4.0)                 # stairs screen, gap east
-add("crates", 48.5, -2.0, 54.0, -1.0)                 # inner screen, gap west
-add("crates", 45.5, 12.5, 50.5, 13.5)                 # ramp screen, gap east
-add("crates", 48.5, 9.5, 54.0, 10.5)                  # inner screen, gap west
-SPAWNS_E = [(50.0, z) for z in (0.5, 2.0, 3.5, 5.0, 6.5, 8.0)]
+add("crates", 45.5, -5.0, 50.0, -4.0)                 # stairs screen, gap east
+add("crates", 49.0, -1.0, 54.0, 0.0)                  # inner screen, gap west
+add("crates", 45.5, 13.0, 50.0, 14.0)                 # ramp screen, gap east
+add("crates", 49.0, 9.0, 54.0, 10.0)                  # inner screen, gap west
+SPAWNS_E = [(50.0, z) for z in (1.5, 2.7, 3.9, 5.1, 6.3, 7.5)]
 DEAD_E = (52.8, 4.5)
 
 # --- Containers (20 x 19): stacked containers make three corridors
@@ -295,16 +298,14 @@ FLAGS = [FLAG_A, FLAG_B]
 
 # ================================================================ the bots' lanes (end 0's side to end 1's)
 LANES = {
-    "n": [(-47.5, -8.5), (-47.5, -11.5), (-51.5, -11.5), (-51.5, -14.5), (-48.5, -16), (-46.5, -21.5), (-42.6, -26.4), (-36, -26), (-28, -24.5),
+    "n": [(-51.2, -14.5), (-48.5, -16), (-46.5, -21.5), (-42.6, -26.4), (-36, -26), (-28, -24.5),
           (-19, -21), (-11.5, -22.6), (-6, -22), (3, -21.2), (10, -24), (18, -24), (27, -24), (30, -23.5),
-          (36, -25), (44, -22.5), (49.5, -18), (52, -6.5), (52, -3),
-          (47.5, -3), (47.5, -0.5)],
-    "m": [(-47.2, 2.0), (-45, 1.5), (-40, -1), (-30, -8.5), (-23, -12.5), (-16, -12.5), (-9, -7.5), (-1, -7), (8, -5),
-          (15, 0), (19, 5.5), (25.5, 4.6), (29.5, 2.2), (34, 2.2), (35.5, 5.5), (41, 6.2), (44.6, 9.8)],
-    "s": [(-47.5, 0.5), (-47.5, 3.5), (-51.5, 3.5), (-51.5, 6.5), (-48.5, 10), (-48.5, 15), (-45, 19), (-37, 22), (-30, 19.5), (-21, 19.5),
+          (36, -25), (44, -22.5), (49.5, -18), (51.8, -6.5)],
+    "m": [(-40, -1), (-30, -8.5), (-23, -12.5), (-16, -12.5), (-9, -7.5), (-1, -7), (8, -5),
+          (15, 0), (19, 5.5), (25.5, 4.6), (29.5, 2.2), (34, 2.2), (35.5, 5.5), (41, 6.2)],
+    "s": [(-51.2, 6.5), (-48.5, 10), (-48.5, 15), (-45, 19), (-37, 22), (-30, 19.5), (-21, 19.5),
           (-14, 24.5), (-9.5, 24.6), (-8, 19.5), (-4, 18.2), (5, 18.8), (12, 18.6), (20, 18.6), (27.5, 18.4),
-          (31, 20.5), (33, 18.8), (39, 20.5), (44, 21.5), (49.5, 18), (52, 15), (52, 11.5),
-          (47.5, 11.5), (47.5, 8.5)],
+          (31, 20.5), (33, 18.8), (39, 20.5), (44, 21.5), (49.5, 18), (52, 15)],
 }
 
 

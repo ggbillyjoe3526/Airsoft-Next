@@ -168,3 +168,68 @@ func test_every_block_kind_of_the_hall_has_its_own_site_finish() -> void:
 	for param: StringName in [&"modes", &"paints", &"accents", &"bands", &"pbr"]:
 		var values: Variant = material.get_shader_parameter(param)
 		assert_eq(values.size(), look.finish_names().size(), "%s" % param)
+
+
+## DR1 QA, third pass: the overtime flankers' side point (bot_movement.gd _overtime_flank_point) from every side of the flag.
+
+func test_the_overtime_flank_point_from_every_side_is_on_the_flags_floor_and_reachable_without_crossing_a_wall() -> void:
+	var cfg := BotConfig.load_default()
+	var spot := map.overtime_flag
+	var world := BotWorld.new()
+	world.cfg = cfg
+	world.tuning = tuning
+	world.nav = nav
+	world.query = level.query()
+	var char := Character.new(0, 1, Vector3.ZERO, 0.0, ReplicaStats.default_loadout())
+	var b := Bot.new(char, 1, cfg.skill_for(&"normal"), 1)
+	var wrong_floor := PackedStringArray()
+	var cut_off := PackedStringArray()
+	var no_wall := PackedStringArray()
+	var found := 0
+	var none := 0
+	var route := PackedVector3Array()
+	var worst := 0.0
+	var both_covered := 0
+	for deg in 360:
+		var a := deg_to_rad(float(deg))
+		var u := Vector2(cos(a), sin(a))
+		char.position = Vector3(spot.x - u.x * 25.0, spot.y, spot.z - u.y * 25.0)
+		# Where both nominal side points are covered, the old code gave no flank at all.
+		var covered := 0
+		for side: float in [-1.0, 1.0]:
+			var sx: float = spot.x - u.x * cfg.overtime_flank_back - u.y * cfg.overtime_flank_offset * side
+			var sz: float = spot.z - u.y * cfg.overtime_flank_back + u.x * cfg.overtime_flank_offset * side
+			if not BotMovement._on_same_floor(world, spot, sx, sz):
+				covered += 1
+		both_covered += 1 if covered == 2 else 0
+		for seed_value in 2:
+			b.rng = Seeds.stream(seed_value + 7 * deg)
+			b.flanking = false
+			BotMovement._overtime_flank_point(b, world, spot)
+			if not b.flanking:
+				none += 1
+				continue
+			found += 1
+			var g := b.flank_goal
+			if not nav.is_walkable_at(g) or absf(g.y - spot.y) > tuning.body.max_step:
+				wrong_floor.append("%d deg: %s" % [deg, g])
+			route.clear()
+			if not nav.find_route(g, spot, route, false):
+				cut_off.append("%d deg: %s" % [deg, g])
+			if not nav.clear_line(g, spot):
+				no_wall.append("%d deg: %s" % [deg, g])
+			var len := 0.0
+			var at := g
+			for q in route:
+				len += Vector2(q.x - at.x, q.z - at.z).length()
+				at = q
+			worst = maxf(worst, len)
+			if len > 20.0:
+				gut.p("long %d deg goal %s route %.1f" % [deg, g, len])
+	assert_gt(both_covered, 0, "some approach has both side points covered, which the old code gave up on")
+	gut.p("worst route %.1f" % worst)
+	gut.p("flank points found %d, none %d, no straight walk to flag %d" % [found, none, no_wall.size()])
+	assert_gt(found, 0)
+	assert_eq(none, 0, "a flank point from every side")
+	assert_eq(wrong_floor.size(), 0, "off the flag's floor: %s" % [wrong_floor.slice(0, 5)])
+	assert_eq(cut_off.size(), 0, "no way on foot to the flag: %s" % [cut_off.slice(0, 5)])

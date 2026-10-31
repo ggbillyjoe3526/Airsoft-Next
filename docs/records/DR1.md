@@ -6,7 +6,9 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-31 | 1 | thread | pending | – | – |
+| 2026-10-31 | 1 | thread | parts 2 and 3 red | Retry 6/8 | a 70 m lane down the east wall through the defenders' spawn; an exception without the owner's word; stale docs |
+| 2026-10-31 | 2 | thread | match guards red (follow) | Retry 7/8 | lanes ended inside the spawn rooms, so defenders held in a chicane; squads queued in the chicanes |
+| 2026-10-31 | 3 | thread | pending | pending | – |
 
 ## Goal
 
@@ -37,9 +39,13 @@ the callout names kept, the Range its own map.
 - The old yard is `tests/support/maps/yard.json` (`YardMap`), without its bake: the tests written against its layout
   (bots, ports and the Box, crossfires, flag holds, the hall wall vault) load it; the Custom rules tests read Depot's
   5v5 and 6v6; the dress tests take sandbags from the range and the bad-sail case from the yard.
-- Each spawn room's two mouths are chicanes of two crate screens, and a crate screen stands at the Drum alley's mouth
-  in the Box yard (critic, attempt 1: the concept's single screens left a 70 m line down the east wall through the
-  defenders' spawn, and a 65 m line from the Lounge to the Box yard; the concept measured spawn sight for one end only).
+- Each spawn room's two mouths are chicanes of two crate screens (gaps and the corridor between 2.5 to 3 m, so a squad
+  following its leader doesn't queue; the outer gap ends short of the spawn line and the inner one starts past it, so no
+  line through both reaches a spawn; the spawn rooms' areas take the chicanes in), the spawns 1.2 m apart, and every
+  lane starts and ends at a chicane's outer mouth, where defenders hold (critic, attempt 2); and a crate screen stands
+  at the Drum alley's mouth in the Box yard (critic, attempt 1: the concept's single screens left a 70 m line down the
+  east wall through the defenders' spawn, and a 65 m line from the Lounge to the Box yard; the concept measured spawn
+  sight for one end only).
 - Steel drums (clank) and plastic barrels (plastic) join the noisy props in `NoiseConfig.props`. An overtime flanker
   whose side point is covered by a hut or pillar goes to the nearest walkable spot within the nav's snap
   (`BotMovement._overtime_flank_point`); the QA recheck found Depot's flankers never flanked, the hall's overtime flag
@@ -55,6 +61,8 @@ the callout names kept, the Range its own map.
   not lights (no per-lamp cost). The tunnels are dark from the bake's lids alone.
 - The yard's ambience stays (KNOWN_ISSUES); the Lounge is lit like the rest (KNOWN_ISSUES).
 - Doors stand as open gaps until DO1; Attack / Defend keeps one flag, on A site, until AB1 (KNOWN_ISSUES).
+- Practice: the end-1 spawn targets test runs on the yard; the hall's 53 lane points can fill the 48-target cap before
+  the far spawns are tried (those spawns are behind chicanes, out of sight, either way).
 - Sightline exception: the longest line is 64.6 m, across the open Chrono hall from Lower mid to Upper mid, against the
   field standard's 34 m. It is in `FieldStandard.EXCEPTIONS` at 66 m and put to the owner as a question (keep it open,
   or break it up to about 48 m); his answer goes in DECISIONS.
