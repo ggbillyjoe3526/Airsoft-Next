@@ -275,3 +275,17 @@ func _moving_go_theres(ticks: int) -> void:
 			cmd.ping_target = Vector3(-10.0, 0.0, -10.0 if t % 120 == 0 else 30.0)
 		_tick()
 		cmd.ping = false
+
+
+func test_go_there_at_a_wall_stops_at_its_foot_on_your_side_never_past_it() -> void:
+	_squad(true)
+	# You stand south of the thin wall (z 18.6 to 19.0) and look north at it, a little down.
+	cmd.yaw = 0.0
+	cmd.pitch = -0.1
+	_run(0.3)
+	_ping(true, false)
+	assert_eq(bots.order_of(YOU), SquadOrder.Kind.MOVE)
+	assert_true(bots.hold_spot(YOU))
+	assert_gt(bots.held_middle.z, 19.0, "on your side of the wall, never beyond what you see")
+	for b in mates:
+		assert_gt(b.order_goal.z, 19.0)

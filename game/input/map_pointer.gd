@@ -30,6 +30,8 @@ func frame(world_centre: Vector2, px_per_m: float, half_side: float, shown_floor
 	if _fresh:
 		_fresh = false
 		at = _kept(you)
+	else:
+		at = _kept(at) # a square that shrank (the window resized) keeps it on
 
 
 ## Whether there is a square to point on yet (a frame came, and its map has a side).

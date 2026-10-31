@@ -705,6 +705,8 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   key a ping there. Go there (mouse button 4, the order wheel's Go There, lower right) is an order sent as a ping: the
   squad goes side by side to the spot, however far, and it turns to Hold here once all are there; at the same spot it
   stays, never cancels. Held rather than toggled, as the scoreboard; Mouse 4 because every key near WASD is taken.
+  A ping with your view stops at the first thing it meets (a wall: its foot on your side); a click on the map goes
+  anywhere on the field, seen or not (owner, 2026-10-31).
 - **Ping is the middle mouse button, and Settings › HUD › Ping markers is On by default (2026-10-15, PG1).** One ping
   each, 8 s on screen with its distance, on the minimap too. Off hides the markers only.
 - **Asking for a magazine is H and the order wheel's fifth item, Need a Mag (2026-10-15, MG1).** One press does what

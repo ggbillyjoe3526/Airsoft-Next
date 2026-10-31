@@ -1,25 +1,16 @@
-Task: SF2 · QA commit 426fe42 · Verdict: Pass
+Task: FM1 · QA commit be608ee · Verdict: Pass (re-run on head 9d4cd12; the first run, on 5166090, was Fail)
 
-Blocking: none.
+Blocking: none. The three failing tests I pinned (pointer opens on you at first open and on reopen; click before the first frame) now pass, the pointer being framed every frame even while shut (hud_field_map.gd update) and MapPointer start/frame/framed.
 
-Advisory (not blocking, none touched by a failing test):
-- game/ai/bot_bombs.gd:33-40 · a throw being turned to is kept up to 1 s after it was decided, whatever changes meanwhile (an enemy comes into sight, a teammate walks into the bang's range). The teammate and sight checks are made at decision time only. Small; can wait.
-- game/ai/bot_bombs.gd:26-32 · a flash whose release is dropped by the full pool (SF1 keeps the bomb, no bang) still has the bot looking away for windup + fuse + 0.3 s with nothing coming. Rare (12-slot pool); can wait.
-- game/ai/bot_brain.gd:28-34 · a dazzled bot returns before BotBombs: a pending turn waits out the dazzle, then is dropped by its 1 s window (pinned below), so the bomb is not thrown late. Fine as built.
-- Bots' bombs ignore the "Bots hold fire" dev cheat (only cmd.fire is cleared). Dev-only; can wait.
+Advisory (not blocking, not pinned):
+- game/input/map_pointer.gd:50 (move/_kept) · the pointer's px are not re-clamped or rescaled when the square changes under it (a window resize while M is held): it can sit past the new edge, or over another place, until the mouse moves. Needs a resize with the map open; can wait.
+- game/input/player_input.gd (_order_key) · the order keys F, X and V on the open map act on the frozen view (the coordinator left it, as the wheel). Can wait.
+- game/ai/squad_order_book.gd:32 · MATCH_OVER leaves a bot's order MOVE (pre-existing, as Hold here).
+- game/play/play_session.gd:780 · allow_map(false) under Tab closes the map and it stays shut when Tab is let go with M still held (a fresh M press is needed). Intended by the fix; the owner should know.
 
-Checked and clean: Bot.reset clears the pending throw, look-away and roll gap; a refused press (pool full, round not live) leaves the bot free to walk and not waiting; a dead teammate near the bang does not stop a flash; throw_pitch is NAN (never a number) for out of reach, straight down and far above; a last-known spot on the bot throws nothing; same seed twice gives identical bomb events (tick, thrower, kind); the view never jumps more than 0.08 rad on the tick a bomb is done (no snap back); Woodland (night, bushes), Depot Attack/Defend and Woodland Attack/Defend run 6000 ticks with no script error and no bot busy more than 33 ticks (limit 300).
+Fixes checked: Mouse 4 on the open map is a Go there at the pointer (tested; out, it sends nothing); a click before any frame sends nothing (framed()); a frame after a pointer move does not drag it back to you (_fresh cleared by move); the area words are laid out again on a resize (Overlay.laid_out cache; tested); the scoreboard/summary closing is allow_map(false) in play_session (not unit-testable without a session: summary_up() exists; the closing itself is covered by test_the_map_shutting_under_you_closes_it...).
 
-Tests added (tests/unit/test_sf2_qa.gd; BotBombs and throw_pitch do not exist at 1cc477f, so each fails there; I did not stub the feature out of the tree, the full suite is running in it):
-- :80 a_new_round_clears_a_throw_being_turned_to_and_the_look_away · Bot.reset state · would fail if reset left bomb_kind, away or roll gap
-- :94 a_throw_the_simulation_refuses_leaves_no_wait_and_no_hold · full pool: no PIN, bot not busy, walks on · fails if a refused press left bomb_kind or away set
-- :119 a_dazzle_longer_than_the_turn_window_drops_the_throw_instead_of_throwing_late · stale pending throw is dropped
-- :140 a_teammate_who_is_out_does_not_stop_a_flash_but_a_live_one_does · _mate_sees counts in-play mates only
-- :152 unreachable_or_degenerate_aims_give_no_pitch_and_no_throw · NAN guards, arc_point at t=0
-- :172 a_round_that_ends_while_it_turns_throws_nothing_and_leaves_no_wait · phase OVER, bomb kept
-- :221 the_same_seed_throws_the_same_bombs_and_the_view_does_not_snap_when_one_is_done · two Depot runs of 7000 ticks, equal event lists (only 4 throws in them, thin coverage)
-- :230 bots_never_stay_busy_with_a_bomb_for_long_on_woodland_or_in_attack_defend · 3 whole runs
+Tests added in tests/unit/test_fm1_qa.gd (21 now): go_there_s_key_on_the_open_map_is_a_go_there_at_the_pointer, go_there_s_key_does_nothing_on_the_open_map_while_you_are_out, the_pointer_follows_you_while_the_map_is_shut..., a_moved_pointer_stays_where_it_was_put..., the_area_words_are_laid_out_again_when_the_screen_resizes. Each fails at 5166090 (framed(), PING_MOVE in the map, the shut frame and laid_out do not exist there).
 
-Result: test_sf2_qa.gd 8/8, 29 asserts, 61 s; gdlint clean. test_bot_bombs.gd, test_grenades.gd, test_sf1_qa.gd not re-run by me (the full suite is running in the tree). tools/check.sh and the smoke test not run (told not to). Raw output: pipeline/out/qa/sf2.log (uncommitted).
-
-Could not test: how the look-away and the blind-side push feel, that bots visibly turn their backs, and the throw animation (needs a display and play): the owner should watch a Normal Depot match for flashes that dazzle the thrower side-on.
+Result: test_fm1_qa 21/21, test_fm1_field_map 15/15, test_fm1_go_there 9/9, test_order_wheel_input 18/18; gdlint clean. I ran no full check.sh (the coordinator's is running on 9d4cd12).
+Could not test: how it feels with a real mouse and window, the dimmed screen and words (display), and Tab/summary over a live session.
