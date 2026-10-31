@@ -144,6 +144,28 @@ def site() -> dict:
     return {"stencils": stencils, "lines": lines}
 
 
+# A door's leaves (DO1): this thick (m), hung on one face of the wall (the +x or +z one, `side` 1) across its gap, as
+# tall as the wall. Two leaves, each hinged at its jamb in the leaf's middle plane, so an open leaf folds back flat
+# against the wall's face; each wall piece beside a gap is at least a leaf wide.
+DOOR_T = 0.08
+
+
+def doors() -> list[dict]:
+    """The hinged doors, in the layout's order: each its shut leaves' box, the side it hangs on and whether it starts
+    the round shut."""
+    out = []
+    off = L.T / 2 + DOOR_T / 2
+    for d in L.DOORS:
+        cx, cz = (d["x1"] + d["x2"]) / 2, (d["z1"] + d["z2"]) / 2
+        if d["along_x"]:
+            sx, sz, cz = d["x2"] - d["x1"], DOOR_T, cz + off
+        else:
+            sx, sz, cx = DOOR_T, d["z2"] - d["z1"], cx + off
+        out.append({"center": {"x": r(cx), "y": r(d["h"] / 2), "z": r(cz)},
+                    "size": {"x": r(sx), "y": r(d["h"]), "z": r(sz)}, "side": 1, "shut": d["state"] == "shut"})
+    return out
+
+
 def build() -> dict:
     return {
         "name": "Depot",
@@ -157,6 +179,7 @@ def build() -> dict:
         "overtimeFlag": {"x": L.OT_FLAG[0], "y": 0, "z": L.OT_FLAG[1]},
         "botSight": 55,
         "roof": roof(),
+        "doors": doors(),
         "lighting": {"presets": ["day"], "overrides": {"day": {
             "key": {"elevation": 76, "heading": 25, "intensity": 1.1}, "hemi": {"intensity": 0.55}}}},
         "bakedLight": {"file": "depot"},
@@ -173,4 +196,4 @@ if __name__ == "__main__":
         json.dump(data, f, indent=1)
         f.write("\n")
     print(f"{os.path.relpath(OUT)}: {len(data['blocks'])} blocks, {len(data['areas'])} areas, "
-          f"{len(data['roof']['lamps'])} lamps")
+          f"{len(data['roof']['lamps'])} lamps, {len(data['doors'])} doors")

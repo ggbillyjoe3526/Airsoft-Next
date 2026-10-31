@@ -22,6 +22,8 @@ so W A S D stays W A S D on any keyboard layout.
   ([Squad Orders](Squad-Orders#need-a-mag)); it is also the order wheel's fifth item.
 - **Throw smoke** (G) and **Throw flash** (Y) throw a smoke bomb or a flash bomb where you look
   ([Grenades](Grenades)).
+- **Open / shut door** (U) opens or shuts the door within reach, the one nearest where you look. A line under the
+  crosshair says which while you stand by one ([Maps](Maps#doors)).
 
 ## Keys you can't change
 

@@ -18,6 +18,12 @@ var block_surfaces: PackedInt32Array = PackedInt32Array()
 ## a bot can't see far through. Empty unless whoever builds the level hands it the map's (MapLevel from MapData.foliage;
 ## tests through BoxWorld.add_bush).
 var foliage: Foliage = Foliage.new()
+## The level's hinged doors (DO1), parallel lists in the map's order: each shut leaf's centre, half its size, and whether
+## it starts a round shut. Filled once by whoever builds the level (MapLevel from MapData.doors; tests through
+## add_door). Whether each is shut now is the game's (DoorState); the simulation tells the level with set_door_shut.
+var door_centers: PackedVector3Array = PackedVector3Array()
+var door_halves: PackedVector3Array = PackedVector3Array()
+var door_starts_shut: PackedByteArray = PackedByteArray()
 
 
 ## The nearest level surface on the segment from `from` to `to`, written into `hit`; false if there is none.
@@ -37,3 +43,21 @@ func add_block(kind: StringName, center: Vector3, size: Vector3, surface: RayHit
 	block_centers.append(center)
 	block_halves.append(size * 0.5)
 	block_surfaces.append(surface)
+
+
+## Lists a door whose shut leaf is the box centred at `center` measuring `size`, starting each round shut if `shut`.
+## Implementations add its leaf, solid while shut (`set_door_shut`).
+func add_door(center: Vector3, size: Vector3, shut: bool) -> void:
+	door_centers.append(center)
+	door_halves.append(size * 0.5)
+	door_starts_shut.append(1 if shut else 0)
+
+
+## How many doors the level has.
+func door_count() -> int:
+	return door_centers.size()
+
+
+## Makes door `i`'s leaf solid (shut) or nothing at all (open) to rays and movers, from this call on.
+func set_door_shut(_i: int, _shut: bool) -> void:
+	pass

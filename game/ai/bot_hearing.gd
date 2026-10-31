@@ -2,11 +2,12 @@ class_name BotHearing
 ## What the bots hear and feel of a tick (the browser game's ai/hearing.ts, without cases): gunfire (as far as the
 ## shooter's replica is heard: a silencer halves it), a teammate's hit call, running, sprinting, landing and vaulting
 ## feet (further on loud ground: the event's carry), a rattling magazine, a run into a noisy prop (heard as a step on
-## whoever knocked it, out to the prop's reach), a BB ringing off steel (faint: see _hear), enemy BBs landing
-## close, and an enemy's smoke popping or flash going bang (SF2). Each gives a rough guess of where the enemy
-## is, off by up to hearing_error of the distance; walls between muffle a sound to wall_hearing of its range, judged by
-## SoundPath's rays, as the player's muffling is. Hearing never counts as sight: a bot still reacts when the enemy then
-## appears. Reads the tick's events after the step; writes only the bots' memory. Allocates nothing.
+## whoever knocked it, out to the prop's reach), a BB ringing off steel (faint: see _hear), enemy BBs landing close, an
+## enemy's smoke popping or flash going bang (SF2), and a door an enemy opens or shuts, heard where the door is out to
+## its reach through any walls (DO1). Each gives a rough guess of where the enemy is, off by up to hearing_error of the
+## distance; walls between muffle a sound to wall_hearing of its range, judged by SoundPath's rays, as the player's
+## muffling is. Hearing never counts as sight: a bot still reacts when the enemy then appears. Reads the tick's events
+## after the step; writes only the bots' memory. Allocates nothing.
 
 static var _hit: RayHit = RayHit.new()
 
@@ -45,6 +46,10 @@ static func observe(state: GameState, w: BotWorld) -> void:
 				if thrower != null:
 					var reach := w.cfg.bang_hearing if e.kind == GameEvent.Kind.FLASH_BANG else w.cfg.pop_hearing
 					_hear(w, thrower, e.position, e.position, reach, null, e.position)
+			GameEvent.Kind.DOOR:
+				var user := _character(w, e.actor)
+				if user != null and Elimination.is_in_play(user):
+					_hear(w, user, e.position, e.position, e.reach, null, e.position, false, false, false)
 			GameEvent.Kind.PROP_RING:
 				# Heard where it rang, as a guess there, and faintly.
 				var shooter := _character(w, e.actor)
@@ -101,9 +106,10 @@ static func _near_miss(e: GameEvent, w: BotWorld) -> void:
 ## else keeps it for later. Gunfire from about the same place keeps the same guess. A bot that plays as a team goes to
 ## trade a teammate's `hit_call`, and tells its teammates where it heard someone. A `faint` sound (a BB ringing off a
 ## prop) is heard only by a bot with nobody in sight and nothing seen or heard within hearing_contact_time, and is not
-## shared: it turns an idle bot's head, never pulls one off a fight.
+## shared: it turns an idle bot's head, never pulls one off a fight. A sound not `muffled` carries its full range
+## through walls (a door's, DO1).
 static func _hear(w: BotWorld, source: Character, heard_at: Vector3, source_feet: Vector3, range_m: float, only: Bot,
-		at: Vector3 = Vector3.INF, hit_call: bool = false, faint: bool = false) -> void:
+		at: Vector3 = Vector3.INF, hit_call: bool = false, faint: bool = false, muffled: bool = true) -> void:
 	var cfg := w.cfg
 	var where := source.position if at == Vector3.INF else at
 	for b in w.bots:
@@ -118,7 +124,7 @@ static func _hear(w: BotWorld, source: Character, heard_at: Vector3, source_feet
 		if heard > range_m:
 			continue
 		# Within the range a wall leaves, nothing to check; beyond it, cast the rays.
-		if heard > range_m * cfg.wall_hearing:
+		if muffled and heard > range_m * cfg.wall_hearing:
 			var share := SoundPath.blocked_share(w.query, BotSenses.eye_of(c, w.tuning), source_feet,
 					cfg.hearing_ray_heights, _hit)
 			if heard > range_m * (1.0 - share * (1.0 - cfg.wall_hearing)):

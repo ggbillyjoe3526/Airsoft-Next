@@ -18,6 +18,7 @@ const ACTIONS: Array[StringName] = [
 	&"lean_left", &"lean_right", &"fire", &"aim", &"reload", &"fire_mode", &"slot_1", &"slot_2", &"holster",
 	&"torch", &"slot_next", &"slot_previous", &"hop_up_less", &"hop_up_more", &"scoreboard", &"field_map", &"order_follow",
 	&"order_hold", &"order_regroup", &"order_wheel", &"ping", &"ping_move", &"mag_hand_off", &"throw_smoke", &"throw_flash",
+	&"use_door",
 	&"loadout",
 ]
 ## Actions that can never be left keyless (owner rule, DECISIONS › Menus, HUD, settings and accessibility).
@@ -57,6 +58,7 @@ const DEFAULTS: Dictionary = {
 	&"mag_hand_off": [KEY_H],
 	&"throw_smoke": [KEY_G],
 	&"throw_flash": [KEY_Y],
+	&"use_door": [KEY_U],
 	&"loadout": [KEY_L],
 }
 ## Keys that can't be bound: Esc (menus), PrintScreen, Pause, F11 (fullscreen), the debug keys (F3 the overlay, F4 BB

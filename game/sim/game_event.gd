@@ -45,6 +45,7 @@ enum Kind {
 	SMOKE_POP, ## actor's smoke bomb target popped at position: its cloud grows from there.
 	FLASH_BANG, ## actor's flash bomb went bang at position.
 	DAZZLED, ## actor's flash at position dazzled target for reach s; value its strength in hundredths.
+	DOOR, ## actor toggled door target (WorldQuery's order) at position (its leaf's middle): value 1 shutting, 0 opening; heard out to reach through walls (Doors, DO1).
 }
 
 ## RATTLE: a rattling magazine (ReplicaConfig.rattles) while walking or moving crouched, otherwise silent.

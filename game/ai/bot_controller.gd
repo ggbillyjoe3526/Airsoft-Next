@@ -57,6 +57,7 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 	w.planner = RoundPlanner.new(state.match_seed)
 	w.mag_share = MagShare.new(tuning, query)
 	w.grenades = state.grenades
+	w.doors = state.doors
 	for c in state.characters:
 		if c.id != player_id:
 			var skill := config.skill_for(team_levels[c.team]) if team_levels.has(c.team) else config.skill

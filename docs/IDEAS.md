@@ -23,9 +23,7 @@ Work the owner wants one day but hasn't placed in a version.
   Woodland) with vehicles to drive round it. A driving player can't shoot but can still ping and give orders; a bot
   can drive but gives no orders (it follows the player's); players and bots in passenger seats can fight. Nothing is
   built until he places it.
-- **Doors (owner, 2026-10-17, for Neon Heights; NH2).** Doors players and bots open and close, so an open door shows
-  where someone went and a closed one may hide an enemy. Neon Heights was cut (owner, 2026-10-29), so the idea waits
-  for a field he places it on.
+- ~~**Doors (owner, 2026-10-17, for Neon Heights; NH2).**~~ Built for Depot's hall (DO1, 2026-10-31).
 
 ## Maybe
 

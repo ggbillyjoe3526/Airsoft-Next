@@ -14,7 +14,8 @@ extends Node
 ## The magazine hand-off (MH3): your ask taken plays the radio's double click, a toss its magToss from the thrower and
 ## its catch magCatch from the catcher. Smoke and flash bombs (SF1): the pin and the throw from the thrower, a bomb's
 ## knock where it bounces (louder the harder), a smoke's pop and hiss and a flash's bang (far: bang_reach) from the
-## bomb, muffled by the walls between. Kit rustles as a crouch, a stand or a lean starts (FoleyTracker, from the
+## bomb, muffled by the walls between. A door opening or shutting (DO1): its door_open or door_shut cue from the door,
+## yours too, muffled by the walls between. Kit rustles as a crouch, a stand or a lean starts (FoleyTracker, from the
 ## state: bots never hear it);
 ## a landing thuds louder and lower the harder it comes down, with a rustle under a hard one. The referee's whistle
 ## (WhistleQueue) on the Interface bus: two short blasts start a round, three quick short ones put Elimination's
@@ -146,7 +147,7 @@ func setup(cfg: SoundConfig, profiles: Array[StringName], body: BodyConfig, quer
 	for cue: String in ["selector", "draw", "reloadRefused", "bodyHit", "hitTick", "hitMarker", "count_beep", "vault",
 			"foley_holster", "magRattle", "rope_up", "rope_down", "steelRing", "radio_ack", "foley_crouch", "foley_stand",
 			"foley_lean", "whistle_short", "whistle_long", "torchClick", "ping_pip", "magToss", "magCatch", "grenade_pin",
-			"grenade_bounce", "smoke_pop", "flash_bang"]:
+			"grenade_bounce", "smoke_pop", "flash_bang", "door_open", "door_shut"]:
 		_load(cue)
 	_set_muffle(cfg.muffled_cutoff_hz)
 	for i in cfg.field_voices:
@@ -290,6 +291,10 @@ func on_tick(state: GameState, player_id: int, listener: Character) -> void:
 			GameEvent.Kind.PROP_KNOCK:
 				_play(_prop[clampi(e.value, 0, _prop.size() - 1)], e.position, false, _cfg.prop_gain, Kind.PROP,
 						BUS_EFFECTS, 1.0, _cfg.prop_reach, null, true)
+			# A door opening or shutting (DO1): from the door, yours too, muffled by the walls between it and your ears.
+			GameEvent.Kind.DOOR:
+				_play(&"door_shut" if e.value == 1 else &"door_open", e.position, false, _cfg.door_gain, Kind.PROP,
+						BUS_EFFECTS, 1.0, _cfg.door_reach, null, true)
 			GameEvent.Kind.FLAG_ROPE:
 				_play(&"rope_up" if e.value == 1 else &"rope_down", e.position, false, _cfg.rope_gain, Kind.ROPE,
 						BUS_EFFECTS)
