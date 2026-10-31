@@ -1,6 +1,6 @@
 # DR1 · Depot rebuilt as the indoor hall of concept 3
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
@@ -9,7 +9,7 @@
 | 2026-10-31 | 1 | thread | parts 2 and 3 red | Retry 6/8 | a 70 m lane down the east wall through the defenders' spawn; an exception without the owner's word; stale docs |
 | 2026-10-31 | 2 | thread | match guards red (follow) | Retry 7/8 | lanes ended inside the spawn rooms, so defenders held in a chicane; squads queued in the chicanes |
 | 2026-10-31 | 3 | thread | green on b1d7177 | Retry 7/8 | a 0.5 m crack in the racking by the north chicane, from a zone edit |
-| 2026-10-31 | 4 | thread | pending | pending | – |
+| 2026-10-31 | 4 | thread | green on 2f44878; b0641b5 changes map data, tests and docs | Accept 8/8 | – |
 
 ## Goal
 
@@ -72,4 +72,14 @@ the callout names kept, the Range its own map.
 
 ## Checks
 
-pending
+- CI on 2f44878 green: gdlint, changelog, wiki, unit parts 1 to 3, smoke test, notices, the match guards (Depot
+  Elimination at Normal, Easy and Hard, the follow guard, Attack / Defend), the callout guards and Woodland's night
+  guards. b0641b5 moves two screens 0.5 m and adds a test: test_depot_hall, test_depot_hall_qa, the field tests,
+  test_map_areas and the bake tests pass locally; CI runs it all again on the merge head.
+- Locally: the follow guard on 2f44878 (4 seeds, worst 6.6 m); Depot Elimination guards on 0821da4 (118, 58 and 58
+  rounds, none on time).
+- QA: failed attempt 1 (old-layout tests, grey props), then passed b1d7177 and 2f44878 and added
+  `tests/unit/test_depot_hall_qa.gd`. Performance passed 93e3d55, 46230ea and b1d7177 (no code after it).
+- For the owner to play: the chicanes (tight? bots queueing?), where defenders hold in Attack / Defend, spawn sight,
+  whether the 65 m Chrono hall line dominates, overtime flankers round the hut, the drum and barrel sounds, and frame
+  time (F3) on Low and in 6v6.
