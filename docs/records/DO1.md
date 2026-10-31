@@ -1,13 +1,13 @@
 # DO1 · Depot's doors
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-31 | 1 | thread | door tests pass; parts 1 and 3 pass, part 2 hit its local time limit | Retry 5/8 | the prompt's text rebuilt every tick; nothing tested a bot opening a door; defaults cited as owner rulings; a bot's Use could toggle a door other than the one it walks into (QA, pinned) |
-| 2026-10-31 | 2 | thread | pending | pending | – |
+| 2026-10-31 | 2 | thread | door and QA tests pass; full suite on CI | Accept 8/8 | – |
 
 ## Goal
 
@@ -58,4 +58,12 @@ flags, DR2 the CC0 dress.
 
 ## Checks
 
-- Pending.
+- Locally: `tests/unit/test_doors.gd` (20) and QA's `tests/unit/test_do1_qa.gd` (5) pass, gdlint, the wiki check and
+  the changelog check pass; unit parts 1 and 3 pass, part 2's local run hit its 18-minute limit (the files after
+  test_match_runner re-run on their own). CI runs everything, the match guards among it, on the merge head.
+- Reviews: critic Retry 5/8 then Accept 8/8; QA failed attempt 1 (a bot's press could toggle another door, pinned in
+  test_do1_qa) then passed; performance failed attempt 1 (the prompt's text built every tick) then passed.
+- For the owner to play: the swing against a collider that switches at its start (does a door that still looks open
+  stop BBs readably?), bots at the 8 doors that start shut (any stalls?), whether a door 15 to 20 m off through walls
+  is fair on your minimap and in how bots react to yours, the door sounds' level, and whether open leaves clip
+  anything beside the gaps.
