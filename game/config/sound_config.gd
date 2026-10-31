@@ -59,6 +59,10 @@ const PEAKS_PATH := "res://assets/audio/loops/peaks.json"
 @export var prop_pitch: float = 0.08
 @export var prop_spread_db: float = 1.5
 @export var prop_reach: float = 26.0
+## A door opening or shutting (DOOR, DO1): its creak, latch and slam from the door, yours too, heard out to door_reach
+## (m), a little past the furthest a bot hears one (DoorConfig.heard, 20 m).
+@export var door_gain: float = 0.8
+@export var door_reach: float = 26.0
 ## Smoke and flash bombs (SF1): a bomb's knock where it bounces (at the gain times its speed into the surface over
 ## bounce_full_speed, at most the gain) and a smoke's pop and hiss, both heard out to prop_reach; a flash's bang, heard
 ## out to bang_reach (m). The pin and the throw are mechanisms (mechanism_gain).

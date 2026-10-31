@@ -18,7 +18,9 @@ extends RefCounted
 ## the magazines in the air land after the BBs fly, so a catcher hit this tick loses it (MagShare, MH1). A smoke or
 ## flash bomb's press is taken after the vault (none while vaulting) and puts the replica down before it is used; the
 ## throw under way lets go of the trigger and sights and releases the bomb after the replica, and the bombs fly, pop and
-## go bang after the magazines land; a new round clears them (Grenades, SF1).
+## go bang after the magazines land; a new round clears them (Grenades, SF1). A Use press is taken after the bomb's,
+## before the character moves (a door it opens is open for its step), a walk-off opens a shut door it walks into, the
+## swings run on after the bombs, and each match and round starts with the doors as the map sets them (Doors, DO1).
 
 var tuning: SimTuning = null
 var query: WorldQuery = null
@@ -36,6 +38,8 @@ var noise: PropNoise = null
 var mag_share: MagShare = null
 ## The smoke and flash bombs' rules (SF1), made with the simulation.
 var grenades: Grenades = null
+## The hinged doors' rules (DO1), made with the simulation.
+var doors: Doors = null
 ## Followed by characters with no command this tick.
 var _idle: PlayerCommand = PlayerCommand.new()
 ## Followed by characters that have been hit: they take no orders from their controller.
@@ -60,6 +64,7 @@ func _init(sim_tuning: SimTuning, world: WorldQuery, character_mover: CharacterM
 	noise = PropNoise.new(sim_tuning.noise, world)
 	mag_share = MagShare.new(sim_tuning, world)
 	grenades = Grenades.new(sim_tuning, world)
+	doors = Doors.new(sim_tuning, world)
 
 
 ## A fresh match: a new breeze, everyone at their end's spawns with the bombs everyone carries, round 1 live.
@@ -71,6 +76,7 @@ func start_match(state: GameState) -> void:
 	for t in state.mag_tosses:
 		t.active = false
 	Grenades.clear(state.grenades)
+	doors.reset(state.doors)
 	for c in state.characters:
 		c.grenades.carry(tuning.grenades.smoke_carried, tuning.grenades.flash_carried)
 	Round.start_match(state.round_state, state.characters, ends, state.bbs, tuning, state.events)
@@ -89,6 +95,10 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	var sharing := live and not state.round_state.practice
 	Elimination.plan_walk_off_routes(state.characters, nav)
 	var noisy := noise.count() > 0
+	var has_doors := doors.count() > 0
+	# A state the match never started for (a test's, a tool's) meets the doors as the map sets them.
+	if has_doors and state.doors.count() != doors.count():
+		doors.reset(state.doors)
 	if noisy:
 		noise.prepare(state)
 	for c in state.characters:
@@ -132,6 +142,10 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 			grenades.press(c, cmd, live, state.grenades, state.events)
 			if Grenades.throwing(c):
 				cmd = Grenades.throwing_command(cmd, _throwing)
+			if cmd.use_door and has_doors:
+				doors.press(c, state)
+		elif has_doors and not c.vault.active:
+			doors.walk_through(c, cmd, state)
 		if in_play:
 			Aiming.step(c, cmd, tuning.movement, dt)
 		else:
@@ -172,6 +186,8 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 	# After the BBs: a catcher hit this tick is out of play, and the magazine is lost.
 	mag_share.step(state, sharing, dt)
 	grenades.step(state, dt, kill_y)
+	if has_doors:
+		Doors.step(state.doors, dt)
 	if state.round_state.practice:
 		# Practice has no rounds: it's always live, with no clock.
 		RangeTargets.step(state.targets, tuning, dt, state.rng)
@@ -186,6 +202,7 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		# A new round: the last round's bombs and smoke are gone.
 		if state.events.first(GameEvent.Kind.ROUND_START) != null:
 			Grenades.clear(state.grenades)
+			doors.reset(state.doors)
 	state.tick += 1
 	state.time += dt
 

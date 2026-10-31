@@ -55,7 +55,7 @@ def wall(kind, x1, z1, x2, z2, openings=()):
         if what in ("dopen", "dshut"):
             gap = (a, z1 - T / 2, b, z1 + T / 2) if horiz else (x1 - T / 2, a, x1 + T / 2, b)
             DOORS.append({"x1": gap[0], "z1": gap[1], "x2": gap[2], "z2": gap[3], "along_x": horiz,
-                          "state": "open" if what == "dopen" else "shut"})
+                          "h": default_h(kind), "state": "open" if what == "dopen" else "shut"})
         pos = b
     if pos < a1:
         segs.append((pos, a1, kind))

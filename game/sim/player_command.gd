@@ -50,6 +50,8 @@ var ping: bool = false
 var mag_hand_off: bool = false
 ## Throw a bomb of this kind (one-shot; Grenades, SF1): NONE throws nothing.
 var throw_grenade: Grenade.Kind = Grenade.Kind.NONE
+## Open or shut the door in reach nearest the view's line (one-shot; Doors, DO1).
+var use_door: bool = false
 
 
 ## Back to no input, looking along (yaw, pitch).
@@ -77,6 +79,7 @@ func reset(view_yaw: float = 0.0, view_pitch: float = 0.0) -> void:
 	ping = false
 	mag_hand_off = false
 	throw_grenade = Grenade.Kind.NONE
+	use_door = false
 
 
 func copy_from(other: PlayerCommand) -> void:
@@ -103,3 +106,4 @@ func copy_from(other: PlayerCommand) -> void:
 	ping = other.ping
 	mag_hand_off = other.mag_hand_off
 	throw_grenade = other.throw_grenade
+	use_door = other.use_door

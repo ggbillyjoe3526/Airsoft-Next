@@ -17,6 +17,10 @@ const SKIN := 1e-4
 var box_min: PackedVector3Array = PackedVector3Array()
 var box_max: PackedVector3Array = PackedVector3Array()
 var box_surface: PackedInt32Array = PackedInt32Array()
+## 1 for a box that is no box now: an open door's leaf (DO1).
+var box_off: PackedByteArray = PackedByteArray()
+## Each door's box (WorldQuery.add_door), by door.
+var _door_box: PackedInt32Array = PackedInt32Array()
 var body: BodyConfig = null
 
 
@@ -29,6 +33,7 @@ func add_box(center: Vector3, size: Vector3, surface: RayHit.Surface = RayHit.Su
 	box_min.append(center - size * 0.5)
 	box_max.append(center + size * 0.5)
 	box_surface.append(surface)
+	box_off.append(0)
 
 
 ## Adds a solid box of `kind` (a skip, a crate) centred at `center` measuring `size`, made of `surface`, and lists it as
@@ -36,6 +41,18 @@ func add_box(center: Vector3, size: Vector3, surface: RayHit.Surface = RayHit.Su
 func add_prop(kind: StringName, center: Vector3, size: Vector3, surface: RayHit.Surface) -> void:
 	add_box(center, size, surface)
 	add_block(kind, center, size, surface)
+
+
+## Adds a door's leaf as a wooden box, solid while shut (WorldQuery.add_door).
+func add_door(center: Vector3, size: Vector3, shut: bool) -> void:
+	super(center, size, shut)
+	_door_box.append(box_min.size())
+	add_box(center, size, RayHit.Surface.WOOD)
+	box_off[box_off.size() - 1] = 0 if shut else 1
+
+
+func set_door_shut(i: int, shut: bool) -> void:
+	box_off[_door_box[i]] = 0 if shut else 1
 
 
 ## Adds a bush standing on `foot`, `radius` across and `height` tall (WorldQuery.foliage): nothing a ray or a mover
@@ -60,6 +77,8 @@ func ray(from: Vector3, to: Vector3, hit: RayHit) -> bool:
 	var best_box := -1
 	var best_axis := 0
 	for b in box_min.size():
+		if box_off[b] != 0:
+			continue
 		var t_enter := -INF
 		var t_exit := INF
 		var axis := -1
@@ -118,6 +137,8 @@ func ground_box(feet: Vector3, radius: float, max_top: float, max_drop: float) -
 	var best := -1
 	var best_top := -INF
 	for b in box_min.size():
+		if box_off[b] != 0:
+			continue
 		var top := box_max[b].y
 		if top > max_top or top < feet.y - body.rest_gap - max_drop or top <= best_top:
 			continue
@@ -148,6 +169,8 @@ func sweep(feet: Vector3, desired: Vector3) -> Vector3:
 			y_to = maxf(y_to, box_max[land].y + body.rest_gap)
 	elif desired.y > 0.0:
 		for b in box_min.size():
+			if box_off[b] != 0:
+				continue
 			var bottom := box_min[b].y
 			if bottom >= p.y + body.height - SKIN and bottom < y_to + body.height and _circle_overlaps(p.x, p.z, r, b):
 				y_to = minf(y_to, bottom - body.height)
@@ -158,7 +181,7 @@ func sweep(feet: Vector3, desired: Vector3) -> Vector3:
 	for _pass in PUSH_PASSES:
 		var pushed := false
 		for b in box_min.size():
-			if box_max[b].y <= p.y + body.max_step or box_min[b].y >= p.y + body.height - SKIN:
+			if box_off[b] != 0 or box_max[b].y <= p.y + body.max_step or box_min[b].y >= p.y + body.height - SKIN:
 				continue
 			var cx := clampf(p.x, box_min[b].x, box_max[b].x)
 			var cz := clampf(p.z, box_min[b].z, box_max[b].z)

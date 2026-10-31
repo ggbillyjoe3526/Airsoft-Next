@@ -93,6 +93,9 @@ static func think(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> void:
 		# A low obstacle on its route: Jump once the vault is there, as the player's would be (the same rule).
 		if b.vault_leg:
 			cmd.jump = Vault.find_along(me, Vault.way(cmd, w.tuning), w.tuning, w.query, _vault_check)
+		# A shut door in its way: it opens it, as the player would, noise and all (DO1).
+		cmd.use_door = w.doors != null and Doors.shut_ahead(w.query, w.tuning.doors, w.doors, me.position,
+				Vector2(b.move_dir.x, b.move_dir.z)) >= 0
 	# A personality that aims from cover raises its sight standing still to fight, to look over its cover or to hold;
 	# never to draw a holstered replica (BotHolster decides that). Every other bot fires from the hip.
 	if b.style.aims_from_cover and not moving and cmd.forward == 0.0 and cmd.right == 0.0 \

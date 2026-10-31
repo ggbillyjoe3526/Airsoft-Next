@@ -57,6 +57,17 @@ class Puddle:
 	var mud: bool = false
 
 
+## One hinged door (DO1; `doors` in the file): its two leaves' box when shut, hung across a gap in a wall on the wall's
+## face `side` (1: the +x or +z face, along the box's thin axis; -1 the other), and whether it starts each round shut.
+## Open, it is no collider, its leaves folded back flat against that face (DoorState, WorldQuery.add_door, DoorView).
+class Door:
+	extends RefCounted
+	var center: Vector3 = Vector3.ZERO
+	var size: Vector3 = Vector3.ONE
+	var side: int = 1
+	var shut: bool = false
+
+
 ## The kinds a light may name (a light naming none is a lamp in its own colour).
 const LIGHT_KINDS: Array[StringName] = [&"fire", &"lantern"]
 
@@ -138,6 +149,8 @@ var bot_sight: float = 0.0
 ## the sky, and its lamp panels (x, z), drawn by RoofView. A BB stops on it (MapLevel's ceiling).
 var roof_height: float = 0.0
 var roof_lamps: PackedVector2Array = PackedVector2Array()
+## The hinged doors (DO1), in file order: the simulation, the level and the view number them alike.
+var doors: Array[Door] = []
 ## The floor heights (m) of a map built in storeys, lowest first (such as 0, 3 and 6); empty on a map of one.
 var storeys: PackedFloat64Array = PackedFloat64Array()
 ## Why the file was refused; empty when it loaded.
@@ -191,6 +204,7 @@ static func parse(text: String, style: MapStyle, team_size: int) -> MapData:
 	m._read_lighting(d.get("lighting"))
 	m._read_lights(d.get("lights"))
 	m._read_roof(d.get("roof"))
+	m._read_doors(d.get("doors"))
 	m.bot_sight = maxf(0.0, _number(d.get("botSight"), 0.0))
 	m._read_foliage(d.get("foliage"))
 	m.skyline = SkylinePiece.read(d.get("dressing"), m.warnings)
@@ -543,6 +557,24 @@ func _read_roof(raw: Variant) -> void:
 			warnings.append("a roof lamp is not {x, z}; left out")
 			continue
 		roof_lamps.append(Vector2(x, z))
+
+
+## `doors`: each {center, size over 0 every way, side (optional: 1 or -1, 1), shut (optional, false)}; one that isn't
+## is left out.
+func _read_doors(raw: Variant) -> void:
+	if raw == null:
+		return
+	for item: Variant in (raw as Array if raw is Array else []):
+		var d: Dictionary = item if item is Dictionary else {}
+		var door := Door.new()
+		door.center = _vec(d.get("center"))
+		door.size = _vec(d.get("size"))
+		door.shut = d.get("shut", false) is bool and bool(d.get("shut", false))
+		door.side = -1 if _number(d.get("side"), 1.0) < 0.0 else 1
+		if not d.get("center") is Dictionary or not (door.size.x > 0.0 and door.size.y > 0.0 and door.size.z > 0.0):
+			warnings.append("door %s is not {center, size over 0, shut}; left out" % JSON.stringify(item))
+			continue
+		doors.append(door)
 
 
 ## `lights`: each {position, radius over 0, colour, kind (optional: LIGHT_KINDS)}; one that isn't is left out.
