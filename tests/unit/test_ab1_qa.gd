@@ -231,3 +231,66 @@ func test_a_depot_match_does_not_flip_bots_between_poles_and_uses_both() -> void
 	assert_lt(worst, 4 * maxi(1, m.rounds.size()), "no bot flips poles round after round")
 	assert_true(_ups.has(0) or _ups.has(1), "a flag went up")
 	r.free_level()
+
+
+func _world(attackers: int) -> BotWorld:
+	var w := BotWorld.new()
+	w.tuning = tuning
+	w.cfg = BotConfig.load_default()
+	w.mode = RoundState.Mode.ATTACK_DEFEND
+	w.attackers = attackers
+	w.flags = rs.flags
+	w.flag = rs.flags[0]
+	for c in cs:
+		w.bots.append(Bot.new(c, c.id + 1, w.cfg.skill, cs.size()))
+	return w
+
+
+func test_elimination_picks_no_retakers_and_every_bot_makes_for_pole_zero() -> void:
+	var w := _world(-1)
+	w.mode = RoundState.Mode.ELIMINATION
+	BotFlag.pick_retakers(w)
+	for b in w.bots:
+		assert_eq(b.retake_pole, -1)
+		assert_false(b.retake)
+		assert_eq(BotFlag.pole_of(b, w), 0)
+
+
+func test_a_defender_is_let_go_when_its_flag_reaches_the_bottom_and_never_indexes_past_the_poles() -> void:
+	var w := _world(0)
+	rs.flags[1].progress = 0.4
+	w.flag_index = 1
+	w.flag = rs.flags[1]
+	cs[2].position = B
+	BotFlag.pick_retakers(w)
+	var d := w.bots[2]
+	assert_eq(d.retake_pole, 1)
+	assert_true(BotFlag.wants_flag(d, w))
+	rs.flags[1].progress = 0.0
+	rs.flags[1].status = FlagState.Status.IDLE
+	BotFlag.pick_retakers(w)
+	assert_false(BotFlag.wants_flag(d, w), "the flag is on the bottom: back to its post")
+	assert_eq(BotFlag.pole_of(d, w), 1, "no worked rope: the pole in play, in range")
+	# The poles shrink between matches with a stale pick: re-picked before anything reads it.
+	d.retake_pole = 1
+	rs.pole = A
+	rs.reset_flags()
+	w.flag_index = 0
+	BotFlag.pick_retakers(w)
+	for b in w.bots:
+		assert_lt(b.retake_pole, rs.flags.size())
+		assert_lt(BotFlag.pole_of(b, w), rs.flags.size())
+
+
+func test_a_bot_under_a_squad_order_is_not_sent_even_on_a_worked_rope() -> void:
+	var w := _world(0)
+	rs.flags[0].progress = 0.5
+	rs.flags[0].status = FlagState.Status.LOWERING
+	cs[2].position = A
+	var d := w.bots[2]
+	d.flag_pole = 0
+	d.order = SquadOrder.Kind.HOLD
+	BotFlag.pick_retakers(w)
+	assert_eq(d.retake_pole, -1)
+	assert_false(d.retake)
+	assert_ne(w.bots[3].retake_pole, -1, "the other defender goes instead")

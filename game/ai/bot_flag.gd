@@ -62,7 +62,7 @@ static func wants_flag(b: Bot, w: BotWorld) -> bool:
 		Role.ATTACK:
 			return b.lane_done
 		Role.DEFEND:
-			return b.retake and w.flags[b.retake_pole].progress > 0.0
+			return b.retake and b.retake_pole >= 0 and w.flags[b.retake_pole].progress > 0.0
 	return w.overtime_flag.up and w.live and w.time >= b.overtime_at
 
 
