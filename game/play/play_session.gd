@@ -1416,14 +1416,17 @@ func _vault_ready() -> bool:
 
 
 ## What a Use press would do now (the prompt under the crosshair, DO1): the door in your reach nearest your view's line
-## opens or shuts; none, or one swinging, shows nothing.
+## opens or shuts; none, one swinging, or an open one with someone in its doorway shows nothing.
 func _door_prompt() -> Hud.DoorPrompt:
 	if not Elimination.is_in_play(player) or player.vault.active or _sim.doors.count() == 0:
 		return Hud.DoorPrompt.NONE
 	var i := Doors.in_reach(_level.query(), _tuning.doors, player.position, player.yaw)
 	if i < 0 or i >= state.doors.count() or state.doors.swing_left[i] > 0.0:
 		return Hud.DoorPrompt.NONE
-	return Hud.DoorPrompt.OPEN if state.doors.is_shut(i) else Hud.DoorPrompt.SHUT
+	if state.doors.is_shut(i):
+		return Hud.DoorPrompt.OPEN
+	# Someone in the doorway: Use would do nothing, so no prompt says it would.
+	return Hud.DoorPrompt.NONE if _sim.doors.blocked(i, state.characters) else Hud.DoorPrompt.SHUT
 
 
 ## Your teammates' difficulty: the one picked, or the other team's as it follows.

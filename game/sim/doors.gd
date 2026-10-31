@@ -1,10 +1,14 @@
 class_name Doors
 extends RefCounted
 ## Hinged doors (DO1): a press of Use toggles the door in reach nearest the view's line, a swing takes no press, a door
-## won't shut on a body, and each toggle is a DOOR event heard out to DoorConfig.heard through walls (the owner's door
-## defaults, 2026-10-31). A shut leaf is a solid wooden box to BBs, bombs, sight and bodies; an open one is nothing (the
-## view swings it flat against its wall). Each match and each round starts with every door as the map sets it. Pure
-## rules on GameState.doors; the level is told each change through WorldQuery.set_door_shut. Allocates nothing a tick.
+## won't shut on a body, and each toggle is a DOOR event heard out to DoorConfig.heard through walls (defaults taken
+## with the owner's doors, docs/records/DO1.md). A shut leaf is a solid wooden box to BBs, bombs, sight and bodies; an
+## open one is nothing (the view swings it flat against its wall). Each match and each round starts with every door as
+## the map sets it. Pure rules on GameState.doors; the level is told each change through WorldQuery.set_door_shut.
+## Allocates nothing a tick.
+
+## Feet closer than this (m) to a leaf are at it: no direction to weigh.
+const AT_LEAF := 1e-4
 
 var _cfg: DoorConfig = null
 var _body: BodyConfig = null
@@ -41,10 +45,12 @@ static func step(doors: DoorState, dt: float) -> void:
 			doors.swing_left[i] = maxf(0.0, doors.swing_left[i] - dt)
 
 
-## `c`'s Use press: toggles the door in reach nearest its view's line (`in_reach`), unless that door is swinging or
-## would shut on a body. Whether a door moved.
-func press(c: Character, state: GameState) -> bool:
-	var i := in_reach(_query, _cfg, c.position, c.yaw)
+## `c`'s Use press: toggles door `picked` if its controller picked one and it is in reach, else the door in reach
+## nearest its view's line (`in_reach`), unless that door is swinging or would shut on a body. Whether a door moved.
+func press(c: Character, picked: int, state: GameState) -> bool:
+	var i := picked
+	if i < 0 or i >= _query.door_count() or _to_leaf(_query, _cfg, c.position, i).length() > _cfg.reach:
+		i = in_reach(_query, _cfg, c.position, c.yaw)
 	return i >= 0 and toggle(i, c, state)
 
 
@@ -65,7 +71,7 @@ func toggle(i: int, c: Character, state: GameState) -> bool:
 	if doors.swing_left[i] > 0.0:
 		return false
 	var shutting := not doors.is_shut(i)
-	if shutting and _blocked(i, state.characters):
+	if shutting and blocked(i, state.characters):
 		return false
 	doors.shut[i] = 1 if shutting else 0
 	doors.swing_left[i] = _cfg.swing_time
@@ -90,7 +96,7 @@ static func in_reach(query: WorldQuery, cfg: DoorConfig, feet: Vector3, yaw: flo
 		var d := to.length()
 		if d > cfg.reach:
 			continue
-		var dot := look.dot(to / d) if d > 1e-4 else 1.0
+		var dot := look.dot(to / d) if d > AT_LEAF else 1.0
 		if dot > best_dot:
 			best = i
 			best_dot = dot
@@ -111,7 +117,7 @@ static func shut_ahead(query: WorldQuery, cfg: DoorConfig, doors: DoorState, fee
 		var d := to.length()
 		if d > cfg.reach:
 			continue
-		if d < 1e-4 or dir.dot(to / d) >= cos_ahead:
+		if d < AT_LEAF or dir.dot(to / d) >= cos_ahead:
 			return i
 	return -1
 
@@ -124,19 +130,21 @@ static func way_of(cmd: PlayerCommand) -> Vector2:
 
 
 ## From feet at `feet` to the nearest point of door `i`'s leaf, level; Vector2.INF when the feet are more than reach_up
-## below or above its foot (another storey).
+## below or above its foot (another storey), or plainly out of reach along x or z.
 static func _to_leaf(query: WorldQuery, cfg: DoorConfig, feet: Vector3, i: int) -> Vector2:
 	var c := query.door_centers[i]
 	var h := query.door_halves[i]
-	if absf(feet.y - (c.y - h.y)) > cfg.reach_up:
+	# Far off along either level axis, or on another storey: out of reach without the rest.
+	if absf(feet.x - c.x) > h.x + cfg.reach or absf(feet.z - c.z) > h.z + cfg.reach \
+			or absf(feet.y - (c.y - h.y)) > cfg.reach_up:
 		return Vector2.INF
 	var nx := clampf(feet.x, c.x - h.x, c.x + h.x)
 	var nz := clampf(feet.z, c.z - h.z, c.z + h.z)
 	return Vector2(nx - feet.x, nz - feet.z)
 
 
-## Whether anyone's body (in play or not) stands in door `i`'s leaf.
-func _blocked(i: int, characters: Array[Character]) -> bool:
+## Whether anyone's body (in play or not) stands in door `i`'s leaf: it won't shut.
+func blocked(i: int, characters: Array[Character]) -> bool:
 	var c := _query.door_centers[i]
 	var h := _query.door_halves[i]
 	var r := _body.radius

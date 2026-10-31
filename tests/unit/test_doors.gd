@@ -375,3 +375,74 @@ func test_the_door_sounds_are_rendered() -> void:
 		for n in 3:
 			var path := "res://assets/audio/cues/%s_%d.wav" % [stem, n + 1]
 			assert_not_null(load(path), path)
+
+
+func test_a_picked_door_is_the_one_used_not_the_one_in_view() -> void:
+	var w := _hall(true)
+	# A second leaf just south, open, the one the view looks at.
+	w.add_door(Vector3(-1.0, 1.3, 1.5), Vector3(2.0, 2.6, 0.08), false)
+	var r: Array = _match(w, Vector3(-1.0, 0.0, 0.0), PI)
+	var sim: Simulation = r[0]
+	var state: GameState = r[1]
+	var c := state.characters[0]
+	assert_eq(Doors.in_reach(w, cfg, c.position, c.yaw), 1, "the view picks the open one")
+	var cmd := PlayerCommand.new()
+	cmd.reset(PI, 0.0)
+	cmd.door_to_use = 0
+	_tick(sim, state, true, cmd)
+	assert_false(state.doors.is_shut(0), "the picked door opened")
+	assert_false(state.doors.is_shut(1), "the one in view was left open")
+	cmd.reset(PI, 0.0)
+	cmd.door_to_use = -1
+	_wait_swing(sim, state)
+	_tick(sim, state, true, cmd)
+	assert_true(state.doors.is_shut(1), "none picked: the one in view")
+
+
+## A floor split by a wall from side to side whose one way through is a shut door: block data for the nav, the same
+## boxes for the BoxWorld.
+func _split_field() -> Array:
+	var map := MapData.new()
+	map.id = "door split"
+	var w := BoxWorld.new(tuning.body)
+	for spec: Array in [[&"floor", Vector3(0.0, -0.25, 0.0), Vector3(30.0, 0.5, 30.0)],
+			[&"plywood", Vector3(0.0, 1.3, -8.0), Vector3(0.3, 2.6, 14.0)],
+			[&"plywood", Vector3(0.0, 1.3, 8.0), Vector3(0.3, 2.6, 14.0)]]:
+		var b := MapData.Block.new()
+		b.kind = spec[0]
+		b.center = spec[1]
+		b.size = spec[2]
+		map.blocks.append(b)
+		w.add_box(b.center, b.size, RayHit.Surface.WOOD)
+	map.ends = _ends()
+	w.add_door(Vector3(0.19, 1.3, 0.0), Vector3(0.08, 2.6, 2.0), true)
+	return [map, w]
+
+
+func test_a_bot_opens_the_shut_door_its_route_goes_through() -> void:
+	var field: Array = _split_field()
+	var map: MapData = field[0]
+	var w: BoxWorld = field[1]
+	var nav := NavGrid.build(map, tuning.nav, tuning.body)
+	var sim := Simulation.new(tuning, w, w.mover(), map.ends, -10.0)
+	sim.nav = nav
+	var state := GameState.new(5, tuning)
+	var commands: Array[PlayerCommand] = []
+	for i in 2:
+		state.characters.append(Character.new(i, i, Vector3.ZERO, 0.0, loadout))
+		commands.append(PlayerCommand.new())
+	var levels: Dictionary[int, StringName] = {0: &"normal", 1: &"normal"}
+	var bots := BotController.new(state, -1, map, nav, w, tuning, BotConfig.load_default(), levels)
+	sim.start_match(state)
+	bots.observe(state)
+	var opener := -1
+	for t in roundi(60.0 / DT):
+		bots.think(state, commands, DT)
+		sim.step(state, commands, DT)
+		bots.observe(state)
+		var e := state.events.first(GameEvent.Kind.DOOR)
+		if e != null and opener < 0:
+			opener = e.actor
+			break
+	assert_gte(opener, 0, "a bot hunting the other opened the door within a minute")
+	assert_false(state.doors.is_shut(0), "and it stands open")

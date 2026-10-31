@@ -143,7 +143,7 @@ func step(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 			if Grenades.throwing(c):
 				cmd = Grenades.throwing_command(cmd, _throwing)
 			if cmd.use_door and has_doors:
-				doors.press(c, state)
+				doors.press(c, cmd.door_to_use, state)
 		elif has_doors and not c.vault.active:
 			doors.walk_through(c, cmd, state)
 		if in_play:

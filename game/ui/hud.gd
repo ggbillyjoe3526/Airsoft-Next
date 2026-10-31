@@ -678,8 +678,11 @@ func set_vault_ready(ready: bool) -> void:
 
 
 ## The door in your reach this tick (DO1): DoorPrompt.NONE hides the prompt; OPEN and SHUT say what Use would do, with
-## Use's key as it is bound now. Shown only while you are in play.
+## Use's key as it is bound when the prompt changes (called each tick: the text is built only then, as the vault
+## prompt's). Shown only while you are in play.
 func set_door_prompt(what: DoorPrompt) -> void:
+	if what == _door_want:
+		return
 	_door_want = what
 	if what != DoorPrompt.NONE:
 		var key := KeyNames.of_action(&"use_door")

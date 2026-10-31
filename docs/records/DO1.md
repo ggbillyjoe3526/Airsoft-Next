@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-31 | 1 | thread | pending | pending | – |
+| 2026-10-31 | 1 | thread | door tests pass; parts 1 and 3 pass, part 2 hit its local time limit | Retry 5/8 | the prompt's text rebuilt every tick; nothing tested a bot opening a door; defaults cited as owner rulings; a bot's Use could toggle a door other than the one it walks into (QA, pinned) |
+| 2026-10-31 | 2 | thread | pending | pending | – |
 
 ## Goal
 
@@ -31,10 +32,13 @@ flags, DR2 the CC0 dress.
   a body. Each toggle is a `DOOR` event heard out to 20 m. A walk-off opens a shut door it walks into. Each match and
   each round starts with the doors as the map sets them. The leaf is solid from the moment it starts to shut until it
   starts to open.
-- **Bots.** `BotBrain` presses Use when a shut door in reach lies within 57° of its walk (`Doors.shut_ahead`).
+- **Bots.** `BotBrain` presses Use when a shut door in reach lies within 57° of its walk (`Doors.shut_ahead`) and
+  names that door in the command (`PlayerCommand.door_to_use`), so its press opens the door it walks into, not the
+  one its view is on (QA, attempt 1).
   `BotHearing` hears an enemy's door out to its reach through any walls (`_hear(..., muffled = false)`).
 - **The player.** Open / shut door is on U (`use_door`, rebindable, `KeyBindings`). A line under the crosshair says
-  "U to open the door" or "to shut" while one is in reach (`Hud.set_door_prompt`). The minimap and the sound cues
+  "U to open the door" or "to shut" while one is in reach (`Hud.set_door_prompt`; its text is built only when it
+  changes; none over an open door with someone in its doorway). The minimap and the sound cues
   take a door as a step out to its reach. `SimAudio` plays `door_open` or `door_shut` from the door, muffled by walls.
   The sounds are rendered by the new `tools/render_doors.gd`.
 - **The view.** `DoorView` draws every door's two leaves in one MultiMesh (one draw), bottle green (`MapStyle`
