@@ -17,7 +17,7 @@ stand and how quietly you get there win more fights than fast hands.
   sprint is a little faster too.
 
 Running, sprinting, vaulting and landing all make noise that players and bots hear. Running or landing on gravel or
-steel carries further, and so does running into a noisy prop such as a steel skip or a container ([Maps](Maps#depot)).
+steel carries further, and so does running into a noisy prop such as a container, a steel drum or a plastic barrel ([Maps](Maps#depot)).
 
 ## Lean
 

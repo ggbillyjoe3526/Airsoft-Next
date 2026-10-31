@@ -5,4 +5,7 @@
 - The two halves aren't mirrored, but they're balanced: both teams reach the Chrono hall together, and each side reaches one side lane first.
 - A dark steel roof with red trusses and rows of lamps hangs overhead. A BB fired up stops at the ceiling.
 - Sight lines are longer, so bots on Depot see up to 55 metres.
+- Each spawn room opens through two crate chicanes, so nobody can see into a spawn from outside it.
+- Steel drums and plastic barrels are noisy: bump into one and bots hear it.
+- In overtime, bots that flank the flag now find a way round the huts and pillars instead of walking straight in.
 - Doors, a second flag for Attack / Defend and props are coming next.

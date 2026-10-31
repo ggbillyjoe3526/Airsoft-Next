@@ -40,6 +40,10 @@ the callout names kept, the Range its own map.
 - Each spawn room's two mouths are chicanes of two crate screens, and a crate screen stands at the Drum alley's mouth
   in the Box yard (critic, attempt 1: the concept's single screens left a 70 m line down the east wall through the
   defenders' spawn, and a 65 m line from the Lounge to the Box yard; the concept measured spawn sight for one end only).
+- Steel drums (clank) and plastic barrels (plastic) join the noisy props in `NoiseConfig.props`. An overtime flanker
+  whose side point is covered by a hut or pillar goes to the nearest walkable spot within the nav's snap
+  (`BotMovement._overtime_flank_point`); the QA recheck found Depot's flankers never flanked, the hall's overtime flag
+  being inside the Chrono hall's hut.
 - `tests/unit/test_depot_hall.gd` (new): the file loads clean with six a side, the roof's lamps cast no shadow, a ray
   up meets the ceiling as steel, bots see 55 m on a copy, the sun's angle, no spawn seen from anywhere on the floor
   outside its own room (both sites, stairs and ramps included; it fails on attempt 1's layout), and the run times

@@ -35,9 +35,10 @@ class Case:
 
 
 func before_all() -> void:
-	for id in MAPS:
+	# The yard too (the old Depot, DR1): its end-1 spawns are in reach of the target cap, the hall's lanes fill it first.
+	for id: String in MAPS + ["yard"]:
 		var c := Case.new()
-		c.map = MapData.load_map(id, MapStyle.new(), 1)
+		c.map = YardMap.load_map(MapStyle.new(), 1) if id == "yard" else MapData.load_map(id, MapStyle.new(), 1)
 		var level := MapLevel.new()
 		add_child(level)
 		level.build(c.map, MapStyle.new(), tuning.body)
@@ -154,8 +155,8 @@ func test_no_two_targets_crowd_each_other_on_a_floor() -> void:
 
 
 func test_lane_points_face_back_down_their_lane_and_the_other_end_faces_your_start() -> void:
-	var m := cases["depot"].map
-	var spots := cases["depot"].spots
+	var m := cases["yard"].map
+	var spots := cases["yard"].spots
 	var start := PracticeSpots.start_of(m).position
 	var back_down := 0
 	var lane_spots := 0

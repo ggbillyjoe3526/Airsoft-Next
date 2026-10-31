@@ -16,7 +16,7 @@ var depot: NavGrid = null
 
 func before_all() -> void:
 	yard = NavGrid.build(_yard([]), cfg, body)
-	depot_map = MapData.load_map("depot", MapStyle.new(), SimTuning.new().rounds.team_size)
+	depot_map = YardMap.load_map(MapStyle.new(), 3) # the old Depot, whose docks and ramps these tests walk (DR1)
 	depot = NavGrid.build(depot_map, cfg, body)
 
 

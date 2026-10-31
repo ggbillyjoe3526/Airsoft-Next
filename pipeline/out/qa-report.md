@@ -1,25 +1,46 @@
-Task: SF2 · QA commit 426fe42 · Verdict: Pass
+Task: DR1 · QA commit (uncommitted; tests added to tests/unit/test_depot_hall_qa.gd) · Verdict: Fail
 
-Blocking: none.
+Earlier items: the grey props are fixed (every block kind of the hall now has its own SiteLook finish, 40 slots). The
+old-layout tests are only partly fixed: 0821da4 moved some to the yard fixture but six more files still load "depot"
+and assert on the old layout. CI confirms it (Unit tests part 2 and part 3 failed on 46230ea).
 
-Advisory (not blocking, none touched by a failing test):
-- game/ai/bot_bombs.gd:33-40 · a throw being turned to is kept up to 1 s after it was decided, whatever changes meanwhile (an enemy comes into sight, a teammate walks into the bang's range). The teammate and sight checks are made at decision time only. Small; can wait.
-- game/ai/bot_bombs.gd:26-32 · a flash whose release is dropped by the full pool (SF1 keeps the bomb, no bang) still has the bot looking away for windup + fuse + 0.3 s with nothing coming. Rare (12-slot pool); can wait.
-- game/ai/bot_brain.gd:28-34 · a dazzled bot returns before BotBombs: a pending turn waits out the dazzle, then is dropped by its 1 s window (pinned below), so the bomb is not thrown late. Fine as built.
-- Bots' bombs ignore the "Bots hold fire" dev cheat (only cmd.fire is cleared). Dev-only; can wait.
+Blocking (each run alone, fails on the branch):
+1. tests/unit/test_nav_grid.gd: 3 tests fail on Depot's old ramp, drop and 255 x 165 grid (grid is now 108 x 72 m).
+   Move to YardMap.
+2. tests/unit/test_overtime_bots.gd:154: test_a_flanker_whose_roll_came_up... fails ("round the side first", flank
+   goal 3.0 m from the flag, expected 8.5). Neither side point (6 m off, 6 m back) is walkable in the crowded Chrono
+   hall, so Depot flankers never flank in overtime (advisory for play: they go straight). Move to YardMap.
+3. tests/unit/test_ov2_qa.gd:124: "a visible enemy comes before the flag" fails: positions at spot+8 / spot+2 sit in
+   the hall's huts. Move to YardMap or pick open floor.
+4. tests/unit/test_practice_spots.gd:177: "the other end's spawns" 0 spots. Practice on Depot offers no targets at the
+   enemy start now that no spawn is seen from the floor (by design); change the test, and note it in the record.
+5. tests/unit/test_noisy_props.gd:132: Depot has no skip, generator, ibc, toilet or wrapped block any more. Test the
+   kinds it has (or the yard fixture).
+Silent dead test (fix with the above): tests/unit/test_match_runner.gd:110 test_lowest_floor_takes_a_ramps_foot...
+asserts nothing now (Depot has no ramp block): Risky in GUT. Use the yard.
+Not run (CI): the other ~45 unchanged files that load "depot"; CI's red parts 2 and 3 will list any I missed.
 
-Checked and clean: Bot.reset clears the pending throw, look-away and roll gap; a refused press (pool full, round not live) leaves the bot free to walk and not waiting; a dead teammate near the bang does not stop a flash; throw_pitch is NAN (never a number) for out of reach, straight down and far above; a last-known spot on the bot throws nothing; same seed twice gives identical bomb events (tick, thrower, kind); the view never jumps more than 0.08 rad on the tick a bomb is done (no snap back); Woodland (night, bushes), Depot Attack/Defend and Woodland Attack/Defend run 6000 ticks with no script error and no bot busy more than 33 ticks (limit 300).
+Chicanes: bots and players can still walk out of both spawns. Every spawn of both ends routes (no vault) to both
+stairs/ramp mouths and the Mid exit / Garage, and to its own dead zone, without a lap of the hall; the middle of every
+screen gap and corridor is walkable (gaps are 1.5 m at the outer screens, 2 m corridors; body clearance is 0.38 m).
+LANES all lie on the grid; both ends reach every lane point (test_depot_hall_qa). The spawn sight test now covers the
+whole floor outside the own room and passes. build_map.py output equals data/maps/depot.json (220 blocks).
 
-Tests added (tests/unit/test_sf2_qa.gd; BotBombs and throw_pitch do not exist at 1cc477f, so each fails there; I did not stub the feature out of the tree, the full suite is running in it):
-- :80 a_new_round_clears_a_throw_being_turned_to_and_the_look_away · Bot.reset state · would fail if reset left bomb_kind, away or roll gap
-- :94 a_throw_the_simulation_refuses_leaves_no_wait_and_no_hold · full pool: no PIN, bot not busy, walks on · fails if a refused press left bomb_kind or away set
-- :119 a_dazzle_longer_than_the_turn_window_drops_the_throw_instead_of_throwing_late · stale pending throw is dropped
-- :140 a_teammate_who_is_out_does_not_stop_a_flash_but_a_live_one_does · _mate_sees counts in-play mates only
-- :152 unreachable_or_degenerate_aims_give_no_pitch_and_no_throw · NAN guards, arc_point at t=0
-- :172 a_round_that_ends_while_it_turns_throws_nothing_and_leaves_no_wait · phase OVER, bomb kept
-- :221 the_same_seed_throws_the_same_bombs_and_the_view_does_not_snap_when_one_is_done · two Depot runs of 7000 ticks, equal event lists (only 4 throws in them, thin coverage)
-- :230 bots_never_stay_busy_with_a_bomb_for_long_on_woodland_or_in_attack_defend · 3 whole runs
+Advisory:
+- layout.py LANES: the "m" and "s" lanes now end on the same point (47.5, 8.5) (were 48.5,10 and 49.5,11.5), and
+  defenders hold lane ends, so two defenders stack at one spot in the bay; also all east defender holds are now inside
+  the spawn room.
+- tests/support noisy kinds: drum, barrel, pillar, net, sofa are not noisy props (design call).
+- Line length: pipeline QA lines over 120 only in the file header (pre-existing).
 
-Result: test_sf2_qa.gd 8/8, 29 asserts, 61 s; gdlint clean. test_bot_bombs.gd, test_grenades.gd, test_sf1_qa.gd not re-run by me (the full suite is running in the tree). tools/check.sh and the smoke test not run (told not to). Raw output: pipeline/out/qa/sf2.log (uncommitted).
-
-Could not test: how the look-away and the blind-side push feel, that bots visibly turn their backs, and the throw animation (needs a display and play): the owner should watch a Normal Depot match for flashes that dazzle the thrower side-on.
+Tests added to tests/unit/test_depot_hall_qa.gd (not committed, per the rules):
+- :test_every_spawn_walks_out_through_its_chicane_to_the_floor_without_a_vault · all 12 spawns reach both mouths, the
+  Mid exit / Garage and their dead zones in under 1.8x straight + 8 m · fails if a chicane gap is closed or a mouth
+  is walled (checked by reasoning against the nav clearance, not by stubbing).
+- :test_the_middle_of_every_chicane_gap_is_open_to_the_nav_grid · 8 gap and corridor points walkable · same.
+- :test_every_block_kind_of_the_hall_has_its_own_site_finish · no block falls to the default grey, finishes fit the 40
+  slots and the material's arrays match · fails at 93e3d55 (drum, barrel, pillar, net, sofa not in kind_finishes).
+Counts: test_depot_hall_qa 7 of 7 pass (2.7 s); test_depot_hall, test_field_layout, test_field_rules pass. Ran 40
+unchanged depot-loading files singly; failures only those above. Match guards (Attack / Defend) green in CI; the
+Elimination guard was still running.
+Could not test: how the chicanes feel to walk (owner's list), the grey fix by eye (needs a display).

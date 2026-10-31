@@ -28,6 +28,9 @@ the west in Elimination, and the teams swap ends at half time.
   B site.
 - **Not mirrored:** the halves differ, but they're balanced. Both teams reach the Chrono hall together; Beta reaches
   the Lounge first and Alpha the Box yard, by about the same margin.
+- **Spawn rooms** open by two crate chicanes each, so nobody sees into a spawn from the floor outside it.
+- **Noisy props:** running into a container, a steel drum, a plastic barrel, a rack or a crate stack makes a noise
+  bots hear, and a BB rings off the steel ([Movement](Movement#paces)).
 - **Attack / Defend** puts a flagpole on A site, at the defenders' end ([Modes](Modes#attack--defend)).
 - Fields are greybox for now: plain blocks in the site's colours, with props and the final models coming later.
 

@@ -1,14 +1,10 @@
-Task: DR1 · head 93e3d55 (HEAD now c9f8bea, QA tests only) · Verdict: Pass
-Run: headless, smoke match (Depot, seed 1, x8) with --perf on head and on origin/main (worktree), plus MatchRunner bot matches (3 seeds x 3600 ticks) · budget: no baseline yet, judged against targets and origin/main. Machine: 4 cores, load 2-3.5 from other Godot runs; timings noisy (about +-20 %).
-Metrics (--perf, headless, so draw calls 0): nodes_max 1137 / 1057 main (+7.6 %, 10 vs 6 characters; roof adds 3), orphans_max 792 / 792 (same as main), static memory not logged.
-Sim script time per tick (bot match, 60 s, MatchRunner): head 5v5 1.84-2.49 ms (mean 2.1) vs main 3v3 0.85-1.18 ms (mean 1.05); per character 175-250 vs 142-197 us (+20 %, inside noise). Share of a 16.7 ms tick: about 13 %.
-Bot sight 55 m vs 40 m on the same hall (botSight zeroed): 2.36/1.81/1.93 ms vs 2.49/1.84/2.00 ms, a 2-4 % difference, within noise.
-Build cost: MapLevel.build 18 ms vs 6 ms on main (117k-vertex bake, bake accepted, no warning), RoofView.build 1.6 ms (9 ms first), load_map 10.5 vs 4.7 ms. Smoke wall 90 s / 2285 frames vs 52.6 s / 3731 frames: not comparable (different match, 815 vs 385 shots, 5v5 vs 3v3).
-Regressions (> 10 % worse): none attributable. Per-tick time doubled with the roster (10 vs 6 bots), not per bot.
-Blocking findings: none. Checked: RoofView is built once, nothing per frame; ceiling and trusses are one mesh and one material, lamps one MultiMesh, both cast no shadow; its materials are in the first_use prewarm (play_session.gd:699-700); it is a PlaySession child, freed with it (no orphans added); one BotConfig copy per controller (bot_controller.gd:46), once per match; no preset bypass (shadow distance stays 70 m).
-Advisory:
-- game/map/map_level.gd:177-183: _add_ceiling was inserted between _add_ground_tiles' doc comment and its function, orphaning that comment (judgment, doc only).
-- game/map/map_level.gd:182-194 and game/play/roof_view.gd:60-68: the same footprint loop twice; share RoofView.field_rect (judgment).
-- game/play/roof_view.gd:41: CULL_DISABLED draws both faces of the ceiling and trusses; opaque and unshaded so cheap, but the ceiling fills the screen when looking up: check fill on the Low preset on real hardware (judgment).
-- Draw calls and frame time not measurable here (no GPU): the roof adds 3 draw calls (ceiling, lamps, plus shadow passes unchanged); 217 blocks stay one greybox draw call plus the shadow caster. Owner to confirm on hardware with F3, and the 6v6 case (not run).
+Task: DR1 · head 46230ea · Verdict: Pass (re-check of 93e3d55; earlier Pass stands)
+Run: diff review of 93e3d55..HEAD (code, shader, bake, map data) plus test_depot_hall_qa.gd (4 pass, 225 asserts). No new smoke/--perf run: the runtime delta is data and constants, no new nodes or per-tick code. Budget: no baseline yet, judged against targets and the 93e3d55 numbers.
+Shader (judgment): modes/paints/accents/bands/pbr arrays 32 -> 40 (site_surface.gdshader:48-52, site_surface.gd:17). Each fragment does one dynamically indexed read per array (fin), so per-pixel cost does not depend on array length; no loop over slots. UBO grows 5 x 512 B -> 5 x 640 B (std140, 16 B stride), about 3.2 KB, far under the 16 KB minimum UBO limit; uploaded once per material, not per frame. No new canvas mode (five new finishes reuse PAINT/FABRIC), so no new shader branches or variants and no new prewarm entry.
+Allocations (measured by grep): material() builds the Packed arrays once per build (site_surface.gd:36-56); no _process/_physics_process touched. MapData.footprint() has callers only in build paths (roof_view.gd:19, map_level.gd:182) and middle() in lighting/skyline builds; none per frame. Advisory from before is closed: the duplicate footprint loop is gone and the orphaned doc comment is back above _add_ground_tiles.
+Bake (measured): depot.res 120770 -> 124242 bytes (+2.9 %), about 118k vertices (was 117k), one mesh as before; accepted, no warning. Blocks 217 -> 220 (three net crate screens): still one greybox draw call plus the shadow caster. Build cost expected unchanged (18 ms MapLevel.build earlier, once per map load).
+Freed nodes (judgment): no node, timer, tween or connection added. _add_ceiling still adds one CollisionShape3D under the existing METAL body (freed with the level, map_level.gd:182-193); RoofView unchanged apart from taking map.footprint(); PlaySession child, freed with it. play_tuning.tres gains a RoofConfig sub-resource, a shared Resource, no per-instance copy.
+Regressions (> 10 % worse): none.
+Blocking findings: none.
+Advisory: none new. Still for the owner on hardware (F3): draw calls and fill rate of the ceiling when looking up on the Low preset, and the 6v6 case.
 Unexplained: none.

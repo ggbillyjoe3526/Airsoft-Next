@@ -106,3 +106,65 @@ func test_windows_and_container_ports_are_seen_through_standing_and_not_vaulted(
 					vaulted.append("%s from %s" % [low.kind, feet])
 	assert_gt(tried, 0, "the hall has ports")
 	assert_eq(vaulted.size(), 0, "ports vaulted: %s" % [vaulted.slice(0, 5)])
+
+
+## DR1 QA, second pass: the spawn rooms' chicanes (0821da4, 46230ea) and the hall's finishes.
+
+func test_every_spawn_walks_out_through_its_chicane_to_the_floor_without_a_vault() -> void:
+	var lost := PackedStringArray()
+	var long_way := PackedStringArray()
+	var route := PackedVector3Array()
+	# Out of Staging by each stairs mouth and the Mid exit; out of the Loading bay by the A stairs, the ramp and
+	# the Garage.
+	var outside: Array = [
+		[Vector3(-49.0, 0, -17.0), Vector3(-45.0, 0, 10.0), Vector3(-38.0, 0, -2.0)],
+		[Vector3(49.0, 0, -12.0), Vector3(49.0, 0, 15.0), Vector3(40.0, 0, 4.0)],
+	]
+	for e in 2:
+		for s in map.ends[e].spawns:
+			for g: Vector3 in outside[e]:
+				route.clear()
+				if not nav.find_route(s.position, g, route, false):
+					lost.append("end %d spawn %s to %s" % [e, s.position, g])
+					continue
+				var length := 0.0
+				var at := s.position
+				for p in route:
+					length += Vector2(p.x - at.x, p.z - at.z).length()
+					at = p
+				# A chicane costs a few metres, not a lap of the hall.
+				if length > Vector2(g.x - s.position.x, g.z - s.position.z).length() * 1.8 + 8.0:
+					long_way.append("end %d spawn %s to %s: %.1f m" % [e, s.position, g, length])
+			for d in map.ends[e].dead_zone:
+				route.clear()
+				if not nav.find_route(s.position, d.position, route, false):
+					lost.append("end %d spawn %s to its dead zone %s" % [e, s.position, d.position])
+	assert_eq(lost.size(), 0, "no way out: %s" % [lost.slice(0, 5)])
+	assert_eq(long_way.size(), 0, "a long way round: %s" % [long_way.slice(0, 5)])
+
+
+func test_the_middle_of_every_chicane_gap_is_open_to_the_nav_grid() -> void:
+	var shut := PackedStringArray()
+	# The middle of each outer screen's gap (the stairs' two, the A stairs' and the ramp's) and of each corridor
+	# between screens.
+	for p: Vector3 in [Vector3(-51.25, 0, -13.0), Vector3(-51.25, 0, 5.0), Vector3(51.75, 0, -4.5),
+			Vector3(51.75, 0, 13.0), Vector3(-47.0, 0, -11.5), Vector3(-47.0, 0, 3.5), Vector3(47.0, 0, -3.0),
+			Vector3(47.0, 0, 11.5)]:
+		if not nav.is_walkable_at(p):
+			shut.append(str(p))
+	assert_eq(shut.size(), 0, "a chicane gap shut to the nav grid: %s" % [shut])
+
+
+func test_every_block_kind_of_the_hall_has_its_own_site_finish() -> void:
+	var look := PlayTuning.new().site_look
+	var plain := PackedStringArray()
+	for b in map.blocks:
+		var finish := look.finish_of(b)
+		if finish == &"default" or not look.canvases.has(finish) or not look.paints.has(finish):
+			plain.append("%s -> %s" % [b.kind, finish])
+	assert_eq(plain.size(), 0, "drawn in the grey default: %s" % [plain.slice(0, 5)])
+	assert_lte(look.finish_names().size(), SiteSurface.SLOTS, "the shader has a slot for each finish")
+	var material := SiteSurface.material(look, map)
+	for param: StringName in [&"modes", &"paints", &"accents", &"bands", &"pbr"]:
+		var values: Variant = material.get_shader_parameter(param)
+		assert_eq(values.size(), look.finish_names().size(), "%s" % param)

@@ -1,6 +1,6 @@
 extends GutTest
-## Playing Depot (game/play/play_session.gd), headless: the session builds the level, puts you on Alpha with two bots
-## against three, steps the simulation with every command on the physics tick, and draws from it; a BB from your replica
+## Playing Depot (game/play/play_session.gd), headless: the session builds the level, puts you on Alpha with four bots
+## against five, steps the simulation with every command on the physics tick, and draws from it; a BB from your replica
 ## knocks a bot out on the Jolt level and they call the hit; Esc pauses and resumes; leaving frees everything; the
 ## minimap hears the other team through the ears the view is through.
 
@@ -20,8 +20,8 @@ func after_each() -> void:
 
 func test_you_play_alpha_with_bots_against_a_team_of_bots() -> void:
 	var s := session.state
-	var size := SimTuning.new().rounds.team_size
-	assert_eq(s.characters.size(), size * 2)
+	var size := MapCatalog.shared().find("depot").team_standard
+	assert_eq(s.characters.size(), size * 2, "Depot's standard, 5 v 5")
 	assert_eq(session.player.team, 0)
 	var per_team := PackedInt32Array([0, 0])
 	for c in s.characters:
@@ -44,8 +44,8 @@ func test_the_simulation_steps_on_the_physics_tick() -> void:
 func test_a_bb_knocks_a_bot_out_and_they_call_it() -> void:
 	session.autopilot = false
 	session.bots_active = false
-	# The Beta bot at the south end of its spawn line, held still, in the open West yard; you 5 m from it.
-	var target := session.state.characters[5]
+	# The last Beta bot of its spawn line, held still, in its spawn room; you 5 m from it.
+	var target := session.state.characters[session.state.characters.size() - 1]
 	var you := session.player
 	you.position = target.position + Vector3(3.0, 0.0, -4.0)
 	you.prev_position = you.position
@@ -123,10 +123,11 @@ func test_the_late_materials_are_drawn_once_at_the_start_and_then_freed() -> voi
 	var overtime := fresh.overtime_flag_view().materials().size() if fresh.overtime_flag_view() != null else 0
 	var mags := fresh._mag_tosses.materials().size() if fresh._mag_tosses != null else 0
 	var bombs := fresh._grenades.materials().size()
-	assert_eq(prewarm.get_child_count(), 10 + skyline + site + overtime + mags + bombs + 2 * figures,
+	var roof := fresh._roof.materials().size() if fresh._roof != null else 0
+	assert_eq(prewarm.get_child_count(), 10 + skyline + site + overtime + mags + bombs + roof + 2 * figures,
 			"a BB, its trail (FB4), a glowing BB and its streak (WL8), a puff, a gas puff, kicked dust, the contact shadow, a wind speck,"
 			+ " the sign, the skyline's, the site dress's (DD1), the overtime flag's (OV3), the tossed magazines' (MH3),"
-			+ " the bombs' (SF1) and each figure material solid and fading")
+			+ " the bombs' (SF1), the roof's (DR1) and each figure material solid and fading")
 	await wait_process_frames(ShaderPrewarm.FRAMES + 1)
 	assert_false(is_instance_valid(prewarm), "gone once its frames are drawn")
 

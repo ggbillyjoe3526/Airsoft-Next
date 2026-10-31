@@ -8,6 +8,19 @@ const SAVE := "user://test-mn3-qa.save"
 const LEVELS: Array[String] = ["easy", "normal", "hard"]
 
 var _picks: MatchPicks = null
+var _shipped: MapCatalog = null
+
+
+## Depot as it was until DR1 (1v1 to 3v3), so the page's Custom 1v1 can be picked: no shipped field offers one now.
+func before_all() -> void:
+	_shipped = MapCatalog.shared()
+	MapCatalog._shared = MapCatalog.parse(FileAccess.get_file_as_string(MapCatalog.PATH).replace(
+			"| depot | Depot | field | public | 5 | 5 | 6 |", "| depot | Depot | field | public | 1 | 3 | 3 |"))
+	assert_eq(MapCatalog._shared.find("depot").team_min, 1)
+
+
+func after_all() -> void:
+	MapCatalog._shared = _shipped
 
 
 func after_each() -> void:

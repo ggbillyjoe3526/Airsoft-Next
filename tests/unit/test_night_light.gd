@@ -184,7 +184,7 @@ func test_a_match_on_depot_by_dev_night_lights_everything_by_its_one_flag() -> v
 	assert_true(session._audio.night, "the ambience's night set")
 	assert_eq(session._colours.figures.glow, 0.0, "no paint glow")
 	assert_null(session.light_pools(), "Depot has no lights to pool")
-	assert_eq(session._skyline.mesh().get_surface_count(), 2, "its masts' lamps lit")
+	assert_null(session._skyline, "the hall has no skyline to light: its roof hides the sky (DR1)")
 	assert_true(session.state.off_record or s.dev.cheats().watching, "a forced preset keeps it out of the records")
 	# the night sky can't be a prewarm speck (a sky shader draws no mesh); it is the background of the frames the specks
 	# are drawn on, behind the loading screen, so it compiles with them
