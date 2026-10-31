@@ -223,6 +223,12 @@ func _tap(action: StringName) -> void:
 	_event(action, false)
 
 
+func _move(dx: float, dy: float) -> void:
+	var e := InputEventMouseMotion.new()
+	e.screen_relative = Vector2(dx, dy)
+	input._unhandled_input(e)
+
+
 func _field_map(st: GameState, who: Character) -> HudFieldMap:
 	var cfg := MinimapConfig.new()
 	var depot := MapData.load_map("depot", MapStyle.new(), 1)
@@ -364,3 +370,61 @@ func test_the_map_hides_under_the_pause_menu_while_the_tree_is_paused() -> void:
 	var hidden := not fm.visible
 	get_tree().paused = false
 	assert_true(hidden, "the dimmed map does not stay over the pause menu")
+
+
+func test_go_there_s_key_on_the_open_map_is_a_go_there_at_the_pointer() -> void:
+	input.field_map().frame(Vector2(5.0, 5.0), 2.0, 400.0, 0.0, Vector2.ZERO)
+	_event(&"field_map", true)
+	_move(20.0, -40.0)
+	_tap(&"ping_move")
+	input.fill(icmd)
+	assert_true(icmd.ping and icmd.ping_move and icmd.ping_on_map)
+	assert_eq(icmd.ping_target, Vector3(15.0, 0.0, -15.0), "at the pointer, not along the frozen view")
+	assert_false(icmd.fire)
+
+
+func test_go_there_s_key_does_nothing_on_the_open_map_while_you_are_out() -> void:
+	input.field_map().frame(Vector2.ZERO, 2.0, 400.0, 0.0, Vector2.ZERO)
+	_event(&"field_map", true)
+	input.allow_orders(true, false)
+	_tap(&"ping_move")
+	input.fill(icmd)
+	assert_false(icmd.ping, "out: no ping along the view either")
+
+
+func test_the_pointer_follows_you_while_the_map_is_shut_so_the_next_open_is_on_you() -> void:
+	var map_pointer := input.field_map()
+	map_pointer.frame(Vector2.ZERO, 2.0, 400.0, 0.0, Vector2(10.0, 10.0))
+	map_pointer.frame(Vector2.ZERO, 2.0, 400.0, 0.0, Vector2(-60.0, 30.0))
+	_event(&"field_map", true)
+	_tap(&"fire")
+	input.fill(icmd)
+	assert_eq(icmd.ping_target, Vector3(-30.0, 0.0, 15.0), "a click at once is where you are")
+
+
+func test_a_moved_pointer_stays_where_it_was_put_when_a_frame_comes() -> void:
+	var map_pointer := input.field_map()
+	map_pointer.frame(Vector2.ZERO, 2.0, 400.0, 0.0, Vector2(10.0, 10.0))
+	_event(&"field_map", true)
+	_move(50.0, 0.0)
+	var put := map_pointer.at
+	map_pointer.frame(Vector2.ZERO, 2.0, 400.0, 0.0, Vector2(99.0, 99.0))
+	assert_eq(map_pointer.at, put, "a frame after a move does not drag it back to you")
+
+
+func test_the_area_words_are_laid_out_again_when_the_screen_resizes() -> void:
+	var hs := _hud_state()
+	var st: GameState = hs[0]
+	var me: Character = hs[1]
+	var fm := _field_map(st, me)
+	var root := fm.get_parent() as Control
+	_event(&"field_map", true)
+	_frame(fm, st, me)
+	var before: Vector2 = fm._overlay._at[0]
+	root.size = Vector2(1000.0, 700.0)
+	_frame(fm, st, me)
+	var ov: Control = fm._overlay
+	var words := HudFieldMap.areas_of(MapData.load_map("depot", MapStyle.new(), 1).areas)
+	var want: Vector2 = ov.size * 0.5 + fm.view().panel_of(words[0].at)
+	assert_ne(fm._overlay._at[0], before, "moved with the square")
+	assert_almost_eq(fm._overlay._at[0].x + fm._overlay._sizes[0].x * 0.5, want.x, 0.01)
