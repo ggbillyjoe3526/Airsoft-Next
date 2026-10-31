@@ -402,3 +402,38 @@ func test_bots_fighting_at_one_rope_stay_while_free_defenders_go_to_the_other() 
 		if b != defender and b.retake_pole == 1:
 			to_b += 1
 	assert_gt(to_b, 0, "free defenders sent to pull B down")
+
+
+## Two defenders left, one on A's contested rope, B in play with its flag higher and going up: the one at A stays on A,
+## and only the other goes to B (critic, attempt 3).
+func test_a_defender_on_a_worked_rope_is_never_sent_to_the_pole_in_play() -> void:
+	var w := BotWorld.new()
+	w.tuning = tuning
+	w.cfg = BotConfig.load_default()
+	w.mode = RoundState.Mode.ATTACK_DEFEND
+	w.attackers = 0
+	w.flags = rs.flags
+	var skill := w.cfg.skill
+	var at_a := Bot.new(cs[2], 1, skill, cs.size())
+	var free := Bot.new(cs[3], 2, skill, cs.size())
+	w.bots.append(Bot.new(cs[0], 3, skill, cs.size()))
+	w.bots.append(at_a)
+	w.bots.append(free)
+	at_a.character.position = A
+	at_a.flag_pole = 0
+	free.character.position = Vector3(0.0, 0.0, 0.0)
+	rs.flags[0].progress = 0.5
+	rs.flags[0].status = FlagState.Status.CONTESTED
+	rs.flags[1].progress = 0.8
+	rs.flags[1].status = FlagState.Status.RAISING
+	w.flag_index = Flag.next_in_play(w.flags, 0)
+	assert_eq(w.flag_index, 1, "B going up past A: B in play")
+	BotFlag.pick_retakers(w)
+	assert_eq(at_a.retake_pole, 0, "the defender on A's rope stays on A")
+	assert_eq(free.retake_pole, 1, "the other goes to B")
+	assert_eq(BotFlag.pole_of(at_a, w), 0)
+	assert_true(BotFlag.wants_flag(at_a, w) and BotFlag.wants_flag(free, w))
+	rs.flags[0].progress = 0.0
+	rs.flags[0].status = FlagState.Status.IDLE
+	BotFlag.pick_retakers(w)
+	assert_eq(at_a.retake_pole, 1, "A's flag down and its rope quiet: free to go to B")

@@ -79,8 +79,11 @@ static func spot(b: Bot, w: BotWorld) -> Vector3:
 ## picked: it does what it was asked. So a flag started at one pole draws defenders there while those fighting at the
 ## other stay on its rope (AB1).
 static func pick_retakers(w: BotWorld) -> void:
+	# Those on a worked rope stay on it first, whichever pole is filled first after (critic, attempt 3).
 	for b in w.bots:
 		b.retake_pole = -1
+		if _free_defender(b, w) and on_worked_rope(b, w) and w.flags[b.flag_pole].progress > 0.0:
+			b.retake_pole = b.flag_pole
 	_pick_for(w, w.flag_index)
 	for i in w.flags.size():
 		if i != w.flag_index:
@@ -89,16 +92,15 @@ static func pick_retakers(w: BotWorld) -> void:
 		b.retake = b.retake_pole >= 0
 
 
-## pick_retakers for pole `i` (another than the one in play only with its flag off the bottom): those on its worked
-## rope, then the nearest free ones one at a time.
+## pick_retakers for pole `i` (another than the one in play only with its flag off the bottom): to those already on its
+## worked rope, the nearest free ones one at a time.
 static func _pick_for(w: BotWorld, i: int) -> void:
 	var f := w.flags[i]
 	if i != w.flag_index and f.progress <= 0.0:
 		return
 	var picked := 0
 	for b in w.bots:
-		if b.retake_pole < 0 and b.flag_pole == i and _free_defender(b, w) and on_worked_rope(b, w):
-			b.retake_pole = i
+		if b.retake_pole == i:
 			picked += 1
 	while picked < w.cfg.retakers:
 		var near: Bot = null

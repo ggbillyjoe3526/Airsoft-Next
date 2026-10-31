@@ -174,7 +174,7 @@ var raiser: bool = false
 var flag_goal: Vector3 = Vector3.ZERO
 var flag_guard: bool = false
 ## The pole (BotWorld.flag_index) its flag spot was picked by: when the pole in play changes it picks again (AB1).
-var flag_pole: int = 0
+var flag_pole: int = -1
 ## Elimination's overtime flag (OV2): when it sets off for the flag (s of match time: the flag going up plus its skill's
 ## overtime_reaction; INF until it is up), and whether this overtime it goes round the side (its flank_chance, drawn as
 ## the flag goes up and used once).
@@ -300,6 +300,7 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	lane_done = false
 	retake = false
 	retake_pole = -1
+	flag_pole = -1
 	raiser = false
 	flag_guard = false
 	overtime_at = INF

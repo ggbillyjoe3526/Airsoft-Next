@@ -108,6 +108,8 @@ var _warning_text: Label = null
 var _warning_pole: int = -1
 ## The pole the flag marker and the gauge show (AB1; update keeps it, Flag.next_in_play): 0 with one pole.
 var _shown_pole: int = 0
+## Where the camera was at the last place_flag_marker: "the nearer pole" is measured from it (the player you watch).
+var _flag_eye: Vector3 = Vector3.ZERO
 var _flag_marker: HudFlagMarker = null
 var _order_wheel: HudOrderWheel = null
 var _hold_marker: HudHoldMarker = null
@@ -962,6 +964,7 @@ func use_overtime_flag() -> void:
 ## (AB1); hidden outside Attack / Defend (`show` false). In Elimination (use_overtime_flag) `pole` is the overtime
 ## flag's foot, shown while it stands.
 func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool, letter: String = "") -> void:
+	_flag_eye = camera.global_position
 	_flag_marker.set_letter(letter)
 	_flag_marker.place(camera, pole, show, size, pin_point(), pin_right_top(), _left_stack_floor())
 
@@ -972,10 +975,10 @@ func shown_pole() -> int:
 
 
 ## The pole to show after the one shown (Flag.next_in_play, as the bots have it, so a contest that flips a rope never
-## swings it to the other pole and back), else the one nearest you; within the round's poles.
+## swings it to the other pole and back), else the one nearest the camera; within the round's poles.
 func _next_shown(rs: RoundState) -> int:
 	var up := Flag.next_in_play(rs.flags, _shown_pole)
-	return up if up >= 0 else maxi(0, Flag.nearest(rs.flags, _player.position))
+	return up if up >= 0 else maxi(0, Flag.nearest(rs.flags, _flag_eye))
 
 
 ## Where the first marker pinned to the screen's left edge sits (its plate's top left): under the minimap and its

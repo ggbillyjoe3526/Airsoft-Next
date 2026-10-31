@@ -1,4 +1,4 @@
-Task: AB1 · head 395a152 · Verdict: Pass (attempt 2)
+Task: AB1 · head 04f599e · Verdict: Pass (attempt 3)
 Run: no headless --perf match run (read review; test_two_flags.gd 14/14 pass) · budget: no baseline yet (perf-budget.json absent), judged against targets
 Metrics: not measured; draw calls estimated (judgment) +~11/frame on Depot (second pole: 9 MeshInstance3D + Label3D outline+fill), ~+4 shadow casters per cascade
 
@@ -21,3 +21,9 @@ Checked, clean (no per-tick/frame allocation)
 Fixes, ranked
 1. Add the letter Label3D to the prewarm (FlagView exposes it, passed alongside the sign, or ShaderPrewarm gets a second sign), or set the letter to BILLBOARD_ENABLED to share the sign's variant.
 2. Share the three pole materials across FlagViews (static or passed in).
+
+Attempt 3 (395a152..04f599e): Pass. test_two_flags 17, test_bot_flag 14, test_flag_play 14 pass.
+- bot_flag.gd pick_retakers/_pick_for: now runs every A/D tick (was only with the flag off the bottom), but costs O(retakers(2) x bots) a pole instead of the old O(defenders x bots) closer count, so a net cut when the flag is up and about 2 x bots x (role + is_in_play) extra at the bottom (judgment, ~tens of iterations/tick). Typed locals, `near: Bot` ref, no containers.
+- pole_of/on_worked_rope (bot_flag.gd, bot_movement.gd FIGHT + _flag): per bot per tick, an index, a status check and one at_pole sqrt; no allocation.
+- Flag.next_in_play (flag.gd:52) once a tick (bots) and once a frame (HUD _next_shown): one 2-flag loop, no allocation. Hud.shown_pole caches it; the Nearest fallback runs only with every flag at the bottom.
+- Advisory unchanged: per-view pole materials, ~+11 draw calls on Depot.
