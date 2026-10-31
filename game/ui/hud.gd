@@ -935,8 +935,8 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	_score.set_sides(rs.attackers if flag_mode else -1)
 	_gauge.visible = flag_mode
 	if flag_mode and rs.attackers >= 0:
-		# The highest flag: the one nearest winning the round (AB1).
-		var top := rs.flags[maxi(0, Flag.highest(rs.flags))]
+		# The pole in play, as the marker and the warning have it (AB1).
+		var top := rs.flags[maxi(0, Flag.in_play(rs.flags))]
 		_gauge.set_flag(top.progress, _teams.colours[rs.attackers], rs.attackers == HudStyle.STRIPED_TEAM)
 	_update_warning(rs, delta)
 	if _readout != null:
@@ -963,9 +963,10 @@ func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool, letter: Stri
 	_flag_marker.place(camera, pole, show, size, pin_point(), pin_right_top(), _left_stack_floor())
 
 
-## The pole the flag marker shows (AB1): the one whose flag is highest, else the one nearest `eye`.
+## The pole the flag marker and the gauge show (AB1): the pole in play (Flag.in_play: the highest flag going up, else
+## the highest), else the one nearest `eye`.
 static func flag_shown(rs: RoundState, eye: Vector3) -> int:
-	var up := Flag.highest(rs.flags)
+	var up := Flag.in_play(rs.flags)
 	return up if up >= 0 else maxi(0, Flag.nearest(rs.flags, eye))
 
 
@@ -1140,13 +1141,14 @@ func score() -> HudScore:
 	return _score
 
 
-## The warning pulses while the other team raises its flag (at either pole, named on a map with two) and you aren't at
-## that rope pulling it down; with Reduced motion it holds steady at full.
+## The warning pulses while the other team raises its flag (at the pole in play, Flag.in_play, named on a map with two)
+## and you aren't at that rope pulling it down; with Reduced motion it holds steady at full.
 func _update_warning(rs: RoundState, delta: float) -> void:
 	var c := _player
-	var up := Flag.going_up(rs.flags)
+	var up := Flag.in_play(rs.flags)
 	var show := rs.mode == RoundState.Mode.ATTACK_DEFEND and rs.is_live() and rs.attackers >= 0 \
-			and c.team != rs.attackers and up >= 0 and not Flag.at_pole(c, rs.flags[up], _sim.flag)
+			and c.team != rs.attackers and up >= 0 and rs.flags[up].status == FlagState.Status.RAISING \
+			and not Flag.at_pole(c, rs.flags[up], _sim.flag)
 	_warning.visible = show
 	if show and rs.flags.size() > 1 and up != _warning_pole:
 		# Which pole, on a map with two (AB1); the text built only when that changes.

@@ -15,10 +15,10 @@ static func role(b: Bot, w: BotWorld) -> Role:
 	return Role.ATTACK if b.character.team == w.attackers else Role.DEFEND
 
 
-## The pole in play (BotWorld.flag): the one whose flag is highest, so both teams go where a flag is going up (the
-## player's too), else the one the attackers drew for the round (RoundPlanner.attack_flag).
+## The pole in play (BotWorld.flag): Flag.in_play's (the highest flag going up, else the highest), so both teams go
+## where a flag is going up (the player's too), else the one the attackers drew for the round (RoundPlanner.attack_flag).
 static func in_play(w: BotWorld) -> int:
-	var up := Flag.highest(w.flags)
+	var up := Flag.in_play(w.flags)
 	if up >= 0:
 		return up
 	return clampi(w.planner.attack_flag, 0, w.flags.size() - 1) if w.planner != null else 0

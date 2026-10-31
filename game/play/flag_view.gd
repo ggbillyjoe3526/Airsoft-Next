@@ -217,7 +217,8 @@ func _add_letter(letter: String) -> void:
 	_letter.outline_size = _cfg.letter_outline
 	_letter.modulate = _cfg.cloth_pale
 	_letter.outline_modulate = _cfg.fittings_colour
-	_letter.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	# Billboarded as the "HIT!" sign is (FigureView.make_sign), so it shares the shader the prewarm compiles with it.
+	_letter.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_letter.position.y = _cfg.pole_height + _cfg.letter_rise
 	_letter.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_letter)

@@ -35,12 +35,18 @@ static func highest(flags: Array[FlagState]) -> int:
 	return best
 
 
-## The first pole whose flag is going up (RAISING); -1 for none.
-static func going_up(flags: Array[FlagState]) -> int:
+## The pole in play, for the bots, the HUD's marker, gauge and warning alike: the highest flag going up (RAISING), else
+## the highest flag; -1 while every flag is at the bottom. So a flag started at one pole while the other stands stalled
+## higher is the one everyone goes to (AB1, critic).
+static func in_play(flags: Array[FlagState]) -> int:
+	var best := -1
+	var top := -1.0
 	for i in flags.size():
-		if flags[i].status == FlagState.Status.RAISING:
-			return i
-	return -1
+		var f := flags[i]
+		if f.status == FlagState.Status.RAISING and f.progress > top:
+			top = f.progress
+			best = i
+	return best if best >= 0 else highest(flags)
 
 
 ## The pole nearest `at` (flat); -1 with none.

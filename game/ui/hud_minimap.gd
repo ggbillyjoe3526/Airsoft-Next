@@ -292,8 +292,8 @@ class View:
 	var _patch_alphas := PackedFloat32Array()
 	var _patch_shots := PackedByteArray()
 	var _patch_count: int = 0
-	## The poles shown this frame (two at most, Flag.MOST: AB1), their slots made once.
-	var _poles := PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
+	## The poles shown this frame (Flag.MOST at most: AB1), their slots made once (_init).
+	var _poles := PackedVector2Array()
 	var _pole_count: int = 0
 	var _chequered: bool = false
 	var _dark_checks: Array[Rect2] = []
@@ -307,6 +307,9 @@ class View:
 	var _ping_ring: HudPingMarker.Mark = null
 	var _ping_diamond: HudPingMarker.Mark = null
 	var _you_on: bool = true
+
+	func _init() -> void:
+		_poles.resize(Flag.MOST)
 
 	## `textures` are the layers (one per storey) of a drawing at `field_scale` px/m whose top left is the world's
 	## `field_origin` (x, z); up to `capacity` dots and patches.

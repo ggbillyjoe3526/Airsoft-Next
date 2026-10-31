@@ -6,7 +6,8 @@
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-31 | 1 | thread | two-flag and flag tests pass; full suite on CI | – | – |
+| 2026-10-31 | 1 | thread | two-flag and flag tests pass; full suite on CI | Retry 6/8 | the highest flag, not the one going up, was in play (a flag started under a stalled higher one went unanswered) and the HUD's marker and warning could name different poles; docs promised otherwise; the ruling missing from DECISIONS; the letter's billboard had no prewarm (performance) |
+| 2026-10-31 | 2 | thread | two-flag (15), flag, minimap and QA tests pass | | |
 
 ## Goal
 
@@ -22,23 +23,26 @@ CC0 dress.
 - **The rules** (`Flag`, `RoundState`, `Round`). `RoundState.poles` and `flags` (a `FlagState` a pole, sized each
   round in `reset_flags`, the same array kept so readers keep it); `pole` and `flag` are flag A's (setting `pole`
   makes one pole). `Flag.step_all` works each pole on its own, and either raised wins (CAPTURED); the buzzer's overtime
-  runs while the attackers work either rope (`Flag.rope_worked`). `Flag.highest`, `going_up` and `nearest` pick a pole
+  runs while the attackers work either rope (`Flag.rope_worked`). `Flag.in_play`, `highest` and `nearest` pick a pole
   for the bots and the HUD; none allocates.
 - **Bots.** The attackers draw a pole each round from the planner's seeded stream (`RoundPlanner.attack_flag`, drawn
   only with two poles, so one-pole maps play as before). The pole in play (`BotFlag.in_play`, `BotWorld.flag` and
-  `flag_index`) is the one whose flag is highest, else the drawn one, so both teams go where a flag is going up (the
-  player's too); a bot in flag mode picks its spot again when it changes (`Bot.flag_pole`). A defender's post for its
-  search leash is the pole nearest the end of its lane (`BotFlag.post_of`).
+  `flag_index`) is `Flag.in_play`'s: the highest flag going up, else the highest (so a flag started at one pole while
+  the other stands stalled higher is the one everyone goes to; critic, attempt 1), else the drawn pole; so both teams
+  go where a flag is going up (the player's too); a bot in flag mode picks its spot again when it changes
+  (`Bot.flag_pole`). A defender's post for its search leash is the pole nearest the end of its lane
+  (`BotFlag.post_of`).
 - **The view and the HUD.** A `FlagView` a pole; with two, each carries its letter over its top (a Label3D turned to
-  face you, `FlagViewConfig.letter_*`). The marker names the pole ("FLAG B", `HudFlagMarker.set_letter`, text built
-  only when the letter changes) over the highest flag, else the nearer pole (`Hud.flag_shown`); the gauge shows the
-  highest flag; the warning shows while either flag goes up and you aren't at that rope, and names it ("Their flag is
-  going up at B!", built only when the pole changes); the minimap draws both (two slots made once).
+  face you, `FlagViewConfig.letter_*`, billboarded as the "HIT!" sign is so the prewarm's sign covers its shader;
+  performance, attempt 1). The marker, the gauge and the warning follow the same pole, `Flag.in_play`'s
+  (else the nearer pole, `Hud.flag_shown`): the marker names it ("FLAG B", `HudFlagMarker.set_letter`, text built only
+  when the letter changes), and the warning shows while that flag goes up and you aren't at its rope ("Their flag is
+  going up at B!", built only when the pole changes). The minimap draws both (`Flag.MOST` slots made once).
 
 ## Defaults taken
 
-- The marker shows one pole, not two, so two pinned plates never stack under the minimap: the one whose flag is
-  highest, or the nearer.
+- The marker shows one pole, not two, so two pinned plates never stack under the minimap: the pole in play, or the
+  nearer.
 - Attacking bots draw A or B evenly each round; their lanes are still dealt as before (they converge on the drawn pole
   once swept), and a flag started at the other pole pulls them there.
 - The letters are off-white on the fittings' dark outline, off both team hues.

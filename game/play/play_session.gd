@@ -212,8 +212,7 @@ var _refresh_hz: float = 0.0
 var _warm: bool = false
 var _pretend_slow: bool = false
 var _stats: MatchStats = MatchStats.new()
-## Attack / Defend's pole; null in Elimination.
-## Attack / Defend's poles as drawn, one a pole (AB1), flag A's first.
+## Attack / Defend's poles as drawn, one a pole (AB1), flag A's first; empty in Elimination.
 var _flags: Array[FlagView] = []
 ## Elimination's overtime flag, built once a match on a map with a spot for it and hidden until it goes up; null
 ## otherwise (Attack / Defend, practice, a map without a spot).

@@ -104,7 +104,7 @@ func test_raising_flag_b_alone_wins_the_round_for_the_attackers() -> void:
 	assert_almost_eq(rs.flags[1].progress, 0.5, 0.02, "B half up")
 	assert_eq(rs.flags[0].progress, 0.0, "A untouched")
 	assert_eq(Flag.highest(rs.flags), 1)
-	assert_eq(Flag.going_up(rs.flags), 1)
+	assert_eq(Flag.in_play(rs.flags), 1)
 	_run(tuning.flag.raise_time * 0.5 + 0.1)
 	assert_eq(rs.winner, rs.attackers, "either flag raised wins")
 	assert_eq(rs.reason, GameEvent.RoundEnd.CAPTURED)
@@ -131,9 +131,9 @@ func test_the_clock_runs_on_while_either_rope_is_worked() -> void:
 	assert_eq(rs.winner, 1 - rs.attackers, "nobody at a rope: the defenders' at the buzzer")
 
 
-func test_highest_nearest_and_going_up() -> void:
+func test_highest_nearest_and_in_play() -> void:
 	assert_eq(Flag.highest(rs.flags), -1, "both at the bottom")
-	assert_eq(Flag.going_up(rs.flags), -1)
+	assert_eq(Flag.in_play(rs.flags), -1)
 	assert_eq(Flag.nearest(rs.flags, Vector3(0, 0, 9)), 1)
 	assert_eq(Flag.nearest(rs.flags, Vector3(0, 0, -9)), 0)
 	rs.flags[0].progress = 0.3
@@ -141,6 +141,9 @@ func test_highest_nearest_and_going_up() -> void:
 	assert_eq(Flag.highest(rs.flags), 0, "a tie: the first")
 	rs.flags[1].progress = 0.4
 	assert_eq(Flag.highest(rs.flags), 1)
+	assert_eq(Flag.in_play(rs.flags), 1, "nothing going up: the highest")
+	rs.flags[0].status = FlagState.Status.RAISING
+	assert_eq(Flag.in_play(rs.flags), 0, "going up beats higher but still")
 
 
 func test_the_marker_names_the_pole_and_shows_the_highest_else_the_nearest() -> void:
@@ -288,3 +291,29 @@ func test_a_bot_making_for_one_pole_turns_to_the_other_when_its_flag_goes_up() -
 
 func _flat(p: Vector3, q: Vector3) -> float:
 	return Vector2(p.x - q.x, p.z - q.z).length()
+
+
+func test_a_flag_started_while_the_other_stands_stalled_higher_is_in_play_for_bots_and_hud() -> void:
+	var session := PlaySession.new()
+	session.mode = MatchOptions.MODE_ATTACK_DEFEND
+	session.bots_active = false
+	add_child_autofree(session)
+	await wait_physics_frames(2)
+	var state := session.state
+	var r := state.round_state
+	r.attackers = 1 - session.player.team
+	r.flags[0].progress = 0.6
+	r.flags[0].status = FlagState.Status.CONTESTED
+	r.flags[1].progress = 0.25
+	r.flags[1].status = FlagState.Status.RAISING
+	session.player.position = r.flags[0].position + Vector3(6.0, 0.0, 0.0)
+	assert_eq(Hud.flag_shown(r, r.flags[0].position), 1, "the marker: B, though A is higher and nearer")
+	var hud := session.hud()
+	hud.update(state, 1.0, 0.0)
+	assert_eq(hud.flag_gauge().notches_filled(), 3, "the gauge: B's 0.25")
+	assert_eq(hud.flag_warning_text(), "THEIR FLAG IS GOING UP AT B!", "the warning: B")
+	var w := BotWorld.new()
+	w.flags = r.flags
+	w.planner = RoundPlanner.new(1)
+	w.planner.attack_flag = 0
+	assert_eq(BotFlag.in_play(w), 1, "the bots: B")

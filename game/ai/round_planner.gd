@@ -33,7 +33,8 @@ func _init(match_seed: int) -> void:
 
 
 ## A fresh round for every bot: per team a plan, the lanes dealt in a random order, bots sharing a lane setting off
-## lane_follow_delay apart; on a map with two poles, the one the attackers go for. Call after the round's respawn (spawns and ends are this round's).
+## lane_follow_delay apart; on a map with two poles, the one the attackers go for. Call after the round's respawn
+## (spawns and ends are this round's).
 func plan(w: BotWorld) -> void:
 	_measure_ends(w.characters)
 	var cfg := w.cfg

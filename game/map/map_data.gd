@@ -737,7 +737,7 @@ func _read_poles(list: Variant, single: Variant) -> void:
 	if list == null:
 		if _spot(single, "flag", warnings):
 			poles.append(_vec(single))
-	elif not list is Array:
+	elif not list is Array or (list as Array).is_empty():
 		warnings.append("flags %s is not a list of spots: none read" % JSON.stringify(list))
 	else:
 		for raw: Variant in list:

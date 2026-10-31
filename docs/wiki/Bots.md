@@ -78,8 +78,9 @@ Your teammates carry the AEG Rifle and the GBB Pistol as they come. Bots fire fu
 Attacking bots walk their lanes to just past the middle, then make for the pole. The nearest attacker raises the flag
 crouched at the rope while the others guard it from cover close by. Defenders hold near the pole, go after only what
 they see or hear close to it, and the two nearest run to pull a rising flag down. On Depot's two poles the attackers
-pick A or B each round, and as soon as a flag starts up at either, both teams' bots go there: the attackers to help
-it up (yours too), the defenders to pull it down. Each defender keeps watch round the pole nearest the point it holds.
+pick A or B each round, and as soon as a flag starts up at either, both teams' bots go there, even with the other flag
+higher: the attackers to help it up (yours too), the defenders to pull it down. Each defender keeps watch round the
+pole nearest the point it holds.
 
 ## Callouts
 
