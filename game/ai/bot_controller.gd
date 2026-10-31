@@ -100,9 +100,7 @@ func think(state: GameState, commands: Array[PlayerCommand], dt: float) -> void:
 		DevCheats.run_low(state, _player_id)
 	BotMagShare.update(w, sharing)
 	if w.mode == RoundState.Mode.ATTACK_DEFEND:
-		# Retakers matter only once the flag is off the bottom (BotFlag.wants_flag).
-		if w.flag.progress > 0.0:
-			BotFlag.pick_retakers(w)
+		BotFlag.pick_retakers(w)
 		BotFlag.pick_raiser(w)
 	var hold_fire := state.cheats.bots_hold_fire
 	# Who the weapon torches light, for this interval's looks (a night field only, WL7).

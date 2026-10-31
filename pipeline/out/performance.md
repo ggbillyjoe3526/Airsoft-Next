@@ -1,4 +1,4 @@
-Task: AB1 · head 1e5d0a6 · Verdict: Fail
+Task: AB1 · head 395a152 · Verdict: Pass (attempt 2)
 Run: no headless --perf match run (read review; test_two_flags.gd 14/14 pass) · budget: no baseline yet (perf-budget.json absent), judged against targets
 Metrics: not measured; draw calls estimated (judgment) +~11/frame on Depot (second pole: 9 MeshInstance3D + Label3D outline+fill), ~+4 shadow casters per cascade
 

@@ -106,6 +106,8 @@ var _warning_flag: HudFlagGlyph = null
 var _warning_text: Label = null
 ## The pole the warning names (a map with two, AB1): -1 none named yet.
 var _warning_pole: int = -1
+## The pole the flag marker and the gauge show (AB1; update keeps it, Flag.next_in_play): 0 with one pole.
+var _shown_pole: int = 0
 var _flag_marker: HudFlagMarker = null
 var _order_wheel: HudOrderWheel = null
 var _hold_marker: HudHoldMarker = null
@@ -935,8 +937,9 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	_score.set_sides(rs.attackers if flag_mode else -1)
 	_gauge.visible = flag_mode
 	if flag_mode and rs.attackers >= 0:
-		# The pole in play, as the marker and the warning have it (AB1).
-		var top := rs.flags[maxi(0, Flag.in_play(rs.flags))]
+		# The pole in play, as the marker has it (AB1).
+		_shown_pole = _next_shown(rs)
+		var top := rs.flags[_shown_pole]
 		_gauge.set_flag(top.progress, _teams.colours[rs.attackers], rs.attackers == HudStyle.STRIPED_TEAM)
 	_update_warning(rs, delta)
 	if _readout != null:
@@ -963,11 +966,16 @@ func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool, letter: Stri
 	_flag_marker.place(camera, pole, show, size, pin_point(), pin_right_top(), _left_stack_floor())
 
 
-## The pole the flag marker and the gauge show (AB1): the pole in play (Flag.in_play: the highest flag going up, else
-## the highest), else the one nearest `eye`.
-static func flag_shown(rs: RoundState, eye: Vector3) -> int:
-	var up := Flag.in_play(rs.flags)
-	return up if up >= 0 else maxi(0, Flag.nearest(rs.flags, eye))
+## The pole the flag marker and the gauge show (AB1), as the last update left it.
+func shown_pole() -> int:
+	return _shown_pole
+
+
+## The pole to show after the one shown (Flag.next_in_play, as the bots have it, so a contest that flips a rope never
+## swings it to the other pole and back), else the one nearest you; within the round's poles.
+func _next_shown(rs: RoundState) -> int:
+	var up := Flag.next_in_play(rs.flags, _shown_pole)
+	return up if up >= 0 else maxi(0, Flag.nearest(rs.flags, _player.position))
 
 
 ## Where the first marker pinned to the screen's left edge sits (its plate's top left): under the minimap and its
@@ -1141,8 +1149,9 @@ func score() -> HudScore:
 	return _score
 
 
-## The warning pulses while the other team raises its flag (at the pole in play, Flag.in_play, named on a map with two)
-## and you aren't at that rope pulling it down; with Reduced motion it holds steady at full.
+## The warning pulses while the other team raises its flag (the highest going up, Flag.in_play, named on a map with two,
+## whatever pole the marker shows) and you aren't at that rope pulling it down; with Reduced motion it holds steady at
+## full.
 func _update_warning(rs: RoundState, delta: float) -> void:
 	var c := _player
 	var up := Flag.in_play(rs.flags)

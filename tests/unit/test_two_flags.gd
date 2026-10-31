@@ -146,11 +146,26 @@ func test_highest_nearest_and_in_play() -> void:
 	assert_eq(Flag.in_play(rs.flags), 0, "going up beats higher but still")
 
 
-func test_the_marker_names_the_pole_and_shows_the_highest_else_the_nearest() -> void:
-	assert_eq(Hud.flag_shown(rs, Vector3(0, 0, 9)), 1, "nothing up: the nearest")
-	assert_eq(Hud.flag_shown(rs, Vector3(0, 0, -9)), 0)
-	rs.flags[0].progress = 0.1
-	assert_eq(Hud.flag_shown(rs, Vector3(0, 0, 9)), 0, "a flag going up wins over the nearer pole")
+func test_the_pole_in_play_is_kept_while_fought_over_until_a_flag_going_up_stands_higher() -> void:
+	var f := rs.flags
+	assert_eq(Flag.next_in_play(f, -1), -1, "both at the bottom: none")
+	f[0].progress = 0.6
+	f[1].progress = 0.25
+	f[1].status = FlagState.Status.RAISING
+	assert_eq(Flag.next_in_play(f, 0), 1, "A stalled, B going up: B")
+	f[0].status = FlagState.Status.CONTESTED
+	assert_eq(Flag.next_in_play(f, 0), 0, "A fought over and higher: kept")
+	f[0].status = FlagState.Status.RAISING
+	assert_eq(Flag.next_in_play(f, 0), 0)
+	assert_eq(Flag.next_in_play(f, 1), 0, "both going up: the higher")
+	f[0].status = FlagState.Status.CONTESTED
+	f[1].progress = 0.7
+	assert_eq(Flag.next_in_play(f, 0), 1, "B going up past A: B")
+	f[0].status = FlagState.Status.RAISING
+	assert_eq(Flag.next_in_play(f, 1), 1, "B worked and higher: kept, though A goes up again")
+
+
+func test_the_marker_names_the_pole() -> void:
 	var marker := HudFlagMarker.new()
 	add_child_autofree(marker)
 	marker.setup(HudConfig.new())
@@ -293,7 +308,7 @@ func _flat(p: Vector3, q: Vector3) -> float:
 	return Vector2(p.x - q.x, p.z - q.z).length()
 
 
-func test_a_flag_started_while_the_other_stands_stalled_higher_is_in_play_for_bots_and_hud() -> void:
+func test_the_hud_keeps_a_fought_over_pole_and_turns_to_a_flag_started_under_a_stalled_one() -> void:
 	var session := PlaySession.new()
 	session.mode = MatchOptions.MODE_ATTACK_DEFEND
 	session.bots_active = false
@@ -301,19 +316,89 @@ func test_a_flag_started_while_the_other_stands_stalled_higher_is_in_play_for_bo
 	await wait_physics_frames(2)
 	var state := session.state
 	var r := state.round_state
+	var hud := session.hud()
 	r.attackers = 1 - session.player.team
 	r.flags[0].progress = 0.6
 	r.flags[0].status = FlagState.Status.CONTESTED
 	r.flags[1].progress = 0.25
 	r.flags[1].status = FlagState.Status.RAISING
 	session.player.position = r.flags[0].position + Vector3(6.0, 0.0, 0.0)
-	assert_eq(Hud.flag_shown(r, r.flags[0].position), 1, "the marker: B, though A is higher and nearer")
-	var hud := session.hud()
 	hud.update(state, 1.0, 0.0)
-	assert_eq(hud.flag_gauge().notches_filled(), 3, "the gauge: B's 0.25")
-	assert_eq(hud.flag_warning_text(), "THEIR FLAG IS GOING UP AT B!", "the warning: B")
+	assert_eq(hud.shown_pole(), 0, "A fought over and higher: the marker and gauge stay on A")
+	assert_eq(hud.flag_gauge().notches_filled(), 7)
+	assert_eq(hud.flag_warning_text(), "THEIR FLAG IS GOING UP AT B!", "the warning: the flag going up")
+	r.flags[0].status = FlagState.Status.IDLE
+	hud.update(state, 1.0, 0.0)
+	assert_eq(hud.shown_pole(), 1, "A's fight over, B going up: B")
+	assert_eq(hud.flag_gauge().notches_filled(), 3, "B's 0.25")
 	var w := BotWorld.new()
 	w.flags = r.flags
 	w.planner = RoundPlanner.new(1)
 	w.planner.attack_flag = 0
-	assert_eq(BotFlag.in_play(w), 1, "the bots: B")
+	assert_eq(BotFlag.in_play(w), 1, "the bots: B, the same rule")
+
+
+## A on Depot fought over by an attacking bot and a defending bot, B raised by the player: for 3 s the two at A keep to
+## A as its rope flips between raising and contested, the pole in play changes at most once, and free defenders go to
+## pull B down (critic, attempt 2).
+func test_bots_fighting_at_one_rope_stay_while_free_defenders_go_to_the_other() -> void:
+	var t := SimTuning.load_default()
+	var map := MapData.load_map("depot", MapStyle.new(), t.rounds.team_size)
+	var level := MapLevel.new()
+	add_child_autofree(level)
+	level.build(map, MapStyle.new(), t.body)
+	var nav := NavGrid.build(map, t.nav, t.body)
+	var sim := Simulation.new(t, level.query(), level.mover(t.body), map.ends, map.kill_y)
+	sim.nav = nav
+	var state := GameState.new(3, t)
+	var size := t.rounds.team_size
+	var loadout := ReplicaStats.default_loadout()
+	var commands: Array[PlayerCommand] = []
+	for i in size * 2:
+		state.characters.append(Character.new(i, 0 if i < size else 1, Vector3.ZERO, 0.0, loadout))
+		commands.append(PlayerCommand.new())
+	state.round_state.mode = RoundState.Mode.ATTACK_DEFEND
+	state.round_state.poles = map.poles
+	state.cheats.bots_hold_fire = true
+	var player := 0
+	var bots := BotController.new(state, player, map, nav, level.query(), t, BotConfig.load_default())
+	sim.start_match(state)
+	bots.observe(state)
+	var w := bots.world
+	var r := state.round_state
+	var attacker := w.bots[0]
+	var defender: Bot = null
+	for b in w.bots:
+		if b.character.team != r.attackers and defender == null:
+			defender = b
+	assert_eq(attacker.character.team, r.attackers)
+	state.characters[player].position = r.flags[1].position
+	attacker.character.position = r.flags[0].position + Vector3(0.4, 0.0, 0.0)
+	defender.character.position = r.flags[0].position + Vector3(-0.4, 0.0, 0.0)
+	attacker.lane_done = true
+	r.flags[0].progress = 0.6
+	w.planner.attack_flag = 0
+	var changes := 0
+	var last := -1
+	for tick in 180:
+		bots.think(state, commands, DT)
+		commands[player].reset()
+		sim.step(state, commands, DT)
+		bots.observe(state)
+		if last >= 0 and w.flag_index != last:
+			changes += 1
+		last = w.flag_index
+		assert_eq(BotFlag.pole_of(attacker, w), 0, "tick %d: the attacker keeps to A" % tick)
+		assert_eq(defender.retake_pole, 0, "tick %d: the defender keeps to A" % tick)
+		# They fight at the rope (a strafe can take a step off it), never leave for B.
+		assert_lt(_flat(attacker.character.position, r.flags[0].position), 3.0, "tick %d: the attacker by A" % tick)
+		assert_lt(_flat(defender.character.position, r.flags[0].position), 3.0, "tick %d: the defender by A" % tick)
+		if not r.is_live():
+			break
+	assert_lte(changes, 1, "the pole in play changed at most once")
+	assert_ne(r.flags[0].status, FlagState.Status.IDLE, "A still worked")
+	var to_b := 0
+	for b in w.bots:
+		if b != defender and b.retake_pole == 1:
+			to_b += 1
+	assert_gt(to_b, 0, "free defenders sent to pull B down")

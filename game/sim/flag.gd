@@ -49,6 +49,19 @@ static func in_play(flags: Array[FlagState]) -> int:
 	return best if best >= 0 else highest(flags)
 
 
+## The pole in play after `current` (-1: none yet), for the bots and the HUD alike: `current` is kept while its flag is
+## worked (raising, pulling down or both) and no other flag going up stands higher; else in_play's. So a rope that
+## flips between raising and contested never swings it to the other pole and back (AB1, critic attempt 2).
+static func next_in_play(flags: Array[FlagState], current: int) -> int:
+	var next := in_play(flags)
+	if current < 0 or current >= flags.size() or next == current:
+		return next
+	var now := flags[current]
+	if now.status != FlagState.Status.IDLE and (next < 0 or flags[next].progress <= now.progress):
+		return current
+	return next
+
+
 ## The pole nearest `at` (flat); -1 with none.
 static func nearest(flags: Array[FlagState], at: Vector3) -> int:
 	var best := -1

@@ -7,7 +7,8 @@
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
 | 2026-10-31 | 1 | thread | two-flag and flag tests pass; full suite on CI | Retry 6/8 | the highest flag, not the one going up, was in play (a flag started under a stalled higher one went unanswered) and the HUD's marker and warning could name different poles; docs promised otherwise; the ruling missing from DECISIONS; the letter's billboard had no prewarm (performance) |
-| 2026-10-31 | 2 | thread | two-flag (15), flag, minimap and QA tests pass | | |
+| 2026-10-31 | 2 | thread | two-flag (15), flag, minimap and QA tests pass | Retry 7/8 | the pole in play flipped as a contested rope flipped to raising and back, so bots on it dithered and the gauge jumped |
+| 2026-10-31 | 3 | thread | two-flag (17), bot flag, QA and squad order tests pass | | |
 
 ## Goal
 
@@ -25,19 +26,27 @@ CC0 dress.
   makes one pole). `Flag.step_all` works each pole on its own, and either raised wins (CAPTURED); the buzzer's overtime
   runs while the attackers work either rope (`Flag.rope_worked`). `Flag.in_play`, `highest` and `nearest` pick a pole
   for the bots and the HUD; none allocates.
+- **The pole in play** (`Flag.next_in_play`, one rule for the bots and the HUD): the one in play now is kept while its
+  flag is worked (raising, pulling down or both) and no flag going up stands higher; else the highest flag going up,
+  else the highest. So a flag started under a stalled higher one is in play at once (critic, attempt 1), and a rope
+  that flips between raising and contested never swings it to the other pole and back (critic, attempt 2).
 - **Bots.** The attackers draw a pole each round from the planner's seeded stream (`RoundPlanner.attack_flag`, drawn
-  only with two poles, so one-pole maps play as before). The pole in play (`BotFlag.in_play`, `BotWorld.flag` and
-  `flag_index`) is `Flag.in_play`'s: the highest flag going up, else the highest (so a flag started at one pole while
-  the other stands stalled higher is the one everyone goes to; critic, attempt 1), else the drawn pole; so both teams
-  go where a flag is going up (the player's too); a bot in flag mode picks its spot again when it changes
-  (`Bot.flag_pole`). A defender's post for its search leash is the pole nearest the end of its lane
-  (`BotFlag.post_of`).
+  only with two poles, so one-pole maps play as before) and go to the pole in play, else the drawn one
+  (`BotFlag.in_play`, `BotWorld.flag` and `flag_index`). A bot on the rope of the pole it was sent to keeps to it while
+  that rope is worked (`BotFlag.on_worked_rope`, `pole_of`), and a raiser there stays raiser. Defenders are picked per
+  pole (`pick_retakers`, `Bot.retake_pole`): for the pole in play and then any other with its flag off the bottom, those
+  already on its worked rope stay and the nearest free ones make them up to `retakers`. So with A fought over and B
+  started by the player, the two at A stay at A and free defenders go to B. A bot in flag mode picks its spot again
+  when its pole changes (`Bot.flag_pole`). A defender's post for its search leash is the pole nearest the end of its
+  lane (`BotFlag.post_of`).
 - **The view and the HUD.** A `FlagView` a pole; with two, each carries its letter over its top (a Label3D turned to
   face you, `FlagViewConfig.letter_*`, billboarded as the "HIT!" sign is so the prewarm's sign covers its shader;
-  performance, attempt 1). The marker, the gauge and the warning follow the same pole, `Flag.in_play`'s
-  (else the nearer pole, `Hud.flag_shown`): the marker names it ("FLAG B", `HudFlagMarker.set_letter`, text built only
-  when the letter changes), and the warning shows while that flag goes up and you aren't at its rope ("Their flag is
-  going up at B!", built only when the pole changes). The minimap draws both (`Flag.MOST` slots made once).
+  performance, attempt 1). The marker and the gauge follow the pole in play (the HUD keeps its own, `Hud.shown_pole`,
+  else the pole nearer you); the marker names it ("FLAG B", `HudFlagMarker.set_letter`, text built only when the
+  letter changes). The warning shows while the highest flag going up is theirs and you aren't at its rope, and names
+  it ("Their flag is going up at B!", built only when the pole changes), whichever pole the marker shows: with A fought
+  over and B going up, the marker stays on A and the warning calls B. The minimap draws both (`Flag.MOST` slots made
+  once).
 
 ## Defaults taken
 

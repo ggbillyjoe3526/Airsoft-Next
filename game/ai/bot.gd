@@ -168,6 +168,8 @@ var push_look_for: int = -1
 ## or to raise it (an attacker; the others guard), and in flag mode the spot it makes for and whether it guards there.
 var lane_done: bool = false
 var retake: bool = false
+## The pole it was picked to pull down (BotFlag.pick_retakers; -1 none), on a map with two its own (AB1).
+var retake_pole: int = -1
 var raiser: bool = false
 var flag_goal: Vector3 = Vector3.ZERO
 var flag_guard: bool = false
@@ -297,6 +299,7 @@ func reset(lane_id: int, points: int, start_hold: float, cfg: BotConfig) -> void
 	push_look_for = -1
 	lane_done = false
 	retake = false
+	retake_pole = -1
 	raiser = false
 	flag_guard = false
 	overtime_at = INF

@@ -1098,7 +1098,7 @@ func _process(delta: float) -> void:
 		var rs := state.round_state
 		for i in mini(_flags.size(), rs.flags.size()):
 			_flags[i].refresh(rs.flags[i], rs.attackers)
-		var shown := _hud.flag_shown(rs, _eyes.camera.global_position)
+		var shown := mini(_hud.shown_pole(), rs.flags.size() - 1)
 		_hud.place_flag_marker(_eyes.camera, rs.flags[shown].position, rs.attackers >= 0 and rs.is_live(),
 				Flag.LETTERS[shown] if rs.flags.size() > 1 else "")
 	elif _overtime_flag != null:
