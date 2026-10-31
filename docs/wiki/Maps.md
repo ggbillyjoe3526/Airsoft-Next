@@ -31,6 +31,7 @@ the west in Elimination, and the teams swap ends at half time.
 - **Spawn rooms** open by two crate chicanes each, so nobody sees into a spawn from the floor outside it.
 - **Noisy props:** running into a container, a steel drum, a plastic barrel, a rack or a crate stack makes a noise
   bots hear, and a BB rings off the steel ([Movement](Movement#paces)).
+- **Doors:** some of the plywood rooms and huts have green [doors](#doors), some starting open and some shut.
 - **Attack / Defend** puts a flagpole on A site, at the defenders' end ([Modes](Modes#attack--defend)).
 - Fields are greybox for now: plain blocks in the site's colours, with props and the final models coming later.
 
@@ -41,6 +42,20 @@ the west in Elimination, and the teams swap ends at half time.
 The minimap names the area you stand in. Depot's areas:
 
 <!-- wiki:areas depot -->
+
+
+### Doors
+
+Depot has 15 hinged doors, painted green so they stand out from the plywood. Every round starts with the same doors
+open and the same ones shut. Press **Open / shut door** (U, [Controls](Controls)) within reach of one to open or shut
+it; a line under the crosshair tells you which.
+
+- **A shut door is solid.** It stops BBs, bombs, sight and bodies, so it hides who is behind it.
+- **Doors are loud.** Opening or shutting one creaks and bangs, and the other team hears it out to <!-- wiki:config door_config.heard -->
+  metres, even through walls. It shows on their minimap as a sound.
+- **One swing at a time.** A door takes a moment to swing, and it won't shut on someone standing in the doorway.
+- **Bots use them too.** A bot opens a shut door on its way, noise and all. Someone walking off after a hit opens one
+  in their path.
 
 ## Woodland
 

@@ -11,7 +11,6 @@ Every open bug, limit and known gap in the game, so nobody re-reports or re-meas
 
 | Area | Issue | Class | Found |
 |---|---|---|---|
-| Play | Depot's door gaps stand open: the doors that open and shut, and the noise they make, are DO1, next (DR1) | fix now | 2026-10-31 |
 | Play | Attack / Defend on Depot has one flag, on A site, and defenders hold their first lane points about 37 m from it; two flags (A and B) are AB1, next (DR1) | fix now | 2026-10-31 |
 | Audio | Depot still plays the yard's ambience under its roof (birds, a crow, a dog): an indoor hall sound waits for a later pass (DR1) | can wait | 2026-10-31 |
 | Art | Depot's Lounge is lit like the rest of the hall though the concept had it dim; the roof lamps over it are only spaced wider (DR1) | can wait | 2026-10-31 |

@@ -66,6 +66,9 @@ const STEP_BACKING := 0.88
 ## The least HUD size drawn, so a broken value never divides by nothing (the settings keep it within 0.8–1.5).
 const HUD_SIZE_FLOOR := 0.1
 
+## What Use would do to the door in your reach (DO1), for the prompt under the crosshair.
+enum DoorPrompt { NONE, OPEN, SHUT }
+
 var _cfg: HudConfig = null
 var _teams: TeamConfig = null
 var _view: ViewConfig = null
@@ -84,7 +87,10 @@ var _middle: VBoxContainer = null
 var _hit_hold: Control = null
 var _hit_held: bool = false
 var _vault_prompt: Label = null
+## "U to open the door" or "to shut", while a door is in your reach (DO1).
+var _door_prompt: Label = null
 var _vault_left: float = 0.0
+var _door_want: DoorPrompt = DoorPrompt.NONE
 var _leaves_notice: Label = null
 ## The reload prompt under them (RL2), and whether reloads are manual: the player's command says so each tick (the play
 ## scene copies PlayerCommand.manual_reload here), so the prompt follows the rule the simulation used.
@@ -242,7 +248,7 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_hit_hold.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hit_hold.visible = false
 	middle.add_child(_hit_hold)
-	# The vault prompt, the leaves' line and the reload prompt, just under the crosshair.
+	# The vault prompt, the door's, the leaves' line and the reload prompt, just under the crosshair.
 	var prompt := VBoxContainer.new()
 	_place(prompt, Vector4(0.5, 0.5, 0.5, 0.5), Rect2(-TOP_WIDTH * 0.5, cfg.vault_prompt_drop, TOP_WIDTH, 0.0))
 	add_child(prompt)
@@ -251,6 +257,10 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_vault_prompt.add_theme_constant_override("outline_size", 6)
 	_vault_prompt.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.55))
 	_vault_prompt.visible = false
+	_door_prompt = HudStyle.label(prompt, GameTheme.SMALL_SIZE, 700, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
+	_door_prompt.add_theme_constant_override("outline_size", 6)
+	_door_prompt.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.55))
+	_door_prompt.visible = false
 	_leaves_notice = HudStyle.label(prompt, GameTheme.SMALL_SIZE, 700, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	_leaves_notice.text = tr("HUD_LEAVES_IN_THE_WAY")
 	_leaves_notice.add_theme_constant_override("outline_size", 6)
@@ -667,6 +677,23 @@ func set_vault_ready(ready: bool) -> void:
 		_vault_left = _cfg.vault_prompt_hold
 
 
+## The door in your reach this tick (DO1): DoorPrompt.NONE hides the prompt; OPEN and SHUT say what Use would do, with
+## Use's key as it is bound when the prompt changes (called each tick: the text is built only then, as the vault
+## prompt's). Shown only while you are in play.
+func set_door_prompt(what: DoorPrompt) -> void:
+	if what == _door_want:
+		return
+	_door_want = what
+	if what != DoorPrompt.NONE:
+		var key := KeyNames.of_action(&"use_door")
+		_door_prompt.text = tr("HUD_DOOR_OPEN" if what == DoorPrompt.OPEN else "HUD_DOOR_SHUT") % key
+
+
+## Whether the door prompt shows.
+func door_prompt_shown() -> bool:
+	return _door_prompt.visible
+
+
 ## Shows "What got you" for `facts` (the hit on you just called): the shooter's name in their team's colour and the
 ## bot's personality `note` ("" for none). It stays until the next round starts.
 func show_what_got_you(facts: HitFacts, shooter_name: String, colour: Color, note: String) -> void:
@@ -835,6 +862,7 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 		_step_left -= delta
 		_step_line.visible = _step_left > 0.0
 	_vault_prompt.visible = _vault_left > 0.0 and in_play
+	_door_prompt.visible = _door_want != DoorPrompt.NONE and in_play and not _vault_prompt.visible
 	_leaves_left = maxf(0.0, _leaves_left - delta)
 	_leaves_notice.visible = _leaves_left > 0.0 and in_play
 	_reload_prompt.show_when(manual_reload and in_play and state.round_state.is_live() and a.reload_due())

@@ -35,6 +35,8 @@ var night: NightField = null
 var mag_share: MagShare = null
 ## The smoke and flash bombs thrown (SF1; GameState.grenades, the same pool): their clouds hide whoever is behind them.
 var grenades: Array[Grenade] = []
+## The level's doors as the round has left them (GameState.doors, DO1).
+var doors: DoorState = null
 
 ## The field split into square sectors (BotConfig.hunt_sector_size) from (min_x, min_z): when each team last checked
 ## each one (-INF never).

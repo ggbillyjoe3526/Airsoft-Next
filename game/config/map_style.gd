@@ -64,6 +64,8 @@ extends Resource
 	&"pillar": Color(0.62, 0.16, 0.40),
 	&"net": Color(0.20, 0.55, 0.53),
 	&"sofa": Color(0.42, 0.31, 0.48),
+	# Its hinged doors (DO1): bottle-green painted leaves, so a door reads apart from the plywood round it.
+	&"door": Color(0.22, 0.40, 0.27),
 }
 ## Surfaces drawn in their own colour whatever their block's kind (RayHit.Surface to sRGB): a gravel bed on the slab.
 @export var surface_colours: Dictionary[int, Color] = {

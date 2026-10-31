@@ -27,6 +27,8 @@ var wind: Wind = null
 var mag_tosses: Array[MagShare.Toss] = []
 ## The smoke and flash bombs thrown (Grenades, SF1), a pool of GrenadeConfig.max_grenades made once.
 var grenades: Array[Grenade] = []
+## The level's hinged doors (Doors, DO1): sized to them as each match starts.
+var doors: DoorState = DoorState.new()
 ## Until when each of the level's noisy props (PropNoise, by index) stays quiet after a knock or a ring (s, as `time`):
 ## grown to one per prop on the first tick.
 var prop_quiet: PackedFloat64Array = PackedFloat64Array()

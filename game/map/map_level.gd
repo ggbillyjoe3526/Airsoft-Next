@@ -118,6 +118,7 @@ func build(m: MapData, style: MapStyle, body: BodyConfig, light: BakeConfig = nu
 	for b in m.blocks:
 		if b.rise == MapData.Rise.NONE:
 			_query.add_block(b.kind, b.center, b.size, b.surface)
+	_add_doors(m)
 	_make_mover_bodies(body)
 
 
@@ -190,6 +191,28 @@ func _add_ceiling(m: MapData) -> void:
 	var middle := area.get_center()
 	shape.position = Vector3(middle.x, m.roof_height + CEILING_THICKNESS * 0.5, middle.y)
 	_bodies[RayHit.Surface.METAL].add_child(shape)
+
+
+## The hinged doors' leaves (DO1), each a wooden box on a static body of its own (so a switch rebuilds one shape, not
+## the wood body's), solid while shut: the query switches them (JoltQuery.set_door_shut). Drawn by DoorView, never by
+## the greybox or the bake.
+func _add_doors(m: MapData) -> void:
+	for i in m.doors.size():
+		var d := m.doors[i]
+		var sb := StaticBody3D.new()
+		sb.name = "Door%d" % i
+		sb.collision_layer = WORLD_LAYER
+		sb.collision_mask = 0
+		add_child(sb)
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = d.size
+		shape.shape = box
+		shape.position = d.center
+		shape.disabled = not d.shut
+		sb.add_child(shape)
+		_query.add_door(d.center, d.size, d.shut)
+		_query.set_door_shape(i, shape, sb.get_rid())
 
 
 ## Sloping ground drawn in tiles under one node, each in the greybox's material, casting shadows: built once, the

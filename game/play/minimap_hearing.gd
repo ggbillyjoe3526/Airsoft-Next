@@ -5,12 +5,12 @@ extends RefCounted
 ## after the step, heard through one character's ears: the one the view is through (you, or the teammate you watch once
 ## out); its side is that character's team. An enemy in play is heard when a footstep or vault of theirs lands within
 ## step_reach of the listener (a step on loud ground further, by its carry), a run of theirs into a noisy prop within
-## the knock's reach (as a step), or a shot within shot_reach × the replica's heard_scale (flat distance; walls are not
-## checked, as the browser). Each enemy has one patch, the last thing heard: a circle off their real position by a blur
-## drawn from the match's own minimap stream (Seeds), with them always inside it, fading out after patch_life. A sound
-## from inside a live patch renews it where it is; from outside, it moves. A hit call removes that player's patch and a
-## new round clears them all. Reads the state, never writes it; plain data the HUD draws (MM4). A tick allocates
-## nothing: the records are made when a match starts.
+## the knock's reach (as a step), a door of theirs opening or shutting within its reach (as a step, DO1), or a shot
+## within shot_reach × the replica's heard_scale (flat distance; walls are not checked, as the browser). Each enemy has
+## one patch, the last thing heard: a circle off their real position by a blur drawn from the match's own minimap stream
+## (Seeds), with them always inside it, fading out after patch_life. A sound from inside a live patch renews it where it
+## is; from outside, it moves. A hit call removes that player's patch and a new round clears them all. Reads the state,
+## never writes it; plain data the HUD draws (MM4). A tick allocates nothing: the records are made when a match starts.
 
 enum Sound { STEP, SHOT }
 
@@ -66,10 +66,11 @@ func on_tick(state: GameState, listener: Character) -> void:
 				var shooter := state.character(e.actor)
 				if shooter != null:
 					_hear(shooter, e.position, _cfg.shot_reach * heard_scale(shooter, e.slot), Sound.SHOT, listener)
-			GameEvent.Kind.FOOTSTEP, GameEvent.Kind.VAULT, GameEvent.Kind.PROP_KNOCK:
+			GameEvent.Kind.FOOTSTEP, GameEvent.Kind.VAULT, GameEvent.Kind.PROP_KNOCK, GameEvent.Kind.DOOR:
 				var walker := state.character(e.actor)
 				if walker != null:
-					var reach := e.reach if e.kind == GameEvent.Kind.PROP_KNOCK else _cfg.step_reach * e.carry
+					var reach := e.reach if e.kind == GameEvent.Kind.PROP_KNOCK or e.kind == GameEvent.Kind.DOOR \
+							else _cfg.step_reach * e.carry
 					_hear(walker, walker.position, reach, Sound.STEP, listener)
 			GameEvent.Kind.CHARACTER_HIT:
 				var p := patch_of(e.target)

@@ -48,6 +48,8 @@ The font ships inside the game's export. Its licence ships in `THIRD_PARTY_NOTIC
   the files with their `.import` files.
 - **The smoke and flash bombs' sounds:** `assets/audio/cues/grenade_pin_1.wav` to `_3`, and the same three of
   `grenade_bounce`, `smoke_pop` and `flash_bang`, synthesised by our own `tools/render_grenades.gd` (SF1, 2026-10-30).
+- **The doors' sounds:** `assets/audio/cues/door_open_1.wav` to `_3` and `door_shut_1.wav` to `_3`, synthesised by our
+  own `tools/render_doors.gd` (DO1, 2026-10-31).
   No outside source; same licence as the code. Re-render them the same way as the whistle, with that tool.
 - **Art references:** the owner's six reference pictures of the target look and his arm and hand study
   (owner-supplied, 2026-10-18), in `docs/art/references/` (`docs/ART.md` › The target). Not game assets: Godot

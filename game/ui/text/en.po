@@ -54,6 +54,12 @@ msgstr "Ricochet: play on"
 msgid "HUD_VAULT"
 msgstr "%s to vault"
 
+msgid "HUD_DOOR_OPEN"
+msgstr "%s to open the door"
+
+msgid "HUD_DOOR_SHUT"
+msgstr "%s to shut the door"
+
 msgid "HUD_RELOAD"
 msgstr "RELOAD"
 
@@ -1937,6 +1943,9 @@ msgstr "THROW SMOKE"
 
 msgid "ACT_THROW_FLASH"
 msgstr "THROW FLASH"
+
+msgid "ACT_USE_DOOR"
+msgstr "OPEN / SHUT DOOR"
 
 msgid "ACT_LOADOUT"
 msgstr "LOADOUT (PRACTICE)"

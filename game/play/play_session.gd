@@ -131,6 +131,8 @@ var _own_light: bool = false
 var _skyline: SkylineView = null
 ## An indoor field's roof, or null on a field open to the sky (RoofView, DR1).
 var _roof: RoofView = null
+## The field's hinged doors, or null on a field without (DoorView, DO1).
+var _doors: DoorView = null
 ## A wood's crowns and dressing, or null on a map with neither (WoodsView, WL4).
 var _woods: WoodsView = null
 ## The map's bushes, or null on a map with none (BushView, WL5).
@@ -324,6 +326,9 @@ func _build_level() -> void:
 	_roof = RoofView.build(_map, _play.roof)
 	if _roof != null:
 		add_child(_roof)
+	_doors = DoorView.build(_map, _play.map_style, _tuning.doors.swing_time)
+	if _doors != null:
+		add_child(_doors)
 	_pools = LightPools.build(_map, _light)
 	if _pools != null:
 		add_child(_pools)
@@ -698,6 +703,8 @@ func _build_views(ui: CanvasLayer) -> void:
 		first_use.append_array(_skyline.materials())
 	if _roof != null:
 		first_use.append_array(_roof.materials())
+	if _doors != null:
+		first_use.append_array(_doors.materials())
 	if _pools != null:
 		first_use.append_array(_pools.materials())
 	if _woods != null:
@@ -911,6 +918,7 @@ func _after_tick() -> void:
 		_audio.on_calls(_bots.callouts.said, state, player.team, settings.hud.callouts)
 		_hud.on_calls(_bots.callouts.said, state)
 	_hud.set_vault_ready(_vault_ready())
+	_hud.set_door_prompt(_door_prompt())
 	_tally.on_tick(state)
 	_stats.after_tick(state, TICK)
 	_recent.record(state.tick, state.events, PLAYER_ID)
@@ -1073,6 +1081,8 @@ func _process(delta: float) -> void:
 	_hud.update_minimap(state, watched, yaw, fraction, _bots.hold_spot(PLAYER_ID), _bots.orders.held_middle,
 			_bots.pings)
 	_hud.place_sound_cues(watched, yaw, fraction)
+	if _doors != null:
+		_doors.refresh(state.doors)
 	if _flag != null:
 		var rs := state.round_state
 		_flag.refresh(rs.flag, rs.attackers)
@@ -1403,6 +1413,20 @@ func _vault_ready() -> bool:
 		return false
 	var way := Vault.way(_commands[PLAYER_ID], _tuning)
 	return way != Vector2.ZERO and Vault.find_along(player, way, _tuning, _level.query(), _vault_probe)
+
+
+## What a Use press would do now (the prompt under the crosshair, DO1): the door in your reach nearest your view's line
+## opens or shuts; none, one swinging, or an open one with someone in its doorway shows nothing.
+func _door_prompt() -> Hud.DoorPrompt:
+	if not Elimination.is_in_play(player) or player.vault.active or _sim.doors.count() == 0:
+		return Hud.DoorPrompt.NONE
+	var i := Doors.in_reach(_level.query(), _tuning.doors, player.position, player.yaw)
+	if i < 0 or i >= state.doors.count() or state.doors.swing_left[i] > 0.0:
+		return Hud.DoorPrompt.NONE
+	if state.doors.is_shut(i):
+		return Hud.DoorPrompt.OPEN
+	# Someone in the doorway: Use would do nothing, so no prompt says it would.
+	return Hud.DoorPrompt.NONE if _sim.doors.blocked(i, state.characters) else Hud.DoorPrompt.SHUT
 
 
 ## Your teammates' difficulty: the one picked, or the other team's as it follows.

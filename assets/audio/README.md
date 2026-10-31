@@ -27,6 +27,10 @@ seeds the browser game used, so they sound as they did.
   and fading hiss, the flash's short crack and thump), each scaled to a 0.9 peak; their levels are SoundConfig's. To
   re-render: `godot --headless --path . -s res://tools/render_grenades.gd`, then `godot --headless --path . --import`.
   The throw itself plays `magToss`.
+- `cues/door_open_<n>.wav` and `door_shut_<n>.wav` (1 to 3): the hinged doors (DO1), made for this game.
+  `tools/render_doors.gd` renders them from its own constants and seeds (a latch's click and a hinge's creak; a shorter
+  creak, a plywood leaf's slam and the latch), each scaled to a 0.9 peak; their level is SoundConfig's `door_gain`. To
+  re-render: `godot --headless --path . -s res://tools/render_doors.gd`, then `godot --headless --path . --import`.
 - Not baked in: the room reverb and distance muffling, which were applied live; in Godot they belong to the audio buses
   and `AudioStreamPlayer3D`.
 
