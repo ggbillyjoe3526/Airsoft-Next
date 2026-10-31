@@ -364,7 +364,7 @@ func test_beside_a_thin_wall_no_spot_on_its_far_side_so_nobody_detours_round_it(
 
 func test_on_a_ramp_and_while_you_jump_spots_lie_along_the_slope_never_at_you() -> void:
 	# Depot's west dock ramp runs up east from x -4.4 to -2 at z about -14.6 (1.2 m over 2.4 m).
-	var depot := MapData.load_map("depot", MapStyle.new(), tuning.rounds.team_size)
+	var depot := YardMap.load_map(MapStyle.new(), tuning.rounds.team_size) # its dock ramp (DR1)
 	var grid := NavGrid.build(depot, tuning.nav, tuning.body)
 	var w := _world(grid)
 	var leader := _leader(Vector3.ZERO)

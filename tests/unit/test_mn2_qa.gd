@@ -90,9 +90,9 @@ func test_a_greyed_map_card_ignores_the_keyboard() -> void:
 	var page := MatchPage.new(MatchPicks.new(), settings)
 	add_child_autofree(page)
 	await wait_process_frames(1)
-	# Every map loads at its own sizes (WL2); a catalogue giving Depot four a side, more than its three spawns an end.
+	# Every map loads at its own sizes (WL2); a catalogue naming a field with no file yet.
 	page._catalog = MapCatalog.parse(FileAccess.get_file_as_string(MapCatalog.PATH).replace(
-			"| depot | Depot | field | public | 1 | 3 | 3 |", "| depot | Depot | field | public | 1 | 4 | 4 |"))
+			"| range | Range |", "| ghost | Ghost | field | public | 5 | 5 | 6 | No file yet. |\n| range | Range |"))
 	page._offered = PackedStringArray()
 	page._list_maps()
 	var greyed := ""

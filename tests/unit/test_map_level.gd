@@ -12,7 +12,7 @@ var level: MapLevel = null
 
 
 func before_each() -> void:
-	var m := MapData.load_map("depot", style, tuning.rounds.team_size)
+	var m := YardMap.load_map(style, tuning.rounds.team_size)
 	assert_true(m.ok(), "depot loads: %s" % [m.problems])
 	level = MapLevel.new()
 	add_child_autofree(level)
@@ -33,7 +33,7 @@ func _walk(c: Character, cmd: PlayerCommand, ticks: int) -> void:
 
 func test_depot_reads_its_blocks_ends_and_kill_height() -> void:
 	var m := level.map
-	assert_eq(m.display_name, "Depot")
+	assert_eq(m.display_name, "Yard") # the old Depot (DR1)
 	assert_eq(m.blocks.size(), 110)
 	assert_eq(m.ends.size(), 2)
 	assert_eq(m.ends[0].spawns.size(), 3)

@@ -6,7 +6,9 @@ extends GutTest
 const BakeTool := preload("res://tools/bake_light.gd")
 const DIR := "user://test_baked_light"
 ## Depot's untiled greybox (Low): the faces before DP2.
-const DEPOT_UNTILED_VERTICES := 3942
+const DEPOT_UNTILED_VERTICES := 7926
+## Open floor in Depot's Chrono hall, clear of the hut and of any lid.
+const OPEN_FLOOR := Vector3(8.0, 0.0, 0.0)
 ## A small yard: a 30 m slab, a wall 4 m tall across it and a 1 m cube; two ends of one spawn each.
 const YARD := """{"name": "Yard", "blocks": [
 	{"kind": "floor", "center": {"x": 0, "y": -0.25, "z": 0}, "size": {"x": 30, "y": 0.5, "z": 30}},
@@ -57,8 +59,13 @@ func _level(map_id: String) -> MapLevel:
 	assert_true(m.ok(), "%s loads: %s" % [map_id, m.problems])
 	var level := MapLevel.new()
 	add_child_autofree(level)
-	level.build(m, play.map_style, body, play.baked_light, play.lighting)
+	level.build(m, play.map_style, body, play.baked_light, _sun(m))
 	return level
+
+
+## The sun `m` is baked under: the day preset as the map sets it (PlaySession passes the same).
+func _sun(m: MapData) -> LightingConfig:
+	return LightingConfig.for_map(play.lighting, null, m, LightingConfig.DAY)
 
 
 func _greybox(level: MapLevel) -> MeshInstance3D:
@@ -78,7 +85,8 @@ func test_every_bake_matches_the_blocks_it_was_baked_from() -> void:
 		assert_not_null(bake, "%s's bake %s is there" % [m.id, m.baked_light_file])
 		if bake == null:
 			continue
-		assert_eq(bake.source_hash, BakedLight.hash_of(m, play.map_style, play.lighting, play.baked_light),
+		var sun := LightingConfig.for_map(play.lighting, null, m, LightingConfig.DAY)
+		assert_eq(bake.source_hash, BakedLight.hash_of(m, play.map_style, sun, play.baked_light),
 				"%s's blocks changed since its bake: rebake with tools/bake_light.gd" % m.id)
 		assert_eq(bake.vertex_count, GreyboxFaces.tile(m, play.baked_light.cell, play.baked_light.ground_y).positions.size(),
 				"%s's bake covers its tiles: rebake with tools/bake_light.gd" % m.id)
@@ -157,12 +165,12 @@ func test_depot_draws_its_bake_as_vertex_colour_in_one_draw_call() -> void:
 	var caster := mi.get_node("ShadowCaster") as MeshInstance3D
 	assert_eq(caster.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY, "the untiled faces do")
 	assert_eq(caster.mesh.surface_get_array_len(0), DEPOT_UNTILED_VERTICES)
-	# The Box's floor under its roof is drawn darker than the open floor of the Main Gate.
+	# The west tunnel's floor under its lid is drawn darker than the open floor of the Chrono hall.
 	var colours: PackedColorArray = mi.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
-	var inside := _vertex(tiles, Vector3(-0.5, 0.0, -1.0), Vector3.UP)
-	var outside := _vertex(tiles, Vector3(3.5, 0.0, 0.0), Vector3.UP)
+	var inside := _vertex(tiles, Vector3(-29.5, 0.0, 5.0), Vector3.UP)
+	var outside := _vertex(tiles, OPEN_FLOOR, Vector3.UP)
 	assert_true(inside >= 0 and outside >= 0, "the floor's vertices")
-	assert_lt(colours[inside].get_luminance(), colours[outside].get_luminance() * 0.9, "the Box is in the shade")
+	assert_lt(colours[inside].get_luminance(), colours[outside].get_luminance() * 0.9, "the tunnel is in the shade")
 	var after := level.get_children().filter(func(n: Node) -> bool: return n is StaticBody3D)
 	assert_eq(after, bodies, "the colliders are the same bodies: the mesh alone was rebuilt")
 	level.set_baked_light(false)
@@ -176,10 +184,10 @@ func test_depot_at_night_keeps_its_bake_with_no_warning_drawn_by_its_sky_share_a
 	var night := MapLevel.new()
 	add_child_autofree(night)
 	# as PlaySession builds it under the night preset: the day's sun for the hash, the night flag for the drawing
-	night.build(m, play.map_style, body, play.baked_light, play.lighting, true)
+	night.build(m, play.map_style, body, play.baked_light, _sun(m), true)
 	night.set_baked_light(true)
 	assert_true(night.baked_light_drawn(), "the bake fits: no stale hash, no warning")
-	var night_hash := BakedLight.hash_of(m, play.map_style, play.lighting, play.baked_light)
+	var night_hash := BakedLight.hash_of(m, play.map_style, _sun(m), play.baked_light)
 	assert_eq(BakedLight.load_for(m).source_hash, night_hash, "hashed with the day sun it was baked under")
 	assert_ne(BakedLight.hash_of(m, play.map_style, play.night_lighting, play.baked_light), night_hash,
 			"the moon's sun would mark it stale: never passed")
@@ -198,7 +206,7 @@ func test_depot_at_night_keeps_its_bake_with_no_warning_drawn_by_its_sky_share_a
 	assert_gt(warmer, lit.size() / 10, "the sun's bounce is gone at night")
 	# what is left is the sky share alone: an open floor vertex as the sky's share says
 	var tiles := GreyboxFaces.tile(m, play.baked_light.cell, play.baked_light.ground_y)
-	var open := _vertex(tiles, Vector3(3.5, 0.0, 0.0), Vector3.UP)
+	var open := _vertex(tiles, OPEN_FLOOR, Vector3.UP)
 	var bake := BakedLight.load_for(m)
 	var own := play.map_style.block_colour(m.blocks[tiles.blocks[open]]).srgb_to_linear()
 	var share := 1.0 - play.baked_light.sky_share + play.baked_light.sky_share / BakedLight.FULL * bake.sky[open]
@@ -271,7 +279,7 @@ func test_a_tiny_tile_size_is_turned_away_before_tiling() -> void:
 	cfg.cell = 0.001
 	var level := MapLevel.new()
 	add_child_autofree(level)
-	level.build(m, play.map_style, body, cfg, play.lighting)
+	level.build(m, play.map_style, body, cfg, _sun(m))
 	var started := Time.get_ticks_msec()
 	level.set_baked_light(true)
 	assert_lt(Time.get_ticks_msec() - started, 200, "no millions of vertices made")

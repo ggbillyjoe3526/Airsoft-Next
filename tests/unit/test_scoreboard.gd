@@ -57,7 +57,7 @@ func test_the_board_names_the_match_and_lists_your_team_first() -> void:
 	assert_false(board.visible, "hidden until Tab is held")
 	_show(hud)
 	assert_true(board.visible)
-	var size := SimTuning.new().rounds.team_size
+	var size := session._tuning.rounds.team_size
 	assert_string_starts_with(board.table().heading_text(), "DEPOT · ELIMINATION · EASY BOTS · %d V %d · ROUND 1 · "
 			% [size, size])
 	assert_string_ends_with(board.table().heading_text(), " LEFT")
@@ -78,14 +78,15 @@ func test_the_board_follows_the_field_while_it_is_up() -> void:
 	_show(hud)
 	var state := session.state
 	var mate := state.characters[1]
-	_hit(3, 1)
+	var size := session._tuning.rounds.team_size
+	_hit(size, 1) # their first player hits your first teammate
 	mate.status = Character.Status.OUT
 	hud.update(state, 1.0, 0.0)
 	var lines := board.table().lines()
 	assert_string_starts_with(lines[1], session._bots.name_of(1) + " OUT | 0 | 0 | 1 |", "out and hit once")
-	var size := SimTuning.new().rounds.team_size
 	assert_eq(board.table().team_notes()[0], "YOUR TEAM · %d OF %d IN PLAY" % [size - 1, size])
-	assert_string_starts_with(lines[size], session._bots.name_of(3) + " | 1 | 1 | 0 |", "their first player's hit, this round too")
+	assert_string_starts_with(lines[size], session._bots.name_of(size) + " | 1 | 1 | 0 |",
+			"their first player's hit, this round too")
 	mate.status = Character.Status.ALIVE
 
 

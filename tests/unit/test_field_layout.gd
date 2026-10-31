@@ -12,7 +12,7 @@ var tuning: SimTuning
 var measures: Dictionary[String, FieldMeasure] = {}
 var results: Dictionary[String, Array] = {}
 var refused: PackedStringArray = PackedStringArray()
-## Depot's own nav grid, for the faults that move a spawn or the flag but no block.
+## The old yard's own nav grid (DR1), for the faults that move a spawn or the flag but no block.
 var depot_nav: NavGrid = null
 ## How long each field took to measure (s).
 var took: Dictionary[String, float] = {}
@@ -44,8 +44,7 @@ func before_all() -> void:
 		took[e.id] = (Time.get_ticks_usec() - start) / 1e6
 		measures[e.id] = measure
 		gut.p("%s (%s s): %s" % [e.id, FieldChecks.num(took[e.id]), summary])
-	if measures.has("depot"):
-		depot_nav = measures["depot"].nav
+	depot_nav = NavGrid.build(_depot(), tuning.nav, tuning.body)
 
 
 func after_all() -> void:
@@ -54,12 +53,12 @@ func after_all() -> void:
 	depot_nav = null
 
 
-## A fresh copy of Depot's data, to break.
+## A fresh copy of the old yard's data (YardMap, Depot until DR1), to break.
 func _depot() -> MapData:
-	return MapData.load_map("depot", style, 1)
+	return YardMap.load_map(style, 1)
 
 
-## Depot's ground floor alone: an open yard, every spawn in sight of every other.
+## The yard's ground floor alone: an open yard, every spawn in sight of every other.
 func _open_yard() -> MapData:
 	var m := _depot()
 	var floors: Array[MapData.Block] = []

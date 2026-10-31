@@ -43,6 +43,7 @@ func _init(state: GameState, player_id: int, map: MapData, nav: NavGrid, query: 
 		config: BotConfig, team_levels: Dictionary[int, StringName] = {},
 		identities: Dictionary[int, BotRoster.Identity] = {}, talk: bool = true) -> void:
 	_player_id = player_id
+	config = config.for_map(map)
 	var w := world
 	w.tuning = tuning
 	w.cfg = config

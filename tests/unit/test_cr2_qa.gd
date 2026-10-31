@@ -29,12 +29,12 @@ func test_switching_back_and_forth_leaves_skirmish_exactly_as_it_was() -> void:
 	var summary := page.summary_text()
 	var maps := page.map_check_size()
 	box.rules_button(CUSTOM).pressed.emit()
-	box.team_size_choice().button(0).pressed.emit()
+	box.team_size_choice().button(5).pressed.emit()
 	box.wins_choice().button(3).pressed.emit()
 	box.friendly_fire_choice().button(0).pressed.emit()
 	box.ricochets_choice().button(1).pressed.emit()
 	box.round_time_slider().value = 300.0
-	assert_eq(page.map_check_size(), 1)
+	assert_eq(page.map_check_size(), 6)
 	assert_ne(page.mode_blurb(MatchOptions.MODE_ELIMINATION), elim)
 	box.rules_button(SKIRMISH).pressed.emit()
 	assert_eq(page.chip_texts(), chips)
@@ -44,10 +44,10 @@ func test_switching_back_and_forth_leaves_skirmish_exactly_as_it_was() -> void:
 	assert_eq(page.map_check_size(), maps)
 	assert_ne(settings.custom_rules.to_dict(), CustomRules.new().to_dict(), "the Custom switches are kept")
 	box.rules_button(CUSTOM).pressed.emit()
-	assert_eq(box.team_size_choice().selected(), 0)
+	assert_eq(box.team_size_choice().selected(), 5)
 	assert_eq(box.wins_choice().selected(), 3)
 	assert_eq(box.round_time_slider().value, 300.0)
-	assert_eq(page.map_check_size(), 1)
+	assert_eq(page.map_check_size(), 6)
 
 
 func test_the_slider_keys_move_one_step_and_save_a_value_on_the_grid() -> void:
@@ -98,7 +98,7 @@ func test_a_corrupt_settings_file_opens_the_custom_page() -> void:
 	var picks := MatchPicks.new()
 	picks.rules = CUSTOM
 	var page := _page(picks, settings)
-	assert_eq(page.rules_box().team_size_choice().selected(), 2)
+	assert_eq(page.rules_box().team_size_choice().selected(), CustomRules.TEAM_SIZES.find(5), "the default 3, as Depot plays it")
 
 
 func test_every_custom_team_size_leaves_the_depot_playable() -> void:
@@ -106,7 +106,7 @@ func test_every_custom_team_size_leaves_the_depot_playable() -> void:
 	picks.rules = CUSTOM
 	var settings := Settings.new()
 	var page := _page(picks, settings)
-	assert_eq(page.rules_box().offered_sizes(), [1, 2, 3] as Array[int], "Depot's sizes")
+	assert_eq(page.rules_box().offered_sizes(), [5, 6] as Array[int], "Depot's sizes")
 	for n in page.rules_box().offered_sizes():
 		page.rules_box().team_size_choice().button(CustomRules.TEAM_SIZES.find(n)).pressed.emit()
 		assert_false(page.play_button().disabled)
@@ -121,15 +121,15 @@ func test_freeing_and_rebuilding_the_page_keeps_the_picks_and_leaks_nothing() ->
 	page.rules_box().save_path = SAVE
 	add_child(page)
 	page.rules_box().rules_button(CUSTOM).pressed.emit()
-	page.rules_box().team_size_choice().button(1).pressed.emit()
+	page.rules_box().team_size_choice().button(5).pressed.emit()
 	remove_child(page)
 	page.free()
 	assert_false(settings.changed.get_connections().any(func(c: Dictionary) -> bool: return c.callable.get_object() == null),
 			"no dead connection left on the settings")
 	var again := _page(picks, settings)
 	assert_true(again.rules_box().rows_visible())
-	assert_eq(again.rules_box().team_size_choice().selected(), 1)
-	assert_eq(again.summary_text(), "Depot · Elimination · Alpha · Normal bots · Custom 2v2")
+	assert_eq(again.rules_box().team_size_choice().selected(), 5)
+	assert_eq(again.summary_text(), "Depot · Elimination · Alpha · Normal bots · Custom 6v6")
 	assert_eq(again.mode_blurb(MatchOptions.MODE_ELIMINATION), page_blurb(5))
 
 
@@ -159,11 +159,12 @@ func test_resetting_the_save_while_the_page_lives_does_not_leave_stale_rows() ->
 	picks.rules = CUSTOM
 	var settings := Settings.new()
 	var page := _page(picks, settings)
-	page.rules_box().team_size_choice().button(0).pressed.emit()
+	page.rules_box().team_size_choice().button(5).pressed.emit()
 	settings.reset_save(SAVE)
 	await wait_process_frames(2)
 	var shown := page.rules_box().team_size_choice().selected()
-	var played := CustomRules.TEAM_SIZES.find(settings.custom_rules.team_size)
+	var depot := MapCatalog.shared().find("depot")
+	var played := CustomRules.TEAM_SIZES.find(clampi(settings.custom_rules.team_size, depot.team_min, depot.team_max))
 	assert_eq(shown, played, "the rows show what a match would play")
 
 

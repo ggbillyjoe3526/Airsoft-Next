@@ -71,7 +71,7 @@ func test_is_empty_outside_every_area_and_with_none() -> void:
 
 
 func test_the_fields_load_their_areas_each_named_shortly_and_the_range_none() -> void:
-	var counts: Dictionary[String, int] = {"depot": 16, "woodland": 14, "range": 0}
+	var counts: Dictionary[String, int] = {"depot": 37, "woodland": 14, "range": 0}
 	for id: String in counts:
 		var m := maps[id]
 		assert_true(m.ok(), "%s: %s" % [id, m.problems])
@@ -125,8 +125,9 @@ func test_a_malformed_area_or_storey_is_warned_of_by_name_and_left_out_never_ref
 func test_spots_on_depot_are_named_as_players_call_them() -> void:
 	var m := maps["depot"]
 	var spots: Dictionary[String, Vector2] = {
-		"Dock": Vector2(5, -14.5), "Crate yard": Vector2(-12, 0), "Main Gate": Vector2(3.5, 0),
-		"Car park": Vector2(-15, 12), "Box": Vector2(-0.2, -0.8), "Alley": Vector2(-3, -0.8),
+		"Chrono hall": Vector2(8, 0), "A site": Vector2(42, -30), "West tunnel": Vector2(-29.5, 5),
+		"Box yard": Vector2(0, 16), "Lounge": Vector2(0, -25), "Loading bay": Vector2(49, 4),
+		"Staging": Vector2(-49, -4), "B site": Vector2(44, 28),
 	}
 	for want: String in spots:
 		var at := spots[want]

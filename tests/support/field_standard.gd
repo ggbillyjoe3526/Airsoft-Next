@@ -74,6 +74,11 @@ const MAX_RAMP_SLOPE := 0.5
 ## The owner's written-down differences, by field id (the browser's MAP_EXCEPTIONS): "clashes" (block pairs as
 ## FieldChecks words them) with "clash_reason", "sightline" (m, FC2) with "sightline_reason".
 const EXCEPTIONS: Dictionary[String, Dictionary] = {
+	"depot": {
+		"sightline": 66.0,
+		"sightline_reason": "across the open Chrono hall on the middle lane, Lower mid to Upper mid, 65 m: the owner "
+				+ "kept the hall's open middle and this line over breaking it up (2026-10-31, DR1); bots there see 55 m",
+	},
 	"woodland": {
 		"sightline": 141.0,
 		"sightline_reason": "corner to corner across the meadow and the Knoll, 140 m: played at night, where the dark, "

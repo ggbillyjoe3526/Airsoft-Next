@@ -108,13 +108,15 @@ func test_height_bounds_cover_the_spawns_on_each_map() -> void:
 
 
 func test_lowest_floor_takes_a_ramps_foot_not_its_top() -> void:
-	var r := await _runner("depot")
+	# Woodland's ramps (Depot's hall has none since DR1).
+	var r := await _runner("woodland")
 	var ramp_foot := INF
 	var ramp_top := -INF
 	for b: MapData.Block in r.map.blocks:
 		if b.rise != MapData.Rise.NONE:
 			ramp_foot = minf(ramp_foot, b.center.y - b.size.y * 0.5)
 			ramp_top = maxf(ramp_top, b.center.y + b.size.y * 0.5)
+	assert_true(is_finite(ramp_foot), "Woodland has a ramp")
 	if is_finite(ramp_foot):
 		assert_lte(r.lowest_floor, ramp_foot, "a ramp's foot lowers the floor bound")
 		assert_lt(r.lowest_floor, ramp_top)

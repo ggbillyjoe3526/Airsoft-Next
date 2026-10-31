@@ -1,36 +1,28 @@
-Task: UI1 · Compact, steady menus after William's second look (fix, UI)
-Attempt: 2 of 4 (fix round 3, after attempt 1's Retry 7/8)
-Head: 12a4644 (worker's gate: unit parts 885, 2006, 976 all pass, smoke PASS; Godot not run by the critic, QA is in the tree)
+Task: DR1 · Depot rebuilt as the indoor hall of concept 3
+Attempt: 4 of 4
+Head: b0641b5 (CI per the brief; QA Pass on 2f44878; performance Pass on b1d7177; 2f44878..b0641b5 changes map data, tests and docs only, no game/ code)
 Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
-Score: 8/8 → Accept, final once QA's re-check at 12a4644 says Pass (a missing or failing QA report holds it at Retry)
-Performance: Pass at bea0818 stands by reading. Round 3 adds no _process and no per-frame work: tooltips are strings
-set at build time, _cost_heading runs once per column, and the glow pick sets three tooltip strings per pick.
-Attempt 1's five must-fixes, each closed (seen in code and in the ui1-r3-after-1080 pictures):
-- Graphics: GPU COST heads each column's squares (settings_graphics_page.gd _cost_heading); the CostSquares doc is
-  corrected. Picture settings-3-graphics: both columns labelled, right-aligned over the squares.
-- Customise › BBs: the weight and hop-up paragraphs are the slider and readout tooltips; one line stays, "Turn it in a
-  match with 4 and 5." (CUSTOMISE_HOP_KEYS); the glow blurb is the choice's tooltip, so a pick rewrites nothing
-  (customise_view.gd _slider_block, glow refresh). Picture bbs-as-comes: no paragraphs.
-- Controls: the order-wheel paragraph is the choice's tooltip via explain (settings_screen.gd), like Crouch and Aim.
-- Armory: one Difficulty row, Easy ×0.5 · Normal ×1 · Hard ×1.5, with the rest as its tooltip (armory_summary.gd).
-- Dev: one records line; the full list and every row's note are tooltips (settings_screen.gd _build_dev).
-Check 4: three new tests in test_ui1_menus.gd assert the paragraphs are gone and their words are tooltips, GPU COST over
-each column, and a glow pick moving or rewriting nothing. Each would fail on f20e018. test_armory.gd and
-test_glow_bbs.gd follow the new row and tooltip.
-Items 2, 4 and 5 stay met (attempt 1's evidence: test_ui1_menus.gd:149, :210, :392; test_ui1_qa.gd:491).
-Must-fix: none.
-HUD SIZE's duplicate "100%" (settings_hud_page.gd:219): not a must-fix. It is the default mark under the track and
-overlaps nothing. Its job is to show where the default is once the value moves; only at the default does it repeat
-the readout. Advisory: hide its words while the value equals the default, or draw it as a tick without a number.
-Advisories (not blocking):
-- Match: the area under Mode and Rules is empty, and the team buttons are 48 px tall against the 34 px control height.
-- Accessibility: "Your system asks for reduced motion: It doesn't say" reads oddly (en.po:3077).
-- Customise pictures show COLOUR and BBs both outlined: a focus ring left by the picture script, as it was in round 2.
-  Check by hand that a mouse pick leaves only one outlined.
-- settings_screen.gd has grown to about 770 lines (665 on main); split a page out when next touched.
-Owner should test in the game:
-- At 4K, click every Settings switch and choice: nothing else on the screen moves or changes.
-- Customise: press LOADOUT, hold, drag off and let go: it always reads LOADOUT.
-- Graphics: FOR YOUR CARD sits above its preset, and GPU COST reads as the squares' heading.
-- Hover the moved help (BB weight, hop-up, glowing BBs, order wheel, Dev rows, Difficulty): the tooltips come soon enough.
-- Match at 1080 and 4K: whether the layout reads balanced to you.
+Score: 8/8 → Accept
+Failed checks, with evidence (file:line, one or two lines each, each marked measured or judgment):
+None.
+Check 1, resolved: layout.py:152, :154 end both west outer screens at x -45.0; depot.json's north screen is now
+  (-50..-45, -13.5..-12.5) and the dead rack (-45..-40, -22..-13) meets it face to face. My 0.25 m scan of depot.json
+  (cells in no area and no block 2 m or taller) finds 0; the 1 x 0.5 m notch left at (-45..-44, -13..-12.5) is Staging
+  floor, open only to the corridor. The 65 m Chrono line is the owner's ruling: DECISIONS.md:583 (Maps and modes),
+  field_standard.gd:80, DR1.md:69-71.
+Check 4, resolved: test_depot_hall.gd:101 (every 0.5 m cell outside the areas is inside a block 2 m or taller); run on
+  2f44878's depot.json it finds 9 open cells, from (-44.25, -13.25) east, so it fails there and passes here.
+Advisories from attempt 3, done: the gap widths are stated as built (layout.py:148 for Staging; DR1.md:43-45: corridor
+  3 m, west outer 2 m, 2.6 to 3.5 m elsewhere); test_depot_hall_qa.gd:150-153 test the widened gap and corridor middles;
+  `char` is `body` (:184); the attempts table has rows 1 to 4; the bake hash is updated (test_dp2_qa.gd:13).
+Must-fix for the next attempt: none.
+Advisory (not blocking):
+- test_depot_hall_qa.gd:188, :232: `no_wall` is only printed with gut.p, never asserted; assert it or drop it later.
+- qa-report.md still quotes "gaps and corridors 2.5 to 3 m" (its 2f44878 text); the record is the current statement.
+Owner should test in the game (at most 6, one line each):
+- Walk out of both spawns through each chicane: tight or fine? Do bots queue in them at round start?
+- Attack / Defend on Depot: do the defenders hold A stairs and B ramp, and can you take A?
+- Stand anywhere outside a spawn room: can you see a spawn? (the test says no)
+- Across the Chrono hall, Lower mid to Upper mid (65 m, kept open): does it dominate rounds?
+- Overtime on Depot: do flanking bots come round the Chrono hall's hut at the flag?
+- Bump a drum and a barrel: do the clank and the plastic thud read as toys?

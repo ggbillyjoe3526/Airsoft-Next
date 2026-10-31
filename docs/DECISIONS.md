@@ -572,6 +572,17 @@ The pipeline's protocol is `pipeline/README.md`; its policy `docs/PROCESS.md`.
   the blocks' corner, `MapStyle`), which bots by night (WL6) share. Grass and leaves are `RayHit.Surface` 6 and 7: BBs
   on them puff and sound as earth and never ricochet. A point on sloping ground is checked against the ground under it
   (field.onFloor), not its nav cell's middle.
+- **Depot is an indoor hall, built from concept 3 (owner, 2026-10-31, DR1).** 108 x 72 m under a roof (no sky), three
+  bent lanes round dead space (plywood rooms and racking 3 m tall), nine links (two tight alleys, two unlit tunnels:
+  dark, never pitch black), not mirrored but timed even: both ends reach the Chrono hall within 1.5 s, and each owns a
+  side lane by 1 to 4 s. 5v5 or 6v6 only; bots see 55 m there (`botSight`); no catwalks; the Range stays its own map.
+  The layout lives in `tools/depot/layout.py` and `build_map.py` writes `data/maps/depot.json`: change the script,
+  never the JSON. A roof is not a block: the bake still sees sky through it, so roofed light comes from a nearly
+  overhead sun (76°) and a lower fill; a steel ceiling collider stops BBs. The old yard is a test fixture
+  (`tests/support/maps/yard.json`) for the tests written against its layout.
+- **Depot keeps its 65 m line across the Chrono hall (owner, 2026-10-31, DR1).** Asked whether to keep the open middle
+  or break it up to about 48 m, he kept it open: the field standard's 34 m gives way to a 66 m exception for Depot
+  (`FieldStandard.EXCEPTIONS`). Every spawn room opens through crate chicanes, so no spawn is seen from outside it.
 
 ## Replicas, Loadout and levels
 

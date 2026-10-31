@@ -129,6 +129,8 @@ var _torches: TorchBeams = null
 var _own_light: bool = false
 ## The skyline round the field, or null on a map without one (SkylineView).
 var _skyline: SkylineView = null
+## An indoor field's roof, or null on a field open to the sky (RoofView, DR1).
+var _roof: RoofView = null
 ## A wood's crowns and dressing, or null on a map with neither (WoodsView, WL4).
 var _woods: WoodsView = null
 ## The map's bushes, or null on a map with none (BushView, WL5).
@@ -306,7 +308,9 @@ func _build_level() -> void:
 	_level = MapLevel.new()
 	add_child(_level)
 	# a bake is checked against the day sun it was baked under, whatever preset plays
-	_level.build(_map, _play.map_style, _tuning.body, _play.baked_light, _play.lighting, _light.night, _play.site_look)
+	# The bake is of the day's sun as this map sets it (an indoor field's overhead lamps, DR1), whichever preset plays.
+	var baked_sun := LightingConfig.for_map(_play.lighting, null, _map, LightingConfig.DAY)
+	_level.build(_map, _play.map_style, _tuning.body, _play.baked_light, baked_sun, _light.night, _play.site_look)
 	_lighting = FieldLighting.build(_light)
 	add_child(_lighting)
 	_site = SiteDress.build(_map, _play.site_look, _level.site_material())
@@ -317,6 +321,9 @@ func _build_level() -> void:
 	_skyline = SkylineView.build(_map, _play.skyline, _light, _tuning.body.stand_eye_height)
 	if _skyline != null:
 		add_child(_skyline)
+	_roof = RoofView.build(_map, _play.roof)
+	if _roof != null:
+		add_child(_roof)
 	_pools = LightPools.build(_map, _light)
 	if _pools != null:
 		add_child(_pools)
@@ -689,6 +696,8 @@ func _build_views(ui: CanvasLayer) -> void:
 	first_use.append_array(range_materials)
 	if _skyline != null:
 		first_use.append_array(_skyline.materials())
+	if _roof != null:
+		first_use.append_array(_roof.materials())
 	if _pools != null:
 		first_use.append_array(_pools.materials())
 	if _woods != null:

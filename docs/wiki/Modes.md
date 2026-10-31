@@ -49,8 +49,8 @@ Under the modes, the **Rules** section picks the rules:
 <!-- wiki:rules -->
 
 Custom matches never go into your records, and they pay XP at no more than the Custom multiplier
-([Levels and Unlocks](Levels-and-Unlocks#earning-xp)). With a Custom 1v1 there are no teammates, so the Teammates row
-greys out.
+([Levels and Unlocks](Levels-and-Unlocks#earning-xp)). The team size offers only the sizes the picked map plays:
+5v5 or 6v6 on both fields.
 
 ## Practice
 

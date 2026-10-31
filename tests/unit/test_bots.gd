@@ -20,7 +20,7 @@ var commands: Array[PlayerCommand] = []
 
 
 func before_all() -> void:
-	map = MapData.load_map("depot", style, tuning.rounds.team_size)
+	map = YardMap.load_map(style, tuning.rounds.team_size)
 	level = MapLevel.new()
 	add_child(level)
 	level.build(map, style, tuning.body)

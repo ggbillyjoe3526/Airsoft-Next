@@ -51,7 +51,7 @@ func test_the_chips_follow_a_changed_tuning() -> void:
 
 func test_the_page_shows_the_chips_the_summary_and_play() -> void:
 	var page := _page(false)
-	assert_eq(page.chip_texts(), PackedStringArray(["3 v 3", "First to 5", "Rounds 2:30", "Ends swap after 4",
+	assert_eq(page.chip_texts(), PackedStringArray(["5 v 5", "First to 5", "Rounds 2:30", "Ends swap after 4",
 			"Ricochets Don't count", "Friendly fire On"]))
 	assert_eq(page.summary_text(), "Depot · Elimination · Alpha · Normal bots")
 	assert_eq(page.play_button().text, "PLAY")
@@ -59,7 +59,7 @@ func test_the_page_shows_the_chips_the_summary_and_play() -> void:
 	for expected: String in ["MAP", "MODE", "YOUR TEAM", "BOTS", "RULES", "DEPOT"]:
 		assert_true(words.has(expected), expected)
 	# the map's line is its card's tooltip (UI1)
-	assert_eq(page.map_card("depot").tooltip_text, "An abandoned warehouse yard.")
+	assert_eq(page.map_card("depot").tooltip_text, "An indoor airsoft hall: three lanes, two dark tunnels.")
 
 
 # --- modes ---
@@ -164,20 +164,21 @@ func test_every_shipped_map_is_public_and_a_dev_one_is_tagged() -> void:
 
 func test_a_map_that_cant_load_is_greyed_with_later_and_listed_last() -> void:
 	var page := _page(true)
-	# A catalogue giving Depot four a side: more than its three spawns an end, so MapData refuses it.
+	# A catalogue naming a field with no file yet, so MapData refuses it, picked.
 	page._catalog = MapCatalog.parse(FileAccess.get_file_as_string(MapCatalog.PATH).replace(
-			"| depot | Depot | field | public | 1 | 3 | 3 |", "| depot | Depot | field | public | 1 | 4 | 4 |"))
-	assert_eq(page._catalog.find("depot").team_standard, 4)
+			"| range | Range |", "| ghost | Ghost | field | public | 5 | 5 | 6 | No file yet. |\n| range | Range |"))
+	assert_not_null(page._catalog.find("ghost"))
+	page.picks.map_id = "ghost"
 	page._offered = PackedStringArray()
 	page._list_maps()
-	assert_eq(page.map_ids(), PackedStringArray(["woodland", "range", "depot"]))
-	var depot := page.map_card("depot")
-	assert_true(page.is_unloadable("depot"))
-	assert_true(depot.disabled)
-	assert_lt(depot.modulate.a, 1.0)
-	assert_true(_labels(depot).has("LATER"))
-	assert_false(MatchOptions.map_problems("depot", PlayTuning.load_default().map_style, 4).is_empty())
-	assert_ne(page.picks.map_id, "depot", "the pick moves to a map that can play")
+	assert_eq(page.map_ids(), PackedStringArray(["depot", "woodland", "range", "ghost"]))
+	var ghost := page.map_card("ghost")
+	assert_true(page.is_unloadable("ghost"))
+	assert_true(ghost.disabled)
+	assert_lt(ghost.modulate.a, 1.0)
+	assert_true(_labels(ghost).has("LATER"))
+	assert_false(MatchOptions.map_problems("ghost", PlayTuning.load_default().map_style, 5).is_empty())
+	assert_ne(page.picks.map_id, "ghost", "the pick moves to a map that can play")
 
 
 func test_no_dev_maps_listed_with_dev_content_off() -> void:
@@ -256,7 +257,7 @@ func test_beta_picked_means_character_zero_is_on_team_one() -> void:
 	session.player_team = PlaySession.TEAM_BETA
 	add_child_autofree(session)
 	await wait_physics_frames(2)
-	var size := SimTuning.new().rounds.team_size
+	var size := session._tuning.rounds.team_size # the map's standard size
 	assert_eq(session.state.characters[0].team, 1)
 	assert_eq(session.player.team, 1)
 	assert_eq(session.opponent_team(), 0)
@@ -406,7 +407,7 @@ func test_play_frees_the_menus_shows_loading_and_frees_it_once_the_match_runs() 
 	main._picks.team = PlaySession.TEAM_BETA
 	main._start_play()
 	assert_not_null(main._loading)
-	assert_eq(main._loading.kicker_text(), "ELIMINATION · 3 V 3 · YOU'RE BETA")
+	assert_eq(main._loading.kicker_text(), "ELIMINATION · 5 V 5 · YOU'RE BETA")
 	assert_eq(main._loading.title_text(), "DEPOT")
 	assert_null(main._title, "no title node lives during a match")
 	assert_null(main._menus, "no menu nodes live during a match")

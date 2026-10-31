@@ -6,6 +6,8 @@ extends SceneTree
 ##   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 -s res://tools/map_pictures.gd
 ## Arguments after `--`: an output folder (default assets/maps/) and an optional map id to render alone. A map that
 ## can't load is skipped with its reasons.
+## A roofed map (Depot) is skipped: a roof hides it from above, so its card is an eye-height render from
+## tools/eye_pictures.gd, cut to 700 x 400.
 
 ## The picture's size (px) and its JPEG quality.
 const SIZE := Vector2i(700, 400)
@@ -48,6 +50,10 @@ func _run() -> void:
 		var map := MapData.load_map(entry.id, play.map_style, MatchOptions.check_size(entry, tuning.rounds.team_size))
 		if not map.ok():
 			print("[map_pictures] %s skipped: %s" % [entry.id, "; ".join(map.problems)])
+			continue
+		if map.roof_height > 0.0:
+			# a roof hides the field from above: its card is drawn inside, at eye height, with tools/eye_pictures.gd
+			print("[map_pictures] %s skipped: roofed, its card comes from eye_pictures" % entry.id)
 			continue
 		var image: Image = null
 		if entry.kind == &"range":

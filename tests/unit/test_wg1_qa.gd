@@ -209,7 +209,12 @@ func test_the_card_and_the_kept_line_go_when_a_new_match_starts_with_no_orphans(
 	var card := session.hud().what_got_you()
 	assert_not_null(card)
 	var feed: HitFeed = session.hud()._hits
-	assert_true(feed.count() > 0 and feed.line(0).keep, "your line is kept")
+	# Your line, wherever a teammate's callout about the hit put it.
+	var yours := false
+	for i in feed.count():
+		if not feed.line(i).call and feed.line(i).victim == PlaySession.PLAYER_ID:
+			yours = feed.line(i).keep
+	assert_true(yours, "your line is kept")
 	session.state.round_state.draws = 0
 	_tick([K.ROUND_START], -1, -1, 1)
 	assert_null(session.hud().what_got_you())

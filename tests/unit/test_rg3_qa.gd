@@ -271,7 +271,7 @@ func test_a_match_on_depot_is_as_it_was() -> void:
 	add_child_autofree(s)
 	await wait_physics_frames(2)
 	assert_false(s.practice)
-	assert_eq(s.state.characters.size(), SimTuning.load_default().rounds.team_size * 2)
+	assert_eq(s.state.characters.size(), MapCatalog.shared().find("depot").team_standard * 2)
 	assert_eq(s.state.targets.size(), 0)
 	assert_false(s.state.round_state.practice)
 	assert_null(s._targets_view)

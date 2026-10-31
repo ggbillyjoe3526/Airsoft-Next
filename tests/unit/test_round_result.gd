@@ -102,8 +102,9 @@ func test_a_won_round_stamps_won_in_your_colour_and_the_table_follows() -> void:
 	session = _session()
 	await wait_physics_frames(2)
 	var hud := session.hud()
-	_hit(0, 4)
-	_hit(4, 1)
+	var them := session._tuning.rounds.team_size # their first player
+	_hit(0, them)
+	_hit(them, 1)
 	_end_round(0, 60.0)
 	assert_eq(hud.banner_text(), "WON / ROUND 1 · ALPHA TAKE THE ROUND")
 	var table := hud.round_result()
@@ -118,7 +119,7 @@ func test_a_won_round_stamps_won_in_your_colour_and_the_table_follows() -> void:
 	assert_string_ends_with(lines[0], "Still in")
 	var owl := session._bots.name_of(1)
 	assert_true(lines[1].begins_with(owl + " OUT"), "your teammate next, out")
-	assert_string_ends_with(lines[1], session._bots.name_of(4), "hit by the one who hit them")
+	assert_string_ends_with(lines[1], session._bots.name_of(them), "hit by the one who hit them")
 	assert_eq(table.hint_text(), "CLICK FOR THE NEXT ROUND")
 
 
