@@ -1,12 +1,12 @@
 # FM1 · The full-screen map and Go there
 
-**Review:** REVIEW_LINE
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
 | Date | Attempt | Worker model | checks | Critic | Retry reason |
 |---|---|---|---|---|---|
-| 2026-10-31 | 1 | worker | ✓ (see Verified); QA QA_VERDICT, performance PERF_VERDICT | CRITIC_VERDICT | – |
+| 2026-10-31 | 1 | worker | ✓ (see Verified); QA Fail then Pass (the pointer didn't open on you; a click before the first frame went to the field's origin), performance Pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -37,6 +37,10 @@ there)". His third idea, vehicles for a big outdoor map, is for later (`docs/IDE
   turns to Hold here (`SquadOrderBook.move_arrivals`), looking on the way they went. The same spot again keeps it;
   at the sky it says "Nowhere there to go" (`SquadOrders.Notice.NOWHERE`). Its marker is Hold here's, reading "GO ·
   30 M" while they are on their way.
+- **A ping with your view marks only what you see** (owner, 2026-10-31): its floor spot must be in a clear line from
+  where the view met (`PingConfig.sight_lift` over the floor), so at a wall it is the wall's foot on your side, and
+  where no floor is in reach in front of it (a stack against the wall) it is looked for further back towards you. A
+  click on the map goes anywhere on the field, seen or not.
 
 ## Decisions
 
@@ -49,8 +53,19 @@ there)". His third idea, vehicles for a big outdoor map, is for later (`docs/IDE
 
 ## Verified
 
-VERIFIED
+- `tools/check.sh` on f86da20: gdlint, changelog notes, wiki, the three unit-test parts (4011 of 4011 pass), the
+  smoke test and the licence notices.
+- New tests: `test_fm1_go_there.gd` (11: the command and event, Go there on the map and along the view, at the sky, at
+  a wall and at a wall over a stack, again, a plain ping on the map, when you are out, no allocation), `test_fm1_field_map.gd`
+  (15: hearing only, Depot and Woodland, area words, the pointer, no allocation over 100 open frames) and QA's
+  `test_fm1_qa.gd` (21). The six-item wheel's tests are updated.
+- Screenshots (Xvfb, Compatibility): the map on Depot and Woodland, Go there on Depot, the wheel, and Go there at a
+  wall with the map showing its spot (`/mnt/project-files/screenshots/fm1/`).
+- Not verifiable here: how the pointer feels with a real mouse, and the open map's frame time on a GPU
+  (`docs/PLAYTEST.md` › Squad orders and minimap).
 
 ## Known issues left
 
-- None.
+- `docs/KNOWN_ISSUES.md` › Play (FM1): the order keys act on the view as it was when the map opened, and once the
+  scoreboard or the summary shuts the map, M must be pressed again.
+- A match's end leaving a bot's order at Go there is Hold here's as before, not new.
