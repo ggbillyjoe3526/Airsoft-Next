@@ -186,17 +186,16 @@ func _placed(p: Ping, owner: Character, now: float, marked: bool) -> void:
 func _floor_spot(point: Vector3, dir: Vector3, hit: float, w: BotWorld) -> Vector3:
 	if w.nav == null:
 		return point
-	var back := minf(_cfg.back_off, hit)
-	while true:
-		var from := point - dir * back
-		var k := w.nav.nearest_walkable(from, _cfg.spot_snap)
+	var first := minf(_cfg.back_off, hit)
+	var step := _cfg.spot_snap
+	var tries := ceili((hit - first) / step) + 1 if step > 0.0 else 1
+	for t in tries:
+		var from := point - dir * minf(first + step * t, hit)
+		var k := w.nav.nearest_walkable(from, step)
 		if k >= 0:
 			var spot := w.nav.node_position(k)
 			if w.query == null or BotSenses.line_clear(w.query, from, spot + Vector3.UP * _cfg.sight_lift):
 				return spot
-		if back >= hit:
-			break
-		back = minf(back + _cfg.spot_snap, hit)
 	return point
 
 
