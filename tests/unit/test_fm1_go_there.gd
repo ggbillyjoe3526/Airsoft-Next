@@ -13,6 +13,8 @@ const YOU := 0
 const SPOTS: Array[Vector3] = [Vector3(-30.0, 0.0, 20.0), Vector3(-32.0, 0.0, 23.0), Vector3(-28.0, 0.0, 23.0),
 		Vector3(40.0, 0.0, -40.0)]
 
+const CRATE_AT := Vector3(10.0, 1.3, 19.8)
+const CRATE_SIZE := Vector3(2.0, 2.6, 1.6)
 var tuning: SimTuning = SimTuning.load_default()
 var config: BotConfig = BotConfig.load_default()
 var squad: SquadConfig = config.squad
@@ -41,6 +43,9 @@ func _field(thin_wall: bool = false) -> Array:
 	if thin_wall:
 		m.blocks.append(_block(&"wall", Vector3(0.0, 1.5, 18.8), Vector3(80.0, 3.0, 0.4)))
 		w.add_box(Vector3(0.0, 1.5, 18.8), Vector3(80.0, 3.0, 0.4))
+		# A tall stack against its south side at x 10: no floor in front of the wall above it.
+		m.blocks.append(_block(&"crate", CRATE_AT, CRATE_SIZE))
+		w.add_box(CRATE_AT, CRATE_SIZE)
 	for e in 2:
 		var end := MapEnd.new()
 		for i in 3:
@@ -289,3 +294,13 @@ func test_go_there_at_a_wall_stops_at_its_foot_on_your_side_never_past_it() -> v
 	assert_gt(bots.held_middle.z, 19.0, "on your side of the wall, never beyond what you see")
 	for b in mates:
 		assert_gt(b.order_goal.z, 19.0)
+
+
+func test_a_ping_at_a_wall_over_a_stack_finds_the_floor_on_your_side() -> void:
+	_squad(true)
+	_run(0.2)
+	# Eyes 12 m off look a little up at the wall's south face just over the stack against it: no floor in reach in front
+	# of that (the old spot was the wall itself), so it is looked for further back, and never past the wall.
+	var dir := Vector3(0.0, 0.1, -1.0).normalized()
+	var spot: Vector3 = bots.pings._floor_spot(Vector3(10.0, 2.8, 19.0), dir, 12.0, bots.world)
+	assert_gt(spot.z, 19.0, "on your side of the wall: %s" % spot)

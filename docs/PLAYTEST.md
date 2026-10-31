@@ -723,7 +723,7 @@ same and throw them (SF2).
   off; a diamond marker shows the distance. X at the sky: each holds where it stands.
 - [ ] **Regroup (V).** They sprint back to you, then follow. Get hit: the order ends and order keys say "Orders wait
   for the next round".
-- [ ] **The order wheel (hold Z).** Six items round the crosshair (Go There lower right) (Need a Mag upper left), each with its key. The
+- [ ] **The order wheel (hold Z).** Six items round the crosshair (Need a Mag upper left, Go There lower right), each with its key. The
   view stays still while a pointer lights the order it's on; let go on one to give it, or without moving to give none.
   Walking continues; firing needs a new pull after. Orders > Click points and clicks instead. A middle click while the
   wheel is open pings nothing (KI1).

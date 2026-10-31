@@ -1,36 +1,23 @@
-Task: UI1 · Compact, steady menus after William's second look (fix, UI)
-Attempt: 2 of 4 (fix round 3, after attempt 1's Retry 7/8)
-Head: 12a4644 (worker's gate: unit parts 885, 2006, 976 all pass, smoke PASS; Godot not run by the critic, QA is in the tree)
+Task: FM1 · The full-screen map and Go there
+Attempt: 1 of 4
+Head: a8f19da (NOT the checks' head: check.sh parts passed on 9d4cd12, the rest still running; on a8f19da I ran test_fm1_go_there, test_fm1_field_map, test_fm1_qa, test_order_wheel_input, test_so4_orders_hud: 87/87, and gdlint on the changed .gd: clean)
 Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
-Score: 8/8 → Accept, final once QA's re-check at 12a4644 says Pass (a missing or failing QA report holds it at Retry)
-Performance: Pass at bea0818 stands by reading. Round 3 adds no _process and no per-frame work: tooltips are strings
-set at build time, _cost_heading runs once per column, and the glow pick sets three tooltip strings per pick.
-Attempt 1's five must-fixes, each closed (seen in code and in the ui1-r3-after-1080 pictures):
-- Graphics: GPU COST heads each column's squares (settings_graphics_page.gd _cost_heading); the CostSquares doc is
-  corrected. Picture settings-3-graphics: both columns labelled, right-aligned over the squares.
-- Customise › BBs: the weight and hop-up paragraphs are the slider and readout tooltips; one line stays, "Turn it in a
-  match with 4 and 5." (CUSTOMISE_HOP_KEYS); the glow blurb is the choice's tooltip, so a pick rewrites nothing
-  (customise_view.gd _slider_block, glow refresh). Picture bbs-as-comes: no paragraphs.
-- Controls: the order-wheel paragraph is the choice's tooltip via explain (settings_screen.gd), like Crouch and Aim.
-- Armory: one Difficulty row, Easy ×0.5 · Normal ×1 · Hard ×1.5, with the rest as its tooltip (armory_summary.gd).
-- Dev: one records line; the full list and every row's note are tooltips (settings_screen.gd _build_dev).
-Check 4: three new tests in test_ui1_menus.gd assert the paragraphs are gone and their words are tooltips, GPU COST over
-each column, and a glow pick moving or rewriting nothing. Each would fail on f20e018. test_armory.gd and
-test_glow_bbs.gd follow the new row and tooltip.
-Items 2, 4 and 5 stay met (attempt 1's evidence: test_ui1_menus.gd:149, :210, :392; test_ui1_qa.gd:491).
-Must-fix: none.
-HUD SIZE's duplicate "100%" (settings_hud_page.gd:219): not a must-fix. It is the default mark under the track and
-overlaps nothing. Its job is to show where the default is once the value moves; only at the default does it repeat
-the readout. Advisory: hide its words while the value equals the default, or draw it as a tick without a number.
-Advisories (not blocking):
-- Match: the area under Mode and Rules is empty, and the team buttons are 48 px tall against the 34 px control height.
-- Accessibility: "Your system asks for reduced motion: It doesn't say" reads oddly (en.po:3077).
-- Customise pictures show COLOUR and BBs both outlined: a focus ring left by the picture script, as it was in round 2.
-  Check by hand that a mouse pick leaves only one outlined.
-- settings_screen.gd has grown to about 770 lines (665 on main); split a page out when next touched.
+Score: 8/8 → Accept, conditional: it stands only once (a) tools/check.sh (or CI) is green on a8f19da and (b) FM1's performance report is in pipeline/out/performance.md (the files there now are UI1's and SF2's). Missing either, critic.md makes it Retry.
+Evidence:
+1. Held M opens, release closes: player_input.gd:197-199, 343-345; hearing only: hud_minimap.gd fill (teammates, heard patches, pole, hold; never the other team), hud_field_map.gd:115-117, test_it_shows_what_the_minimap_shows_and_never_the_other_team; any layout: fit_whole from the drawing's size (hud_minimap.gd +410), areas_of from map.areas, Depot and Woodland tested; bots obey: bot_controller.gd:239-241 → squad_order_book.gd give_move/move_arrivals; view ping stops at a wall: pings.gd move_spot → _floor_spot back_off, test_go_there_at_a_wall...; map click anywhere: pings.gd map_spot, never a contact.
+2. PING event gains value 2 and value2 (game_event.gd:36), PlayerCommand gains fields; no contract changed. Sim stays node-free.
+3. Per-frame paths read: hud_field_map.update (title string only on a new round), Overlay.place (redraw only when the pointer moves), MapPointer (values), move_arrivals (no alloc), give_move reuses _order_team. Allocation tests exist for the open map and walking ticks.
+4. test_go_there_on_the_map_sends_the_squad_side_by_side_and_turns_to_hold_once_there fails without give_move/move_arrivals (MOVE never given, never turns to HOLD).
+Advisory (not blocking):
+- pings.gd:187 a view Go there snaps to the nearest walkable within spot_snap (3 m); beside a thin wall with no floor on your side (a crate against it, a ledge) it can pick the far side, against the 2026-10-31 ruling. A clear_line check from the back-off point would pin it. judgment
+- QA's open items (F/X/V on the open map act on the frozen view; Tab shuts the map until M is pressed again) are not in KNOWN_ISSUES or the record, which says "Known issues left: None".
+- Not committed at head: changelog.d/full-screen-map-and-go-there.md, docs/FEATURES.md; the record's placeholders. They go in the records push.
+- docs/PLAYTEST.md order-wheel line has two parentheticals in a row ("(Go There lower right) (Need a Mag upper left)").
+Must-fix before merge: check.sh green on a8f19da; FM1 performance report on disk; the records push above.
 Owner should test in the game:
-- At 4K, click every Settings switch and choice: nothing else on the screen moves or changes.
-- Customise: press LOADOUT, hold, drag off and let go: it always reads LOADOUT.
-- Graphics: FOR YOUR CARD sits above its preset, and GPU COST reads as the squares' heading.
-- Hover the moved help (BB weight, hop-up, glowing BBs, order wheel, Dev rows, Difficulty): the tooltips come soon enough.
-- Match at 1080 and 4K: whether the layout reads balanced to you.
+- Hold M on Depot and Woodland: is it big and readable, are the area words placed right, is the pointer speed right?
+- Click a far corner: radio click, both teammates set off side by side, "GO · N M" turns to "HOLD · N M" on arrival.
+- Mouse 4 at a wall with a crate or ledge in front of it: the squad stops on your side.
+- Click inside a building's walls or off the field: "Nowhere there to go" shows, and isn't hidden under the dimmed map.
+- Release M mid-fight: the view turns again at once and the first click after is not lost or doubled.
+- Six items on the wheel: still easy to hit the one you want?
