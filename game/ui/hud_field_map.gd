@@ -95,15 +95,19 @@ static func areas_of(areas: Array[MapAreas.Area]) -> Array[AreaWords]:
 ## on the field) and draws it while `pointing`. Allocates nothing.
 func update(state: GameState, watched: Character, yaw: float, fraction: float, holding: bool, hold: Vector3,
 		book: Pings, pointer: MapPointer, pointing: bool, covered: bool) -> void:
+	var field := _minimap.field()
+	var feet := watched.prev_position.lerp(watched.position, fraction)
+	var storey := field.storey_of(feet.y)
+	var shown_floor := field.floors[storey] if storey < field.floors.size() else 0.0
+	# Framed shut too, so the pointer opens on you and a click on the first frame lands where it is drawn.
+	pointer.frame(_view.centre(), _view.px_per_m(), _view.size.x * 0.5, shown_floor,
+			_view.panel_of(Vector2(feet.x, feet.z)))
 	var on := pointer.open and not covered
 	if on != visible:
 		visible = on
 		set_process(on)
 	if not on:
 		return
-	var field := _minimap.field()
-	var feet := watched.prev_position.lerp(watched.position, fraction)
-	var storey := field.storey_of(feet.y)
 	var layer := storey if storey < _view.layers() else -1
 	var teams := _minimap.teams()
 	_view.begin_whole(Vector2(feet.x, feet.z), layer, yaw, teams.colours[watched.team], teams.colours[1 - watched.team],
@@ -116,12 +120,10 @@ func update(state: GameState, watched: Character, yaw: float, fraction: float, h
 		_round = rs.number
 		var round_words := tr("MODE_PRACTICE") if rs.practice else tr("HUD_ROUND") % _round
 		_title.text = "%s  ·  %s" % [_map_name, round_words]
-	var shown_floor := field.floors[storey] if storey < field.floors.size() else 0.0
-	pointer.frame(_view.centre(), _view.px_per_m(), _view.size.x * 0.5, shown_floor,
-			_view.panel_of(Vector2(feet.x, feet.z)))
 	if layer != _layer:
 		_layer = layer
 		_overlay.storey_floor = shown_floor
+		_overlay.laid_out = false
 	_overlay.place(_view, pointer.at, pointing, teams.colours[watched.team])
 
 
@@ -137,8 +139,10 @@ func _lay_out() -> void:
 	var side := maxf(minf(room.x, room.y), 0.0)
 	_view.position = (size - Vector2(side, side)) * 0.5
 	_view.size = Vector2(side, side)
+	_view.fit_whole(_cfg.map_fit)
 	_overlay.position = _view.position
 	_overlay.size = _view.size
+	_overlay.laid_out = false
 	_title.position = _view.position
 	_title.size = Vector2(side, _cfg.map_title_room)
 	_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -175,6 +179,8 @@ class Overlay:
 	const DOT_INK := 1.2
 
 	var storey_floor: float = 0.0
+	## The words' places hold until the square or the storey changes (the whole field never moves on it).
+	var laid_out: bool = false
 	var _cfg: MinimapConfig = null
 	var _words: Array[AreaWords] = []
 	var _font: Font = null
@@ -195,18 +201,23 @@ class Overlay:
 		for i in words.size():
 			_sizes[i] = _font.get_string_size(words[i].name, HORIZONTAL_ALIGNMENT_LEFT, -1, cfg.map_area_size)
 
-	## This frame: the words' places from `view` (begun), and the pointer at `pointer` (px from the middle) in `colour`
-	## while `pointing`.
+	## This frame: the words' places from `view` (begun; only when not laid_out), and the pointer at `pointer` (px from
+	## the middle) in `colour` while `pointing`. Redrawn only when something moved.
 	func place(view: HudMinimap.View, pointer: Vector2, pointing: bool, colour: Color) -> void:
 		var mid := size * 0.5
-		var ascent := _font.get_ascent(_cfg.map_area_size)
-		for i in _words.size():
-			var p := mid + view.panel_of(_words[i].at)
-			_at[i] = Vector2(p.x - _sizes[i].x * 0.5, p.y - _sizes[i].y * 0.5 + ascent)
-		_pointer = mid + pointer
-		_pointing = pointing
-		_colour = colour
-		queue_redraw()
+		var moved := not laid_out
+		if not laid_out:
+			laid_out = true
+			var ascent := _font.get_ascent(_cfg.map_area_size)
+			for i in _words.size():
+				var p := mid + view.panel_of(_words[i].at)
+				_at[i] = Vector2(p.x - _sizes[i].x * 0.5, p.y - _sizes[i].y * 0.5 + ascent)
+		var at := mid + pointer
+		if moved or at != _pointer or pointing != _pointing or colour != _colour:
+			_pointer = at
+			_pointing = pointing
+			_colour = colour
+			queue_redraw()
 
 	func _shows(i: int) -> bool:
 		var w := _words[i]

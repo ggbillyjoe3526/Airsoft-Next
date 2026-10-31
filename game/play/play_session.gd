@@ -777,7 +777,8 @@ func _physics_process(_delta: float) -> void:
 				_commands[c.id].reset(c.yaw, c.pitch)
 		# On the range nobody is there to order; out, the wheel closes (the keys still ask, and wait for the next round).
 		_input.allow_orders(not practice, Elimination.is_in_play(player))
-		_input.allow_map(_hud.field_map() != null)
+		# Shut under the scoreboard and the match's summary, so a hidden pointer never takes the mouse.
+		_input.allow_map(_hud.field_map() != null and not _input.scoreboard_held() and not _hud.summary_up())
 		if _pilot != null:
 			_pilot.fill(_commands[PLAYER_ID], player, state.targets, _tuning.body)
 		elif _spectate_any and not autopilot:

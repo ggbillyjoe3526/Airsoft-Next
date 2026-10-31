@@ -324,3 +324,13 @@ func test_a_frame_of_the_open_map_allocates_nothing() -> void:
 		input.field_map().move(Vector2(1.0, 0.5))
 		_show(fm)
 	assert_eq(Performance.get_monitor(Performance.OBJECT_COUNT), before)
+
+
+func test_go_theres_key_on_the_open_map_sends_them_to_the_pointer_not_the_hidden_view() -> void:
+	input.field_map().frame(Vector2.ZERO, 2.0, 400.0, 0.0, Vector2.ZERO)
+	_event(&"field_map", true)
+	_move(40.0, 0.0)
+	_tap(&"ping_move")
+	input.fill(cmd)
+	assert_true(cmd.ping and cmd.ping_move and cmd.ping_on_map)
+	assert_eq(cmd.ping_target, Vector3(20.0, 0.0, 0.0))

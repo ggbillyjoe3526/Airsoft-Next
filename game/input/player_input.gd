@@ -49,6 +49,8 @@ const ORDER_WHEEL := &"order_wheel"
 const PING := &"ping"
 ## Held, the full-screen map is open (FM1).
 const FIELD_MAP := &"field_map"
+## Go there (FM1): its key; the order wheel's Go There and a click on the map too.
+const PING_MOVE := &"ping_move"
 ## The magazine hand-off (MH3): toss one to a teammate asking you in reach, else ask for one (MagShare).
 const MAG := &"mag_hand_off"
 ## Throw a smoke bomb or a flash bomb (SF1).
@@ -298,7 +300,7 @@ func _latch_ping(move: bool) -> void:
 ## A ping on the map at the pointer's point of the field latched for the next tick (`move`: a Go there); only while
 ## orders can be given and you are in play, as the wheel.
 func _latch_map_ping(move: bool) -> void:
-	if not _wheel_allowed:
+	if not _wheel_allowed or not _map.framed():
 		return
 	_ping_latch = true
 	_ping_move_latch = move
@@ -326,8 +328,8 @@ func _close_map() -> void:
 	hold_fire()
 
 
-## An event while the map is open: true if the map took it. The mouse moves its pointer; a click is a Go there there,
-## the ping's press a ping there; letting go of the key closes it; aim waits for a fresh press; the mouse wheel and the
+## An event while the map is open: true if the map took it. The mouse moves its pointer; a click or Go there's key is a
+## Go there there, the ping's press a ping there; letting go of the key closes it; aim waits for a fresh press; the mouse wheel and the
 ## order wheel's key do nothing. Everything else (the keys that move you, the order keys) goes on as usual.
 func _map_input(event: InputEvent) -> bool:
 	var motion := event as InputEventMouseMotion
@@ -341,7 +343,7 @@ func _map_input(event: InputEvent) -> bool:
 		return true
 	if not event.is_pressed():
 		return false
-	if event.is_action(FIRE):
+	if event.is_action(FIRE) or event.is_action(PING_MOVE):
 		_latch_map_ping(true)
 		return true
 	if event.is_action(PING):

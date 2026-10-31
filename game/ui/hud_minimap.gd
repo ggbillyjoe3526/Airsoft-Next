@@ -400,11 +400,16 @@ class View:
 		_arrow_rot = -yaw
 		_team = team
 		_enemy = enemy
+		fit_whole(fit)
+		_you_at = you
+		_clear()
+
+	## The whole field's frame without drawing (the full-screen map frames its pointer from it while shut): the field
+	## centred, `fit` of the square's side.
+	func fit_whole(fit: float) -> void:
 		var world := field_size()
 		_centre = _origin + world * 0.5
 		_ppm = size.x * fit / maxf(maxf(world.x, world.y), 1.0)
-		_you_at = you
-		_clear()
 
 	## The field's drawing's size (m; zero with no drawing).
 	func field_size() -> Vector2:

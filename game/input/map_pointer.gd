@@ -16,6 +16,8 @@ var half: float = 0.0
 var floor_y: float = 0.0
 ## Where you are on it (px from the middle), where the pointer starts.
 var you: Vector2 = Vector2.ZERO
+## Opened since the last frame: the next frame puts it on you as that frame has you.
+var _fresh: bool = false
 
 
 ## The map's square this frame (see the fields above).
@@ -25,16 +27,26 @@ func frame(world_centre: Vector2, px_per_m: float, half_side: float, shown_floor
 	half = maxf(half_side, 0.0)
 	floor_y = shown_floor
 	you = you_at
+	if _fresh:
+		_fresh = false
+		at = _kept(you)
 
 
-## Opens on you.
+## Whether there is a square to point on yet (a frame came, and its map has a side).
+func framed() -> bool:
+	return half > 0.0
+
+
+## Opens on you (as the next frame has you).
 func start() -> void:
 	open = true
+	_fresh = true
 	at = _kept(you)
 
 
 ## Moves the pointer by `delta` px, kept on the square.
 func move(delta: Vector2) -> void:
+	_fresh = false
 	at = _kept(at + delta)
 
 
@@ -46,6 +58,7 @@ func world() -> Vector3:
 ## Closed.
 func close() -> void:
 	open = false
+	_fresh = false
 
 
 func _kept(p: Vector2) -> Vector2:
