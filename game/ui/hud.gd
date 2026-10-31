@@ -103,6 +103,9 @@ var _watching_name: String = ""
 var _gauge: HudFlagGauge = null
 var _warning: PanelContainer = null
 var _warning_flag: HudFlagGlyph = null
+var _warning_text: Label = null
+## The pole the warning names (a map with two, AB1): -1 none named yet.
+var _warning_pole: int = -1
 var _flag_marker: HudFlagMarker = null
 var _order_wheel: HudOrderWheel = null
 var _hold_marker: HudHoldMarker = null
@@ -228,9 +231,9 @@ func setup(cfg: HudConfig, teams: TeamConfig, view: ViewConfig, sim: SimTuning, 
 	_warning_flag = HudFlagGlyph.new(HudStyle.WARNING_GLYPH, GameTheme.YELLOW)
 	_warning_flag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	warn_row.add_child(_warning_flag)
-	var warn_text := HudStyle.label(warn_row, HudStyle.WARNING_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER,
+	_warning_text = HudStyle.label(warn_row, HudStyle.WARNING_SIZE, 800, GameTheme.TEXT, HORIZONTAL_ALIGNMENT_CENTER,
 			HudStyle.SPACING_BANNER)
-	warn_text.text = HudStyle.caps("HUD_FLAG_GOING_UP")
+	_warning_text.text = HudStyle.caps("HUD_FLAG_GOING_UP")
 	# The marker over the pole, placed each frame (place_flag_marker).
 	_flag_marker = HudFlagMarker.new()
 	add_child(_flag_marker)
@@ -932,7 +935,9 @@ func update(state: GameState, zoom: float, delta: float) -> void:
 	_score.set_sides(rs.attackers if flag_mode else -1)
 	_gauge.visible = flag_mode
 	if flag_mode and rs.attackers >= 0:
-		_gauge.set_flag(rs.flag.progress, _teams.colours[rs.attackers], rs.attackers == HudStyle.STRIPED_TEAM)
+		# The highest flag: the one nearest winning the round (AB1).
+		var top := rs.flags[maxi(0, Flag.highest(rs.flags))]
+		_gauge.set_flag(top.progress, _teams.colours[rs.attackers], rs.attackers == HudStyle.STRIPED_TEAM)
 	_update_warning(rs, delta)
 	if _readout != null:
 		_readout.visible = state.challenge.phase == RangeChallenge.Phase.OFF
@@ -950,10 +955,18 @@ func use_overtime_flag() -> void:
 	_flag_marker.use_overtime()
 
 
-## Places the marker over the pole at `pole` as seen by `camera` (HudFlagMarker); hidden outside Attack / Defend
-## (`show` false). In Elimination (use_overtime_flag) `pole` is the overtime flag's foot, shown while it stands.
-func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool) -> void:
+## Places the marker over the pole at `pole` as seen by `camera` (HudFlagMarker), naming it `letter` on a map with two
+## (AB1); hidden outside Attack / Defend (`show` false). In Elimination (use_overtime_flag) `pole` is the overtime
+## flag's foot, shown while it stands.
+func place_flag_marker(camera: Camera3D, pole: Vector3, show: bool, letter: String = "") -> void:
+	_flag_marker.set_letter(letter)
 	_flag_marker.place(camera, pole, show, size, pin_point(), pin_right_top(), _left_stack_floor())
+
+
+## The pole the flag marker shows (AB1): the one whose flag is highest, else the one nearest `eye`.
+static func flag_shown(rs: RoundState, eye: Vector3) -> int:
+	var up := Flag.highest(rs.flags)
+	return up if up >= 0 else maxi(0, Flag.nearest(rs.flags, eye))
 
 
 ## Where the first marker pinned to the screen's left edge sits (its plate's top left): under the minimap and its
@@ -1109,6 +1122,11 @@ func flag_warning_shown() -> bool:
 	return _warning.visible
 
 
+## The warning's words ("THEIR FLAG IS GOING UP AT B!" on a map with two poles), for tests.
+func flag_warning_text() -> String:
+	return _warning_text.text
+
+
 ## The round banner's words ("" while it is hidden): for tests.
 func banner_text() -> String:
 	return "%s / %s" % [_banner.big_text(), _banner.sub_text()] if _banner.visible else ""
@@ -1122,14 +1140,18 @@ func score() -> HudScore:
 	return _score
 
 
-## The warning pulses while the other team raises its flag and you aren't at the rope pulling it down; with Reduced
-## motion it holds steady at full.
+## The warning pulses while the other team raises its flag (at either pole, named on a map with two) and you aren't at
+## that rope pulling it down; with Reduced motion it holds steady at full.
 func _update_warning(rs: RoundState, delta: float) -> void:
 	var c := _player
-	var at_rope := Flag.at_pole(c, rs.flag, _sim.flag)
+	var up := Flag.going_up(rs.flags)
 	var show := rs.mode == RoundState.Mode.ATTACK_DEFEND and rs.is_live() and rs.attackers >= 0 \
-			and c.team != rs.attackers and rs.flag.status == FlagState.Status.RAISING and not at_rope
+			and c.team != rs.attackers and up >= 0 and not Flag.at_pole(c, rs.flags[up], _sim.flag)
 	_warning.visible = show
+	if show and rs.flags.size() > 1 and up != _warning_pole:
+		# Which pole, on a map with two (AB1); the text built only when that changes.
+		_warning_pole = up
+		_warning_text.text = (tr("HUD_FLAG_GOING_UP_AT") % Flag.LETTERS[up]).to_upper()
 	if show:
 		_warning_flag.colour = _teams.colours[rs.attackers]
 		_pulse += delta

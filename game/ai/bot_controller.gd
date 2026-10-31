@@ -262,13 +262,15 @@ func _new_round(state: GameState) -> void:
 	world.planner.plan(world)
 
 
-## The round's mode, attacking team, flag and overtime flag, from the sim's round state (the round state's own, read
-## only).
+## The round's mode, attacking team, flags (and the one in play, BotFlag.in_play) and overtime flag, from the sim's
+## round state (the round state's own, read only).
 func _sync_round(state: GameState) -> void:
 	var rs := state.round_state
 	world.mode = rs.mode
 	world.attackers = rs.attackers
-	world.flag = rs.flag
+	world.flags = rs.flags
+	world.flag_index = BotFlag.in_play(world)
+	world.flag = rs.flags[world.flag_index]
 	world.overtime_flag = rs.overtime_flag
 
 

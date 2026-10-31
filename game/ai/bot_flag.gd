@@ -1,8 +1,8 @@
 class_name BotFlag
 ## Attack / Defend for bots (the browser game's ai/bot.ts flagRole and wantsFlag, roundPlanner.ts pickRetakers and
-## pickRaiser): which side of the pole a bot's team is on, which defenders go to pull the flag down, which attacker
-## raises it while the others guard, and when a bot wants the pole; in Elimination, when a bot goes for the overtime flag
-## (OV2). Where it walks there is BotMovement's flag mode.
+## pickRaiser): which side of the pole a bot's team is on, which pole is in play on a map with two (AB1), which defenders
+## go to pull its flag down, which attacker raises it while the others guard, and when a bot wants the pole; in
+## Elimination, when a bot goes for the overtime flag (OV2). Where it walks there is BotMovement's flag mode.
 ## Allocates nothing.
 
 enum Role { NONE, ATTACK, DEFEND }
@@ -13,6 +13,20 @@ static func role(b: Bot, w: BotWorld) -> Role:
 	if w.mode != RoundState.Mode.ATTACK_DEFEND or w.attackers < 0:
 		return Role.NONE
 	return Role.ATTACK if b.character.team == w.attackers else Role.DEFEND
+
+
+## The pole in play (BotWorld.flag): the one whose flag is highest, so both teams go where a flag is going up (the
+## player's too), else the one the attackers drew for the round (RoundPlanner.attack_flag).
+static func in_play(w: BotWorld) -> int:
+	var up := Flag.highest(w.flags)
+	if up >= 0:
+		return up
+	return clampi(w.planner.attack_flag, 0, w.flags.size() - 1) if w.planner != null else 0
+
+
+## Where defender `b` holds and searches round (BotBrain): the pole nearest the end of the lane it was dealt, its site.
+static func post_of(b: Bot, w: BotWorld) -> Vector3:
+	return w.flags[maxi(0, Flag.nearest(w.flags, b.lane_goal))].position
 
 
 ## Holding a post rather than hunting once its lane is walked: a defender (at the point it was dealt) or an anchor.

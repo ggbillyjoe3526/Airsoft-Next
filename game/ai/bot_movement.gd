@@ -68,6 +68,7 @@ static func _pick_flag_spot(b: Bot, w: BotWorld) -> void:
 	var cfg := w.cfg
 	var pole := BotFlag.spot(w)
 	b.flag_guard = _guards_flag(b, w)
+	b.flag_pole = w.flag_index
 	b.team_wait = 0.0
 	b.flanking = false
 	BotRoutes.drop(b)
@@ -133,8 +134,9 @@ static func _overtime_flank_point(b: Bot, w: BotWorld, flag: Vector3) -> void:
 ## In overtime, round the side first when flanking (_overtime_flank_point).
 static func _flag(b: Bot, w: BotWorld, cmd: PlayerCommand, dt: float) -> bool:
 	var cfg := w.cfg
-	# The raiser changed (hit, or the player took the rope), or an overtime watch is over: raise, or guard, instead.
-	if b.flag_guard != _guards_flag(b, w):
+	# The raiser changed (hit, or the player took the rope), or an overtime watch is over: raise, or guard, instead. The
+	# pole in play changed (a flag went up at the other, AB1): to that one.
+	if b.flag_guard != _guards_flag(b, w) or b.flag_pole != w.flag_index:
 		_pick_flag_spot(b, w)
 	if b.flanking:
 		BotRoutes.want(b, b.flank_goal, cfg)
