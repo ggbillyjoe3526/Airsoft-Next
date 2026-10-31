@@ -222,6 +222,6 @@ func test_the_check_lists_partition_the_checks_and_known_failing_filters_by_them
 	assert_eq(FieldStandard.known_failing("nowhere"), PackedStringArray())
 	assert_eq(FieldStandard.sightline_limit("nowhere"), FieldStandard.LONGEST_SIGHTLINE)
 	assert_eq(FieldStandard.sightline_reason("nowhere"), "")
-	for id in ["depot", "woodland"]:
+	for id: String in ["depot", "woodland"]:
 		assert_gt(FieldStandard.sightline_limit(id), FieldStandard.LONGEST_SIGHTLINE, "%s's hall or woods" % id)
 		assert_false(FieldStandard.sightline_reason(id).is_empty(), "%s says why" % id)

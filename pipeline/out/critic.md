@@ -1,36 +1,37 @@
-Task: UI1 · Compact, steady menus after William's second look (fix, UI)
-Attempt: 2 of 4 (fix round 3, after attempt 1's Retry 7/8)
-Head: 12a4644 (worker's gate: unit parts 885, 2006, 976 all pass, smoke PASS; Godot not run by the critic, QA is in the tree)
-Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✓ | 7 ✓ | 8 ✓
-Score: 8/8 → Accept, final once QA's re-check at 12a4644 says Pass (a missing or failing QA report holds it at Retry)
-Performance: Pass at bea0818 stands by reading. Round 3 adds no _process and no per-frame work: tooltips are strings
-set at build time, _cost_heading runs once per column, and the glow pick sets three tooltip strings per pick.
-Attempt 1's five must-fixes, each closed (seen in code and in the ui1-r3-after-1080 pictures):
-- Graphics: GPU COST heads each column's squares (settings_graphics_page.gd _cost_heading); the CostSquares doc is
-  corrected. Picture settings-3-graphics: both columns labelled, right-aligned over the squares.
-- Customise › BBs: the weight and hop-up paragraphs are the slider and readout tooltips; one line stays, "Turn it in a
-  match with 4 and 5." (CUSTOMISE_HOP_KEYS); the glow blurb is the choice's tooltip, so a pick rewrites nothing
-  (customise_view.gd _slider_block, glow refresh). Picture bbs-as-comes: no paragraphs.
-- Controls: the order-wheel paragraph is the choice's tooltip via explain (settings_screen.gd), like Crouch and Aim.
-- Armory: one Difficulty row, Easy ×0.5 · Normal ×1 · Hard ×1.5, with the rest as its tooltip (armory_summary.gd).
-- Dev: one records line; the full list and every row's note are tooltips (settings_screen.gd _build_dev).
-Check 4: three new tests in test_ui1_menus.gd assert the paragraphs are gone and their words are tooltips, GPU COST over
-each column, and a glow pick moving or rewriting nothing. Each would fail on f20e018. test_armory.gd and
-test_glow_bbs.gd follow the new row and tooltip.
-Items 2, 4 and 5 stay met (attempt 1's evidence: test_ui1_menus.gd:149, :210, :392; test_ui1_qa.gd:491).
-Must-fix: none.
-HUD SIZE's duplicate "100%" (settings_hud_page.gd:219): not a must-fix. It is the default mark under the track and
-overlaps nothing. Its job is to show where the default is once the value moves; only at the default does it repeat
-the readout. Advisory: hide its words while the value equals the default, or draw it as a tick without a number.
-Advisories (not blocking):
-- Match: the area under Mode and Rules is empty, and the team buttons are 48 px tall against the 34 px control height.
-- Accessibility: "Your system asks for reduced motion: It doesn't say" reads oddly (en.po:3077).
-- Customise pictures show COLOUR and BBs both outlined: a focus ring left by the picture script, as it was in round 2.
-  Check by hand that a mouse pick leaves only one outlined.
-- settings_screen.gd has grown to about 770 lines (665 on main); split a page out when next touched.
-Owner should test in the game:
-- At 4K, click every Settings switch and choice: nothing else on the screen moves or changes.
-- Customise: press LOADOUT, hold, drag off and let go: it always reads LOADOUT.
-- Graphics: FOR YOUR CARD sits above its preset, and GPU COST reads as the squares' heading.
-- Hover the moved help (BB weight, hop-up, glowing BBs, order wheel, Dev rows, Difficulty): the tooltips come soon enough.
-- Match at 1080 and 4K: whether the layout reads balanced to you.
+Task: DR1 · Depot rebuilt as the indoor hall of concept 3
+Attempt: 1 of 4
+Head: 0821da4 (checks passed per the brief; perf ran on 93e3d55, QA's DR1 report not on disk: qa-report.md is SF2's)
+Checks: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓ | 5 ✓ | 6 ✗ | 7 ✓ | 8 ✗
+Score: 6/8 → Retry (near miss, judgment; also held at Retry until QA re-checks 0821da4 and says Pass)
+Failed checks, with evidence (file:line, one or two lines each, each marked measured or judgment):
+6. [judgment] Pillar 3 (spaces matter): the east wall is one open 70 m lane, A site (44, -34.5) to B site (53, 34.5),
+   through A stairs (layout.py:118), the defenders' spawn room (layout.py:119) and B site (layout.py:124). The screens
+   at layout.py:248-249 cover x 47-51 only, so eye lines from B site (52-53, z 20-30) and A site (53, z -20 to -25)
+   reach the east spawns at (50, 0.5-8) (ray test on depot.json's blocks). Concept 3 promised "longest lines 48 m" and
+   "no spawn point visible from outside its spawn", but its analyze.py:157 only tested SPAWNS_W, so the owner never saw
+   either number. The DR1 test copies that blind spot: test_depot_hall.gd:94 skips every point with x * own_x > 43.5,
+   the east halves of both sites as well as the Loading bay. Its name, and the record (DR1.md:41), claim more than it checks.
+8. [judgment] field_standard.gd:77-81 adds a 70 m sightline exception and says it is the owner's word ("asked for ...
+   longer sight lines"). The owner approved 48 m lines and bots seeing 55 m, not a 70 m line. DECISIONS 2026-10-11 (CT2)
+   asks for his word, and CLAUDE.md §7 says to ask him at once. The exception is not in DECISIONS or the record's Defaults taken.
+   Stale docs: KNOWN_ISSUES.md:19 says the site look draws the pillars plain grey, but 0821da4 gave them a raspberry finish
+   (site_look.gd); FEATURES.md:55 still says "a Custom 1v1 greys Teammates out", which no map allows now; the wiki's
+   example callout "Crate yard" (Accessibility.md:42, HUD-and-Minimap.md:38) names an area Depot no longer has.
+Must-fix for the next attempt:
+- Screen the Loading bay's north and south mouths (widen the stairs and ramp screens toward x 54, leaving a walk-round),
+  so no line from either site reaches an east spawn and the east wall's line drops to the 48 m class. Then remove the
+  depot exception, or put the 70 m line to the owner as a question and record his answer in DECISIONS.
+- test_depot_hall.gd:94: skip the spawn's own room only (Staging or the Loading bay zone, not x > 43.5), so the test
+  fails on today's layout and passes once the screens are in.
+- Fix the stale KNOWN_ISSUES row and the FEATURES 1v1 clause. Swap the wiki's "Crate yard" example for a hall name.
+- QA re-checks 0821da4 and writes its DR1 report.
+Advisory (not blocking): roof_view.gd:468 hard-codes the ceiling's 0.2 m (MapLevel.CEILING_THICKNESS) and :507 the lamps'
+0.08 m; roof_view.gd:529-531 builds untyped Arrays (PackedVector3Array would type them); MapStyle and SiteLook hold the
+five new colours twice; 0821da4's shader slots (32 to 40) and rebake came after the perf run.
+Owner should test in the game (at most 6, one line each):
+- Does the hall feel indoors? The sun at 76° shines through the roof and casts hard shadows from every wall.
+- The two tunnels on Low and on Ultra: dark, but never pitch black?
+- Look up from every lane: ceiling, trusses and lamps, with no sky or gap at the eaves.
+- Stand on B site and look north along the east wall: you can see into the defenders' spawn.
+- A 6v6 Normal match: frame time (F3) in the Chrono hall.
+- The yard's birds and dog under the roof (known, can wait): how much does it jar?

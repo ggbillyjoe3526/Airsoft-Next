@@ -37,9 +37,13 @@ the callout names kept, the Range its own map.
 - The old yard is `tests/support/maps/yard.json` (`YardMap`), without its bake: the tests written against its layout
   (bots, ports and the Box, crossfires, flag holds, the hall wall vault) load it; the Custom rules tests read Depot's
   5v5 and 6v6; the dress tests take sandbags from the range and the bad-sail case from the yard.
+- Each spawn room's two mouths are chicanes of two crate screens, and a crate screen stands at the Drum alley's mouth
+  in the Box yard (critic, attempt 1: the concept's single screens left a 70 m line down the east wall through the
+  defenders' spawn, and a 65 m line from the Lounge to the Box yard; the concept measured spawn sight for one end only).
 - `tests/unit/test_depot_hall.gd` (new): the file loads clean with six a side, the roof's lamps cast no shadow, a ray
-  up meets the ceiling as steel, bots see 55 m on a copy, the sun's angle, no spawn seen from the floor, and the run
-  times (Chrono hall within 1.5 s; each end owns a side lane by 1 to 4 s).
+  up meets the ceiling as steel, bots see 55 m on a copy, the sun's angle, no spawn seen from anywhere on the floor
+  outside its own room (both sites, stairs and ramps included; it fails on attempt 1's layout), and the run times
+  (Chrono hall within 1.5 s; each end owns a side lane by 1 to 4 s).
 
 ## Defaults taken
 
@@ -47,6 +51,9 @@ the callout names kept, the Range its own map.
   not lights (no per-lamp cost). The tunnels are dark from the bake's lids alone.
 - The yard's ambience stays (KNOWN_ISSUES); the Lounge is lit like the rest (KNOWN_ISSUES).
 - Doors stand as open gaps until DO1; Attack / Defend keeps one flag, on A site, until AB1 (KNOWN_ISSUES).
+- Sightline exception: the longest line is 64.6 m, across the open Chrono hall from Lower mid to Upper mid, against the
+  field standard's 34 m. It is in `FieldStandard.EXCEPTIONS` at 66 m and put to the owner as a question (keep it open,
+  or break it up to about 48 m); his answer goes in DECISIONS.
 
 ## Checks
 

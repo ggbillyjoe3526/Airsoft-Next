@@ -75,9 +75,10 @@ const MAX_RAMP_SLOPE := 0.5
 ## FieldChecks words them) with "clash_reason", "sightline" (m, FC2) with "sightline_reason".
 const EXCEPTIONS: Dictionary[String, Dictionary] = {
 	"depot": {
-		"sightline": 70.0,
-		"sightline_reason": "down the defenders' end from A site to B site, 70 m: the owner asked for a larger, more "
-				+ "open hall with longer sight lines and approved concept 3 (2026-10-31, DR1); bots there see 55 m",
+		"sightline": 66.0,
+		"sightline_reason": "across the open Chrono hall on the middle lane, Lower mid to Upper mid, 65 m: the owner "
+				+ "asked for a larger, more open hall with longer sight lines and approved concept 3 and its open "
+				+ "middle (2026-10-31, DR1); bots there see 55 m",
 	},
 	"woodland": {
 		"sightline": 141.0,

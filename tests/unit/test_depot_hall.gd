@@ -84,14 +84,14 @@ func test_no_spawn_is_seen_from_the_floor() -> void:
 	var eye := tuning.body.stand_eye_height
 	var seen := PackedStringArray()
 	for e in 2:
-		var own_x := -1.0 if e == 0 else 1.0
+		var room := "Staging" if e == 0 else "Loading bay"
 		for s in map.ends[e].spawns:
 			var from := s.position + Vector3.UP * eye
-			for i in range(-53, 54, 2):
-				for j in range(-35, 36, 2):
-					var p := Vector3(i, 0.0, j)
-					# The other team's floor: everywhere past the spawn's own room (Staging or the Loading bay).
-					if p.x * own_x > 43.5 or not nav.is_walkable_at(p):
+			for i in range(-53, 54, 1):
+				for j in range(-35, 36, 1):
+					var p := Vector3(i + 0.5, 0.0, j + 0.5)
+					# Everywhere on the floor but the spawn's own room: both sites, the stairs and the ramp too.
+					if MapAreas.area_at(map.areas, p) == room or not nav.is_walkable_at(p):
 						continue
 					if not q.ray(from, p + Vector3.UP * eye, hit):
 						seen.append("%s from %s" % [s.position, p])

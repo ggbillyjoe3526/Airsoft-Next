@@ -143,9 +143,12 @@ zone("B alley", "x", 38, 7.5, 41, 17.5)                          # Garage <-> B 
 # ================================================================ PIECES
 # --- Staging (west spawn): gear racks screen the spawn from the Mid exit
 add("crates", -46.4, -8.6, -45.6, 1.2)
-box("crates", -48.5, -13.0, 3.0, 1.0)                # stairs screen: no line from the Yard into the spawn
-box("crates", -48.5, 5.0, 3.0, 1.0)                  # stairs screen, south
-box("lowcrate", -52.5, -11.2, 2.0, 1.0)
+# Each stairs mouth is a chicane of two screens, so no straight line from the Yard, the Pens or the stairs reaches a
+# spawn (DR1 critic): in by the screen's west gap, along between them, out by the inner screen's east gap.
+add("crates", -50.5, -13.5, -44.5, -12.5)             # north stairs screen, gap west
+add("crates", -54.0, -10.5, -48.5, -9.5)              # inner screen, gap east
+add("crates", -50.5, 4.5, -44.5, 5.5)                 # south stairs screen, gap west
+add("crates", -54.0, 1.5, -48.5, 2.5)                 # inner screen, gap east
 SPAWNS_W = [(-50.0, z) for z in (-8.0, -6.5, -5.0, -3.5, -2.0, -0.5)]
 DEAD_W = (-52.8, -4.5)                                # the dead zone, behind the spawn line
 
@@ -245,9 +248,13 @@ FLAG_A = (44.0, -27.0)
 
 # --- Loading bay (east spawn)
 add("crates", 45.6, -1.2, 46.4, 8.6)
-box("crates", 48.5, 13.0, 3.0, 1.0)                  # ramp screen
-box("crates", 49.5, -5.0, 3.0, 1.0)                   # stairs screen
-box("lowcrate", 52.5, 11.2, 2.0, 1.0)
+# Each mouth is a chicane of two screens, so no straight line from A site, the stairs, the ramp or B site reaches a
+# spawn (DR1 critic: one screen left the east wall a 70 m lane through the spawn): in by the screen's east gap, along
+# between them, out by the inner screen's west gap.
+add("crates", 45.5, -5.0, 50.5, -4.0)                 # stairs screen, gap east
+add("crates", 48.5, -2.0, 54.0, -1.0)                 # inner screen, gap west
+add("crates", 45.5, 12.5, 50.5, 13.5)                 # ramp screen, gap east
+add("crates", 48.5, 9.5, 54.0, 10.5)                  # inner screen, gap west
 SPAWNS_E = [(50.0, z) for z in (0.5, 2.0, 3.5, 5.0, 6.5, 8.0)]
 DEAD_E = (52.8, 4.5)
 
@@ -279,6 +286,7 @@ box("crates", -7.2, 22.25, 2.4, 2.3)
 box("crates", 9.2, 22.25, 2.4, 2.3)
 box("crates", -3.0, 28.5, 2.4, 2.4)
 box("lowcrate", 4.0, 16.0, 2.6, 1.0)
+add("crates", -9.0, 16.0, -3.5, 17.0)                # screens the Drum alley mouth: no 65 m line from the Lounge
 box("crates", 10.5, 17.5, 2.4, 2.4)                   # breaks the strip from the Huts to B
 box("barrels", 8.5, 29.5, 1.3, 0.65)
 
@@ -287,14 +295,16 @@ FLAGS = [FLAG_A, FLAG_B]
 
 # ================================================================ the bots' lanes (end 0's side to end 1's)
 LANES = {
-    "n": [(-50.5, -8.5), (-51, -12.5), (-48.5, -16), (-46.5, -21.5), (-42.6, -26.4), (-36, -26), (-28, -24.5),
+    "n": [(-47.5, -8.5), (-47.5, -11.5), (-51.5, -11.5), (-51.5, -14.5), (-48.5, -16), (-46.5, -21.5), (-42.6, -26.4), (-36, -26), (-28, -24.5),
           (-19, -21), (-11.5, -22.6), (-6, -22), (3, -21.2), (10, -24), (18, -24), (27, -24), (30, -23.5),
-          (36, -25), (44, -22.5), (49.5, -18), (49.5, -6.2)],
-    "m": [(-48, 2.6), (-40, -1), (-30, -8.5), (-23, -12.5), (-16, -12.5), (-9, -7.5), (-1, -7), (8, -5),
-          (15, 0), (19, 5.5), (25.5, 4.6), (29.5, 2.2), (34, 2.2), (35.5, 5.5), (41, 6.2), (44.6, 9.8), (48.5, 10)],
-    "s": [(-50.5, 2.6), (-51, 6.5), (-48.5, 10), (-48.5, 15), (-45, 19), (-37, 22), (-30, 19.5), (-21, 19.5),
+          (36, -25), (44, -22.5), (49.5, -18), (52, -6.5), (52, -3),
+          (47.5, -3), (47.5, -0.5)],
+    "m": [(-47.2, 2.0), (-45, 1.5), (-40, -1), (-30, -8.5), (-23, -12.5), (-16, -12.5), (-9, -7.5), (-1, -7), (8, -5),
+          (15, 0), (19, 5.5), (25.5, 4.6), (29.5, 2.2), (34, 2.2), (35.5, 5.5), (41, 6.2), (44.6, 9.8), (47.5, 8.5)],
+    "s": [(-47.5, 0.5), (-47.5, 3.5), (-51.5, 3.5), (-51.5, 6.5), (-48.5, 10), (-48.5, 15), (-45, 19), (-37, 22), (-30, 19.5), (-21, 19.5),
           (-14, 24.5), (-9.5, 24.6), (-8, 19.5), (-4, 18.2), (5, 18.8), (12, 18.6), (20, 18.6), (27.5, 18.4),
-          (31, 20.5), (33, 18.8), (39, 20.5), (44, 21.5), (49.5, 18), (49.5, 11.5)],
+          (31, 20.5), (33, 18.8), (39, 20.5), (44, 21.5), (49.5, 18), (52, 15), (52, 11.5),
+          (47.5, 11.5), (47.5, 8.5)],
 }
 
 
