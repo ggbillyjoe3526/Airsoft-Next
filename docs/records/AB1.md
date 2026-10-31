@@ -1,6 +1,6 @@
 # AB1 · Two flags in Attack / Defend
 
-**Review:** pending
+**Review:** critic Accept 8/8 · qa Pass · performance Pass
 
 ## Attempts
 
@@ -9,7 +9,7 @@
 | 2026-10-31 | 1 | thread | two-flag and flag tests pass; full suite on CI | Retry 6/8 | the highest flag, not the one going up, was in play (a flag started under a stalled higher one went unanswered) and the HUD's marker and warning could name different poles; docs promised otherwise; the ruling missing from DECISIONS; the letter's billboard had no prewarm (performance) |
 | 2026-10-31 | 2 | thread | two-flag (15), flag, minimap and QA tests pass | Retry 7/8 | the pole in play flipped as a contested rope flipped to raising and back, so bots on it dithered and the gauge jumped |
 | 2026-10-31 | 3 | thread | two-flag (17), bot flag, QA and squad order tests pass | Retry 7/8 | a defender on one pole's worked rope could be filled into the pole in play when that was the other one |
-| 2026-10-31 | 4 | thread | two-flag (18), bot flag and wider flag tests pass | | |
+| 2026-10-31 | 4 | thread | two-flag (18), QA (13), bot flag, overtime bot and wider flag tests pass | Accept 8/8 | – |
 
 ## Goal
 
@@ -60,8 +60,12 @@ CC0 dress.
 
 ## Checks
 
-- Locally: `tests/unit/test_two_flags.gd` (14) and the flag, bot flag, minimap, map and Depot tests pass; gdlint, the
+- Locally: `tests/unit/test_two_flags.gd` (18), QA's `tests/unit/test_ab1_qa.gd` (13) and the flag, bot flag, minimap, map and Depot tests pass; gdlint, the
   wiki check and the changelog check pass. CI runs the full suite and the match guards (now with both of Depot's
   poles) on the merge head.
-- For the owner to play: whether A and B read from across the hall, whether the bots' split between A and B feels
-  right (do they ever stack on one site too often?), and whether the marker should show both poles at once.
+- Reviews: critic Retry 6/8, 7/8, 7/8, then Accept 8/8; QA passed attempt 1, failed a re-check (a test still calling
+  the old `spot`), then passed; performance failed attempt 1 (the letter's prewarm), then passed.
+- For the owner to play: whether A and B read from across the hall and the spawn chicanes; raising B while your bots
+  fight at A late in a round (does A's defender stay and another come to B?); whether the bots' A/B split feels varied;
+  whether the marker (the pole in play) and the warning (the flag going up) ever confuse by naming different poles;
+  whether the minimap's two unlettered poles are clear; whether the marker should show both poles at once.
